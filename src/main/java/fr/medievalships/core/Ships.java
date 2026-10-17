@@ -77,7 +77,20 @@ public final class Ships {
 		public static final double PILOT_Z = -10.35;
 		/** Stairs: x range (both sides) and z ranges of the steps, lowest step first. */
 		public static final double STAIR_X0 = 1.9;
-		public static final double STAIR_X1 = 3.5;
+		public static final double STAIR_X1 = 3.6;
+		public static final double FC_STAIR_X0 = 1.5;
+		public static final double FC_STAIR_X1 = 3.0;
+		/** Guard rails at the front of the castles, between the stairs. */
+		public static final double RAIL_HEIGHT = 0.9;
+		public static final double RAIL_THICK = 0.12;
+		/** Stern balcony (gallery) outside the great cabin, through a door in the transom. */
+		public static final double BALCONY_BACK = -18.3;
+		public static final double BALCONY_HALF = 2.3;
+		public static final double BALCONY_FLOOR = 0.25;
+		public static final double BALCONY_RAIL = 1.0;
+		/** Decorative gun ports in the bulwarks of the main deck (future cannons). */
+		public static final double[] GUNPORT_Z = {-6.0, -3.0, 0.0, 2.75, 5.5, 8.0};
+		public static final double GUNPORT_Y = 1.62;
 		public static final double QD_STAIR_START = -6.0;
 		public static final double FC_STAIR_START = 8.5;
 		public static final double STEP_DEPTH = 0.5;
@@ -129,10 +142,25 @@ public final class Ships {
 		solids.add(new ShipGeometry.LocalBox(door, main, bz0, bw, slabBottom, bz1));
 		solids.add(new ShipGeometry.LocalBox(-bw, main, bz0, -door, slabBottom, bz1));
 		solids.add(new ShipGeometry.LocalBox(-door, GalleonLayout.DOOR_TOP, bz0, door, slabBottom, bz1));
-		// transom (flat stern) from the keel to the rail
+		// transom (flat stern) from the keel to the rail, with the balcony door of the great cabin
 		double tw = hull.halfWidth(GalleonLayout.TRANSOM_Z) + 0.05;
-		solids.add(new ShipGeometry.LocalBox(-tw, hull.keelY(hull.halfLength), -hull.halfLength, tw,
-				hull.railY(GalleonLayout.TRANSOM_Z) + 0.1, GalleonLayout.TRANSOM_Z + 0.05));
+		double tz0 = -hull.halfLength, tz1 = GalleonLayout.TRANSOM_Z + 0.05, tTop = hull.railY(GalleonLayout.TRANSOM_Z) + 0.1;
+		solids.add(new ShipGeometry.LocalBox(-tw, hull.keelY(hull.halfLength), tz0, tw, main, tz1));
+		solids.add(new ShipGeometry.LocalBox(door, main, tz0, tw, tTop, tz1));
+		solids.add(new ShipGeometry.LocalBox(-tw, main, tz0, -door, tTop, tz1));
+		solids.add(new ShipGeometry.LocalBox(-door, GalleonLayout.DOOR_TOP, tz0, door, tTop, tz1));
+		// stern balcony: floor and balustrade
+		double bh = GalleonLayout.BALCONY_HALF, bb = GalleonLayout.BALCONY_BACK, rt = GalleonLayout.RAIL_THICK;
+		double railTop = main + GalleonLayout.BALCONY_RAIL;
+		solids.add(new ShipGeometry.LocalBox(-bh, main - GalleonLayout.BALCONY_FLOOR, bb, bh, main, tz0));
+		solids.add(new ShipGeometry.LocalBox(-bh, main, bb, bh, railTop, bb + rt));
+		solids.add(new ShipGeometry.LocalBox(bh - rt, main, bb, bh, railTop, tz0));
+		solids.add(new ShipGeometry.LocalBox(-bh, main, bb, -bh + rt, railTop, tz0));
+		// guard rails at the front of the quarterdeck and of the forecastle, between the stairs
+		double qx = GalleonLayout.STAIR_X0 - 0.1, fx = GalleonLayout.FC_STAIR_X0 - 0.1;
+		solids.add(new ShipGeometry.LocalBox(-qx, qd, GalleonLayout.BULKHEAD_Z - rt, qx, qd + GalleonLayout.RAIL_HEIGHT, GalleonLayout.BULKHEAD_Z));
+		solids.add(new ShipGeometry.LocalBox(-fx, fc, GalleonLayout.FORECASTLE_START, fx, fc + GalleonLayout.RAIL_HEIGHT,
+				GalleonLayout.FORECASTLE_START + rt));
 		// poop house and its roof
 		solids.add(new ShipGeometry.LocalBox(-GalleonLayout.POOP_HALF, qd, GalleonLayout.POOP_BACK,
 				GalleonLayout.POOP_HALF, GalleonLayout.POOP_WALL_TOP, GalleonLayout.POOP_FRONT));
@@ -151,7 +179,7 @@ public final class Ships {
 			double top = main + (fc - main) * k / 4.0;
 			double zBack = GalleonLayout.FC_STAIR_START + (k - 1) * d;
 			for (double side : new double[] {1, -1}) {
-				solids.add(box(side, x0, x1, main, top, zBack, zBack + d));
+				solids.add(box(side, GalleonLayout.FC_STAIR_X0, GalleonLayout.FC_STAIR_X1, main, top, zBack, zBack + d));
 			}
 		}
 
@@ -186,7 +214,16 @@ public final class Ships {
 		spec.probeHeights = new double[] {0.15, 1.2, 3.2};
 		spec.boardMinZ = GalleonLayout.POOP_FRONT + 0.4;
 		spec.boardMaxZ = 16.0;
-		spec.avoidZ = benchZ;
+		// bench rows, and the cabin bulkhead (never board against it)
+		spec.avoidZ = new double[] {benchZ[0], benchZ[1], benchZ[2], benchZ[3], GalleonLayout.BULKHEAD_Z};
+		spec.sternPost = false;
+		List<ShipGeometry.Gunport> ports = new ArrayList<>();
+		for (double side : new double[] {1, -1}) {
+			for (double z : GalleonLayout.GUNPORT_Z) {
+				ports.add(new ShipGeometry.Gunport(ports.size(), side * hull.halfWidth(z), GalleonLayout.GUNPORT_Y, z, (int) side));
+			}
+		}
+		spec.gunports = List.copyOf(ports);
 		return new ShipType("galleon", "grand galion", new ShipGeometry(hull, spec), Ships::galleonConfig);
 	}
 

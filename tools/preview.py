@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Software renderer for the galley .bbmodel (reference implementation of the
-mod's model loader: same transform, UV and animation rules).
+"""Software renderer for the ship .bbmodel files (reference implementation of the
+mod's model loader: same transform, UV and animation rules, several textures).
 
-Usage: python3 tools/preview.py [model.bbmodel] [texture.png] [out.png] [--anim row=0.5,steer=1.6]
+Usage: python3 tools/preview.py [model.bbmodel] [texture.png|-] [out.png] [--anim=row=0.5,steer=1.6] [--scale=1.7]
 """
 import base64
 import io
@@ -125,7 +125,7 @@ def build_mesh(model, anim_times=None):
                 p = transform(p, chain)
                 corners.append(np.array([-p[0] / 16, p[1] / 16, -p[2] / 16]))
                 uvs.append((u1 + (u2 - u1) * cu, v1 + (v2 - v1) * cv))
-            quads.append((corners, uvs, glow))
+            quads.append((corners, uvs, glow, face["texture"]))
 
     for g in model["outliner"]:
         walk(g, [])
@@ -143,7 +143,7 @@ def render(quads, tex, W, H, eye, target, fov=None, ortho=None, bg=(28, 33, 48))
     img = np.zeros((H, W, 3), float)
     img[:] = bg
     zbuf = np.full((H, W), np.inf)
-    tw, th = tex.shape[1], tex.shape[0]
+    texs = tex if isinstance(tex, list) else [tex]
     light = np.array([0.4, 0.8, -0.45])
     light /= np.linalg.norm(light)
 
@@ -156,7 +156,9 @@ def render(quads, tex, W, H, eye, target, fov=None, ortho=None, bg=(28, 33, 48))
         f = (H / 2) / math.tan(math.radians(fov) / 2)
         return np.array([W / 2 + x * f / z, H / 2 - y * f / z, z])
 
-    for corners, uvs, glow in quads:
+    for corners, uvs, glow, ti in quads:
+        tex = texs[ti if ti < len(texs) else 0]
+        tw, th = tex.shape[1], tex.shape[0]
         P = [project(c) for c in corners]
         n = np.cross(corners[1] - corners[0], corners[3] - corners[0])
         nn = np.linalg.norm(n)
@@ -216,21 +218,28 @@ def main():
             for kv in a[7:].split(","):
                 k, v = kv.split("=")
                 anim[k] = float(v)
+    scale = 1.0
+    for a in sys.argv[1:]:
+        if a.startswith("--scale="):
+            scale = float(a[8:])
     model = json.load(open(model_path))
-    if len(args) > 1:
+    if len(args) > 1 and args[1] != "-":
         tex = np.array(Image.open(args[1]).convert("RGBA")).astype(float)
     else:
-        src = model["textures"][0]["source"].split(",", 1)[1]
-        tex = np.array(Image.open(io.BytesIO(base64.b64decode(src))).convert("RGBA")).astype(float)
+        tex = []
+        for t in model["textures"]:
+            src = t["source"].split(",", 1)[1]
+            tex.append(np.array(Image.open(io.BytesIO(base64.b64decode(src))).convert("RGBA")).astype(float))
     quads = build_mesh(model, anim)
     tgt = (0, 4.5, 0)
+    k = scale
     views = [
-        ("Vue Perspective", dict(W=900, H=560, eye=(-22, 11, 17), target=(0, 4.0, 0.5), fov=50)),
-        ("Vue Avant", dict(W=440, H=560, eye=(0, 3.5, 60), target=(0, 6, 0), ortho=17)),
-        ("Vue Arriere", dict(W=440, H=560, eye=(0, 3.5, -60), target=(0, 6, 0), ortho=17)),
-        ("Vue Droite", dict(W=900, H=480, eye=(-60, 5, 0), target=(0, 5.5, 0), ortho=31)),
-        ("Vue Gauche", dict(W=900, H=480, eye=(60, 5, 0), target=(0, 5.5, 0), ortho=31)),
-        ("Vue Dessus", dict(W=440, H=480, eye=(0, 60, 0.01), target=(0, 0, 0), ortho=26)),
+        ("Vue Perspective", dict(W=900, H=560, eye=(-22 * k, 11 * k, 17 * k), target=(0, 4.0 * k, 0.5), fov=50)),
+        ("Vue Avant", dict(W=440, H=560, eye=(0, 3.5, 60 * k), target=(0, 6 * k, 0), ortho=17 * k)),
+        ("Vue Arriere", dict(W=440, H=560, eye=(0, 3.5, -60 * k), target=(0, 6 * k, 0), ortho=17 * k)),
+        ("Vue Droite", dict(W=900, H=480, eye=(-60 * k, 5, 0), target=(0, 5.5 * k, 0), ortho=31 * k)),
+        ("Vue Gauche", dict(W=900, H=480, eye=(60 * k, 5, 0), target=(0, 5.5 * k, 0), ortho=31 * k)),
+        ("Vue Dessus", dict(W=440, H=480, eye=(0, 60 * k, 0.01), target=(0, 0, 0), ortho=26 * k)),
     ]
     imgs = []
     for title, kw in views:

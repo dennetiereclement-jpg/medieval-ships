@@ -347,9 +347,10 @@ public abstract class ShipEntity extends Entity {
 
 		// ---- buoyancy: follow the water surface under the hull
 		double dy = 0;
-		double sBow = shipWorld.waterSurface(before.worldX(0, 7), before.worldZ(0, 7), getY());
+		double probe = 0.7 * geometry().hull().halfLength; // 7 blocks for the galley
+		double sBow = shipWorld.waterSurface(before.worldX(0, probe), before.worldZ(0, probe), getY());
 		double sMid = shipWorld.waterSurface(getX(), getZ(), getY());
-		double sStern = shipWorld.waterSurface(before.worldX(0, -7), before.worldZ(0, -7), getY());
+		double sStern = shipWorld.waterSurface(before.worldX(0, -probe), before.worldZ(0, -probe), getY());
 		double sum = 0;
 		int n = 0;
 		for (double s : new double[] {sBow, sMid, sStern}) {
@@ -396,7 +397,7 @@ public abstract class ShipEntity extends Entity {
 			if (ConfigManager.server().chunkLoadAutopilotShips) {
 				ChunkPos here = new ChunkPos(BlockPos.ofFloored(getX(), getY(), getZ()));
 				world.getChunkManager().addTicket(ChunkTicketType.PORTAL, here, ConfigManager.server().chunkLoadRadius);
-				double ahead = 24 * Math.signum(physics.speed == 0 ? 1 : physics.speed);
+				double ahead = Math.max(24, geometry().aiReach() + 8) * Math.signum(physics.speed == 0 ? 1 : physics.speed);
 				ChunkPos front = new ChunkPos(BlockPos.ofFloored(after.worldX(0, ahead), getY(), after.worldZ(0, ahead)));
 				if (!front.equals(here)) {
 					world.getChunkManager().addTicket(ChunkTicketType.PORTAL, front, ConfigManager.server().chunkLoadRadius);

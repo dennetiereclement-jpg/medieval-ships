@@ -61,6 +61,23 @@ class GalleonTest {
 	}
 
 	@Test
+	void hullMatchesModelGenerator() {
+		// values computed by tools/galleon_shape.py
+		double[][] expected = {
+				{-17.3, 2.471775, 4.6, -0.455205, -0.262115},
+				{-12.0, 3.940918, 4.6, -1.426209, -1.237139},
+				{0.0, 4.5, 2.2, -1.8, -1.657778},
+				{9.0, 3.786599, 2.35174, -1.663434, -1.411461},
+				{15.5, 1.998372, 4.0, -0.884505, -0.132676}};
+		for (double[] e : expected) {
+			assertEquals(e[1], H.halfWidth(e[0]), 1e-5);
+			assertEquals(e[2], H.railY(e[0]), 1e-5);
+			assertEquals(e[3], H.keelY(e[0]), 1e-5);
+			assertEquals(e[4], H.bottomY(e[0], 2.0), 1e-5);
+		}
+	}
+
+	@Test
 	void sixteenSeats() {
 		List<ShipGeometry.Seat> seats = G.seats();
 		assertEquals(16, seats.size());
@@ -111,6 +128,7 @@ class GalleonTest {
 	@Test
 	void stairsAreClimbable() {
 		double x = (GalleonLayout.STAIR_X0 + GalleonLayout.STAIR_X1) / 2;
+		double fx = (GalleonLayout.FC_STAIR_X0 + GalleonLayout.FC_STAIR_X1) / 2;
 		for (double side : new double[] {1, -1}) {
 			double last = GalleonLayout.MAIN_DECK_Y;
 			for (double z = GalleonLayout.QD_STAIR_START + 0.4; z >= GalleonLayout.BULKHEAD_Z - 1.5; z -= 0.1) {
@@ -121,7 +139,7 @@ class GalleonTest {
 			assertEquals(GalleonLayout.QUARTERDECK_Y, last, 1e-9);
 			last = GalleonLayout.MAIN_DECK_Y;
 			for (double z = GalleonLayout.FC_STAIR_START - 0.4; z <= GalleonLayout.FORECASTLE_START + 0.5; z += 0.1) {
-				double top = support(side * x, 6, z);
+				double top = support(side * fx, 6, z);
 				assertTrue(top - last <= 0.6 + 1e-9, "step too high at z=" + z + ": " + last + " -> " + top);
 				last = Math.max(last, top);
 			}
@@ -141,6 +159,28 @@ class GalleonTest {
 		// and it is closed: walls left and right of the door, roof above
 		assertTrue(intersectsSolid(2.0, y, GalleonLayout.BULKHEAD_Z - 0.15, 0.3, 1.8, 0.3));
 		assertTrue(intersectsSolid(0, y + 1.0, -12, 0.3, 2.0, 0.3));
+	}
+
+	/** Through the transom door onto the stern balcony, which is carried with the ship. */
+	@Test
+	void balcony() {
+		double y = GalleonLayout.MAIN_DECK_Y + 0.01;
+		for (double z = -15.5; z >= GalleonLayout.BALCONY_BACK + 0.45; z -= 0.1) {
+			assertFalse(intersectsSolid(0, y, z, 0.3, 1.8, 0.3), "balcony path blocked at z=" + z);
+			assertTrue(support(0, y, z) > y - 0.1, "no floor at z=" + z);
+			assertTrue(G.inCarryVolume(0, y, z), "not carried at z=" + z);
+		}
+		// the balustrade holds
+		assertTrue(intersectsSolid(0, y, GalleonLayout.BALCONY_BACK + 0.1, 0.3, 0.5, 0.3));
+	}
+
+	@Test
+	void gunports() {
+		assertEquals(12, G.gunports().size());
+		for (ShipGeometry.Gunport g : G.gunports()) {
+			assertEquals(Math.signum(g.x()), g.side(), 0);
+			assertTrue(g.y() > GalleonLayout.MAIN_DECK_Y && g.y() < H.railY(g.z()));
+		}
 	}
 
 	@Test

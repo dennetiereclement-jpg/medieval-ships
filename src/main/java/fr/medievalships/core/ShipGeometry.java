@@ -30,6 +30,13 @@ public final class ShipGeometry {
 	public record LocalBox(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
 	}
 
+	/**
+	 * Gun port (decorative for now): muzzle position on the hull side, ship-local, and the side
+	 * it fires to (+1 port, -1 starboard). Ready for a future cannon system.
+	 */
+	public record Gunport(int index, double x, double y, double z, int side) {
+	}
+
 	/** Everything that differs between ship types, besides the hull shape. */
 	public static final class Spec {
 		public List<Seat> seats = List.of();
@@ -44,6 +51,10 @@ public final class ShipGeometry {
 		public double boardMinZ = -8.9;
 		public double boardMaxZ = 8.9;
 		public double[] avoidZ = {};
+		/** Solid stem / stern posts beyond the hull ends (a transom stern has none). */
+		public boolean stemPost = true;
+		public boolean sternPost = true;
+		public List<Gunport> gunports = List.of();
 	}
 
 	public interface BoxSink {
@@ -106,6 +117,14 @@ public final class ShipGeometry {
 		return spec.seats;
 	}
 
+	public List<Gunport> gunports() {
+		return spec.gunports;
+	}
+
+	public List<LocalBox> solids() {
+		return spec.solids;
+	}
+
 	/** Local offsets of the probe points used to detect terrain and other hulls. */
 	public List<double[]> probes() {
 		return probes;
@@ -127,6 +146,13 @@ public final class ShipGeometry {
 
 	/** Is this local point inside the volume where entities are carried along with the ship? */
 	public boolean inCarryVolume(double lx, double ly, double lz) {
+		// on or around a superstructure (castles, stern balcony beyond the hull end...)
+		for (LocalBox b : spec.solids) {
+			if (lx >= b.minX() - 0.3 && lx <= b.maxX() + 0.3 && lz >= b.minZ() - 0.3 && lz <= b.maxZ() + 0.3
+					&& ly >= b.minY() - 0.7 && ly <= b.maxY() + 2.5) {
+				return true;
+			}
+		}
 		if (Math.abs(lz) > hull.halfLength + 0.3) {
 			return false;
 		}
@@ -258,6 +284,9 @@ public final class ShipGeometry {
 		}
 		// bow and stern posts close the ends
 		for (double side : new double[] {1, -1}) {
+			if (side > 0 ? !spec.stemPost : !spec.sternPost) {
+				continue;
+			}
 			for (double zc = hull.halfLength; zc <= hull.tip - 0.29; zc += 0.3) {
 				double z = side * zc;
 				if (z < lzMin - 0.5 || z > lzMax + 0.5) {
