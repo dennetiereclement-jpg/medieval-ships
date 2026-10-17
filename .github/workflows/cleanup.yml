@@ -1,0 +1,15 @@
+name: Delete temporary branch
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Delete ci-ref
+        run: git push origin --delete ci-ref || true
