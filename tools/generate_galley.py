@@ -407,6 +407,17 @@ def build():
     # helmsman stool
     add_cube(stern, "helm_seat", (0, hp.RAISED_DECK_Y + 0.22, -8.05), np.eye(3), (0.5, 0.12, 0.45), "rail")
     add_cube(stern, "helm_seat_leg", (0, hp.RAISED_DECK_Y + 0.08, -8.05), np.eye(3), (0.18, 0.18, 0.18), "dark_wood")
+    # under the canopy: carpet, cushions, the captain's chest with a chart, a small water jar
+    yr = hp.RAISED_DECK_Y
+    sd.rug(me, stern, "cabin_rug", (0, yr, -8.0), 1.7, 2.0)
+    for side in (1, -1):
+        sn = "p" if side > 0 else "s"
+        add_cube(stern, "cushion_" + sn, (side * 0.85, yr + 0.08, -7.45), ry(0.15 * side), (0.5, 0.14, 0.5), "red")
+        add_cube(stern, "cushion_top_" + sn, (side * 0.85, yr + 0.16, -7.45), ry(0.15 * side), (0.38, 0.04, 0.38), "gold")
+    add_cube(stern, "captain_chest", (-0.85, yr + 0.22, -8.85), np.eye(3), (0.6, 0.44, 0.42), {"all": "dark_wood", "+2": "hull_mid"})
+    add_cube(stern, "captain_chest_band", (-0.85, yr + 0.3, -8.85), np.eye(3), (0.63, 0.06, 0.45), {"all": "iron", "+2": None, "-2": None})
+    add_cube(stern, "captain_chart", (-0.85, yr + 0.45, -8.85), ry(0.2), (0.44, 0.012, 0.34), {"all": None, "+2": "chart"}, stretch=True)
+    sd.amphora(me, stern, "cabin_jar", (0.85, yr, -8.85), clay="hull_light", dark="dark_wood")
 
     # ---- steering oars (one on each quarter), animated by "steer"
     for side in (1, -1):

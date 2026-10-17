@@ -103,3 +103,142 @@ def bucket(m, bone, name, p, wood="hull_mid", hoop="iron"):
     p = v3(*p)
     m.add_cube(bone, name, p + v3(0, 0.17, 0), EYE, (0.3, 0.34, 0.3), {"all": wood, "+2": None})
     m.add_cube(bone, name + "_hoop", p + v3(0, 0.22, 0), EYE, (0.33, 0.05, 0.33), {"all": hoop, "+2": None, "-2": None})
+
+
+# ---------------------------------------------------------------- cabin furniture
+def _box(m, bone, name, c, R, size, regions):
+    return m.add_cube(bone, name, c, R, size, regions)
+
+
+def rug(m, bone, name, p, w, l, yaw=0.0, region="rug"):
+    """Carpet lying on the floor (w across, l along the local z axis)."""
+    p = v3(*p)
+    m.add_cube(bone, name, p + v3(0, 0.012, 0), ry(yaw), (w, 0.02, l), {"all": None, "+2": region}, stretch=True,
+               u_dir=ry(yaw) @ v3(0, 0, 1), v_dir=ry(yaw) @ v3(1, 0, 0))
+
+
+def table(m, bone, name, p, w, d, h=0.78, yaw=0.0, top="hull_light", legs="dark_wood"):
+    p = v3(*p)
+    R = ry(yaw)
+    m.add_cube(bone, name + "_top", p + v3(0, h - 0.04, 0), R, (w, 0.08, d), {"all": legs, "+2": top})
+    for k, (sx, sz) in enumerate(((1, 1), (-1, 1), (-1, -1), (1, -1))):
+        q = p + R @ v3(sx * (w / 2 - 0.08), 0, sz * (d / 2 - 0.08))
+        m.add_cube(bone, "%s_leg%d" % (name, k), q + v3(0, (h - 0.08) / 2, 0), R, (0.08, h - 0.08, 0.08), legs)
+
+
+def chair(m, bone, name, p, facing, seat="hull_light", wood="dark_wood"):
+    """Chair whose sitter looks along `facing` (yaw, radians; 0 = towards +z)."""
+    p = v3(*p)
+    R = ry(facing)
+    m.add_cube(bone, name + "_seat", p + v3(0, 0.45, 0), R, (0.48, 0.07, 0.48), seat)
+    m.add_cube(bone, name + "_back", p + R @ v3(0, 0.78, -0.22), R, (0.48, 0.62, 0.07), seat)
+    for k, (sx, sz) in enumerate(((1, 1), (-1, 1), (-1, -1), (1, -1))):
+        m.add_cube(bone, "%s_leg%d" % (name, k), p + R @ v3(sx * 0.19, 0.21, sz * 0.19), R, (0.06, 0.42, 0.06), wood)
+
+
+def stool(m, bone, name, p, wood="dark_wood", top="hull_light"):
+    p = v3(*p)
+    m.add_cube(bone, name, p + v3(0, 0.4, 0), EYE, (0.4, 0.07, 0.4), top)
+    for k, (sx, sz) in enumerate(((1, 1), (-1, 1), (-1, -1), (1, -1))):
+        m.add_cube(bone, "%s_leg%d" % (name, k), p + v3(sx * 0.14, 0.19, sz * 0.14), EYE, (0.06, 0.38, 0.06), wood)
+
+
+def chart_on_table(m, bone, name, p, yaw=0.0, region="chart", tool="iron"):
+    """Sea chart spread on a table, with a pair of dividers."""
+    p = v3(*p)
+    m.add_cube(bone, name, p + v3(0, 0.006, 0), ry(yaw), (0.62, 0.012, 0.5), {"all": None, "+2": region}, stretch=True,
+               u_dir=ry(yaw) @ v3(1, 0, 0), v_dir=ry(yaw) @ v3(0, 0, 1))
+    m.beam(bone, name + "_divider_a", p + ry(yaw) @ v3(0.05, 0.02, 0.0), p + ry(yaw) @ v3(0.22, 0.02, 0.12), 0.025, tool)
+    m.beam(bone, name + "_divider_b", p + ry(yaw) @ v3(0.05, 0.02, 0.0), p + ry(yaw) @ v3(0.25, 0.02, -0.06), 0.025, tool)
+
+
+def candle(m, bone, name, p, metal="gold", wax="cloth_roll"):
+    """Candlestick with a lit flame (glow)."""
+    p = v3(*p)
+    m.add_cube(bone, name + "_foot", p + v3(0, 0.02, 0), EYE, (0.14, 0.04, 0.14), metal)
+    m.add_cube(bone, name + "_stem", p + v3(0, 0.12, 0), EYE, (0.05, 0.18, 0.05), metal)
+    m.add_cube(bone, name + "_candle", p + v3(0, 0.27, 0), EYE, (0.06, 0.14, 0.06), wax)
+    m.add_cube(bone, "glow_" + name + "_flame", p + v3(0, 0.37, 0), EYE, (0.04, 0.07, 0.04), "glow", stretch=True)
+
+
+def candelabra(m, bone, name, p, metal="gold", wax="cloth_roll"):
+    """Three-branch candelabra for the great table."""
+    p = v3(*p)
+    m.add_cube(bone, name + "_foot", p + v3(0, 0.03, 0), EYE, (0.2, 0.06, 0.2), metal)
+    m.add_cube(bone, name + "_stem", p + v3(0, 0.2, 0), EYE, (0.06, 0.32, 0.06), metal)
+    m.add_cube(bone, name + "_arms", p + v3(0, 0.36, 0), EYE, (0.42, 0.04, 0.05), metal)
+    for k, x in enumerate((-0.19, 0.0, 0.19)):
+        top = 0.48 if k == 1 else 0.43
+        m.add_cube(bone, "%s_candle%d" % (name, k), p + v3(x, top - 0.05, 0), EYE, (0.05, 0.12, 0.05), wax)
+        m.add_cube(bone, "glow_%s_flame%d" % (name, k), p + v3(x, top + 0.04, 0), EYE, (0.035, 0.06, 0.035), "glow", stretch=True)
+
+
+def tableware(m, bone, name, p, yaw=0.0, metal="iron", glass="rope", plate="hull_light"):
+    """Plates, goblets and a bottle on a table."""
+    p = v3(*p)
+    R = ry(yaw)
+    for k, (x, z) in enumerate(((-0.18, 0.1), (0.2, -0.08))):
+        m.add_cube(bone, "%s_plate%d" % (name, k), p + R @ v3(x, 0.01, z), R, (0.22, 0.02, 0.22), metal)
+        m.add_cube(bone, "%s_goblet%d" % (name, k), p + R @ v3(x + 0.16, 0.06, z + 0.12), R, (0.05, 0.12, 0.05), "gold")
+    m.add_cube(bone, name + "_bottle", p + R @ v3(0.0, 0.11, 0.18), R, (0.09, 0.22, 0.09), glass)
+    m.add_cube(bone, name + "_bottle_neck", p + R @ v3(0.0, 0.26, 0.18), R, (0.04, 0.09, 0.04), glass)
+
+
+def bookshelf(m, bone, name, p, yaw=0.0, w=1.0, h=1.9, d=0.36, wood="dark_wood", books="books"):
+    """Bookshelf; its open front faces along `yaw` (0 = towards +z)."""
+    p = v3(*p)
+    R = ry(yaw)
+    m.add_cube(bone, name, p + v3(0, h / 2, 0), R, (w, h, d), {"all": wood, "+3": books}, stretch=True,
+               u_dir=R @ v3(1, 0, 0), v_dir=v3(0, -1, 0))
+    m.add_cube(bone, name + "_crown", p + v3(0, h + 0.05, 0) + R @ v3(0, 0, 0.03), R, (w + 0.1, 0.1, d + 0.08), wood)
+
+
+def bunk(m, bone, name, p, yaw=0.0, l=1.9, w=0.9, wood="dark_wood", bedding="bedding"):
+    """Box bed along `yaw` (head towards -z local): frame, mattress with blanket and pillow."""
+    p = v3(*p)
+    R = ry(yaw)
+    m.add_cube(bone, name + "_frame", p + v3(0, 0.22, 0), R, (w, 0.44, l), wood)
+    m.add_cube(bone, name + "_mattress", p + v3(0, 0.5, 0), R, (w - 0.12, 0.14, l - 0.12), {"all": bedding, "+2": bedding},
+               stretch=True, u_dir=R @ v3(0, 0, 1), v_dir=R @ v3(1, 0, 0))
+    m.add_cube(bone, name + "_head", p + v3(0, 0.55, 0) + R @ v3(0, 0, -l / 2 + 0.04), R, (w, 1.1, 0.08), wood)
+    m.add_cube(bone, name + "_foot", p + v3(0, 0.38, 0) + R @ v3(0, 0, l / 2 - 0.04), R, (w, 0.76, 0.08), wood)
+
+
+def painting(m, bone, name, p, normal, w=0.8, h=0.6, region="painting"):
+    """Framed painting on a wall whose inner side faces `normal` (horizontal unit vector)."""
+    n = v3(*normal)
+    n = n / np.linalg.norm(n)
+    u = np.cross(v3(0, 1, 0), n)
+    m.add_cube(bone, name, v3(*p) + n * 0.03, np.column_stack([u, v3(0, 1, 0), n]), (w, h, 0.05),
+               {"all": "gold", "+3": region}, stretch=True, u_dir=u, v_dir=v3(0, -1, 0))
+
+
+def weapon_rack(m, bone, name, p, normal, w=1.1, wood="dark_wood", metal="iron"):
+    """Muskets and a sabre standing against a wall."""
+    n = v3(*normal)
+    n = n / np.linalg.norm(n)
+    u = np.cross(v3(0, 1, 0), n)
+    p = v3(*p)
+    m.add_cube(bone, name + "_board", p + v3(0, 1.3, 0) + n * 0.05, np.column_stack([u, v3(0, 1, 0), n]), (w, 0.12, 0.1), wood)
+    m.add_cube(bone, name + "_base", p + v3(0, 0.08, 0) + n * 0.12, np.column_stack([u, v3(0, 1, 0), n]), (w, 0.16, 0.22), wood)
+    for k, t in enumerate(np.linspace(-0.38, 0.38, 4)):
+        q = p + u * t * w / 1.1
+        m.beam(bone, "%s_stock%d" % (name, k), q + n * 0.13 + v3(0, 0.12, 0), q + n * 0.1 + v3(0, 0.6, 0), 0.08, wood)
+        m.beam(bone, "%s_barrel%d" % (name, k), q + n * 0.1 + v3(0, 0.6, 0), q + n * 0.06 + v3(0, 1.45, 0), 0.04, metal)
+
+
+def hanging_lantern(m, bone, name, p, drop=0.35, frame="lantern", metal="iron"):
+    """Lantern hanging from a ceiling beam by an iron rod (p = hook point)."""
+    p = v3(*p)
+    m.add_cube(bone, name + "_rod", p - v3(0, drop / 2, 0), EYE, (0.03, drop, 0.03), metal)
+    c = p - v3(0, drop + 0.2, 0)
+    m.add_cube(bone, name, c, EYE, (0.26, 0.36, 0.26), {"all": frame, "+2": metal, "-2": metal}, stretch=True)
+    m.add_cube(bone, "glow_" + name, c, EYE, (0.17, 0.26, 0.17), "glow", stretch=True)
+
+
+def globe(m, bone, name, p, sea="blue_paint", metal="gold"):
+    """Terrestrial globe on a small stand."""
+    p = v3(*p)
+    m.add_cube(bone, name + "_stand", p + v3(0, 0.05, 0), EYE, (0.22, 0.1, 0.22), metal)
+    m.add_cube(bone, name + "_ball", p + v3(0, 0.3, 0), EYE, (0.34, 0.34, 0.34), sea)
+    m.add_cube(bone, name + "_ring", p + v3(0, 0.3, 0), EYE, (0.04, 0.44, 0.44), {"all": metal, "+1": None, "-1": None})

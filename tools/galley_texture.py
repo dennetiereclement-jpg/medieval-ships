@@ -28,6 +28,8 @@ REGIONS = {
     "rail":       (192, 32, 64, 16),
     "end_grain":  (192, 48, 16, 16),
     "iron":       (208, 48, 16, 16),
+    "rug":        (128, 64, 64, 32),
+    "chart":      (192, 64, 32, 32),
     "sail":       (0, 160, 160, 80),
 }
 
@@ -168,5 +170,7 @@ def make_texture(path, sail_triangle):
                 if y < 2:
                     c = _rgb("b89a62")  # reinforced head along the yard
                 px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+    import interior_texture
+    interior_texture.paint(px, REGIONS)
     img.save(path)
     return img

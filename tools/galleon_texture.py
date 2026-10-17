@@ -12,6 +12,8 @@ import random
 
 from PIL import Image
 
+import interior_texture
+
 from galley_texture import _fill, _jitter, _planks, _rgb
 
 SIZE = 512
@@ -52,6 +54,13 @@ REGIONS = {
     "wood_honey":  (0, 128, 320, 64, 32),
     "wood_trim":   (0, 192, 320, 64, 32),
     # sails
+    "window_in": (0, 0, 384, 32, 32),
+    "rug": (0, 32, 384, 64, 32),
+    "books": (0, 96, 384, 32, 32),
+    "chart": (0, 128, 384, 32, 32),
+    "bedding": (0, 160, 384, 32, 16),
+    "painting": (0, 192, 384, 32, 32),
+    "arch_window_in": (0, 224, 384, 16, 24),
     "course":      (0, 0, 128, 256, 192),
     "topsail":     (0, 256, 128, 160, 128),
     "lateen":      (0, 256, 256, 160, 128),
@@ -306,6 +315,7 @@ def make_textures(path, flag_path, lateen_tri, jib_tri):
     _, u, v, w, h = REGIONS["jib"]
     tri2 = [(p[0] * w, p[1] * h) for p in jib_tri]
     _canvas(px, REGIONS["jib"], rng, mask=lambda x, y, w_, h_: _tri_inside(tri2, x, y), vertical=False)
+    interior_texture.paint(px, {k: r[1:] for k, r in REGIONS.items() if r[0] == 0})
     img.save(path)
 
     # ---- flags: white field, blue fleur-de-lis; white / red pennant

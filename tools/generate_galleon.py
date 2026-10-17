@@ -108,6 +108,14 @@ def decal(bone, name, z, y, side, w, h, region, depth=0.04, out=0.01, glow=False
                     u_dir=u * side * -1 if side > 0 else u, v_dir=v3(0, -1, 0))
 
 
+def inner_decal(bone, name, z, y, side, w, h, region, wall=0.12, th=0.03):
+    """Thin flat element on the inner face of the hull side (window seen from inside, painting...)."""
+    p, u, v, n = side_frame(z, y, side)
+    c = p - n * (wall + 0.02 + th / 2)
+    return add_cube(bone, name, c, np.column_stack([u, v, n]), (w, h, th), {"all": None, "-3": region}, stretch=True,
+                    u_dir=u * side, v_dir=v3(0, -1, 0))
+
+
 def set_sub(cube, sub, faces=("north", "south")):
     for f in faces:
         if cube.faces.get(f):
@@ -247,6 +255,8 @@ def build():
         for j, x in enumerate((1.3, 1.95)):
             add_cube(castle_aft, "glow_transom_window_%s%d" % (sn, j), (side * x, 2.05, zt - 0.03), EYE, (0.5, 1.0, 0.06),
                      "glow_window", stretch=True)
+            add_cube(cabin, "transom_window_in_%s%d" % (sn, j), (side * x, 2.05, gs.TRANSOM_Z + 0.02), EYE, (0.5, 1.0, 0.03),
+                     {"all": None, "+3": "window_in"}, stretch=True)
         # upper windows of the poop house level
         add_cube(castle_aft, "transom_upper_window_" + sn, (side * 1.2, 4.05, zt - 0.03), EYE, (0.55, 0.6, 0.06),
                  "window", stretch=True)
@@ -307,6 +317,7 @@ def build():
             decal(castle_aft, "qd_post_%s%d" % (sn, j), z + 0.8, gs.QD_RAIL_Y - 0.5, side, 0.12, 0.9, "dark_wood", out=0.02)
         for j, z in enumerate((-15.4, -13.0, -10.6)):
             decal(cabin, "cabin_window_%s%d" % (sn, j), z, 2.2, side, 0.6, 0.75, "glow_window", glow=True)
+            inner_decal(cabin, "cabin_window_in_%s%d" % (sn, j), z, 2.2, side, 0.6, 0.75, "window_in")
         for j, z in enumerate((11.6, 13.4, 15.2)):
             decal(castle_fore, "fc_window_%s%d" % (sn, j), z, gs.FC_RAIL_Y - 0.5, side, 0.5, 0.45, "glow_window", glow=True)
         # quarter gallery: a closed balcony with lit windows on each stern corner
@@ -360,6 +371,8 @@ def build():
         add_cube(cabin, "bulkhead_jamb_" + sn, (side * (gs.DOOR_HALF + 0.07), (main_y + gs.DOOR_TOP) / 2, bz1 + 0.02), EYE,
                  (0.14, gs.DOOR_TOP - main_y, 0.08), "gold")
         add_cube(cabin, "bulkhead_window_" + sn, (side * 2.0, 2.15, bz1 + 0.02), EYE, (0.6, 0.7, 0.05), "window", stretch=True)
+        add_cube(cabin, "bulkhead_window_in_" + sn, (side * 2.0, 2.15, bz0 - 0.02), EYE, (0.6, 0.7, 0.03),
+                 {"all": None, "-3": "window_in"}, stretch=True)
         add_cube(cabin, "bulkhead_pillar_" + sn, (side * 3.0, (main_y + slab_bottom) / 2, bz1 + 0.06), EYE,
                  (0.18, slab_bottom - main_y, 0.12), "gold")
     add_cube(cabin, "bulkhead_lintel", (0, (gs.DOOR_TOP + slab_bottom) / 2, (bz0 + bz1) / 2), EYE,
@@ -383,6 +396,23 @@ def build():
     add_cube(cabin, "cabin_chest", (2.6, main_y + 0.3, -16.3), EYE, (0.9, 0.6, 0.55), {"all": "dark_wood", "+2": "iron"})
     add_cube(cabin, "cabin_ceiling_beam", (0, slab_bottom - 0.1, -12.0), EYE, (2 * 3.7, 0.2, 0.25), "dark_wood")
     add_cube(cabin, "cabin_ceiling_beam2", (0, slab_bottom - 0.1, -15.0), EYE, (2 * 3.1, 0.2, 0.25), "dark_wood")
+    # furnishing: carpet, chart table and dining table by the two chairs, bunk, bookshelf,
+    # weapon rack, globe, paintings between the windows, lanterns hanging from the beams
+    sd.rug(gg, cabin, "cabin_rug", (0, main_y, -13.8), 1.9, 4.6)
+    for side, sn in SIDES:
+        sd.table(gg, cabin, "cabin_table_" + sn, (side * 1.35, main_y, -13.0), 0.7, 0.95, h=0.75)
+        sd.hanging_lantern(gg, lanterns, "cabin_hanging_lantern_" + sn, (side * 1.3, slab_bottom - 0.2, -15.0), drop=0.2)
+        p, u, v, n = side_frame(-11.8, 2.3, side)
+        sd.painting(gg, cabin, "cabin_painting_" + sn, p - n * 0.14, -n, w=0.75, h=0.55)
+    top = main_y + 0.75
+    sd.chart_on_table(gg, cabin, "cabin_chart", (1.35, top, -13.1), yaw=math.pi / 2)
+    sd.candle(gg, cabin, "cabin_candle_p", (1.45, top, -12.68))
+    sd.tableware(gg, cabin, "cabin_dinner", (-1.35, top, -13.0), yaw=math.pi / 2)
+    sd.candle(gg, cabin, "cabin_candle_s", (-1.4, top, -13.4))
+    sd.bunk(gg, cabin, "cabin_bunk", (-2.0, main_y, -15.3), l=1.8, w=0.85)
+    sd.globe(gg, cabin, "cabin_globe", (2.6, main_y + 0.6, -16.3))
+    sd.bookshelf(gg, cabin, "cabin_books", (3.1, main_y, bz0 - 0.19), yaw=math.pi, w=1.0, h=1.9)
+    sd.weapon_rack(gg, cabin, "cabin_arms", (-3.1, main_y, bz0), (0, 0, -1), w=1.0)
 
     # ---- stairs (match the collision boxes) and guard rails
     d = gs.STEP_DEPTH

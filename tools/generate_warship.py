@@ -62,6 +62,10 @@ STRAKES = ["white_bottom", "white_bottom", "white_bottom", "white_bottom",
            "hull_black", "ochre", "hull_black", "ochre", "hull_black", "hull_black"]
 
 
+CABIN_WINDOWS_Z = (-12.0, -14.5, -17.0, -21.0, -22.8)
+CABIN_WINDOW_Y = 5.65
+
+
 def lift(z):
     return ws.band_lift(z)
 
@@ -208,6 +212,8 @@ def build():
         for j, x in enumerate((2.0, 3.6, 5.0)):
             add_cube(cabin, "glow_bulkhead_window_%s%d" % (sn, j), (side * x, main_y + 1.4, bz1 + 0.02), EYE, (0.6, 0.85, 0.05),
                      "arch_window", stretch=True)
+            add_cube(cabin, "bulkhead_window_in_%s%d" % (sn, j), (side * x, main_y + 1.4, bz0 - 0.02), EYE, (0.6, 0.85, 0.03),
+                     {"all": None, "-3": "arch_window_in"}, stretch=True)
             add_cube(cabin, "bulkhead_pilaster_%s%d" % (sn, j), (side * (x + 0.6), (main_y + slab_bottom) / 2, bz1 + 0.04), EYE,
                      (0.12, slab_bottom - main_y, 0.08), "pilaster", stretch=True)
     add_cube(cabin, "bulkhead_lintel", (0, (ws.DOOR_TOP + slab_bottom) / 2, (bz0 + bz1) / 2), EYE,
@@ -235,13 +241,59 @@ def build():
             for dz in (-0.24, 0.24):
                 add_cube(cabin, "chair_leg_%s%d%d" % (sn, int(dx > 0), int(dz > 0)), (x + dx, main_y + 0.19, z + dz), EYE,
                          (0.07, 0.38, 0.07), "dark_wood")
-        add_cube(lanterns, "cabin_lantern_" + sn, (side * 1.8, main_y + 1.9, bz0 - 0.2), EYE, (0.3, 0.42, 0.3),
+        add_cube(lanterns, "cabin_lantern_" + sn, (side * 1.25, main_y + 1.9, bz0 - 0.2), EYE, (0.3, 0.42, 0.3),
                  {"all": "lantern", "+2": "iron", "-2": "iron"}, stretch=True)
-        add_cube(lanterns, "glow_cabin_lantern_" + sn, (side * 1.8, main_y + 1.9, bz0 - 0.2), EYE, (0.2, 0.3, 0.2), "glow", stretch=True)
+        add_cube(lanterns, "glow_cabin_lantern_" + sn, (side * 1.25, main_y + 1.9, bz0 - 0.2), EYE, (0.2, 0.3, 0.2), "glow", stretch=True)
         add_cube(cabin, "cabin_chest_" + sn, (side * 4.6, main_y + 0.3, -21.0), EYE, (0.6, 0.6, 1.1), {"all": "dark_wood", "+2": "iron"})
     for k, z in enumerate((-13.0, -17.5, -22.0, -25.5)):
         w = ws.inner_half_width(z)
         add_cube(cabin, "cabin_beam_%d" % k, (0, slab_bottom - 0.1, z), EYE, (2 * w, 0.2, 0.28), "dark_wood")
+    # windows along the great cabin (lit outside, daylight inside), under the castle windows
+    for side, sn in SIDES:
+        for j, z in enumerate(CABIN_WINDOWS_Z):
+            gn.decal(cabin, "cabin_window_%s%d" % (sn, j), z, CABIN_WINDOW_Y, side, 0.7, 0.85, "glow_window", glow=True)
+            gn.decal(cabin, "cabin_window_frame_%s%d" % (sn, j), z, CABIN_WINDOW_Y, side, 0.86, 1.0, "gold", out=0.0, th=0.03)
+            gn.inner_decal(cabin, "cabin_window_in_%s%d" % (sn, j), z, CABIN_WINDOW_Y, side, 0.7, 0.85, "window_in", wall=0.14)
+    # the great cabin: council table with its chairs on a carpet, candelabras, chart and dinner,
+    # captain's bed, desk and globe, bookshelf, weapon rack, paintings, hanging lanterns
+    sd.rug(gg, cabin, "cabin_rug", (0, main_y, -21.5), 3.0, 6.0)
+    sd.table(gg, cabin, "council_table", (0, main_y, -21.5), 1.4, 4.4, h=0.8, top="dark_wood", legs="dark_wood")
+    tt = main_y + 0.8
+    for side, sn in SIDES:
+        for j, z in enumerate((-22.9, -21.5, -20.1)):
+            sd.chair(gg, cabin, "council_chair_%s%d" % (sn, j), (side * 1.05, main_y, z), -side * math.pi / 2, seat="red_paint")
+    sd.chair(gg, cabin, "council_chair_head", (0, main_y, -24.3), 0.0, seat="red_paint")
+    sd.chair(gg, cabin, "council_chair_foot", (0, main_y, -18.7), math.pi, seat="red_paint")
+    sd.candelabra(gg, cabin, "candelabra_0", (0, tt, -22.75))
+    sd.candelabra(gg, cabin, "candelabra_1", (0, tt, -20.25))
+    sd.chart_on_table(gg, cabin, "council_chart", (0, tt, -21.5))
+    sd.tableware(gg, cabin, "council_dinner_0", (0.3, tt, -19.8), yaw=math.pi)
+    sd.tableware(gg, cabin, "council_dinner_1", (-0.3, tt, -23.2))
+    sd.hanging_lantern(gg, lanterns, "council_lantern", (0, slab_bottom - 0.2, -22.0), drop=0.25)
+    for side, sn in SIDES:
+        sd.hanging_lantern(gg, lanterns, "cabin_hanging_lantern_" + sn, (side * 2.4, slab_bottom - 0.2, -17.5), drop=0.15)
+        # paintings: on the bulkhead between its windows and on the side walls between the windows
+        sd.painting(gg, cabin, "bulkhead_painting_" + sn, (side * 2.8, main_y + 1.4, bz0), (0, 0, -1), w=0.7, h=0.55)
+        p, u, v, n = gn.side_frame(-15.75, 5.85, side)
+        sd.painting(gg, cabin, "cabin_painting_" + sn, p - n * 0.16, -n, w=0.9, h=0.65)
+
+    def wall_x(z, y):
+        return outer_x(z, y) - 0.16
+
+    sd.bookshelf(gg, cabin, "cabin_books", (wall_x(-19.0, 6.4) - 0.2, main_y, -19.0), yaw=-math.pi / 2, w=1.4, h=1.95, d=0.36)
+    sd.weapon_rack(gg, cabin, "cabin_arms", (-wall_x(-19.0, 6.0), main_y, -19.0), (1, 0, 0), w=1.2)
+    sd.bunk(gg, cabin, "captain_bed", (-(wall_x(-25.4, 5.0) - 0.55), main_y, -24.5), l=1.9, w=1.0, bedding="bedding")
+    for k, y in enumerate((main_y + 1.5, main_y + 1.62)):
+        add_cube(cabin, "captain_bed_canopy_%d" % k, (-(wall_x(-25.4, 5.0) - 0.55), y, -24.5), EYE, (1.0 - 0.1 * k, 0.08, 1.9 - 0.1 * k),
+                 "red_paint")
+    for k, dz in enumerate((-0.9, 0.9)):
+        add_cube(cabin, "captain_bed_post_%d" % k, (-(wall_x(-25.4, 5.0) - 1.0), main_y + 0.8, -24.5 + dz), EYE, (0.08, 1.6, 0.08),
+                 "dark_wood")
+    dx = wall_x(-24.6, 5.0) - 0.35
+    sd.table(gg, cabin, "captain_desk", (dx, main_y, -24.6), 0.6, 1.0, h=0.78)
+    sd.chair(gg, cabin, "captain_desk_chair", (dx - 0.6, main_y, -24.6), math.pi / 2, seat="red_paint")
+    sd.globe(gg, cabin, "captain_globe", (dx, main_y + 0.78, -24.95), sea="window", metal="gold")
+    sd.candle(gg, cabin, "captain_candle", (dx + 0.05, main_y + 0.78, -24.3))
 
     # ---- stairs (match the collision boxes) and guard rails
     d = ws.STEP_DEPTH
@@ -370,7 +422,11 @@ def build():
 
     # ---- stern: tall decorated transom, three tiers of windows, galleries, coat of arms
     zt = -ws.HALF_LENGTH
-    bands = np.linspace(ws.keel_y(zt), ws.POOP_RAIL_Y, 16)
+    # the hull bands wrap around the counter (white, black, ochre, black), the decorated stern
+    # with its window tiers stands above
+    lt = lift(zt)
+    counter = [0.3, 1.0 + lt, 2.05 + lt, 2.6 + lt]
+    bands = list(np.linspace(ws.keel_y(zt), 0.3, 5)) + counter[1:] + list(np.linspace(counter[-1], ws.POOP_RAIL_Y, 11))[1:]
     for k in range(len(bands) - 1):
         y0, y1 = bands[k], bands[k + 1]
         ym = (y0 + y1) / 2
@@ -380,14 +436,39 @@ def build():
             reg = "white_bottom"
         else:
             w = outer_x(zt, ym)
-            reg = "hull_black"
-        add_cube(stern, "transom_%d" % k, (0, ym, zt + 0.12), EYE, (2 * w, y1 - y0 + 0.02, 0.24), reg)
+            reg = "ochre" if counter[1] < ym < counter[2] else "hull_black"
+        inside = main_y - 0.2 < ym < ws.POOP_Y
+        add_cube(stern, "transom_%d" % k, (0, ym, zt + 0.12), EYE, (2 * w, y1 - y0 + 0.02, 0.24),
+                 {"all": reg, "+3": "hull_light"} if inside else reg)
+    for j, y in enumerate(counter[1:]):
+        w = outer_x(zt, y)
+        add_cube(stern, "transom_wale_%d" % j, (0, y, zt - 0.03), EYE, (2 * w + 0.1, 0.16 if j != 1 else 0.07, 0.1),
+                 "gold" if j == 1 else "wale")
+    # stern chasers: two guns firing aft through the counter
+    for side, sn in SIDES:
+        y = (counter[1] + counter[2]) / 2
+        add_cube(stern, "stern_chaser_port_" + sn, (side * 1.6, y, zt - 0.01), EYE, (0.72, 0.66, 0.04), "gunport", stretch=True)
+        beam(stern, "stern_chaser_" + sn, (side * 1.6, y, zt + 0.1), (side * 1.6, y, zt - 0.75), 0.3, "cannon")
+        add_cube(stern, "stern_chaser_muzzle_" + sn, (side * 1.6, y, zt - 0.72), EYE, (0.38, 0.38, 0.08), "iron")
+        add_cube(stern, "stern_chaser_garland_" + sn, (side * 1.6, y, zt - 0.02), EYE, (1.15, 1.0, 0.02), "garland", stretch=True)
+    # carved name board across the counter, under the lowest gallery
+    add_cube(stern, "counter_board", (0, counter[3] + 0.25, zt - 0.05), EYE, (2.6, 0.36, 0.08), "gold_relief", stretch=True)
+    for side, sn in SIDES:
+        add_cube(stern, "counter_scroll_" + sn, (side * 1.55, counter[3] + 0.25, zt - 0.06), EYE, (0.5, 0.46, 0.1), "gold")
     tiers = ((5.0, 1.15, main_y), (7.75, 1.05, qd_y), (9.75, 0.6, poop_y))
     for t, (yc, h, floor) in enumerate(tiers):
         xs = (-2.7, -1.35, 0.0, 1.35, 2.7) if t < 2 else (-2.0, -0.7, 0.7, 2.0)
         for j, x in enumerate(xs):
             add_cube(stern, "glow_stern_window_%d_%d" % (t, j), (x, yc, zt - 0.03), EYE, (0.85, h, 0.06),
                      "arch_window" if t == 2 else "glow_window", stretch=True)
+            add_cube(stern, "stern_window_frame_%d_%d" % (t, j), (x, yc, zt - 0.01), EYE, (1.02, h + 0.16, 0.04), "gold")
+            if t < 2:
+                add_cube(stern, "stern_window_sill_%d_%d" % (t, j), (x, yc - h / 2 - 0.08, zt - 0.08), EYE, (1.08, 0.08, 0.16), "gold")
+                add_cube(stern, "stern_window_key_%d_%d" % (t, j), (x, yc + h / 2 + 0.06, zt - 0.08), EYE, (0.24, 0.18, 0.1),
+                         "gold_relief", stretch=True)
+            if t == 0:
+                add_cube(cabin, "stern_window_in_%d" % j, (x, yc, zt + 0.26), EYE, (0.85, h, 0.03),
+                         {"all": None, "+3": "window_in"}, stretch=True)
         for j in range(len(xs) + 1):
             x = (xs[0] - 0.68) + j * (xs[1] - xs[0]) if j <= len(xs) else 0
             add_cube(stern, "stern_pilaster_%d_%d" % (t, j), (x, yc, zt - 0.05), EYE, (0.18, h + 0.3, 0.08), "pilaster", stretch=True)
@@ -402,9 +483,21 @@ def build():
                  0.1, "gold", width=0.12)
             for j, x in enumerate(np.linspace(-outer_x(zt, yc) + 0.25, outer_x(zt, yc) - 0.25, 11)):
                 beam(stern, "stern_gallery_baluster_%d_%d" % (t, j), (x, gy + 0.08, zt - 0.8), (x, gy + 0.7, zt - 0.8), 0.08, "gold")
+            gx = outer_x(zt, yc) - 0.2
+            add_cube(stern, "stern_gallery_fascia_%d" % t, (0, gy - 0.16, zt - 0.84), EYE, (2 * gx + 0.1, 0.2, 0.08), "gold_relief",
+                     stretch=True)
             for side, sn in SIDES:
-                beam(stern, "stern_gallery_bracket_%d_%s" % (t, sn), (side * 2.0, gy - 0.6, zt - 0.05), (side * 2.0, gy - 0.05, zt - 0.75),
-                     0.14, "carving")
+                beam(stern, "stern_gallery_end_rail_%d_%s" % (t, sn), (side * gx, gy + 0.75, zt - 0.8), (side * gx, gy + 0.75, zt - 0.05),
+                     0.1, "gold", width=0.12)
+                for j, z in enumerate((zt - 0.3, zt - 0.55)):
+                    beam(stern, "stern_gallery_end_baluster_%d_%s%d" % (t, sn, j), (side * gx, gy + 0.08, z), (side * gx, gy + 0.7, z),
+                         0.08, "gold")
+                beam(stern, "stern_gallery_post_%d_%s" % (t, sn), (side * gx, gy, zt - 0.8), (side * gx, gy + 0.9, zt - 0.8), 0.14,
+                     "gold_relief")
+                add_cube(stern, "stern_gallery_post_cap_%d_%s" % (t, sn), (side * gx, gy + 0.97, zt - 0.8), EYE, (0.2, 0.14, 0.2), "gold")
+            for j, x in enumerate((-2.9, -1.0, 1.0, 2.9)):
+                beam(stern, "stern_gallery_bracket_%d_%d" % (t, j), (x, gy - 0.75, zt - 0.05), (x, gy - 0.1, zt - 0.78),
+                     0.16, "gold_relief", width=0.2)
     # gilded corner columns of the stern, carved crest (taffrail) around the arms
     for side, sn in SIDES:
         x = side * (outer_x(zt, 7.0) - 0.15)
@@ -417,6 +510,18 @@ def build():
         add_cube(stern, "taffrail_crest_%d" % k, c, gg.rz(a - math.pi / 2), (0.62, 0.36, 0.2), "gold_relief")
     for side, sn in SIDES:
         add_cube(stern, "taffrail_scroll_" + sn, (side * 2.6, ws.POOP_RAIL_Y + 0.25, zt + 0.12), EYE, (0.7, 0.4, 0.22), "gold_relief")
+    for k in range(6):
+        dy0, dy1 = 1.5 * k / 6, 1.5 * (k + 1) / 6
+        half = 2.15 * max(0.0, 1 - ((dy0 + dy1) / 2 / 1.55) ** 2) ** 0.5
+        add_cube(stern, "crest_plate_%d" % k, (0, ws.POOP_RAIL_Y + 0.35 + (dy0 + dy1) / 2, zt + 0.26), EYE, (2 * half, dy1 - dy0 + 0.02, 0.06),
+                 {"all": "hull_black", "-3": "ochre"})
+    for side, sn in SIDES:
+        f = v3(side * 1.75, ws.POOP_RAIL_Y + 0.2, zt + 0.1)
+        add_cube(stern, "crest_figure_base_" + sn, f + v3(0, 0.1, 0), EYE, (0.5, 0.2, 0.45), "gold")
+        add_cube(stern, "crest_figure_body_" + sn, f + v3(0, 0.6, 0), gg.rz(side * 0.12), (0.34, 0.8, 0.3), "gold_relief")
+        add_cube(stern, "crest_figure_head_" + sn, f + v3(side * 0.05, 1.15, 0), EYE, (0.24, 0.26, 0.24), "gold")
+        beam(stern, "crest_figure_arm_" + sn, f + v3(side * 0.05, 0.85, 0), f + v3(-side * 0.35, 1.25, -0.05), 0.1, "gold")
+        beam(stern, "crest_figure_trumpet_" + sn, f + v3(side * 0.05, 1.15, -0.1), f + v3(side * 0.35, 1.55, -0.25), 0.06, "gold")
     arms = v3(0, ws.POOP_RAIL_Y + 0.75, zt + 0.1)
     add_cube(stern, "arms_frame", arms, EYE, (1.8, 1.3, 0.1), "gold")
     add_cube(stern, "arms_emblem", arms - v3(0, 0, 0.06), EYE, (1.55, 1.05, 0.04), {"all": None, "-3": "flag"}, stretch=True,
@@ -429,10 +534,18 @@ def build():
         qx = 0.975 * hw(-25.4)
         for t, (y0, y1) in enumerate(((4.7, 6.9), (7.3, 9.3))):
             g = v3(side * (qx + 0.25), (y0 + y1) / 2, (qz0 + qz1) / 2)
-            add_cube(stern, "quarter_gallery_%s%d" % (sn, t), g, EYE, (0.55, y1 - y0, qz1 - qz0), {"all": "hull_black", "+2": "dark_wood"})
+            # in slices that follow the narrowing hull, so that nothing pokes into the cabins
+            for j in range(8):
+                za, zb = qz0 + (qz1 - qz0) * j / 8, qz0 + (qz1 - qz0) * (j + 1) / 8
+                x_in, x_out = 0.975 * hw(zb) - 0.08, qx + 0.525
+                add_cube(stern, "quarter_gallery_%s%d_%d" % (sn, t, j), (side * (x_in + x_out) / 2, (y0 + y1) / 2, (za + zb) / 2), EYE,
+                         (x_out - x_in, y1 - y0, zb - za + 0.01), {"all": "hull_black", "+2": "dark_wood"})
             for j, z in enumerate((qz0 + 0.8, (qz0 + qz1) / 2, qz1 - 0.8)):
                 add_cube(stern, "glow_quarter_window_%s%d_%d" % (sn, t, j), (side * (qx + 0.54), (y0 + y1) / 2, z), EYE,
                          (0.04, (y1 - y0) * 0.6, 0.6), "arch_window", stretch=True)
+            for j, z in enumerate((qz0 + 0.1, (qz0 + qz1) / 2 - 0.9, (qz0 + qz1) / 2 + 0.9, qz1 - 0.1)):
+                add_cube(stern, "quarter_pilaster_%s%d_%d" % (sn, t, j), (side * (qx + 0.55), (y0 + y1) / 2, z), EYE,
+                         (0.06, y1 - y0, 0.16), "pilaster", stretch=True)
             add_cube(stern, "quarter_cornice_%s%d" % (sn, t), g + v3(side * 0.03, (y1 - y0) / 2 + 0.06, 0), EYE,
                      (0.65, 0.14, qz1 - qz0 + 0.14), "gold")
         # domed roof of the quarter gallery with its finial

@@ -16,6 +16,7 @@ Le moteur de rendu est commun.
 | `src/main/resources/assets/medievalships/models/entity/galley.bbmodel` | Copie chargée par le mod. |
 | `src/main/resources/assets/medievalships/textures/entity/galley.png` | Texture 256 × 256. |
 | `tools/generate_galley.py` | Générateur du modèle, de la texture et des animations. |
+| `tools/ship_details.py`, `tools/interior_texture.py` | Objets du pont et mobilier des cabines, textures des vitres vues de l'intérieur et du mobilier (communs aux 3 navires). |
 | `tools/preview.py` | Rendu logiciel des 6 vues (`docs/preview.png`), même logique que le mod. |
 
 ## Décomposition de l'image de référence
@@ -31,12 +32,13 @@ Le moteur de rendu est commun.
 | Cabine de poupe, toit en tissu rouge, poste de pilotage, barrières | 4 poteaux, toit rouge en bâtière avec lambrequins festonnés, barrière à balustres avec passage, tabouret du barreur, deux avirons de gouverne |
 | Proue décorée, petit espace surélevé | figure de proue, plate-forme avant |
 | Lanternes (vues avant/arrière), longue flamme rouge de poupe | 4 lanternes lumineuses, flamme en 3 segments animés |
+| Sous le dais | tapis d'Orient, deux coussins rouges, coffre du capitaine avec sa carte marine, jarre d'eau |
 | Détails | **éperon de bronze** à la ligne de flottaison, deux **ancres** à jas pendues à la proue avec leur câble, **râtelier à cabillots** au pied du mât (cordages tournés dessus), tonneau, **amphores**, glènes de cordage, seau |
 
 Dimensions : coque de 20 blocs (21,8 avec étrave et étambot), 5,1 de large, 2,8 à 3,8 de haut
 de la quille au bastingage, 14,6 blocs du niveau de l'eau au sommet du drapeau.
 
-Optimisation : 504 cubes, aucun bloc de « remplissage » ; les planches sont dans la texture
+Optimisation : 516 cubes, aucun bloc de « remplissage » ; les planches sont dans la texture
 (densité 16 pixels par bloc comme Minecraft), pas modélisées une à une.
 
 ## Modifier le modèle dans Blockbench
@@ -122,9 +124,10 @@ faites à la main dans Blockbench.
 | Gréement | cordages goudronnés sombres |
 | Sabords | 12 sabords décoratifs (6 par bord) avec mantelets ouverts : os `gunport_l1`…`gunport_l6`, `gunport_r1`…`gunport_r6` ; os vides `cannon_l1`…`cannon_r6` à l'emplacement des futurs canons |
 | Proue | éperon rouge et doré, figure de proue dorée, ancres, écubiers, lanterne de proue |
+| Intérieur de la grande cabine | **fenêtres visibles de l'intérieur** (vitres claires à croisillons sur les flancs, le tableau arrière et la cloison), tapis d'Orient, table à cartes (carte marine, compas à pointes sèches, chandelier) et table à dîner (assiettes, gobelets, bouteille) devant les deux chaises, couchette, bibliothèque, râtelier d'armes, globe sur le coffre, deux tableaux, deux lanternes suspendues aux baux |
 | Détails du pont | **râteliers à cabillots** au pied du grand mât et du mât de misaine (cabillots et retombées de cordage), **cloche** du bord sur le gaillard d'avant, tonneaux cerclés de fer, caisses sanglées, glènes de cordage, seau |
 
-Optimisation : 1616 cubes (≈ 8700 faces), aucune géométrie cachée inutile ; 56 os.
+Optimisation : 1683 cubes (≈ 9000 faces), aucune géométrie cachée inutile ; 56 os.
 
 ## Changer l'emblème des drapeaux
 
@@ -189,8 +192,8 @@ python3 tools/preview.py blockbench/galleon.bbmodel - docs/preview_galleon.png -
 | Dimensions | coque 55 blocs, ≈ 67 avec beaupré, bout-dehors et galeries ; 13 de large ; 12 blocs de la quille au couronnement ; 42 jusqu'au sommet du grand mât |
 | Ponts | pont principal (canons sur affûts), gaillard d'avant, **gaillard d'arrière** au-dessus de la grande cabine, **dunette** au-dessus de la chambre du conseil ; 3 escaliers doubles, barrières à balustres |
 | Canons | **58** : 12 + 11 par bord dans deux rangées de sabords de la coque, 6 par bord sur affûts au pont principal, encadrés de **guirlandes dorées** (les 12 affûts sont des sièges) ; un os par canon `cannon_l1`…`cannon_l29`, `cannon_r1`…`cannon_r29` |
-| Poupe | tableau très haut, trois étages de fenêtres éclairées (cintrées en haut) avec pilastres, corniches et frises sculptées dorées, **colonnes dorées** aux angles, **couronnement sculpté** en arc autour des grandes armes, **deux galeries** à balustres, bouteilles d'angle sur deux étages coiffées de **dômes dorés** à épi, culs-de-lampe sculptés, 3 grandes lanternes à potences dorées, pavillon de poupe |
-| Grande cabine | accessible par la porte de la cloison : chaises (places assises), lanternes, coffres, baux |
+| Poupe | les **bandes de la coque font le tour de la voûte** (noir, ocre, préceintes, moulure dorée), **deux canons de retraite** dans leurs sabords à guirlandes, tableau de nom sculpté ; tableau très haut, chaque fenêtre dans un **cadre doré avec appui et clé sculptée**, trois étages de fenêtres éclairées (cintrées en haut) avec pilastres, corniches et frises sculptées dorées, **colonnes dorées** aux angles, **couronnement sculpté** en arc autour des grandes armes, **deux galeries** à balustres avec bandeau sculpté, retours latéraux, poteaux d'angle et consoles dorées, **deux statues dorées** (renommées à trompette) de part et d'autre des armes devant un fond sculpté, bouteilles d'angle sur deux étages (pilastres dorés entre les fenêtres, qui suivent le rétrécissement de la coque sans dépasser dans les cabines) coiffées de **dômes dorés** à épi, culs-de-lampe sculptés, 3 grandes lanternes à potences dorées, pavillon de poupe |
+| Grande cabine | accessible par la porte de la cloison ; **fenêtres des deux côtés et au fond, visibles aussi de l'intérieur** (5 fenêtres par bord encadrées d'or, 5 au tableau arrière, 6 dans la cloison) ; **table du conseil** de 4,4 blocs sur un grand tapis avec 8 chaises rouges, 2 candélabres allumés, carte marine et couverts ; **lit du capitaine** à ciel rouge, bureau avec chaise, globe et chandelier, bibliothèque, râtelier d'armes, coffres, 4 tableaux, lanternes suspendues ; les 2 chaises des flancs restent les places assises |
 | Mâture | 3 mâts en trois parties (bas-mât, mât de hune, perroquet) avec hunes éclairées d'une lanterne et barres de flèche, vergues sombres ; **3 voiles carrées par mât** à l'avant et au centre, hunier et latine à l'artimon ; beaupré, bout-dehors, civadière, **3 focs** |
 | Voiles | toile crème naturelle (coutures fines, bandes de ris et garcettes, ralingues), **gonflées dans les deux sens** (72 bandes par voile carrée qui se raccordent, la tête reste sur la vergue) |
 | Gréement | **cordages goudronnés sombres** : haubans avec enfléchures et caps-de-mouton sur porte-haubans, galhaubans, étais, bras, écoutes, sous-barbe |
@@ -199,7 +202,7 @@ python3 tools/preview.py blockbench/galleon.bbmodel - docs/preview_galleon.png -
 | Pont | **chaloupe** sur ses chantiers au milieu du pont (avec bancs et avirons, solide), cabestan, caillebotis, affûts |
 | Détails du pont | **râteliers à cabillots** aux trois mâts, **clocher** du bord sur le gaillard d'avant, **hamacs roulés** rangés sur le plat-bord du pont principal, tonneaux, caisses sanglées, glènes de cordage, seaux |
 
-Optimisation : 2886 cubes (≈ 15 100 faces), ce qui reste raisonnable pour un navire de cette
+Optimisation : 3201 cubes (≈ 16 900 faces), ce qui reste raisonnable pour un navire de cette
 taille (le rendu est calculé par le client, sans aucun coût serveur) ; le gréement est simplifié
 (cordages droits), les voiles sont des bandes qui se raccordent exactement.
 
