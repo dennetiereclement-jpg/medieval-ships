@@ -106,7 +106,7 @@ def make_texture(path, sail_triangle):
     px = img.load()
     for y in range(h):
         for x in range(w):
-            c = _rgb("b9935a") if (x + y) % 3 else _rgb("7d6136")
+            c = _rgb("4a3a2a") if (x + y) % 3 else _rgb("2a2018")
             px[u + x, v + y] = c + (255,)
 
     # canopy cloth: red with folds
@@ -157,18 +157,16 @@ def make_texture(path, sail_triangle):
         return not (neg and pos)
 
     cloth = _rgb("efe6d2")
-    shade = _rgb("d9cdb2")
-    seam = _rgb("c2b394")
     for y in range(h):
         for x in range(w):
             if inside(x + 0.5, y + 0.5):
-                c = cloth
-                if y % 14 == 13:
-                    c = seam
-                elif (y // 14) % 2:
-                    c = shade if rng.random() < 0.3 else cloth
+                # clean cream canvas: cloths sewn across the yard, soft light in the belly
+                k = 1.0 - 0.07 * abs(y / h - 0.45) - (0.03 if (x * 7 + y * 3) % 17 == 0 else 0)
+                c = tuple(int(b * k) for b in (243, 234, 214))
+                if x % 12 == 11:
+                    c = tuple(int(b * 0.9) for b in c)
                 if y < 2:
                     c = _rgb("b89a62")  # reinforced head along the yard
-                px[u + x, v + y] = _jitter(c, rng, 5) + (255,)
+                px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
     img.save(path)
     return img

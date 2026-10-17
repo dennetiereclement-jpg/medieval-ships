@@ -7,6 +7,7 @@
 Every region is (texture index, u, v, w, h) so the model generator and the
 textures stay in sync.
 """
+import math
 import random
 
 from PIL import Image
@@ -48,6 +49,8 @@ REGIONS = {
     "shield_b":    (0, 80, 320, 16, 20),
     "pilaster":    (0, 96, 320, 8, 32),
     "arch_window": (0, 104, 320, 16, 24),
+    "wood_honey":  (0, 128, 320, 64, 32),
+    "wood_trim":   (0, 192, 320, 64, 32),
     # sails
     "course":      (0, 0, 128, 256, 192),
     "topsail":     (0, 256, 128, 160, 128),
@@ -100,6 +103,33 @@ def _cloth(px, region, rng, mask=None, cross=False, seams_vertical=True):
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
+def _canvas(px, region, rng, mask=None, vertical=True):
+    """Warm cream canvas: thin seams, reef bands with their points, bolt ropes, soft weathering."""
+    _, u, v, w, h = region
+    base = (243, 236, 220)
+    for y in range(h):
+        for x in range(w):
+            if mask is not None and not mask(x + 0.5, y + 0.5, w, h):
+                continue
+            fy = y / h
+            # soft vertical gradient (lighter in the belly) and a little grain
+            k = 1.0 - 0.06 * abs(fy - 0.45) - (0.03 if (x * 7 + y * 3) % 17 == 0 else 0)
+            c = tuple(int(b * k) for b in base)
+            seam = (x % 12 == 11) if vertical else (y % 12 == 11)
+            if seam:
+                c = tuple(int(b * 0.9) for b in c)
+            if mask is None:
+                for band in (0.14, 0.27):
+                    yb = int(h * band)
+                    if y == yb or y == yb + 1:
+                        c = (222, 212, 188)
+                    if y == yb and x % 8 == 4:
+                        c = (150, 130, 95)
+                if y < 3 or x < 2 or x >= w - 2 or y >= h - 2:
+                    c = (186, 160, 112)
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+
+
 def make_textures(path, flag_path, lateen_tri, jib_tri):
     rng = random.Random(1588)
     img = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
@@ -109,7 +139,10 @@ def make_textures(path, flag_path, lateen_tri, jib_tri):
         return REGIONS[name][1:]
 
     _planks(img, reg("hull_dark"), _rgb("5a3a1e"), _rgb("2f1d0e"), 4, rng)
-    _planks(img, reg("hull_mid"), _rgb("80542a"), _rgb("4a3018"), 4, rng)
+    _planks(img, reg("hull_mid"), _rgb("8f5f2e"), _rgb("553719"), 4, rng)
+    # natural golden wood of the reference (hull, castles) and its lighter trim beams
+    _planks(img, reg("wood_honey"), _rgb("c58f4a"), _rgb("7f5426"), 4, rng)
+    _planks(img, reg("wood_trim"), _rgb("e0b56a"), _rgb("a07a3a"), 8, rng, joints=False)
     _planks(img, reg("hull_light"), _rgb("b07a3c"), _rgb("6e4a22"), 4, rng)
     _planks(img, reg("red_paint"), _rgb("8f1f1b"), _rgb("561110"), 4, rng)
     _planks(img, reg("wale"), _rgb("2e221a"), _rgb("17110c"), 4, rng, joints=False)
@@ -139,7 +172,7 @@ def make_textures(path, flag_path, lateen_tri, jib_tri):
     u, v, w, h = reg("rope")
     for y in range(h):
         for x in range(w):
-            px[u + x, v + y] = (_rgb("b9935a") if (x + y) % 3 else _rgb("7d6136")) + (255,)
+            px[u + x, v + y] = (_rgb("4a3a2a") if (x + y) % 3 else _rgb("2a2018")) + (255,)
     # roof tiles (red, overlapping rows)
     u, v, w, h = reg("roof")
     for y in range(h):
@@ -152,16 +185,17 @@ def make_textures(path, flag_path, lateen_tri, jib_tri):
                 c = _rgb("d0523f")
             px[u + x, v + y] = _jitter(c, rng, 7) + (255,)
     # windows: leaded glass in a gold frame; glowing variant (lit cabin)
-    for name, glass, glass2 in (("window", "37506b", "4f7092"), ("glow_window", "f2c25a", "ffe9a3")):
+    for name, glass, glass2 in (("window", "37506b", "4f7092"), ("glow_window", "f0a63c", "ffd98a")):
         u, v, w, h = reg(name)
         for y in range(h):
             for x in range(w):
                 if x < 3 or x >= w - 3 or y < 3 or y >= h - 3:
-                    c = _rgb("c9a043")
-                elif (x - 3) % 7 == 6 or (y - 3) % 7 == 6:
-                    c = _rgb("2c2a26")
+                    c = _rgb("5a3a1c") if name == "glow_window" else _rgb("c9a043")
+                elif (x + y) % 6 == 0 or (x - y) % 6 == 0:
+                    c = _rgb("2c2018")  # diamond lattice
                 else:
-                    c = _rgb(glass2) if (x + y) % 9 < 2 else _rgb(glass)
+                    d = abs(x - w / 2) + abs(y - h / 2)
+                    c = _rgb(glass2) if d < w * 0.35 else _rgb(glass)
                 px[u + x, v + y] = c + (255,)
     # door: planks, iron bands, frame
     u, v, w, h = reg("door")
@@ -264,17 +298,17 @@ def make_textures(path, flag_path, lateen_tri, jib_tri):
             px[u + x, v + y] = c + (255,)
 
     # sails: courses carry a red cross, topsails plain, triangles with transparent outside
-    _cloth(px, REGIONS["course"], rng, cross=True)
-    _cloth(px, REGIONS["topsail"], rng)
+    _canvas(px, REGIONS["course"], rng)
+    _canvas(px, REGIONS["topsail"], rng)
     _, u, v, w, h = REGIONS["lateen"]
     tri = [(p[0] * w, p[1] * h) for p in lateen_tri]
-    _cloth(px, REGIONS["lateen"], rng, mask=lambda x, y, w_, h_: _tri_inside(tri, x, y), seams_vertical=False)
+    _canvas(px, REGIONS["lateen"], rng, mask=lambda x, y, w_, h_: _tri_inside(tri, x, y), vertical=False)
     _, u, v, w, h = REGIONS["jib"]
     tri2 = [(p[0] * w, p[1] * h) for p in jib_tri]
-    _cloth(px, REGIONS["jib"], rng, mask=lambda x, y, w_, h_: _tri_inside(tri2, x, y), seams_vertical=False)
+    _canvas(px, REGIONS["jib"], rng, mask=lambda x, y, w_, h_: _tri_inside(tri2, x, y), vertical=False)
     img.save(path)
 
-    # ---- flags: blue field, gold border, gold fleur-de-lis; red / gold pennant
+    # ---- flags: white field, blue fleur-de-lis; white / red pennant
     flag = Image.new("RGBA", (FLAG_SIZE, FLAG_SIZE), (0, 0, 0, 0))
     fp = flag.load()
     _, u, v, w, h = REGIONS["flag"]
@@ -300,17 +334,16 @@ def make_textures(path, flag_path, lateen_tri, jib_tri):
     ox, oy = (w - lw * scale) // 2, (h - lh * scale) // 2
     for y in range(h):
         for x in range(w):
-            c = _jitter(_rgb("1f3f8f"), rng, 6)
-            if x < 2 or x >= w - 2 or y < 2 or y >= h - 2:
-                c = _rgb("d4aa45")
+            # white field like the reference, blue fleur-de-lis
+            c = _jitter(_rgb("f1efe8"), rng, 4)
             lx, ly = (x - ox) // scale, (y - oy) // scale
             if 0 <= lx < lw and 0 <= ly < lh and lis[ly][lx] == "#":
-                c = _jitter(_rgb("e8c35a"), rng, 8)
+                c = _jitter(_rgb("23439a"), rng, 6)
             fp[u + x, v + y] = c + (255,)
     _, u, v, w, h = REGIONS["pennant"]
     for y in range(h):
         for x in range(w):
-            c = _rgb("b3221c") if (y < h // 2) else _rgb("d4aa45")
+            c = _rgb("f1efe8") if (y < h // 2) else _rgb("b3221c")
             fp[u + x, v + y] = _jitter(c, rng, 6) + (255,)
     flag.save(flag_path)
     return img, flag

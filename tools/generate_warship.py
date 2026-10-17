@@ -540,7 +540,7 @@ def build():
         yard(mb, name + "_yard", z, y_top, half_top + 0.4)
         sb = Bone("sail_" + name, origin=(0, y_top, z + 0.56), parent=mb)
         gn.sail(sb, name, v3(0, y_top - 0.14, z + 0.58), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), half_top, half_bottom,
-                height, depth * 1.35, "course" if "course" in name else "topsail", nx=8, ny=9, round_=0.55, overlap=0.03)
+                height, depth * 1.7, "course" if "course" in name else "topsail", nx=8, ny=9, round_=0.7, overlap=0.03)
         sails_info.append((sb, False))
 
     m_fore = mast("foremast", ws.FORE_MAST_Z, fc_y, (19.0, 27.5, ws.FORE_MAST_TOP), 0.78)

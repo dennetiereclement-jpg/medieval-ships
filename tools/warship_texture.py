@@ -12,7 +12,7 @@ import random
 from PIL import Image
 
 from galley_texture import _fill, _jitter, _planks, _rgb
-from galleon_texture import _cloth, _tri_inside
+from galleon_texture import _canvas, _tri_inside
 
 SIZE = 512
 FLAG_SIZE = 64
@@ -77,33 +77,6 @@ LIS = [
     "...##....##...",
     "..##......##..",
 ]
-
-
-def _canvas(px, region, rng, mask=None, vertical=True):
-    """Warm cream canvas: thin seams, reef bands with their points, bolt ropes, soft weathering."""
-    _, u, v, w, h = region
-    base = (243, 236, 220)
-    for y in range(h):
-        for x in range(w):
-            if mask is not None and not mask(x + 0.5, y + 0.5, w, h):
-                continue
-            fy = y / h
-            # soft vertical gradient (lighter in the belly) and a little grain
-            k = 1.0 - 0.06 * abs(fy - 0.45) - (0.03 if (x * 7 + y * 3) % 17 == 0 else 0)
-            c = tuple(int(b * k) for b in base)
-            seam = (x % 12 == 11) if vertical else (y % 12 == 11)
-            if seam:
-                c = tuple(int(b * 0.9) for b in c)
-            if mask is None:
-                for band in (0.14, 0.27):
-                    yb = int(h * band)
-                    if y == yb or y == yb + 1:
-                        c = (222, 212, 188)
-                    if y == yb and x % 8 == 4:
-                        c = (150, 130, 95)
-                if y < 3 or x < 2 or x >= w - 2 or y >= h - 2:
-                    c = (186, 160, 112)
-            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
 def make_textures(path, flag_path, lateen_tri, jib_tri):

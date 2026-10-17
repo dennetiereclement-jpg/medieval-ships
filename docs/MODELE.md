@@ -26,7 +26,7 @@ Le moteur de rendu est commun.
 | Bordures supérieures en bois clair | bordage supérieur clair + lisse (« rail ») plus claire |
 | Bande rouge foncé | un bordage rouge sur toute la longueur, qui suit la tonture |
 | Pont ouvert | pont principal + plates-formes surélevées à la poupe et à la proue |
-| Mât central, voile triangulaire beige, cordages, drapeau rouge | mât de 13 blocs, antenne latine inclinée, voile triangulaire (un seul plan texturé avec transparence), 10 cordages, flamme rouge animée |
+| Mât central, voile triangulaire beige, cordages, drapeau rouge | mât de 13 blocs, antenne latine inclinée, voile triangulaire **gonflée** (42 panneaux qui suivent le ventre de la toile, toile crème propre), 10 cordages sombres, flamme rouge animée |
 | 8 rames par côté | 16 os indépendants, pale élargie |
 | Cabine de poupe, toit en tissu rouge, poste de pilotage, barrières | 4 poteaux, toit rouge en bâtière avec lambrequins festonnés, barrière à balustres avec passage, tabouret du barreur, deux avirons de gouverne |
 | Proue décorée, petit espace surélevé | figure de proue, plate-forme avant |
@@ -108,16 +108,17 @@ faites à la main dans Blockbench.
 
 | Élément | Réalisation |
 |---|---|
-| Coque arrondie et lisse (pas en escalier) | 28 tronçons × 2 bords × 7 bordages **inclinés** qui suivent des sections arrondies (quille, bouchain, flanc, léger rentré en haut) ; œuvres vives sombres, bois naturel, deux préceintes noires, virure rouge des sabords, **frise peinte** (losanges rouges et or sur fond bleu) et moulure dorée sous le plat-bord |
+| Coque arrondie et lisse (pas en escalier) | 28 tronçons × 2 bords × 7 bordages **inclinés** qui suivent des sections arrondies (quille, bouchain, flanc, léger rentré en haut) ; œuvres vives sombres, **bois naturel doré** comme sur la photo de référence (pas de peinture), deux préceintes noires, moulure en bois clair sous le plat-bord |
 | Dimensions | coque 35 blocs (≈ 43 avec le beaupré et le balcon), 9 de large, ≈ 6,4 de la quille au haut des châteaux, ≈ 28 de la quille au sommet du grand mât |
 | Ponts | pont principal, **gaillard d'avant** (+2 blocs), **gaillard d'arrière** (+2,6) au-dessus de la grande cabine, escaliers des deux bords, barrières à balustres |
-| Château arrière | murs rouges, rangée de **pavois héraldiques** (boucliers) le long des gaillards, **bouteilles** (galeries de quart fermées) aux deux angles avec fenêtres cintrées éclairées, tableau arrière plat avec fenêtres de galerie et **grandes armes** (l'emblème du pavillon dans un cadre doré couronné), **balcon accessible**, corniche dorée, 3 grandes lanternes |
-| Cabine | **grande cabine accessible** sous le gaillard d'arrière (porte dans la cloison, chaises = places assises, lanternes, coffre, poutres) ; **dunette** au toit de tuiles rouges (décorative, fermée) avec pilastres dorés, fenêtres cintrées éclairées et épis de faîtage |
+| Château arrière | murs en bois naturel doré avec poteaux sombres et **fenêtres à croisillons éclairées** le long des gaillards, **bouteilles** (galeries de quart fermées) aux deux angles avec fenêtres cintrées éclairées, tableau arrière plat avec fenêtres de galerie et **grandes armes** (l'emblème du pavillon dans un cadre doré couronné), **balcon accessible**, corniche dorée, 3 grandes lanternes |
+| Cabine | **grande cabine accessible** sous le gaillard d'arrière (porte dans la cloison, chaises = places assises, lanternes, coffre, poutres) ; **dunette** à colombages en bois naturel, **grand toit de tuiles rouges** débordant avec **4 lanternes** à ses angles (décorative, fermée), fenêtres cintrées éclairées, épis de faîtage |
 | Gouvernail et barre | roue de barre sur piédestal (os `helm_wheel`) et gouvernail sur le tableau (os `rudder`) |
 | Mâture | 3 mâts (misaine, grand mât en deux parties avec hunes, artimon) + beaupré avec **civadière**, vergues avec voile carguée en rouleau, porte-haubans et caps-de-mouton sur la coque |
-| Voiles | voiles carrées **gonflées et courbées** (chaque voile = 9 bandes inclinées qui se raccordent exactement et suivent le ventre de la toile ; carguées, les voiles disparaissent dans leur rouleau sur la vergue ; texture continue avec croix rouge sur les basses voiles, garcettes de ris et toile légèrement patinée), voile latine d'artimon, **2 focs** triangulaires |
+| Voiles | voiles carrées **gonflées et courbées** (toile crème unie comme sur la photo, **gonflée dans les deux sens** : 54 panneaux par voile carrée qui se raccordent, la tête reste sur la vergue ; carguées, les voiles disparaissent dans leur rouleau), voile latine d'artimon, **2 focs** triangulaires |
 | Cordages | haubans avec enfléchures, étais, bras, écoutes, sous-barbe (≈ 60 cordages) |
-| Drapeaux | pavillons en tête de mât, flamme à deux couleurs au grand mât, grand pavillon de poupe — tous sur la texture `galleon_flag.png` |
+| Drapeaux | pavillons **blancs à fleur de lys bleue** en tête de mât, flamme blanche et rouge au grand mât, grand pavillon de poupe — tous sur la texture `galleon_flag.png` |
+| Gréement | cordages goudronnés sombres |
 | Sabords | 12 sabords décoratifs (6 par bord) avec mantelets ouverts : os `gunport_l1`…`gunport_l6`, `gunport_r1`…`gunport_r6` ; os vides `cannon_l1`…`cannon_r6` à l'emplacement des futurs canons |
 | Proue | éperon rouge et doré, figure de proue dorée, ancres, écubiers, lanterne de proue |
 
@@ -128,7 +129,7 @@ Optimisation : 1289 cubes (≈ 6700 faces), aucune géométrie cachée inutile ;
 Remplacez `assets/medievalships/textures/entity/galleon_flag.png` dans un pack de ressources
 (même taille, 64 × 64) :
 
-* zone `0,0 → 64,40` : le pavillon (fleur de lys dorée sur fond bleu par défaut) ;
+* zone `0,0 → 64,40` : le pavillon (fleur de lys bleue sur fond blanc par défaut) ;
 * zone `0,40 → 64,48` : la flamme du grand mât.
 
 L'emblème apparaît aussi sur les grandes armes du tableau arrière. Aucune modification du modèle n'est nécessaire, **F3 + T** recharge la texture.

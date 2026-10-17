@@ -438,9 +438,34 @@ def build():
     sail_h = 8.6
     sail_mid = v3(O[0] - 0.08, O[1], (za + zb) / 2)
     sail = Bone("sail", origin=sail_mid, parent=yard)
-    add_cube(sail, "sail_cloth", (O[0] - 0.08, O[1] - 0.08 - sail_h / 2, (za + zb) / 2), np.eye(3),
-             (0.03, sail_h, yard_len), {"all": None, "+1": "sail", "-1": "sail"}, world=False, stretch=True,
-             u_dir=v3(0, 0, 1), v_dir=v3(0, -1, 0))
+    # billowed sail: a grid of tilted panels following the bellied cloth (in the yard frame:
+    # z along the yard, y down the sail, the belly towards -x); each panel maps its own part of
+    # the triangular sail texture, so the cloth stays continuous
+    nx, ny, depth = 7, 6, 0.75
+
+    def cloth(fu, fy):
+        belly = depth * math.sin(math.pi * fu) ** 0.7 * math.sin(math.pi * min(1.0, fy * 0.7))
+        return v3(O[0] - 0.08 - belly, O[1] - 0.08 - fy * sail_h, za + fu * yard_len)
+
+    for i in range(nx):
+        for j in range(ny):
+            fu0, fu1, fy0, fy1 = i / nx, (i + 1) / nx, j / ny, (j + 1) / ny
+            a0, a1, b0, b1 = cloth(fu0, fy1), cloth(fu0, fy0), cloth(fu1, fy1), cloth(fu1, fy0)
+            c = (a0 + a1 + b0 + b1) / 4
+            u = ((b0 + b1) - (a0 + a1)) / 2
+            L = np.linalg.norm(u)
+            u = u / L
+            vp = ((a0 - a1) + (b0 - b1)) / 2
+            H = np.linalg.norm(vp)
+            v = norm(vp - np.dot(vp, u) * u)
+            n = np.cross(u, v)
+            if n[0] > 0:
+                u, n = -u, -n
+            cube = add_cube(sail, "sail_cloth_%d_%d" % (i, j), c, np.column_stack([u, v, n]), (L + 0.03, H + 0.03, 0.03),
+                            {"all": None, "+3": "sail", "-3": "sail"}, world=False, stretch=True,
+                            u_dir=v3(0, 0, 1), v_dir=v3(0, -1, 0))
+            for f in ("north", "south"):
+                cube.faces[f]["sub"] = (fu0, fy0, fu1, fy1)
     # triangle (u along the yard from its upper end, v downward) in [0,1] region coordinates
     sail_tri = [(0.3 / yard_len, 0.01), (16.4 / yard_len, 0.01), (7.9 / yard_len, 8.3 / sail_h)]
 
@@ -630,6 +655,9 @@ def face_uv(cube, bbface, spec, rng_seed):
         ov = ((rng_seed // 3) * 4) % max(1, rh - sv + 1)
         ov -= ov % 4
     uv = [u0 + ou, v0 + ov, u0 + ou + su, v0 + ov + sv]
+    if spec.get("sub") is not None:
+        s0 = spec["sub"]
+        uv = [u0 + s0[0] * rw, v0 + s0[1] * rh, u0 + s0[2] * rw, v0 + s0[3] * rh]
     # orientation hints (given in bone-frame ship-local space): flip u / v if needed
     Rbb = to_bb_rot(cube.axes)
     for idx, hint, axis in ((0, spec["u_dir"], udir), (1, spec["v_dir"], vdir)):
