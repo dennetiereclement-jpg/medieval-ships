@@ -144,7 +144,7 @@ def sail(bone, name, origin, U, V, N, half_top, half_bottom, height, depth, regi
             v = norm(vp - np.dot(vp, u) * u)
             n = np.cross(u, v)
             if np.dot(n, N) < 0:
-                n = -n
+                u, n = -u, -n  # keep a proper rotation (flipping n alone would mirror the strip)
             axes = np.column_stack([u, v, n])
             cube = add_cube(bone, "%s_%d_%d" % (name, i, j), c, axes, (L + 0.005, H + 0.005, th),
                             {"all": None, "+3": region, "-3": region}, stretch=True, u_dir=U, v_dir=V)
