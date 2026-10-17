@@ -50,7 +50,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 	@Override
 	public void runTest(ClientGameTestContext context) {
 		log("lithium installed: %s", net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("lithium"));
-		try (Env sp = context.worldBuilder().create()) {
+		try (TestSingleplayerContext sp = context.worldBuilder().create()) {
 			tag = "solo";
 			scenario(context, new Env(sp.getServer(), sp.getClientWorld()));
 		} catch (Throwable t) {
