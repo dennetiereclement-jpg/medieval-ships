@@ -182,17 +182,20 @@ python3 tools/preview.py blockbench/galleon.bbmodel - docs/preview_galleon.png -
 
 | Élément | Réalisation |
 |---|---|
-| Coque | 29 tronçons × 2 bords × 10 bordages **inclinés** sur des sections arrondies : œuvres vives **blanches**, bandes **noires** et **ocre** alternées aux rangées de sabords, haut de coque brun sombre, trois préceintes noires, plat-bord doré, léger rentré de la muraille |
+| Coque | 29 tronçons × 2 bords × 10 bordages **inclinés** sur des sections arrondies : œuvres vives **blanches**, bandes **noires** et **ocre** alternées qui **suivent la tonture** (elles remontent vers la proue et la poupe, comme les rangées de sabords), fines moulures dorées entre les bandes, œuvres mortes noires, trois préceintes, plat-bord doré, rentré de la muraille, porte d'entrée dorée avec ses marches sur chaque bord |
 | Dimensions | coque 55 blocs, ≈ 67 avec beaupré, bout-dehors et galeries ; 13 de large ; 12 blocs de la quille au couronnement ; 42 jusqu'au sommet du grand mât |
 | Ponts | pont principal (canons sur affûts), gaillard d'avant, **gaillard d'arrière** au-dessus de la grande cabine, **dunette** au-dessus de la chambre du conseil ; 3 escaliers doubles, barrières à balustres |
-| Canons | **58** : 12 + 11 par bord dans deux rangées de sabords de la coque, 6 par bord sur affûts au pont principal (les 12 affûts sont des sièges) ; un os par canon `cannon_l1`…`cannon_l29`, `cannon_r1`…`cannon_r29` |
-| Poupe | tableau très haut, trois étages de fenêtres éclairées avec pilastres, corniches et frises dorées, **deux galeries** à balustres, bouteilles d'angle sur deux étages, grandes armes couronnées, 3 grandes lanternes, pavillon de poupe |
+| Canons | **58** : 12 + 11 par bord dans deux rangées de sabords de la coque, 6 par bord sur affûts au pont principal, encadrés de **guirlandes dorées** (les 12 affûts sont des sièges) ; un os par canon `cannon_l1`…`cannon_l29`, `cannon_r1`…`cannon_r29` |
+| Poupe | tableau très haut, trois étages de fenêtres éclairées (cintrées en haut) avec pilastres, corniches et frises sculptées dorées, **colonnes dorées** aux angles, **couronnement sculpté** en arc autour des grandes armes, **deux galeries** à balustres, bouteilles d'angle sur deux étages coiffées de **dômes dorés** à épi, culs-de-lampe sculptés, 3 grandes lanternes à potences dorées, pavillon de poupe |
 | Grande cabine | accessible par la porte de la cloison : chaises (places assises), lanternes, coffres, baux |
-| Mâture | 3 mâts en trois parties (bas-mât, mât de hune, perroquet) avec hunes et barres de flèche ; **3 voiles carrées par mât** à l'avant et au centre, hunier et latine à l'artimon ; beaupré, bout-dehors, civadière, **3 focs** |
-| Gréement | haubans avec enfléchures et caps-de-mouton sur porte-haubans, galhaubans, étais, bras, écoutes, sous-barbe |
-| Proue | éperon, figure de proue dorée, lisses de poulaine, bossoirs avec ancres, écubiers, lanterne |
+| Mâture | 3 mâts en trois parties (bas-mât, mât de hune, perroquet) avec hunes éclairées d'une lanterne et barres de flèche, vergues sombres ; **3 voiles carrées par mât** à l'avant et au centre, hunier et latine à l'artimon ; beaupré, bout-dehors, civadière, **3 focs** |
+| Voiles | toile crème naturelle (coutures fines, bandes de ris et garcettes, ralingues), **gonflées dans les deux sens** (72 bandes par voile carrée qui se raccordent, la tête reste sur la vergue) |
+| Gréement | **cordages goudronnés sombres** : haubans avec enfléchures et caps-de-mouton sur porte-haubans, galhaubans, étais, bras, écoutes, sous-barbe |
+| Proue | éperon avec volutes dorées, grand **lion de proue** doré couronné, lisses de poulaine courbes dorées, bossoirs à masques dorés avec ancres, écubiers, lanterne |
+| Châteaux | murailles noires à **pilastres dorés**, fenêtres cintrées éclairées, bande ocre et lisse dorée |
+| Pont | **chaloupe** sur ses chantiers au milieu du pont (avec bancs et avirons, solide), cabestan, caillebotis, affûts |
 
-Optimisation : 1907 cubes (≈ 11 000 faces), ce qui reste raisonnable pour un navire de cette
+Optimisation : 2668 cubes (≈ 13 800 faces), ce qui reste raisonnable pour un navire de cette
 taille (le rendu est calculé par le client, sans aucun coût serveur) ; le gréement est simplifié
 (cordages droits), les voiles sont des bandes qui se raccordent exactement.
 

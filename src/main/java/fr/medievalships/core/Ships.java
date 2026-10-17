@@ -321,6 +321,22 @@ public final class Ships {
 		private WarshipLayout() {
 		}
 
+		/** The hull bands and gun rows rise towards the ends, parallel to the sheer (not the flat decks). */
+		public static final double BAND_LIFT = 0.7;
+
+		/** Height added to the hull bands and gun rows at {@code z}. */
+		public static double bandLift(HullShape hull, double z) {
+			double a = Math.abs(z) / hull.halfLength;
+			double rise = z >= 0 ? hull.params().railRiseFore : hull.params().railRiseAft;
+			return BAND_LIFT * rise * Math.pow(a, hull.params().railPow);
+		}
+
+		/** Ship's boat on its skids on the main deck, between the main and fore masts (solid). */
+		public static final double BOAT_Z0 = 4.6;
+		public static final double BOAT_Z1 = 11.6;
+		public static final double BOAT_HALF = 1.15;
+		public static final double BOAT_TOP = MAIN_DECK_Y + 1.5;
+
 		/** z of gun port k of a row of n ports. */
 		public static double gunZ(int k, int n) {
 			return GUN_Z0 + (GUN_Z1 - GUN_Z0) * (k + 0.5) / n;
@@ -342,8 +358,8 @@ public final class Ships {
 		p.keelRise = 1.3;
 		p.keelPow = 4.0;
 		p.railBase = 5.8;
-		p.railRiseFore = 1.0;
-		p.railRiseAft = 1.2;
+		p.railRiseFore = 1.8;
+		p.railRiseAft = 2.0;
 		p.railPow = 2.5;
 		p.mainDeckY = WarshipLayout.MAIN_DECK_Y;
 		p.raisedDecks = List.of(new HullShape.RaisedDeck(WarshipLayout.FORECASTLE_START, Double.POSITIVE_INFINITY, WarshipLayout.FORECASTLE_Y));
@@ -400,6 +416,9 @@ public final class Ships {
 				WarshipLayout.POOP_STAIR_X0 - 0.1, poop + rh, WarshipLayout.POOP_START));
 		solids.add(new ShipGeometry.LocalBox(-(WarshipLayout.FC_STAIR_X0 - 0.1), fc, WarshipLayout.FORECASTLE_START,
 				WarshipLayout.FC_STAIR_X0 - 0.1, fc + rh, WarshipLayout.FORECASTLE_START + rt));
+		// the ship's boat on its skids in the waist
+		solids.add(new ShipGeometry.LocalBox(-WarshipLayout.BOAT_HALF, main, WarshipLayout.BOAT_Z0, WarshipLayout.BOAT_HALF,
+				WarshipLayout.BOAT_TOP, WarshipLayout.BOAT_Z1));
 		// gun carriages on the main deck (seats)
 		List<ShipGeometry.Seat> seats = new ArrayList<>();
 		seats.add(new ShipGeometry.Seat(ShipGeometry.PILOT_SEAT, 0.0, qd + 0.28, WarshipLayout.PILOT_Z, true,
@@ -445,11 +464,11 @@ public final class Ships {
 		for (double side : new double[] {1, -1}) {
 			for (int k = 0; k < WarshipLayout.LOWER_GUNS; k++) {
 				double z = WarshipLayout.gunZ(k, WarshipLayout.LOWER_GUNS);
-				ports.add(new ShipGeometry.Gunport(ports.size(), side * hull.halfWidth(z), WarshipLayout.LOWER_GUN_Y, z, (int) side));
+				ports.add(new ShipGeometry.Gunport(ports.size(), side * hull.halfWidth(z), WarshipLayout.LOWER_GUN_Y + WarshipLayout.bandLift(hull, z), z, (int) side));
 			}
 			for (int k = 0; k < WarshipLayout.MIDDLE_GUNS; k++) {
 				double z = WarshipLayout.gunZ(k, WarshipLayout.MIDDLE_GUNS);
-				ports.add(new ShipGeometry.Gunport(ports.size(), side * hull.halfWidth(z), WarshipLayout.MIDDLE_GUN_Y, z, (int) side));
+				ports.add(new ShipGeometry.Gunport(ports.size(), side * hull.halfWidth(z), WarshipLayout.MIDDLE_GUN_Y + WarshipLayout.bandLift(hull, z), z, (int) side));
 			}
 			for (double z : WarshipLayout.CARRIAGE_Z) {
 				ports.add(new ShipGeometry.Gunport(ports.size(), side * hull.halfWidth(z), WarshipLayout.MAIN_GUN_Y, z, (int) side));

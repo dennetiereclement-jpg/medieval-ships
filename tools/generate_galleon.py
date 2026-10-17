@@ -114,18 +114,21 @@ def set_sub(cube, sub, faces=("north", "south")):
 
 
 # ---------------------------------------------------------------- sails
-def sail_surface(origin, U, V, N, half_top, half_bottom, height, depth, fx, fy, triangle=False):
+def sail_surface(origin, U, V, N, half_top, half_bottom, height, depth, fx, fy, triangle=False, round_=0.0):
     """Point of a billowed sail. fx in [-1, 1] across, fy in [0, 1] from the head down.
     The belly only depends on fy: every horizontal strip is then exactly planar and shares its
     edges with its neighbours (no cracks, no overlap, no saw-tooth edges), the head stays on its
     yard / stay and the cloth curves out below it."""
     half = half_top + (half_bottom - half_top) * fy
     belly = depth * math.sin(math.pi * min(1.0, fy * (0.6 if triangle else 0.72)))
+    if round_:
+        # rounder sail: the belly also grows towards the middle of the width (the head stays on the yard)
+        belly *= 1.0 - round_ + round_ * (1.0 - fx * fx)
     return origin + U * (fx * half) + V * (fy * height) + N * belly
 
 
 def sail(bone, name, origin, U, V, N, half_top, half_bottom, height, depth, region, nx=1, ny=8,
-         triangle=False, th=0.04):
+         triangle=False, th=0.04, round_=0.0, overlap=0.005):
     """Square (or triangle-textured) sail made of tilted strips following a curved surface.
     Each strip maps its own part of the texture region, so the cloth (and its emblem) is continuous."""
     U, V, N = norm(U), norm(V), norm(N)
@@ -133,7 +136,7 @@ def sail(bone, name, origin, U, V, N, half_top, half_bottom, height, depth, regi
         for j in range(ny):
             fx0, fx1 = -1 + 2 * i / nx, -1 + 2 * (i + 1) / nx
             fy0, fy1 = j / ny, (j + 1) / ny
-            P = lambda a, b: sail_surface(origin, U, V, N, half_top, half_bottom, height, depth, a, b, triangle)  # noqa: E731
+            P = lambda a, b: sail_surface(origin, U, V, N, half_top, half_bottom, height, depth, a, b, triangle, round_)  # noqa: E731
             a0, a1, b0, b1 = P(fx0, fy1), P(fx0, fy0), P(fx1, fy1), P(fx1, fy0)
             c = (a0 + a1 + b0 + b1) / 4
             u = ((b0 + b1) - (a0 + a1)) / 2
@@ -146,7 +149,7 @@ def sail(bone, name, origin, U, V, N, half_top, half_bottom, height, depth, regi
             if np.dot(n, N) < 0:
                 u, n = -u, -n  # keep a proper rotation (flipping n alone would mirror the strip)
             axes = np.column_stack([u, v, n])
-            cube = add_cube(bone, "%s_%d_%d" % (name, i, j), c, axes, (L + 0.005, H + 0.005, th),
+            cube = add_cube(bone, "%s_%d_%d" % (name, i, j), c, axes, (L + overlap, H + overlap, th),
                             {"all": None, "+3": region, "-3": region}, stretch=True, u_dir=U, v_dir=V)
             set_sub(cube, (i / nx, j / ny, (i + 1) / nx, (j + 1) / ny))
 

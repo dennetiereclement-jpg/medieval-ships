@@ -16,7 +16,7 @@ MAX_HALF_WIDTH = 6.5
 FORE_SCALE, FORE_POW_A, FORE_POW_B = 28.4, 2.2, 0.55
 AFT_SCALE, AFT_POW_A, AFT_POW_B = 30.5, 3.2, 0.45
 KEEL_DEPTH, KEEL_RISE, KEEL_POW = 1.9, 1.3, 4.0
-RAIL_BASE, RAIL_RISE_FORE, RAIL_RISE_AFT, RAIL_POW = 5.8, 1.0, 1.2, 2.5
+RAIL_BASE, RAIL_RISE_FORE, RAIL_RISE_AFT, RAIL_POW = 5.8, 1.8, 2.0, 2.5
 BOTTOM_SECTION = [(0.0, 1.0), (0.5, 0.9), (0.82, 0.55), (0.97, 0.12)]
 
 MAIN_DECK_Y = 4.5
@@ -54,6 +54,18 @@ GUN_Z0, GUN_Z1 = -20.0, 18.5
 QD_RAIL_Y = QUARTERDECK_Y + 1.0
 POOP_RAIL_Y = POOP_Y + 1.0
 FC_RAIL_Y = FORECASTLE_Y + 1.0
+
+
+BAND_LIFT = 0.7
+BOAT_Z0, BOAT_Z1, BOAT_HALF = 4.6, 11.6, 1.15
+BOAT_TOP = MAIN_DECK_Y + 1.5
+
+
+def band_lift(z):
+    """Hull bands and gun rows rise towards the ends, parallel to the sheer."""
+    a = abs(z) / HALF_LENGTH
+    rise = RAIL_RISE_FORE if z >= 0 else RAIL_RISE_AFT
+    return BAND_LIFT * rise * a ** RAIL_POW
 
 
 def gun_z(k, n):

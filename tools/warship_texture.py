@@ -6,6 +6,7 @@
 
 Every region is (texture index, u, v, w, h).
 """
+import math
 import random
 
 from PIL import Image
@@ -45,6 +46,10 @@ REGIONS = {
     "cannon":      (0, 376, 48, 16, 16),
     "hull_light":  (0, 64, 32, 64, 32),
     "red_paint":   (0, 64, 64, 64, 32),
+    "garland":     (0, 448, 48, 32, 32),
+    "mast_dark":   (0, 416, 32, 64, 16),
+    "gold_relief": (0, 416, 48, 32, 32),
+    "hull_ochre_dark": (0, 128, 64, 64, 32),
     # sails (plain canvas, like the reference)
     "course":      (0, 0, 128, 256, 192),
     "topsail":     (0, 256, 128, 160, 128),
@@ -74,6 +79,33 @@ LIS = [
 ]
 
 
+def _canvas(px, region, rng, mask=None, vertical=True):
+    """Warm cream canvas: thin seams, reef bands with their points, bolt ropes, soft weathering."""
+    _, u, v, w, h = region
+    base = (243, 236, 220)
+    for y in range(h):
+        for x in range(w):
+            if mask is not None and not mask(x + 0.5, y + 0.5, w, h):
+                continue
+            fy = y / h
+            # soft vertical gradient (lighter in the belly) and a little grain
+            k = 1.0 - 0.06 * abs(fy - 0.45) - (0.03 if (x * 7 + y * 3) % 17 == 0 else 0)
+            c = tuple(int(b * k) for b in base)
+            seam = (x % 12 == 11) if vertical else (y % 12 == 11)
+            if seam:
+                c = tuple(int(b * 0.9) for b in c)
+            if mask is None:
+                for band in (0.14, 0.27):
+                    yb = int(h * band)
+                    if y == yb or y == yb + 1:
+                        c = (222, 212, 188)
+                    if y == yb and x % 8 == 4:
+                        c = (150, 130, 95)
+                if y < 3 or x < 2 or x >= w - 2 or y >= h - 2:
+                    c = (186, 160, 112)
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+
+
 def make_textures(path, flag_path, lateen_tri, jib_tri):
     rng = random.Random(1665)
     img = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
@@ -83,8 +115,9 @@ def make_textures(path, flag_path, lateen_tri, jib_tri):
         return REGIONS[name][1:]
 
     _planks(img, reg("hull_dark"), _rgb("4a3020"), _rgb("2a1a10"), 4, rng)
-    _planks(img, reg("hull_black"), _rgb("26221f"), _rgb("141210"), 4, rng)
-    _planks(img, reg("ochre"), _rgb("c79a3c"), _rgb("8a6522"), 4, rng)
+    _planks(img, reg("hull_black"), _rgb("221e1b"), _rgb("110f0d"), 4, rng, joints=False)
+    _planks(img, reg("ochre"), _rgb("d1a440"), _rgb("9a7228"), 4, rng, joints=False)
+    _planks(img, reg("hull_ochre_dark"), _rgb("a87d2c"), _rgb("6e5018"), 4, rng, joints=False)
     _planks(img, reg("white_bottom"), _rgb("e6e1d3"), _rgb("b8b2a2"), 4, rng)
     _planks(img, reg("wale"), _rgb("1d1a17"), _rgb("0e0c0b"), 4, rng, joints=False)
     _planks(img, reg("dark_wood"), _rgb("4e321a"), _rgb("2b1a0c"), 4, rng)
@@ -93,6 +126,7 @@ def make_textures(path, flag_path, lateen_tri, jib_tri):
     _planks(img, reg("red_paint"), _rgb("8f1f1b"), _rgb("561110"), 4, rng)
     _planks(img, reg("rail"), _rgb("9a6a36"), _rgb("5e3f1d"), 8, rng, joints=False)
     _planks(img, reg("mast"), _rgb("7a4f27"), _rgb("4a2e15"), 8, rng, joints=False, vertical=True)
+    _planks(img, reg("mast_dark"), _rgb("3e2a18"), _rgb("22160c"), 8, rng, joints=False, vertical=True)
     _fill(img, reg("iron"), _rgb("2f2f33"), rng, 6)
     _fill(img, reg("end_grain"), _rgb("8c5e30"), rng, 10)
 
@@ -111,7 +145,7 @@ def make_textures(path, flag_path, lateen_tri, jib_tri):
     u, v, w, h = reg("rope")
     for y in range(h):
         for x in range(w):
-            px[u + x, v + y] = (_rgb("b9935a") if (x + y) % 3 else _rgb("7d6136")) + (255,)
+            px[u + x, v + y] = (_rgb("4a3a2a") if (x + y) % 3 else _rgb("2a2018")) + (255,)
     for name, glass, glass2 in (("window", "37506b", "4f7092"), ("glow_window", "f2c25a", "ffe9a3")):
         u, v, w, h = reg(name)
         for y in range(h):
@@ -195,14 +229,31 @@ def make_textures(path, flag_path, lateen_tri, jib_tri):
                 c = _rgb("ffe9a3") if (x + y) % 7 < 2 else _rgb("f2c25a")
             px[u + x, v + y] = c + (255,)
 
-    _cloth(px, REGIONS["course"], rng)
-    _cloth(px, REGIONS["topsail"], rng)
+    # gilded garland (wreath) around the upper gun ports, transparent centre
+    u, v, w, h = reg("garland")
+    for y in range(h):
+        for x in range(w):
+            r = ((x + 0.5 - w / 2) ** 2 + (y + 0.5 - h / 2) ** 2) ** 0.5
+            if 9.5 < r < 15.5:
+                leaf = ((math.atan2(y - h / 2, x - w / 2) * 6 / math.pi) % 1) < 0.5
+                c = _rgb("f0cf6f") if leaf else _rgb("b88a2e")
+                px[u + x, v + y] = _jitter(c, rng, 6) + (255,)
+    # gold relief (scrolls, acanthus) for the stern and bow carvings
+    u, v, w, h = reg("gold_relief")
+    for y in range(h):
+        for x in range(w):
+            t = math.sin(x * 0.55) * 3 + math.cos(y * 0.5) * 3
+            c = _rgb("f5d77d") if t > 2.2 else (_rgb("d4aa45") if t > -1.5 else _rgb("8f6a22"))
+            px[u + x, v + y] = _jitter(c, rng, 5) + (255,)
+
+    _canvas(px, REGIONS["course"], rng)
+    _canvas(px, REGIONS["topsail"], rng)
     _, u, v, w, h = REGIONS["lateen"]
     tri = [(p[0] * w, p[1] * h) for p in lateen_tri]
-    _cloth(px, REGIONS["lateen"], rng, mask=lambda x, y, w_, h_: _tri_inside(tri, x, y), seams_vertical=False)
+    _canvas(px, REGIONS["lateen"], rng, mask=lambda x, y, w_, h_: _tri_inside(tri, x, y), vertical=False)
     _, u, v, w, h = REGIONS["jib"]
     tri2 = [(p[0] * w, p[1] * h) for p in jib_tri]
-    _cloth(px, REGIONS["jib"], rng, mask=lambda x, y, w_, h_: _tri_inside(tri2, x, y), seams_vertical=False)
+    _canvas(px, REGIONS["jib"], rng, mask=lambda x, y, w_, h_: _tri_inside(tri2, x, y), vertical=False)
     img.save(path)
 
     # flags: white field, blue fleur-de-lis (like the reference); white / blue pennant

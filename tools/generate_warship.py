@@ -58,7 +58,11 @@ STATIONS = [-27.5, -26.4, -25.0, -23.4, -21.6, -19.6, -17.4, -15.0, -12.5, -10.0
 # black, ochre (middle guns), black wale, dark upper works
 BANDS = [0.3, 1.0, 2.05, 2.6, 3.85, 4.4]
 STRAKES = ["white_bottom", "white_bottom", "white_bottom", "white_bottom",
-           "hull_black", "ochre", "hull_black", "ochre", "hull_black", "hull_dark"]
+           "hull_black", "ochre", "hull_black", "ochre", "hull_black", "hull_black"]
+
+
+def lift(z):
+    return ws.band_lift(z)
 
 
 def hw(z):
@@ -73,7 +77,7 @@ def outer_x(z, y):
         return 0.975 * w
     if y <= 0.3:
         return w
-    return w * (1 - 0.025 * (y - 0.3) / (ys - 0.3))
+    return w * (1 - 0.035 * (y - 0.3) / (ys - 0.3))
 
 
 gn.outer_x = outer_x
@@ -85,7 +89,7 @@ def section(z, side):
     pts = [(0.08, yk)]
     for fx, fy in ws.BOTTOM_SECTION[1:]:
         pts.append((fx * w, fy * yk))
-    for y in BANDS + [ys]:
+    for y in [b + (lift(z) if b > 0.5 else 0.0) for b in BANDS] + [ys]:
         pts.append((outer_x(z, y), y))
     return [v3(side * max(x, 0.08), y, z) for x, y in pts]
 
@@ -115,8 +119,16 @@ def build():
                       outward, inner="hull_light" if k >= 8 else None)
             if hw(za) > 0.8 and hw(zb) > 0.8:
                 for j, y in enumerate((1.0, 2.6, 4.4)):
-                    pa, pb = v3(side * (outer_x(za, y) + 0.05), y, za), v3(side * (outer_x(zb, y) + 0.05), y, zb)
+                    ya, yb = y + lift(za), y + lift(zb)
+                    pa, pb = v3(side * (outer_x(za, ya) + 0.05), ya, za), v3(side * (outer_x(zb, yb) + 0.05), yb, zb)
                     beam(hull, "wale_%s%d_%d" % (sn, i, j), pa, pb, 0.16, "wale", width=0.2, extend=0.05)
+                # thin gilded mouldings along the top of the ochre bands and under the rail
+                for j, y in enumerate((2.05, 3.85, 5.25)):
+                    ya, yb = y + lift(za), y + lift(zb)
+                    if yb > ws.sheer_y(zb) - 0.1 or ya > ws.sheer_y(za) - 0.1:
+                        continue
+                    pa, pb = v3(side * (outer_x(za, ya) + 0.03), ya, za), v3(side * (outer_x(zb, yb) + 0.03), yb, zb)
+                    beam(hull, "moulding_%s%d_%d" % (sn, i, j), pa, pb, 0.07, "gold", width=0.07, extend=0.04)
             if ws.QUARTERDECK_START - 0.01 <= za and zb <= ws.FORECASTLE_START + 0.01:
                 pa = v3(side * 0.975 * hw(za), ws.sheer_y(za) + 0.08, za)
                 pb = v3(side * 0.975 * hw(zb), ws.sheer_y(zb) + 0.08, zb)
@@ -142,10 +154,21 @@ def build():
                      0.22, "ochre", width=0.1, extend=0.04)
             for j, z in enumerate(windows):
                 gn.decal(bone, "%s_window_%s%d" % (tag, sn, j), z, top_y - 1.25, side, 0.55, 0.85, "arch_window", glow=True)
+            # gilded pilasters along the castle side, between the windows
+            zp = z0 + 0.6
+            k = 0
+            while zp < z1 - 0.4:
+                if all(abs(zp - w) > 0.55 for w in windows):
+                    hgt = top_y - ws.sheer_y(zp) - 0.2
+                    if hgt > 0.5:
+                        gn.decal(bone, "%s_pilaster_%s%d" % (tag, sn, k), zp, ws.sheer_y(zp) + hgt / 2, side, 0.16, hgt, "pilaster",
+                                 out=0.03, th=0.05)
+                        k += 1
+                zp += 1.25
 
     bulwark(stern, "poop", -ws.HALF_LENGTH, ws.POOP_START, ws.POOP_RAIL_Y, windows=(-21.0, -23.0))
     bulwark(stern, "qd", ws.POOP_START, ws.QUARTERDECK_START, ws.QD_RAIL_Y, windows=(-12.0, -14.5, -17.0))
-    bulwark(fore, "fc", ws.FORECASTLE_START, 28.3, ws.FC_RAIL_Y)
+    bulwark(fore, "fc", ws.FORECASTLE_START, 28.3, ws.FC_RAIL_Y, windows=(20.5, 23.0))
 
     # ---- decks
     def deck_span(bone, z0, z1, n, y, tag):
@@ -251,6 +274,38 @@ def build():
     for j, z in enumerate((-2.0, 6.0, 12.5)):
         add_cube(deck, "hatch_%d" % j, (0, main_y + 0.04, z), EYE, (1.6, 0.08, 1.6), {"all": "dark_wood", "+2": "grating"})
     add_cube(deck, "capstan", (0, main_y + 0.45, -5.5), EYE, (0.8, 0.9, 0.8), {"all": "dark_wood", "+2": "end_grain"})
+    boat = Bone("ship_boat", parent=deck)
+    bz0, bz1, bh = ws.BOAT_Z0, ws.BOAT_Z1, ws.BOAT_HALF
+    for zz in (bz0 + 0.5, bz1 - 0.5):
+        add_cube(boat, "boat_skid_%d" % int(zz > 8), (0, main_y + 0.3, zz), EYE, (2 * bh + 0.6, 0.6, 0.3), "dark_wood")
+    bot, top = main_y + 0.62, ws.BOAT_TOP
+
+    def bw(t):
+        return bh * max(0.08, 1 - (2 * t - 1) ** 2) ** 0.5
+
+    nst = 6
+    for side, sn in SIDES:
+        for j in range(nst):
+            ta, tb = j / nst, (j + 1) / nst
+            za, zb = bz0 + (bz1 - bz0) * ta, bz0 + (bz1 - bz0) * tb
+            a0, a1 = v3(side * 0.35 * bw(ta), bot, za), v3(side * bw(ta), top, za)
+            b0, b1 = v3(side * 0.35 * bw(tb), bot, zb), v3(side * bw(tb), top, zb)
+            board(boat, "boat_side_%s%d" % (sn, j), a0, a1, b0, b1, 0.08, "white_bottom", v3(side, 0, 0), inner="hull_light")
+            beam(boat, "boat_gunwale_%s%d" % (sn, j), (side * bw(ta), top + 0.04, za), (side * bw(tb), top + 0.04, zb), 0.08, "ochre",
+                 width=0.12, extend=0.04)
+    add_cube(boat, "boat_bottom", (0, bot + 0.03, (bz0 + bz1) / 2), EYE, (0.75 * bh, 0.08, bz1 - bz0 - 0.8), "dark_wood")
+    for k, zz in enumerate(np.linspace(bz0 + 1.4, bz1 - 1.4, 3)):
+        add_cube(boat, "boat_thwart_%d" % k, (0, top - 0.35, zz), EYE, (1.7 * bw((zz - bz0) / (bz1 - bz0)), 0.08, 0.3), "hull_light")
+    for side, sn in SIDES:
+        beam(boat, "boat_oar_" + sn, (side * 0.35, top - 0.25, bz0 + 0.9), (side * 0.25, top - 0.2, bz1 - 0.9), 0.08, "hull_light")
+    for side, sn in SIDES:
+        # entry port with its steps on the hull side
+        zz = 5.25
+        gn.decal(hull, "entry_port_" + sn, zz, 5.0, side, 0.9, 1.0, "door", out=0.02)
+        gn.decal(hull, "entry_pediment_" + sn, zz, 5.6, side, 1.3, 0.28, "gold_relief", out=0.04, th=0.06)
+        for k, y in enumerate((4.2, 3.65, 3.1, 2.55)):
+            p, u, v, nrm = gn.side_frame(zz, y, side)
+            add_cube(hull, "entry_step_%s%d" % (sn, k), p + nrm * 0.1, np.column_stack([u, v, nrm]), (0.6, 0.1, 0.2), "dark_wood")
     for k in range(4):
         a = math.pi * k / 4
         beam(deck, "capstan_bar_%d" % k, (-math.cos(a) * 0.95, main_y + 0.8, -5.5 - math.sin(a) * 0.95),
@@ -267,6 +322,7 @@ def build():
         gn.decal(guns, "gunport_%s%d" % (tag, n), z, y, side, 0.8, 0.74, "gunport", out=0.0)
         cb = Bone("cannon_%s%d" % (tag, n), origin=tuple(p), parent=guns)
         if on_deck:
+            gn.decal(guns, "garland_%s%d" % (tag, n), z, y, side, 1.25, 1.2, "garland", out=0.02, th=0.03)
             inner = ws.inner_half_width(z)
             x_in = side * (inner - 1.2)
             beam(cb, "cannon_barrel_%s%d" % (tag, n), (x_in, y, z), p + nrm * 0.65, 0.3, "cannon")
@@ -282,9 +338,11 @@ def build():
 
     for side, sn in SIDES:
         for k in range(ws.LOWER_GUNS):
-            gun(side, ws.gun_z(k, ws.LOWER_GUNS), ws.LOWER_GUN_Y)
+            z = ws.gun_z(k, ws.LOWER_GUNS)
+            gun(side, z, ws.LOWER_GUN_Y + lift(z))
         for k in range(ws.MIDDLE_GUNS):
-            gun(side, ws.gun_z(k, ws.MIDDLE_GUNS), ws.MIDDLE_GUN_Y)
+            z = ws.gun_z(k, ws.MIDDLE_GUNS)
+            gun(side, z, ws.MIDDLE_GUN_Y + lift(z))
         for z in ws.CARRIAGE_Z:
             gun(side, z, ws.MAIN_GUN_Y, on_deck=True)
 
@@ -306,13 +364,13 @@ def build():
     for t, (yc, h, floor) in enumerate(tiers):
         xs = (-2.7, -1.35, 0.0, 1.35, 2.7) if t < 2 else (-2.0, -0.7, 0.7, 2.0)
         for j, x in enumerate(xs):
-            add_cube(stern, "glow_stern_window_%d_%d" % (t, j), (x, yc, zt - 0.03), EYE, (0.85, h, 0.06), "glow_window", stretch=True)
+            add_cube(stern, "glow_stern_window_%d_%d" % (t, j), (x, yc, zt - 0.03), EYE, (0.85, h, 0.06),
+                     "arch_window" if t == 2 else "glow_window", stretch=True)
         for j in range(len(xs) + 1):
             x = (xs[0] - 0.68) + j * (xs[1] - xs[0]) if j <= len(xs) else 0
             add_cube(stern, "stern_pilaster_%d_%d" % (t, j), (x, yc, zt - 0.05), EYE, (0.18, h + 0.3, 0.08), "pilaster", stretch=True)
         add_cube(stern, "stern_cornice_%d" % t, (0, yc + h / 2 + 0.22, zt - 0.06), EYE, (2 * outer_x(zt, yc) + 0.1, 0.2, 0.14), "gold")
-        add_cube(stern, "stern_frieze_%d" % t, (0, yc - h / 2 - 0.2, zt - 0.05), EYE, (2 * outer_x(zt, yc), 0.24, 0.08), "carving",
-                 stretch=True)
+        add_cube(stern, "stern_frieze_%d" % t, (0, yc - h / 2 - 0.22, zt - 0.06), EYE, (2 * outer_x(zt, yc), 0.3, 0.1), "gold_relief")
         if t < 2:
             # stern gallery (balcony) under the windows
             gy = floor + 0.05
@@ -325,6 +383,18 @@ def build():
             for side, sn in SIDES:
                 beam(stern, "stern_gallery_bracket_%d_%s" % (t, sn), (side * 2.0, gy - 0.6, zt - 0.05), (side * 2.0, gy - 0.05, zt - 0.75),
                      0.14, "carving")
+    # gilded corner columns of the stern, carved crest (taffrail) around the arms
+    for side, sn in SIDES:
+        x = side * (outer_x(zt, 7.0) - 0.15)
+        beam(stern, "stern_column_" + sn, (x, 4.2, zt - 0.1), (x, ws.POOP_RAIL_Y + 0.2, zt - 0.1), 0.34, "gold_relief")
+        add_cube(stern, "stern_column_cap_" + sn, (x, ws.POOP_RAIL_Y + 0.35, zt - 0.1), EYE, (0.5, 0.3, 0.5), "gold")
+        add_cube(stern, "stern_column_base_" + sn, (x, 4.1, zt - 0.1), EYE, (0.5, 0.3, 0.5), "gold")
+    for k in range(9):
+        a = math.pi * k / 8
+        c = v3(math.cos(a) * 2.25, ws.POOP_RAIL_Y + 0.35 + math.sin(a) * 1.55, zt + 0.12)
+        add_cube(stern, "taffrail_crest_%d" % k, c, gg.rz(a - math.pi / 2), (0.62, 0.36, 0.2), "gold_relief")
+    for side, sn in SIDES:
+        add_cube(stern, "taffrail_scroll_" + sn, (side * 2.6, ws.POOP_RAIL_Y + 0.25, zt + 0.12), EYE, (0.7, 0.4, 0.22), "gold_relief")
     arms = v3(0, ws.POOP_RAIL_Y + 0.75, zt + 0.1)
     add_cube(stern, "arms_frame", arms, EYE, (1.8, 1.3, 0.1), "gold")
     add_cube(stern, "arms_emblem", arms - v3(0, 0, 0.06), EYE, (1.55, 1.05, 0.04), {"all": None, "-3": "flag"}, stretch=True,
@@ -343,14 +413,20 @@ def build():
                          (0.04, (y1 - y0) * 0.6, 0.6), "arch_window", stretch=True)
             add_cube(stern, "quarter_cornice_%s%d" % (sn, t), g + v3(side * 0.03, (y1 - y0) / 2 + 0.06, 0), EYE,
                      (0.65, 0.14, qz1 - qz0 + 0.14), "gold")
-        board(stern, "quarter_roof_" + sn, v3(side * (qx + 0.6), 9.4, qz0 - 0.05), v3(side * (qx - 0.05), 10.0, qz0 - 0.05),
-              v3(side * (qx + 0.6), 9.4, qz1 + 0.05), v3(side * (qx - 0.05), 10.0, qz1 + 0.05), 0.1, "gold", v3(side, 1, 0), overlap=1.0)
-        beam(stern, "quarter_drop_" + sn, (side * (qx + 0.2), 4.6, (qz0 + qz1) / 2), (side * (qx - 0.1), 3.4, (qz0 + qz1) / 2),
-             0.25, "carving", width=0.8)
+        # domed roof of the quarter gallery with its finial
+        gc = v3(side * (qx + 0.2), 9.35, (qz0 + qz1) / 2)
+        for t, (wx, wz, hy) in enumerate(((0.8, 3.7, 0.22), (0.62, 2.9, 0.22), (0.44, 2.0, 0.2), (0.26, 1.1, 0.2))):
+            add_cube(stern, "quarter_dome_%s%d" % (sn, t), gc + v3(0, 0.11 + t * 0.2, 0), EYE, (wx, hy, wz), "gold" if t % 2 else "gold_relief")
+        add_cube(stern, "quarter_finial_" + sn, gc + v3(0, 1.0, 0), EYE, (0.18, 0.4, 0.18), "gold")
+        add_cube(stern, "quarter_finial_ball_" + sn, gc + v3(0, 1.3, 0), EYE, (0.24, 0.24, 0.24), "gold")
+        beam(stern, "quarter_drop_" + sn, (side * (qx + 0.2), 4.6, (qz0 + qz1) / 2), (side * (qx - 0.1), 3.0, (qz0 + qz1) / 2),
+             0.3, "gold_relief", width=0.9)
+        add_cube(stern, "quarter_drop_finial_" + sn, (side * (qx - 0.05), 2.85, (qz0 + qz1) / 2), EYE, (0.3, 0.35, 0.3), "gold")
     # stern lanterns on the taffrail
     for k, (x, s) in enumerate(((2.7, 1.0), (-2.7, 1.0), (0.0, 1.4))):
         y, z = ws.POOP_RAIL_Y + (0.2 if k < 2 else 1.9), zt + 0.25
         beam(lanterns, "stern_lantern_pole_%d" % k, (x, y - 0.2, z), (x, y + 0.6 * s, z), 0.12, "iron")
+        beam(lanterns, "stern_lantern_arm_%d" % k, (x * 0.8, y - 0.1, z + 0.4), (x, y + 0.45 * s, z), 0.1, "gold")
         add_cube(lanterns, "stern_lantern_%d" % k, (x, y + 0.95 * s, z), EYE, (0.55 * s, 0.8 * s, 0.55 * s),
                  {"all": "lantern", "+2": "gold", "-2": "gold"}, stretch=True)
         add_cube(lanterns, "glow_stern_lantern_%d" % k, (x, y + 0.95 * s, z), EYE, (0.38 * s, 0.6 * s, 0.38 * s), "glow", stretch=True)
@@ -399,9 +475,19 @@ def build():
         beam(bow, "anchor_arm_b_" + sn, (ax, 4.0, z + 0.2), (ax, 4.6, z + 0.9), 0.16, "iron")
         add_cube(bow, "hawse_" + sn, gn.side_frame(26.0, 5.6, side)[0] + v3(side * 0.03, 0, 0), EYE, (0.06, 0.32, 0.32), "iron")
     fig = Bone("figurehead", origin=(0, 5.6, 31.0), parent=bow)
-    add_cube(fig, "figurehead_body", (0, 5.9, 31.4), rx(-0.6), (0.6, 0.7, 1.1), "gold")
-    add_cube(fig, "figurehead_head", (0, 6.45, 31.95), EYE, (0.55, 0.55, 0.55), "gold")
-    add_cube(fig, "figurehead_mane", (0, 6.45, 31.7), EYE, (0.75, 0.75, 0.18), "carving", stretch=True)
+    add_cube(fig, "figurehead_body", (0, 5.85, 31.35), rx(-0.55), (0.9, 1.0, 1.7), "gold_relief")
+    add_cube(fig, "figurehead_mane", (0, 6.75, 32.0), rx(-0.3), (1.2, 1.15, 0.5), "gold_relief")
+    add_cube(fig, "figurehead_head", (0, 6.75, 32.35), EYE, (0.8, 0.8, 0.75), "gold")
+    add_cube(fig, "figurehead_muzzle", (0, 6.6, 32.8), EYE, (0.45, 0.4, 0.3), "gold")
+    add_cube(fig, "figurehead_crown", (0, 7.3, 32.3), EYE, (0.6, 0.3, 0.55), "gold_relief")
+    for side, sn in SIDES:
+        add_cube(fig, "figurehead_paw_" + sn, (side * 0.3, 5.3, 31.95), EYE, (0.28, 0.5, 0.35), "gold")
+        add_cube(fig, "figurehead_ear_" + sn, (side * 0.32, 7.15, 32.3), EYE, (0.18, 0.2, 0.15), "gold")
+        pts = [v3(side * 1.4, 7.3, 26.8), v3(side * 1.05, 6.7, 28.6), v3(side * 0.55, 6.1, 30.1), v3(side * 0.2, 5.8, 31.0)]
+        for j in range(len(pts) - 1):
+            beam(bow, "head_rail_curve_%s%d" % (sn, j), pts[j], pts[j + 1], 0.14, "gold", extend=0.05)
+        add_cube(bow, "beak_scroll_" + sn, (side * 0.72, 4.95, 29.3), EYE, (0.06, 0.6, 2.2), "gold_relief")
+        add_cube(bow, "cathead_face_" + sn, (side * (hw(24.0) * 0.975 + 1.15), ws.FC_RAIL_Y - 0.2, 24.3), EYE, (0.3, 0.34, 0.34), "gold")
     sprit_a, sprit_b = v3(0, 6.6, 25.0), v3(0, 12.2, 36.0)
     jib_end = v3(0, 13.5, 38.6)
     beam(bow, "bowsprit", sprit_a, sprit_b, 0.6, "mast")
@@ -434,13 +520,19 @@ def build():
             p1 = v3(math.cos(a1) * r, t1 + 0.4, z + math.sin(a1) * r)
             board(mb, "%s_top_rim_%d" % (name, k), p0 - v3(0, 0.45, 0), p0, p1 - v3(0, 0.45, 0), p1, 0.07, "hull_black",
                   v3(math.cos(a0), 0, math.sin(a0)), overlap=1.12)
+        add_cube(lanterns, name + "_top_lantern", (0, t1 + 0.75, z - r * 0.85), EYE, (0.4, 0.55, 0.4),
+                 {"all": "lantern", "+2": "gold", "-2": "gold"}, stretch=True)
+        add_cube(lanterns, "glow_" + name + "_top_lantern", (0, t1 + 0.75, z - r * 0.85), EYE, (0.26, 0.4, 0.26), "glow", stretch=True)
         beam(mb, name + "_crosstree_x", (-1.3, t2, z), (1.3, t2, z), 0.14, "dark_wood")
         beam(mb, name + "_crosstree_z", (0, t2, z - 0.8), (0, t2, z + 0.8), 0.14, "dark_wood")
         beam(mb, name + "_flagpole", (0, t3, z), (0, t3 + 1.6, z), 0.12, "dark_wood")
         return mb
 
     def yard(mb, name, z, y, half):
-        beam(mb, name, (-half, y, z + 0.5), (half, y, z + 0.5), 0.28, "mast", extend=0.12)
+        beam(mb, name, (-half, y, z + 0.5), (half, y, z + 0.5), 0.3, "mast_dark", extend=0.12)
+        for side in (1, -1):
+            beam(mb, "%s_arm_%d" % (name, side > 0), (side * (half - 0.2), y, z + 0.5), (side * (half + 0.35), y, z + 0.5), 0.2,
+                 "mast_dark")
         add_cube(mb, name + "_sling", (0, y, z + 0.38), EYE, (0.5, 0.4, 0.4), "rope")
         beam(mb, name + "_roll", (-half * 0.92, y - 0.24, z + 0.56), (half * 0.92, y - 0.24, z + 0.56), 0.3, "cloth_roll")
 
@@ -448,7 +540,7 @@ def build():
         yard(mb, name + "_yard", z, y_top, half_top + 0.4)
         sb = Bone("sail_" + name, origin=(0, y_top, z + 0.56), parent=mb)
         gn.sail(sb, name, v3(0, y_top - 0.14, z + 0.58), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), half_top, half_bottom,
-                height, depth, "course" if "course" in name else "topsail", nx=1, ny=9)
+                height, depth * 1.35, "course" if "course" in name else "topsail", nx=8, ny=9, round_=0.55, overlap=0.03)
         sails_info.append((sb, False))
 
     m_fore = mast("foremast", ws.FORE_MAST_Z, fc_y, (19.0, 27.5, ws.FORE_MAST_TOP), 0.78)
