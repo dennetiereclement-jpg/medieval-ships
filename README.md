@@ -34,7 +34,7 @@ Serveur **et** clients : `medieval-ships-1.1.1.jar` + [Fabric API](https://modri
 ./gradlew runServer      # serveur dédié de développement
 ```
 
-Les versions sont dans `gradle.properties` (Yarn `1.21.11+build.6`, Loom 1.13.3,
+Les versions sont dans `gradle.properties` (Yarn `1.21.11+build.6`, Loom 1.14.10,
 Fabric API 0.141.6+1.21.11). Si Gradle ne trouve pas une version, prenez la plus récente
 pour 1.21.11 sur <https://fabricmc.net/develop>.
 
