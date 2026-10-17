@@ -36,7 +36,7 @@ solides comme les châteaux, la cabine ou le balcon, sabords) et ses réglages p
 Tout le reste est commun : `ShipEntity` (navigation, flottaison, passagers, transport sur le
 pont, pilote automatique, persistance), les collisions, les commandes, le rendu
 (`ShipRenderer` + un `ShipModels.Visual` par navire). Les sous-classes `GalleyEntity` et
-`GalleonEntity` ne font que dire quel type elles sont.
+`GalleonEntity` (et les autres) ne font que dire quel type elles sont.
 
 Ajouter un navire = un `ShipType` dans `Ships`, une sous-classe d'une ligne, un `registerShip`,
 un modèle Blockbench et une ligne dans `ShipModels`.
@@ -45,6 +45,25 @@ La galère n'a pas changé : ses valeurs sont reprises telles quelles dans `Ship
 identifiant d'entité (`medievalships:galley`) et d'objet aussi, ses sauvegardes se chargent
 sans conversion, et le test `galleyGeometryUnchanged` compare toute sa géométrie (sondes,
 sièges, boîtes de collision, visée, embarquement) à un instantané pris sur la version 1.1.1.
+
+### Ligne de flottaison, parties hors coque, machine à vapeur (1.5.0)
+
+* `HullShape.waterlineY` : hauteur de l'eau dans le repère du navire (0 pour la galère, inchangé).
+  Flottaison, mise à l'eau, déblocage (`unstuck`), navigabilité, sondes de terrain et écume
+  l'utilisent : le galion, le vaisseau, la galère rouge, le bateau à vapeur et le voilier
+  flottent plus haut sans rien changer à leurs ponts ni à leurs collisions.
+* `ShipGeometry.Spec.extraProbes` et `aiHalfWidth` : sondes de terrain et largeur vue par le
+  pilote automatique pour ce qui dépasse de la coque (le tambour de la roue à aubes, à 6 blocs
+  de l'axe) ; le tambour est aussi un volume solide pour les joueurs et les nageurs.
+* La roue à aubes a sa propre phase (`ShipEntity.wheelPhase`), qui avance avec la **vitesse
+  signée** (synchronisée) : elle tourne en arrière en marche arrière ; l'animation `paddle` est
+  jouée avec cette phase.
+* `ShipModels.Engine` (fumée des cheminées, écume de la roue, battement de la machine) :
+  effets uniquement côté client, à moins de 80 blocs (sons à moins de 48), une à quelques
+  particules vanilla par tick, aucun coût serveur ni réseau.
+* `lantern_sway` : balancement des lanternes suspendues du voilier elfique.
+* Commandes : `Ships.ALIASES` (`grand_warship` → `warship`) ; les identifiants des entités et
+  des sauvegardes ne changent jamais.
 
 ### Préparé pour les canons
 

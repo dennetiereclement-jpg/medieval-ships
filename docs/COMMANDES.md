@@ -28,6 +28,13 @@ utilisable avec `/execute positioned ... run ship ...`).
 | `/ship give warship [joueurs]` | Donne l'objet *Grand vaisseau de guerre*. |
 | `/ship spawn warship` | Met un grand vaisseau de guerre à l'eau à votre position, proue dans votre direction. Il faut environ 60 × 15 blocs d'eau libre (2 blocs de profondeur minimum, 3 conseillés). |
 | `/ship spawn galleon` | Met un grand galion à l'eau à votre position, proue dans votre direction. Il faut environ 40 × 10 blocs d'eau libre (2 blocs de profondeur minimum, 3 conseillés) et rien au-dessus. |
+| `/ship give medieval_galley [joueurs]` | Donne l'objet *Galère médiévale rouge*. |
+| `/ship spawn medieval_galley` | Met une galère rouge à l'eau à votre position (environ 32 × 12 blocs d'eau libre, 2 de profondeur). |
+| `/ship give steam_paddleboat [joueurs]` | Donne l'objet *Bateau à roue à vapeur*. |
+| `/ship spawn steam_paddleboat` | Met un bateau à roue à vapeur à l'eau (environ 26 × 14 blocs d'eau libre, la roue est à tribord ; 2 de profondeur). |
+| `/ship give elven_sailboat [joueurs]` | Donne l'objet *Voilier elfique*. |
+| `/ship spawn elven_sailboat` | Met un voilier elfique à l'eau (environ 34 × 12 blocs d'eau libre, 2 de profondeur). |
+| `/ship give grand_warship`, `/ship spawn grand_warship` | Autre nom du grand vaisseau de guerre (`warship`, identifiant inchangé). |
 | `/ship remove` | Supprime le navire ciblé (les passagers sont débarqués sur place). |
 | `/ship list` | Liste les navires chargés, et les navires automatiques connus mais non chargés. |
 | `/ship info` | Vitesse, cap, barre, allure, pilote automatique, itinéraire, passagers. |

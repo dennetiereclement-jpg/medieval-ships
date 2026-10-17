@@ -219,3 +219,85 @@ sillage, proportionnels à la vitesse (quelques particules vanilla par tick, seu
 python3 tools/generate_warship.py
 python3 tools/preview.py blockbench/warship.bbmodel - docs/preview_warship.png --scale=2.7
 ```
+
+# Galère médiévale rouge (`medieval_galley`)
+
+D'après l'image de référence (« 3. Galère médiévale »).
+
+## Fichiers
+
+| Fichier | Rôle |
+|---|---|
+| `blockbench/medieval_galley.bbmodel` | Modèle éditable (texture intégrée). |
+| `src/main/resources/assets/medievalships/models/entity/medieval_galley.bbmodel` | Modèle chargé par le mod. |
+| `.../textures/entity/medieval_galley.png` | Texture 256 × 256. |
+| `tools/medieval_galley_shape.py` | Forme et plan, identiques au code Java (`Ships.medievalGalley()`, test `NewShipsTest`). |
+| `tools/generate_medieval_galley.py`, `tools/medieval_galley_texture.py` | Générateurs. |
+
+## Ce qui est modélisé
+
+| Élément de l'image | Réalisation |
+|---|---|
+| Coque très longue et étroite, extrémités très relevées | 20 tronçons × 2 bords × 8 bordages inclinés ; la tonture en croissant monte de 2,2 blocs aux deux bouts et les bordages la suivent |
+| Coque rouge et brun foncé, bordures bleues, décorations dorées | œuvres vives brun foncé, bordé rouge, préceinte sombre, liston bleu sous le plat-bord rouge, filets dorés entre les bordages |
+| Sculptures rouges aux extrémités | deux têtes de dragon en écailles rouges : cou épais qui monte de l'étrave et de l'étambot, crête dorsale, mâchoire ouverte, dents, langue, yeux d'or, cornes dorées, nageoires |
+| Boucliers ronds alignés | 14 boucliers par bord (rouges, croix blanche, cerclage doré, umbo), jointifs le long du plat-bord |
+| Nombreuses rames | 12 rames par bord, chacune un os animé, sortant sous les boucliers |
+| Grande voile rectangulaire rayée, mât central | voile carrée gonflée à 9 laizes verticales rouges et blanches (rouge aux bords), sur une vergue orientée, mât de 13 blocs |
+| Drapeau, cordages | drapeau rouge à croix blanche à deux segments animés ; étai, pataras, haubans, bras et écoutes |
+| Pont ouvert | pont, coursive centrale, 11 bancs de nage, tabouret et aviron de gouverne du barreur, tonneaux, coffre, glènes, 4 lanternes sur poteaux |
+
+Animations : `row` (24 rames), `sail_wind`, `sail_furl`, `steer` (aviron de gouverne), `flag_wave`.
+
+# Bateau à roue à vapeur (`steam_paddleboat`)
+
+D'après l'image de référence (« 2. Bateau à roue à vapeur »). Fichiers : `steam_paddleboat.*`,
+`tools/paddleboat_shape.py`, `tools/generate_paddleboat.py`, `tools/paddleboat_texture.py`.
+
+| Élément de l'image | Réalisation |
+|---|---|
+| Coque blindée, basse et massive, plaques gris foncé rivetées | bordé en plaques rivetées (texture), bandes rivetées, plaques plus sombres et rouillées près de l'eau, hublots éclairés à cerclage de laiton, double blindage aux épaules |
+| Proue renforcée | étrave en laiton et éperon en fer à la flottaison |
+| Rouf, fenêtres, ouvertures et trappes | rouf en panneaux de bois cerclés de laiton, fenêtres éclairées, portes en fer, manomètres, tuyau de cuivre ; passerelle sur le toit, sifflet ; panneaux de cale à caillebotis |
+| Deux cheminées | deux cheminées verticales en briques grises cerclées de fer, l'une derrière l'autre, sommet noirci et évasé, tuyaux de vapeur, haubans |
+| Grande roue à aubes latérale | **une seule roue, à tribord**, comme sur la vue de côté de l'image : rond parfait (2 jantes de 20 segments, 2 couronnes intérieures, 20 rayons), 10 aubes radiales, moyeu en laiton ; elle tourne autour de son axe ; axe fixe de la coque au palier extérieur, palier et entretoises ; tambour en arc (tôles + arc doré) qui la couvre ; elle ne touche pas la coque (0,2 bloc d'écart) et plonge d'environ 0,9 bloc dans l'eau |
+| Canons sur le pont | deux canons en laiton sur affût de bois à roues, sur plaques tournantes, à la proue (vers l'avant) et à la poupe (vers l'arrière) |
+| Rambardes métalliques, lanternes | rambarde en fer à main courante de laiton tout autour, 10 lanternes sur poteaux |
+| Éléments mécaniques | manches à air en laiton, télégraphe des machines, cabestan, ancres, mât de signaux et son pavillon (rouage doré sur fond rouge) |
+
+Animations : `paddle` (un tour de roue par boucle, jouée avec la **vitesse signée** : la roue
+tourne plus vite quand le bateau accélère et en arrière en marche arrière ; le générateur vérifie
+le sens de rotation), `steer` (roue de barre et gouvernail), `flag_wave`. Effets côté client,
+seulement près du joueur : fumée des cheminées (plus épaisse en marche), écume et gerbes à la
+roue, battement de la machine et crépitement du foyer (sons vanilla).
+
+# Voilier elfique (`elven_sailboat`)
+
+D'après l'image de référence (« 4. Voilier elfique »). Fichiers : `elven_sailboat.*`,
+`tools/elven_shape.py`, `tools/generate_elven.py`, `tools/elven_texture.py`.
+
+| Élément de l'image | Réalisation |
+|---|---|
+| Coque longue et fine, bleu turquoise et or | coque élancée (30 blocs hors tout, 6 de large), œuvres vives bleu nuit, flancs turquoise, bandeau de filigrane doré, filets et plat-bord dorés, léger rentré |
+| Ornements elfiques | gemmes turquoise lumineuses serties d'or le long des flancs ; nageoires dorées sur l'étrave |
+| Proue très élancée | longue proue en volute dorée qui s'avance de 3 blocs, grosse gemme de chaque côté, lanterne suspendue à son extrémité |
+| Poupe légèrement relevée | étambot recourbé en crosse dorée, lanterne suspendue |
+| Grand mât central, voiles triangulaires | grand mât à bagues dorées et pomme ; grand-voile sur bôme, foc vers la proue, petit hunier triangulaire ; toile crème à bordure bleue et filet d'or |
+| Symboles solaires et lunaires | **dans la texture** : étoile dorée à huit branches à cœur bleu et petites étoiles sur la grand-voile, croissant de lune doré et étoiles sur le foc, étoile sur le hunier |
+| Lanternes suspendues, cordages | 4 lanternes à potences dorées + celles de la proue et de la poupe, chacune sur son os ; étai, pataras, haubans, écoutes |
+| Pont ouvert | pont clair, bancs dorés à coussins bleus, coffre, barre à roue sur piédestal doré |
+
+Animations : `sail_wind`, `sail_furl`, `steer`, `flag_wave` (flamme), `lantern_sway` (les
+lanternes se balancent doucement, chacune avec sa phase).
+
+# Vérifications communes
+
+* `python3 tools/sail_check.py warship|galleon|elven|medieval_galley` : vérifie qu'**aucune voile
+  n'en traverse une autre** (chaque laize est une boîte orientée ; les parties transparentes des
+  voiles triangulaires sont ignorées). Les cinq croisements trouvés en 1.5.0 (misaine/focs et
+  foc/civadière sur le vaisseau et le galion, grand-voile/hunier du voilier) sont corrigés.
+* Galion et vaisseau de guerre (1.5.0) : ils flottent plus haut (eau à −1,5 et −1,1 bloc sous
+  l'origine du modèle) sur une coque plus profonde dont les fonds arrondis se voient au-dessus de
+  l'eau ; leurs vergues sont orientées de 22° et leurs voiles plus gonflées, la bordure inférieure
+  incurvée. Le vaisseau a désormais les pavillons rouges à croix blanche et les balustrades
+  rouges de la nouvelle image (`warship_flag.png` reste remplaçable par un pack de ressources).

@@ -11,11 +11,32 @@ le `.jar` obtenu est celui qui vous est livré.
 La tâche *In-game test* lance un **vrai client Minecraft 1.21.11** avec le `.jar` de
 production (mod remappé, comme sur un vrai serveur), deux fois : **sans** et **avec Lithium**.
 Chaque fois, tout le scénario est joué **en solo** puis sur un **vrai serveur dédié** auquel le
-client se connecte par le réseau (contrôles de mouvement du serveur actifs) : 88 vérifications,
-toutes réussies.
+client se connecte par le réseau (contrôles de mouvement du serveur actifs) : **154 vérifications,
+toutes réussies** (version 1.5.0, avec et sans Lithium, en solo et sur serveur dédié).
 Le test (`src/gametest/.../ShipClientGameTest.java`) crée un monde, des bassins, met les navires
 à l'eau puis vérifie (résultats et captures publiés sur les branches `test-results-vanilla` et
 `test-results-lithium`) :
+
+### Nouveaux navires (galère rouge, bateau à roue à vapeur, voilier elfique) — 1.5.0
+
+Le même scénario pour chacun, dans un quatrième bassin (44 × 100 blocs) :
+
+* mise à l'eau par `/ship spawn <type>` ; **il flotte sur sa ligne de flottaison** (eau à
+  −58,11 pour une surface à −58) ;
+* **six captures comparables à l'image de référence** : côté droit, côté gauche, proue, poupe,
+  dessus, perspective (+ pont, navigation, pilote automatique) ;
+* chute sur le pont et sauts : le joueur reste sur le pont ;
+* **toutes les places occupées** (10, 8 et 8), un passager de plus est refusé ;
+* pilotage : il avance (galère rouge 8,7 blocs en 4 s ; bateau à vapeur 4,0 — accélération
+  progressive ; voilier 6,3) et vire (26,5° / 16,3° / 11,0° en 3 s), passagers toujours assis ;
+* descente du barreur sur le pont ;
+* **pilote automatique sur un itinéraire** de deux points : il rejoint le second point (31 → 1,2,
+  40 → 0,6 et 33,5 → 1,3 blocs) ;
+* `/ship give <type>` donne l'objet.
+
+Les captures sont dans les branches `test-results-*` (fichiers `*_medieval_galley_*`,
+`*_steam_paddleboat_*`, `*_elven_sailboat_*`). Dans les dernières vues, les voiles des navires à
+voiles sont carguées : le navire est arrêté depuis quelques secondes (`furlSailWhenStopped`).
 
 ### Filets de sécurité (collisions désactivées)
 
@@ -79,7 +100,7 @@ cabine, balcon, gaillard d'arrière, navigation.
 | collisions coupées : le joueur est quand même rattrapé par le pont principal et par la dunette | réussi |
 | `/ship give warship` donne l'objet *Grand vaisseau de guerre* | réussi |
 
-## Tests unitaires (55, tous réussis)
+## Tests unitaires (73, tous réussis)
 
 `./gradlew test` :
 
@@ -103,6 +124,9 @@ cabine, balcon, gaillard d'arrière, navigation.
 | `WarshipTest` (16 tests) | vaisseau : dimensions, forme identique au générateur, 24 sièges, ponts sans trou à tous les caps, murailles sans brèche, embarquement, escaliers, grande cabine, visée, 58 sabords, filets de sécurité, plus lourd que le galion, aller-retour de 600 blocs autour d'une île de 90 blocs, route à 4 virages |
 | `matchesPythonReference` (×3) | le lecteur `.bbmodel` du mod produit exactement la même géométrie que le rendu de référence (galère 2 208 faces ; galion 7 943 faces, 2 textures) |
 | `bonesAnimationsAndTextures`, `requiredBonesAndAnimationsExist`, `furlCollapsesTheSail` | os, animations et textures attendus par le mod |
+| `NewShipsTest` (18 tests) | galère rouge, bateau à vapeur, voilier elfique : formes identiques aux générateurs, dimensions demandées (28 × 5 × 3, 22 × 8 × 5, 30 × 6 × 4), places et points de descente libres, ponts sans trou à tous les caps, embarquement, visée de la barre et de la coque, flottaison ; **roue à aubes** : une seule, à tribord, hors de la coque, immergée d'environ 0,9 bloc, tambour solide, largeur prise en compte par le pilote automatique ; maniement (galère vive, vapeur progressive et maniable à basse vitesse, voilier rapide et fluide) ; identifiants et alias `grand_warship` |
+| `NewShipModelsTest` | les trois nouveaux modèles : os et animations attendus, géométrie identique au rendu de référence Python |
+| `tools/sail_check.py` (outil) | aucune voile n'en traverse une autre (vaisseau, galion, voilier, galère rouge) |
 
 Les modèles ont aussi été vérifiés visuellement (`docs/preview.png`, `docs/preview_galleon.png`,
 `docs/preview_galleon_details.png`) et leurs conventions comparées au code source de Blockbench.
@@ -120,7 +144,13 @@ Ce que les tests automatiques ne peuvent pas juger ou n'ont pas couvert :
 4. **Ferry en galion sur votre carte** : l'IA est validée en simulation et le galion navigue en
    jeu, mais vos ports réels (largeur des chenaux, quais) décideront des points de passage
    nécessaires (voir FERRY.md).
-5. **Sauvegarde / redémarrage** avec un galion en mer et des joueurs à bord ; anciennes galères
+5. **Sauvegarde / redémarrage** avec les nouveaux navires (galère rouge, bateau à vapeur, voilier
+   elfique) : ils utilisent la même sauvegarde que les autres, mais aucun test automatique ne
+   redémarre le serveur ; de même avec un galion en mer et des joueurs à bord ; anciennes galères
    déjà posées dans votre monde (elles gardent leur identifiant `medievalships:galley`).
+7. **Sons de la machine à vapeur, fumée, écume** : effets côté client vérifiés sur les captures
+   (fumée visible) ; le son n'est pas vérifiable automatiquement.
+8. **Roue à aubes en mouvement** : son sens de rotation est vérifié par le générateur et le
+   modèle, mais il faut la regarder tourner en jeu (en avant et en marche arrière).
 6. **Autres mods** de votre serveur qui modifient les collisions ou le rendu des entités (seul
    Lithium a été testé).

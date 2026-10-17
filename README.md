@@ -3,8 +3,9 @@
 ![Galère](docs/preview.png)
 ![Grand galion](docs/preview_galleon.png)
 ![Grand vaisseau de guerre](docs/preview_warship.png)
+![Galère rouge, bateau à roue à vapeur, voilier elfique](docs/comparaison_nouveaux_navires.png)
 
-Trois navires qui sont de **véritables entités navigables**, pas des constructions en blocs :
+Six navires qui sont de **véritables entités navigables**, pas des constructions en blocs :
 
 | | Galère médiévale | Grand galion | Grand vaisseau de guerre |
 |---|---|---|---|
@@ -15,7 +16,19 @@ Trois navires qui sont de **véritables entités navigables**, pas des construct
 | Maniement | vif : accélère vite, pivote presque sur place | lourd : lente accélération, forte inertie, larges virages | très lourd : ≈ 17 s pour prendre son allure, > 40 blocs d'erre, très larges virages |
 | Particularités | rames animées, tente de poupe | grande cabine et balcon accessibles, escaliers, dunette au toit rouge, sabords décoratifs, drapeaux à emblème | 3 ponts (pont principal, gaillard d'arrière, dunette) + gaillard d'avant, grande cabine accessible, 58 canons décoratifs (prêts pour le combat), haute poupe à trois étages de fenêtres et galeries, écume à la proue |
 
-Pour les trois :
+| | Galère médiévale rouge | Bateau à roue à vapeur | Voilier elfique |
+|---|---|---|---|
+| Objet / commande | *Galère médiévale rouge*, `medieval_galley` | *Bateau à roue à vapeur*, `steam_paddleboat` | *Voilier elfique*, `elven_sailboat` |
+| Taille | 28 blocs hors tout (coque de 26), 5 de large, coque de 3 blocs, 15 de haut | 22 blocs, 8 de large (10 avec la roue), coque de 5 blocs, 12 de haut | 30 blocs hors tout (coque de 24), 6 de large, coque de 4 blocs, 21 de haut |
+| Propulsion | 24 rames + grande voile carrée rayée rouge et blanc | machine à vapeur : une roue à aubes à tribord, deux cheminées | un grand mât, trois voiles triangulaires |
+| Places assises | 10 (barreur + 8 bancs de nage + proue) | 8 (barre, bancs le long du rouf, 2 servants de canon, poupe) | 8 (barre, 6 bancs à coussins, proue) |
+| Maniement | vive et maniable : accélère vite, vire court, les rames la font pivoter à l'arrêt | accélération progressive, très maniable à basse vitesse, bonne marche arrière, pas de voile à carguer | rapide et fluide : grande vitesse, longue erre, virages doux |
+| Particularités | coque en croissant, deux têtes de dragon sculptées, 28 boucliers ronds à croix blanche, drapeau rouge à croix blanche | coque blindée rivetée, proue renforcée à éperon, rouf aux fenêtres éclairées, roue qui tourne avec la vitesse (en arrière en marche arrière), fumée des cheminées, écume et gerbes à la roue, battement de la machine, 2 canons en laiton, rambarde à lanternes | coque turquoise et or, gemmes lumineuses, longue proue sculptée en volute avec sa lanterne, poupe recourbée, étoile à huit branches et croissant de lune brodés sur les voiles, lanternes qui se balancent |
+
+Le grand vaisseau de guerre s'appelle aussi `grand_warship` dans les commandes ; son
+identifiant interne reste `warship` (navires déjà posés, sauvegardes et configuration intacts).
+
+Pour tous :
 
 * objet dans l'inventaire créatif (onglet *Navires médiévaux* et *Outils*), clic droit sur
   l'eau pour le mettre à l'eau (vérification de la place disponible) ;
@@ -33,6 +46,10 @@ Pour les trois :
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
 
+La version 1.5.0 ajoute la galère rouge, le bateau à roue à vapeur et le voilier elfique, d'après
+l'image de référence ; le galion et le vaisseau de guerre flottent plus haut sur une coque plus
+profonde et plus arrondie, et leurs voiles sont orientées et plus gonflées. La galère d'origine
+n'a pas changé (géométrie vérifiée au millième de bloc).
 La version 1.3.0 ajoute le grand vaisseau de guerre sans rien changer aux deux premiers navires.
 La version 1.2.0 avait ajouté le grand galion **sans rien changer à la galère** : même modèle, mêmes
 textures, mêmes animations, mêmes réglages, mêmes commandes ; les galères déjà posées dans le
@@ -41,7 +58,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.4.2.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.5.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
@@ -70,7 +87,8 @@ pour 1.21.11 sur <https://fabricmc.net/develop>.
 `config/medievalships.json` (créé au premier lancement, rechargeable avec `/ship reload`) —
 la configuration par défaut se trouve dans [`config/medievalships.json`](config/medievalships.json).
 Elle a deux parties : `server` (réglages communs) et `ships` (un bloc par navire, `galley`,
-`galleon` et `warship`). Un ancien fichier (version 1.0/1.1, réglages « à plat ») est converti
+`galleon`, `warship`, `medieval_galley`, `steam_paddleboat` et `elven_sailboat` ; les blocs des
+nouveaux navires sont ajoutés automatiquement à un fichier existant). Un ancien fichier (version 1.0/1.1, réglages « à plat ») est converti
 automatiquement : ses valeurs deviennent celles de la galère.
 
 **`server`**
@@ -97,12 +115,30 @@ automatiquement : ses valeurs deviennent celles de la galère.
 | `aiDefaultWaitSeconds`, `aiStuckSeconds`, `aiTurnAroundSpeed` | 300, 6, 0.4 | 300, 10, 2 | 300, 15, 2.4 | attente par défaut, détection de blocage, vitesse en demi-tour |
 | `furlSailWhenStopped` | true | true | true | carguer les voiles à l'arrêt |
 
+**`ships.medieval_galley` / `ships.steam_paddleboat` / `ships.elven_sailboat`** (mêmes clés)
+
+| Clé | Galère rouge | Bateau à vapeur | Voilier elfique |
+|---|---|---|---|
+| `slowSpeed` / `normalSpeed` / `fastSpeed` | 2.8 / 6 / 9.5 | 2.2 / 5 / 7.5 | 3 / 6.8 / 10.5 |
+| `reverseSpeed` | 2.0 | 2.5 | 1.5 |
+| `acceleration`, `braking` | 1.1, 2.0 | 0.5, 1.4 | 0.8, 1.2 |
+| `waterDrag` | 0.2 | 0.12 | 0.1 |
+| `maxTurnRate`, `minTurnFactor` | 18, 0.35 | 13, 0.5 | 13, 0.15 |
+| `helmRate`, `helmReturnRate`, `turnResponse`, `turnSpeedLoss` | 1.8, 1, 1.8, 0.22 | 1.4, 1, 1.3, 0.15 | 1.2, 0.8, 1.1, 0.1 |
+| `waveRocking` | 1.0 | 0.8 | 0.9 |
+| `aiWaypointRadius`, `aiStopRadius`, `aiLookahead`, `aiProbeDistance` | 8, 2, 14, 40 | 9, 2, 16, 48 | 9, 2, 16, 48 |
+| `aiDefaultWaitSeconds`, `aiStuckSeconds`, `aiTurnAroundSpeed` | 300, 6, 0.4 | 300, 8, 1 | 300, 6, 1.2 |
+| `furlSailWhenStopped` | true | false (pas de voile) | true |
+
 ## Structure du projet
 
 ```
 blockbench/galley.bbmodel        galère éditable (texture intégrée, 6 animations)
 blockbench/galleon.bbmodel       grand galion éditable (2 textures intégrées, 4 animations)
 blockbench/warship.bbmodel       grand vaisseau de guerre éditable (2 textures intégrées, 4 animations)
+blockbench/medieval_galley.bbmodel   galère rouge éditable (texture intégrée, 5 animations)
+blockbench/steam_paddleboat.bbmodel  bateau à roue à vapeur éditable (texture intégrée, 3 animations)
+blockbench/elven_sailboat.bbmodel    voilier elfique éditable (texture intégrée, 5 animations)
 config/medievalships.json        configuration par défaut
 docs/                            documentation et aperçu
 src/main/java/.../core           navigation en Java pur (testée)
