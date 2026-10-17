@@ -218,7 +218,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 	private void galleon(ClientGameTestContext context, TestSingleplayerContext sp) {
 		var server = sp.getServer();
 		ShipGeometry g = Ships.GALLEON.geometry();
-		server.runCommand("ride @a dismount");
+		server.runCommand("ride @p dismount");
 		server.runCommand("gamemode spectator @a");
 		// a large basin east of the first one (the galleon is 43 blocks long with its bowsprit)
 		server.runCommand("fill 30 -63 -40 62 -59 70 water");
@@ -395,7 +395,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		} else {
 			fail("galleon carry: deck mob missing");
 		}
-		server.runCommand("ride @a dismount");
+		server.runCommand("ride @p dismount");
 		context.waitTicks(10);
 		p = playerPos(context);
 		ShipPose now = shipPose(sp, Ships.GALLEON);
