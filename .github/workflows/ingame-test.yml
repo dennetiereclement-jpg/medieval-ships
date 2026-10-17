@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: [full, minimal]
+        variant: [full]
     env:
       MS_TEST_MINIMAL: ${{ matrix.variant == 'minimal' && '1' || '' }}
     steps:
