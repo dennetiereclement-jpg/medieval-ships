@@ -63,7 +63,23 @@ des châteaux.
 Captures en jeu (branches `test-results-*`) : vue d'ensemble, flanc, poupe, proue, pont,
 cabine, balcon, gaillard d'arrière, navigation.
 
-## Tests unitaires (38, tous réussis)
+### Grand vaisseau de guerre
+
+| Vérification | Solo et serveur dédié, sans et avec Lithium |
+|---|---|
+| le vaisseau est mis à l'eau dans un troisième bassin ; la galère et le galion existent toujours | réussi |
+| un joueur tombe sur le pont principal et s'y tient ; il saute et retombe sur le pont | réussi |
+| il entre dans la **grande cabine** par la porte de la cloison | réussi |
+| il monte au **gaillard d'arrière** puis à la **dunette** par les deux escaliers | réussi |
+| il monte au **gaillard d'avant** | réussi |
+| **24 passagers** assis (23 + le barreur) ; un 25ᵉ est refusé | réussi |
+| maniement très lourd : 0,4 bloc en 2 s, 11 en 10 s ; 7,8 blocs d'erre en 4 s ; 4° de virage en 4 s | réussi |
+| pendant la navigation, les 24 passagers restent assis et un mob debout sur le pont est transporté | réussi |
+| le barreur qui quitte la barre se retrouve debout sur le gaillard d'arrière | réussi |
+| collisions coupées : le joueur est quand même rattrapé par le pont principal et par la dunette | réussi |
+| `/ship give warship` donne l'objet *Grand vaisseau de guerre* | réussi |
+
+## Tests unitaires (55, tous réussis)
 
 `./gradlew test` :
 
