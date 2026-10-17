@@ -55,6 +55,30 @@
       "aiStuckSeconds": 10,
       "aiTurnAroundSpeed": 2.0,
       "furlSailWhenStopped": true
+    },
+    "warship": {
+      "slowSpeed": 1.8,
+      "normalSpeed": 3.8,
+      "fastSpeed": 6.5,
+      "reverseSpeed": 0.8,
+      "acceleration": 0.22,
+      "braking": 0.4,
+      "waterDrag": 0.05,
+      "maxTurnRate": 5.5,
+      "minTurnFactor": 0.08,
+      "helmRate": 0.6,
+      "helmReturnRate": 0.4,
+      "turnResponse": 0.4,
+      "turnSpeedLoss": 0.08,
+      "waveRocking": 1.0,
+      "aiWaypointRadius": 18.0,
+      "aiStopRadius": 4.0,
+      "aiLookahead": 32.0,
+      "aiProbeDistance": 90.0,
+      "aiDefaultWaitSeconds": 300,
+      "aiStuckSeconds": 15,
+      "aiTurnAroundSpeed": 2.4,
+      "furlSailWhenStopped": true
     }
   }
 }

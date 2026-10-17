@@ -1,7 +1,7 @@
 # Modèles 3D, textures et animations
 
-Le mod contient deux navires, chacun avec son propre fichier Blockbench, sa texture et ses
-animations : la **galère médiévale** (première partie) et le **grand galion** (seconde partie).
+Le mod contient trois navires, chacun avec son propre fichier Blockbench, ses textures et ses
+animations : la **galère médiévale**, le **grand galion** et le **grand vaisseau de guerre**.
 Le moteur de rendu est commun.
 
 # Galère médiévale
@@ -159,4 +159,53 @@ Un test (`GalleonTest`) vérifie que les deux fichiers donnent les mêmes valeur
 ```
 python3 tools/generate_galleon.py
 python3 tools/preview.py blockbench/galleon.bbmodel - docs/preview_galleon.png --scale=1.75
+```
+
+# Grand vaisseau de guerre
+
+![Aperçu du vaisseau](preview_warship.png)
+![Détails : poupe, pont et canons, proue, flanc](preview_warship_details.png)
+
+## Fichiers
+
+| Fichier | Rôle |
+|---|---|
+| `blockbench/warship.bbmodel` | Modèle éditable (2 textures intégrées, 4 animations). |
+| `models/entity/warship.bbmodel` | Copie chargée par le mod. |
+| `textures/entity/warship.png` | Texture 512 × 512. |
+| `textures/entity/warship_flag.png` | **Drapeaux** (64 × 64, fleur de lys bleue sur fond blanc) : emblème remplaçable, aussi affiché sur les armes de la poupe. |
+| `textures/item/warship.png` | Icône de l'objet. |
+| `tools/warship_shape.py` | Forme et plan, identiques au code Java des collisions (test `WarshipTest`). |
+| `tools/generate_warship.py`, `tools/warship_texture.py` | Générateurs (réutilisent les outils du galion). |
+
+## Ce qui est modélisé (d'après l'image de référence)
+
+| Élément | Réalisation |
+|---|---|
+| Coque | 29 tronçons × 2 bords × 10 bordages **inclinés** sur des sections arrondies : œuvres vives **blanches**, bandes **noires** et **ocre** alternées aux rangées de sabords, haut de coque brun sombre, trois préceintes noires, plat-bord doré, léger rentré de la muraille |
+| Dimensions | coque 55 blocs, ≈ 67 avec beaupré, bout-dehors et galeries ; 13 de large ; 12 blocs de la quille au couronnement ; 42 jusqu'au sommet du grand mât |
+| Ponts | pont principal (canons sur affûts), gaillard d'avant, **gaillard d'arrière** au-dessus de la grande cabine, **dunette** au-dessus de la chambre du conseil ; 3 escaliers doubles, barrières à balustres |
+| Canons | **58** : 12 + 11 par bord dans deux rangées de sabords de la coque, 6 par bord sur affûts au pont principal (les 12 affûts sont des sièges) ; un os par canon `cannon_l1`…`cannon_l29`, `cannon_r1`…`cannon_r29` |
+| Poupe | tableau très haut, trois étages de fenêtres éclairées avec pilastres, corniches et frises dorées, **deux galeries** à balustres, bouteilles d'angle sur deux étages, grandes armes couronnées, 3 grandes lanternes, pavillon de poupe |
+| Grande cabine | accessible par la porte de la cloison : chaises (places assises), lanternes, coffres, baux |
+| Mâture | 3 mâts en trois parties (bas-mât, mât de hune, perroquet) avec hunes et barres de flèche ; **3 voiles carrées par mât** à l'avant et au centre, hunier et latine à l'artimon ; beaupré, bout-dehors, civadière, **3 focs** |
+| Gréement | haubans avec enfléchures et caps-de-mouton sur porte-haubans, galhaubans, étais, bras, écoutes, sous-barbe |
+| Proue | éperon, figure de proue dorée, lisses de poulaine, bossoirs avec ancres, écubiers, lanterne |
+
+Optimisation : 1907 cubes (≈ 11 000 faces), ce qui reste raisonnable pour un navire de cette
+taille (le rendu est calculé par le client, sans aucun coût serveur) ; le gréement est simplifié
+(cordages droits), les voiles sont des bandes qui se raccordent exactement.
+
+## Animations du vaisseau
+
+Les mêmes que le galion : `sail_wind`, `sail_furl` (voiles ramassées dans leur rouleau à l'arrêt),
+`steer` (double roue de barre et gouvernail), `flag_wave`. En plus, le rendu ajoute un roulis et
+un tangage plus lents et plus faibles (navire très lourd) et de l'**écume à la proue** et un léger
+sillage, proportionnels à la vitesse (quelques particules vanilla par tick, seulement près des joueurs).
+
+## Régénérer le vaisseau
+
+```
+python3 tools/generate_warship.py
+python3 tools/preview.py blockbench/warship.bbmodel - docs/preview_warship.png --scale=2.7
 ```

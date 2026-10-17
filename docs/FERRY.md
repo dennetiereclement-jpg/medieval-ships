@@ -111,6 +111,29 @@ Le grand galion suit les mêmes itinéraires que la galère, avec une IA adapté
 Prévoyez des chenaux plus larges (au moins 15 blocs) et des points de passage plus espacés
 que pour la galère.
 
+## Ligne en grand vaisseau de guerre
+
+Exemple : *Port impérial → Forteresse maritime → Port militaire → retour*.
+
+```
+/ship route create imperiale loop                    # boucle : retour au port impérial
+/ship route addstop imperiale 300 Port impérial      # au quai du port impérial
+/ship route addpoint imperiale                       # points de passage au large (plusieurs)
+/ship route addstop imperiale 120 Forteresse maritime
+/ship route addpoint imperiale
+/ship route addstop imperiale 300 Port militaire
+/ship route addpoint imperiale                       # retour au large vers le port impérial
+/ship spawn warship                                  # au port impérial, ou avec l'objet
+/ship route assign imperiale
+```
+
+Le vaisseau utilise la même IA, avec ses propres réglages (`ships.warship`) : il voit à 90 blocs,
+anticipe ses virages de 32 blocs, vise ses points dans un rayon de 18 blocs et commence à freiner
+très tôt (il glisse plus de 40 blocs sur son erre). Ses virages ont un rayon d'environ 40 blocs :
+prévoyez des chenaux d'au moins 25 blocs de large, des points de passage espacés d'au moins
+60 blocs, et des escales en eau libre. Il démarre « à quai » s'il est à moins de 40 blocs de
+l'escale. Les chunks sont gardés chargés autour de lui et devant lui (jusqu’à environ 35 blocs).
+
 ## Plusieurs ferries
 
 Plusieurs navires peuvent suivre le même itinéraire (par exemple deux ferries partant de
