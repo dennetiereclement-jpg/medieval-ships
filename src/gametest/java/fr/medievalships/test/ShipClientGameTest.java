@@ -123,11 +123,11 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			// 4. jumping aboard from the quay
 			server.runCommand("tp @p 5.5 -57 0 90 10");
 			context.waitTicks(30);
+			// run-up and a single jump over the rail, then stop
 			context.getInput().holdKey(o -> o.forwardKey);
-			for (int i = 0; i < 4; i++) {
-				context.getInput().holdKeyFor(o -> o.jumpKey, 2);
-				context.waitTicks(10);
-			}
+			context.waitTicks(3);
+			context.getInput().holdKeyFor(o -> o.jumpKey, 2);
+			context.waitTicks(8);
 			context.getInput().releaseKey(o -> o.forwardKey);
 			context.waitTicks(30);
 			p = playerPos(context);
