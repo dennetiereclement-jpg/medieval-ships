@@ -24,6 +24,17 @@ loom {
 	}
 }
 
+fabricApi {
+	configureTests {
+		createSourceSet = true
+		modId = "medievalships-test"
+		enableGameTests = false
+		enableClientGameTests = true
+		// Running the game in CI requires accepting the Minecraft EULA (https://aka.ms/MinecraftEULA)
+		eula = true
+	}
+}
+
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"

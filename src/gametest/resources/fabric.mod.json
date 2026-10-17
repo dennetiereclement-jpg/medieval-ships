@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "medievalships-test",
+  "version": "1.0.0",
+  "name": "Medieval Ships tests",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-client-gametest": ["fr.medievalships.test.ShipClientGameTest"]
+  },
+  "depends": {
+    "medievalships": "*",
+    "fabric-client-gametest-api-v1": "*"
+  }
+}
