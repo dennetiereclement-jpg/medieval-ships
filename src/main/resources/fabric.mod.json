@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "medievalships",
+  "version": "${version}",
+  "name": "Medieval Ships",
+  "description": "Grande galère médiévale navigable : entité pilotable, passagers, marche libre sur le pont, pilote automatique et ferries.",
+  "authors": ["Clément Dennetière"],
+  "license": "MIT",
+  "icon": "assets/medievalships/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": ["fr.medievalships.MedievalShips"],
+    "client": ["fr.medievalships.client.MedievalShipsClient"]
+  },
+  "mixins": [
+    "medievalships.mixins.json",
+    { "config": "medievalships.client.mixins.json", "environment": "client" }
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.0",
+    "minecraft": "~1.21.11",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
