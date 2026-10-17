@@ -55,7 +55,10 @@ class GalleonTest {
 		assertEquals(35.0, 2 * H.halfLength, 1e-9);
 		assertEquals(9.0, 2 * H.maxHalfWidth, 1e-9);
 		double hullHeight = H.railY(-H.halfLength + 0.5) - H.keelY(0);
-		assertTrue(hullHeight > 5.8 && hullHeight < 7, "hull height " + hullHeight);
+		assertTrue(hullHeight > 7 && hullHeight < 8, "hull height " + hullHeight);
+		// it floats high: 1.4 blocks of draft, the rounded sides show above the water
+		double draft = H.waterlineY - H.keelY(0);
+		assertTrue(draft > 1.2 && draft < 1.6, "draft " + draft);
 		assertTrue(GalleonLayout.MAIN_MAST_TOP - H.keelY(0) > 26, "too short");
 		assertTrue(G.boundingRadius() > 18 && G.aiReach() > 17);
 	}
@@ -64,11 +67,11 @@ class GalleonTest {
 	void hullMatchesModelGenerator() {
 		// values computed by tools/galleon_shape.py
 		double[][] expected = {
-				{-17.3, 2.471775, 4.6, -0.455205, -0.262115},
-				{-12.0, 3.940918, 4.6, -1.426209, -1.237139},
-				{0.0, 4.5, 2.2, -1.8, -1.657778},
-				{9.0, 3.786599, 2.35174, -1.663434, -1.411461},
-				{15.5, 1.998372, 4.0, -0.884505, -0.132676}};
+				{-17.3, 2.471775, 4.6, -0.871180, -0.501642},
+				{-12.0, 3.940918, 4.6, -2.222906, -1.928221},
+				{0.0, 4.5, 2.2, -2.9, -2.670864},
+				{9.0, 3.786599, 2.35174, -2.614351, -2.218336},
+				{15.5, 1.998372, 4.0, -1.440849, -0.216127}};
 		for (double[] e : expected) {
 			assertEquals(e[1], H.halfWidth(e[0]), 1e-5);
 			assertEquals(e[2], H.railY(e[0]), 1e-5);

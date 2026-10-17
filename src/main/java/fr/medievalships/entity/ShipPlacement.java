@@ -37,9 +37,10 @@ public final class ShipPlacement {
 			if (Double.isNaN(surface)) {
 				continue;
 			}
-			ShipPose pose = new ShipPose(cx, surface, cz, yaw);
+			double sy = surface - type.hull().waterlineY;
+			ShipPose pose = new ShipPose(cx, sy, cz, yaw);
 			if (ShipMover.countCollisions(type.geometry(), pose, shipWorld) == 0) {
-				ship.refreshPositionAndAngles(cx, surface, cz, yaw, 0f);
+				ship.refreshPositionAndAngles(cx, sy, cz, yaw, 0f);
 				ship.setShipYaw(yaw);
 				world.spawnEntity(ship);
 				return ship;
@@ -58,10 +59,12 @@ public final class ShipPlacement {
 			for (int a = 0; a < 360; a += r == 0 ? 360 : 15) {
 				double cx = ship.getX() - Math.sin(Math.toRadians(a)) * r;
 				double cz = ship.getZ() + Math.cos(Math.toRadians(a)) * r;
-				double surface = shipWorld.waterSurface(cx, cz, ship.getY());
+				double waterline = ship.geometry().hull().waterlineY;
+				double surface = shipWorld.waterSurface(cx, cz, ship.getY() + waterline);
 				if (Double.isNaN(surface)) {
 					continue;
 				}
+				surface -= waterline;
 				for (int dyaw = 0; dyaw < 360; dyaw += 45) {
 					float yaw = ship.getYaw() + dyaw;
 					if (ShipMover.countCollisions(ship.geometry(), new ShipPose(cx, surface, cz, yaw), shipWorld) == 0) {

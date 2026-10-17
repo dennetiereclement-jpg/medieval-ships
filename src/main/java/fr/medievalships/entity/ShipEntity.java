@@ -348,9 +348,10 @@ public abstract class ShipEntity extends Entity {
 		// ---- buoyancy: follow the water surface under the hull
 		double dy = 0;
 		double probe = 0.7 * geometry().hull().halfLength; // 7 blocks for the galley
-		double sBow = shipWorld.waterSurface(before.worldX(0, probe), before.worldZ(0, probe), getY());
-		double sMid = shipWorld.waterSurface(getX(), getZ(), getY());
-		double sStern = shipWorld.waterSurface(before.worldX(0, -probe), before.worldZ(0, -probe), getY());
+		double waterline = geometry().hull().waterlineY;
+		double sBow = shipWorld.waterSurface(before.worldX(0, probe), before.worldZ(0, probe), getY() + waterline);
+		double sMid = shipWorld.waterSurface(getX(), getZ(), getY() + waterline);
+		double sStern = shipWorld.waterSurface(before.worldX(0, -probe), before.worldZ(0, -probe), getY() + waterline);
 		double sum = 0;
 		int n = 0;
 		for (double s : new double[] {sBow, sMid, sStern}) {
@@ -360,7 +361,7 @@ public abstract class ShipEntity extends Entity {
 			}
 		}
 		if (n > 0) {
-			dy = Math.max(-0.15, Math.min(0.15, (sum / n - getY()) * 0.3));
+			dy = Math.max(-0.15, Math.min(0.15, (sum / n - waterline - getY()) * 0.3));
 		} else if (!shipWorld.blocked(getX(), getY() + geometry().hull().keelY(0) - 0.3, getZ())) {
 			dy = -0.3; // no water (drained, spawned in the air...): fall until something holds the keel
 		}

@@ -672,10 +672,12 @@ def build():
         beam(mb, name + "_roll", (-half * 0.92, y - 0.24, z + 0.56), (half * 0.92, y - 0.24, z + 0.56), 0.3, "cloth_roll")
 
     def square_sail(mb, name, z, y_top, half_top, half_bottom, height, depth):
-        yard(mb, name + "_yard", z, y_top, half_top + 0.4)
-        sb = Bone("sail_" + name, origin=(0, y_top, z + 0.56), parent=mb)
+        br = Bone("brace_" + name, origin=(0, y_top, z), parent=mb)
+        yard(br, name + "_yard", z, y_top, half_top + 0.4)
+        sb = Bone("sail_" + name, origin=(0, y_top, z + 0.56), parent=br)
         gn.sail(sb, name, v3(0, y_top - 0.14, z + 0.58), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), half_top, half_bottom,
-                height, depth * 1.7, "course" if "course" in name else "topsail", nx=8, ny=9, round_=0.7, overlap=0.03)
+                height, depth * 2.4, "course" if "course" in name else "topsail", nx=8, ny=10, round_=0.8, overlap=0.03, foot=0.09)
+        br.rot = ry(gn.BRACE)
         sails_info.append((sb, False))
 
     m_fore = mast("foremast", ws.FORE_MAST_Z, fc_y, (19.0, 27.5, ws.FORE_MAST_TOP), 0.78)
@@ -695,7 +697,7 @@ def build():
          lat_aft + v3(0.06, -0.24, 0) - norm(lat_aft - lat_fore) * 0.5, 0.28, "cloth_roll")
     lat_sail = Bone("sail_mizzen", origin=tuple((lat_fore + lat_aft) / 2), parent=m_miz)
     lateen_tri = gn.tri_sail(lat_sail, "mizzen_lateen", lat_aft + v3(0.1, -0.14, 0.05), lat_fore + v3(0.1, -0.14, 0),
-                             v3(0.55, 12.6, -24.0), 0.8, v3(1, 0, 0), "lateen", ny=8)
+                             v3(0.55, 12.6, -24.0), 1.25, v3(1, 0, 0), "lateen", ny=8)
     sails_info.append((lat_sail, True))
     # three jibs and the spritsail
     jib = Bone("jib", origin=tuple(sprit_b), parent=root)
@@ -705,7 +707,7 @@ def build():
             (v3(0, 27.0, ws.FORE_MAST_Z + 0.3), sprit_b, v3(0.06, 9.6, 27.2), 0.5),
             (v3(0, 33.0, ws.FORE_MAST_Z + 0.2), jib_end, v3(0.06, 11.4, 30.4), 0.45))):
         head = tack + (top - tack) * 0.6
-        tri = gn.tri_sail(jib, "jib_%d" % k, head + v3(0, -0.05, -0.06), tack + v3(0, 0.05, -0.12), clew, depth, v3(1, 0, 0),
+        tri = gn.tri_sail(jib, "jib_%d" % k, head + v3(0, -0.05, -0.06), tack + v3(0, 0.05, -0.12), clew, depth * 1.6, v3(1, 0, 0),
                           "jib", ny=6)
         jib_tri = jib_tri or tri
         beam(ropes, "rope_jibstay_%d" % k, top, tack, 0.06, "rope")
@@ -715,8 +717,8 @@ def build():
     beam(bow, "spritsail_yard", sprit_yard + v3(-3.6, -0.3, 0), sprit_yard + v3(3.6, -0.3, 0), 0.2, "mast", extend=0.1)
     beam(bow, "spritsail_roll", sprit_yard + v3(-3.2, -0.52, 0.06), sprit_yard + v3(3.2, -0.52, 0.06), 0.26, "cloth_roll")
     sprit_sail = Bone("sail_sprit", origin=tuple(sprit_yard + v3(0, -0.36, 0)), parent=bow)
-    gn.sail(sprit_sail, "spritsail", sprit_yard + v3(0, -0.42, 0.14), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), 3.2, 3.7, 3.0, 0.6,
-            "topsail", ny=5)
+    gn.sail(sprit_sail, "spritsail", sprit_yard + v3(0, -0.42, 0.14), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), 3.2, 3.7, 3.0, 1.0,
+            "topsail", nx=5, ny=5, round_=0.7, foot=0.08)
     sails_info.append((sprit_sail, False))
 
     # ---- flags (texture #1)
@@ -766,11 +768,12 @@ def build():
             for k in range(2):
                 beam(ropes, "topshroud_%s_%s%d" % (tag, sn, k), v3(side * 0.3, t2 - 0.3, mz),
                      v3(side * r * 0.9, t1 + 0.3, mz + (k - 0.5) * 1.0), 0.05, "rope")
-        beam(ropes, "main_brace_" + sn, v3(side * 7.4, 20.0, ws.MAIN_MAST_Z + 0.5), chain_point(-12.0, side), 0.05, "rope")
-        beam(ropes, "main_sheet_" + sn, v3(side * 7.6, 9.6, ws.MAIN_MAST_Z + 1.8), chain_point(-6.0, side), 0.05, "rope")
-        beam(ropes, "fore_sheet_" + sn, v3(side * 6.2, 9.2, ws.FORE_MAST_Z + 1.5), chain_point(12.0, side), 0.05, "rope")
-        beam(ropes, "fore_brace_" + sn, v3(side * 5.9, 18.0, ws.FORE_MAST_Z + 0.5), v3(side * 0.7, 20.6, ws.MAIN_MAST_Z), 0.05, "rope")
-        beam(ropes, "topsail_brace_" + sn, v3(side * 5.1, 30.2, ws.MAIN_MAST_Z + 0.5), v3(side * 0.3, 24.5, ws.MIZZEN_Z), 0.05, "rope")
+        mz, fz = ws.MAIN_MAST_Z, ws.FORE_MAST_Z
+        beam(ropes, "main_brace_" + sn, gn.braced((side * 7.4, 20.0, mz + 0.5), mz), chain_point(-12.0, side), 0.05, "rope")
+        beam(ropes, "main_sheet_" + sn, gn.braced((side * 7.6, 10.0, mz + 2.4), mz), chain_point(-6.0, side), 0.05, "rope")
+        beam(ropes, "fore_sheet_" + sn, gn.braced((side * 6.2, 9.6, fz + 2.0), fz), chain_point(12.0, side), 0.05, "rope")
+        beam(ropes, "fore_brace_" + sn, gn.braced((side * 5.9, 18.0, fz + 0.5), fz), v3(side * 0.7, 20.6, mz), 0.05, "rope")
+        beam(ropes, "topsail_brace_" + sn, gn.braced((side * 5.1, 30.2, mz + 0.5), mz), v3(side * 0.3, 24.5, ws.MIZZEN_Z), 0.05, "rope")
     for name, a, b in (
             ("main_stay", v3(0, 20.8, ws.MAIN_MAST_Z + 0.4), v3(0, fc_y + 0.4, ws.FORE_MAST_Z - 0.6)),
             ("main_topstay", v3(0, 30.6, ws.MAIN_MAST_Z), v3(0, 19.2, ws.FORE_MAST_Z)),

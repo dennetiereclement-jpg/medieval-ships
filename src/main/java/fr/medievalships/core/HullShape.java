@@ -40,6 +40,11 @@ public final class HullShape {
 		public double railAboveDeck = 0.0;
 		/** Bulwarks of castles that are not hull decks: the rail is at least {@code y} over the interval. */
 		public List<RaisedDeck> railFloors = List.of();
+		/**
+		 * Local height of the water surface when afloat. 0 for the galley (its model origin is the
+		 * waterline); negative when the hull floats higher, showing more of its rounded sides.
+		 */
+		public double waterlineY = 0.0;
 		public double mainDeckY = 0.45;
 		public List<RaisedDeck> raisedDecks = List.of();
 		public double deckMinZ = -9.7;
@@ -52,6 +57,7 @@ public final class HullShape {
 	public final double tip;
 	public final double maxHalfWidth;
 	public final double mainDeckY;
+	public final double waterlineY;
 	public final double deckMinZ;
 	public final double deckMaxZ;
 	private final Params p;
@@ -62,6 +68,7 @@ public final class HullShape {
 		this.tip = params.tip;
 		this.maxHalfWidth = params.maxHalfWidth;
 		this.mainDeckY = params.mainDeckY;
+		this.waterlineY = params.waterlineY;
 		this.deckMinZ = params.deckMinZ;
 		this.deckMaxZ = params.deckMaxZ;
 	}

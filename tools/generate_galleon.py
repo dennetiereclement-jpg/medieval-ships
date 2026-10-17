@@ -48,6 +48,13 @@ v3, norm, Bone, add_cube, beam, board = gg.v3, gg.norm, gg.Bone, gg.add_cube, gg
 rx, ry, rz = gg.rx, gg.ry, gg.rz
 EYE = np.eye(3)
 SIDES = ((1, "p"), (-1, "s"))
+BRACE = math.radians(22)  # square yards braced round (port arms aft)
+
+
+def braced(p, mast_z, a=BRACE):
+    """Point of a braced yard or sail, given where it would be with the yard square."""
+    o = v3(0, 0, mast_z)
+    return ry(a) @ (v3(*p) - o) + o
 
 # hull stations (dense where the shape changes fast); the visual bow closes beyond the
 # collision hull end (17.5), where the half width reaches zero
@@ -123,7 +130,7 @@ def set_sub(cube, sub, faces=("north", "south")):
 
 
 # ---------------------------------------------------------------- sails
-def sail_surface(origin, U, V, N, half_top, half_bottom, height, depth, fx, fy, triangle=False, round_=0.0):
+def sail_surface(origin, U, V, N, half_top, half_bottom, height, depth, fx, fy, triangle=False, round_=0.0, foot=0.0):
     """Point of a billowed sail. fx in [-1, 1] across, fy in [0, 1] from the head down.
     The belly only depends on fy: every horizontal strip is then exactly planar and shares its
     edges with its neighbours (no cracks, no overlap, no saw-tooth edges), the head stays on its
@@ -133,11 +140,13 @@ def sail_surface(origin, U, V, N, half_top, half_bottom, height, depth, fx, fy, 
     if round_:
         # rounder sail: the belly also grows towards the middle of the width (the head stays on the yard)
         belly *= 1.0 - round_ + round_ * (1.0 - fx * fx)
-    return origin + U * (fx * half) + V * (fy * height) + N * belly
+    # the wind lifts the middle of the foot: the lower edge curves up between the clews
+    drop = fy * height * (1.0 - foot * fy * fy * (1.0 - fx * fx))
+    return origin + U * (fx * half) + V * drop + N * belly
 
 
 def sail(bone, name, origin, U, V, N, half_top, half_bottom, height, depth, region, nx=1, ny=8,
-         triangle=False, th=0.04, round_=0.0, overlap=0.005):
+         triangle=False, th=0.04, round_=0.0, overlap=0.005, foot=0.0):
     """Square (or triangle-textured) sail made of tilted strips following a curved surface.
     Each strip maps its own part of the texture region, so the cloth (and its emblem) is continuous."""
     U, V, N = norm(U), norm(V), norm(N)
@@ -145,7 +154,7 @@ def sail(bone, name, origin, U, V, N, half_top, half_bottom, height, depth, regi
         for j in range(ny):
             fx0, fx1 = -1 + 2 * i / nx, -1 + 2 * (i + 1) / nx
             fy0, fy1 = j / ny, (j + 1) / ny
-            P = lambda a, b: sail_surface(origin, U, V, N, half_top, half_bottom, height, depth, a, b, triangle, round_)  # noqa: E731
+            P = lambda a, b: sail_surface(origin, U, V, N, half_top, half_bottom, height, depth, a, b, triangle, round_, foot)  # noqa: E731
             a0, a1, b0, b1 = P(fx0, fy1), P(fx0, fy0), P(fx1, fy1), P(fx1, fy0)
             c = (a0 + a1 + b0 + b1) / 4
             u = ((b0 + b1) - (a0 + a1)) / 2
@@ -646,11 +655,14 @@ def build():
     sails_info = []
 
     def square_sail(mb, name, z, y_top, half_top, half_bottom, height, region, depth):
-        yard(mb, name + "_yard", z, y_top, half_top + 0.35)
-        yard(mb, name + "_foot", z, y_top - height - 0.05, half_bottom + 0.2) if False else None
-        sb = Bone("sail_" + name, origin=(0, y_top, z + 0.42), parent=mb)
+        # yard and sail hang in a bone turned around the mast: the yards are braced round, so the
+        # bellied sails show their curve from the side as on the reference pictures
+        br = Bone("brace_" + name, origin=(0, y_top, z), parent=mb)
+        yard(br, name + "_yard", z, y_top, half_top + 0.35)
+        sb = Bone("sail_" + name, origin=(0, y_top, z + 0.42), parent=br)
         sail(sb, name, v3(0, y_top - 0.12, z + 0.45), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), half_top, half_bottom,
-             height, depth * 1.4, region, nx=6, ny=9, round_=0.55, overlap=0.03)
+             height, depth * 2.1, region, nx=7, ny=10, round_=0.8, overlap=0.03, foot=0.09)
+        br.rot = ry(BRACE)
         sails_info.append((sb, False))
         return sb
 
@@ -666,7 +678,7 @@ def build():
          lat_aft + v3(0.05, -0.2, 0) - norm(lat_aft - lat_fore) * 0.4, 0.24, "cloth_roll")
     lat_sail = Bone("sail_mizzen", origin=tuple((lat_fore + lat_aft) / 2), parent=m_mizzen)
     lateen_tri = tri_sail(lat_sail, "mizzen_lateen", lat_aft + v3(0.08, -0.12, 0.05), lat_fore + v3(0.08, -0.12, 0),
-                          v3(0.4, 8.0, -16.4), 0.55, v3(1, 0, 0), "lateen", ny=8)
+                          v3(0.4, 8.0, -16.4), 0.85, v3(1, 0, 0), "lateen", ny=8)
     sails_info.append((lat_sail, True))
 
     # jibs on the stays to the bowsprit
@@ -675,19 +687,19 @@ def build():
     fore_head = v3(0, gs.FORE_MAST_TOP - 0.5, gs.FORE_MAST_Z)
     stay_top = sprit_b + (fore_head - sprit_b) * 0.62
     jib_tri = tri_sail(jib, "jib_outer", stay_top + v3(0.0, -0.05, -0.06), sprit_b + v3(0, 0.05, -0.12),
-                       v3(0.05, 5.6, 18.6), 0.35, v3(1, 0, 0), "jib", ny=6)
+                       v3(0.05, 5.6, 18.6), 0.6, v3(1, 0, 0), "jib", ny=6)
     fore_low = v3(0, 13.0, gs.FORE_MAST_Z)
     mid_sprit = sprit_a + (sprit_b - sprit_a) * 0.55
     st2 = mid_sprit + (fore_low - mid_sprit) * 0.62
     tri_sail(jib, "jib_inner", st2 + v3(0.0, -0.05, -0.06), mid_sprit + v3(0, 0.05, -0.1),
-             v3(0.05, 5.0, 16.2), 0.3, v3(1, 0, 0), "jib", ny=6)
+             v3(0.05, 5.0, 16.2), 0.5, v3(1, 0, 0), "jib", ny=6)
     sails_info.append((jib, True))
     sprit_yard = sprit_a + (sprit_b - sprit_a) * 0.72
     beam(bow, "spritsail_yard", sprit_yard + v3(-2.3, -0.25, 0), sprit_yard + v3(2.3, -0.25, 0), 0.16, "mast", extend=0.08)
     beam(bow, "spritsail_roll", sprit_yard + v3(-1.9, -0.45, 0.05), sprit_yard + v3(1.9, -0.45, 0.05), 0.22, "cloth_roll")
     sprit_sail = Bone("sail_sprit", origin=tuple(sprit_yard + v3(0, -0.3, 0)), parent=bow)
-    sail(sprit_sail, "spritsail", sprit_yard + v3(0, -0.36, 0.12), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), 2.1, 2.4, 2.3, 0.45,
-         "topsail", ny=5)
+    sail(sprit_sail, "spritsail", sprit_yard + v3(0, -0.36, 0.12), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), 2.1, 2.4, 2.3, 0.8,
+         "topsail", nx=4, ny=5, round_=0.7, foot=0.08)
     sails_info.append((sprit_sail, False))
 
     # ---- flags (texture #1): masthead flags, main pennant, stern ensign
@@ -736,11 +748,12 @@ def build():
             rig.append(("fore_topshroud_%s%d" % (sn, k), v3(side * 0.2, gs.FORE_MAST_TOP - 1.0, gs.FORE_MAST_Z),
                         v3(side * 1.25, 13.2, gs.FORE_MAST_Z + (k - 0.5) * 0.8)))
         # sheets from the course clews to the rail, braces from the yard arms aft
-        rig.append(("main_sheet_" + sn, v3(side * 5.2, 5.2, gs.MAIN_MAST_Z + 1.3), deadeye(-3.0, side)))
-        rig.append(("main_brace_" + sn, v3(side * 4.9, 14.1, gs.MAIN_MAST_Z + 0.4), deadeye(-9.5, side, gs.QD_RAIL_Y)))
-        rig.append(("main_topbrace_" + sn, v3(side * 3.2, 23.4, gs.MAIN_MAST_Z + 0.4), v3(side * 0.2, 15.0, gs.MIZZEN_Z)))
-        rig.append(("fore_sheet_" + sn, v3(side * 4.4, 6.3, gs.FORE_MAST_Z + 1.0), deadeye(8.6, side)))
-        rig.append(("fore_brace_" + sn, v3(side * 4.1, 12.2, gs.FORE_MAST_Z + 0.4), v3(side * 0.6, 14.4, gs.MAIN_MAST_Z)))
+        mz, fz = gs.MAIN_MAST_Z, gs.FORE_MAST_Z
+        rig.append(("main_sheet_" + sn, braced((side * 5.2, 5.6, mz + 1.6), mz), deadeye(-3.0, side)))
+        rig.append(("main_brace_" + sn, braced((side * 4.9, 14.1, mz + 0.4), mz), deadeye(-9.5, side, gs.QD_RAIL_Y)))
+        rig.append(("main_topbrace_" + sn, braced((side * 3.2, 23.4, mz + 0.4), mz), v3(side * 0.2, 15.0, gs.MIZZEN_Z)))
+        rig.append(("fore_sheet_" + sn, braced((side * 4.4, 6.6, fz + 1.3), fz), deadeye(8.6, side)))
+        rig.append(("fore_brace_" + sn, braced((side * 4.1, 12.2, fz + 0.4), fz), v3(side * 0.6, 14.4, mz)))
     rig += [
         ("main_stay", v3(0, 15.0, gs.MAIN_MAST_Z + 0.3), v3(0, fc_y + 0.4, gs.FORE_MAST_Z - 0.4)),
         ("main_topstay", v3(0, gs.MAIN_MAST_TOP - 0.6, gs.MAIN_MAST_Z), v3(0, 13.2, gs.FORE_MAST_Z)),

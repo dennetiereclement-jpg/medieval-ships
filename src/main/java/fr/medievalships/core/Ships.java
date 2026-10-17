@@ -61,6 +61,8 @@ public final class Ships {
 		public static final double DOOR_HALF = 0.7;
 		public static final double DOOR_TOP = 3.05;
 		public static final double TRANSOM_Z = -17.3;
+		/** The galleon floats high: the water is 1.5 blocks under the model origin. */
+		public static final double WATERLINE_Y = -1.5;
 		/** Poop house (red roof) at the stern of the quarterdeck. */
 		public static final double POOP_FRONT = -14.2;
 		public static final double POOP_BACK = -16.9;
@@ -110,9 +112,10 @@ public final class Ships {
 		p.aftScale = 19.5;
 		p.aftPowA = 3.0;
 		p.aftPowB = 0.5;
-		p.keelDepth = 1.8;
-		p.keelRise = 1.4;
-		p.keelPow = 3.5;
+		p.keelDepth = 2.9;
+		p.keelRise = 2.1;
+		p.keelPow = 3.0;
+		p.waterlineY = GalleonLayout.WATERLINE_Y;
 		p.railBase = 2.2;
 		p.railRiseFore = 0.8;
 		p.railRiseAft = 0.8;
@@ -284,6 +287,8 @@ public final class Ships {
 		public static final double DOOR_HALF = 0.8;
 		public static final double DOOR_TOP = 6.55;
 		public static final double TRANSOM_Z = -27.3;
+		/** The warship floats high: the water is 1.1 blocks under the model origin. */
+		public static final double WATERLINE_Y = -1.1;
 		public static final double DECK_MAX_Z = 27.0;
 		public static final double FORE_MAST_Z = 17.5;
 		public static final double FORE_MAST_TOP = 34.0;
@@ -354,9 +359,10 @@ public final class Ships {
 		p.aftScale = 30.5;
 		p.aftPowA = 3.2;
 		p.aftPowB = 0.45;
-		p.keelDepth = 1.9;
-		p.keelRise = 1.3;
-		p.keelPow = 4.0;
+		p.keelDepth = 2.9;
+		p.keelRise = 2.2;
+		p.keelPow = 3.5;
+		p.waterlineY = WarshipLayout.WATERLINE_Y;
 		p.railBase = 5.8;
 		p.railRiseFore = 1.8;
 		p.railRiseAft = 2.0;

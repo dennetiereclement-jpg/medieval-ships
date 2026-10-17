@@ -94,7 +94,8 @@ final class ShipWorld implements ShipMover.Obstacles, Autopilot.Navigator {
 			return false;
 		}
 		int bx = (int) Math.floor(x), bz = (int) Math.floor(z);
-		int surface = (int) Math.floor(self.getY() - 0.2);
+		double water = self.getY() + self.geometry().hull().waterlineY;
+		int surface = (int) Math.floor(water - 0.2);
 		for (int dy = 0; dy >= -1; dy--) {
 			pos.set(bx, surface + dy, bz);
 			if (!world.getFluidState(pos).isIn(FluidTags.WATER)) {
@@ -109,7 +110,7 @@ final class ShipWorld implements ShipMover.Obstacles, Autopilot.Navigator {
 				return false;
 			}
 		}
-		double wy = self.getY() + 0.2;
+		double wy = water + 0.2;
 		return !insideOtherHull(x, wy, z);
 	}
 

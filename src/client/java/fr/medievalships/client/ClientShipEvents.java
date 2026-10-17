@@ -112,12 +112,12 @@ public final class ClientShipEvents {
 			double side = world.random.nextBoolean() ? 1 : -1;
 			double z = bowZ - world.random.nextDouble() * 4.0;
 			double x = side * (hull.halfWidth(z) + 0.1);
-			double[] w = pose.toWorld(x, 0.15, z);
+			double[] w = pose.toWorld(x, hull.waterlineY + 0.15, z);
 			double[] out = pose.dirToWorld(side * 0.12, 0.08, 0.0);
 			world.addParticleClient(ParticleTypes.SPLASH, w[0], w[1], w[2], out[0], out[1] + 0.05, out[2]);
 		}
 		if (world.random.nextInt(3) == 0) {
-			double[] w = pose.toWorld((world.random.nextDouble() - 0.5) * 3.0, 0.1, -hull.halfLength - 0.8);
+			double[] w = pose.toWorld((world.random.nextDouble() - 0.5) * 3.0, hull.waterlineY + 0.1, -hull.halfLength - 0.8);
 			world.addParticleClient(ParticleTypes.BUBBLE, w[0], w[1] - 0.2, w[2], 0, 0.02, 0);
 			world.addParticleClient(ParticleTypes.SPLASH, w[0], w[1], w[2], 0, 0.04, 0);
 		}

@@ -6,7 +6,7 @@ WarshipTest.hullMatchesModelGenerator; `python3 tools/warship_shape.py` rewrites
 reference values).
 
 Ship-local coordinates, in blocks:
-  x = lateral (+x = port / babord), y = up (0 = waterline), z = forward (+z = bow).
+  x = lateral (+x = port / babord), y = up (0 = model origin, the water is at WATERLINE_Y), z = forward (+z = bow).
 """
 import os
 
@@ -15,7 +15,8 @@ TIP = 28.6
 MAX_HALF_WIDTH = 6.5
 FORE_SCALE, FORE_POW_A, FORE_POW_B = 28.4, 2.2, 0.55
 AFT_SCALE, AFT_POW_A, AFT_POW_B = 30.5, 3.2, 0.45
-KEEL_DEPTH, KEEL_RISE, KEEL_POW = 1.9, 1.3, 4.0
+KEEL_DEPTH, KEEL_RISE, KEEL_POW = 2.9, 2.2, 3.5
+WATERLINE_Y = -1.1  # water surface under the model origin when afloat (the hull floats high)
 RAIL_BASE, RAIL_RISE_FORE, RAIL_RISE_AFT, RAIL_POW = 5.8, 1.8, 2.0, 2.5
 BOTTOM_SECTION = [(0.0, 1.0), (0.5, 0.9), (0.82, 0.55), (0.97, 0.12)]
 

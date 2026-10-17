@@ -104,6 +104,9 @@ public final class ShipGeometry {
 			double z = side * (h.halfLength + 0.4);
 			probes.add(new double[] {0, 0.15, z});
 			probes.add(new double[] {0, 1.4, z});
+			if (h.waterlineY != 0) {
+				probes.add(new double[] {0, h.waterlineY + 0.15, z});
+			}
 			probes.add(new double[] {0, h.keelY(h.halfLength) + 0.3, side * h.halfLength});
 		}
 		return probes;
