@@ -175,11 +175,11 @@ def build():
     add_cube(rudder, "rudder_post", (0, 0.4, AFT_END + 0.05), EYE, (0.24, 1.0, 0.24), "iron")
 
     # ---- deck, hatches, vents, anchor, capstan, crates
-    n = 14
+    n = 32
     for j in range(n):
         za = ps.DECK_MIN_Z - 0.6 + (ps.DECK_MAX_Z - ps.DECK_MIN_Z + 1.0) * j / n
         zb = ps.DECK_MIN_Z - 0.6 + (ps.DECK_MAX_Z - ps.DECK_MIN_Z + 1.0) * (j + 1) / n
-        w = max(ps.inner_half_width(za), ps.inner_half_width(zb)) + 0.12
+        w = min(ps.inner_half_width(za), ps.inner_half_width(zb)) + 0.1
         add_cube(deck, "deck_%d" % j, (0, main_y - 0.08, (za + zb) / 2), EYE, (2 * w, 0.16, zb - za + 0.02),
                  {"all": "plate_dark", "+2": "deck"})
     for k, (x, z) in enumerate(((0, 6.4), (0, -6.0))):
@@ -300,7 +300,8 @@ def build():
         add_cube(box, "box_cover_%d" % k, v3((x0 + x1) / 2, c[1], c[2]), axes, (abs(x1 - x0), L + 0.04, 0.12),
                  {"all": "plate", "-3": "plate_inner"})
         # brass arch along the outer edge, and its radial ribs
-        add_cube(box, "box_arch_%d" % k, v3(x1 - 0.04, c[1], c[2]), axes, (0.1, L + 0.04, 0.32), "brass")
+        beam(box, "box_arch_%d" % k, v3(x1 - 0.05, p0[1], p0[2]), v3(x1 - 0.05, p1[1], p1[2]), 0.12, "brass", width=0.34,
+             up=v3(1, 0, 0), extend=0.05)
     for k in range(5):
         a = math.radians(-60 + 30 * k)
         d = v3(0, math.cos(a), math.sin(a))

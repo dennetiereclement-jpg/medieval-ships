@@ -62,7 +62,9 @@ public final class ShipModels {
 							{0, PaddleboatLayout.FUNNEL_TOP + 0.3, PaddleboatLayout.FUNNEL_Z[1]}},
 					new double[] {-(PaddleboatLayout.WHEEL_X0 + PaddleboatLayout.WHEEL_X1) / 2, PaddleboatLayout.WHEEL_Y,
 							PaddleboatLayout.WHEEL_Z, PaddleboatLayout.WHEEL_R}));
-	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT);
+	public static final Visual ELVEN_SAILBOAT = new Visual(Ships.ELVEN_SAILBOAT, model("elven_sailboat"),
+			List.of(texture("elven_sailboat")), 0.85f, 18, 22, true);
+	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT);
 
 	@Nullable
 	public static Visual of(ShipType type) {

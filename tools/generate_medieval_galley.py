@@ -205,11 +205,11 @@ def build():
     dragon(stern, "dragon_stern", -1)
 
     # ---- deck, rowing benches, mast step, barrels and ropes
-    n = 16
+    n = 32
     for j in range(n):
         za = ms.DECK_MIN_Z + (ms.DECK_MAX_Z - ms.DECK_MIN_Z) * j / n
         zb = ms.DECK_MIN_Z + (ms.DECK_MAX_Z - ms.DECK_MIN_Z) * (j + 1) / n
-        w = max(ms.inner_half_width(za), ms.inner_half_width(zb)) + 0.08
+        w = min(ms.inner_half_width(za), ms.inner_half_width(zb)) + 0.1
         add_cube(deck, "deck_%d" % j, (0, main_y - 0.06, (za + zb) / 2), EYE, (2 * w, 0.12, zb - za + 0.02),
                  {"all": "deck", "-2": "dark_wood"})
     for k, z in enumerate(ms.OAR_Z):

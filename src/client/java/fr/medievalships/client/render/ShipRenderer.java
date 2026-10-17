@@ -84,6 +84,7 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 					model.apply(pose, "steer", helm + 1f, 1f);
 					model.apply(pose, "flag_wave", age, 1f);
 					model.apply(pose, "streamer_wave", age, 1f);
+					model.apply(pose, "lantern_sway", age, 1f);
 					model.render(pose, visual.textures().size() > 1 ? texture : -1, (p, uv, n, glow) -> {
 						int l = glow ? LightmapTextureManager.MAX_LIGHT_COORDINATE : light;
 						for (int k = 0; k < 4; k++) {

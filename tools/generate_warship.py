@@ -137,7 +137,7 @@ def build():
             if ws.QUARTERDECK_START - 0.01 <= za and zb <= ws.FORECASTLE_START + 0.01:
                 pa = v3(side * 0.975 * hw(za), ws.sheer_y(za) + 0.08, za)
                 pb = v3(side * 0.975 * hw(zb), ws.sheer_y(zb) + 0.08, zb)
-                beam(hull, "rail_%s%d" % (sn, i), pa, pb, 0.16, "gold", width=0.34, extend=0.06)
+                beam(hull, "rail_%s%d" % (sn, i), pa, pb, 0.16, "red_paint", width=0.34, extend=0.06)
                 # sailors' rolled hammocks stowed along the rail of the waist (hammock nettings)
                 ha = v3(side * (0.975 * hw(za) - 0.12), ws.sheer_y(za) + 0.32, za)
                 hb = v3(side * (0.975 * hw(zb) - 0.12), ws.sheer_y(zb) + 0.32, zb)
@@ -157,7 +157,7 @@ def build():
                 a0, a1 = v3(xa, ws.sheer_y(za) - 0.05, za), v3(xa, top_y, za)
                 b0, b1 = v3(xb, ws.sheer_y(zb) - 0.05, zb), v3(xb, top_y, zb)
                 board(bone, "%s_wall_%s%d" % (tag, sn, i), a0, a1, b0, b1, 0.14, "hull_black", v3(side, 0, 0), inner="hull_light")
-                beam(bone, "%s_cap_%s%d" % (tag, sn, i), (xa, top_y + 0.08, za), (xb, top_y + 0.08, zb), 0.16, "gold",
+                beam(bone, "%s_cap_%s%d" % (tag, sn, i), (xa, top_y + 0.08, za), (xb, top_y + 0.08, zb), 0.16, "red_paint",
                      width=0.34, extend=0.06)
                 beam(bone, "%s_band_%s%d" % (tag, sn, i), (xa + side * 0.08, top_y - 0.45, za), (xb + side * 0.08, top_y - 0.45, zb),
                      0.22, "ochre", width=0.1, extend=0.04)
@@ -320,10 +320,10 @@ def build():
              (side * ws.FC_STAIR_X0, fc_y + 0.9, ws.FORECASTLE_START), 0.08, "rail")
 
     def guard_rail(bone, tag, half, y, z):
-        beam(bone, tag + "_top", (-half, y + ws.RAIL_HEIGHT - 0.05, z), (half, y + ws.RAIL_HEIGHT - 0.05, z), 0.1, "gold",
+        beam(bone, tag + "_top", (-half, y + ws.RAIL_HEIGHT - 0.05, z), (half, y + ws.RAIL_HEIGHT - 0.05, z), 0.1, "red_paint",
              width=ws.RAIL_THICK, extend=0.05)
         for j, x in enumerate(np.linspace(-half, half, 9)):
-            beam(bone, "%s_baluster_%d" % (tag, j), (x, y, z), (x, y + ws.RAIL_HEIGHT - 0.1, z), 0.1, "hull_light")
+            beam(bone, "%s_baluster_%d" % (tag, j), (x, y, z), (x, y + ws.RAIL_HEIGHT - 0.1, z), 0.1, "red_paint")
 
     guard_rail(stern, "qd_rail", ws.QD_STAIR_X0 - 0.1, qd_y, ws.QUARTERDECK_START - ws.RAIL_THICK / 2)
     guard_rail(stern, "poop_rail", ws.POOP_STAIR_X0 - 0.1, poop_y, ws.POOP_START - ws.RAIL_THICK / 2)
@@ -683,7 +683,7 @@ def build():
     m_fore = mast("foremast", ws.FORE_MAST_Z, fc_y, (19.0, 27.5, ws.FORE_MAST_TOP), 0.78)
     m_main = mast("mainmast", ws.MAIN_MAST_Z, main_y, (21.0, 31.0, ws.MAIN_MAST_TOP), 0.92)
     m_miz = mast("mizzen", ws.MIZZEN_Z, main_y, (17.0, 25.0, ws.MIZZEN_TOP), 0.62)
-    square_sail(m_fore, "fore_course", ws.FORE_MAST_Z, 18.0, 5.6, 6.4, 9.0, 1.6)
+    square_sail(m_fore, "fore_course", ws.FORE_MAST_Z, 18.0, 5.6, 6.4, 9.0, 1.35)
     square_sail(m_fore, "fore_topsail", ws.FORE_MAST_Z, 26.6, 4.0, 5.2, 7.0, 1.3)
     square_sail(m_fore, "fore_topgallant", ws.FORE_MAST_Z, 33.2, 2.6, 3.4, 5.4, 1.0)
     square_sail(m_main, "main_course", ws.MAIN_MAST_Z, 20.0, 7.0, 7.8, 10.4, 1.9)
@@ -703,12 +703,13 @@ def build():
     jib = Bone("jib", origin=tuple(sprit_b), parent=root)
     jib_tri = None
     for k, (top, tack, clew, depth) in enumerate((
-            (v3(0, 18.6, ws.FORE_MAST_Z + 0.4), sprit_a + (sprit_b - sprit_a) * 0.5, v3(0.06, 8.8, 23.6), 0.5),
-            (v3(0, 27.0, ws.FORE_MAST_Z + 0.3), sprit_b, v3(0.06, 9.6, 27.2), 0.5),
-            (v3(0, 33.0, ws.FORE_MAST_Z + 0.2), jib_end, v3(0.06, 11.4, 30.4), 0.45))):
+            (v3(0, 18.6, ws.FORE_MAST_Z + 0.4), sprit_a + (sprit_b - sprit_a) * 0.5, v3(0.06, 10.4, 25.4), 0.5),
+            (v3(0, 27.0, ws.FORE_MAST_Z + 0.3), sprit_b, v3(0.06, 12.8, 28.6), 0.5),
+            (v3(0, 33.0, ws.FORE_MAST_Z + 0.2), jib_end, v3(0.06, 16.8, 32.0), 0.45))):
         head = tack + (top - tack) * 0.6
+        clew = gn.jib_clew(head, tack, clew)
         tri = gn.tri_sail(jib, "jib_%d" % k, head + v3(0, -0.05, -0.06), tack + v3(0, 0.05, -0.12), clew, depth * 1.6, v3(1, 0, 0),
-                          "jib", ny=6)
+                          "jib", nx=4, ny=6)
         jib_tri = jib_tri or tri
         beam(ropes, "rope_jibstay_%d" % k, top, tack, 0.06, "rope")
     sails_info.append((jib, True))

@@ -239,24 +239,20 @@ def make_textures(path, flag_path, lateen_tri, jib_tri):
     interior_texture.paint(px, {k: r[1:] for k, r in REGIONS.items() if r[0] == 0})
     img.save(path)
 
-    # flags: white field, blue fleur-de-lis (like the reference); white / blue pennant
+    # flags: red field with a white cross (like the reference picture); red / white pennant.
+    # A resource pack can replace warship_flag.png with any emblem.
     flag = Image.new("RGBA", (FLAG_SIZE, FLAG_SIZE), (0, 0, 0, 0))
     fp = flag.load()
     _, u, v, w, h = REGIONS["flag"]
-    lh, lw = len(LIS), len(LIS[0])
-    scale = 2
-    ox, oy = (w - lw * scale) // 2, (h - lh * scale) // 2
     for y in range(h):
         for x in range(w):
-            c = _jitter(_rgb("f1efe8"), rng, 4)
-            lx, ly = (x - ox) // scale, (y - oy) // scale
-            if 0 <= lx < lw and 0 <= ly < lh and LIS[ly][lx] == "#":
-                c = _jitter(_rgb("23439a"), rng, 6)
+            cross = abs(x - w * 0.36 + 0.5) < 3.5 or abs(y - h / 2 + 0.5) < 3.5
+            c = _jitter(_rgb("f3efe6") if cross else _rgb("c22a22"), rng, 5)
             fp[u + x, v + y] = c + (255,)
     _, u, v, w, h = REGIONS["pennant"]
     for y in range(h):
         for x in range(w):
-            c = _rgb("f1efe8") if y < h // 2 else _rgb("23439a")
+            c = _rgb("f3efe6") if y < h // 2 else _rgb("c22a22")
             fp[u + x, v + y] = _jitter(c, rng, 5) + (255,)
     flag.save(flag_path)
 

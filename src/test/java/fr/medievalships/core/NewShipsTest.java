@@ -17,7 +17,7 @@ import fr.medievalships.core.Ships.PaddleboatLayout;
  * the same checks for every one of them, plus the values shared with their model generators.
  */
 class NewShipsTest {
-	private static final List<ShipType> NEW = List.of(Ships.MEDIEVAL_GALLEY, Ships.STEAM_PADDLEBOAT);
+	private static final List<ShipType> NEW = List.of(Ships.MEDIEVAL_GALLEY, Ships.STEAM_PADDLEBOAT, Ships.ELVEN_SAILBOAT);
 	private static final ShipPose ORIGIN = new ShipPose(0, 0, 0, 0);
 
 	private static boolean intersectsSolid(ShipGeometry g, double x, double y, double z, double hx, double h, double hz) {
@@ -144,6 +144,58 @@ class NewShipsTest {
 		assertTrue(steam.acceleration < galley.acceleration);
 		assertTrue(steam.minTurnFactor > galley.minTurnFactor);
 		assertFalse(steam.furlSailWhenStopped);
+	}
+
+	/** Values printed by {@code python3 tools/elven_shape.py}: z, half width, rail, keel, bottom at 1.5. */
+	@Test
+	void elvenMatchesModelGenerator() {
+		HullShape h = Ships.ELVEN_SAILBOAT.hull();
+		double[][] expected = {
+				{-11.0, 1.241462, 2.815406, -0.854144, -0.102497},
+				{-6.0, 2.591192, 2.062132, -1.670190, -1.227988},
+				{0.0, 3.000000, 1.850000, -1.900000, -1.535000},
+				{6.0, 2.319442, 2.132843, -1.670190, -1.123653},
+				{11.0, 0.891545, 3.137208, -0.854144, -0.102497}};
+		for (double[] e : expected) {
+			assertEquals(e[1], h.halfWidth(e[0]), 1e-5);
+			assertEquals(e[2], h.railY(e[0]), 1e-5);
+			assertEquals(e[3], h.keelY(e[0]), 1e-5);
+			assertEquals(e[4], h.bottomY(e[0], 1.5), 1e-5);
+		}
+	}
+
+	@Test
+	void elvenDimensions() {
+		HullShape h = Ships.ELVEN_SAILBOAT.hull();
+		assertEquals(6.0, 2 * h.maxHalfWidth, 1e-9);
+		// 24 block hull, 30 overall with the carved stern and the long prow
+		double overall = Ships.ElvenLayout.PROW_TIP_Z + 14.3;
+		assertTrue(overall > 29.5 && overall < 31.5, "overall " + overall);
+		double hull = h.railY(0) - h.keelY(0);
+		assertTrue(hull > 3.5 && hull < 4.2, "hull height " + hull);
+		double total = Ships.ElvenLayout.MAST_TOP - h.keelY(0);
+		assertTrue(total > 19.5 && total < 22, "total height " + total);
+		assertEquals(8, Ships.ELVEN_SAILBOAT.geometry().seats().size());
+	}
+
+	@Test
+	void elvenIsFastAndFluid() {
+		ShipConfig elf = Ships.ELVEN_SAILBOAT.defaults().get(), galleon = Ships.GALLEON.defaults().get();
+		ShipConfig red = Ships.MEDIEVAL_GALLEY.defaults().get();
+		assertTrue(elf.fastSpeed > red.fastSpeed && elf.fastSpeed > galleon.fastSpeed);
+		// lighter than the big human ships, and a long glide
+		assertTrue(elf.acceleration > galleon.acceleration && elf.waterDrag < red.waterDrag);
+	}
+
+	@Test
+	void identifiersAndAliases() {
+		assertEquals(Ships.MEDIEVAL_GALLEY, Ships.byId("medieval_galley"));
+		assertEquals(Ships.STEAM_PADDLEBOAT, Ships.byId("steam_paddleboat"));
+		assertEquals(Ships.ELVEN_SAILBOAT, Ships.byId("elven_sailboat"));
+		// the great warship keeps its id (saves, configs) and is also known as grand_warship
+		assertEquals(Ships.WARSHIP, Ships.byId("grand_warship"));
+		assertEquals("warship", Ships.WARSHIP.id());
+		assertEquals(6, Ships.ALL.size());
 	}
 
 	// ------------------------------------------------------------------ every new ship

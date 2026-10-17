@@ -9,5 +9,7 @@
   "entity.medievalships.medieval_galley": "Galère médiévale rouge",
   "item.medievalships.steam_paddleboat": "Bateau à roue à vapeur",
   "entity.medievalships.steam_paddleboat": "Bateau à roue à vapeur",
+  "item.medievalships.elven_sailboat": "Voilier elfique",
+  "entity.medievalships.elven_sailboat": "Voilier elfique",
   "itemGroup.medievalships.ships": "Navires médiévaux"
 }

@@ -73,6 +73,14 @@ public final class ShipCommands {
 							.executes(ctx -> give(ctx, type, EntityArgumentType.getPlayers(ctx, "targets")))));
 			spawn.then(CommandManager.literal(type.id()).executes(ctx -> spawn(ctx, type)));
 		}
+		for (java.util.Map.Entry<String, ShipType> alias : Ships.ALIASES.entrySet()) {
+			ShipType type = alias.getValue();
+			give.then(CommandManager.literal(alias.getKey())
+					.executes(ctx -> give(ctx, type, java.util.List.of(ctx.getSource().getPlayerOrThrow())))
+					.then(CommandManager.argument("targets", EntityArgumentType.players())
+							.executes(ctx -> give(ctx, type, EntityArgumentType.getPlayers(ctx, "targets")))));
+			spawn.then(CommandManager.literal(alias.getKey()).executes(ctx -> spawn(ctx, type)));
+		}
 		root.then(give);
 		root.then(spawn);
 		root.then(CommandManager.literal("remove").executes(ShipCommands::remove));

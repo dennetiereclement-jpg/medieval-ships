@@ -667,7 +667,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 	}
 
 	/** Ships added after the warship: the same scenario for each, one after the other in a fourth basin. */
-	private static final List<ShipType> NEW_SHIPS = List.of(Ships.MEDIEVAL_GALLEY, Ships.STEAM_PADDLEBOAT);
+	private static final List<ShipType> NEW_SHIPS = List.of(Ships.MEDIEVAL_GALLEY, Ships.STEAM_PADDLEBOAT, Ships.ELVEN_SAILBOAT);
 
 	private void newShip(ClientGameTestContext context, Env sp, ShipType type) {
 		var server = sp.getServer();
@@ -706,8 +706,9 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		}
 
 		server.runCommand("gamemode survival @a");
-		// 1. falling onto the deck, jumping
-		tpLocal(server, pose, 0.0, h.mainDeckY + 4, -1.0, 0, 30);
+		// 1. falling onto the deck (a free spot by the side: amidships may be a deckhouse), jumping
+		double[] spot = g.boardingSpot(h.maxHalfWidth + 0.5, -1.0);
+		tpLocal(server, pose, spot[0], h.mainDeckY + 4, spot[2], 0, 30);
 		context.waitTicks(60);
 		double[] p = playerPos(context);
 		check(Math.abs(p[1] - deck) < 0.08, "%s falling: player on the deck (y=%.3f, deck=%.3f)", id, p[1], deck);
@@ -782,7 +783,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		check(turn > 3.0, "%s sailing: turns under command (%.1f deg)", id, turn);
 		int still = server.computeOnServer(srv -> ship(srv.getOverworld(), type).getPassengerList().size());
 		check(still == n, "%s carry: the %d passengers are still seated (%d)", id, n, still);
-		context.runOnClient(c -> c.options.setPerspective(Perspective.THIRD_PERSON_BACK));
+		context.runOnClient(c -> c.options.setPerspective(Perspective.THIRD_PERSON_FRONT));
 		context.waitTicks(5);
 		shot(context, id + "_8_navigation");
 		context.runOnClient(c -> c.options.setPerspective(Perspective.FIRST_PERSON));

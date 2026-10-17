@@ -36,7 +36,11 @@ class NewShipModelsTest {
 					new String[] {"row", "sail_wind", "sail_furl", "steer", "flag_wave"}),
 			new Expected("steam_paddleboat",
 					new String[] {"paddle_wheel", "helm_wheel", "rudder", "flag", "flag_tip", "funnels", "paddle_box", "guns"},
-					new String[] {"paddle", "steer", "flag_wave"}));
+					new String[] {"paddle", "steer", "flag_wave"}),
+			new Expected("elven_sailboat",
+					new String[] {"sail_main", "sail_jib", "sail_top", "helm_wheel", "rudder", "flag", "flag_tip", "lantern_prow", "lantern_stern",
+							"lantern_0", "lantern_3"},
+					new String[] {"sail_wind", "sail_furl", "steer", "flag_wave", "lantern_sway"}));
 
 	private static BbModel load(String name) throws Exception {
 		try (Reader r = Files.newBufferedReader(Path.of("src/main/resources/assets/medievalships/models/entity/" + name + ".bbmodel"),

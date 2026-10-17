@@ -172,6 +172,20 @@ def sail(bone, name, origin, U, V, N, half_top, half_bottom, height, depth, regi
             set_sub(cube, (i / nx, j / ny, (i + 1) / nx, (j + 1) / ny))
 
 
+JIB_UC = 0.62
+
+
+def jib_clew(head, tack, clew):
+    """Moves the clew along the luff so that it projects at JIB_UC of it: every jib then has the same
+    triangle in its texture region (they share it), at the same distance from its luff."""
+    head, tack, clew = v3(*head), v3(*tack), v3(*clew)
+    U = tack - head
+    L = np.linalg.norm(U)
+    U = U / L
+    Vp = clew - head - np.dot(clew - head, U) * U
+    return head + U * L * JIB_UC + Vp
+
+
 def tri_sail(bone, name, head, tack, clew, depth, N, region, nx=1, ny=7):
     """Triangular sail (lateen, jib): rectangle grid spanning the triangle, transparent outside.
     head-tack = luff (U axis); returns the triangle in [0,1] region coordinates."""
@@ -686,13 +700,14 @@ def build():
     jib = Bone("jib", origin=tuple(sprit_b), parent=root)
     fore_head = v3(0, gs.FORE_MAST_TOP - 0.5, gs.FORE_MAST_Z)
     stay_top = sprit_b + (fore_head - sprit_b) * 0.62
+    outer_clew = jib_clew(stay_top, sprit_b, v3(0.05, 6.6, 19.2))
     jib_tri = tri_sail(jib, "jib_outer", stay_top + v3(0.0, -0.05, -0.06), sprit_b + v3(0, 0.05, -0.12),
-                       v3(0.05, 5.6, 18.6), 0.6, v3(1, 0, 0), "jib", ny=6)
+                       outer_clew, 0.6, v3(1, 0, 0), "jib", nx=4, ny=6)
     fore_low = v3(0, 13.0, gs.FORE_MAST_Z)
     mid_sprit = sprit_a + (sprit_b - sprit_a) * 0.55
     st2 = mid_sprit + (fore_low - mid_sprit) * 0.62
     tri_sail(jib, "jib_inner", st2 + v3(0.0, -0.05, -0.06), mid_sprit + v3(0, 0.05, -0.1),
-             v3(0.05, 5.0, 16.2), 0.5, v3(1, 0, 0), "jib", ny=6)
+             jib_clew(st2, mid_sprit, v3(0.05, 5.0, 16.2)), 0.5, v3(1, 0, 0), "jib", nx=4, ny=6)
     sails_info.append((jib, True))
     sprit_yard = sprit_a + (sprit_b - sprit_a) * 0.72
     beam(bow, "spritsail_yard", sprit_yard + v3(-2.3, -0.25, 0), sprit_yard + v3(2.3, -0.25, 0), 0.16, "mast", extend=0.08)
@@ -763,7 +778,7 @@ def build():
         ("mizzen_backstay", v3(0, gs.MIZZEN_TOP - 0.6, gs.MIZZEN_Z), v3(0, gs.QD_RAIL_Y + 0.2, -17.3)),
         ("lateen_halyard", v3(0.2, gs.MIZZEN_TOP - 0.4, gs.MIZZEN_Z), lat_fore + (lat_aft - lat_fore) * 0.5),
         ("lateen_sheet", v3(0.4, 8.0, -16.4), v3(0.4, gs.QD_RAIL_Y + 0.1, -17.2)),
-        ("jib_sheet", v3(0.05, 5.6, 18.6), v3(0.4, gs.FC_RAIL_Y, 15.9)),
+        ("jib_sheet", outer_clew, v3(0.4, gs.FC_RAIL_Y, 15.9)),
         ("bobstay", sprit_b - v3(0, 0.15, 0.3), v3(0, 1.0, 18.0)),
     ]
     for name, a, b in rig:

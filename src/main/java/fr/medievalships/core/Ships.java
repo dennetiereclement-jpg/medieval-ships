@@ -765,7 +765,112 @@ public final class Ships {
 		return c;
 	}
 
-	public static final List<ShipType> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT);
+	// ------------------------------------------------------------------ elven sailboat
+
+	/**
+	 * Elven sailboat: 30 blocks overall (24 block hull), 6 wide, slender turquoise and gold hull, a
+	 * long carved prow, one tall mast with three triangular sails, 8 seats. The same numbers are
+	 * used by {@code tools/elven_shape.py}.
+	 */
+	public static final ShipType ELVEN_SAILBOAT = elvenSailboat();
+
+	/** Elven sailboat layout, ship-local blocks (shared with the model generator). */
+	public static final class ElvenLayout {
+		public static final double HALF_LENGTH = 12.0;
+		public static final double TIP = 13.0;
+		public static final double MAX_HALF_WIDTH = 3.0;
+		/** The water is 0.6 blocks under the model origin. */
+		public static final double WATERLINE_Y = -0.6;
+		public static final double MAIN_DECK_Y = 0.6;
+		public static final double DECK_MIN_Z = -11.0;
+		public static final double DECK_MAX_Z = 11.0;
+		public static final double MAST_Z = 1.0;
+		public static final double MAST_TOP = 19.2;
+		public static final double HELM_Z = -9.4;
+		public static final double PILOT_Z = -10.2;
+		/** Prow scroll tip (y, z), beyond the hull. */
+		public static final double PROW_TIP_Z = 16.7;
+
+		private ElvenLayout() {
+		}
+	}
+
+	private static ShipType elvenSailboat() {
+		HullShape.Params p = new HullShape.Params();
+		p.halfLength = ElvenLayout.HALF_LENGTH;
+		p.tip = ElvenLayout.TIP;
+		p.maxHalfWidth = ElvenLayout.MAX_HALF_WIDTH;
+		p.foreScale = 13.0;
+		p.forePowA = 1.8;
+		p.forePowB = 0.9;
+		p.aftScale = 12.8;
+		p.aftPowA = 2.2;
+		p.aftPowB = 0.7;
+		p.keelDepth = 1.9;
+		p.keelRise = 1.3;
+		p.keelPow = 2.5;
+		p.railBase = 1.85;
+		p.railRiseFore = 1.6;
+		p.railRiseAft = 1.2;
+		p.railPow = 2.5;
+		p.waterlineY = ElvenLayout.WATERLINE_Y;
+		p.mainDeckY = ElvenLayout.MAIN_DECK_Y;
+		p.deckMinZ = ElvenLayout.DECK_MIN_Z;
+		p.deckMaxZ = ElvenLayout.DECK_MAX_Z;
+		p.bottomSection = new double[][] {{0.0, 1.0}, {0.4, 0.9}, {0.78, 0.55}, {0.97, 0.12}};
+		HullShape hull = new HullShape(p);
+
+		double main = ElvenLayout.MAIN_DECK_Y;
+		ShipGeometry.Spec spec = new ShipGeometry.Spec();
+		List<ShipGeometry.Seat> seats = new ArrayList<>();
+		seats.add(new ShipGeometry.Seat(ShipGeometry.PILOT_SEAT, 0.0, main + 0.28, ElvenLayout.PILOT_Z, true,
+				new double[] {0.7, main + 0.02, ElvenLayout.PILOT_Z + 0.9}));
+		// cushioned benches along the sides, one at the bow
+		for (double[] b : new double[][] {{1.9, -5.5}, {-1.9, -5.5}, {1.9, -2.0}, {-1.9, -2.0}, {1.75, 4.6}, {-1.75, 4.6}}) {
+			seats.add(seat(seats.size(), b[0], main, b[1], b[0] * 0.55, b[1]));
+		}
+		seats.add(seat(seats.size(), 0.0, main, 8.4, 0.0, 7.6));
+		spec.seats = List.copyOf(seats);
+		spec.helm = new ShipGeometry.LocalBox(-0.6, main + 0.55, ElvenLayout.HELM_Z - 0.3, 0.6, main + 1.75, ElvenLayout.HELM_Z + 0.35);
+		spec.masts = List.of(new ShipGeometry.Mast(0, ElvenLayout.MAST_Z, main, ElvenLayout.MAST_TOP, 0.17));
+		spec.probeHeights = new double[] {ElvenLayout.WATERLINE_Y + 0.15, 0.15, 1.2};
+		spec.boardMinZ = -9.6;
+		spec.boardMaxZ = 9.6;
+		spec.avoidZ = new double[] {-5.5, -2.0, 4.6};
+		return new ShipType("elven_sailboat", "voilier elfique", new ShipGeometry(hull, spec), Ships::elvenConfig);
+	}
+
+	/** Light and fast, fluid turns (smooth yaw response), long glide. */
+	private static ShipConfig elvenConfig() {
+		ShipConfig c = new ShipConfig();
+		c.slowSpeed = 3.0;
+		c.normalSpeed = 6.8;
+		c.fastSpeed = 10.5;
+		c.reverseSpeed = 1.5;
+		c.acceleration = 0.8;
+		c.braking = 1.2;
+		c.waterDrag = 0.1;
+		c.maxTurnRate = 13.0;
+		c.minTurnFactor = 0.15;
+		c.helmRate = 1.2;
+		c.helmReturnRate = 0.8;
+		c.turnResponse = 1.1;
+		c.turnSpeedLoss = 0.1;
+		c.waveRocking = 0.9;
+		c.aiWaypointRadius = 9.0;
+		c.aiLookahead = 16.0;
+		c.aiProbeDistance = 48.0;
+		c.aiTurnAroundSpeed = 1.2;
+		return c;
+	}
+
+	public static final List<ShipType> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT);
+
+	/**
+	 * Other names accepted by the commands (the ids used in saves and configs never change):
+	 * {@code grand_warship} is the great warship ({@code warship}).
+	 */
+	public static final java.util.Map<String, ShipType> ALIASES = java.util.Map.of("grand_warship", WARSHIP);
 
 	public static ShipType byId(String id) {
 		for (ShipType t : ALL) {
@@ -773,6 +878,6 @@ public final class Ships {
 				return t;
 			}
 		}
-		return null;
+		return id == null ? null : ALIASES.get(id.toLowerCase(java.util.Locale.ROOT));
 	}
 }
