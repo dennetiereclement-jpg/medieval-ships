@@ -471,6 +471,10 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		var server = sp.getServer();
 		ShipGeometry g = Ships.WARSHIP.geometry();
 		server.runCommand("ride @p dismount");
+		// checked here, while the first two ships are still in loaded chunks (150 blocks away
+		// from the third basin, a solo world unloads them normally)
+		Boolean others = server.computeOnServer(s -> ship(s.getOverworld(), Ships.GALLEY) != null && ship(s.getOverworld(), Ships.GALLEON) != null);
+		check(Boolean.TRUE.equals(others), "warship: the galley and the galleon are still there before the third ship is launched");
 		server.runCommand("gamemode spectator @a");
 		// a third, larger basin west of the others (the warship is about 67 blocks long overall)
 		server.runCommand("tp @p -90 -30 10 180 40");
@@ -485,8 +489,6 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			return;
 		}
 		log("warship at %.2f %.2f %.2f yaw %.1f", pose.x(), pose.y(), pose.z(), pose.yaw());
-		Boolean others = server.computeOnServer(s -> ship(s.getOverworld(), Ships.GALLEY) != null && ship(s.getOverworld(), Ships.GALLEON) != null);
-		check(Boolean.TRUE.equals(others), "warship: the galley and the galleon are still there (three ships coexist)");
 		double main = pose.y() + WarshipLayout.MAIN_DECK_Y;
 
 		lookLocal(server, pose, 40, 22, 34, 0, 12, 0);
