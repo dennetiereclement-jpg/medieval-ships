@@ -51,7 +51,35 @@ public final class ClientShipEvents {
 				player.setBodyYaw(player.bodyYaw + dyaw);
 			}
 		}
+		rescue(world, player);
 		showHint(client);
+	}
+
+	/**
+	 * Mod-independent safety net: if the local player ended up inside the deck (another mod
+	 * replacing the collision code, lag...), put him back on top of it, with no visible jump.
+	 */
+	private static void rescue(ClientWorld world, ClientPlayerEntity player) {
+		if (player == null || player.hasVehicle() || player.isSpectator() || player.noClip) {
+			return;
+		}
+		for (GalleyEntity ship : ShipTracker.ships(world)) {
+			if (ship.isRemoved()) {
+				continue;
+			}
+			ShipPose pose = ship.pose();
+			double[] l = pose.toLocal(player.getX(), player.getY(), player.getZ());
+			double top = ShipGeometry.deckRescueY(l[0], l[1], l[2]);
+			if (!Double.isNaN(top)) {
+				player.setPosition(player.getX(), pose.y() + top, player.getZ());
+				if (player.getVelocity().y < 0) {
+					player.setVelocity(player.getVelocity().x, 0, player.getVelocity().z);
+				}
+				player.setOnGround(true);
+				player.fallDistance = 0;
+				return;
+			}
+		}
 	}
 
 	private static void showHint(MinecraftClient client) {

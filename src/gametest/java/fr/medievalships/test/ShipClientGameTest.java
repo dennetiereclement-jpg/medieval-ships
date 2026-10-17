@@ -37,7 +37,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 	public void runTest(ClientGameTestContext context) {
 		try (TestSingleplayerContext sp = context.worldBuilder().create()) {
 			var server = sp.getServer();
-			log("world loaded");
+			log("world loaded (lithium installed: %s)", net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("lithium"));
 			if ("1".equals(System.getenv("MS_TEST_MINIMAL"))) {
 				context.takeScreenshot("00_minimal");
 				finish(context);

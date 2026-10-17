@@ -85,6 +85,18 @@ public final class ShipGeometry {
 		return ly >= HullProfile.deckY(lz) - 0.7 && ly <= HullProfile.railY(lz) + 3.2;
 	}
 
+	/**
+	 * Safety net used when another mod replaced the collision code: if a point (feet, local space)
+	 * has sunk into the deck volume, returns the deck height to put it back on; NaN otherwise.
+	 */
+	public static double deckRescueY(double lx, double ly, double lz) {
+		if (lz < DECK_MIN_Z || lz > DECK_MAX_Z || Math.abs(lx) > HullProfile.innerHalfWidth(lz)) {
+			return Double.NaN;
+		}
+		double top = HullProfile.deckY(lz);
+		return ly < top - 1e-3 && ly > top - 1.2 ? top : Double.NaN;
+	}
+
 	/** Is this local point inside the solid hull (used for ship-to-ship collisions)? */
 	public static boolean insideHull(double lx, double ly, double lz) {
 		if (Math.abs(lz) > HullProfile.HALF_LENGTH) {

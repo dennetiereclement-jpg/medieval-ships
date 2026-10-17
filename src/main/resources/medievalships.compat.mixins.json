@@ -1,0 +1,8 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "fr.medievalships.mixin.compat",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": ["LithiumEntityCollisionsMixin"],
+  "injectors": { "defaultRequire": 0 }
+}

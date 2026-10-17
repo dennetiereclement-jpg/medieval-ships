@@ -50,6 +50,11 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
+	// CI compatibility testing: an optional mod jar dropped in libs/ (e.g. Lithium) is loaded in dev runs
+	if (file("libs/lithium.jar").exists()) {
+		modLocalRuntime files("libs/lithium.jar")
+	}
+
 	testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
 	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }

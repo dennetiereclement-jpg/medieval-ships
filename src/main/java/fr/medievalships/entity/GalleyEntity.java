@@ -432,9 +432,6 @@ public class GalleyEntity extends Entity {
 	/** Moves mobs, items and other entities standing on the deck along with the hull (server side). */
 	private void carryEntities(ServerWorld world, ShipPose before, ShipPose after) {
 		double dYaw = after.yaw() - before.yaw();
-		if (before.equals(after)) {
-			return;
-		}
 		double r = ShipGeometry.BOUNDING_RADIUS;
 		Box area = new Box(before.x() - r, before.y() - 2, before.z() - r, before.x() + r, before.y() + 8, before.z() + r);
 		List<Entity> list = world.getOtherEntities(this, area, e -> !(e instanceof PlayerEntity) && !e.hasVehicle()
@@ -443,6 +440,14 @@ public class GalleyEntity extends Entity {
 			double[] l = before.toLocal(e.getX(), e.getY(), e.getZ());
 			if (!ShipGeometry.inCarryVolume(l[0], l[1], l[2])) {
 				continue;
+			}
+			double rescue = ShipGeometry.deckRescueY(l[0], l[1], l[2]);
+			if (!Double.isNaN(rescue)) {
+				l[1] = rescue; // sank into the deck (another mod replaced the collisions): put it back on top
+				if (e.getVelocity().y < 0) {
+					e.setVelocity(e.getVelocity().x, 0, e.getVelocity().z);
+				}
+				e.setOnGround(true);
 			}
 			double[] w = after.toWorld(l[0], l[1], l[2]);
 			e.setPosition(w[0], w[1], w[2]);

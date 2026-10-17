@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: [full]
+        variant: [vanilla, lithium]
     env:
       MS_TEST_MINIMAL: ${{ matrix.variant == 'minimal' && '1' || '' }}
     steps:
@@ -23,6 +23,14 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: gradle/actions/setup-gradle@v4
+      - name: Download Lithium (compatibility variant)
+        if: matrix.variant == 'lithium'
+        run: |
+          mkdir -p libs
+          url=$(curl -s 'https://api.modrinth.com/v2/project/lithium/version?game_versions=%5B%221.21.11%22%5D&loaders=%5B%22fabric%22%5D' | jq -r '.[0].files[0].url')
+          echo "Lithium: $url"
+          curl -sL -o libs/lithium.jar "$url"
+          ls -la libs
       - name: Install virtual display
         run: sudo apt-get update -q && sudo apt-get install -y -q xvfb mesa-utils
       - name: Run the real client with the mod
