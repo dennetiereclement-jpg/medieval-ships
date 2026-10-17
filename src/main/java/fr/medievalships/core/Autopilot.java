@@ -263,7 +263,7 @@ public final class Autopilot {
 		if (dist < bestDist - 2.0) {
 			bestDist = dist;
 			stallTicks = 0;
-		} else if (++stallTicks > STALL_SECONDS * 20) {
+		} else if (++stallTicks > STALL_SECONDS * 20 * Math.max(1.0, reach / 10.6)) {
 			resetProgress();
 			if (!tgt.isStop() && nx != null) {
 				// unreachable intermediate point (inside land, behind a closed bay...): skip it
@@ -347,7 +347,7 @@ public final class Autopilot {
 		}
 		double absErr = Math.abs(err);
 		if (absErr > 100) {
-			v = Math.min(v, 0.4);
+			v = Math.min(v, cfg.aiTurnAroundSpeed);
 		} else if (absErr > 40) {
 			v = Math.min(v, Math.max(0.8, v * (1 - absErr / 120)));
 		}

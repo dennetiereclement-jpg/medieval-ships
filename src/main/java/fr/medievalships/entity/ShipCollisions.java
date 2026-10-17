@@ -13,7 +13,6 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.World;
 
-import fr.medievalships.core.ShipGeometry;
 
 /** Adds the hull boxes of nearby ships to the collisions of a moving entity. */
 public final class ShipCollisions {
@@ -39,18 +38,18 @@ public final class ShipCollisions {
 			return false;
 		}
 		int before = out.size();
-		for (GalleyEntity ship : ShipTracker.ships(world)) {
+		for (ShipEntity ship : ShipTracker.ships(world)) {
 			if (ship.isRemoved() || (entity != null && entity.getRootVehicle() == ship)) {
 				continue;
 			}
-			ShipGeometry.collectBoxes(ship.pose(), query.minX, query.minY, query.minZ, query.maxX, query.maxY, query.maxZ,
+			ship.geometry().collectBoxes(ship.pose(), query.minX, query.minY, query.minZ, query.maxX, query.maxY, query.maxZ,
 					(a, b, c, d, e, f) -> out.add(VoxelShapes.cuboid(a, b, c, d, e, f)));
 		}
 		return out.size() > before;
 	}
 
 	private static boolean wantsHulls(@Nullable Entity entity, World world) {
-		if (ShipTracker.ships(world).length == 0 || entity instanceof GalleyEntity) {
+		if (ShipTracker.ships(world).length == 0 || entity instanceof ShipEntity) {
 			return false;
 		}
 		// Players are simulated by their own client, which collides them with the hull it

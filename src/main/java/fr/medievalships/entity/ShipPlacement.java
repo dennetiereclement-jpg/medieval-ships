@@ -7,6 +7,7 @@ import net.minecraft.server.world.ServerWorld;
 import fr.medievalships.MedievalShips;
 import fr.medievalships.core.ShipMover;
 import fr.medievalships.core.ShipPose;
+import fr.medievalships.core.ShipType;
 
 /** Finds valid water for a new ship and spawns it. */
 public final class ShipPlacement {
@@ -14,20 +15,22 @@ public final class ShipPlacement {
 	}
 
 	/**
-	 * Spawns a galley near (x, z) facing {@code yaw}. When {@code ahead} is true the ship is pushed
+	 * Spawns a ship of the given type near (x, z) facing {@code yaw}. When {@code ahead} is true the ship is pushed
 	 * forward so its stern starts at the clicked point (the player is not inside the hull).
 	 *
 	 * @return the ship, or null if there is not enough open water
 	 */
 	@Nullable
-	public static GalleyEntity place(ServerWorld world, double x, double y, double z, float yaw, boolean ahead) {
-		GalleyEntity ship = MedievalShips.GALLEY.create(world, net.minecraft.entity.SpawnReason.COMMAND);
+	public static ShipEntity place(ServerWorld world, ShipType type, double x, double y, double z, float yaw, boolean ahead) {
+		ShipEntity ship = MedievalShips.entityType(type).create(world, net.minecraft.entity.SpawnReason.COMMAND);
 		if (ship == null) {
 			return null;
 		}
+		ship.refreshPositionAndAngles(x, y, z, yaw, 0f); // the obstacle scan looks around the ship's position
 		ShipWorld shipWorld = new ShipWorld(world, ship);
 		double fx = -Math.sin(Math.toRadians(yaw)), fz = Math.cos(Math.toRadians(yaw));
-		double[] offsets = ahead ? new double[] {12, 8, 16, 4, 0} : new double[] {0, 4, -4, 8, -8};
+		double h = type.hull().halfLength;
+		double[] offsets = ahead ? new double[] {h + 2, h - 2, h + 6, h - 6, 0} : new double[] {0, 0.4 * h, -0.4 * h, 0.8 * h, -0.8 * h};
 		for (double off : offsets) {
 			double cx = x + fx * off, cz = z + fz * off;
 			double surface = shipWorld.waterSurface(cx, cz, y);
@@ -35,7 +38,7 @@ public final class ShipPlacement {
 				continue;
 			}
 			ShipPose pose = new ShipPose(cx, surface, cz, yaw);
-			if (ShipMover.countCollisions(pose, shipWorld) == 0) {
+			if (ShipMover.countCollisions(type.geometry(), pose, shipWorld) == 0) {
 				ship.refreshPositionAndAngles(cx, surface, cz, yaw, 0f);
 				ship.setShipYaw(yaw);
 				world.spawnEntity(ship);
@@ -46,7 +49,7 @@ public final class ShipPlacement {
 	}
 
 	/** Moves a ship to the nearest open water position (within 24 blocks). */
-	public static boolean unstuck(GalleyEntity ship) {
+	public static boolean unstuck(ShipEntity ship) {
 		if (!(ship.getEntityWorld() instanceof ServerWorld world)) {
 			return false;
 		}
@@ -61,7 +64,7 @@ public final class ShipPlacement {
 				}
 				for (int dyaw = 0; dyaw < 360; dyaw += 45) {
 					float yaw = ship.getYaw() + dyaw;
-					if (ShipMover.countCollisions(new ShipPose(cx, surface, cz, yaw), shipWorld) == 0) {
+					if (ShipMover.countCollisions(ship.geometry(), new ShipPose(cx, surface, cz, yaw), shipWorld) == 0) {
 						ship.refreshPositionAndAngles(cx, surface, cz, yaw, 0f);
 						ship.setShipYaw(yaw);
 						ship.physics().speed = 0;

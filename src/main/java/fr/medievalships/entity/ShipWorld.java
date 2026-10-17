@@ -19,26 +19,29 @@ import fr.medievalships.core.ShipPose;
 /** Adapts the Minecraft world to the pure navigation code (terrain, water, other hulls). */
 final class ShipWorld implements ShipMover.Obstacles, Autopilot.Navigator {
 	private final World world;
-	private final GalleyEntity self;
+	private final ShipEntity self;
 	private final BlockPos.Mutable pos = new BlockPos.Mutable();
-	private final GalleyEntity[] others;
+	private final ShipEntity[] others;
 	private final ShipPose[] otherPoses;
+	private final ShipGeometry[] otherGeometries;
 
-	ShipWorld(World world, GalleyEntity self) {
+	ShipWorld(World world, ShipEntity self) {
 		this.world = world;
 		this.self = self;
-		GalleyEntity[] all = ShipTracker.ships(world); // shared array: never write into it
-		GalleyEntity[] near = new GalleyEntity[all.length];
+		ShipEntity[] all = ShipTracker.ships(world); // shared array: never write into it
+		ShipEntity[] near = new ShipEntity[all.length];
 		int n = 0;
-		for (GalleyEntity s : all) {
+		for (ShipEntity s : all) {
 			if (s != self && !s.isRemoved() && s.squaredDistanceTo(self) < 80 * 80) {
 				near[n++] = s;
 			}
 		}
 		this.others = java.util.Arrays.copyOf(near, n);
 		this.otherPoses = new ShipPose[n];
+		this.otherGeometries = new ShipGeometry[n];
 		for (int i = 0; i < n; i++) {
 			otherPoses[i] = others[i].pose();
+			otherGeometries[i] = others[i].geometry();
 		}
 	}
 
@@ -69,13 +72,15 @@ final class ShipWorld implements ShipMover.Obstacles, Autopilot.Navigator {
 	}
 
 	private boolean insideOtherHull(double wx, double wy, double wz) {
-		for (ShipPose p : otherPoses) {
+		for (int i = 0; i < otherPoses.length; i++) {
+			ShipPose p = otherPoses[i];
+			double r = otherGeometries[i].boundingRadius();
 			double dx = wx - p.x(), dz = wz - p.z();
-			if (dx * dx + dz * dz > 12 * 12) {
+			if (dx * dx + dz * dz > r * r) {
 				continue;
 			}
 			double[] l = p.toLocal(wx, wy, wz);
-			if (ShipGeometry.insideHull(l[0], l[1], l[2])) {
+			if (otherGeometries[i].insideHull(l[0], l[1], l[2])) {
 				return true;
 			}
 		}

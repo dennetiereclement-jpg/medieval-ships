@@ -8,7 +8,7 @@ import net.minecraft.util.Formatting;
 
 import fr.medievalships.core.ShipGeometry;
 import fr.medievalships.core.ShipPose;
-import fr.medievalships.entity.GalleyEntity;
+import fr.medievalships.entity.ShipEntity;
 import fr.medievalships.entity.ShipTracker;
 
 /** Client tick logic: carrying the local player on deck, and interaction hints. */
@@ -28,7 +28,7 @@ public final class ClientShipEvents {
 	public static void endWorldTick(ClientWorld world) {
 		MinecraftClient client = MinecraftClient.getInstance();
 		ClientPlayerEntity player = client.player;
-		for (GalleyEntity ship : ShipTracker.ships(world)) {
+		for (ShipEntity ship : ShipTracker.ships(world)) {
 			if (ship.isRemoved()) {
 				continue;
 			}
@@ -39,7 +39,7 @@ public final class ClientShipEvents {
 				continue;
 			}
 			double[] local = last.toLocal(player.getX(), player.getY(), player.getZ());
-			if (!ShipGeometry.inCarryVolume(local[0], local[1], local[2])) {
+			if (!ship.geometry().inCarryVolume(local[0], local[1], local[2])) {
 				continue;
 			}
 			double[] w = now.toWorld(local[0], local[1], local[2]);
@@ -63,13 +63,13 @@ public final class ClientShipEvents {
 		if (player == null || player.hasVehicle() || player.isSpectator() || player.noClip) {
 			return;
 		}
-		for (GalleyEntity ship : ShipTracker.ships(world)) {
+		for (ShipEntity ship : ShipTracker.ships(world)) {
 			if (ship.isRemoved()) {
 				continue;
 			}
 			ShipPose pose = ship.pose();
 			double[] l = pose.toLocal(player.getX(), player.getY(), player.getZ());
-			double top = ShipGeometry.deckRescueY(l[0], l[1], l[2]);
+			double top = ship.geometry().deckRescueY(l[0], l[1], l[2]);
 			if (!Double.isNaN(top)) {
 				player.setPosition(player.getX(), pose.y() + top, player.getZ());
 				if (player.getVelocity().y < 0) {

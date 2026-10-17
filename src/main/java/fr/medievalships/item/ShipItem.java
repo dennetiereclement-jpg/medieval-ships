@@ -16,14 +16,22 @@ import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 
 import fr.medievalships.data.ConfigManager;
-import fr.medievalships.entity.GalleyEntity;
+import fr.medievalships.entity.ShipEntity;
 import fr.medievalships.entity.ShipPermissions;
 import fr.medievalships.entity.ShipPlacement;
+import fr.medievalships.core.ShipType;
 
-/** Right click on water to launch a galley, like a vanilla boat. */
-public class GalleyItem extends Item {
-	public GalleyItem(Settings settings) {
+/** Right click on water to launch a ship, like a vanilla boat. One item per ship type. */
+public class ShipItem extends Item {
+	private final ShipType type;
+
+	public ShipItem(ShipType type, Settings settings) {
 		super(settings);
+		this.type = type;
+	}
+
+	public ShipType shipType() {
+		return type;
 	}
 
 	@Override
@@ -36,14 +44,14 @@ public class GalleyItem extends Item {
 		if (!(world instanceof ServerWorld serverWorld)) {
 			return ActionResult.SUCCESS;
 		}
-		if (ConfigManager.get().placeRequiresAdmin && !ShipPermissions.isAdmin(user)) {
+		if (ConfigManager.server().placeRequiresAdmin && !ShipPermissions.isAdmin(user)) {
 			user.sendMessage(Text.literal("Seuls les administrateurs peuvent mettre un navire à l'eau.").formatted(Formatting.RED), true);
 			return ActionResult.FAIL;
 		}
 		Vec3d hitPos = hit.getPos();
-		GalleyEntity ship = ShipPlacement.place(serverWorld, hitPos.x, hitPos.y, hitPos.z, user.getYaw(), true);
+		ShipEntity ship = ShipPlacement.place(serverWorld, type, hitPos.x, hitPos.y, hitPos.z, user.getYaw(), true);
 		if (ship == null) {
-			user.sendMessage(Text.literal("Pas assez d'eau libre ici pour un navire de 22 blocs.").formatted(Formatting.RED), true);
+			user.sendMessage(Text.literal(String.format(java.util.Locale.ROOT, "Pas assez d'eau libre ici pour ce navire (%.0f x %.0f blocs, %.1f blocs de profondeur).", type.hull().tip * 2, type.hull().maxHalfWidth * 2 + 1, -type.hull().keelY(0) + 0.8)).formatted(Formatting.RED), true);
 			return ActionResult.FAIL;
 		}
 		if (!user.isCreative()) {

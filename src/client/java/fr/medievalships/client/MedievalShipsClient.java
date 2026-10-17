@@ -10,16 +10,18 @@ import net.minecraft.resource.ResourceType;
 import net.minecraft.resource.SynchronousResourceReloader;
 
 import fr.medievalships.MedievalShips;
-import fr.medievalships.client.render.GalleyModels;
-import fr.medievalships.client.render.GalleyRenderer;
+import fr.medievalships.client.render.ShipModels;
+import fr.medievalships.client.render.ShipRenderer;
 import fr.medievalships.entity.ShipTracker;
 
 public final class MedievalShipsClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
-		EntityRendererRegistry.register(MedievalShips.GALLEY, GalleyRenderer::new);
+		for (ShipModels.Visual visual : ShipModels.ALL) {
+			EntityRendererRegistry.register(MedievalShips.entityType(visual.type()), ctx -> new ShipRenderer(ctx, visual));
+		}
 		ResourceLoader.get(ResourceType.CLIENT_RESOURCES).registerReloader(MedievalShips.id("galley_model"),
-				(SynchronousResourceReloader) GalleyModels::reload);
+				(SynchronousResourceReloader) ShipModels::reload);
 		ClientTickEvents.END_WORLD_TICK.register(ClientShipEvents::endWorldTick);
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> ShipTracker.clearClientWorlds());
 	}

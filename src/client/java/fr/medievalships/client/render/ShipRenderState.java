@@ -2,7 +2,7 @@ package fr.medievalships.client.render;
 
 import net.minecraft.client.render.entity.state.EntityRenderState;
 
-public class GalleyRenderState extends EntityRenderState {
+public class ShipRenderState extends EntityRenderState {
 	public float yaw;
 	public float oarTime;
 	public float oarWeight;
@@ -10,4 +10,5 @@ public class GalleyRenderState extends EntityRenderState {
 	public float helm;
 	public float speed;
 	public float rockTime;
+	public double rockScale;
 }

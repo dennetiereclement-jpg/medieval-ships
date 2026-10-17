@@ -38,6 +38,8 @@ public final class HullShape {
 		public double railPow = 3.0;
 		/** If > 0, the rail is at least this high above the deck (bulwarks of raised decks). */
 		public double railAboveDeck = 0.0;
+		/** Bulwarks of castles that are not hull decks: the rail is at least {@code y} over the interval. */
+		public List<RaisedDeck> railFloors = List.of();
 		public double mainDeckY = 0.45;
 		public List<RaisedDeck> raisedDecks = List.of();
 		public double deckMinZ = -9.7;
@@ -91,6 +93,11 @@ public final class HullShape {
 		double a = Math.abs(z) / p.halfLength;
 		double rise = z >= 0 ? p.railRiseFore : p.railRiseAft;
 		double sheer = p.railBase + rise * Math.pow(a, p.railPow);
+		for (RaisedDeck f : p.railFloors) {
+			if (z > f.fromZ() && z < f.toZ()) {
+				sheer = Math.max(sheer, f.y());
+			}
+		}
 		return p.railAboveDeck > 0 ? Math.max(sheer, deckY(z) + p.railAboveDeck) : sheer;
 	}
 

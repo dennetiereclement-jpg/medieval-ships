@@ -39,6 +39,8 @@ public final class ShipConfig {
 	public double aiProbeDistance = 36.0;
 	public int aiDefaultWaitSeconds = 300;
 	public int aiStuckSeconds = 6;
+	/** Speed kept while turning towards a target behind the ship (a big sailing ship cannot pivot). */
+	public double aiTurnAroundSpeed = 0.4;
 	/** Furl the sail when the ship has been stopped for a few seconds. */
 	public boolean furlSailWhenStopped = true;
 
@@ -70,6 +72,7 @@ public final class ShipConfig {
 		aiProbeDistance = clamp(aiProbeDistance, 12, 96);
 		aiDefaultWaitSeconds = (int) clamp(aiDefaultWaitSeconds, 0, 86400);
 		aiStuckSeconds = (int) clamp(aiStuckSeconds, 2, 120);
+		aiTurnAroundSpeed = clamp(aiTurnAroundSpeed, 0.1, 10);
 	}
 
 	private static double clamp(double v, double lo, double hi) {

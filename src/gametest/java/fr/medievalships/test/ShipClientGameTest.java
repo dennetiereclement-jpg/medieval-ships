@@ -21,7 +21,7 @@ import net.minecraft.server.world.ServerWorld;
 import fr.medievalships.core.HullProfile;
 import fr.medievalships.core.ShipGeometry;
 import fr.medievalships.core.ShipPose;
-import fr.medievalships.entity.GalleyEntity;
+import fr.medievalships.entity.ShipEntity;
 import fr.medievalships.entity.ShipTracker;
 
 /**
@@ -115,7 +115,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			p = playerPos(context);
 			double[] l = shipPose(sp).toLocal(p[0], p[1], p[2]);
 			log("after walking forward: local x=%.2f y=%.2f z=%.2f", l[0], l[1], l[2]);
-			check(ShipGeometry.inCarryVolume(l[0], l[1], l[2]) && l[1] > HullProfile.MAIN_DECK_Y - 0.1,
+			check(fr.medievalships.core.Ships.GALLEY.geometry().inCarryVolume(l[0], l[1], l[2]) && l[1] > HullProfile.MAIN_DECK_Y - 0.1,
 					"walking: player must still be aboard (local %.2f %.2f %.2f)", l[0], l[1], l[2]);
 			check(l[2] > HullProfile.FORE_DECK_START, "walking: player should have climbed onto the fore deck (z=%.2f)", l[2]);
 			context.takeScreenshot("05_at_the_bow");
@@ -146,7 +146,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			p = playerPos(context);
 			l = shipPose(sp).toLocal(p[0], p[1], p[2]);
 			log("after jumping from the quay: local x=%.2f y=%.2f z=%.2f", l[0], l[1], l[2]);
-			check(ShipGeometry.inCarryVolume(l[0], l[1], l[2]) && Math.abs(l[1] - HullProfile.deckY(l[2])) < 0.1,
+			check(fr.medievalships.core.Ships.GALLEY.geometry().inCarryVolume(l[0], l[1], l[2]) && Math.abs(l[1] - HullProfile.deckY(l[2])) < 0.1,
 					"quay: player should have landed on the deck (local %.2f %.2f %.2f)", l[0], l[1], l[2]);
 			context.takeScreenshot("06_jumped_from_quay");
 
@@ -178,7 +178,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			// 6. steering with the player at the helm: the zombie must be carried
 			sp.getServer().runOnServer(server2 -> {
 				ServerPlayerEntity player = server2.getPlayerManager().getPlayerList().get(0);
-				GalleyEntity ship = ship(server2.getOverworld());
+				ShipEntity ship = ship(server2.getOverworld());
 				if (ship != null) {
 					ship.seat(player, ShipGeometry.PILOT_SEAT);
 				}
@@ -200,7 +200,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			if (z != null) {
 				double[] zl = moved.toLocal(z[0], z[1], z[2]);
 				log("zombie local after sailing: %.2f %.2f %.2f", zl[0], zl[1], zl[2]);
-				check(ShipGeometry.inCarryVolume(zl[0], zl[1], zl[2]), "carry: zombie should still be aboard");
+				check(fr.medievalships.core.Ships.GALLEY.geometry().inCarryVolume(zl[0], zl[1], zl[2]), "carry: zombie should still be aboard");
 			}
 		} catch (Throwable t) {
 			fail("exception: " + t);
@@ -210,8 +210,8 @@ public class ShipClientGameTest implements FabricClientGameTest {
 
 	// ------------------------------------------------------------------ helpers
 
-	private static GalleyEntity ship(ServerWorld world) {
-		for (GalleyEntity s : ShipTracker.ships(world)) {
+	private static ShipEntity ship(ServerWorld world) {
+		for (ShipEntity s : ShipTracker.ships(world)) {
 			if (!s.isRemoved()) {
 				return s;
 			}
@@ -221,7 +221,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 
 	private static ShipPose shipPose(TestSingleplayerContext sp) {
 		return sp.getServer().computeOnServer(server -> {
-			GalleyEntity s = ship(server.getOverworld());
+			ShipEntity s = ship(server.getOverworld());
 			return s == null ? null : s.pose();
 		});
 	}

@@ -1,5 +1,7 @@
 {
   "item.medievalships.galley": "Galère médiévale",
   "entity.medievalships.galley": "Galère médiévale",
+  "item.medievalships.galleon": "Grand galion",
+  "entity.medievalships.galleon": "Grand galion",
   "itemGroup.medievalships.ships": "Navires médiévaux"
 }

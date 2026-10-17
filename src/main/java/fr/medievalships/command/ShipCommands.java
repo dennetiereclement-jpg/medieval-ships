@@ -34,10 +34,12 @@ import fr.medievalships.MedievalShips;
 import fr.medievalships.core.Gait;
 import fr.medievalships.core.Route;
 import fr.medievalships.core.ShipGeometry;
+import fr.medievalships.core.ShipType;
+import fr.medievalships.core.Ships;
 import fr.medievalships.core.Waypoint;
 import fr.medievalships.data.ConfigManager;
 import fr.medievalships.data.ShipData;
-import fr.medievalships.entity.GalleyEntity;
+import fr.medievalships.entity.ShipEntity;
 import fr.medievalships.entity.ShipPermissions;
 import fr.medievalships.entity.ShipPlacement;
 import fr.medievalships.entity.ShipTracker;
@@ -58,12 +60,21 @@ public final class ShipCommands {
 		LiteralArgumentBuilder<ServerCommandSource> root = CommandManager.literal("ship")
 				.requires(ShipPermissions::isAdmin);
 
-		root.then(CommandManager.literal("give")
-				.executes(ctx -> give(ctx, java.util.List.of(ctx.getSource().getPlayerOrThrow())))
+		// /ship give [type] [targets]   /ship spawn [type]   (type: galley | galleon, galley by default)
+		var give = CommandManager.literal("give")
+				.executes(ctx -> give(ctx, Ships.GALLEY, java.util.List.of(ctx.getSource().getPlayerOrThrow())))
 				.then(CommandManager.argument("targets", EntityArgumentType.players())
-						.executes(ctx -> give(ctx, EntityArgumentType.getPlayers(ctx, "targets")))));
-
-		root.then(CommandManager.literal("spawn").executes(ShipCommands::spawn));
+						.executes(ctx -> give(ctx, Ships.GALLEY, EntityArgumentType.getPlayers(ctx, "targets"))));
+		var spawn = CommandManager.literal("spawn").executes(ctx -> spawn(ctx, Ships.GALLEY));
+		for (ShipType type : Ships.ALL) {
+			give.then(CommandManager.literal(type.id())
+					.executes(ctx -> give(ctx, type, java.util.List.of(ctx.getSource().getPlayerOrThrow())))
+					.then(CommandManager.argument("targets", EntityArgumentType.players())
+							.executes(ctx -> give(ctx, type, EntityArgumentType.getPlayers(ctx, "targets")))));
+			spawn.then(CommandManager.literal(type.id()).executes(ctx -> spawn(ctx, type)));
+		}
+		root.then(give);
+		root.then(spawn);
 		root.then(CommandManager.literal("remove").executes(ShipCommands::remove));
 		root.then(CommandManager.literal("list").executes(ShipCommands::list));
 		root.then(CommandManager.literal("info").executes(ShipCommands::info));
@@ -75,7 +86,7 @@ public final class ShipCommands {
 		}));
 		root.then(CommandManager.literal("name")
 				.then(CommandManager.argument("name", StringArgumentType.greedyString()).executes(ctx -> {
-					GalleyEntity ship = target(ctx);
+					ShipEntity ship = target(ctx);
 					String name = StringArgumentType.getString(ctx, "name");
 					ship.setCustomName(Text.literal(name));
 					ok(ctx, "Navire renommé : " + name);
@@ -112,7 +123,7 @@ public final class ShipCommands {
 								.executes(ctx -> addPoint(ctx, 0, null))))
 				.then(CommandManager.literal("addstop")
 						.then(CommandManager.argument("name", StringArgumentType.word()).suggests(ROUTES)
-								.executes(ctx -> addPoint(ctx, ConfigManager.get().aiDefaultWaitSeconds, null))
+								.executes(ctx -> addPoint(ctx, ConfigManager.ship(Ships.GALLEY).aiDefaultWaitSeconds, null))
 								.then(CommandManager.argument("seconds", IntegerArgumentType.integer(1, 86400))
 										.executes(ctx -> addPoint(ctx, IntegerArgumentType.getInteger(ctx, "seconds"), null))
 										.then(CommandManager.argument("label", StringArgumentType.greedyString())
@@ -139,9 +150,12 @@ public final class ShipCommands {
 				.then(CommandManager.literal("start")
 						.then(CommandManager.argument("name", StringArgumentType.word()).suggests(ROUTES)
 								.executes(ShipCommands::routeStart)))
+				.then(CommandManager.literal("assign")
+						.then(CommandManager.argument("name", StringArgumentType.word()).suggests(ROUTES)
+								.executes(ShipCommands::routeStart)))
 				.then(CommandManager.literal("stop").executes(ctx -> setAi(ctx, false)))
 				.then(CommandManager.literal("depart").executes(ctx -> {
-					GalleyEntity ship = target(ctx);
+					ShipEntity ship = target(ctx);
 					ship.autopilot().departNow();
 					ok(ctx, "Départ immédiat.");
 					return 1;
@@ -164,24 +178,24 @@ public final class ShipCommands {
 	 * The ship the command applies to: the one the player rides or stands on, else the one
 	 * he looks at, else the nearest one within 32 blocks.
 	 */
-	private static GalleyEntity target(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
+	private static ShipEntity target(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
 		ServerCommandSource source = ctx.getSource();
 		ServerWorld world = source.getWorld();
 		Entity entity = source.getEntity();
 		if (entity != null) {
-			if (entity.getVehicle() instanceof GalleyEntity ship) {
+			if (entity.getVehicle() instanceof ShipEntity ship) {
 				return ship;
 			}
-			GalleyEntity under = ShipTracker.shipUnder(entity);
+			ShipEntity under = ShipTracker.shipUnder(entity);
 			if (under != null) {
 				return under;
 			}
 			Vec3d eye = entity.getEyePos();
 			Vec3d look = entity.getRotationVector();
-			GalleyEntity best = null;
+			ShipEntity best = null;
 			double bestDist = 64;
-			for (GalleyEntity ship : ShipTracker.ships(world)) {
-				ShipGeometry.Pick pick = ShipGeometry.pick(ship.pose(), eye.x, eye.y, eye.z, look.x, look.y, look.z, 64);
+			for (ShipEntity ship : ShipTracker.ships(world)) {
+				ShipGeometry.Pick pick = ship.geometry().pick(ship.pose(), eye.x, eye.y, eye.z, look.x, look.y, look.z, 64);
 				if (pick != null && pick.distance() < bestDist) {
 					best = ship;
 					bestDist = pick.distance();
@@ -192,9 +206,9 @@ public final class ShipCommands {
 			}
 		}
 		Vec3d pos = source.getPosition();
-		GalleyEntity nearest = null;
+		ShipEntity nearest = null;
 		double nd = 32 * 32;
-		for (GalleyEntity ship : ShipTracker.ships(world)) {
+		for (ShipEntity ship : ShipTracker.ships(world)) {
 			double d = ship.squaredDistanceTo(pos);
 			if (d < nd) {
 				nd = d;
@@ -216,35 +230,40 @@ public final class ShipCommands {
 		return r;
 	}
 
-	private static String describe(GalleyEntity ship) {
-		String name = ship.hasCustomName() ? ship.getCustomName().getString() : "Galère";
+	private static String describe(ShipEntity ship) {
+		String name = ship.hasCustomName() ? ship.getCustomName().getString() : capitalize(ship.shipType().frenchName());
 		return String.format(Locale.ROOT, "%s [%d %d %d]", name, (int) ship.getX(), (int) ship.getY(), (int) ship.getZ());
 	}
 
 	// ------------------------------------------------------------------ ships
 
-	private static int give(CommandContext<ServerCommandSource> ctx, Collection<ServerPlayerEntity> players) {
+	private static int give(CommandContext<ServerCommandSource> ctx, ShipType type, Collection<ServerPlayerEntity> players) {
 		for (ServerPlayerEntity p : players) {
-			p.getInventory().offerOrDrop(new ItemStack(MedievalShips.GALLEY_ITEM));
+			p.getInventory().offerOrDrop(new ItemStack(MedievalShips.item(type)));
 		}
-		ok(ctx, "Galère donnée à " + players.size() + " joueur(s).");
+		ok(ctx, capitalize(type.frenchName()) + " donné(e) à " + players.size() + " joueur(s).");
 		return players.size();
 	}
 
-	private static int spawn(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
+	private static String capitalize(String s) {
+		return s.isEmpty() ? s : Character.toUpperCase(s.charAt(0)) + s.substring(1);
+	}
+
+	private static int spawn(CommandContext<ServerCommandSource> ctx, ShipType type) throws CommandSyntaxException {
 		ServerCommandSource source = ctx.getSource();
 		Vec3d pos = source.getPosition();
 		float yaw = source.getRotation().y;
-		GalleyEntity ship = ShipPlacement.place(source.getWorld(), pos.x, pos.y, pos.z, yaw, false);
+		ShipEntity ship = ShipPlacement.place(source.getWorld(), type, pos.x, pos.y, pos.z, yaw, false);
 		if (ship == null) {
-			throw error("Pas assez d'eau libre ici (il faut ~24 x 6 blocs d'eau profonde de 2 blocs).");
+			throw error(String.format(Locale.ROOT, "Pas assez d'eau libre ici pour %s (il faut ~%d x %d blocs d'eau profonde de 2 blocs).",
+					type.frenchName(), (int) Math.ceil(2 * type.hull().tip + 3), (int) Math.ceil(2 * type.hull().maxHalfWidth + 1)));
 		}
 		ok(ctx, "Navire mis à l'eau : " + describe(ship));
 		return 1;
 	}
 
 	private static int remove(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
-		GalleyEntity ship = target(ctx);
+		ShipEntity ship = target(ctx);
 		String d = describe(ship);
 		ship.removeAllPassengers();
 		ship.discard();
@@ -256,7 +275,7 @@ public final class ShipCommands {
 		ServerCommandSource source = ctx.getSource();
 		int n = 0;
 		for (ServerWorld world : source.getServer().getWorlds()) {
-			for (GalleyEntity ship : ShipTracker.ships(world)) {
+			for (ShipEntity ship : ShipTracker.ships(world)) {
 				n++;
 				String ai = ship.isAutopilotEnabled() ? " pilote auto: " + ship.routeName() + " (" + ship.autopilot().phase + ")" : "";
 				String line = "- " + describe(ship) + " " + world.getRegistryKey().getValue() + ai;
@@ -276,20 +295,20 @@ public final class ShipCommands {
 	}
 
 	private static int info(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
-		GalleyEntity ship = target(ctx);
+		ShipEntity ship = target(ctx);
 		String limit = Double.isNaN(ship.speedLimit()) ? "allures" : String.format(Locale.ROOT, "%.1f blocs/s", ship.speedLimit());
 		String text = String.format(Locale.ROOT,
 				"%s%nvitesse %.2f blocs/s, cap %.0f, barre %.2f, allure %s, limite %s%npilote auto %s, itinéraire %s, phase %s, cible %d, attente %d s%npassagers %d/%d",
 				describe(ship), ship.physics().speed, ship.getYaw(), ship.physics().helm, ship.gait().frenchName(), limit,
 				ship.isAutopilotEnabled() ? "oui" : "non", ship.routeName(), ship.autopilot().phase,
 				ship.autopilot().target + 1, ship.autopilot().waitTicks / 20,
-				ship.getPassengerList().size(), ShipGeometry.SEATS.size());
+				ship.getPassengerList().size(), ship.geometry().seats().size());
 		ctx.getSource().sendFeedback(() -> Text.literal(text), false);
 		return 1;
 	}
 
 	private static int unstuck(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
-		GalleyEntity ship = target(ctx);
+		ShipEntity ship = target(ctx);
 		if (!ShipPlacement.unstuck(ship)) {
 			throw error("Aucune eau libre trouvée dans un rayon de 24 blocs.");
 		}
@@ -302,15 +321,15 @@ public final class ShipCommands {
 		if (g == null) {
 			throw error("Allure inconnue (lente, normale, rapide).");
 		}
-		GalleyEntity ship = target(ctx);
+		ShipEntity ship = target(ctx);
 		ship.setGait(g);
 		ship.setSpeedLimit(-1);
-		ok(ctx, "Allure " + g.frenchName() + String.format(Locale.ROOT, " (%.1f blocs/s).", ConfigManager.get().gaitSpeed(g)));
+		ok(ctx, "Allure " + g.frenchName() + String.format(Locale.ROOT, " (%.1f blocs/s).", ship.config().gaitSpeed(g)));
 		return 1;
 	}
 
 	private static int setAi(CommandContext<ServerCommandSource> ctx, boolean enabled) throws CommandSyntaxException {
-		GalleyEntity ship = target(ctx);
+		ShipEntity ship = target(ctx);
 		if (enabled && ship.routeName() == null) {
 			throw error("Ce navire n'a pas d'itinéraire : /ship route start <nom>.");
 		}
@@ -320,7 +339,7 @@ public final class ShipCommands {
 	}
 
 	private static int captainAdd(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
-		GalleyEntity ship = target(ctx);
+		ShipEntity ship = target(ctx);
 		if (ship.passengerInSeat(ShipGeometry.PILOT_SEAT) != null) {
 			throw error("La barre est déjà occupée.");
 		}
@@ -345,7 +364,7 @@ public final class ShipCommands {
 	}
 
 	private static int captainRemove(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
-		GalleyEntity ship = target(ctx);
+		ShipEntity ship = target(ctx);
 		Entity pilot = ship.passengerInSeat(ShipGeometry.PILOT_SEAT);
 		if (pilot == null || pilot instanceof ServerPlayerEntity) {
 			throw error("Pas de capitaine PNJ à bord.");
@@ -476,7 +495,7 @@ public final class ShipCommands {
 		if (route.size() < 2) {
 			throw error("Il faut au moins 2 points (de préférence des escales aux extrémités).");
 		}
-		GalleyEntity ship = target(ctx);
+		ShipEntity ship = target(ctx);
 		if (!ship.getEntityWorld().getRegistryKey().getValue().toString().equals(route.dimension)) {
 			throw error("Le navire n'est pas dans la dimension de l'itinéraire.");
 		}

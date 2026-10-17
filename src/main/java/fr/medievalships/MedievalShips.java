@@ -2,6 +2,7 @@ package fr.medievalships;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -44,9 +45,13 @@ import net.minecraft.util.math.Vec3d;
 import fr.medievalships.command.ShipCommands;
 import fr.medievalships.data.ConfigManager;
 import fr.medievalships.data.ShipData;
-import fr.medievalships.entity.GalleyEntity;
+import fr.medievalships.entity.ShipEntity;
 import fr.medievalships.entity.ShipTracker;
-import fr.medievalships.item.GalleyItem;
+import fr.medievalships.item.ShipItem;
+import fr.medievalships.entity.GalleonEntity;
+import fr.medievalships.entity.GalleyEntity;
+import fr.medievalships.core.ShipType;
+import fr.medievalships.core.Ships;
 import fr.medievalships.mixin.ServerPlayNetworkHandlerAccessor;
 import fr.medievalships.network.ShipInteractPayload;
 import fr.medievalships.network.ShipInteractions;
@@ -57,6 +62,19 @@ public final class MedievalShips implements ModInitializer {
 
 	public static EntityType<GalleyEntity> GALLEY;
 	public static Item GALLEY_ITEM;
+	public static EntityType<GalleonEntity> GALLEON;
+	public static Item GALLEON_ITEM;
+
+	private static final Map<ShipType, EntityType<? extends ShipEntity>> ENTITY_TYPES = new LinkedHashMap<>();
+	private static final Map<ShipType, Item> ITEMS = new LinkedHashMap<>();
+
+	public static EntityType<? extends ShipEntity> entityType(ShipType type) {
+		return ENTITY_TYPES.get(type);
+	}
+
+	public static Item item(ShipType type) {
+		return ITEMS.get(type);
+	}
 
 	/** Players who logged out aboard a ship: put back on deck shortly after they join. */
 	private static final List<PendingRejoin> REJOINS = new ArrayList<>();
@@ -72,25 +90,18 @@ public final class MedievalShips implements ModInitializer {
 	public void onInitialize() {
 		ConfigManager.load();
 
-		RegistryKey<EntityType<?>> entityKey = RegistryKey.of(RegistryKeys.ENTITY_TYPE, id("galley"));
-		GALLEY = Registry.register(Registries.ENTITY_TYPE, entityKey,
-				EntityType.Builder.<GalleyEntity>create(GalleyEntity::new, SpawnGroup.MISC)
-						.dimensions(3.0f, 0.4f)
-						.maxTrackingRange(12)
-						.trackingTickInterval(1)
-						.makeFireImmune()
-						.build(entityKey));
-
-		RegistryKey<Item> itemKey = RegistryKey.of(RegistryKeys.ITEM, id("galley"));
-		GALLEY_ITEM = Registry.register(Registries.ITEM, itemKey, new GalleyItem(new Item.Settings().registryKey(itemKey).maxCount(1)));
+		GALLEY = registerShip(Ships.GALLEY, GalleyEntity::new, 3.0f, 0.4f, 12);
+		GALLEY_ITEM = ITEMS.get(Ships.GALLEY);
+		GALLEON = registerShip(Ships.GALLEON, GalleonEntity::new, 4.0f, 0.4f, 16);
+		GALLEON_ITEM = ITEMS.get(Ships.GALLEON);
 
 		RegistryKey<ItemGroup> groupKey = RegistryKey.of(RegistryKeys.ITEM_GROUP, id("ships"));
 		Registry.register(Registries.ITEM_GROUP, groupKey, FabricItemGroup.builder()
 				.icon(() -> new ItemStack(GALLEY_ITEM))
 				.displayName(Text.translatable("itemGroup.medievalships.ships"))
-				.entries((context, entries) -> entries.add(GALLEY_ITEM))
+				.entries((context, entries) -> ITEMS.values().forEach(entries::add))
 				.build());
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(entries -> entries.add(GALLEY_ITEM));
+		ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(entries -> ITEMS.values().forEach(entries::add));
 
 		PayloadTypeRegistry.playC2S().register(ShipInteractPayload.ID, ShipInteractPayload.CODEC);
 		ServerPlayNetworking.registerGlobalReceiver(ShipInteractPayload.ID,
@@ -107,8 +118,8 @@ public final class MedievalShips implements ModInitializer {
 		// passengers) into his player file: vanilla saves the mount with the player
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
 			ServerPlayerEntity player = handler.player;
-			GalleyEntity ship = null;
-			if (player.getVehicle() instanceof GalleyEntity riding) {
+			ShipEntity ship = null;
+			if (player.getVehicle() instanceof ShipEntity riding) {
 				ship = riding;
 				Vec3d spot = riding.updatePassengerForDismount(player);
 				player.stopRiding();
@@ -141,6 +152,23 @@ public final class MedievalShips implements ModInitializer {
 		}
 	}
 
+	/** Registers the entity type ({@code medievalships:<id>}) and the item of a ship type. */
+	private static <T extends ShipEntity> EntityType<T> registerShip(ShipType type, EntityType.EntityFactory<T> factory,
+			float width, float height, int trackingRange) {
+		RegistryKey<EntityType<?>> entityKey = RegistryKey.of(RegistryKeys.ENTITY_TYPE, id(type.id()));
+		EntityType<T> entityType = Registry.register(Registries.ENTITY_TYPE, entityKey,
+				EntityType.Builder.create(factory, SpawnGroup.MISC)
+						.dimensions(width, height)
+						.maxTrackingRange(trackingRange)
+						.trackingTickInterval(1)
+						.makeFireImmune()
+						.build(entityKey));
+		ENTITY_TYPES.put(type, entityType);
+		RegistryKey<Item> itemKey = RegistryKey.of(RegistryKeys.ITEM, id(type.id()));
+		ITEMS.put(type, Registry.register(Registries.ITEM, itemKey, new ShipItem(type, new Item.Settings().registryKey(itemKey).maxCount(1))));
+		return entityType;
+	}
+
 	/** After a restart, load the chunks of autopilot ships so ferries resume their routes. */
 	private static void reloadFerries(MinecraftServer server) {
 		ShipData data = ShipData.get(server);
@@ -152,7 +180,7 @@ public final class MedievalShips implements ModInitializer {
 				continue;
 			}
 			ChunkPos chunk = new ChunkPos(BlockPos.ofFloored(rec.x, 64, rec.z));
-			world.getChunkManager().addTicket(ChunkTicketType.PORTAL, chunk, ConfigManager.get().chunkLoadRadius);
+			world.getChunkManager().addTicket(ChunkTicketType.PORTAL, chunk, ConfigManager.server().chunkLoadRadius);
 			n++;
 		}
 		if (n > 0) {
@@ -178,7 +206,7 @@ public final class MedievalShips implements ModInitializer {
 			ShipData.get(server).setPlayerShip(r.player(), null);
 			for (ServerWorld world : server.getWorlds()) {
 				Entity e = world.getEntity(r.ship());
-				if (e instanceof GalleyEntity ship && world == player.getEntityWorld()) {
+				if (e instanceof ShipEntity ship && world == player.getEntityWorld()) {
 					if (ShipTracker.shipUnder(player) == ship) {
 						break; // still on deck
 					}

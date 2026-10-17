@@ -10,7 +10,7 @@ import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Vec3d;
 
 import fr.medievalships.core.ShipGeometry;
-import fr.medievalships.entity.GalleyEntity;
+import fr.medievalships.entity.ShipEntity;
 import fr.medievalships.entity.ShipTracker;
 
 /**
@@ -18,7 +18,7 @@ import fr.medievalships.entity.ShipTracker;
  * small, so the crosshair target is computed against the real hull, seats and helm.
  */
 public final class ShipPicker {
-	public record Target(GalleyEntity ship, ShipGeometry.Pick pick) {
+	public record Target(ShipEntity ship, ShipGeometry.Pick pick) {
 	}
 
 	@Nullable
@@ -44,7 +44,7 @@ public final class ShipPicker {
 		if (camera == null || client.world == null || !(client.player instanceof PlayerEntity player)) {
 			return;
 		}
-		GalleyEntity[] ships = ShipTracker.ships(client.world);
+		ShipEntity[] ships = ShipTracker.ships(client.world);
 		if (ships.length == 0) {
 			return;
 		}
@@ -58,11 +58,11 @@ public final class ShipPicker {
 		}
 		Target best = null;
 		double bestDist = Math.min(reach, vanilla);
-		for (GalleyEntity ship : ships) {
+		for (ShipEntity ship : ships) {
 			if (ship.isRemoved() || camera.getRootVehicle() == ship && ship.seatOf(camera) == ShipGeometry.PILOT_SEAT) {
 				continue;
 			}
-			ShipGeometry.Pick pick = ShipGeometry.pick(ship.pose(), eye.x, eye.y, eye.z, look.x, look.y, look.z, bestDist);
+			ShipGeometry.Pick pick = ship.geometry().pick(ship.pose(), eye.x, eye.y, eye.z, look.x, look.y, look.z, bestDist);
 			if (pick != null && pick.distance() < bestDist) {
 				best = new Target(ship, pick);
 				bestDist = pick.distance();

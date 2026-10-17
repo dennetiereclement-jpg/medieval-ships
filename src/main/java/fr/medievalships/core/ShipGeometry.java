@@ -38,6 +38,8 @@ public final class ShipGeometry {
 		public List<LocalBox> solids = List.of();
 		/** Probe spacing along the hull. */
 		public double probeStep = 1.0;
+		/** Heights (above the waterline) of the side probes; castles need higher ones. */
+		public double[] probeHeights = {0.15, 1.2};
 		/** Boarding spots are kept between these z and away from these z (benches). */
 		public double boardMinZ = -8.9;
 		public double boardMaxZ = 8.9;
@@ -57,7 +59,7 @@ public final class ShipGeometry {
 	public ShipGeometry(HullShape hull, Spec spec) {
 		this.hull = hull;
 		this.spec = spec;
-		this.probes = Collections.unmodifiableList(buildProbes(hull, spec.probeStep));
+		this.probes = Collections.unmodifiableList(buildProbes(hull, spec.probeStep, spec.probeHeights));
 		this.boundingRadius = hull.tip + 0.6;
 		double top = 0;
 		for (Mast m : spec.masts) {
@@ -69,7 +71,7 @@ public final class ShipGeometry {
 		this.maxHeight = top;
 	}
 
-	private static List<double[]> buildProbes(HullShape h, double step) {
+	private static List<double[]> buildProbes(HullShape h, double step, double[] heights) {
 		List<double[]> probes = new ArrayList<>();
 		double zMax = h.halfLength - 0.5;
 		int n = (int) Math.round(2 * zMax / step);
@@ -78,8 +80,9 @@ public final class ShipGeometry {
 			double w = h.halfWidth(z) * 0.97;
 			double keel = Math.max(h.keelY(z) + 0.2, h.keelY(0) + 0.2);
 			for (double side : new double[] {1, -1}) {
-				probes.add(new double[] {side * w, 0.15, z});
-				probes.add(new double[] {side * w, 1.2, z});
+				for (double y : heights) {
+					probes.add(new double[] {side * w, y, z});
+				}
 				probes.add(new double[] {side * w * 0.7, keel + 0.25, z});
 			}
 			if (i % 2 == 0) {
@@ -313,18 +316,32 @@ public final class ShipGeometry {
 				z = bz + (z >= bz ? 0.55 : -0.55);
 			}
 		}
+		// not against the front of a castle deck too high to step onto
+		if (hull.deckY(z + 0.3) - hull.deckY(z) > 0.6) {
+			z -= 0.32;
+		} else if (hull.deckY(z - 0.3) - hull.deckY(z) > 0.6) {
+			z += 0.32;
+		}
 		double w = Math.max(0.0, hull.innerHalfWidth(z) - 0.55);
 		double x = Math.max(-w, Math.min(w, lx));
 		for (Mast m : spec.masts) {
-			if (Math.abs(z - m.z()) < 0.6 && Math.abs(x - m.x()) < 0.55) {
-				x = x >= m.x() ? m.x() + 0.6 : m.x() - 0.6;
+			double clear = Math.max(0.6, m.half() + 0.35);
+			if (Math.abs(z - m.z()) < clear && Math.abs(x - m.x()) < Math.max(0.55, m.half() + 0.33)) {
+				x = x >= m.x() ? m.x() + clear : m.x() - clear;
 			}
 		}
 		double y = hull.deckY(z);
-		for (LocalBox b : spec.solids) {
-			if (x >= b.minX() && x <= b.maxX() && z >= b.minZ() && z <= b.maxZ() && b.minY() <= y + 0.5) {
-				// standing spot inside a superstructure: stand on top of it
-				y = Math.max(y, b.maxY());
+		// standing spot inside or just under a superstructure (stairs, castle floor): stand on top
+		// of it, never in a closed space
+		for (boolean moved = true; moved; ) {
+			moved = false;
+			for (LocalBox b : spec.solids) {
+				// whole player footprint (0.6 x 0.6)
+				if (x > b.minX() - 0.3 && x < b.maxX() + 0.3 && z > b.minZ() - 0.3 && z < b.maxZ() + 0.3
+						&& b.minY() <= y + 2.6 && b.maxY() > y + 1e-6) {
+					y = b.maxY();
+					moved = true;
+				}
 			}
 		}
 		return new double[] {x, y + 0.02, z};

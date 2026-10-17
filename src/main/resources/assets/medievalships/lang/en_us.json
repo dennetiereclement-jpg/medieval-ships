@@ -1,5 +1,7 @@
 {
   "item.medievalships.galley": "Medieval Galley",
   "entity.medievalships.galley": "Medieval Galley",
+  "item.medievalships.galleon": "Great Galleon",
+  "entity.medievalships.galleon": "Great Galleon",
   "itemGroup.medievalships.ships": "Medieval Ships"
 }

@@ -7,9 +7,8 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.Vec3d;
 
-import fr.medievalships.MedievalShips;
 import fr.medievalships.core.ShipGeometry;
-import fr.medievalships.entity.GalleyEntity;
+import fr.medievalships.entity.ShipEntity;
 import fr.medievalships.entity.ShipPermissions;
 
 /** Server side handling of {@link ShipInteractPayload}. */
@@ -21,7 +20,7 @@ public final class ShipInteractions {
 
 	public static void handle(ShipInteractPayload payload, ServerPlayerEntity player) {
 		Entity entity = player.getEntityWorld().getEntityById(payload.entityId());
-		if (!(entity instanceof GalleyEntity ship) || ship.isRemoved() || player.isSpectator()) {
+		if (!(entity instanceof ShipEntity ship) || ship.isRemoved() || player.isSpectator()) {
 			return;
 		}
 		double[] w = ship.pose().toWorld(payload.lx(), payload.ly(), payload.lz());
@@ -47,7 +46,7 @@ public final class ShipInteractions {
 		}
 	}
 
-	private static void takeHelm(GalleyEntity ship, ServerPlayerEntity player) {
+	private static void takeHelm(ShipEntity ship, ServerPlayerEntity player) {
 		if (ship.isAutopilotEnabled()) {
 			player.sendMessage(Text.literal("Le pilote automatique tient la barre (/ship ai disable).").formatted(Formatting.YELLOW), true);
 			return;
@@ -63,8 +62,8 @@ public final class ShipInteractions {
 				.formatted(Formatting.GOLD), true);
 	}
 
-	private static void sit(GalleyEntity ship, ServerPlayerEntity player, int seat) {
-		if (seat <= ShipGeometry.PILOT_SEAT || seat >= ShipGeometry.SEATS.size()) {
+	private static void sit(ShipEntity ship, ServerPlayerEntity player, int seat) {
+		if (seat <= ShipGeometry.PILOT_SEAT || seat >= ship.geometry().seats().size()) {
 			return;
 		}
 		if (!ship.seat(player, seat)) {
@@ -72,7 +71,7 @@ public final class ShipInteractions {
 		}
 	}
 
-	private static void board(GalleyEntity ship, ServerPlayerEntity player, double[] hit) {
+	private static void board(ShipEntity ship, ServerPlayerEntity player, double[] hit) {
 		if (player.hasVehicle()) {
 			player.stopRiding();
 		}
@@ -83,7 +82,7 @@ public final class ShipInteractions {
 				.formatted(Formatting.GOLD), true);
 	}
 
-	private static void attack(GalleyEntity ship, ServerPlayerEntity player) {
+	private static void attack(ShipEntity ship, ServerPlayerEntity player) {
 		if (!ShipPermissions.isAdmin(player)) {
 			return;
 		}
@@ -93,9 +92,9 @@ public final class ShipInteractions {
 		}
 		ship.removeAllPassengers();
 		if (!player.isCreative()) {
-			player.getInventory().offerOrDrop(new ItemStack(MedievalShips.GALLEY_ITEM));
-		} else if (!player.getInventory().contains(new ItemStack(MedievalShips.GALLEY_ITEM))) {
-			player.getInventory().offerOrDrop(new ItemStack(MedievalShips.GALLEY_ITEM));
+			player.getInventory().offerOrDrop(new ItemStack(ship.item()));
+		} else if (!player.getInventory().contains(new ItemStack(ship.item()))) {
+			player.getInventory().offerOrDrop(new ItemStack(ship.item()));
 		}
 		ship.discard();
 		player.sendMessage(Text.literal("Navire récupéré.").formatted(Formatting.GREEN), true);

@@ -23,10 +23,10 @@ public final class ShipPermissions {
 	}
 
 	public static boolean isAdmin(ServerCommandSource source) {
-		return level(source.getPermissions()) >= ConfigManager.get().adminPermissionLevel;
+		return level(source.getPermissions()) >= ConfigManager.server().adminPermissionLevel;
 	}
 
 	public static boolean isAdmin(PlayerEntity player) {
-		return level(player.getPermissions()) >= ConfigManager.get().adminPermissionLevel;
+		return level(player.getPermissions()) >= ConfigManager.server().adminPermissionLevel;
 	}
 }

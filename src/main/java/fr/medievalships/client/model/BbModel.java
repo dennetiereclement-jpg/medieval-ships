@@ -36,6 +36,8 @@ public final class BbModel {
 	public final Map<String, Bone> bonesByName = new HashMap<>();
 	public final Map<String, Animation> animations = new HashMap<>();
 	private final List<Bone> roots = new ArrayList<>();
+	/** Per texture UV size (Blockbench 4.9+ {@code uv_width}/{@code uv_height}), else the resolution. */
+	private final List<int[]> textureSizes = new ArrayList<>();
 	private int quadCount;
 
 	public static final class Bone {
@@ -61,9 +63,12 @@ public final class BbModel {
 		final float[] uv = new float[8];
 		final float[] normal = new float[3];
 		final boolean glow;
+		/** Index in the model's texture list. */
+		final int texture;
 
-		Quad(boolean glow) {
+		Quad(boolean glow, int texture) {
 			this.glow = glow;
+			this.texture = texture;
 		}
 	}
 
@@ -176,6 +181,14 @@ public final class BbModel {
 		JsonObject res = root.has("resolution") ? root.getAsJsonObject("resolution") : null;
 		textureWidth = res != null ? res.get("width").getAsInt() : 16;
 		textureHeight = res != null ? res.get("height").getAsInt() : 16;
+		if (root.has("textures")) {
+			for (JsonElement e : root.getAsJsonArray("textures")) {
+				JsonObject t = e.getAsJsonObject();
+				textureSizes.add(new int[] {
+						t.has("uv_width") ? t.get("uv_width").getAsInt() : textureWidth,
+						t.has("uv_height") ? t.get("uv_height").getAsInt() : textureHeight});
+			}
+		}
 
 		Map<String, JsonObject> elements = new HashMap<>();
 		for (JsonElement e : root.getAsJsonArray("elements")) {
@@ -246,11 +259,15 @@ public final class BbModel {
 			if (face == null || !face.has("texture") || face.get("texture").isJsonNull()) {
 				continue;
 			}
+			JsonElement texEl = face.get("texture");
+			int tex = texEl.isJsonPrimitive() && texEl.getAsJsonPrimitive().isNumber() ? texEl.getAsInt() : 0;
+			float tw = tex < textureSizes.size() ? textureSizes.get(tex)[0] : textureWidth;
+			float th = tex < textureSizes.size() ? textureSizes.get(tex)[1] : textureHeight;
 			JsonArray uvArr = face.getAsJsonArray("uv");
-			float u1 = uvArr.get(0).getAsFloat() / textureWidth, v1 = uvArr.get(1).getAsFloat() / textureHeight;
-			float u2 = uvArr.get(2).getAsFloat() / textureWidth, v2 = uvArr.get(3).getAsFloat() / textureHeight;
+			float u1 = uvArr.get(0).getAsFloat() / tw, v1 = uvArr.get(1).getAsFloat() / th;
+			float u2 = uvArr.get(2).getAsFloat() / tw, v2 = uvArr.get(3).getAsFloat() / th;
 			int faceRot = face.has("rotation") ? face.get("rotation").getAsInt() : 0;
-			Quad q = new Quad(glow);
+			Quad q = new Quad(glow, tex);
 			int[] ax = FACE_AXES[f];
 			float[] cu = {0, 1, 1, 0}, cv = {0, 0, 1, 1};
 			for (int k = 0; k < 4; k++) {
@@ -383,14 +400,24 @@ public final class BbModel {
 
 	/** Emits every quad of the model in ship-local block coordinates for the given pose. */
 	public void render(Pose pose, QuadSink sink) {
+		render(pose, -1, sink);
+	}
+
+	/** Same, limited to the faces using texture {@code texture} (-1 = all). */
+	public void render(Pose pose, int texture, QuadSink sink) {
 		float[] identity = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0};
 		float[] p = new float[12], uv = new float[8], n = new float[3];
 		for (Bone root : roots) {
-			renderBone(root, identity, pose, sink, p, uv, n);
+			renderBone(root, identity, pose, texture, sink, p, uv, n);
 		}
 	}
 
-	private void renderBone(Bone bone, float[] parent, Pose pose, QuadSink sink, float[] p, float[] uv, float[] n) {
+	/** Number of textures declared by the model (at least 1). */
+	public int textureCount() {
+		return Math.max(1, textureSizes.size());
+	}
+
+	private void renderBone(Bone bone, float[] parent, Pose pose, int texture, QuadSink sink, float[] p, float[] uv, float[] n) {
 		int b = bone.index;
 		float[] r = {bone.rotation[0] + pose.rot[b][0], bone.rotation[1] + pose.rot[b][1], bone.rotation[2] + pose.rot[b][2]};
 		float[][] R = rotationMatrix(r);
@@ -407,6 +434,9 @@ public final class BbModel {
 		}
 		float[] m = compose(parent, local);
 		for (Quad q : bone.quads) {
+			if (texture >= 0 && q.texture != texture) {
+				continue;
+			}
 			for (int k = 0; k < 4; k++) {
 				float x = q.pos[k * 3], y = q.pos[k * 3 + 1], z = q.pos[k * 3 + 2];
 				float wx = m[0] * x + m[1] * y + m[2] * z + m[3];
@@ -430,7 +460,7 @@ public final class BbModel {
 			sink.quad(p, uv, n, q.glow);
 		}
 		for (Bone c : bone.children) {
-			renderBone(c, m, pose, sink, p, uv, n);
+			renderBone(c, m, pose, texture, sink, p, uv, n);
 		}
 	}
 
