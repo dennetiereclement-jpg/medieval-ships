@@ -50,11 +50,6 @@ dependencies {
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	// CI compatibility testing: an optional mod jar dropped in libs/ (e.g. Lithium) is loaded in dev runs
-	if (file("libs/lithium.jar").exists()) {
-		modLocalRuntime files("libs/lithium.jar")
-	}
-
 	testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
 	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
@@ -85,4 +80,45 @@ jar {
 	from("LICENSE") {
 		rename { "${it}_${project.base.archivesName.get()}" }
 	}
+}
+
+// ------------------------------------------------------------------ production in-game tests
+// Runs the real game with the remapped jars, exactly like a player's mods folder
+// (our mod + Fabric API + the test mod + optional mods dropped in libs/, e.g. Lithium).
+configurations {
+	productionMods {
+		transitive = false
+	}
+}
+
+dependencies {
+	productionMods "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	if (file("libs/lithium.jar").exists()) {
+		productionMods files("libs/lithium.jar")
+	}
+}
+
+tasks.register("gametestJar", Jar) {
+	from sourceSets.gametest.output
+	destinationDirectory = layout.buildDirectory.dir("devlibs")
+	archiveClassifier = "gametest"
+}
+
+tasks.register("remapGametestJar", net.fabricmc.loom.task.RemapJarTask) {
+	dependsOn gametestJar
+	inputFile = gametestJar.archiveFile
+	archiveClassifier = "gametest"
+	addNestedDependencies = false
+	classpath.from(sourceSets.gametest.compileClasspath)
+}
+
+tasks.register("runProductionClientGameTest", net.fabricmc.loom.task.prod.ClientProductionRunTask) {
+	dependsOn remapJar, remapGametestJar
+	mods.from(configurations.productionMods)
+	mods.from(remapJar.archiveFile)
+	mods.from(remapGametestJar.archiveFile)
+	jvmArgs.addAll([
+		"-Dfabric.client.gametest",
+		"-Dfabric.client.gametest.disableNetworkSynchronizer=true"
+	])
 }

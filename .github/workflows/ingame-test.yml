@@ -36,11 +36,12 @@ jobs:
       - name: Run the real client with the mod
         run: |
           set -o pipefail
-          xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew runClientGameTest --stacktrace -Dfabric.client.gametest.disableNetworkSynchronizer=true 2>&1 | tee /tmp/gradle-output.txt
+          xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew runProductionClientGameTest --stacktrace -Dfabric.client.gametest.disableNetworkSynchronizer=true 2>&1 | tee /tmp/gradle-output.txt
       - name: Publish report and screenshots (branch test-results)
         if: always()
         run: |
           mkdir -p /tmp/out
+          find . -name "latest.log" -not -path "./.git/*" | head -5
           tail -n 400 /tmp/gradle-output.txt > /tmp/out/gradle-output.txt 2>/dev/null || true
           find . -name "medievalships-test.txt" -not -path "./.git/*" -exec cp {} /tmp/out/ \; || true
           find . -path "*screenshots*" -name "*.png" -not -path "./.git/*" -exec cp {} /tmp/out/ \; || true
