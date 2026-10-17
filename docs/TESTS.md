@@ -11,7 +11,7 @@ le `.jar` obtenu est celui qui vous est livré.
 La tâche *In-game test* lance un **vrai client Minecraft 1.21.11** avec le `.jar` de
 production (mod remappé, comme sur un vrai serveur), deux fois : **sans** et **avec Lithium**.
 Chaque fois, tout le scénario est joué **en solo** puis sur un **vrai serveur dédié** auquel le
-client se connecte par le réseau (contrôles de mouvement du serveur actifs) : 54 vérifications,
+client se connecte par le réseau (contrôles de mouvement du serveur actifs) : 88 vérifications,
 toutes réussies.
 Le test (`src/gametest/.../ShipClientGameTest.java`) crée un monde, des bassins, met les navires
 à l'eau puis vérifie (résultats et captures publiés sur les branches `test-results-vanilla` et
@@ -84,7 +84,8 @@ cabine, balcon, gaillard d'arrière, navigation.
 | `routeWithTurnsStopsOnTheQuay` (galion) | route à 4 virages, arrêt à moins de 5 blocs de l'escale |
 | `ferryGoesAroundTheIslandAndComesBack`, `routeWithWaypointsAndTurns` (galère) | inchangés |
 | `physicsInertia`, `turningSlowsTheShip`, `moverStopsAtTheCoastAndCanBackOff`, `moverEscapesWhenSpawnedInsideTerrain`, `otherHullIsAnObstacle` | physique et collisions avec le terrain |
-| `matchesPythonReference` (×2) | le lecteur `.bbmodel` du mod produit exactement la même géométrie que le rendu de référence (galère 2 208 faces ; galion 7 943 faces, 2 textures) |
+| `WarshipTest` (16 tests) | vaisseau : dimensions, forme identique au générateur, 24 sièges, ponts sans trou à tous les caps, murailles sans brèche, embarquement, escaliers, grande cabine, visée, 58 sabords, filets de sécurité, plus lourd que le galion, aller-retour de 600 blocs autour d'une île de 90 blocs, route à 4 virages |
+| `matchesPythonReference` (×3) | le lecteur `.bbmodel` du mod produit exactement la même géométrie que le rendu de référence (galère 2 208 faces ; galion 7 943 faces, 2 textures) |
 | `bonesAnimationsAndTextures`, `requiredBonesAndAnimationsExist`, `furlCollapsesTheSail` | os, animations et textures attendus par le mod |
 
 Les modèles ont aussi été vérifiés visuellement (`docs/preview.png`, `docs/preview_galleon.png`,
