@@ -31,11 +31,12 @@ Le moteur de rendu est commun.
 | Cabine de poupe, toit en tissu rouge, poste de pilotage, barrières | 4 poteaux, toit rouge en bâtière avec lambrequins festonnés, barrière à balustres avec passage, tabouret du barreur, deux avirons de gouverne |
 | Proue décorée, petit espace surélevé | figure de proue, plate-forme avant |
 | Lanternes (vues avant/arrière), longue flamme rouge de poupe | 4 lanternes lumineuses, flamme en 3 segments animés |
+| Détails | **éperon de bronze** à la ligne de flottaison, deux **ancres** à jas pendues à la proue avec leur câble, **râtelier à cabillots** au pied du mât (cordages tournés dessus), tonneau, **amphores**, glènes de cordage, seau |
 
 Dimensions : coque de 20 blocs (21,8 avec étrave et étambot), 5,1 de large, 2,8 à 3,8 de haut
 de la quille au bastingage, 14,6 blocs du niveau de l'eau au sommet du drapeau.
 
-Optimisation : 374 cubes, aucun bloc de « remplissage » ; les planches sont dans la texture
+Optimisation : 504 cubes, aucun bloc de « remplissage » ; les planches sont dans la texture
 (densité 16 pixels par bloc comme Minecraft), pas modélisées une à une.
 
 ## Modifier le modèle dans Blockbench
@@ -121,8 +122,9 @@ faites à la main dans Blockbench.
 | Gréement | cordages goudronnés sombres |
 | Sabords | 12 sabords décoratifs (6 par bord) avec mantelets ouverts : os `gunport_l1`…`gunport_l6`, `gunport_r1`…`gunport_r6` ; os vides `cannon_l1`…`cannon_r6` à l'emplacement des futurs canons |
 | Proue | éperon rouge et doré, figure de proue dorée, ancres, écubiers, lanterne de proue |
+| Détails du pont | **râteliers à cabillots** au pied du grand mât et du mât de misaine (cabillots et retombées de cordage), **cloche** du bord sur le gaillard d'avant, tonneaux cerclés de fer, caisses sanglées, glènes de cordage, seau |
 
-Optimisation : 1289 cubes (≈ 6700 faces), aucune géométrie cachée inutile ; 56 os.
+Optimisation : 1616 cubes (≈ 8700 faces), aucune géométrie cachée inutile ; 56 os.
 
 ## Changer l'emblème des drapeaux
 
@@ -195,8 +197,9 @@ python3 tools/preview.py blockbench/galleon.bbmodel - docs/preview_galleon.png -
 | Proue | éperon avec volutes dorées, grand **lion de proue** doré couronné, lisses de poulaine courbes dorées, bossoirs à masques dorés avec ancres, écubiers, lanterne |
 | Châteaux | murailles noires à **pilastres dorés**, fenêtres cintrées éclairées, bande ocre et lisse dorée |
 | Pont | **chaloupe** sur ses chantiers au milieu du pont (avec bancs et avirons, solide), cabestan, caillebotis, affûts |
+| Détails du pont | **râteliers à cabillots** aux trois mâts, **clocher** du bord sur le gaillard d'avant, **hamacs roulés** rangés sur le plat-bord du pont principal, tonneaux, caisses sanglées, glènes de cordage, seaux |
 
-Optimisation : 2668 cubes (≈ 13 800 faces), ce qui reste raisonnable pour un navire de cette
+Optimisation : 2886 cubes (≈ 15 100 faces), ce qui reste raisonnable pour un navire de cette
 taille (le rendu est calculé par le client, sans aucun coût serveur) ; le gréement est simplifié
 (cordages droits), les voiles sont des bandes qui se raccordent exactement.
 

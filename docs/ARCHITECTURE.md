@@ -180,7 +180,7 @@ dernière position des navires automatiques, navire de chaque joueur déconnect�
 * évitement d'obstacles toutes les 5 ticks, jamais de recherche de chemin ;
 * collisions : liste en cache des navires par monde, rejet par distance avant tout calcul ;
 * réseau : position vanilla + 7 valeurs DataTracker envoyées seulement quand elles changent ;
-* rendu : galère ~370 cubes / 2200 faces, galion ~1540 cubes / 7900 faces (deux passes : coque
+* rendu : galère ~500 cubes / 2800 faces, galion ~1600 cubes / 8700 faces, vaisseau ~2900 cubes / 15 100 faces (deux passes : coque
   et drapeaux, pour l'emblème remplaçable) ; animations calculées par le client à partir de
   l'état synchronisé ; culling sur la taille réelle de chaque navire ;
 * collisions du galion : même coût par entité que la galère (seules les cellules proches de

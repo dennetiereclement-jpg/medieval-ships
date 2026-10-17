@@ -30,6 +30,7 @@ import generate_galleon as gn  # noqa: E402
 import generate_galley as gg  # noqa: E402
 import warship_shape as ws  # noqa: E402
 import warship_texture as wt  # noqa: E402
+import ship_details as sd  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _uuid_counter = [0]
@@ -133,6 +134,10 @@ def build():
                 pa = v3(side * 0.975 * hw(za), ws.sheer_y(za) + 0.08, za)
                 pb = v3(side * 0.975 * hw(zb), ws.sheer_y(zb) + 0.08, zb)
                 beam(hull, "rail_%s%d" % (sn, i), pa, pb, 0.16, "gold", width=0.34, extend=0.06)
+                # sailors' rolled hammocks stowed along the rail of the waist (hammock nettings)
+                ha = v3(side * (0.975 * hw(za) - 0.12), ws.sheer_y(za) + 0.32, za)
+                hb = v3(side * (0.975 * hw(zb) - 0.12), ws.sheer_y(zb) + 0.32, zb)
+                beam(hull, "hammocks_%s%d" % (sn, i), ha, hb, 0.34, "cloth_roll", width=0.3, extend=0.02)
     for i in range(len(STATIONS) - 1):
         za, zb = STATIONS[i], STATIONS[i + 1]
         beam(hull, "keel_%d" % i, (0, ws.keel_y(za) - 0.07, za), (0, ws.keel_y(zb) - 0.07, zb), 0.3,
@@ -274,6 +279,23 @@ def build():
     for j, z in enumerate((-2.0, 6.0, 12.5)):
         add_cube(deck, "hatch_%d" % j, (0, main_y + 0.04, z), EYE, (1.6, 0.08, 1.6), {"all": "dark_wood", "+2": "grating"})
     add_cube(deck, "capstan", (0, main_y + 0.45, -5.5), EYE, (0.8, 0.9, 0.8), {"all": "dark_wood", "+2": "end_grain"})
+    # deck details: pin rails at the three mast feet, belfry, barrels, crates, coils, buckets
+    sd.fife_rail(gg, deck, "fife_main", 0.0, ws.MAIN_MAST_Z, main_y, half=1.15)
+    sd.fife_rail(gg, fore, "fife_fore", 0.0, ws.FORE_MAST_Z, fc_y, half=1.0)
+    sd.fife_rail(gg, stern, "fife_mizzen", 0.0, ws.MIZZEN_Z, qd_y, half=0.9)
+    sd.bell(gg, fore, "belfry", (0.0, fc_y, 19.7))
+    for k, (x, z) in enumerate(((4.4, 15.9), (-4.4, 15.9), (4.0, 15.2), (-4.0, 15.25))):
+        sd.barrel(gg, deck, "barrel_%d" % k, (x, main_y, z), wood="dark_wood", ends="end_grain")
+    sd.lying_barrel(gg, deck, "barrel_lying", (4.6, main_y, -8.9), yaw=0.0, wood="dark_wood")
+    for k, x in enumerate((5.1, -5.1)):
+        sd.crate(gg, deck, "crate_%d" % k, (x, main_y, -5.25), s=0.62, yaw=0.1 * k)
+    sd.crate(gg, deck, "crate_top", (5.1, main_y + 0.62, -5.25), s=0.45, yaw=0.3)
+    sd.rope_coil(gg, deck, "coil_0", (1.9, main_y, 2.7))
+    sd.rope_coil(gg, deck, "coil_1", (-1.9, main_y, -0.6))
+    sd.rope_coil(gg, fore, "coil_fc", (1.6, fc_y, 21.5), r=0.3)
+    sd.rope_coil(gg, stern, "coil_qd", (-1.5, qd_y, -16.5), r=0.3)
+    sd.bucket(gg, deck, "bucket_0", (-1.4, main_y, 2.6), wood="dark_wood")
+    sd.bucket(gg, deck, "bucket_1", (1.5, main_y, -0.9), wood="dark_wood")
     boat = Bone("ship_boat", parent=deck)
     bz0, bz1, bh = ws.BOAT_Z0, ws.BOAT_Z1, ws.BOAT_HALF
     for zz in (bz0 + 0.5, bz1 - 0.5):

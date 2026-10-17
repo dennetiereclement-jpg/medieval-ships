@@ -34,6 +34,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(__file__))
 import hull_profile as hp  # noqa: E402
+import ship_details as sd  # noqa: E402
 from galley_texture import REGIONS, SIZE, make_texture  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -343,6 +344,24 @@ def build():
     add_cube(deck, "crate_1", (1.2, hp.MAIN_DECK_Y + 0.3, 6.4), np.eye(3), (0.6, 0.6, 0.6), {"all": "dark_wood", "+2": "end_grain"})
     add_cube(deck, "crate_2", (1.15, hp.MAIN_DECK_Y + 0.85, 6.35), np.eye(3), (0.45, 0.5, 0.45), {"all": "hull_mid", "+2": "end_grain"})
     add_cube(deck, "barrel", (-1.3, hp.MAIN_DECK_Y + 0.35, 6.2), ry(0.4), (0.55, 0.7, 0.55), {"all": "hull_mid", "+2": "end_grain", "-2": "end_grain"})
+    # deck details: amphorae, rope coils, a bucket, the pin rail around the mast foot
+    me = sys.modules[__name__]
+    for k, (x, z) in enumerate(((-1.25, 7.0), (-1.0, 6.75), (1.3, -5.6), (1.05, -5.85))):
+        sd.amphora(me, deck, "amphora_%d" % k, (x, hp.MAIN_DECK_Y, z), clay="hull_light", dark="dark_wood")
+    sd.rope_coil(me, deck, "coil_fore", (-0.9, hp.MAIN_DECK_Y, 3.2), r=0.3)
+    sd.rope_coil(me, deck, "coil_aft", (0.95, hp.MAIN_DECK_Y, -3.2), r=0.3)
+    sd.bucket(me, deck, "bucket", (-1.2, hp.MAIN_DECK_Y, -5.7))
+    sd.fife_rail(me, deck, "fife", 0.0, MAST_Z, hp.MAIN_DECK_Y, half=0.55)
+    # bronze ram at the waterline and the bow anchor with its cable
+    beam(bow, "ram", (0, 0.05, 9.6), (0, 0.15, 11.9), 0.34, "gold", width=0.4, extend=0.05)
+    beam(bow, "ram_tip", (0, 0.15, 11.6), (0, 0.18, 12.3), 0.22, "gold", width=0.26)
+    for side in (1,):
+        ax, az = side * (hp.half_width(8.4) + 0.12), 8.4
+        beam(bow, "anchor_shank", (ax, hp.rail_y(8.4) - 0.1, az), (ax, 0.2, az - 0.05), 0.12, "iron")
+        beam(bow, "anchor_arm_a", (ax, 0.2, az - 0.05), (ax, 0.55, az - 0.45), 0.1, "iron")
+        beam(bow, "anchor_arm_b", (ax, 0.2, az - 0.05), (ax, 0.55, az + 0.35), 0.1, "iron")
+        beam(bow, "anchor_stock", (ax, hp.rail_y(8.4) - 0.2, az - 0.35), (ax, hp.rail_y(8.4) - 0.2, az + 0.35), 0.08, "dark_wood")
+        beam(bow, "anchor_cable", (ax, hp.rail_y(8.4) + 0.05, az), (0.5, hp.rail_y(8.4) - 0.05, 9.2), 0.07, "rope")
 
     # ---- stern castle: posts, red canopy, railings, helm seat
     zf, zb_ = -6.8, -9.25

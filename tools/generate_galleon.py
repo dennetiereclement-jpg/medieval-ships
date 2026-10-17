@@ -29,6 +29,7 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(__file__))
 import galleon_shape as gs  # noqa: E402
+import ship_details as sd  # noqa: E402
 import generate_galley as gg  # noqa: E402
 from galleon_texture import FLAG_SIZE, REGIONS, SIZE, make_item_icon, make_textures  # noqa: E402
 
@@ -424,6 +425,18 @@ def build():
     add_cube(deck, "hatch_main", (0, main_y + 0.04, -1.5), EYE, (1.6, 0.08, 1.6), {"all": "dark_wood", "+2": "grating"})
     add_cube(deck, "hatch_fore", (0, main_y + 0.04, 6.0), EYE, (1.3, 0.08, 1.3), {"all": "dark_wood", "+2": "grating"})
     add_cube(deck, "hatch_aft", (0, main_y + 0.04, -5.0), EYE, (1.3, 0.08, 1.3), {"all": "dark_wood", "+2": "grating"})
+    # deck details: pin rails at the mast feet, barrels, crates, coils, bucket, the ship's bell
+    sd.fife_rail(gg, deck, "fife_main", 0.0, gs.MAIN_MAST_Z, main_y, half=0.95)
+    sd.fife_rail(gg, castle_fore, "fife_fore", 0.0, gs.FORE_MAST_Z, fc_y, half=0.75)
+    sd.barrel(gg, deck, "barrel_w0", (3.45, main_y, -3.0))
+    sd.lying_barrel(gg, deck, "barrel_w1", (-3.3, main_y, -2.9), yaw=0.3)
+    sd.crate(gg, deck, "crate_w0", (-3.25, main_y, 5.5), s=0.6, yaw=0.15)
+    sd.crate(gg, deck, "crate_w1", (-3.2, main_y + 0.6, 5.45), s=0.45, yaw=-0.2)
+    sd.rope_coil(gg, deck, "coil_main", (1.5, main_y, 3.1))
+    sd.rope_coil(gg, deck, "coil_main2", (-1.5, main_y, 0.1))
+    sd.rope_coil(gg, castle_fore, "coil_fore", (1.2, fc_y, 14.6), r=0.28)
+    sd.bucket(gg, deck, "bucket", (1.2, main_y, -0.2))
+    sd.bell(gg, castle_fore, "bell", (0.0, fc_y, 11.0))
     for j, (x, z) in enumerate(((-3.3, 9.3), (3.3, 9.6))):
         add_cube(deck, "barrel_%d" % j, (x * 0.85, main_y + 0.35, z - 0.9), ry(0.5 * j), (0.5, 0.7, 0.5),
                  {"all": "hull_mid", "+2": "end_grain", "-2": "end_grain"})
