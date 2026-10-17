@@ -126,8 +126,16 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			// run-up and a single jump over the rail, then stop
 			context.getInput().holdKey(o -> o.forwardKey);
 			context.waitTicks(3);
-			context.getInput().holdKeyFor(o -> o.jumpKey, 2);
-			context.waitTicks(20);
+			context.getInput().holdKey(o -> o.jumpKey);
+			for (int t = 0; t < 20; t++) {
+				context.waitTick();
+				if (t == 1) {
+					context.getInput().releaseKey(o -> o.jumpKey);
+				}
+				double[] q = playerPos(context);
+				double[] ql = pose.toLocal(q[0], q[1], q[2]);
+				log("  jump tick %d: local x=%.3f y=%.3f ground=%s", t, ql[0], ql[1], q[3] > 0);
+			}
 			context.getInput().releaseKey(o -> o.forwardKey);
 			context.waitTicks(30);
 			p = playerPos(context);
