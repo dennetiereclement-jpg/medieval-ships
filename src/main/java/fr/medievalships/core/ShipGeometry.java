@@ -397,7 +397,7 @@ public final class ShipGeometry {
 			moved = false;
 			for (LocalBox b : spec.solids) {
 				// whole player footprint (0.6 x 0.6)
-				if (x > b.minX() - 0.3 && x < b.maxX() + 0.3 && z > b.minZ() - 0.3 && z < b.maxZ() + 0.3
+				if (x > b.minX() - 0.31 && x < b.maxX() + 0.31 && z > b.minZ() - 0.31 && z < b.maxZ() + 0.31
 						&& b.minY() <= y + 2.6 && b.maxY() > y + 1e-6) {
 					y = b.maxY();
 					moved = true;
