@@ -1,5 +1,28 @@
 # Tests — ce qui a été vérifié, et ce qui ne l'a pas été
 
+## Test dans le vrai jeu (automatique, GitHub Actions)
+
+À chaque envoi sur GitHub, la tâche *In-game test* lance un **vrai client Minecraft 1.21.11
+avec le mod** (`src/gametest/.../ShipClientGameTest.java`), crée un monde, un bassin et un
+quai, met la galère à l'eau puis vérifie, résultats et captures publiés sur la branche
+`test-results-full` :
+
+| Vérification | Résultat |
+|---|---|
+| un joueur qui tombe sur le pont s'y tient (à 1/1000 de bloc près) | réussi |
+| il saute sur le pont et retombe sur le pont | réussi |
+| il marche jusqu'à la proue, monte sur la plate-forme avant, reste à bord | réussi |
+| il saute depuis un quai (avec élan) et atterrit sur le pont | réussi |
+| un mob (support d'armure) tient sur le pont | réussi |
+| un nageur qui remonte sous la coque est arrêté par le fond de la coque | réussi |
+| un joueur à la barre fait avancer le navire (Z) | réussi |
+| le mob reste à bord pendant la navigation | réussi |
+
+Correction apportée grâce à ce test : la coque était creuse (un plancher et des parois) ; un
+joueur tombé à l'eau pouvait passer sous la quille et remonter à l'intérieur. La coque est
+maintenant un **volume plein** de la quille au pont, qui suit sa forme arrondie.
+
+
 ## Contexte
 
 L'environnement de développement utilisé **bloquait l'accès** à `maven.fabricmc.net` et aux
