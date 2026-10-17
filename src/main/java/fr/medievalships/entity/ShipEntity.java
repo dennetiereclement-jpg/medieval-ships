@@ -99,6 +99,9 @@ public abstract class ShipEntity extends Entity {
 	public float lastOarPhase;
 	public float oarWeight;
 	public float lastOarWeight;
+	/** Paddle wheel turns: follows the signed speed (backwards when going astern). */
+	public float wheelPhase;
+	public float lastWheelPhase;
 	public float sailOpen = 1f;
 	public float lastSailOpen = 1f;
 	public float helmVisual;
@@ -311,11 +314,19 @@ public abstract class ShipEntity extends Entity {
 		lastOarPhase = oarPhase;
 		lastOarWeight = oarWeight;
 		lastSailOpen = sailOpen;
+		lastWheelPhase = wheelPhase;
 		lastHelmVisual = helmVisual;
 		float speed = Math.abs(syncedSpeed());
 		float rowing = speed > 0.15f ? 1f : 0f;
 		oarWeight += (rowing - oarWeight) * 0.06f;
 		oarPhase += (float) (DT * Math.max(0.35, Math.min(1.6, speed / cfg.normalSpeed)) * oarWeight);
+		wheelPhase += (float) (DT * Math.max(-1.6, Math.min(1.6, syncedSpeed() / cfg.normalSpeed)));
+		if (Math.abs(wheelPhase) > 1000f) {
+			// keep the float precise (the animation loops every 2 time units)
+			float wrap = Math.signum(wheelPhase) * 1000f;
+			wheelPhase -= wrap;
+			lastWheelPhase -= wrap;
+		}
 		sailOpen += ((sailSet() ? 1f : 0f) - sailOpen) * 0.05f;
 		helmVisual += (syncedHelm() - helmVisual) * 0.3f;
 		rockTime += DT;

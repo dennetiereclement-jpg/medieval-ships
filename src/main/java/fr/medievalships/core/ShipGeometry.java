@@ -55,6 +55,10 @@ public final class ShipGeometry {
 		public boolean stemPost = true;
 		public boolean sternPost = true;
 		public List<Gunport> gunports = List.of();
+		/** Extra terrain probes (ship-local points) for parts outside the hull, e.g. a paddle box. */
+		public List<double[]> extraProbes = List.of();
+		/** Half width for the autopilot's clearance rays, if wider than the hull (NaN: from the hull). */
+		public double aiHalfWidth = Double.NaN;
 	}
 
 	public interface BoxSink {
@@ -70,7 +74,9 @@ public final class ShipGeometry {
 	public ShipGeometry(HullShape hull, Spec spec) {
 		this.hull = hull;
 		this.spec = spec;
-		this.probes = Collections.unmodifiableList(buildProbes(hull, spec.probeStep, spec.probeHeights));
+		List<double[]> probeList = buildProbes(hull, spec.probeStep, spec.probeHeights);
+		probeList.addAll(spec.extraProbes);
+		this.probes = Collections.unmodifiableList(probeList);
 		this.boundingRadius = hull.tip + 0.6;
 		double top = 0;
 		for (Mast m : spec.masts) {
@@ -149,7 +155,7 @@ public final class ShipGeometry {
 
 	/** Half width used by the autopilot's clearance rays. */
 	public double aiHalfWidth() {
-		return hull.maxHalfWidth - 0.15;
+		return Double.isNaN(spec.aiHalfWidth) ? hull.maxHalfWidth - 0.15 : spec.aiHalfWidth;
 	}
 
 	/** Is this local point inside the volume where entities are carried along with the ship? */

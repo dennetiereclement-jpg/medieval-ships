@@ -7,5 +7,7 @@
   "entity.medievalships.warship": "Great Warship",
   "item.medievalships.medieval_galley": "Red Medieval Galley",
   "entity.medievalships.medieval_galley": "Red Medieval Galley",
+  "item.medievalships.steam_paddleboat": "Steam Paddleboat",
+  "entity.medievalships.steam_paddleboat": "Steam Paddleboat",
   "itemGroup.medievalships.ships": "Medieval Ships"
 }

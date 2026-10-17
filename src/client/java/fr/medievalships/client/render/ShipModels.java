@@ -16,6 +16,7 @@ import fr.medievalships.MedievalShips;
 import fr.medievalships.client.model.BbModel;
 import fr.medievalships.core.ShipType;
 import fr.medievalships.core.Ships;
+import fr.medievalships.core.Ships.PaddleboatLayout;
 
 /**
  * Holds the ship models, read directly from the Blockbench files
@@ -31,7 +32,21 @@ public final class ShipModels {
 	 * @param cullRadius horizontal / vertical half extent of the render culling box
 	 */
 	public record Visual(ShipType type, Identifier model, List<Identifier> textures, float rocking,
-			double cullRadius, double cullHeight, boolean bowWake) {
+			double cullRadius, double cullHeight, boolean bowWake, @Nullable Engine engine) {
+		public Visual(ShipType type, Identifier model, List<Identifier> textures, float rocking,
+				double cullRadius, double cullHeight, boolean bowWake) {
+			this(type, model, textures, rocking, cullRadius, cullHeight, bowWake, null);
+		}
+	}
+
+	/**
+	 * Steam engine effects of a ship (client only): smoke from the funnel tops, foam and spray at the
+	 * paddle wheel, the beat of the engine. Ship-local blocks.
+	 *
+	 * @param funnels    funnel mouths (x, y, z)
+	 * @param wheel      paddle wheel: centre (x, y, z) and radius
+	 */
+	public record Engine(double[][] funnels, double[] wheel) {
 	}
 
 	public static final Visual GALLEY = new Visual(Ships.GALLEY, model("galley"), List.of(texture("galley")), 1f, 12, 16, false);
@@ -41,7 +56,13 @@ public final class ShipModels {
 			List.of(texture("warship"), texture("warship_flag")), 0.4f, 42, 48, true);
 	public static final Visual MEDIEVAL_GALLEY = new Visual(Ships.MEDIEVAL_GALLEY, model("medieval_galley"),
 			List.of(texture("medieval_galley")), 0.9f, 16, 18, false);
-	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY);
+	public static final Visual STEAM_PADDLEBOAT = new Visual(Ships.STEAM_PADDLEBOAT, model("steam_paddleboat"),
+			List.of(texture("steam_paddleboat")), 0.7f, 14, 14, true, new Engine(
+					new double[][] {{0, PaddleboatLayout.FUNNEL_TOP + 0.3, PaddleboatLayout.FUNNEL_Z[0]},
+							{0, PaddleboatLayout.FUNNEL_TOP + 0.3, PaddleboatLayout.FUNNEL_Z[1]}},
+					new double[] {-(PaddleboatLayout.WHEEL_X0 + PaddleboatLayout.WHEEL_X1) / 2, PaddleboatLayout.WHEEL_Y,
+							PaddleboatLayout.WHEEL_Z, PaddleboatLayout.WHEEL_R}));
+	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT);
 
 	@Nullable
 	public static Visual of(ShipType type) {

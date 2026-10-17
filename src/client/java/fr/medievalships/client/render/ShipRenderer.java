@@ -43,6 +43,7 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 		state.yaw = MathHelper.lerpAngleDegrees(tickProgress, entity.lastTickYaw(), entity.getYaw());
 		state.oarTime = MathHelper.lerp(tickProgress, entity.lastOarPhase, entity.oarPhase);
 		state.oarWeight = MathHelper.lerp(tickProgress, entity.lastOarWeight, entity.oarWeight);
+		state.wheelTime = MathHelper.lerp(tickProgress, entity.lastWheelPhase, entity.wheelPhase);
 		state.sailOpen = MathHelper.lerp(tickProgress, entity.lastSailOpen, entity.sailOpen);
 		state.helm = MathHelper.lerp(tickProgress, entity.lastHelmVisual, entity.helmVisual);
 		state.speed = entity.syncedSpeed();
@@ -69,7 +70,7 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 			matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float) (Math.sin(t * 0.63) * 0.9 * rock) + heel));
 			matrices.translate(0, Math.sin(t * 1.1) * 0.03 * rock, 0);
 
-			float oarTime = state.oarTime, oarWeight = state.oarWeight, sail = state.sailOpen;
+			float oarTime = state.oarTime, oarWeight = state.oarWeight, sail = state.sailOpen, wheel = state.wheelTime;
 			float helm = state.helm, age = state.age / 20f;
 			int light = state.light;
 			for (int tex = 0; tex < model.textureCount() && tex < visual.textures().size(); tex++) {
@@ -77,6 +78,7 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 				queue.submitCustom(matrices, RenderLayers.entityCutoutNoCull(visual.textures().get(tex)), (entry, vertices) -> {
 					BbModel.Pose pose = model.newPose();
 					model.apply(pose, "row", oarTime, oarWeight);
+					model.apply(pose, "paddle", wheel, 1f);
 					model.apply(pose, "sail_wind", age, sail);
 					model.apply(pose, "sail_furl", 1f - sail, 1f);
 					model.apply(pose, "steer", helm + 1f, 1f);

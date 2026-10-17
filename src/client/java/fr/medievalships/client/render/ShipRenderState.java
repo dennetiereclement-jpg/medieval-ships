@@ -6,6 +6,7 @@ public class ShipRenderState extends EntityRenderState {
 	public float yaw;
 	public float oarTime;
 	public float oarWeight;
+	public float wheelTime;
 	public float sailOpen;
 	public float helm;
 	public float speed;

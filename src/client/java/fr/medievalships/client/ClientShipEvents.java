@@ -4,6 +4,8 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
@@ -56,6 +58,7 @@ public final class ClientShipEvents {
 		for (ShipEntity ship : ShipTracker.ships(world)) {
 			if (!ship.isRemoved()) {
 				wake(world, ship, player);
+				engine(world, ship, player);
 			}
 		}
 		rescue(world, player);
@@ -120,6 +123,67 @@ public final class ClientShipEvents {
 			double[] w = pose.toWorld((world.random.nextDouble() - 0.5) * 3.0, hull.waterlineY + 0.1, -hull.halfLength - 0.8);
 			world.addParticleClient(ParticleTypes.BUBBLE, w[0], w[1] - 0.2, w[2], 0, 0.02, 0);
 			world.addParticleClient(ParticleTypes.SPLASH, w[0], w[1], w[2], 0, 0.04, 0);
+		}
+	}
+
+	/**
+	 * Steam engine: black smoke from the funnels (thicker when under way), foam and spray thrown up by
+	 * the paddle wheel, and the beat of the engine, all following the speed. Only near the player.
+	 */
+	private static void engine(ClientWorld world, ShipEntity ship, ClientPlayerEntity player) {
+		ShipModels.Visual visual = ShipModels.of(ship.shipType());
+		if (visual == null || visual.engine() == null || player == null || player.squaredDistanceTo(ship) > 80 * 80) {
+			return;
+		}
+		ShipModels.Engine engine = visual.engine();
+		ShipPose pose = ship.pose();
+		double speed = Math.abs(ship.syncedSpeed());
+		double load = Math.min(1.0, speed / Math.max(0.5, ship.config().normalSpeed));
+		long t = world.getTime() + ship.getId() * 7L;
+		// smoke: a puff every few ticks at rest, every tick and thicker under way
+		int every = load > 0.05 ? 1 : 5;
+		if (t % every == 0) {
+			double[] drift = pose.dirToWorld(0, 0, -0.04 - 0.05 * load);
+			for (double[] f : engine.funnels()) {
+				double[] w = pose.toWorld(f[0] + (world.random.nextDouble() - 0.5) * 0.5, f[1], f[2] + (world.random.nextDouble() - 0.5) * 0.5);
+				world.addParticleClient(ParticleTypes.LARGE_SMOKE, w[0], w[1], w[2], drift[0], 0.07 + 0.05 * load, drift[2]);
+				if (load > 0.4 && world.random.nextInt(3) == 0) {
+					world.addParticleClient(ParticleTypes.CAMPFIRE_COSY_SMOKE, w[0], w[1] + 0.3, w[2], drift[0], 0.05, drift[2]);
+				}
+			}
+		}
+		double[] wh = engine.wheel();
+		double water = ship.geometry().hull().waterlineY;
+		if (speed > 0.3) {
+			// foam where the paddles enter and leave the water, spray at the back of the wheel
+			int n = (int) Math.ceil(3 * load);
+			for (int i = 0; i < n; i++) {
+				double z = wh[2] + (world.random.nextDouble() - 0.5) * 2 * wh[3];
+				double x = wh[0] + (world.random.nextDouble() - 0.5) * 1.2;
+				double[] w = pose.toWorld(x, water + 0.1, z);
+				double[] out = pose.dirToWorld(-0.05, 0.12 + 0.1 * load, -0.15 * Math.signum(ship.syncedSpeed()));
+				world.addParticleClient(ParticleTypes.SPLASH, w[0], w[1], w[2], out[0], out[1], out[2]);
+			}
+			if (world.random.nextInt(2) == 0) {
+				double[] w = pose.toWorld(wh[0], water - 0.3, wh[2] - Math.signum(ship.syncedSpeed()) * wh[3]);
+				world.addParticleClient(ParticleTypes.BUBBLE, w[0], w[1], w[2], 0, 0.05, 0);
+			}
+		}
+		// engine beat: faster with the speed; a slow idle beat at rest
+		int beat = (int) Math.round(16 - 10 * load);
+		if (t % beat == 0 && player.squaredDistanceTo(ship) < 48 * 48) {
+			double[] w = pose.toWorld(0, ship.geometry().hull().mainDeckY, 0);
+			world.playSoundClient(w[0], w[1], w[2], SoundEvents.BLOCK_PISTON_CONTRACT, SoundCategory.NEUTRAL,
+					0.12f + 0.18f * (float) load, 0.55f + 0.25f * (float) load, false);
+			if (speed > 0.3 && t % (beat * 2) == 0) {
+				double[] p = pose.toWorld(wh[0], water + 0.2, wh[2]);
+				world.playSoundClient(p[0], p[1], p[2], SoundEvents.ENTITY_GENERIC_SPLASH, SoundCategory.NEUTRAL,
+						0.08f + 0.12f * (float) load, 0.9f, false);
+			}
+		}
+		if (t % 40 == 0 && player.squaredDistanceTo(ship) < 32 * 32) {
+			double[] w = pose.toWorld(0, engine.funnels()[0][1] - 4, engine.funnels()[0][2]);
+			world.playSoundClient(w[0], w[1], w[2], SoundEvents.BLOCK_FURNACE_FIRE_CRACKLE, SoundCategory.NEUTRAL, 0.5f, 0.8f, false);
 		}
 	}
 

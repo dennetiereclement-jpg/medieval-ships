@@ -667,7 +667,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 	}
 
 	/** Ships added after the warship: the same scenario for each, one after the other in a fourth basin. */
-	private static final List<ShipType> NEW_SHIPS = List.of(Ships.MEDIEVAL_GALLEY);
+	private static final List<ShipType> NEW_SHIPS = List.of(Ships.MEDIEVAL_GALLEY, Ships.STEAM_PADDLEBOAT);
 
 	private void newShip(ClientGameTestContext context, Env sp, ShipType type) {
 		var server = sp.getServer();
@@ -697,8 +697,8 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		// the six views of the reference picture
 		double L = h.tip, top = Math.max(8, L * 0.5);
 		String[][] views = {{"1_droite"}, {"2_gauche"}, {"3_proue"}, {"4_poupe"}, {"5_dessus"}, {"6_perspective"}};
-		double[][] eyes = {{-2.3 * L, 0.45 * top, 0.2}, {2.3 * L, 0.45 * top, 0.2}, {0.4, 0.5 * top, 2.4 * L},
-				{0.4, 0.5 * top, -2.4 * L}, {0.01, 3.2 * L, 0.0}, {1.6 * L, 0.9 * top, 1.7 * L}};
+		double[][] eyes = {{-1.75 * L, 0.4 * top, 0.2}, {1.75 * L, 0.4 * top, 0.2}, {0.4, 0.45 * top, 1.9 * L},
+				{0.4, 0.45 * top, -1.9 * L}, {0.01, 2.5 * L, 0.0}, {1.25 * L, 0.75 * top, 1.3 * L}};
 		for (int k = 0; k < views.length; k++) {
 			lookLocal(server, pose, eyes[k][0], eyes[k][1], eyes[k][2], 0, k == 4 ? 0 : 0.4 * top, 0);
 			context.waitTicks(k == 0 ? 30 : 15);

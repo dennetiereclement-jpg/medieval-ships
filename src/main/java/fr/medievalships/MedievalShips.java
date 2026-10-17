@@ -51,6 +51,7 @@ import fr.medievalships.item.ShipItem;
 import fr.medievalships.entity.GalleonEntity;
 import fr.medievalships.entity.GalleyEntity;
 import fr.medievalships.entity.MedievalGalleyEntity;
+import fr.medievalships.entity.SteamPaddleboatEntity;
 import fr.medievalships.entity.WarshipEntity;
 import fr.medievalships.core.ShipType;
 import fr.medievalships.core.Ships;
@@ -70,6 +71,8 @@ public final class MedievalShips implements ModInitializer {
 	public static Item WARSHIP_ITEM;
 	public static EntityType<MedievalGalleyEntity> MEDIEVAL_GALLEY;
 	public static Item MEDIEVAL_GALLEY_ITEM;
+	public static EntityType<SteamPaddleboatEntity> STEAM_PADDLEBOAT;
+	public static Item STEAM_PADDLEBOAT_ITEM;
 
 	private static final Map<ShipType, EntityType<? extends ShipEntity>> ENTITY_TYPES = new LinkedHashMap<>();
 	private static final Map<ShipType, Item> ITEMS = new LinkedHashMap<>();
@@ -104,6 +107,8 @@ public final class MedievalShips implements ModInitializer {
 		WARSHIP_ITEM = ITEMS.get(Ships.WARSHIP);
 		MEDIEVAL_GALLEY = registerShip(Ships.MEDIEVAL_GALLEY, MedievalGalleyEntity::new, 3.0f, 0.4f, 14);
 		MEDIEVAL_GALLEY_ITEM = ITEMS.get(Ships.MEDIEVAL_GALLEY);
+		STEAM_PADDLEBOAT = registerShip(Ships.STEAM_PADDLEBOAT, SteamPaddleboatEntity::new, 4.0f, 0.4f, 14);
+		STEAM_PADDLEBOAT_ITEM = ITEMS.get(Ships.STEAM_PADDLEBOAT);
 
 		RegistryKey<ItemGroup> groupKey = RegistryKey.of(RegistryKeys.ITEM_GROUP, id("ships"));
 		Registry.register(Registries.ITEM_GROUP, groupKey, FabricItemGroup.builder()

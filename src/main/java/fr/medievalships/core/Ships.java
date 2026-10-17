@@ -608,7 +608,164 @@ public final class Ships {
 		return c;
 	}
 
-	public static final List<ShipType> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY);
+	// ------------------------------------------------------------------ steam paddleboat
+
+	/**
+	 * Armoured steam paddleboat: 22 blocks, 8 wide (10 with the paddle box), riveted iron hull,
+	 * deckhouse with two funnels, one paddle wheel on the starboard side, two guns, 8 seats.
+	 * The same numbers are used by {@code tools/paddleboat_shape.py}.
+	 */
+	public static final ShipType STEAM_PADDLEBOAT = steamPaddleboat();
+
+	/** Paddleboat layout, ship-local blocks (shared with the model generator). */
+	public static final class PaddleboatLayout {
+		public static final double HALF_LENGTH = 10.5;
+		public static final double TIP = 11.2;
+		public static final double MAX_HALF_WIDTH = 4.0;
+		public static final double FORE_SCALE = 11.2;
+		public static final double AFT_SCALE = 11.6;
+		/** The water is 0.8 blocks under the model origin. */
+		public static final double WATERLINE_Y = -0.8;
+		public static final double MAIN_DECK_Y = 2.4;
+		public static final double DECK_MIN_Z = -10.3;
+		public static final double DECK_MAX_Z = 10.3;
+		public static final double HOUSE_Z0 = -5.0;
+		public static final double HOUSE_Z1 = 4.0;
+		public static final double HOUSE_HALF = 2.5;
+		public static final double HOUSE_TOP = 4.7;
+		public static final double[] FUNNEL_Z = {-1.9, 1.3};
+		public static final double FUNNEL_HALF = 0.55;
+		public static final double FUNNEL_TOP = 10.9;
+		public static final double HELM_Z = 5.75;
+		public static final double PILOT_Z = 5.0;
+		/** Paddle wheel on the starboard side (-x): centre, radius, inner / outer faces, box. */
+		public static final double WHEEL_Z = 1.2;
+		public static final double WHEEL_Y = 0.75;
+		public static final double WHEEL_R = 2.45;
+		public static final double WHEEL_X0 = 4.2;
+		public static final double WHEEL_X1 = 5.7;
+		public static final double BOX_X1 = 6.0;
+		public static final double GUN_FORE_Z = 8.0;
+		public static final double GUN_AFT_Z = -7.6;
+		public static final double MAST_Z = -9.0;
+		public static final double MAST_TOP = 9.6;
+
+		private PaddleboatLayout() {
+		}
+	}
+
+	private static ShipType steamPaddleboat() {
+		HullShape.Params p = new HullShape.Params();
+		p.halfLength = PaddleboatLayout.HALF_LENGTH;
+		p.tip = PaddleboatLayout.TIP;
+		p.maxHalfWidth = PaddleboatLayout.MAX_HALF_WIDTH;
+		p.foreScale = PaddleboatLayout.FORE_SCALE;
+		p.forePowA = 2.0;
+		p.forePowB = 0.7;
+		p.aftScale = PaddleboatLayout.AFT_SCALE;
+		p.aftPowA = 3.2;
+		p.aftPowB = 0.42;
+		p.keelDepth = 1.8;
+		p.keelRise = 0.7;
+		p.keelPow = 4.0;
+		p.railBase = 3.3;
+		p.railRiseFore = 0.35;
+		p.railRiseAft = 0.2;
+		p.railPow = 2.0;
+		p.waterlineY = PaddleboatLayout.WATERLINE_Y;
+		p.mainDeckY = PaddleboatLayout.MAIN_DECK_Y;
+		p.deckMinZ = PaddleboatLayout.DECK_MIN_Z;
+		p.deckMaxZ = PaddleboatLayout.DECK_MAX_Z;
+		p.bottomSection = new double[][] {{0.0, 1.0}, {0.6, 0.94}, {0.9, 0.62}, {0.99, 0.18}};
+		HullShape hull = new HullShape(p);
+
+		double main = PaddleboatLayout.MAIN_DECK_Y;
+		List<ShipGeometry.LocalBox> solids = new ArrayList<>();
+		// the deckhouse (closed) and the funnels on its roof
+		double hh = PaddleboatLayout.HOUSE_HALF;
+		solids.add(new ShipGeometry.LocalBox(-hh, main, PaddleboatLayout.HOUSE_Z0, hh, PaddleboatLayout.HOUSE_TOP, PaddleboatLayout.HOUSE_Z1));
+		for (double z : PaddleboatLayout.FUNNEL_Z) {
+			double f = PaddleboatLayout.FUNNEL_HALF;
+			solids.add(new ShipGeometry.LocalBox(-f, PaddleboatLayout.HOUSE_TOP, z - f, f, PaddleboatLayout.FUNNEL_TOP, z + f));
+		}
+		// the two guns on their carriages
+		for (double z : new double[] {PaddleboatLayout.GUN_FORE_Z, PaddleboatLayout.GUN_AFT_Z}) {
+			solids.add(new ShipGeometry.LocalBox(-0.5, main, z - 0.8, 0.5, main + 1.15, z + 0.8));
+		}
+		// the hull closes beyond the side walls: rounded counter at the stern, pointed bow
+		for (double z = hull.halfLength - 0.1; z < PaddleboatLayout.FORE_SCALE - 0.1; z += 0.3) {
+			double w = hull.halfWidth(z);
+			solids.add(new ShipGeometry.LocalBox(-w, hull.keelY(z), z, w, hull.railY(z) + 0.1, z + 0.3));
+		}
+		for (double z = -hull.halfLength + 0.1; z > -PaddleboatLayout.AFT_SCALE + 0.1; z -= 0.3) {
+			double w = hull.halfWidth(z);
+			solids.add(new ShipGeometry.LocalBox(-w, hull.keelY(z), z - 0.3, w, hull.railY(z) + 0.1, z));
+		}
+		// the paddle box on the starboard side, outside the hull (above the water)
+		double wz = PaddleboatLayout.WHEEL_Z, r = PaddleboatLayout.WHEEL_R + 0.35;
+		solids.add(new ShipGeometry.LocalBox(-PaddleboatLayout.BOX_X1, PaddleboatLayout.WATERLINE_Y - 0.2, wz - r,
+				-hull.halfWidth(wz) + 0.05, PaddleboatLayout.WHEEL_Y + r + 0.1, wz + r));
+
+		ShipGeometry.Spec spec = new ShipGeometry.Spec();
+		List<ShipGeometry.Seat> seats = new ArrayList<>();
+		seats.add(new ShipGeometry.Seat(ShipGeometry.PILOT_SEAT, 0.0, main + 0.28, PaddleboatLayout.PILOT_Z, true,
+				new double[] {1.4, main + 0.02, PaddleboatLayout.PILOT_Z}));
+		// benches along the deckhouse, the gunners, the stern bench
+		for (double z : new double[] {-3.4, -0.6}) {
+			for (double x : new double[] {2.85, -2.85}) {
+				seats.add(seat(seats.size(), x, main, z, x * 1.12, z + 0.8));
+			}
+		}
+		seats.add(seat(seats.size(), 1.0, main, PaddleboatLayout.GUN_FORE_Z - 0.4, 1.7, PaddleboatLayout.GUN_FORE_Z - 0.4));
+		seats.add(seat(seats.size(), -1.0, main, PaddleboatLayout.GUN_AFT_Z + 0.4, -1.7, PaddleboatLayout.GUN_AFT_Z + 0.4));
+		seats.add(seat(seats.size(), 1.6, main, -9.0, 1.6, -8.2));
+		spec.seats = List.copyOf(seats);
+		spec.helm = new ShipGeometry.LocalBox(-0.65, main + 0.5, PaddleboatLayout.HELM_Z - 0.3, 0.65, main + 1.75,
+				PaddleboatLayout.HELM_Z + 0.35);
+		spec.masts = List.of(new ShipGeometry.Mast(0, PaddleboatLayout.MAST_Z, main, PaddleboatLayout.MAST_TOP, 0.12));
+		spec.solids = List.copyOf(solids);
+		spec.probeHeights = new double[] {PaddleboatLayout.WATERLINE_Y + 0.15, 0.15, 1.2, 2.6};
+		List<double[]> extra = new ArrayList<>();
+		for (double z = wz - r; z <= wz + r + 1e-6; z += r / 2) {
+			extra.add(new double[] {-PaddleboatLayout.BOX_X1 + 0.1, PaddleboatLayout.WATERLINE_Y + 0.15, z});
+			extra.add(new double[] {-PaddleboatLayout.BOX_X1 + 0.1, PaddleboatLayout.WHEEL_Y + 1.5, z});
+		}
+		spec.extraProbes = List.copyOf(extra);
+		spec.aiHalfWidth = PaddleboatLayout.BOX_X1 - 0.3;
+		spec.boardMinZ = -9.2;
+		spec.boardMaxZ = 8.6;
+		spec.avoidZ = new double[] {PaddleboatLayout.HOUSE_Z0 - 0.4, PaddleboatLayout.HOUSE_Z1 + 0.4};
+		spec.sternPost = false;
+		return new ShipType("steam_paddleboat", "bateau à roue à vapeur", new ShipGeometry(hull, spec), Ships::paddleboatConfig);
+	}
+
+	/** Steam engine: progressive acceleration, handy at low speed (the wheel can pivot it), no sail. */
+	private static ShipConfig paddleboatConfig() {
+		ShipConfig c = new ShipConfig();
+		c.slowSpeed = 2.2;
+		c.normalSpeed = 5.0;
+		c.fastSpeed = 7.5;
+		c.reverseSpeed = 2.5;
+		c.acceleration = 0.5;
+		c.braking = 1.4;
+		c.waterDrag = 0.12;
+		c.maxTurnRate = 13.0;
+		c.minTurnFactor = 0.5;
+		c.helmRate = 1.4;
+		c.helmReturnRate = 1.0;
+		c.turnResponse = 1.3;
+		c.turnSpeedLoss = 0.15;
+		c.waveRocking = 0.8;
+		c.aiWaypointRadius = 9.0;
+		c.aiLookahead = 16.0;
+		c.aiProbeDistance = 48.0;
+		c.aiStuckSeconds = 8;
+		c.aiTurnAroundSpeed = 1.0;
+		c.furlSailWhenStopped = false;
+		return c;
+	}
+
+	public static final List<ShipType> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT);
 
 	public static ShipType byId(String id) {
 		for (ShipType t : ALL) {

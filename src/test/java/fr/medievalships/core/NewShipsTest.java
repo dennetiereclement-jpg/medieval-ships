@@ -10,13 +10,14 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import fr.medievalships.core.Ships.MedievalGalleyLayout;
+import fr.medievalships.core.Ships.PaddleboatLayout;
 
 /**
  * Gameplay geometry and handling of the ships added after the warship (red medieval galley...):
  * the same checks for every one of them, plus the values shared with their model generators.
  */
 class NewShipsTest {
-	private static final List<ShipType> NEW = List.of(Ships.MEDIEVAL_GALLEY);
+	private static final List<ShipType> NEW = List.of(Ships.MEDIEVAL_GALLEY, Ships.STEAM_PADDLEBOAT);
 	private static final ShipPose ORIGIN = new ShipPose(0, 0, 0, 0);
 
 	private static boolean intersectsSolid(ShipGeometry g, double x, double y, double z, double hx, double h, double hz) {
@@ -80,6 +81,69 @@ class NewShipsTest {
 		assertTrue(h.railY(12) - h.railY(0) > 1.5);
 		assertTrue(MedievalGalleyLayout.MAST_TOP - h.waterlineY > 13 && MedievalGalleyLayout.MAST_TOP - h.waterlineY < 15);
 		assertEquals(10, g.seats().size());
+	}
+
+	/** Values printed by {@code python3 tools/paddleboat_shape.py}: z, half width, rail, keel, bottom at 2. */
+	@Test
+	void paddleboatMatchesModelGenerator() {
+		HullShape h = Ships.STEAM_PADDLEBOAT.hull();
+		double[][] expected = {
+				{-10.0, 2.658552, 3.481406, -1.224108, -0.951815},
+				{-6.0, 3.788572, 3.365306, -1.725364, -1.634282},
+				{0.0, 4.000000, 3.300000, -1.800000, -1.710000},
+				{5.0, 3.423651, 3.379365, -1.764007, -1.660958},
+				{10.0, 1.309232, 3.617460, -1.224108, -0.220339}};
+		for (double[] e : expected) {
+			assertEquals(e[1], h.halfWidth(e[0]), 1e-5);
+			assertEquals(e[2], h.railY(e[0]), 1e-5);
+			assertEquals(e[3], h.keelY(e[0]), 1e-5);
+			assertEquals(e[4], h.bottomY(e[0], 2.0), 1e-5);
+		}
+	}
+
+	@Test
+	void paddleboatDimensions() {
+		HullShape h = Ships.STEAM_PADDLEBOAT.hull();
+		ShipGeometry g = Ships.STEAM_PADDLEBOAT.geometry();
+		assertEquals(22.4, 2 * h.tip, 1e-9);
+		assertEquals(8.0, 2 * h.maxHalfWidth, 1e-9);
+		double hull = h.railY(0) - h.keelY(0);
+		assertTrue(hull > 4.8 && hull < 5.4, "hull height " + hull);
+		double total = PaddleboatLayout.FUNNEL_TOP - h.keelY(0);
+		assertTrue(total > 12 && total < 13, "total height " + total);
+		assertEquals(8, g.seats().size());
+	}
+
+	/** One wheel, on the starboard side: round, outside the hull, partly under water, inside its box. */
+	@Test
+	void paddleWheel() {
+		HullShape h = Ships.STEAM_PADDLEBOAT.hull();
+		ShipGeometry g = Ships.STEAM_PADDLEBOAT.geometry();
+		double z = PaddleboatLayout.WHEEL_Z, r = PaddleboatLayout.WHEEL_R;
+		// clear of the hull side over its whole height
+		for (double y = PaddleboatLayout.WHEEL_Y - r; y <= PaddleboatLayout.WHEEL_Y + r; y += 0.25) {
+			assertTrue(PaddleboatLayout.WHEEL_X0 > h.halfWidth(z) + 0.1, "the wheel cuts into the hull");
+		}
+		// partly immersed: about a third of its diameter under water, the axle above it
+		double under = h.waterlineY - (PaddleboatLayout.WHEEL_Y - r);
+		assertTrue(under > 0.6 && under < 1.6, "immersion " + under);
+		assertTrue(PaddleboatLayout.WHEEL_Y > h.waterlineY + 1);
+		assertTrue(PaddleboatLayout.BOX_X1 > PaddleboatLayout.WHEEL_X1);
+		// the box above it is solid (players, swimmers), and the autopilot knows how wide the ship is
+		assertTrue(intersectsSolid(g, -(PaddleboatLayout.WHEEL_X0 + PaddleboatLayout.WHEEL_X1) / 2, PaddleboatLayout.WHEEL_Y + r - 0.2, z,
+				0.2, 0.2, 0.2));
+		assertTrue(g.aiHalfWidth() > PaddleboatLayout.WHEEL_X1 - 0.5);
+		assertFalse(intersectsSolid(g, (PaddleboatLayout.WHEEL_X0 + PaddleboatLayout.WHEEL_X1) / 2, PaddleboatLayout.WHEEL_Y + r - 0.2, z,
+				0.2, 0.2, 0.2), "only one wheel, on the starboard side");
+	}
+
+	@Test
+	void paddleboatHandlesLikeASteamer() {
+		ShipConfig steam = Ships.STEAM_PADDLEBOAT.defaults().get(), galley = Ships.MEDIEVAL_GALLEY.defaults().get();
+		// progressive acceleration, good low speed handling, no sail to furl
+		assertTrue(steam.acceleration < galley.acceleration);
+		assertTrue(steam.minTurnFactor > galley.minTurnFactor);
+		assertFalse(steam.furlSailWhenStopped);
 	}
 
 	// ------------------------------------------------------------------ every new ship
