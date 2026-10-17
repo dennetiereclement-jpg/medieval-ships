@@ -9,6 +9,10 @@ import java.util.Locale;
 
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
+import net.fabricmc.fabric.api.client.gametest.v1.context.TestClientWorldContext;
+import net.fabricmc.fabric.api.client.gametest.v1.context.TestDedicatedServerContext;
+import net.fabricmc.fabric.api.client.gametest.v1.context.TestServerConnection;
+import net.fabricmc.fabric.api.client.gametest.v1.context.TestServerContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
 
 import net.minecraft.client.MinecraftClient;
@@ -37,16 +41,36 @@ public class ShipClientGameTest implements FabricClientGameTest {
 	private final List<String> report = new ArrayList<>();
 	private final List<String> failures = new ArrayList<>();
 
+	/** Where the scenario runs: the integrated server of a solo world, or a real dedicated server. */
+	private record Env(TestServerContext getServer, TestClientWorldContext getClientWorld) {
+	}
+
+	private String tag = "";
+
 	@Override
 	public void runTest(ClientGameTestContext context) {
-		try (TestSingleplayerContext sp = context.worldBuilder().create()) {
+		log("lithium installed: %s", net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("lithium"));
+		try (Env sp = context.worldBuilder().create()) {
+			tag = "solo";
+			scenario(context, new Env(sp.getServer(), sp.getClientWorld()));
+		} catch (Throwable t) {
+			fail("solo: exception: " + t);
+		}
+		// same scenario on a dedicated server, the client connected over the network (like a real server)
+		try (TestDedicatedServerContext ds = context.worldBuilder().createServer();
+				TestServerConnection connection = ds.connect()) {
+			tag = "dedie";
+			scenario(context, new Env(ds, connection.getClientWorld()));
+		} catch (Throwable t) {
+			fail("dedie: exception: " + t);
+		}
+		finish(context);
+	}
+
+	private void scenario(ClientGameTestContext context, Env sp) {
+		{
 			var server = sp.getServer();
-			log("world loaded (lithium installed: %s)", net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("lithium"));
-			if ("1".equals(System.getenv("MS_TEST_MINIMAL"))) {
-				context.takeScreenshot("00_minimal");
-				finish(context);
-				return;
-			}
+			log("world loaded");
 			server.runCommand("gamerule doDaylightCycle false");
 			server.runCommand("gamerule doWeatherCycle false");
 			server.runCommand("gamerule doMobSpawning false");
@@ -64,7 +88,6 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			ShipPose pose = shipPose(sp);
 			if (pose == null) {
 				fail("ship was not spawned");
-				finish(context);
 				return;
 			}
 			log("ship at %.2f %.2f %.2f yaw %.1f", pose.x(), pose.y(), pose.z(), pose.yaw());
@@ -75,13 +98,13 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			server.runCommand("gamemode spectator @a");
 			server.runCommand("tp @p 16 -50 -16 45 25");
 			context.waitTicks(30);
-			context.takeScreenshot("01_overview");
+			shot(context, "01_overview");
 			server.runCommand("tp @p -13 -55 3 -100 8");
 			context.waitTicks(20);
-			context.takeScreenshot("02_side");
+			shot(context, "02_side");
 			server.runCommand("tp @p 2 -50 22 160 30");
 			context.waitTicks(20);
-			context.takeScreenshot("02b_bow");
+			shot(context, "02b_bow");
 			server.runCommand("gamemode survival @a");
 			server.runCommand("effect give @a minecraft:resistance infinite 4 true");
 			server.runCommand("effect give @a minecraft:saturation infinite 4 true");
@@ -93,10 +116,10 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			double[] p = playerPos(context);
 			log("after drop: player y=%.3f onGround=%s", p[1], p[3] > 0);
 			check(Math.abs(p[1] - deckY) < 0.08, "falling: player should stand on the deck (y=%.3f, deck=%.3f)", p[1], deckY);
-			context.takeScreenshot("03_on_deck_first_person");
+			shot(context, "03_on_deck_first_person");
 			context.runOnClient(c -> c.options.setPerspective(Perspective.THIRD_PERSON_BACK));
 			context.waitTicks(5);
-			context.takeScreenshot("04_on_deck_third_person");
+			shot(context, "04_on_deck_third_person");
 			context.runOnClient(c -> c.options.setPerspective(Perspective.FIRST_PERSON));
 
 			// 2. jumping on the deck
@@ -122,7 +145,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			check(fr.medievalships.core.Ships.GALLEY.geometry().inCarryVolume(l[0], l[1], l[2]) && l[1] > HullProfile.MAIN_DECK_Y - 0.1,
 					"walking: player must still be aboard (local %.2f %.2f %.2f)", l[0], l[1], l[2]);
 			check(l[2] > HullProfile.FORE_DECK_START, "walking: player should have climbed onto the fore deck (z=%.2f)", l[2]);
-			context.takeScreenshot("05_at_the_bow");
+			shot(context, "05_at_the_bow");
 
 			// 4. jumping aboard from the quay
 			server.runCommand("tp @p 6.5 -57 0 90 10");
@@ -152,7 +175,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			log("after jumping from the quay: local x=%.2f y=%.2f z=%.2f", l[0], l[1], l[2]);
 			check(fr.medievalships.core.Ships.GALLEY.geometry().inCarryVolume(l[0], l[1], l[2]) && Math.abs(l[1] - HullProfile.deckY(l[2])) < 0.1,
 					"quay: player should have landed on the deck (local %.2f %.2f %.2f)", l[0], l[1], l[2]);
-			context.takeScreenshot("06_jumped_from_quay");
+			shot(context, "06_jumped_from_quay");
 
 			// 5. a mob on the deck (server-side collisions)
 			server.runCommand(String.format(Locale.ROOT, "summon minecraft:armor_stand %.2f %.2f %.2f {Tags:[\"deckmob\"]}",
@@ -172,7 +195,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 				maxY = Math.max(maxY, playerPos(context)[1]);
 			}
 			context.getInput().releaseKey(o -> o.jumpKey);
-			context.takeScreenshot("06b_under_the_hull");
+			shot(context, "06b_under_the_hull");
 			double hullBottom = pose.y() + HullProfile.bottomY(-2, 0.6);
 			log("swimming up under the hull: highest head y=%.3f, hull bottom=%.3f", maxY + 1.8, hullBottom);
 			check(maxY + 1.8 <= hullBottom + 0.05, "under the hull: the swimmer must be stopped by the hull bottom");
@@ -194,7 +217,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			context.getInput().releaseKey(o -> o.forwardKey);
 			context.runOnClient(c -> c.options.setPerspective(Perspective.THIRD_PERSON_BACK));
 			context.waitTicks(10);
-			context.takeScreenshot("07_sailing");
+			shot(context, "07_sailing");
 			context.runOnClient(c -> c.options.setPerspective(Perspective.FIRST_PERSON));
 			ShipPose moved = shipPose(sp);
 			double dist = Math.hypot(moved.x() - start.x(), moved.z() - start.z());
@@ -207,15 +230,12 @@ public class ShipClientGameTest implements FabricClientGameTest {
 				check(fr.medievalships.core.Ships.GALLEY.geometry().inCarryVolume(zl[0], zl[1], zl[2]), "carry: zombie should still be aboard");
 			}
 			galleon(context, sp);
-		} catch (Throwable t) {
-			fail("exception: " + t);
 		}
-		finish(context);
 	}
 
 	// ------------------------------------------------------------------ great galleon
 
-	private void galleon(ClientGameTestContext context, TestSingleplayerContext sp) {
+	private void galleon(ClientGameTestContext context, Env sp) {
 		var server = sp.getServer();
 		ShipGeometry g = Ships.GALLEON.geometry();
 		server.runCommand("ride @p dismount");
@@ -240,16 +260,16 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		// screenshots (sails furl once the ship has been stopped for 5 s: take both states)
 		lookLocal(server, pose, 26, 16, 24, 0, 6, 0);
 		context.waitTicks(30);
-		context.takeScreenshot("g01_galleon_overview");
+		shot(context, "g01_galleon_overview");
 		lookLocal(server, pose, -34, 7, 2, 0, 7, 2);
 		context.waitTicks(20);
-		context.takeScreenshot("g02_galleon_side");
+		shot(context, "g02_galleon_side");
 		lookLocal(server, pose, -9, 6, -31, 0, 3, -16);
 		context.waitTicks(20);
-		context.takeScreenshot("g03_galleon_stern");
+		shot(context, "g03_galleon_stern");
 		lookLocal(server, pose, 10, 9, 34, 0, 5, 15);
 		context.waitTicks(20);
-		context.takeScreenshot("g04_galleon_bow");
+		shot(context, "g04_galleon_bow");
 
 		server.runCommand("gamemode survival @a");
 		// 1. falling onto the main deck, then jumping
@@ -271,7 +291,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		check(Math.abs(p[1] - main) < 0.08 && minY > main - 0.1, "galleon jumping: back on the deck (y=%.3f min=%.3f)", p[1], minY);
 		context.runOnClient(c -> c.options.setPerspective(Perspective.THIRD_PERSON_BACK));
 		context.waitTicks(5);
-		context.takeScreenshot("g05_galleon_deck");
+		shot(context, "g05_galleon_deck");
 		context.runOnClient(c -> c.options.setPerspective(Perspective.FIRST_PERSON));
 
 		// 2. into the great cabin through the bulkhead door
@@ -279,7 +299,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		log("galleon cabin: local %.2f %.2f %.2f", l[0], l[1], l[2]);
 		check(l[2] < GalleonLayout.BULKHEAD_Z - 1.5 && Math.abs(l[1] - GalleonLayout.MAIN_DECK_Y) < 0.1,
 				"galleon cabin: player walked into the cabin (local z=%.2f y=%.2f)", l[2], l[1]);
-		context.takeScreenshot("g06_galleon_cabin");
+		shot(context, "g06_galleon_cabin");
 
 		// 3. through the transom door onto the stern balcony
 		l = walkLocal(context, sp, pose, 0, GalleonLayout.MAIN_DECK_Y, -15.0, 180, 0, 40);
@@ -288,7 +308,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 				"galleon balcony: player on the balcony, held by the balustrade (local z=%.2f y=%.2f)", l[2], l[1]);
 		context.runOnClient(c -> c.options.setPerspective(Perspective.THIRD_PERSON_FRONT));
 		context.waitTicks(5);
-		context.takeScreenshot("g07_galleon_balcony");
+		shot(context, "g07_galleon_balcony");
 		context.runOnClient(c -> c.options.setPerspective(Perspective.FIRST_PERSON));
 
 		// 4. up the stairs to the quarterdeck, and to the forecastle
@@ -299,7 +319,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 				"galleon stairs: player climbed onto the quarterdeck (local y=%.2f z=%.2f)", l[1], l[2]);
 		context.runOnClient(c -> c.options.setPerspective(Perspective.THIRD_PERSON_BACK));
 		context.waitTicks(5);
-		context.takeScreenshot("g08_galleon_quarterdeck");
+		shot(context, "g08_galleon_quarterdeck");
 		context.runOnClient(c -> c.options.setPerspective(Perspective.FIRST_PERSON));
 		double fx = (GalleonLayout.FC_STAIR_X0 + GalleonLayout.FC_STAIR_X1) / 2;
 		l = walkLocal(context, sp, pose, fx, GalleonLayout.MAIN_DECK_Y, 7.6, 0, 0, 40);
@@ -366,7 +386,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		ShipPose coasted = shipPose(sp, Ships.GALLEON);
 		context.runOnClient(c -> c.options.setPerspective(Perspective.THIRD_PERSON_BACK));
 		context.waitTicks(10);
-		context.takeScreenshot("g09_galleon_sailing");
+		shot(context, "g09_galleon_sailing");
 		context.runOnClient(c -> c.options.setPerspective(Perspective.FIRST_PERSON));
 		double d2 = Math.hypot(after2s.x() - start.x(), after2s.z() - start.z());
 		double d8 = Math.hypot(released.x() - start.x(), released.z() - start.z());
@@ -402,6 +422,15 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		l = now.toLocal(p[0], p[1], p[2]);
 		check(g.inCarryVolume(l[0], l[1], l[2]) && Math.abs(l[1] - GalleonLayout.QUARTERDECK_Y) < 0.15,
 				"galleon dismount: the pilot steps off onto the quarterdeck (local %.2f %.2f %.2f)", l[0], l[1], l[2]);
+		// sails are still set for a few seconds after stopping: look at them from outside
+		server.runCommand("gamemode spectator @a");
+		lookLocal(server, now, 24, 13, 20, 0, 10, 1);
+		context.waitTicks(15);
+		shot(context, "g10_galleon_sails_set");
+		lookLocal(server, now, -6, 9, 30, 0, 9, 4);
+		context.waitTicks(10);
+		shot(context, "g11_galleon_sails_front");
+		server.runCommand("gamemode survival @a");
 		server.runCommand("clear @a");
 		server.runCommand("ship give galleon @p");
 		Integer items = server.computeOnServer(s ->
@@ -410,7 +439,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 	}
 
 	/** Teleports the player to a ship-local position, then walks forward for {@code ticks}; returns the local position. */
-	private double[] walkLocal(ClientGameTestContext context, TestSingleplayerContext sp, ShipPose pose, double lx, double ly, double lz,
+	private double[] walkLocal(ClientGameTestContext context, Env sp, ShipPose pose, double lx, double ly, double lz,
 			float localYaw, float pitch, int ticks) {
 		tpLocal(sp.getServer(), pose, lx, ly + 0.02, lz, localYaw, pitch);
 		context.waitTicks(15);
@@ -452,21 +481,21 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		return null;
 	}
 
-	private static ShipPose shipPose(TestSingleplayerContext sp, ShipType type) {
+	private static ShipPose shipPose(Env sp, ShipType type) {
 		return sp.getServer().computeOnServer(server -> {
 			ShipEntity s = ship(server.getOverworld(), type);
 			return s == null ? null : s.pose();
 		});
 	}
 
-	private static ShipPose shipPose(TestSingleplayerContext sp) {
+	private static ShipPose shipPose(Env sp) {
 		return sp.getServer().computeOnServer(server -> {
 			ShipEntity s = ship(server.getOverworld());
 			return s == null ? null : s.pose();
 		});
 	}
 
-	private static double[] mobPos(TestSingleplayerContext sp) {
+	private static double[] mobPos(Env sp) {
 		return sp.getServer().computeOnServer((MinecraftServer server) -> {
 			for (Entity e : server.getOverworld().iterateEntities()) {
 				if (e.getCommandTags().contains("deckmob")) {
@@ -482,14 +511,18 @@ public class ShipClientGameTest implements FabricClientGameTest {
 				new double[] {c.player.getX(), c.player.getY(), c.player.getZ(), c.player.isOnGround() ? 1 : 0});
 	}
 
+	private void shot(ClientGameTestContext context, String name) {
+		context.takeScreenshot(tag + "_" + name);
+	}
+
 	private void log(String fmt, Object... args) {
-		String s = String.format(Locale.ROOT, fmt, args);
+		String s = (tag.isEmpty() ? "" : "[" + tag + "] ") + String.format(Locale.ROOT, fmt, args);
 		report.add(s);
 		System.out.println("[medievalships-test] " + s);
 	}
 
 	private void check(boolean ok, String fmt, Object... args) {
-		String s = String.format(Locale.ROOT, fmt, args);
+		String s = (tag.isEmpty() ? "" : "[" + tag + "] ") + String.format(Locale.ROOT, fmt, args);
 		report.add((ok ? "PASS " : "FAIL ") + s);
 		System.out.println("[medievalships-test] " + (ok ? "PASS " : "FAIL ") + s);
 		if (!ok) {

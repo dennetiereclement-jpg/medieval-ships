@@ -115,18 +115,19 @@ def set_sub(cube, sub, faces=("north", "south")):
 
 # ---------------------------------------------------------------- sails
 def sail_surface(origin, U, V, N, half_top, half_bottom, height, depth, fx, fy, triangle=False):
-    """Point of a billowed sail. fx in [-1, 1] across, fy in [0, 1] from the head down."""
+    """Point of a billowed sail. fx in [-1, 1] across, fy in [0, 1] from the head down.
+    The belly only depends on fy: every horizontal strip is then exactly planar and shares its
+    edges with its neighbours (no cracks, no overlap, no saw-tooth edges), the head stays on its
+    yard / stay and the cloth curves out below it."""
     half = half_top + (half_bottom - half_top) * fy
-    belly = depth * (1 - fx * fx) * math.sin(math.pi * min(1.0, fy * 0.75 + 0.02))
-    if triangle:
-        belly = depth * math.sin(math.pi * (fx + 1) / 2) * math.sin(math.pi * min(1.0, fy * 0.6 + 0.05))
+    belly = depth * math.sin(math.pi * min(1.0, fy * (0.6 if triangle else 0.72)))
     return origin + U * (fx * half) + V * (fy * height) + N * belly
 
 
-def sail(bone, name, origin, U, V, N, half_top, half_bottom, height, depth, region, nx=6, ny=4,
+def sail(bone, name, origin, U, V, N, half_top, half_bottom, height, depth, region, nx=1, ny=8,
          triangle=False, th=0.04):
-    """Square (or triangle-textured) sail made of tilted panels following a curved surface.
-    Each panel maps its own part of the texture region, so the cloth (and its emblem) is continuous."""
+    """Square (or triangle-textured) sail made of tilted strips following a curved surface.
+    Each strip maps its own part of the texture region, so the cloth (and its emblem) is continuous."""
     U, V, N = norm(U), norm(V), norm(N)
     for i in range(nx):
         for j in range(ny):
@@ -145,12 +146,12 @@ def sail(bone, name, origin, U, V, N, half_top, half_bottom, height, depth, regi
             if np.dot(n, N) < 0:
                 n = -n
             axes = np.column_stack([u, v, n])
-            cube = add_cube(bone, "%s_%d_%d" % (name, i, j), c, axes, (L * 1.02 + 0.02, H * 1.02 + 0.02, th),
+            cube = add_cube(bone, "%s_%d_%d" % (name, i, j), c, axes, (L + 0.005, H + 0.005, th),
                             {"all": None, "+3": region, "-3": region}, stretch=True, u_dir=U, v_dir=V)
             set_sub(cube, (i / nx, j / ny, (i + 1) / nx, (j + 1) / ny))
 
 
-def tri_sail(bone, name, head, tack, clew, depth, N, region, nx=5, ny=4):
+def tri_sail(bone, name, head, tack, clew, depth, N, region, nx=1, ny=7):
     """Triangular sail (lateen, jib): rectangle grid spanning the triangle, transparent outside.
     head-tack = luff (U axis); returns the triangle in [0,1] region coordinates."""
     U = tack - head
@@ -596,7 +597,7 @@ def build():
         yard(mb, name + "_foot", z, y_top - height - 0.05, half_bottom + 0.2) if False else None
         sb = Bone("sail_" + name, origin=(0, y_top, z + 0.42), parent=mb)
         sail(sb, name, v3(0, y_top - 0.12, z + 0.45), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), half_top, half_bottom,
-             height, depth, region, nx=8, ny=7)
+             height, depth, region, nx=1, ny=9)
         sails_info.append((sb, False))
         return sb
 
@@ -608,28 +609,32 @@ def build():
     # mizzen lateen yard and sail
     lat_fore, lat_aft = v3(0.32, 8.0, -8.0), v3(0.32, 16.6, -17.4)
     beam(m_mizzen, "lateen_yard", lat_fore - norm(lat_aft - lat_fore) * 0.3, lat_aft, 0.2, "mast")
+    beam(m_mizzen, "lateen_roll", lat_fore + v3(0.05, -0.2, 0) + norm(lat_aft - lat_fore) * 0.8,
+         lat_aft + v3(0.05, -0.2, 0) - norm(lat_aft - lat_fore) * 0.4, 0.24, "cloth_roll")
     lat_sail = Bone("sail_mizzen", origin=tuple((lat_fore + lat_aft) / 2), parent=m_mizzen)
     lateen_tri = tri_sail(lat_sail, "mizzen_lateen", lat_aft + v3(0.08, -0.12, 0.05), lat_fore + v3(0.08, -0.12, 0),
-                          v3(0.4, 8.0, -16.4), 0.7, v3(1, 0, 0), "lateen", nx=7, ny=5)
+                          v3(0.4, 8.0, -16.4), 0.55, v3(1, 0, 0), "lateen", ny=8)
     sails_info.append((lat_sail, True))
 
     # jibs on the stays to the bowsprit
+    beam(bow, "jib_roll", sprit_a + (sprit_b - sprit_a) * 0.5 + v3(0, 0.25, 0), sprit_b + v3(0, 0.22, -0.3), 0.2, "cloth_roll")
     jib = Bone("jib", origin=tuple(sprit_b), parent=root)
     fore_head = v3(0, gs.FORE_MAST_TOP - 0.5, gs.FORE_MAST_Z)
     stay_top = sprit_b + (fore_head - sprit_b) * 0.62
     jib_tri = tri_sail(jib, "jib_outer", stay_top + v3(0.0, -0.05, -0.06), sprit_b + v3(0, 0.05, -0.12),
-                       v3(0.05, 5.6, 18.6), 0.45, v3(1, 0, 0), "jib", nx=4, ny=4)
+                       v3(0.05, 5.6, 18.6), 0.35, v3(1, 0, 0), "jib", ny=6)
     fore_low = v3(0, 13.0, gs.FORE_MAST_Z)
     mid_sprit = sprit_a + (sprit_b - sprit_a) * 0.55
     st2 = mid_sprit + (fore_low - mid_sprit) * 0.62
     tri_sail(jib, "jib_inner", st2 + v3(0.0, -0.05, -0.06), mid_sprit + v3(0, 0.05, -0.1),
-             v3(0.05, 5.0, 16.2), 0.35, v3(1, 0, 0), "jib", nx=4, ny=4)
+             v3(0.05, 5.0, 16.2), 0.3, v3(1, 0, 0), "jib", ny=6)
     sails_info.append((jib, True))
     sprit_yard = sprit_a + (sprit_b - sprit_a) * 0.72
     beam(bow, "spritsail_yard", sprit_yard + v3(-2.3, -0.25, 0), sprit_yard + v3(2.3, -0.25, 0), 0.16, "mast", extend=0.08)
+    beam(bow, "spritsail_roll", sprit_yard + v3(-1.9, -0.45, 0.05), sprit_yard + v3(1.9, -0.45, 0.05), 0.22, "cloth_roll")
     sprit_sail = Bone("sail_sprit", origin=tuple(sprit_yard + v3(0, -0.3, 0)), parent=bow)
     sail(sprit_sail, "spritsail", sprit_yard + v3(0, -0.36, 0.12), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), 2.1, 2.4, 2.3, 0.45,
-         "topsail", nx=6, ny=4)
+         "topsail", ny=5)
     sails_info.append((sprit_sail, False))
 
     # ---- flags (texture #1): masthead flags, main pennant, stern ensign
@@ -734,9 +739,9 @@ def build_animations(root, sails_info):
     tracks = []
     for b, side_billow in sails_info:
         if side_billow:
-            tracks.append((b, [kf("scale", 0.0, (1, 1, 1)), kf("scale", 1.0, (0.25, 0.08, 0.12))]))
+            tracks.append((b, [kf("scale", 0.0, (1, 1, 1)), kf("scale", 1.0, (0, 0, 0))]))
         else:
-            tracks.append((b, [kf("scale", 0.0, (1, 1, 1)), kf("scale", 1.0, (0.92, 0.04, 0.25))]))
+            tracks.append((b, [kf("scale", 0.0, (1, 1, 1)), kf("scale", 1.0, (0.95, 0, 0))]))
     anims.append(animation("sail_furl", 1.0, "hold", tracks))
     # steer: 0 = full port helm, 1 = centre, 2 = full starboard
     wheel, rudder = find(root, "helm_wheel"), find(root, "rudder")

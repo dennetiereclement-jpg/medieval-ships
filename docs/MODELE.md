@@ -115,13 +115,13 @@ faites à la main dans Blockbench.
 | Cabine | **grande cabine accessible** sous le gaillard d'arrière (porte dans la cloison, chaises = places assises, lanternes, coffre, poutres) ; **dunette** au toit de tuiles rouges (décorative, fermée) avec pilastres dorés, fenêtres cintrées éclairées et épis de faîtage |
 | Gouvernail et barre | roue de barre sur piédestal (os `helm_wheel`) et gouvernail sur le tableau (os `rudder`) |
 | Mâture | 3 mâts (misaine, grand mât en deux parties avec hunes, artimon) + beaupré avec **civadière**, vergues avec voile carguée en rouleau, porte-haubans et caps-de-mouton sur la coque |
-| Voiles | voiles carrées **gonflées et courbées** (chaque voile = 56 panneaux inclinés qui suivent une surface en ventre, texture continue avec croix rouge sur les basses voiles, garcettes de ris et toile légèrement patinée), voile latine d'artimon, **2 focs** triangulaires |
+| Voiles | voiles carrées **gonflées et courbées** (chaque voile = 9 bandes inclinées qui se raccordent exactement et suivent le ventre de la toile ; carguées, les voiles disparaissent dans leur rouleau sur la vergue ; texture continue avec croix rouge sur les basses voiles, garcettes de ris et toile légèrement patinée), voile latine d'artimon, **2 focs** triangulaires |
 | Cordages | haubans avec enfléchures, étais, bras, écoutes, sous-barbe (≈ 60 cordages) |
 | Drapeaux | pavillons en tête de mât, flamme à deux couleurs au grand mât, grand pavillon de poupe — tous sur la texture `galleon_flag.png` |
 | Sabords | 12 sabords décoratifs (6 par bord) avec mantelets ouverts : os `gunport_l1`…`gunport_l6`, `gunport_r1`…`gunport_r6` ; os vides `cannon_l1`…`cannon_r6` à l'emplacement des futurs canons |
 | Proue | éperon rouge et doré, figure de proue dorée, ancres, écubiers, lanterne de proue |
 
-Optimisation : 1540 cubes (≈ 7900 faces), aucune géométrie cachée inutile ; 56 os.
+Optimisation : 1289 cubes (≈ 6700 faces), aucune géométrie cachée inutile ; 56 os.
 
 ## Changer l'emblème des drapeaux
 
