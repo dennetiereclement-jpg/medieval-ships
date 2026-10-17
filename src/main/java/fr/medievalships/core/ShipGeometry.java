@@ -124,7 +124,8 @@ public final class ShipGeometry {
 		double lyMin = qMinY - pose.y(), lyMax = qMaxY - pose.y();
 		double cellHalf = CELL / 2 * (ac + as) + 1e-4;
 
-		// deck floor
+		// solid hull: deck on top, hull bottom underneath. Nothing can get under the deck or
+		// inside the hull, from above or from the water.
 		int iz0 = (int) Math.floor(Math.max(lzMin, DECK_MIN_Z) / CELL);
 		int iz1 = (int) Math.floor(Math.min(lzMax, DECK_MAX_Z) / CELL);
 		for (int iz = iz0; iz <= iz1; iz++) {
@@ -133,7 +134,7 @@ public final class ShipGeometry {
 				continue;
 			}
 			double top = HullProfile.deckY(zc);
-			if (lyMax < top - 0.5 || lyMin > top) {
+			if (lyMax < HullProfile.keelY(zc) || lyMin > top) {
 				continue;
 			}
 			double w = HullProfile.innerHalfWidth(zc) + 0.12;
@@ -144,9 +145,15 @@ public final class ShipGeometry {
 				if (Math.abs(xc) - CELL / 2 > w) {
 					continue;
 				}
+				// bottom of the hull under the centre of the cell, so the box barely sticks
+				// out below the rounded hull
+				double bottom = Math.min(top - 0.5, HullProfile.bottomY(zc, Math.min(w, Math.abs(xc))));
+				if (lyMax < bottom) {
+					continue;
+				}
 				double wx = pose.x() + xc * c - zc * s;
 				double wz = pose.z() + xc * s + zc * c;
-				sink.accept(wx - cellHalf, pose.y() + top - 0.5, wz - cellHalf,
+				sink.accept(wx - cellHalf, pose.y() + bottom, wz - cellHalf,
 						wx + cellHalf, pose.y() + top, wz + cellHalf);
 			}
 		}
@@ -160,7 +167,7 @@ public final class ShipGeometry {
 			if (zc < -9.9 || zc > 9.9) {
 				continue;
 			}
-			double bottom = HullProfile.keelY(zc);
+			double bottom = HullProfile.bottomY(zc, HullProfile.halfWidth(zc));
 			double top = HullProfile.railY(zc) + 0.1;
 			if (lyMax < bottom || lyMin > top) {
 				continue;

@@ -44,6 +44,29 @@ public final class HullProfile {
 		return -1.2 + a * a * a * a;
 	}
 
+	/**
+	 * Height of the outside of the hull bottom at lateral distance {@code absX} from the keel,
+	 * following the cross-section used by the model generator (keel, bilge, waterline).
+	 */
+	public static double bottomY(double z, double absX) {
+		double w = halfWidth(z), yk = keelY(z);
+		if (w <= 0.1) {
+			return yk;
+		}
+		double[] xs = {0.0, 0.62 * w, 0.93 * w};
+		double[] ys = {yk, 0.82 * yk, 0.25 * yk};
+		if (absX >= xs[2]) {
+			return ys[2];
+		}
+		for (int i = 0; i < 2; i++) {
+			if (absX <= xs[i + 1]) {
+				double f = (absX - xs[i]) / (xs[i + 1] - xs[i]);
+				return ys[i] + (ys[i + 1] - ys[i]) * f;
+			}
+		}
+		return ys[2];
+	}
+
 	/** Half width of the walkable deck (inside of the planking). */
 	public static double innerHalfWidth(double z) {
 		return Math.max(0.0, 0.97 * halfWidth(z) - 0.12);

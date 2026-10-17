@@ -52,7 +52,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			server.runCommand("fill -14 -63 -26 14 -50 26 air");
 			server.runCommand("fill -14 -63 -26 14 -59 26 water");
 			// a stone quay along the starboard side... of the basin (east)
-			server.runCommand("fill 6 -63 -6 9 -58 6 stone");
+			server.runCommand("fill 4 -63 -6 7 -58 6 stone");
 			server.runCommand("execute positioned 0 -58 0 rotated 0 0 run ship spawn");
 			sp.getClientWorld().waitForChunksRender();
 			context.waitTicks(40);
@@ -68,15 +68,20 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			log("expected main deck top %.3f", deckY);
 
 			// overview screenshots
-			server.runCommand("tp @p 18 -50 -18 45 25");
+			server.runCommand("gamemode spectator @a");
+			server.runCommand("tp @p 16 -50 -16 45 25");
 			context.waitTicks(30);
 			context.takeScreenshot("01_overview");
-			server.runCommand("tp @p -16 -53 4 -110 12");
+			server.runCommand("tp @p -13 -55 3 -100 8");
 			context.waitTicks(20);
 			context.takeScreenshot("02_side");
+			server.runCommand("tp @p 2 -50 22 160 30");
+			context.waitTicks(20);
+			context.takeScreenshot("02b_bow");
+			server.runCommand("gamemode creative @a");
 
 			// 1. falling onto the deck
-			server.runCommand("tp @p 0 -53 -3 0 30");
+			server.runCommand("tp @p 1.5 -53 -3 0 30");
 			context.waitTicks(60);
 			double[] p = playerPos(context);
 			log("after drop: player y=%.3f onGround=%s", p[1], p[3] > 0);
@@ -113,7 +118,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			context.takeScreenshot("05_at_the_bow");
 
 			// 4. jumping aboard from the quay
-			server.runCommand("tp @p 7.5 -57 0 90 10");
+			server.runCommand("tp @p 5.5 -57 0 90 10");
 			context.waitTicks(30);
 			context.getInput().holdKey(o -> o.forwardKey);
 			for (int i = 0; i < 4; i++) {
@@ -130,12 +135,29 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			context.takeScreenshot("06_jumped_from_quay");
 
 			// 5. a mob on the deck (server-side collisions)
-			server.runCommand(String.format(Locale.ROOT, "summon minecraft:zombie %.2f %.2f %.2f {NoAI:1b,PersistenceRequired:1b,Tags:[\"deckmob\"]}",
+			server.runCommand(String.format(Locale.ROOT, "summon minecraft:armor_stand %.2f %.2f %.2f {Tags:[\"deckmob\"]}",
 					pose.worldX(0.8, 3), deckY + 3, pose.worldZ(0.8, 3)));
 			context.waitTicks(60);
 			double[] z = mobPos(sp);
 			log("zombie at y=%.3f", z == null ? Double.NaN : z[1]);
-			check(z != null && Math.abs(z[1] - deckY) < 0.08, "mob: zombie should stand on the deck");
+			check(z != null && Math.abs(z[1] - deckY) < 0.08, "mob: armor stand should stand on the deck");
+
+			// 5b. swimming up under the hull must not get inside it
+			server.runCommand(String.format(Locale.ROOT, "tp @p %.2f %.2f %.2f 0 -60", pose.worldX(0.6, -2), pose.y() - 3.5, pose.worldZ(0.6, -2)));
+			context.waitTicks(10);
+			context.getInput().holdKey(o -> o.jumpKey);
+			double maxY = -1e9;
+			for (int t = 0; t < 60; t++) {
+				context.waitTick();
+				maxY = Math.max(maxY, playerPos(context)[1]);
+			}
+			context.getInput().releaseKey(o -> o.jumpKey);
+			context.takeScreenshot("06b_under_the_hull");
+			double hullBottom = pose.y() + HullProfile.bottomY(-2, 0.6);
+			log("swimming up under the hull: highest head y=%.3f, hull bottom=%.3f", maxY + 1.8, hullBottom);
+			check(maxY + 1.8 <= hullBottom + 0.05, "under the hull: the swimmer must be stopped by the hull bottom");
+			server.runCommand("tp @p 1.5 -55 -3 0 30");
+			context.waitTicks(40);
 
 			// 6. steering with the player at the helm: the zombie must be carried
 			sp.getServer().runOnServer(server2 -> {

@@ -88,6 +88,43 @@ class CoreTest {
 		}
 	}
 
+	/** The hull is solid from the keel to the deck: nothing can swim under the deck or inside the hull. */
+	@Test
+	void hullIsSolidBelowTheDeck() {
+		for (double yaw = 0; yaw < 360; yaw += 15) {
+			ShipPose pose = new ShipPose(10.2, 62.9, -7.3, yaw);
+			for (double z = -9.0; z <= 9.0; z += 0.45) {
+				double w = HullProfile.innerHalfWidth(z) - 0.2;
+				for (double x = -w; x <= w; x += 0.4) {
+					double bottom = HullProfile.bottomY(z, Math.abs(x) + 0.26) + 0.05;
+					for (double y = bottom; y < HullProfile.deckY(z) - 0.05; y += 0.3) {
+						double[] p = pose.toWorld(x, y, z);
+						boolean[] inside = {false};
+						ShipGeometry.collectBoxes(pose, p[0] - 0.01, p[1] - 0.01, p[2] - 0.01, p[0] + 0.01, p[1] + 0.01, p[2] + 0.01,
+								(a, b, c, d, e, f) -> {
+									if (p[0] >= a && p[0] <= d && p[1] >= b && p[1] <= e && p[2] >= c && p[2] <= f) {
+										inside[0] = true;
+									}
+								});
+						assertTrue(inside[0], "hollow hull at " + x + "," + y + "," + z + " yaw " + yaw);
+					}
+				}
+			}
+		}
+	}
+
+	/** The collision volume must not stick out under the rounded hull bottom (no invisible walls in the water). */
+	@Test
+	void hullBoxesStayInsideTheHullBottom() {
+		ShipPose pose = new ShipPose(0, 62, 0, 0);
+		ShipGeometry.collectBoxes(pose, -4, 60, -11, 4, 66, 11, (a, b, c, d, e, f) -> {
+			double cx = (a + d) / 2, cz = (c + f) / 2;
+			double bottomHere = HullProfile.bottomY(cz, Math.min(HullProfile.halfWidth(cz), Math.abs(cx) + 0.4));
+			assertTrue(b - 62 >= HullProfile.keelY(cz) - 0.3, "box below the keel at " + cx + "," + cz);
+			assertTrue(b - 62 >= Math.min(bottomHere, HullProfile.keelY(cz)) - 0.6, "box below the hull bottom at " + cx + "," + cz);
+		});
+	}
+
 	@Test
 	void farQueryReturnsNothing() {
 		int[] n = {0};
