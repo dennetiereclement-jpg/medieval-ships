@@ -19,10 +19,10 @@ public final class ShipMover {
 	public record Result(ShipPose pose, boolean forwardBlocked, boolean rotationBlocked, int collisions) {
 	}
 
-	public static int countCollisions(ShipPose pose, Obstacles obstacles) {
+	public static int countCollisions(ShipGeometry geometry, ShipPose pose, Obstacles obstacles) {
 		int n = 0;
 		double c = pose.cos(), s = pose.sin();
-		for (double[] p : ShipGeometry.PROBES) {
+		for (double[] p : geometry.probes()) {
 			double wx = pose.x() + p[0] * c - p[2] * s;
 			double wz = pose.z() + p[0] * s + p[2] * c;
 			if (obstacles.blocked(wx, pose.y() + p[1], wz)) {
@@ -32,7 +32,7 @@ public final class ShipMover {
 		return n;
 	}
 
-	public static Result move(ShipPose from, double forward, double dyaw, double dy, Obstacles obstacles) {
+	public static Result move(ShipGeometry geometry, ShipPose from, double forward, double dyaw, double dy, Obstacles obstacles) {
 		double midYaw = Math.toRadians(from.yaw() + dyaw / 2);
 		double dx = -Math.sin(midYaw) * forward;
 		double dz = Math.cos(midYaw) * forward;
@@ -41,7 +41,7 @@ public final class ShipMover {
 		if (!moving && !turning) {
 			return new Result(from.moved(0, dy, 0, 0), false, false, 0);
 		}
-		int c0 = countCollisions(from, obstacles);
+		int c0 = countCollisions(geometry, from, obstacles);
 
 		double[][] candidates = {
 				{dx, dz, dyaw},
@@ -61,7 +61,7 @@ public final class ShipMover {
 			if (i >= 3 && Math.abs(m[0]) + Math.abs(m[1]) < Math.abs(forward) * 0.25) {
 				continue; // sliding along an obstacle only when it keeps a useful part of the motion
 			}
-			int c = countCollisions(from.moved(m[0], 0, m[1], m[2]), obstacles);
+			int c = countCollisions(geometry, from.moved(m[0], 0, m[1], m[2]), obstacles);
 			if (c0 == 0) {
 				if (c == 0) {
 					bestIndex = i;
@@ -69,7 +69,7 @@ public final class ShipMover {
 					break;
 				}
 			} else if (c <= c0 && c < bestCount && (c < c0
-					|| countCollisions(from.moved(m[0] * 3, 0, m[1] * 3, m[2] * 3), obstacles) <= c0)) {
+					|| countCollisions(geometry, from.moved(m[0] * 3, 0, m[1] * 3, m[2] * 3), obstacles) <= c0)) {
 				// already overlapping: only accept moves that do not dig further in
 				bestIndex = i;
 				bestCount = c;

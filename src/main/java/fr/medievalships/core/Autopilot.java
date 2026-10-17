@@ -36,8 +36,6 @@ public final class Autopilot {
 
 	private static final int PROBE_INTERVAL = 5;
 	private static final double[] AVOID_STEPS = {15, 30, 45, 60, 80, 100};
-	private static final double HULL_REACH = 10.6;
-	private static final double HULL_HALF_WIDTH = 2.4;
 	/** Without getting 2 blocks closer to its target for this long, the helmsman gives up on it. */
 	private static final int STALL_SECONDS = 50;
 	/** Probe evaluations (every {@link #PROBE_INTERVAL} ticks) before giving up on the chosen side. */
@@ -54,6 +52,8 @@ public final class Autopilot {
 	public int recoverTicks;
 
 	// ---- transient state
+	private double reach = 10.6;
+	private double halfWidth = 2.4;
 	private double avoidOffset;
 	private int probeCooldown;
 	private double clearance = Double.MAX_VALUE;
@@ -67,7 +67,7 @@ public final class Autopilot {
 	private int blockedEvaluations;
 
 	/** Starts (or restarts) the route from the ship's current position. */
-	public void start(Route route, ShipPose pose, ShipConfig cfg) {
+	public void start(Route route, ShipPose pose, ShipConfig cfg, ShipGeometry geometry) {
 		failures = 0;
 		recoverTicks = 0;
 		avoidOffset = 0;
@@ -93,7 +93,7 @@ public final class Autopilot {
 		legStartX = pose.x();
 		legStartZ = pose.z();
 		Waypoint w = route.get(nearest);
-		if (w.isStop() && best < 16.0) {
+		if (w.isStop() && best < Math.max(16.0, geometry.aiReach() * 1.5)) {
 			phase = Phase.DOCKED;
 			waitTicks = w.waitSeconds * 20;
 		} else {
@@ -139,7 +139,9 @@ public final class Autopilot {
 	}
 
 	public ShipPhysics.Controls tick(Route route, ShipPose pose, double speed, double yawRate, Gait cruise,
-									 ShipConfig cfg, Navigator nav, Listener listener) {
+									 ShipConfig cfg, ShipGeometry geometry, Navigator nav, Listener listener) {
+		this.reach = geometry.aiReach();
+		this.halfWidth = geometry.aiHalfWidth();
 		if (route == null || route.size() == 0) {
 			phase = Phase.IDLE;
 		}
@@ -308,7 +310,7 @@ public final class Autopilot {
 
 		// ---- local obstacle avoidance
 		double probe = Math.max(cfg.aiProbeDistance, 16 + 5 * Math.abs(speed));
-		double need = Math.min(probe, dist + HULL_REACH);
+		double need = Math.min(probe, dist + reach);
 		boolean approachingStop = tgt.isStop() && dist < 18;
 		if (--probeCooldown <= 0) {
 			probeCooldown = PROBE_INTERVAL;
@@ -350,7 +352,7 @@ public final class Autopilot {
 			v = Math.min(v, Math.max(0.8, v * (1 - absErr / 120)));
 		}
 		if (clearance < need) {
-			double free = clearance - HULL_REACH;
+			double free = clearance - reach;
 			v = Math.min(v, Math.max(0.0, free / 12.0 * v));
 		}
 
@@ -410,7 +412,7 @@ public final class Autopilot {
 	}
 
 	private void chooseAvoidance(ShipPose pose, double desiredYaw, double need, Navigator nav) {
-		double straight = clearanceAlong(pose, desiredYaw, need, nav);
+		double straight = clearanceAlong(pose, desiredYaw, need, halfWidth, nav);
 		if (straight >= need) {
 			avoidOffset = 0;
 			blockedEvaluations = 0;
@@ -450,10 +452,10 @@ public final class Autopilot {
 	}
 
 	/** {offset, clearance} of the smallest deviation on one side that is clear (or the best one found). */
-	private static double[] firstClear(ShipPose pose, double desiredYaw, double need, Navigator nav, double side) {
+	private double[] firstClear(ShipPose pose, double desiredYaw, double need, Navigator nav, double side) {
 		double bestOff = AVOID_STEPS[AVOID_STEPS.length - 1], bestClear = -1;
 		for (double off : AVOID_STEPS) {
-			double c = clearanceAlong(pose, desiredYaw + off * side, need, nav);
+			double c = clearanceAlong(pose, desiredYaw + off * side, need, halfWidth, nav);
 			if (c >= need) {
 				return new double[] {off, c};
 			}
@@ -466,15 +468,15 @@ public final class Autopilot {
 	}
 
 	/** Free distance from the hull centre along a heading, checking the centre line and both sides. */
-	static double clearanceAlong(ShipPose pose, double yaw, double need, Navigator nav) {
+	static double clearanceAlong(ShipPose pose, double yaw, double need, double hullHalfWidth, Navigator nav) {
 		double r = Math.toRadians(yaw);
 		double fx = -Math.sin(r), fz = Math.cos(r);
 		double sx = fz, sz = -fx; // lateral
 		for (double d = 4; d <= need; d += 2) {
 			double cx = pose.x() + fx * d, cz = pose.z() + fz * d;
 			if (!nav.navigable(cx, cz)
-					|| !nav.navigable(cx + sx * HULL_HALF_WIDTH, cz + sz * HULL_HALF_WIDTH)
-					|| !nav.navigable(cx - sx * HULL_HALF_WIDTH, cz - sz * HULL_HALF_WIDTH)) {
+					|| !nav.navigable(cx + sx * hullHalfWidth, cz + sz * hullHalfWidth)
+					|| !nav.navigable(cx - sx * hullHalfWidth, cz - sz * hullHalfWidth)) {
 				return d;
 			}
 		}

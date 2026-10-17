@@ -10,6 +10,7 @@ permissions:
 jobs:
   client-gametest:
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -34,6 +35,7 @@ jobs:
       - name: Install virtual display
         run: sudo apt-get update -q && sudo apt-get install -y -q xvfb mesa-utils
       - name: Run the real client with the mod
+        timeout-minutes: 12
         run: |
           set -o pipefail
           xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew runProductionClientGameTest --stacktrace -Dfabric.client.gametest.disableNetworkSynchronizer=true 2>&1 | tee /tmp/gradle-output.txt
@@ -46,6 +48,7 @@ jobs:
           find . -name "medievalships-test.txt" -not -path "./.git/*" -exec cp {} /tmp/out/ \; || true
           find . -path "*screenshots*" -name "*.png" -not -path "./.git/*" -exec cp {} /tmp/out/ \; || true
           f=$(find . -path "*logs*" -name "latest.log" -not -path "./.git/*" | head -1); [ -n "$f" ] && cp "$f" /tmp/out/latest.log || true
+          find . -name "*.log" -newer build.gradle -not -path "./.git/*" -not -path "./.gradle/*" | head -20 > /tmp/out/logfiles.txt || true
           cd /tmp/out && ls -la
           git init -q && git checkout -q -b test-results-${{ matrix.variant }}
           git config user.name github-actions && git config user.email github-actions@users.noreply.github.com

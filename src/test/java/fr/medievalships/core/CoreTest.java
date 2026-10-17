@@ -12,6 +12,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class CoreTest {
+	private static final ShipGeometry G = Ships.GALLEY.geometry();
 	private static final double DT = 0.05;
 
 	@Test
@@ -52,7 +53,7 @@ class CoreTest {
 					double[] p = pose.toWorld(x, HullProfile.deckY(z), z);
 					// a player-sized box resting on the deck
 					double[] support = {Double.NEGATIVE_INFINITY};
-					ShipGeometry.collectBoxes(pose, p[0] - 0.3, p[1] - 0.5, p[2] - 0.3, p[0] + 0.3, p[1] + 1.8, p[2] + 0.3,
+					G.collectBoxes(pose, p[0] - 0.3, p[1] - 0.5, p[2] - 0.3, p[0] + 0.3, p[1] + 1.8, p[2] + 0.3,
 							(a, b, c, d, e, f) -> {
 								if (p[0] > a && p[0] < d && p[2] > c && p[2] < f && e <= p[1] + 1e-6) {
 									support[0] = Math.max(support[0], e);
@@ -75,7 +76,7 @@ class CoreTest {
 					double[] p = pose.toWorld(x, HullProfile.deckY(z) + 0.5, z);
 					boolean[] hit = {false};
 					// a 0.6 x 0.6 player box centred on the wall line must intersect a wall box
-					ShipGeometry.collectBoxes(pose, p[0] - 0.3, p[1], p[2] - 0.3, p[0] + 0.3, p[1] + 0.2, p[2] + 0.3,
+					G.collectBoxes(pose, p[0] - 0.3, p[1], p[2] - 0.3, p[0] + 0.3, p[1] + 0.2, p[2] + 0.3,
 							(a, b, c, d, e, f) -> {
 								if (a < p[0] + 0.3 && d > p[0] - 0.3 && c < p[2] + 0.3 && f > p[2] - 0.3
 										&& b < p[1] + 0.2 && e > p[1] && e - b > 1.0) {
@@ -100,7 +101,7 @@ class CoreTest {
 					for (double y = bottom; y < HullProfile.deckY(z) - 0.05; y += 0.3) {
 						double[] p = pose.toWorld(x, y, z);
 						boolean[] inside = {false};
-						ShipGeometry.collectBoxes(pose, p[0] - 0.01, p[1] - 0.01, p[2] - 0.01, p[0] + 0.01, p[1] + 0.01, p[2] + 0.01,
+						G.collectBoxes(pose, p[0] - 0.01, p[1] - 0.01, p[2] - 0.01, p[0] + 0.01, p[1] + 0.01, p[2] + 0.01,
 								(a, b, c, d, e, f) -> {
 									if (p[0] >= a && p[0] <= d && p[1] >= b && p[1] <= e && p[2] >= c && p[2] <= f) {
 										inside[0] = true;
@@ -117,7 +118,7 @@ class CoreTest {
 	@Test
 	void hullBoxesStayInsideTheHullBottom() {
 		ShipPose pose = new ShipPose(0, 62, 0, 0);
-		ShipGeometry.collectBoxes(pose, -4, 60, -11, 4, 66, 11, (a, b, c, d, e, f) -> {
+		G.collectBoxes(pose, -4, 60, -11, 4, 66, 11, (a, b, c, d, e, f) -> {
 			double cx = (a + d) / 2, cz = (c + f) / 2;
 			double bottomHere = HullProfile.bottomY(cz, Math.min(HullProfile.halfWidth(cz), Math.abs(cx) + 0.4));
 			assertTrue(b - 62 >= HullProfile.keelY(cz) - 0.3, "box below the keel at " + cx + "," + cz);
@@ -125,42 +126,57 @@ class CoreTest {
 		});
 	}
 
+	/** The galley must behave exactly as before the multi-ship refactor (snapshot of 1.1.1). */
+	@Test
+	void galleyGeometryUnchanged() throws Exception {
+		String expected;
+		try (var in = CoreTest.class.getResourceAsStream("/galley_snapshot.txt")) {
+			expected = new String(in.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+		}
+		String actual = GalleySnapshot.dump();
+		String[] e = expected.split("\n"), a = actual.split("\n");
+		assertEquals(e.length, a.length, "snapshot length");
+		for (int i = 0; i < e.length; i++) {
+			assertEquals(e[i], a[i], "snapshot line " + (i + 1));
+		}
+	}
+
 	@Test
 	void farQueryReturnsNothing() {
 		int[] n = {0};
-		ShipGeometry.collectBoxes(new ShipPose(0, 62, 0, 30), 50, 60, 50, 51, 62, 51, (a, b, c, d, e, f) -> n[0]++);
+		G.collectBoxes(new ShipPose(0, 62, 0, 30), 50, 60, 50, 51, 62, 51, (a, b, c, d, e, f) -> n[0]++);
 		assertEquals(0, n[0]);
 	}
 
 	@Test
 	void carryVolume() {
-		assertTrue(ShipGeometry.inCarryVolume(0, 0.5, 0));
-		assertTrue(ShipGeometry.inCarryVolume(1.5, 2.5, -3)); // jumping above the deck
-		assertFalse(ShipGeometry.inCarryVolume(3.2, 0.5, 0)); // in the water beside the hull
-		assertFalse(ShipGeometry.inCarryVolume(0, -1.5, 0)); // under the hull
+		assertTrue(G.inCarryVolume(0, 0.5, 0));
+		assertTrue(G.inCarryVolume(1.5, 2.5, -3)); // jumping above the deck
+		assertFalse(G.inCarryVolume(3.2, 0.5, 0)); // in the water beside the hull
+		assertFalse(G.inCarryVolume(0, -1.5, 0)); // under the hull
 	}
 
 	@Test
 	void seatsAndPicking() {
-		assertEquals(9, ShipGeometry.SEATS.size());
-		assertTrue(ShipGeometry.SEATS.get(0).pilot());
+		assertEquals(9, G.seats().size());
+		assertTrue(G.seats().get(0).pilot());
 		ShipPose pose = new ShipPose(0, 62, 0, 0);
 		// player standing on deck at z=-6, looking aft at the helm
-		ShipGeometry.Pick pick = ShipGeometry.pick(pose, 0, 62 + 0.45 + 1.62, -6, 0, -0.25, -1, 5);
+		ShipGeometry.Pick pick = G.pick(pose, 0, 62 + 0.45 + 1.62, -6, 0, -0.25, -1, 5);
 		assertNotNull(pick);
 		assertEquals(ShipGeometry.PickKind.HELM, pick.kind());
 		// from outside, looking at the hull
-		pick = ShipGeometry.pick(pose, 6, 63.5, 0, -1, -0.2, 0, 6);
+		pick = G.pick(pose, 6, 63.5, 0, -1, -0.2, 0, 6);
 		assertNotNull(pick);
 		assertEquals(ShipGeometry.PickKind.HULL, pick.kind());
 		// on deck the hull is not pickable (no accidental boarding): looking over the rail hits nothing
-		pick = ShipGeometry.pick(pose, 0, 62 + 0.45 + 1.62, 3, 1, 0.05, 0, 5);
+		pick = G.pick(pose, 0, 62 + 0.45 + 1.62, 3, 1, 0.05, 0, 5);
 		assertNull(pick);
 		// looking down at the deck hits the deck, not the water below
-		pick = ShipGeometry.pick(pose, 0, 62 + 0.45 + 1.62, 3, 0.3, -1, 0.2, 5);
+		pick = G.pick(pose, 0, 62 + 0.45 + 1.62, 3, 0.3, -1, 0.2, 5);
 		assertNotNull(pick);
 		assertEquals(ShipGeometry.PickKind.DECK, pick.kind());
-		double[] spot = ShipGeometry.boardingSpot(5, 0);
+		double[] spot = G.boardingSpot(5, 0);
 		assertTrue(Math.abs(spot[0]) < HullProfile.innerHalfWidth(0));
 	}
 
@@ -209,7 +225,7 @@ class CoreTest {
 		ShipPose pose = new ShipPose(0, 62, 0, -90); // facing east (+x)
 		boolean blocked = false;
 		for (int i = 0; i < 200; i++) {
-			ShipMover.Result r = ShipMover.move(pose, 0.4, 0, 0, land);
+			ShipMover.Result r = ShipMover.move(G, pose, 0.4, 0, 0, land);
 			pose = r.pose();
 			if (r.forwardBlocked()) {
 				blocked = true;
@@ -218,9 +234,9 @@ class CoreTest {
 		}
 		assertTrue(blocked);
 		assertTrue(pose.x() + 10.9 > 29 && pose.x() + 10.4 <= 30.5, "stopped at " + pose.x());
-		assertEquals(0, ShipMover.countCollisions(pose, land));
+		assertEquals(0, ShipMover.countCollisions(G, pose, land));
 		// reversing is always possible
-		ShipMover.Result back = ShipMover.move(pose, -0.3, 0, 0, land);
+		ShipMover.Result back = ShipMover.move(G, pose, -0.3, 0, 0, land);
 		assertFalse(back.forwardBlocked());
 	}
 
@@ -228,15 +244,15 @@ class CoreTest {
 	void moverEscapesWhenSpawnedInsideTerrain() {
 		ShipMover.Obstacles land = (x, y, z) -> x > 5 && y < 66;
 		ShipPose pose = new ShipPose(0, 62, 0, -90); // bow already in the land
-		int before = ShipMover.countCollisions(pose, land);
+		int before = ShipMover.countCollisions(G, pose, land);
 		assertTrue(before > 0);
-		ShipMover.Result fwd = ShipMover.move(pose, 0.3, 0, 0, land);
+		ShipMover.Result fwd = ShipMover.move(G, pose, 0.3, 0, 0, land);
 		assertTrue(fwd.forwardBlocked(), "must not dig further into the land");
 		ShipPose p = pose;
 		for (int i = 0; i < 60; i++) {
-			p = ShipMover.move(p, -0.3, 0, 0, land).pose();
+			p = ShipMover.move(G, p, -0.3, 0, 0, land).pose();
 		}
-		assertEquals(0, ShipMover.countCollisions(p, land));
+		assertEquals(0, ShipMover.countCollisions(G, p, land));
 	}
 
 	@Test
@@ -244,12 +260,12 @@ class CoreTest {
 		ShipPose other = new ShipPose(0, 62, 30, 90);
 		ShipMover.Obstacles obstacles = (x, y, z) -> {
 			double[] l = other.toLocal(x, y, z);
-			return ShipGeometry.insideHull(l[0], l[1], l[2]);
+			return G.insideHull(l[0], l[1], l[2]);
 		};
 		ShipPose pose = new ShipPose(0, 62, 0, 0); // heading south (+z) towards the other ship
 		ShipMover.Result r = null;
 		for (int i = 0; i < 200; i++) {
-			r = ShipMover.move(pose, 0.4, 0, 0, obstacles);
+			r = ShipMover.move(G, pose, 0.4, 0, 0, obstacles);
 			pose = r.pose();
 			if (r.forwardBlocked()) {
 				break;
@@ -276,7 +292,7 @@ class CoreTest {
 		ShipConfig cfg = new ShipConfig();
 		ShipPhysics ph = new ShipPhysics();
 		Autopilot ap = new Autopilot();
-		ap.start(route, start, cfg);
+		ap.start(route, start, cfg, G);
 		List<String> events = new ArrayList<>();
 		ShipMover.Obstacles obstacles = (x, y, z) -> land(x, z) && y < 64;
 		Autopilot.Navigator nav = (x, z) -> !land(x, z);
@@ -301,12 +317,12 @@ class CoreTest {
 		ShipPose pose = start;
 		int t;
 		for (t = 0; t < maxTicks && arrivals[0] < stopAfterArrivals; t++) {
-			ShipPhysics.Controls c = ap.tick(route, pose, ph.speed, ph.yawRate, Gait.NORMAL, cfg, nav, listener);
+			ShipPhysics.Controls c = ap.tick(route, pose, ph.speed, ph.yawRate, Gait.NORMAL, cfg, G, nav, listener);
 			ShipPhysics.Step s = ph.step(c, cfg, DT);
-			ShipMover.Result r = ShipMover.move(pose, s.forward(), s.yaw(), 0, obstacles);
+			ShipMover.Result r = ShipMover.move(G, pose, s.forward(), s.yaw(), 0, obstacles);
 			ph.collide(r.forwardBlocked(), r.rotationBlocked());
 			pose = r.pose();
-			assertEquals(0, ShipMover.countCollisions(pose, obstacles), "hull inside the land at tick " + t);
+			assertEquals(0, ShipMover.countCollisions(G, pose, obstacles), "hull inside the land at tick " + t);
 		}
 		return new SimResult(events, pose, t);
 	}

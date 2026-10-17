@@ -1,8 +1,9 @@
 package fr.medievalships.core;
 
 /**
- * Shape of the galley hull. MUST stay identical to tools/hull_profile.py, which
- * generates the 3D model: collisions, seats and terrain probes use these formulas.
+ * Shape of the medieval galley hull. MUST stay identical to tools/hull_profile.py, which
+ * generates the 3D model. Kept as a static facade: the generic code uses {@link HullShape}
+ * through {@link Ships#GALLEY}.
  *
  * <p>Ship-local coordinates, in blocks: x = lateral (+x = port), y = up (0 = waterline),
  * z = forward (+z = bow).
@@ -22,53 +23,32 @@ public final class HullProfile {
 	private HullProfile() {
 	}
 
+	private static HullShape hull() {
+		return Ships.GALLEY.hull();
+	}
+
 	public static double halfWidth(double z) {
-		double a = Math.abs(z) / 10.3;
-		if (a >= 1.0) {
-			return 0.0;
-		}
-		return 2.55 * Math.pow(1.0 - Math.pow(a, 2.3), 0.75);
+		return hull().halfWidth(z);
 	}
 
 	public static double deckY(double z) {
-		return z < AFT_DECK_START || z > FORE_DECK_START ? RAISED_DECK_Y : MAIN_DECK_Y;
+		return hull().deckY(z);
 	}
 
 	public static double railY(double z) {
-		double a = Math.abs(z) / 10.0;
-		return 1.6 + a * a * a;
+		return hull().railY(z);
 	}
 
 	public static double keelY(double z) {
-		double a = Math.abs(z) / 10.0;
-		return -1.2 + a * a * a * a;
+		return hull().keelY(z);
 	}
 
-	/**
-	 * Height of the outside of the hull bottom at lateral distance {@code absX} from the keel,
-	 * following the cross-section used by the model generator (keel, bilge, waterline).
-	 */
 	public static double bottomY(double z, double absX) {
-		double w = halfWidth(z), yk = keelY(z);
-		if (w <= 0.1) {
-			return yk;
-		}
-		double[] xs = {0.0, 0.62 * w, 0.93 * w};
-		double[] ys = {yk, 0.82 * yk, 0.25 * yk};
-		if (absX >= xs[2]) {
-			return ys[2];
-		}
-		for (int i = 0; i < 2; i++) {
-			if (absX <= xs[i + 1]) {
-				double f = (absX - xs[i]) / (xs[i + 1] - xs[i]);
-				return ys[i] + (ys[i + 1] - ys[i]) * f;
-			}
-		}
-		return ys[2];
+		return hull().bottomY(z, absX);
 	}
 
 	/** Half width of the walkable deck (inside of the planking). */
 	public static double innerHalfWidth(double z) {
-		return Math.max(0.0, 0.97 * halfWidth(z) - 0.12);
+		return hull().innerHalfWidth(z);
 	}
 }

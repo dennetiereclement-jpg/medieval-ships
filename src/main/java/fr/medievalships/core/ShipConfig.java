@@ -1,8 +1,8 @@
 package fr.medievalships.core;
 
 /**
- * Tunable values, loaded from {@code config/medievalships.json}. Speeds are in blocks per second,
- * angles in degrees.
+ * Navigation settings of one ship type (one section per ship in {@code config/medievalships.json}).
+ * Speeds are in blocks per second, angles in degrees.
  */
 public final class ShipConfig {
 	// --- allures (gaits) -------------------------------------------------------
@@ -39,18 +39,6 @@ public final class ShipConfig {
 	public double aiProbeDistance = 36.0;
 	public int aiDefaultWaitSeconds = 300;
 	public int aiStuckSeconds = 6;
-	/** Announce departures / arrivals to players aboard and near the ship. */
-	public boolean announceDepartures = true;
-	public double announceRadius = 40.0;
-
-	// --- server ----------------------------------------------------------------
-	/** Keep the chunks around autopilot ships loaded so ferries run without players nearby. */
-	public boolean chunkLoadAutopilotShips = true;
-	public int chunkLoadRadius = 2;
-	/** Permission level for /ship and for picking ships up. */
-	public int adminPermissionLevel = 2;
-	/** If true, only admins can place a ship with the item. */
-	public boolean placeRequiresAdmin = false;
 	/** Furl the sail when the ship has been stopped for a few seconds. */
 	public boolean furlSailWhenStopped = true;
 
@@ -82,8 +70,6 @@ public final class ShipConfig {
 		aiProbeDistance = clamp(aiProbeDistance, 12, 96);
 		aiDefaultWaitSeconds = (int) clamp(aiDefaultWaitSeconds, 0, 86400);
 		aiStuckSeconds = (int) clamp(aiStuckSeconds, 2, 120);
-		chunkLoadRadius = (int) clamp(chunkLoadRadius, 2, 4); // below 2 the centre chunk does not tick entities
-		adminPermissionLevel = (int) clamp(adminPermissionLevel, 0, 4);
 	}
 
 	private static double clamp(double v, double lo, double hi) {
