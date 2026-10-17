@@ -57,6 +57,11 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			fail("solo: exception: " + t);
 		}
 		// same scenario on a dedicated server, the client connected over the network (like a real server)
+		try {
+			Files.writeString(Path.of("eula.txt"), "eula=true\n");
+		} catch (IOException e) {
+			fail("dedie: cannot write eula.txt: " + e);
+		}
 		try (TestDedicatedServerContext ds = context.worldBuilder().createServer();
 				TestServerConnection connection = ds.connect()) {
 			tag = "dedie";
