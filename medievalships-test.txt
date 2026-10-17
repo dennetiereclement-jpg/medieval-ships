@@ -1,0 +1,40 @@
+world loaded
+ship at 0.50 -58.11 0.50 yaw 0.0
+expected main deck top -57.661
+after drop: player y=-57.661 onGround=true
+PASS falling: player should stand on the deck (y=-57.661, deck=-57.661)
+after jumps: y=-57.661, lowest=-57.661
+PASS jumping: player must land back on the deck (y=-57.661 min=-57.661)
+after walking forward: local x=1.00 y=0.95 z=7.56
+PASS walking: player must still be aboard (local 1.00 0.95 7.56)
+PASS walking: player should have climbed onto the fore deck (z=7.56)
+  jump tick 0: local x=4.168 y=1.531 ground=false
+  jump tick 1: local x=3.883 y=1.864 ground=false
+  jump tick 2: local x=3.597 y=2.112 ground=false
+  jump tick 3: local x=3.312 y=2.277 ground=false
+  jump tick 4: local x=3.027 y=2.360 ground=false
+  jump tick 5: local x=2.742 y=2.363 ground=false
+  jump tick 6: local x=2.457 y=2.288 ground=false
+  jump tick 7: local x=2.173 y=2.136 ground=false
+  jump tick 8: local x=1.888 y=1.908 ground=false
+  jump tick 9: local x=1.604 y=1.606 ground=false
+  jump tick 10: local x=1.320 y=1.232 ground=false
+  jump tick 11: local x=1.036 y=0.788 ground=false
+  jump tick 12: local x=0.752 y=0.450 ground=true
+  jump tick 13: local x=0.366 y=0.450 ground=true
+  jump tick 14: local x=0.028 y=0.450 ground=true
+  jump tick 15: local x=-0.157 y=0.450 ground=true
+  jump tick 16: local x=-0.258 y=0.450 ground=true
+  jump tick 17: local x=-0.313 y=0.450 ground=true
+  jump tick 18: local x=-0.343 y=0.450 ground=true
+  jump tick 19: local x=-0.359 y=0.450 ground=true
+after jumping from the quay: local x=-0.37 y=0.45 z=0.00
+PASS quay: player should have landed on the deck (local -0.37 0.45 0.00)
+zombie at y=-57.661
+PASS mob: armor stand should stand on the deck
+swimming up under the hull: highest head y=-59.276, hull bottom=-59.226
+PASS under the hull: the swimmer must be stopped by the hull bottom
+ship moved 9.00 blocks under player control
+PASS steering: the ship should move forward (moved 9.00)
+zombie local after sailing: 0.80 0.45 3.00
+PASS carry: zombie should still be aboard
