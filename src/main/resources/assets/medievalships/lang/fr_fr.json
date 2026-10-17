@@ -5,5 +5,7 @@
   "entity.medievalships.galleon": "Grand galion",
   "item.medievalships.warship": "Grand vaisseau de guerre",
   "entity.medievalships.warship": "Grand vaisseau de guerre",
+  "item.medievalships.medieval_galley": "Galère médiévale rouge",
+  "entity.medievalships.medieval_galley": "Galère médiévale rouge",
   "itemGroup.medievalships.ships": "Navires médiévaux"
 }

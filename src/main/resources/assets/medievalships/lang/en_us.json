@@ -5,5 +5,7 @@
   "entity.medievalships.galleon": "Great Galleon",
   "item.medievalships.warship": "Great Warship",
   "entity.medievalships.warship": "Great Warship",
+  "item.medievalships.medieval_galley": "Red Medieval Galley",
+  "entity.medievalships.medieval_galley": "Red Medieval Galley",
   "itemGroup.medievalships.ships": "Medieval Ships"
 }

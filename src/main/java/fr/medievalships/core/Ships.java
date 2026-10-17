@@ -510,7 +510,105 @@ public final class Ships {
 		return c;
 	}
 
-	public static final List<ShipType> ALL = List.of(GALLEY, GALLEON, WARSHIP);
+	// ------------------------------------------------------------------ red medieval galley
+
+	/**
+	 * Red medieval galley: 28 blocks overall (26 block hull), 5 wide, crescent hull rising into
+	 * two carved dragon heads, 28 round shields, 24 oars, one mast with a red and white striped
+	 * square sail, 10 seats. The same numbers are used by {@code tools/medieval_galley_shape.py}.
+	 */
+	public static final ShipType MEDIEVAL_GALLEY = medievalGalley();
+
+	/** Red galley layout, ship-local blocks (shared with the model generator). */
+	public static final class MedievalGalleyLayout {
+		public static final double HALF_LENGTH = 12.6;
+		public static final double TIP = 13.6;
+		public static final double MAX_HALF_WIDTH = 2.5;
+		public static final double MAIN_DECK_Y = 0.45;
+		/** The water is 0.45 blocks under the model origin. */
+		public static final double WATERLINE_Y = -0.45;
+		public static final double DECK_MIN_Z = -11.2;
+		public static final double DECK_MAX_Z = 11.2;
+		public static final double MAST_Z = 0.6;
+		public static final double MAST_TOP = 13.2;
+		public static final double PILOT_Z = -10.2;
+		/** Rowing benches carrying the passengers (two seats each). */
+		public static final double[] BENCH_Z = {-7.6, -4.4, 3.6, 6.8};
+		/** Seat at the bow, behind the dragon post. */
+		public static final double BOW_SEAT_Z = 9.6;
+
+		private MedievalGalleyLayout() {
+		}
+	}
+
+	private static ShipType medievalGalley() {
+		HullShape.Params p = new HullShape.Params();
+		p.halfLength = MedievalGalleyLayout.HALF_LENGTH;
+		p.tip = MedievalGalleyLayout.TIP;
+		p.maxHalfWidth = MedievalGalleyLayout.MAX_HALF_WIDTH;
+		p.foreScale = 13.2;
+		p.forePowA = 2.1;
+		p.forePowB = 0.75;
+		p.aftScale = 13.2;
+		p.aftPowA = 2.1;
+		p.aftPowB = 0.75;
+		p.keelDepth = 1.25;
+		p.keelRise = 1.2;
+		p.keelPow = 3.0;
+		p.railBase = 1.75;
+		p.railRiseFore = 2.2;
+		p.railRiseAft = 2.2;
+		p.railPow = 3.0;
+		p.waterlineY = MedievalGalleyLayout.WATERLINE_Y;
+		p.mainDeckY = MedievalGalleyLayout.MAIN_DECK_Y;
+		p.deckMinZ = MedievalGalleyLayout.DECK_MIN_Z;
+		p.deckMaxZ = MedievalGalleyLayout.DECK_MAX_Z;
+		p.bottomSection = new double[][] {{0.0, 1.0}, {0.5, 0.88}, {0.85, 0.5}, {0.98, 0.1}};
+		HullShape hull = new HullShape(p);
+
+		double main = MedievalGalleyLayout.MAIN_DECK_Y;
+		ShipGeometry.Spec spec = new ShipGeometry.Spec();
+		List<ShipGeometry.Seat> seats = new ArrayList<>();
+		seats.add(new ShipGeometry.Seat(ShipGeometry.PILOT_SEAT, 0.0, main + 0.28, MedievalGalleyLayout.PILOT_Z, true,
+				new double[] {0.0, main + 0.02, MedievalGalleyLayout.PILOT_Z + 0.8}));
+		for (double z : MedievalGalleyLayout.BENCH_Z) {
+			for (double x : new double[] {0.95, -0.95}) {
+				seats.add(seat(seats.size(), x, main, z, x * 0.85, z + 0.75));
+			}
+		}
+		seats.add(seat(seats.size(), 0.0, main, MedievalGalleyLayout.BOW_SEAT_Z, 0.0, MedievalGalleyLayout.BOW_SEAT_Z - 0.8));
+		spec.seats = List.copyOf(seats);
+		spec.helm = new ShipGeometry.LocalBox(-0.5, main + 0.1, MedievalGalleyLayout.PILOT_Z - 0.6, 0.5, main + 1.1,
+				MedievalGalleyLayout.PILOT_Z + 0.5);
+		spec.masts = List.of(new ShipGeometry.Mast(0, MedievalGalleyLayout.MAST_Z, main, MedievalGalleyLayout.MAST_TOP, 0.2));
+		spec.probeHeights = new double[] {MedievalGalleyLayout.WATERLINE_Y + 0.15, 0.15, 1.2};
+		spec.boardMinZ = -9.6;
+		spec.boardMaxZ = 9.0;
+		spec.avoidZ = MedievalGalleyLayout.BENCH_Z;
+		return new ShipType("medieval_galley", "galère rouge", new ShipGeometry(hull, spec), Ships::medievalGalleyConfig);
+	}
+
+	/** Light and nimble: quick to gather way, tight turns, the oars pivot the hull at rest. */
+	private static ShipConfig medievalGalleyConfig() {
+		ShipConfig c = new ShipConfig();
+		c.slowSpeed = 2.8;
+		c.normalSpeed = 6.0;
+		c.fastSpeed = 9.5;
+		c.reverseSpeed = 2.0;
+		c.acceleration = 1.1;
+		c.braking = 2.0;
+		c.waterDrag = 0.2;
+		c.maxTurnRate = 18.0;
+		c.minTurnFactor = 0.35;
+		c.helmRate = 1.8;
+		c.turnResponse = 1.8;
+		c.aiWaypointRadius = 8.0;
+		c.aiLookahead = 14.0;
+		c.aiProbeDistance = 40.0;
+		return c;
+	}
+
+	public static final List<ShipType> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY);
 
 	public static ShipType byId(String id) {
 		for (ShipType t : ALL) {

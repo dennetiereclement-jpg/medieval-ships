@@ -116,6 +116,11 @@ public final class ShipGeometry {
 		return hull;
 	}
 
+	/** Box around the helm (wheel, tiller): clicking it takes the pilot seat. */
+	public LocalBox helm() {
+		return spec.helm;
+	}
+
 	public List<Seat> seats() {
 		return spec.seats;
 	}

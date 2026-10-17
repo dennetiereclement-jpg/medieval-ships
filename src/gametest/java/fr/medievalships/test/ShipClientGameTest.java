@@ -237,6 +237,9 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			}
 			galleon(context, sp);
 			warship(context, sp);
+			for (ShipType type : NEW_SHIPS) {
+				newShip(context, sp, type);
+			}
 		}
 	}
 
@@ -661,6 +664,173 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		Integer items = server.computeOnServer(s ->
 				s.getPlayerManager().getPlayerList().get(0).getInventory().count(fr.medievalships.MedievalShips.WARSHIP_ITEM));
 		check(items != null && items == 1, "warship item: /ship give warship gives the item (%s)", items);
+	}
+
+	/** Ships added after the warship: the same scenario for each, one after the other in a fourth basin. */
+	private static final List<ShipType> NEW_SHIPS = List.of(Ships.MEDIEVAL_GALLEY);
+
+	private void newShip(ClientGameTestContext context, Env sp, ShipType type) {
+		var server = sp.getServer();
+		String id = type.id();
+		ShipGeometry g = type.geometry();
+		fr.medievalships.core.HullShape h = g.hull();
+		server.runCommand("ride @p dismount");
+		server.runCommand("kill @e[type=minecraft:armor_stand,tag=ncrew]");
+		server.runCommand("gamemode spectator @a");
+		// fourth basin, north of the others: 44 x 100 blocks, 5 deep
+		server.runCommand("tp @p -42 -40 112 0 40");
+		context.waitTicks(40);
+		server.runCommand("fill -64 -63 100 -20 -59 200 water");
+		server.runCommand("execute positioned -42 -58 125 rotated 0 0 run ship spawn " + id);
+		sp.getClientWorld().waitForChunksRender();
+		context.waitTicks(40);
+		ShipPose pose = shipPose(sp, type);
+		if (pose == null) {
+			fail(id + ": not spawned");
+			return;
+		}
+		log("%s at %.2f %.2f %.2f yaw %.1f", id, pose.x(), pose.y(), pose.z(), pose.yaw());
+		double water = pose.y() + h.waterlineY;
+		check(water > -58.3 && water < -57.7, "%s floats: water line at y=%.2f (basin surface -58)", id, water);
+		double deck = pose.y() + h.mainDeckY;
+
+		// the six views of the reference picture
+		double L = h.tip, top = Math.max(8, L * 0.5);
+		String[][] views = {{"1_droite"}, {"2_gauche"}, {"3_proue"}, {"4_poupe"}, {"5_dessus"}, {"6_perspective"}};
+		double[][] eyes = {{-2.3 * L, 0.45 * top, 0.2}, {2.3 * L, 0.45 * top, 0.2}, {0.4, 0.5 * top, 2.4 * L},
+				{0.4, 0.5 * top, -2.4 * L}, {0.01, 3.2 * L, 0.0}, {1.6 * L, 0.9 * top, 1.7 * L}};
+		for (int k = 0; k < views.length; k++) {
+			lookLocal(server, pose, eyes[k][0], eyes[k][1], eyes[k][2], 0, k == 4 ? 0 : 0.4 * top, 0);
+			context.waitTicks(k == 0 ? 30 : 15);
+			shot(context, id + "_" + views[k][0]);
+		}
+
+		server.runCommand("gamemode survival @a");
+		// 1. falling onto the deck, jumping
+		tpLocal(server, pose, 0.0, h.mainDeckY + 4, -1.0, 0, 30);
+		context.waitTicks(60);
+		double[] p = playerPos(context);
+		check(Math.abs(p[1] - deck) < 0.08, "%s falling: player on the deck (y=%.3f, deck=%.3f)", id, p[1], deck);
+		double minY = Double.MAX_VALUE;
+		for (int i = 0; i < 3; i++) {
+			context.getInput().holdKeyFor(o -> o.jumpKey, 2);
+			for (int t = 0; t < 14; t++) {
+				context.waitTick();
+				minY = Math.min(minY, playerPos(context)[1]);
+			}
+		}
+		context.waitTicks(20);
+		p = playerPos(context);
+		check(Math.abs(p[1] - deck) < 0.08 && minY > deck - 0.1, "%s jumping: back on the deck (y=%.3f min=%.3f)", id, p[1], minY);
+		context.runOnClient(c -> c.options.setPerspective(Perspective.THIRD_PERSON_BACK));
+		context.waitTicks(5);
+		shot(context, id + "_7_pont");
+		context.runOnClient(c -> c.options.setPerspective(Perspective.FIRST_PERSON));
+
+		// 2. every seat taken (armor stands + the player at the helm), one more is refused
+		int n = g.seats().size();
+		ShipPose now = shipPose(sp, type);
+		for (int i = 1; i < n; i++) {
+			ShipGeometry.Seat seat = g.seats().get(i);
+			double[] w = now.toWorld(seat.x(), seat.y() + 0.5, seat.z());
+			server.runCommand(String.format(Locale.ROOT, "summon minecraft:armor_stand %.2f %.2f %.2f {Tags:[\"ncrew\",\"ncrew%d\"]}",
+					w[0], w[1], w[2], i));
+		}
+		double[] xw = now.toWorld(0, h.mainDeckY + 1, 2);
+		server.runCommand(String.format(Locale.ROOT, "summon minecraft:armor_stand %.2f %.2f %.2f {Tags:[\"ncrew\",\"nextra\"]}",
+				xw[0], xw[1], xw[2]));
+		context.waitTicks(20);
+		int[] seated = server.computeOnServer(srv -> {
+			ShipEntity ship = ship(srv.getOverworld(), type);
+			ServerPlayerEntity player = srv.getPlayerManager().getPlayerList().get(0);
+			List<Entity> all = new ArrayList<>();
+			srv.getOverworld().iterateEntities().forEach(all::add);
+			int ok = 0;
+			for (Entity e : all) {
+				for (int i = 1; i < n; i++) {
+					if (e.getCommandTags().contains("ncrew" + i) && ship.seat(e, i)) {
+						ok++;
+					}
+				}
+			}
+			boolean pilot = ship.seat(player, ShipGeometry.PILOT_SEAT);
+			int refused = 0;
+			for (Entity e : all) {
+				if (e.getCommandTags().contains("nextra")) {
+					refused += e.startRiding(ship) ? 0 : 1;
+				}
+			}
+			return new int[] {ok, pilot ? 1 : 0, ship.getPassengerList().size(), refused};
+		});
+		check(seated[0] == n - 1 && seated[1] == 1 && seated[2] == n, "%s seats: %d passengers seated (%d + pilot %d)", id, n, seated[0], seated[1]);
+		check(seated[3] == 1, "%s seats: one passenger too many is refused", id);
+
+		// 3. sailing: forward, then a turn; the passengers stay aboard
+		ShipPose start = shipPose(sp, type);
+		context.getInput().holdKey(o -> o.forwardKey);
+		context.waitTicks(80);
+		context.getInput().releaseKey(o -> o.forwardKey);
+		ShipPose run = shipPose(sp, type);
+		context.getInput().holdKey(o -> o.rightKey);
+		context.waitTicks(60);
+		context.getInput().releaseKey(o -> o.rightKey);
+		ShipPose turned = shipPose(sp, type);
+		double dist = Math.hypot(run.x() - start.x(), run.z() - start.z());
+		double turn = Math.abs(ShipPose.wrapDegrees(turned.yaw() - run.yaw()));
+		log("%s handling: %.2f blocks in 4 s, %.1f deg in 3 s", id, dist, turn);
+		check(dist > 2.0, "%s sailing: moves forward under command (%.2f blocks in 4 s)", id, dist);
+		check(turn > 3.0, "%s sailing: turns under command (%.1f deg)", id, turn);
+		int still = server.computeOnServer(srv -> ship(srv.getOverworld(), type).getPassengerList().size());
+		check(still == n, "%s carry: the %d passengers are still seated (%d)", id, n, still);
+		context.runOnClient(c -> c.options.setPerspective(Perspective.THIRD_PERSON_BACK));
+		context.waitTicks(5);
+		shot(context, id + "_8_navigation");
+		context.runOnClient(c -> c.options.setPerspective(Perspective.FIRST_PERSON));
+		server.runCommand("ride @p dismount");
+		context.waitTicks(10);
+		p = playerPos(context);
+		double[] l = shipPose(sp, type).toLocal(p[0], p[1], p[2]);
+		check(g.inCarryVolume(l[0], l[1], l[2]) && Math.abs(l[1] - h.mainDeckY) < 0.15,
+				"%s dismount: the pilot steps off onto the deck (local %.2f %.2f %.2f)", id, l[0], l[1], l[2]);
+		server.runCommand("kill @e[type=minecraft:armor_stand,tag=ncrew]");
+
+		// 4. autopilot on a route: two points, the second one 40 blocks ahead
+		ShipPose a = shipPose(sp, type);
+		server.runCommand("gamemode spectator @a");
+		double[] far = {-42, -58, 175};
+		String route = "essai_" + id;
+		server.runCommand("ship route create " + route + " once");
+		server.runCommand(String.format(Locale.ROOT, "execute positioned %.1f -58 %.1f run ship route addpoint %s", a.x(), a.z(), route));
+		server.runCommand(String.format(Locale.ROOT, "execute positioned %.1f %.1f %.1f run ship route addpoint %s", far[0], far[1], far[2], route));
+		server.runCommand(String.format(Locale.ROOT, "execute positioned %.1f -58 %.1f run ship route assign %s", a.x(), a.z(), route));
+		double before = Math.hypot(a.x() - far[0], a.z() - far[2]);
+		context.waitTicks(400);
+		ShipPose b = shipPose(sp, type);
+		double after = Math.hypot(b.x() - far[0], b.z() - far[2]);
+		log("%s autopilot: %.1f -> %.1f blocks from the second point", id, before, after);
+		check(after < before - 8, "%s autopilot: follows its route (%.1f -> %.1f blocks)", id, before, after);
+		lookLocal(server, b, 1.4 * L, 0.8 * top, 1.4 * L, 0, 0.3 * top, 0);
+		context.waitTicks(15);
+		shot(context, id + "_9_pilote_auto");
+		server.runCommand(String.format(Locale.ROOT, "execute positioned %.1f %.1f %.1f run ship ai disable", b.x(), b.y(), b.z()));
+		server.runCommand("ship route delete " + route);
+
+		// 5. the item, then the ship is removed to make room for the next one
+		server.runCommand("clear @a");
+		server.runCommand("ship give " + id + " @p");
+		Integer items = server.computeOnServer(srv ->
+				srv.getPlayerManager().getPlayerList().get(0).getInventory().count(fr.medievalships.MedievalShips.item(type)));
+		check(items != null && items == 1, "%s item: /ship give %s gives the item (%s)", id, id, items);
+		server.runCommand("clear @a");
+		server.computeOnServer(srv -> {
+			ShipEntity ship = ship(srv.getOverworld(), type);
+			if (ship != null) {
+				ship.removeAllPassengers();
+				ship.discard();
+			}
+			return null;
+		});
+		context.waitTicks(10);
 	}
 
 	/** Teleports the player to a ship-local position, then walks forward for {@code ticks}; returns the local position. */

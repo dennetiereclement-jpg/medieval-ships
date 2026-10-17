@@ -39,7 +39,9 @@ public final class ShipModels {
 			List.of(texture("galleon"), texture("galleon_flag")), 0.55f, 24, 30, false);
 	public static final Visual WARSHIP = new Visual(Ships.WARSHIP, model("warship"),
 			List.of(texture("warship"), texture("warship_flag")), 0.4f, 42, 48, true);
-	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP);
+	public static final Visual MEDIEVAL_GALLEY = new Visual(Ships.MEDIEVAL_GALLEY, model("medieval_galley"),
+			List.of(texture("medieval_galley")), 0.9f, 16, 18, false);
+	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY);
 
 	@Nullable
 	public static Visual of(ShipType type) {
