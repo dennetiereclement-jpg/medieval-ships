@@ -174,6 +174,17 @@ class GalleonTest {
 		assertTrue(intersectsSolid(0, y, GalleonLayout.BALCONY_BACK + 0.1, 0.3, 0.5, 0.3));
 	}
 
+	/** Safety net: a player sunk into the quarterdeck floor (e.g. left at its seat height) is put back on top. */
+	@Test
+	void rescueOntoCastleFloors() {
+		ShipGeometry.Seat pilot = G.seats().get(ShipGeometry.PILOT_SEAT);
+		assertEquals(GalleonLayout.QUARTERDECK_Y, G.deckRescueY(pilot.x(), GalleonLayout.QUARTERDECK_Y - 0.32, pilot.z()), 1e-9);
+		assertEquals(GalleonLayout.MAIN_DECK_Y, G.deckRescueY(0, GalleonLayout.MAIN_DECK_Y - 0.3, 0), 1e-9);
+		// standing or jumping in the cabin is left alone
+		assertTrue(Double.isNaN(G.deckRescueY(0, GalleonLayout.MAIN_DECK_Y, -12)));
+		assertTrue(Double.isNaN(G.deckRescueY(0, GalleonLayout.MAIN_DECK_Y + 1.25, -12)));
+	}
+
 	@Test
 	void gunports() {
 		assertEquals(12, G.gunports().size());

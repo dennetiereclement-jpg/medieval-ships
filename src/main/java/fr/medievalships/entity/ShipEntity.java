@@ -671,6 +671,15 @@ public abstract class ShipEntity extends Entity {
 
 	@Override
 	protected void removePassenger(Entity passenger) {
+		if (getEntityWorld().isClient() && passenger instanceof PlayerEntity player && player.isMainPlayer()) {
+			// the client keeps its own player where it sat (the server's teleport arrives while it
+			// is still seated): put it on its seat's standing spot, never inside a castle floor
+			ShipGeometry.Seat seat = seatFor(passenger);
+			super.removePassenger(passenger);
+			double[] w = pose().toWorld(seat.dismountLocal()[0], seat.dismountLocal()[1], seat.dismountLocal()[2]);
+			passenger.setPosition(w[0], w[1], w[2]);
+			return;
+		}
 		super.removePassenger(passenger);
 		if (!getEntityWorld().isClient()) {
 			seatByEntity.remove(passenger.getId());

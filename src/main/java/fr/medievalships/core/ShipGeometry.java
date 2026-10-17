@@ -175,6 +175,13 @@ public final class ShipGeometry {
 	 * has sunk into the deck volume, returns the deck height to put it back on; NaN otherwise.
 	 */
 	public double deckRescueY(double lx, double ly, double lz) {
+		// sunk into a walkable superstructure (castle floor, stairs, balcony)
+		for (LocalBox b : spec.solids) {
+			if (lx > b.minX() && lx < b.maxX() && lz > b.minZ() && lz < b.maxZ()
+					&& ly < b.maxY() - 1e-3 && ly > b.maxY() - Math.min(1.2, b.maxY() - b.minY() + 0.05)) {
+				return b.maxY();
+			}
+		}
 		if (lz < hull.deckMinZ || lz > hull.deckMaxZ || Math.abs(lx) > hull.innerHalfWidth(lz)) {
 			return Double.NaN;
 		}
