@@ -48,10 +48,10 @@ Conseils :
 ## 3. Mettre le navire en service
 
 ```
-/ship spawn                   # au Port A, ou placez la galère avec l'objet
+/ship spawn                   # au Port A (galère), ou /ship spawn galleon, ou placez le navire avec l'objet
 /ship name La Sirène
 /ship captain add             # facultatif : un PNJ visible à la barre
-/ship route start ferry_ab
+/ship route assign ferry_ab   # (ou route start, identique)
 ```
 
 Comme le navire est à moins de 16 blocs de l'escale « Port A », il commence **à quai** et attend
@@ -92,6 +92,24 @@ Corrigez alors l'itinéraire (`removepoint` / `addpoint`) ou utilisez `/ship uns
 La détection d'obstacles est **locale** (environ 36 blocs devant la proue) : elle contourne
 îlots, rochers et navires, mais ne cherche pas de chemin à travers tout un archipel ; ce sont
 vos points de passage qui définissent la route.
+
+## Ferry en grand galion
+
+Le grand galion suit les mêmes itinéraires que la galère, avec une IA adaptée à sa taille
+(section `ships.galleon` de la configuration) :
+
+* il « voit » plus loin (`aiProbeDistance` 64 blocs) et tient compte de ses 18 blocs de
+  longueur devant son centre et de ses 9 blocs de large pour juger un passage ;
+* il anticipe davantage les virages (`aiLookahead` 22) et vise ses points de passage dans un
+  rayon de 12 blocs (`aiWaypointRadius`) : ses virages sont larges (rayon ≈ 30 blocs) ;
+* il freine longtemps à l'avance pour s'arrêter au point exact de l'escale (inertie forte) ;
+* pour faire demi-tour (aller-retour), il garde de l'erre (`aiTurnAroundSpeed` 2 blocs/s)
+  au lieu de pivoter sur place comme la galère et ses rames ;
+* l'escale doit être placée en eau libre avec assez de place pour ce demi-tour ; le galion
+  démarre « à quai » s'il est à moins de 27 blocs de l'escale.
+
+Prévoyez des chenaux plus larges (au moins 15 blocs) et des points de passage plus espacés
+que pour la galère.
 
 ## Plusieurs ferries
 

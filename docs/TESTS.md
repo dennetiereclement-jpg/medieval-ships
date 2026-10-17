@@ -1,109 +1,77 @@
-# Tests — ce qui a été vérifié, et ce qui ne l'a pas été
+# Tests — ce qui a été vérifié, et ce qui reste à valider en jeu
 
-## Test dans le vrai jeu (automatique, GitHub Actions)
+## Compilation
 
-À chaque envoi sur GitHub, la tâche *In-game test* lance un **vrai client Minecraft 1.21.11
-avec le mod** (`src/gametest/.../ShipClientGameTest.java`), crée un monde, un bassin et un
-quai, met la galère à l'eau puis vérifie, résultats et captures publiés sur la branche
-`test-results-full` :
+Le mod est compilé à chaque envoi par GitHub Actions (`./gradlew build`, tâche *Build*) avec
+Fabric Loom 1.14, Minecraft 1.21.11, Yarn `1.21.11+build.6`, Fabric API 0.141.6+1.21.11 :
+le `.jar` obtenu est celui qui vous est livré.
 
-| Vérification | Résultat |
-|---|---|
-| un joueur qui tombe sur le pont s'y tient (à 1/1000 de bloc près) | réussi |
-| il saute sur le pont et retombe sur le pont | réussi |
-| il marche jusqu'à la proue, monte sur la plate-forme avant, reste à bord | réussi |
-| il saute depuis un quai (avec élan) et atterrit sur le pont | réussi |
-| un mob (support d'armure) tient sur le pont | réussi |
-| un nageur qui remonte sous la coque est arrêté par le fond de la coque | réussi |
-| un joueur à la barre fait avancer le navire (Z) | réussi |
-| le mob reste à bord pendant la navigation | réussi |
+## Tests dans le vrai jeu (automatiques, GitHub Actions)
 
-Correction apportée grâce à ce test : la coque était creuse (un plancher et des parois) ; un
-joueur tombé à l'eau pouvait passer sous la quille et remonter à l'intérieur. La coque est
-maintenant un **volume plein** de la quille au pont, qui suit sa forme arrondie.
+La tâche *In-game test* lance un **vrai client Minecraft 1.21.11** avec le `.jar` de
+production (mod remappé, comme sur un vrai serveur), deux fois : **sans** et **avec Lithium**.
+Le test (`src/gametest/.../ShipClientGameTest.java`) crée un monde, des bassins, met les navires
+à l'eau puis vérifie (résultats et captures publiés sur les branches `test-results-vanilla` et
+`test-results-lithium`) :
 
+### Galère (non-régression)
 
-## Contexte
+| Vérification | Sans Lithium | Avec Lithium |
+|---|---|---|
+| un joueur qui tombe sur le pont s'y tient (à 1/1000 de bloc près) | réussi | réussi |
+| il saute sur le pont et retombe sur le pont | réussi | réussi |
+| il marche jusqu'à la proue, monte sur la plate-forme avant, reste à bord | réussi | réussi |
+| il saute depuis un quai (avec élan) et atterrit sur le pont | réussi | réussi |
+| un mob (support d'armure) tient sur le pont | réussi | réussi |
+| un nageur qui remonte sous la coque est arrêté par le fond de la coque | réussi | réussi |
+| un joueur à la barre fait avancer le navire (Z) | réussi | réussi |
+| le mob reste à bord pendant la navigation | réussi | réussi |
 
-L'environnement de développement utilisé **bloquait l'accès** à `maven.fabricmc.net` et aux
-serveurs de Mojang (`piston-meta`, `piston-data`, `libraries.minecraft.net`). Il a donc été
-**impossible de télécharger Minecraft 1.21.11 et Fabric Loom**, et donc de compiler le mod
-complet, de produire le `.jar` et de lancer un client ou un serveur dédié.
+### Grand galion
 
-Pour réduire le risque malgré tout :
+GALLEON_RESULTS
 
-* toute la logique de navigation est écrite en **Java pur** (paquet `core`) et a été compilée
-  et testée ;
-* le code lié à Minecraft a été écrit en vérifiant **chaque nom de classe, méthode et champ**
-  dans les mappings Yarn officiels de 1.21.11 (`1.21.11+build.6`) et dans les sources de
-  Fabric API 0.141.6+1.21.11, puis relu par un second audit indépendant sur la même base.
+## Tests unitaires (37, tous réussis)
 
-## Tests exécutés (tous réussis : 18/18)
-
-`./gradlew test` (ici exécutés avec `javac` + JUnit 5) :
+`./gradlew test` :
 
 | Test | Vérifie |
 |---|---|
-| `poseRoundTripAndForward` | conversions repère navire ↔ monde, conventions de cap Minecraft |
-| `hullProfileMatchesModelGenerator` | la forme de coque Java = celle du générateur du modèle 3D |
-| `deckIsWalkableAtAnyHeading` | **aucun trou dans le pont** : ~1 100 points du pont × 48 caps |
-| `wallsHaveNoPlayerSizedGaps` | **aucune brèche** de 0,6 bloc dans le bastingage, 32 caps |
-| `farQueryReturnsNothing`, `carryVolume` | rejet rapide ; volume transporté (y compris en saut) |
-| `seatsAndPicking` | 9 places ; clic sur la barre, la coque, le pont ; pas de clic « à travers » le pont |
-| `physicsInertia` | accélération progressive (> 3 s), glisse > 15 blocs après relâchement, retour progressif de la barre |
-| `turningSlowsTheShip` | perte de vitesse en virage |
-| `moverStopsAtTheCoastAndCanBackOff` | arrêt à la côte sans la pénétrer, marche arrière possible |
-| `moverEscapesWhenSpawnedInsideTerrain` | un navire engagé dans la terre ne peut pas s'y enfoncer mais peut en sortir |
-| `otherHullIsAnObstacle` | deux navires ne se traversent pas |
-| `ferryGoesAroundTheIslandAndComesBack` | ferry A → B → A avec escales, contournement d'une île, jamais dans la terre |
-| `routeWithWaypointsAndTurns` | route à 4 virages, arrêt à moins de 3,5 blocs de l'escale |
-| `nextIndexModes` | modes aller-retour / boucle / aller simple |
-| `requiredBonesAndAnimationsExist` | le `.bbmodel` contient les os et animations utilisés par le mod |
-| `matchesPythonReference` | le lecteur Java du `.bbmodel` produit **exactement** la même géométrie que le rendu de référence (2 208 faces, pose animée : rames, barre, voile) |
-| `furlCollapsesTheSail` | la voile se cargue réellement |
+| `galleyGeometryUnchanged` | **la galère est identique à la version 1.1.1** : sondes, sièges, ~1 800 valeurs de boîtes de collision, visée, embarquement, transport comparés à un instantané pris avant l'ajout du galion |
+| `hullProfileMatchesModelGenerator`, `hullMatchesModelGenerator` | formes de coque Java = générateurs des modèles 3D (galère et galion) |
+| `deckIsWalkableAtAnyHeading` (×2) | aucun trou dans les ponts, tous les caps |
+| `wallsHaveNoPlayerSizedGaps`, `hullIsSolidBelowTheDeck`, `hullBoxesStayInsideTheHullBottom` | murailles sans brèche, coque pleine, pas de mur invisible sous l'eau |
+| `sixteenSeats` | 16 places sur le galion, chacune libre de tout mur, et chaque point de descente est une place debout valide |
+| `boardingSpots` | embarquer en cliquant n'importe où sur la coque du galion place le joueur debout, jamais dans un mur ni sur le toit de la dunette |
+| `stairsAreClimbable` | marches ≤ 0,6 bloc jusqu'au gaillard d'arrière (+2,6) et au gaillard d'avant (+2) |
+| `cabinIsAccessible`, `balcony` | on entre dans la grande cabine par la porte, on sort sur le balcon par le tableau arrière, la balustrade retient, le balcon est transporté |
+| `gunports` | 12 sabords (6 par bord) prêts pour de futurs canons |
+| `heavierThanTheGalley` | galion : > 10 s pour atteindre l'allure normale, > 30 blocs de glisse, virage plus lent |
+| `ferryAroundTheIslandAndBack` (galion) | aller-retour de 400 blocs autour d'une île de 60 blocs, demi-tours aux escales, jamais dans la terre, aucun blocage |
+| `routeWithTurnsStopsOnTheQuay` (galion) | route à 4 virages, arrêt à moins de 5 blocs de l'escale |
+| `ferryGoesAroundTheIslandAndComesBack`, `routeWithWaypointsAndTurns` (galère) | inchangés |
+| `physicsInertia`, `turningSlowsTheShip`, `moverStopsAtTheCoastAndCanBackOff`, `moverEscapesWhenSpawnedInsideTerrain`, `otherHullIsAnObstacle` | physique et collisions avec le terrain |
+| `matchesPythonReference` (×2) | le lecteur `.bbmodel` du mod produit exactement la même géométrie que le rendu de référence (galère 2 208 faces ; galion 6 836 faces, 2 textures) |
+| `bonesAnimationsAndTextures`, `requiredBonesAndAnimationsExist`, `furlCollapsesTheSail` | os, animations et textures attendus par le mod |
 
-Test de robustesse supplémentaire (hors suite JUnit) : 60 archipels aléatoires de 6 îles,
-aller-retour de 600 blocs : **57 réussis**, 0 passage dans la terre. Les 3 échecs sont des
-ports avec un îlot à 7 blocs du quai ; le navire a alors signalé son blocage (comportement
-prévu : l'administrateur ajoute un point de passage).
+Les modèles ont aussi été vérifiés visuellement (`docs/preview.png`, `docs/preview_galleon.png`,
+`docs/preview_galleon_details.png`) et leurs conventions comparées au code source de Blockbench.
 
-Le modèle a aussi été vérifié visuellement (rendu des 6 vues, `docs/preview.png`) et ses
-conventions (ordre des rotations, faces/UV, animations) ont été comparées au code source de
-Blockbench.
+## À valider en jeu de votre côté
 
-## Tests NON exécutés (à faire de votre côté)
+Ce que les tests automatiques ne peuvent pas juger ou n'ont pas couvert :
 
-Impossible ici faute d'accès aux serveurs Fabric/Mojang :
-
-1. **Compilation** `./gradlew build` et production du `.jar`.
-2. Lancement client (`runClient`) et **serveur dédié** (`runServer`).
-3. En jeu : mise à l'eau, pilotage, passagers, marche sur le pont, rendu et animations,
-   commandes, sauvegarde/redémarrage, ferry sans joueur à proximité.
-
-Procédure de recette conseillée (≈ 20 min, deux joueurs) :
-
-1. Créatif → onglet *Navires médiévaux* → clic droit sur un océan.
-2. Clic droit sur la barre : Z/Q/D/S, Espace/Ctrl ; vérifier inertie et collisions avec la côte
-   et un quai.
-3. Second joueur : clic droit sur la coque (monter à bord), marcher pendant que le navire
-   avance et tourne, sauter, s'asseoir sur un banc, Maj pour se lever.
-4. Se déconnecter à bord, se reconnecter : le joueur doit être sur le pont, le navire intact.
-5. Faire un ferry selon `docs/FERRY.md`, s'éloigner à plus de 300 blocs, revenir ; puis
-   redémarrer le serveur pendant une traversée.
-6. `/ship list`, `/ship info`, accroupi + clic gauche pour récupérer le navire.
-
-### Audit indépendant du code Minecraft
-
-Un second audit a vérifié ~200 symboles Minecraft/Fabric contre les mappings 1.21.11 :
-aucune erreur de compilation probable trouvée. Il a relevé 5 problèmes d'exécution, tous
-corrigés : collisions de coque absentes du chemin « montée de marche », risque d'expulsion
-« Flying is not enabled » sur les ponts surélevés, fuite mémoire du registre des navires,
-rayon de chargement de chunks trop petit possible, tickets de chunk pouvant expirer avant le
-chargement d'un ferry au redémarrage.
-
-Points non vérifiables sans les sources décompilées (à surveiller à la première compilation) :
-la visibilité de `Entity.onRemove` (surchargée en `public`) et la capture des arguments dans
-les `@ModifyVariable` de `EntityCollisionMixin`.
-
-Si la compilation signale une erreur, elle portera très probablement sur un nom d'API Minecraft
-de 1.21.11 : envoyez-moi le message, la correction sera rapide.
+1. **Serveur dédié avec plusieurs joueurs** : les tests tournent en solo (serveur intégré).
+   Le code est le même, mais vérifiez à deux joueurs : marcher sur le galion pendant qu'un
+   autre barre, s'asseoir, descendre.
+2. **Aspect** : rendu du galion de nuit (fenêtres et lanternes éclairées), voiles au vent,
+   drapeaux, roulis — jugement esthétique.
+3. **Mise à l'eau avec l'objet** *Grand galion* (clic droit sur l'eau) : la vérification de
+   place est testée via `/ship spawn galleon`, pas l'utilisation de l'objet à la main.
+4. **Ferry en galion sur votre carte** : l'IA est validée en simulation et le galion navigue en
+   jeu, mais vos ports réels (largeur des chenaux, quais) décideront des points de passage
+   nécessaires (voir FERRY.md).
+5. **Sauvegarde / redémarrage** avec un galion en mer et des joueurs à bord ; anciennes galères
+   déjà posées dans votre monde (elles gardent leur identifiant `medievalships:galley`).
+6. **Autres mods** de votre serveur qui modifient les collisions ou le rendu des entités (seul
+   Lithium a été testé).

@@ -1,4 +1,10 @@
-# Modèle 3D, textures et animations
+# Modèles 3D, textures et animations
+
+Le mod contient deux navires, chacun avec son propre fichier Blockbench, sa texture et ses
+animations : la **galère médiévale** (première partie) et le **grand galion** (seconde partie).
+Le moteur de rendu est commun.
+
+# Galère médiévale
 
 ![Aperçu](preview.png)
 
@@ -80,3 +86,77 @@ python3 tools/preview.py           # aperçu docs/preview.png
 ```
 (Python 3 avec `numpy` et `Pillow`). Attention : la régénération écrase les modifications
 faites à la main dans Blockbench.
+
+# Grand galion
+
+![Aperçu du galion](preview_galleon.png)
+![Détails : poupe et balcon, pont, proue, gaillard d'arrière et barre](preview_galleon_details.png)
+
+## Fichiers
+
+| Fichier | Rôle |
+|---|---|
+| `blockbench/galleon.bbmodel` | Modèle éditable dans Blockbench (2 textures intégrées, 4 animations). |
+| `src/main/resources/assets/medievalships/models/entity/galleon.bbmodel` | Copie chargée par le mod. |
+| `textures/entity/galleon.png` | Texture 512 × 512 (coque, châteaux, toit, voiles…). |
+| `textures/entity/galleon_flag.png` | **Texture des drapeaux** (64 × 64) : emblème remplaçable. |
+| `textures/item/galleon.png` | Icône de l'objet *Grand galion*. |
+| `tools/galleon_shape.py` | Forme de coque et plan du navire, identiques au code Java des collisions. |
+| `tools/generate_galleon.py`, `tools/galleon_texture.py` | Générateurs du modèle, des textures et des animations. |
+
+## Ce qui est modélisé
+
+| Élément | Réalisation |
+|---|---|
+| Coque arrondie et lisse (pas en escalier) | 28 tronçons × 2 bords × 7 bordages **inclinés** qui suivent des sections arrondies (quille, bouchain, flanc, léger rentré en haut) ; coque claire/sombre, préceinte noire à la flottaison, bande rouge et moulure dorée sous le plat-bord |
+| Dimensions | coque 35 blocs (≈ 43 avec le beaupré et le balcon), 9 de large, ≈ 6,4 de la quille au haut des châteaux, ≈ 28 de la quille au sommet du grand mât |
+| Ponts | pont principal, **gaillard d'avant** (+2 blocs), **gaillard d'arrière** (+2,6) au-dessus de la grande cabine, escaliers des deux bords, barrières à balustres |
+| Château arrière | murs rouges à panneaux dorés, fenêtres éclairées, tableau arrière plat avec fenêtres de galerie, **balcon accessible**, corniche dorée, 3 grandes lanternes |
+| Cabine | **grande cabine accessible** sous le gaillard d'arrière (porte dans la cloison, chaises = places assises, lanternes, coffre, poutres) ; **dunette** au toit de tuiles rouges (décorative, fermée) |
+| Gouvernail et barre | roue de barre sur piédestal (os `helm_wheel`) et gouvernail sur le tableau (os `rudder`) |
+| Mâture | 3 mâts (misaine, grand mât en deux parties avec hunes, artimon) + beaupré, vergues avec voile carguée en rouleau |
+| Voiles | voiles carrées **gonflées et courbées** (chaque voile = 30 panneaux inclinés qui suivent une surface en ventre, texture continue avec croix rouge sur les basses voiles), voile latine d'artimon, **2 focs** triangulaires |
+| Cordages | haubans avec enfléchures, étais, bras, écoutes, sous-barbe (≈ 60 cordages) |
+| Drapeaux | pavillons en tête de mât, flamme à deux couleurs au grand mât, grand pavillon de poupe — tous sur la texture `galleon_flag.png` |
+| Sabords | 12 sabords décoratifs (6 par bord) avec mantelets ouverts : os `gunport_l1`…`gunport_l6`, `gunport_r1`…`gunport_r6` ; os vides `cannon_l1`…`cannon_r6` à l'emplacement des futurs canons |
+| Proue | éperon rouge et doré, figure de proue dorée, ancres, écubiers, lanterne de proue |
+
+Optimisation : 1262 cubes (≈ 6800 faces), aucune géométrie cachée inutile ; 55 os.
+
+## Changer l'emblème des drapeaux
+
+Remplacez `assets/medievalships/textures/entity/galleon_flag.png` dans un pack de ressources
+(même taille, 64 × 64) :
+
+* zone `0,0 → 64,40` : le pavillon (fleur de lys dorée sur fond bleu par défaut) ;
+* zone `0,40 → 64,48` : la flamme du grand mât.
+
+Aucune modification du modèle n'est nécessaire, **F3 + T** recharge la texture.
+
+## Animations du galion
+
+| Animation | Utilisation en jeu |
+|---|---|
+| `sail_wind` (3,6 s, boucle) | le ventre des voiles « respire » et les voiles ondulent ; d'autant plus que la voilure est établie. |
+| `sail_furl` (1 s) | voiles carguées sur leurs vergues (focs et latine ramassés) à l'arrêt, déployées au départ. |
+| `steer` (2 s) | roue de barre (± 150°) et gouvernail (± 30°), comme pour la galère (0 = bâbord, 1 = centre, 2 = tribord). |
+| `flag_wave` (1,2 s, boucle) | les 4 drapeaux flottent (deux segments chacun). |
+
+Le roulis visuel est plus lent et plus faible que celui de la galère (navire lourd), et la gîte
+dans les virages est calculée par le moteur de rendu.
+
+## Collisions du galion
+
+Comme pour la galère, les collisions ne viennent pas du modèle : elles sont définies dans
+`core/Ships.java` (`Ships.GALLEON`, classe `GalleonLayout`) et reprises par
+`tools/galleon_shape.py`. Volumes : coque pleine sous les ponts, murailles, gaillard d'avant,
+plancher du gaillard d'arrière, cloison de cabine avec sa porte, tableau arrière avec la porte
+du balcon, balcon et sa balustrade, dunette et son toit, escaliers, barrières, 3 mâts.
+Un test (`GalleonTest`) vérifie que les deux fichiers donnent les mêmes valeurs.
+
+## Régénérer le galion
+
+```
+python3 tools/generate_galleon.py
+python3 tools/preview.py blockbench/galleon.bbmodel - docs/preview_galleon.png --scale=1.75
+```

@@ -5,13 +5,17 @@
 ```
 fr.medievalships
 ├── core/            Java pur, sans Minecraft, testé unitairement
-│   ├── HullProfile      forme de la coque (identique au générateur du modèle 3D)
-│   ├── ShipGeometry     pont et parois en boîtes de collision, sièges, sondes, visée
+│   ├── Ships            les types de navires : GALLEY, GALLEON (forme, plan, sièges, réglages)
+│   ├── ShipType         identifiant, nom, géométrie et réglages par défaut d'un navire
+│   ├── HullShape        forme paramétrique de coque (identique aux générateurs des modèles 3D)
+│   ├── HullProfile      ancienne façade de la forme de la galère (conservée)
+│   ├── ShipGeometry     une instance par type : coque, ponts, superstructures en boîtes de
+│   │                    collision, sièges, sondes, visée, sabords
 │   ├── ShipPhysics      accélération, inertie, barre, inertie de rotation
 │   ├── ShipMover        déplacement avec collisions (terrain, quais, autres coques)
 │   ├── Autopilot        pilote PNJ : points, escales, évitement, déblocage
-│   └── Route, Waypoint, Gait, ShipConfig
-├── entity/          l'entité GalleyEntity et son adaptation au monde
+│   └── Route, Waypoint, Gait, ShipConfig (par navire), ServerSettings (communs)
+├── entity/          ShipEntity (commune) + GalleyEntity, GalleonEntity (une ligne chacune)
 ├── mixin/           EntityCollisionMixin (le pont devient solide)
 ├── command/         /ship
 ├── data/            config JSON + PersistentState (itinéraires, ferries, joueurs)
@@ -24,9 +28,34 @@ Le modèle et ses animations sont lus directement depuis le fichier Blockbench p
 lecteur intégré (`BbModel`), ce qui évite une dépendance supplémentaire à maintenir à chaque
 version de Minecraft tout en gardant le modèle éditable dans Blockbench.
 
+## Plusieurs navires, un seul code
+
+Chaque navire est décrit par un `ShipType` (`core/Ships.java`) : une forme de coque
+paramétrique (`HullShape`), un plan (`ShipGeometry.Spec` : sièges, barre, mâts, volumes
+solides comme les châteaux, la cabine ou le balcon, sabords) et ses réglages par défaut.
+Tout le reste est commun : `ShipEntity` (navigation, flottaison, passagers, transport sur le
+pont, pilote automatique, persistance), les collisions, les commandes, le rendu
+(`ShipRenderer` + un `ShipModels.Visual` par navire). Les sous-classes `GalleyEntity` et
+`GalleonEntity` ne font que dire quel type elles sont.
+
+Ajouter un navire = un `ShipType` dans `Ships`, une sous-classe d'une ligne, un `registerShip`,
+un modèle Blockbench et une ligne dans `ShipModels`.
+
+La galère n'a pas changé : ses valeurs sont reprises telles quelles dans `Ships.GALLEY`, son
+identifiant d'entité (`medievalships:galley`) et d'objet aussi, ses sauvegardes se chargent
+sans conversion, et le test `galleyGeometryUnchanged` compare toute sa géométrie (sondes,
+sièges, boîtes de collision, visée, embarquement) à un instantané pris sur la version 1.1.1.
+
+### Préparé pour les canons
+
+`ShipGeometry.gunports()` donne pour chaque sabord sa position (repère du navire) et son bord
+de tir ; le modèle du galion contient un os vide `cannon_l1`…`cannon_r6` à chaque sabord et un
+os de mantelet `gunport_*` (ouvrable par une future animation). Un futur système de combat
+pourra donc ajouter les canons sans toucher au modèle ni aux collisions.
+
 ## Une seule entité, autorité serveur
 
-Le navire est **une seule entité** (`medievalships:galley`). Toute la navigation tourne sur le
+Chaque navire est **une seule entité** (`medievalships:galley` ou `medievalships:galleon`). Toute la navigation tourne sur le
 serveur, 20 fois par seconde :
 
 1. commandes : entrées du barreur (le serveur reçoit déjà les touches Z/Q/S/D, Espace, Ctrl
@@ -50,7 +79,9 @@ l'inertie d'un navire de cette taille.
 
 ## Passagers assis
 
-9 places : la barre (siège 0) et 8 places sur les 4 bancs. Les sièges sont des positions
+Galère : 9 places, la barre (siège 0) et 8 places sur les 4 bancs. Galion : 16 places, la
+barre (siège 0), 8 bancs le long des pavois du pont principal, 3 sur le gaillard d'avant,
+2 sur le gaillard d'arrière et 2 chaises dans la grande cabine. Les sièges sont des positions
 locales tournées avec le navire (`getPassengerAttachmentPos`) ; l'attribution des sièges est
 synchronisée vers les clients. Les passagers tournent avec le navire (leur caméra suit le cap)
 et regardent librement autour d'eux ; seul le siège 0 pilote.
@@ -86,6 +117,20 @@ C'était le point le plus délicat. Solution retenue, fiable sans moteur physiqu
    (distance maximale 8 blocs). Cliquer sur le pont n'atteint jamais l'eau ou le fond sous la
    coque (impossible de vider l'eau sous le navire avec un seau).
 
+5. **Compatibilité Lithium (et mods qui remplacent les collisions).** Lithium réécrit le calcul
+   des collisions d'entités et contournait notre ajout : les joueurs traversaient le pont en
+   sautant. Un mixin optionnel (`mixin/compat`, chargé seulement si Lithium est présent) ajoute
+   les coques à la liste de collisions de Lithium. En plus, un **filet de sécurité** indépendant
+   de tout mod replace sur le pont (sans saut visible) une entité qui se retrouverait dans
+   l'épaisseur du pont. Vérifié en jeu, avec et sans Lithium (voir TESTS.md).
+6. **Volumes multiples.** Au-delà de la coque, chaque navire déclare des volumes solides
+   (`ShipGeometry.LocalBox`) tournés avec lui : pour le galion, plancher du gaillard d'arrière
+   (toit de la grande cabine), cloison et sa porte, tableau arrière et porte du balcon, balcon
+   et balustrade, dunette et son toit, marches des escaliers, barrières des gaillards. Ils sont
+   découpés en petites boîtes alignées sur le monde exactement comme le pont, et servent aussi
+   à la visée, au transport des entités (balcon en porte-à-faux compris) et au choix du point
+   d'embarquement (jamais dans un mur ni dans la cabine fermée).
+
 Limites connues, assumées :
 
 * le roulis/tangage est **visuel** (≤ 1°) : le plancher de collision reste horizontal ;
@@ -112,6 +157,11 @@ suivre chaque mise à jour. Notre approche ne touche qu'une méthode de collisio
 * Déblocage : sans progrès pendant 6 s → marche arrière en braquant ; après plusieurs échecs
   il tente l'autre côté ; sans rapprochement de l'objectif pendant 50 s → point de passage
   abandonné ou alerte aux administrateurs.
+* Adapté à chaque navire : la longueur devant le centre (`aiReach`), la demi-largeur des rayons
+  de dégagement et le rayon d'arrivée « à quai » viennent de la géométrie du navire ; les
+  distances d'anticipation, de détection et de freinage viennent de sa configuration. Le
+  galion, qui ne peut pas pivoter sur place, garde de l'erre pour faire demi-tour
+  (`aiTurnAroundSpeed`) et son délai d'abandon est proportionnel à sa longueur.
 * Validé en simulation : aller-retour autour d'une île, route à plusieurs virages, et
   60 archipels aléatoires (57 réussis ; les 3 échecs étaient des ports encombrés d'îlots à
   7 blocs, où l'administrateur doit ajouter un point de passage — le navire l'a signalé).
@@ -130,6 +180,9 @@ dernière position des navires automatiques, navire de chaque joueur déconnect�
 * évitement d'obstacles toutes les 5 ticks, jamais de recherche de chemin ;
 * collisions : liste en cache des navires par monde, rejet par distance avant tout calcul ;
 * réseau : position vanilla + 7 valeurs DataTracker envoyées seulement quand elles changent ;
-* rendu : ~370 cubes / 2200 faces, animations calculées par le client à partir de l'état
-  synchronisé ; culling sur la taille réelle du navire ;
+* rendu : galère ~370 cubes / 2200 faces, galion ~1260 cubes / 6800 faces (deux passes : coque
+  et drapeaux, pour l'emblème remplaçable) ; animations calculées par le client à partir de
+  l'état synchronisé ; culling sur la taille réelle de chaque navire ;
+* collisions du galion : même coût par entité que la galère (seules les cellules proches de
+  l'entité qui bouge sont générées), une vingtaine de boîtes en moyenne ;
 * aucune génération naturelle, aucune structure, aucun spawn automatique.

@@ -5,6 +5,7 @@ Toutes les commandes `/ship` demandent le niveau de permission défini par
 
 ## Quel navire est visé ?
 
+Toutes les commandes marchent de la même façon pour la galère et pour le grand galion.
 Les commandes qui agissent sur « le navire ciblé » le choisissent dans cet ordre :
 
 1. le navire sur lequel vous êtes **assis** ;
@@ -19,8 +20,12 @@ utilisable avec `/execute positioned ... run ship ...`).
 
 | Commande | Effet |
 |---|---|
-| `/ship give [joueurs]` | Donne l'objet *Galère médiévale* (à vous par défaut). |
-| `/ship spawn` | Met une galère à l'eau à votre position, proue dans votre direction. Il faut environ 24 × 6 blocs d'eau profonde d'au moins 2 blocs. |
+| `/ship give [joueurs]` | Donne l'objet *Galère médiévale* (à vous par défaut) — inchangé. |
+| `/ship give galley [joueurs]` | Donne l'objet *Galère médiévale*. |
+| `/ship give galleon [joueurs]` | Donne l'objet *Grand galion*. |
+| `/ship spawn` | Met une galère à l'eau à votre position, proue dans votre direction — inchangé. Il faut environ 24 × 6 blocs d'eau profonde d'au moins 2 blocs. |
+| `/ship spawn galley` | Identique à `/ship spawn`. |
+| `/ship spawn galleon` | Met un grand galion à l'eau à votre position, proue dans votre direction. Il faut environ 40 × 10 blocs d'eau libre (2 blocs de profondeur minimum, 3 conseillés) et rien au-dessus. |
 | `/ship remove` | Supprime le navire ciblé (les passagers sont débarqués sur place). |
 | `/ship list` | Liste les navires chargés, et les navires automatiques connus mais non chargés. |
 | `/ship info` | Vitesse, cap, barre, allure, pilote automatique, itinéraire, passagers. |
@@ -42,7 +47,8 @@ navire. Le navire disparaît et l'objet est rendu (en créatif, seulement si vou
 |---|---|
 | `/ship ai enable` | Active le pilote automatique sur le dernier itinéraire assigné. |
 | `/ship ai disable` | Désactive le pilote : le navire laisse filer sa vitesse et s'arrête. |
-| `/ship route start <itinéraire>` | Assigne l'itinéraire au navire ciblé et lance la navigation automatique. |
+| `/ship route assign <itinéraire>` | Assigne l'itinéraire au navire ciblé (galère ou galion) et lance la navigation automatique. |
+| `/ship route start <itinéraire>` | Identique à `assign` (commande d'origine, conservée). |
 | `/ship route stop` | Identique à `/ship ai disable`. |
 | `/ship route depart` | Fait partir immédiatement un navire qui attend à une escale. |
 
