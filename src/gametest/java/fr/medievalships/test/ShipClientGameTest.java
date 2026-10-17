@@ -121,11 +121,12 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			context.takeScreenshot("05_at_the_bow");
 
 			// 4. jumping aboard from the quay
-			server.runCommand("tp @p 5.5 -57 0 90 10");
+			server.runCommand("tp @p 6.5 -57 0 90 10");
 			context.waitTicks(30);
 			// run-up and a single jump over the rail, then stop
+			context.getInput().holdKey(o -> o.sprintKey);
 			context.getInput().holdKey(o -> o.forwardKey);
-			context.waitTicks(3);
+			context.waitTicks(6);
 			context.getInput().holdKey(o -> o.jumpKey);
 			for (int t = 0; t < 20; t++) {
 				context.waitTick();
@@ -135,7 +136,11 @@ public class ShipClientGameTest implements FabricClientGameTest {
 				double[] q = playerPos(context);
 				double[] ql = pose.toLocal(q[0], q[1], q[2]);
 				log("  jump tick %d: local x=%.3f y=%.3f ground=%s", t, ql[0], ql[1], q[3] > 0);
+				if (t == 14) {
+					context.getInput().releaseKey(o -> o.forwardKey);
+				}
 			}
+			context.getInput().releaseKey(o -> o.sprintKey);
 			context.getInput().releaseKey(o -> o.forwardKey);
 			context.waitTicks(30);
 			p = playerPos(context);
