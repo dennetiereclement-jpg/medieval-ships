@@ -29,9 +29,28 @@ Le test (`src/gametest/.../ShipClientGameTest.java`) crée un monde, des bassins
 
 ### Grand galion
 
-GALLEON_RESULTS
+| Vérification | Sans Lithium | Avec Lithium |
+|---|---|---|
+| le galion est mis à l'eau à côté de la galère, les deux coexistent | réussi | réussi |
+| un joueur tombe sur le pont principal et s'y tient ; il saute et retombe sur le pont | réussi | réussi |
+| il entre dans la **grande cabine** par la porte de la cloison | réussi | réussi |
+| il sort sur le **balcon** par la porte du tableau arrière ; la balustrade le retient | réussi | réussi |
+| il monte l'escalier jusqu'au **gaillard d'arrière** (+2,6 blocs) puis au **gaillard d'avant** | réussi | réussi |
+| **16 passagers** assis (15 + le barreur) ; un 17ᵉ est refusé | réussi | réussi |
+| maniement lourd : 0,7 bloc parcouru en 2 s, 11 en 8 s ; 9 blocs sur l'erre en 4 s sans propulsion ; 9° de virage en 4 s | réussi | réussi |
+| pendant la navigation et le virage, les 16 passagers restent assis et un mob debout sur le pont est transporté | réussi | réussi |
+| le barreur qui quitte la barre se retrouve debout sur le gaillard d'arrière | réussi (après correction) | réussi (après correction) |
+| `/ship give galleon` donne l'objet *Grand galion* | réussi | réussi |
 
-## Tests unitaires (37, tous réussis)
+Correction apportée grâce à ce test : en quittant la barre, le joueur restait à la hauteur de
+son siège, dans l'épaisseur du plancher du gaillard d'arrière. Le client place maintenant son
+joueur sur le point de descente du siège, et le filet de sécurité couvre aussi les planchers
+des châteaux.
+
+Captures en jeu (branches `test-results-*`) : vue d'ensemble, flanc, poupe, proue, pont,
+cabine, balcon, gaillard d'arrière, navigation.
+
+## Tests unitaires (38, tous réussis)
 
 `./gradlew test` :
 
@@ -44,6 +63,7 @@ GALLEON_RESULTS
 | `sixteenSeats` | 16 places sur le galion, chacune libre de tout mur, et chaque point de descente est une place debout valide |
 | `boardingSpots` | embarquer en cliquant n'importe où sur la coque du galion place le joueur debout, jamais dans un mur ni sur le toit de la dunette |
 | `stairsAreClimbable` | marches ≤ 0,6 bloc jusqu'au gaillard d'arrière (+2,6) et au gaillard d'avant (+2) |
+| `rescueOntoCastleFloors` | filet de sécurité sur les planchers des châteaux |
 | `cabinIsAccessible`, `balcony` | on entre dans la grande cabine par la porte, on sort sur le balcon par le tableau arrière, la balustrade retient, le balcon est transporté |
 | `gunports` | 12 sabords (6 par bord) prêts pour de futurs canons |
 | `heavierThanTheGalley` | galion : > 10 s pour atteindre l'allure normale, > 30 blocs de glisse, virage plus lent |
@@ -51,7 +71,7 @@ GALLEON_RESULTS
 | `routeWithTurnsStopsOnTheQuay` (galion) | route à 4 virages, arrêt à moins de 5 blocs de l'escale |
 | `ferryGoesAroundTheIslandAndComesBack`, `routeWithWaypointsAndTurns` (galère) | inchangés |
 | `physicsInertia`, `turningSlowsTheShip`, `moverStopsAtTheCoastAndCanBackOff`, `moverEscapesWhenSpawnedInsideTerrain`, `otherHullIsAnObstacle` | physique et collisions avec le terrain |
-| `matchesPythonReference` (×2) | le lecteur `.bbmodel` du mod produit exactement la même géométrie que le rendu de référence (galère 2 208 faces ; galion 6 836 faces, 2 textures) |
+| `matchesPythonReference` (×2) | le lecteur `.bbmodel` du mod produit exactement la même géométrie que le rendu de référence (galère 2 208 faces ; galion 7 943 faces, 2 textures) |
 | `bonesAnimationsAndTextures`, `requiredBonesAndAnimationsExist`, `furlCollapsesTheSail` | os, animations et textures attendus par le mod |
 
 Les modèles ont aussi été vérifiés visuellement (`docs/preview.png`, `docs/preview_galleon.png`,

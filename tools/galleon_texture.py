@@ -43,6 +43,11 @@ REGIONS = {
     "panel":       (0, 256, 32, 64, 32),
     "cloth_roll":  (0, 320, 32, 64, 16),
     "carving":     (0, 320, 48, 32, 16),
+    "frieze":      (0, 0, 320, 64, 16),
+    "shield_a":    (0, 64, 320, 16, 20),
+    "shield_b":    (0, 80, 320, 16, 20),
+    "pilaster":    (0, 96, 320, 8, 32),
+    "arch_window": (0, 104, 320, 16, 24),
     # sails
     "course":      (0, 0, 128, 256, 192),
     "topsail":     (0, 256, 128, 160, 128),
@@ -77,6 +82,13 @@ def _cloth(px, region, rng, mask=None, cross=False, seams_vertical=True):
                 c = seam
             if rng.random() < 0.08:
                 c = _jitter(c, rng, 8)
+            # weathering: slightly darker towards the foot, reef points in rows under the head
+            fy = y / h
+            c = tuple(max(0, int(k * (1 - 0.07 * fy))) for k in c)
+            if mask is None and int(h * 0.16) <= y <= int(h * 0.16) + 1 and x % 10 in (4, 5):
+                c = _rgb("8a7a5a")
+            if mask is None and int(h * 0.3) <= y <= int(h * 0.3) + 1 and x % 10 in (4, 5):
+                c = _rgb("8a7a5a")
             if cross:
                 cw = max(6, w // 9)
                 if abs(x - w / 2) < cw / 2 or abs(y - h * 0.45) < cw / 2:
@@ -203,6 +215,53 @@ def make_textures(path, flag_path, lateen_tri, jib_tri):
         for x in range(w):
             frame = x < 2 or x >= w - 2 or y < 2 or y >= h - 2
             px[u + x, v + y] = (_rgb("5e3f1d") if frame else _rgb("120c08")) + (255,)
+
+    # painted frieze: gold borders, red lozenges on blue
+    u, v, w, h = reg("frieze")
+    for y in range(h):
+        for x in range(w):
+            if y < 2 or y >= h - 2:
+                c = _rgb("d4aa45")
+            else:
+                d = abs((x % 16) - 7.5) / 7.5 + abs(y - h / 2 + 0.5) / (h / 2 - 2)
+                c = _rgb("b3221c") if d < 0.75 else (_rgb("e8c35a") if d < 0.95 else _rgb("27407a"))
+            px[u + x, v + y] = _jitter(c, rng, 5) + (255,)
+    # heraldic shields (pavises) along the castles: argent / gules chevron, azure / or bend
+    for name, field, charge in (("shield_a", "b3221c", "eeeae0"), ("shield_b", "27407a", "e8c35a")):
+        u, v, w, h = reg(name)
+        for y in range(h):
+            for x in range(w):
+                half = w / 2
+                inside = y < h * 0.55 or abs(x + 0.5 - half) < half * (1 - (y - h * 0.55) / (h * 0.45)) ** 0.7
+                if not inside:
+                    continue
+                edge = x == 0 or x == w - 1 or y == 0
+                if name == "shield_a":
+                    on = abs(abs(x + 0.5 - half) - (h * 0.75 - y) * 0.7) < 2.2
+                else:
+                    on = abs((x + 0.5) - y * 0.8) < 2.2
+                c = _rgb("d4aa45") if edge else (_rgb(charge) if on else _rgb(field))
+                px[u + x, v + y] = _jitter(c, rng, 5) + (255,)
+    # carved pilaster and arched window
+    u, v, w, h = reg("pilaster")
+    for y in range(h):
+        for x in range(w):
+            c = _rgb("f0cf6f") if x in (1, w - 2) or y % 8 == 0 else _rgb("b88a2e")
+            px[u + x, v + y] = _jitter(c, rng, 5) + (255,)
+    u, v, w, h = reg("arch_window")
+    for y in range(h):
+        for x in range(w):
+            r = ((x + 0.5 - w / 2) ** 2 + (y + 0.5 - w / 2) ** 2) ** 0.5
+            if y < w / 2 and r > w / 2:
+                continue
+            frame = x < 2 or x >= w - 2 or y >= h - 2 or (y < w / 2 and r > w / 2 - 2)
+            if frame:
+                c = _rgb("d4aa45")
+            elif (x - 2) % 6 == 5 or y % 6 == 5:
+                c = _rgb("2c2a26")
+            else:
+                c = _rgb("ffe9a3") if (x + y) % 7 < 2 else _rgb("f2c25a")
+            px[u + x, v + y] = c + (255,)
 
     # sails: courses carry a red cross, topsails plain, triangles with transparent outside
     _cloth(px, REGIONS["course"], rng, cross=True)

@@ -68,7 +68,7 @@ def section(z, side):
     return [v3(side * max(x, 0.08), y, z) for x, y in pts]
 
 
-STRAKES = ["hull_dark", "hull_dark", "hull_dark", "hull_mid", "wale", "hull_mid", "red_paint"]
+STRAKES = ["hull_dark", "hull_dark", "hull_dark", "hull_mid", "hull_mid", "red_paint", "frieze"]
 
 
 def outer_x(z, y):
@@ -204,6 +204,10 @@ def build():
             pb = v3(side * (hw(zb) + 0.04), 0.85, zb)
             if hw(za) > 0.6 and hw(zb) > 0.6:
                 beam(hull, "wale_%s%d" % (sn, i), pa, pb, 0.16, "wale", width=0.18, extend=0.05)
+                # upper wale under the gun ports
+                pa2 = v3(side * (outer_x(za, 1.25) + 0.04), 1.25, za)
+                pb2 = v3(side * (outer_x(zb, 1.25) + 0.04), 1.25, zb)
+                beam(hull, "wale_up_%s%d" % (sn, i), pa2, pb2, 0.12, "wale", width=0.14, extend=0.05)
     # keel
     for i in range(len(STATIONS) - 1):
         za, zb = STATIONS[i], STATIONS[i + 1]
@@ -241,7 +245,13 @@ def build():
         # upper windows of the poop house level
         add_cube(castle_aft, "transom_upper_window_" + sn, (side * 1.2, 4.05, zt - 0.03), EYE, (0.55, 0.6, 0.06),
                  "window", stretch=True)
-    add_cube(castle_aft, "transom_panel", (0, 4.0, zt - 0.03), EYE, (1.2, 0.7, 0.06), "panel", stretch=True)
+    arms = v3(0, 3.98, zt - 0.06)
+    add_cube(castle_aft, "arms_frame", arms + v3(0, 0, 0.02), EYE, (1.55, 1.12, 0.08), "gold")
+    add_cube(castle_aft, "arms_emblem", arms - v3(0, 0, 0.03), EYE, (1.35, 0.92, 0.04),
+             {"all": None, "-3": "flag"}, stretch=True, u_dir=v3(1, 0, 0), v_dir=v3(0, -1, 0))
+    add_cube(castle_aft, "arms_crown", arms + v3(0, 0.68, -0.02), EYE, (0.6, 0.26, 0.1), "carving", stretch=True)
+    for side, sn in SIDES:
+        add_cube(castle_aft, "arms_supporter_" + sn, arms + v3(side * 0.95, -0.05, -0.02), EYE, (0.22, 0.95, 0.14), "pilaster", stretch=True)
     add_cube(castle_aft, "transom_cornice", (0, gs.QD_RAIL_Y + 0.08, zt + 0.05), EYE, (2 * 0.98 * hw(zt) + 0.2, 0.16, 0.4), "gold")
     add_cube(castle_aft, "transom_carving", (0, 3.25, zt - 0.04), EYE, (2 * 0.98 * hw(zt), 0.22, 0.08), "carving", stretch=True)
     add_cube(castle_aft, "transom_carving_low", (0, 0.65, zt - 0.04), EYE, (2 * hw(zt) - 0.2, 0.18, 0.08), "carving", stretch=True)
@@ -287,12 +297,34 @@ def build():
     bulwark(castle_fore, "fc", gs.FORECASTLE_START, 17.9, gs.FC_RAIL_Y)
     # stern castle side decoration: painted panels and lit cabin windows
     for side, sn in SIDES:
-        for j, z in enumerate((-15.6, -13.6, -11.6, -9.9)):
-            decal(castle_aft, "qd_panel_%s%d" % (sn, j), z, gs.QD_RAIL_Y - 0.62, side, 1.1, 0.55, "panel")
+        for j, z in enumerate(np.arange(-16.3, -9.0, 1.0)):
+            decal(castle_aft, "qd_shield_%s%d" % (sn, j), z, gs.QD_RAIL_Y - 0.22, side, 0.52, 0.66,
+                  "shield_a" if j % 2 == 0 else "shield_b", out=0.03, th=0.06)
         for j, z in enumerate((-15.4, -13.0, -10.6)):
             decal(cabin, "cabin_window_%s%d" % (sn, j), z, 2.2, side, 0.6, 0.75, "glow_window", glow=True)
-        for j, z in enumerate((13.0, 15.0)):
-            decal(castle_fore, "fc_panel_%s%d" % (sn, j), z, gs.FC_RAIL_Y - 0.55, side, 0.9, 0.45, "panel")
+        for j, z in enumerate((11.3, 12.3, 13.3, 14.3, 15.3)):
+            decal(castle_fore, "fc_shield_%s%d" % (sn, j), z, gs.FC_RAIL_Y - 0.22, side, 0.5, 0.64,
+                  "shield_b" if j % 2 == 0 else "shield_a", out=0.03, th=0.06)
+        # quarter gallery: a closed balcony with lit windows on each stern corner
+        qz0, qz1 = -16.95, -14.25
+        qx = 0.98 * hw(-15.6)
+        gal = v3(side * (qx + 0.22), 2.55, (qz0 + qz1) / 2)
+        add_cube(castle_aft, "quarter_gallery_" + sn, gal, EYE, (0.5, 1.9, qz1 - qz0), {"all": "red_paint", "+2": "dark_wood"})
+        for j, z in enumerate((qz0 + 0.65, qz1 - 0.65)):
+            add_cube(castle_aft, "glow_quarter_window_%s%d" % (sn, j), (side * (qx + 0.48), 2.6, z), EYE, (0.04, 1.05, 0.62),
+                     "arch_window", stretch=True)
+        add_cube(castle_aft, "quarter_gallery_cornice_" + sn, gal + v3(side * 0.03, 1.0, 0), EYE, (0.6, 0.14, qz1 - qz0 + 0.12), "gold")
+        add_cube(castle_aft, "quarter_gallery_sill_" + sn, gal + v3(side * 0.03, -0.98, 0), EYE, (0.6, 0.12, qz1 - qz0 + 0.12), "gold")
+        board(castle_aft, "quarter_gallery_roof_" + sn, v3(side * (qx + 0.55), 3.55, qz0 - 0.05), v3(side * (qx - 0.05), 4.05, qz0 - 0.05),
+              v3(side * (qx + 0.55), 3.55, qz1 + 0.05), v3(side * (qx - 0.05), 4.05, qz1 + 0.05), 0.1, "roof", v3(side, 1, 0), overlap=1.0)
+        beam(castle_aft, "quarter_gallery_bracket_" + sn, (side * (qx - 0.05), 0.8, (qz0 + qz1) / 2), (side * (qx + 0.4), 1.6, (qz0 + qz1) / 2),
+             0.2, "carving", width=0.5)
+        # chain-wales (channels) carrying the deadeyes of the shrouds, with their chains
+        for tag, z0, z1, ys in (("main", -1.0, 2.8, None), ("fore", 11.0, 13.4, None), ("mizzen", -13.6, -11.6, None)):
+            zm = (z0 + z1) / 2
+            y = gs.rail_y(zm) - 0.22
+            beam(hull, "channel_%s_%s" % (tag, sn), (side * (0.98 * hw(z0) + 0.16), y, z0), (side * (0.98 * hw(z1) + 0.16), y, z1),
+                 0.1, "dark_wood", width=0.36, up=v3(0, 0, 1) if False else v3(0, 1, 0))
 
     # ---- decks
     def deck_span(bone, z0, z1, n, y, tag, under="dark_wood"):
@@ -419,16 +451,22 @@ def build():
     for side, sn in SIDES:
         add_cube(poop, "poop_wall_" + sn, (side * (ph - 0.08), qd_y + wall_h / 2, (pf + pb) / 2), EYE, (0.16, wall_h, pf - pb),
                  {"all": "red_paint", "+1": "red_paint"})
-        for j, z in enumerate((pb + 0.75, (pf + pb) / 2 + 0.35)):
-            add_cube(poop, "glow_poop_window_%s%d" % (sn, j), (side * (ph + 0.01), qd_y + 1.5, z), EYE, (0.04, 0.8, 0.6),
-                     "glow_window", stretch=True)
+        for j, z in enumerate((pb + 0.7, pf - 0.7)):
+            add_cube(poop, "glow_poop_window_%s%d" % (sn, j), (side * (ph + 0.01), qd_y + 1.45, z), EYE, (0.04, 1.1, 0.62),
+                     "arch_window", stretch=True)
+        add_cube(poop, "poop_pilaster_" + sn, (side * (ph + 0.02), qd_y + wall_h / 2, (pf + pb) / 2), EYE, (0.08, wall_h, 0.24),
+                 "pilaster", stretch=True)
+        add_cube(poop, "poop_base_" + sn, (side * (ph + 0.02), qd_y + 0.12, (pf + pb) / 2), EYE, (0.1, 0.24, pf - pb), "gold")
         add_cube(poop, "poop_corner_" + sn, (side * (ph - 0.05), qd_y + wall_h / 2, pf - 0.05), EYE, (0.2, wall_h, 0.2), "gold")
         add_cube(poop, "poop_corner_back_" + sn, (side * (ph - 0.05), qd_y + wall_h / 2, pb + 0.05), EYE, (0.2, wall_h, 0.2), "gold")
     add_cube(poop, "poop_front", (0, qd_y + wall_h / 2, pf - 0.08), EYE, (2 * ph, wall_h, 0.16), {"all": "red_paint", "-3": "hull_light"})
     add_cube(poop, "poop_back", (0, qd_y + wall_h / 2, pb + 0.08), EYE, (2 * ph, wall_h, 0.16), "red_paint")
     add_cube(poop, "poop_door", (0, qd_y + 0.95, pf + 0.01), EYE, (0.9, 1.8, 0.04), "door", stretch=True)
     for side, sn in SIDES:
-        add_cube(poop, "poop_front_window_" + sn, (side * 1.6, qd_y + 1.45, pf + 0.01), EYE, (0.6, 0.7, 0.04), "window", stretch=True)
+        add_cube(poop, "glow_poop_front_window_" + sn, (side * 1.7, qd_y + 1.45, pf + 0.01), EYE, (0.62, 1.1, 0.04), "arch_window",
+                 stretch=True)
+        add_cube(poop, "poop_front_pilaster_" + sn, (side * 0.75, qd_y + wall_h / 2, pf + 0.02), EYE, (0.24, wall_h, 0.06),
+                 "pilaster", stretch=True)
     add_cube(poop, "poop_cornice", (0, gs.POOP_WALL_TOP + 0.06, (pf + pb) / 2), EYE, (2 * ph + 0.2, 0.14, pf - pb + 0.2), "gold")
     # roof: two tile slopes meeting at the ridge, with overhang, plus gables
     eave_y, ridge_y = gs.POOP_WALL_TOP + 0.1, gs.POOP_RIDGE
@@ -437,6 +475,9 @@ def build():
         ridge_f, ridge_b = v3(0, ridge_y, pf + 0.3), v3(0, ridge_y, pb - 0.3)
         board(poop, "roof_" + sn, eave_b, ridge_b, eave_f, ridge_f, 0.14, "roof", v3(side * 0.5, 1, 0), overlap=1.0)
     add_cube(poop, "roof_ridge", (0, ridge_y + 0.05, (pf + pb) / 2), EYE, (0.22, 0.18, pf - pb + 0.7), "gold")
+    for k, zz in enumerate((pf + 0.35, pb - 0.35)):
+        add_cube(poop, "roof_finial_%d" % k, (0, ridge_y + 0.3, zz), EYE, (0.2, 0.3, 0.2), "gold")
+        add_cube(poop, "roof_finial_ball_%d" % k, (0, ridge_y + 0.55, zz), EYE, (0.14, 0.14, 0.14), "gold")
     for zz, tag in ((pf, "front"), (pb, "back")):
         for k in range(5):
             f0, f1 = k / 5.0, (k + 1) / 5.0
@@ -555,7 +596,7 @@ def build():
         yard(mb, name + "_foot", z, y_top - height - 0.05, half_bottom + 0.2) if False else None
         sb = Bone("sail_" + name, origin=(0, y_top, z + 0.42), parent=mb)
         sail(sb, name, v3(0, y_top - 0.12, z + 0.45), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), half_top, half_bottom,
-             height, depth, region, nx=6, ny=5)
+             height, depth, region, nx=8, ny=7)
         sails_info.append((sb, False))
         return sb
 
@@ -569,7 +610,7 @@ def build():
     beam(m_mizzen, "lateen_yard", lat_fore - norm(lat_aft - lat_fore) * 0.3, lat_aft, 0.2, "mast")
     lat_sail = Bone("sail_mizzen", origin=tuple((lat_fore + lat_aft) / 2), parent=m_mizzen)
     lateen_tri = tri_sail(lat_sail, "mizzen_lateen", lat_aft + v3(0.08, -0.12, 0.05), lat_fore + v3(0.08, -0.12, 0),
-                          v3(0.4, 8.0, -16.4), 0.7, v3(1, 0, 0), "lateen", nx=6, ny=4)
+                          v3(0.4, 8.0, -16.4), 0.7, v3(1, 0, 0), "lateen", nx=7, ny=5)
     sails_info.append((lat_sail, True))
 
     # jibs on the stays to the bowsprit
@@ -584,6 +625,12 @@ def build():
     tri_sail(jib, "jib_inner", st2 + v3(0.0, -0.05, -0.06), mid_sprit + v3(0, 0.05, -0.1),
              v3(0.05, 5.0, 16.2), 0.35, v3(1, 0, 0), "jib", nx=4, ny=4)
     sails_info.append((jib, True))
+    sprit_yard = sprit_a + (sprit_b - sprit_a) * 0.72
+    beam(bow, "spritsail_yard", sprit_yard + v3(-2.3, -0.25, 0), sprit_yard + v3(2.3, -0.25, 0), 0.16, "mast", extend=0.08)
+    sprit_sail = Bone("sail_sprit", origin=tuple(sprit_yard + v3(0, -0.3, 0)), parent=bow)
+    sail(sprit_sail, "spritsail", sprit_yard + v3(0, -0.36, 0.12), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), 2.1, 2.4, 2.3, 0.45,
+         "topsail", nx=6, ny=4)
+    sails_info.append((sprit_sail, False))
 
     # ---- flags (texture #1): masthead flags, main pennant, stern ensign
     def flag(parent, name, root_pt, w, h, region="flag"):
@@ -650,6 +697,9 @@ def build():
     ]
     for name, a, b in rig:
         beam(ropes, "rope_" + name, a, b, rope, "rope")
+        if "shroud" in name and "top" not in name:
+            add_cube(ropes, "deadeye_" + name, b, EYE, (0.14, 0.2, 0.2), "dark_wood")
+            beam(ropes, "chain_" + name, b, b + v3(0, -0.9, 0), 0.05, "iron")
     # ratlines across the main and fore shrouds
     for side, sn in SIDES:
         for mast_tag, top_y, z_top, z0, z1, foot_y in (("main", 15.15, gs.MAIN_MAST_Z, -0.6, 2.4, None),
