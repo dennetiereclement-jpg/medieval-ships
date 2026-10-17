@@ -140,8 +140,8 @@ public final class MedievalShips implements ModInitializer {
 
 	private static void serverTick(MinecraftServer server) {
 		for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-			double lastY = PLAYER_Y.getOrDefault(player.getUuid(), player.getY());
-			PLAYER_Y.put(player.getUuid(), player.getY());
+			double[] last = PLAYER_POS.getOrDefault(player.getUuid(), new double[] {player.getX(), player.getY(), player.getZ()});
+			PLAYER_POS.put(player.getUuid(), new double[] {player.getX(), player.getY(), player.getZ()});
 			if (player.hasVehicle() || player.isSpectator() || player.getAbilities().flying) {
 				continue;
 			}
@@ -149,10 +149,14 @@ public final class MedievalShips implements ModInitializer {
 			if (ShipTracker.shipUnder(player) != null) {
 				((ServerPlayNetworkHandlerAccessor) player.networkHandler).medievalships$setFloatingTicks(0);
 			}
-			catchFallingPlayer(player, lastY);
+			// a real fall, not a teleport: moving down at most at terminal speed, barely sideways
+			double drop = last[1] - player.getY();
+			if (drop > 0.05 && drop < 4.2 && Math.hypot(player.getX() - last[0], player.getZ() - last[2]) < 1.5) {
+				catchFallingPlayer(player, last[1]);
+			}
 		}
 		if (server.getTicks() % 1200 == 0) {
-			PLAYER_Y.keySet().removeIf(id -> server.getPlayerManager().getPlayer(id) == null);
+			PLAYER_POS.keySet().removeIf(id -> server.getPlayerManager().getPlayer(id) == null);
 		}
 		// keep the chunks of autopilot ships that are not loaded yet (after a restart) loaded until
 		// the entity appears and takes over its own tickets
@@ -161,8 +165,8 @@ public final class MedievalShips implements ModInitializer {
 		}
 	}
 
-	/** Server Y of each player at the previous tick (fall-through detection). */
-	private static final Map<UUID, Double> PLAYER_Y = new java.util.HashMap<>();
+	/** Server position of each player at the previous tick (fall-through detection). */
+	private static final Map<UUID, double[]> PLAYER_POS = new java.util.HashMap<>();
 
 	/**
 	 * Server-side safety net: players are moved by their own client, which collides them with the
@@ -171,9 +175,6 @@ public final class MedievalShips implements ModInitializer {
 	 * small deck steps, so the slight lag between the client's and the server's hull never triggers it.
 	 */
 	private static void catchFallingPlayer(ServerPlayerEntity player, double lastY) {
-		if (player.getY() >= lastY - 0.05) {
-			return;
-		}
 		for (ShipEntity ship : ShipTracker.ships(player.getEntityWorld())) {
 			if (ship.isRemoved()) {
 				continue;
@@ -184,7 +185,7 @@ public final class MedievalShips implements ModInitializer {
 			if (!Double.isNaN(top)) {
 				player.requestTeleport(player.getX(), pose.y() + top + 0.01, player.getZ());
 				player.fallDistance = 0;
-				PLAYER_Y.put(player.getUuid(), pose.y() + top + 0.01);
+				PLAYER_POS.put(player.getUuid(), new double[] {player.getX(), pose.y() + top + 0.01, player.getZ()});
 				return;
 			}
 		}

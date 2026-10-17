@@ -71,7 +71,7 @@ public final class ClientShipEvents {
 			ShipPose pose = ship.pose();
 			double[] l = pose.toLocal(player.getX(), player.getY(), player.getZ());
 			double top = ship.geometry().deckRescueY(l[0], l[1], l[2]);
-			if (Double.isNaN(top)) {
+			if (Double.isNaN(top) && falling(player)) {
 				// fast fall straight through a deck in a single tick
 				top = ship.geometry().deckCrossingY(l[0], l[2], player.lastY - pose.y(), l[1], 1e-3, true);
 			}
@@ -85,6 +85,13 @@ public final class ClientShipEvents {
 				return;
 			}
 		}
+	}
+
+	/** A real fall (not a teleport): moving down, at most terminal speed, barely sideways. */
+	private static boolean falling(ClientPlayerEntity player) {
+		double drop = player.lastY - player.getY();
+		double side = Math.hypot(player.getX() - player.lastX, player.getZ() - player.lastZ);
+		return player.getVelocity().y < -0.05 && drop > 0 && drop < 4.2 && side < 1.5;
 	}
 
 	private static void showHint(MinecraftClient client) {
