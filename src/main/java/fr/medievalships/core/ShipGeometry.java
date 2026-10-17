@@ -189,6 +189,30 @@ public final class ShipGeometry {
 		return ly < top - 1e-3 && ly > top - 1.2 ? top : Double.NaN;
 	}
 
+	/**
+	 * Safety net for fast falls: if a point went from above a walkable surface (deck, castle floor)
+	 * to below it during one tick (local heights {@code yBefore} then {@code yAfter}), returns that
+	 * surface height; NaN otherwise. {@code minDepth} is how far below it must have gone.
+	 */
+	public double deckCrossingY(double lx, double lz, double yBefore, double yAfter, double minDepth, boolean solids) {
+		double best = Double.NaN;
+		if (lz >= hull.deckMinZ && lz <= hull.deckMaxZ && Math.abs(lx) <= hull.innerHalfWidth(lz)) {
+			double top = hull.deckY(lz);
+			if (yBefore >= top - 0.05 && yAfter < top - minDepth) {
+				best = top;
+			}
+		}
+		if (solids) {
+			for (LocalBox b : spec.solids) {
+				if (lx > b.minX() && lx < b.maxX() && lz > b.minZ() && lz < b.maxZ()
+						&& yBefore >= b.maxY() - 0.05 && yAfter < b.maxY() - minDepth && !(best >= b.maxY())) {
+					best = b.maxY();
+				}
+			}
+		}
+		return best;
+	}
+
 	/** Is this local point inside the solid hull (used for ship-to-ship collisions)? */
 	public boolean insideHull(double lx, double ly, double lz) {
 		if (Math.abs(lz) > hull.halfLength) {

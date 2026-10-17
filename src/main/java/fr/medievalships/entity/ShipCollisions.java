@@ -16,7 +16,14 @@ import net.minecraft.world.World;
 
 /** Adds the hull boxes of nearby ships to the collisions of a moving entity. */
 public final class ShipCollisions {
+	/** Test switch: simulates another mod replacing the collision code (the hulls are then ignored). */
+	private static volatile boolean disabledForTest;
+
 	private ShipCollisions() {
+	}
+
+	public static void disableForTest(boolean disabled) {
+		disabledForTest = disabled;
 	}
 
 	public static List<VoxelShape> withHulls(List<VoxelShape> collisions, @Nullable Entity entity, Vec3d movement, Box box, World world) {
@@ -49,7 +56,7 @@ public final class ShipCollisions {
 	}
 
 	private static boolean wantsHulls(@Nullable Entity entity, World world) {
-		if (ShipTracker.ships(world).length == 0 || entity instanceof ShipEntity) {
+		if (disabledForTest || ShipTracker.ships(world).length == 0 || entity instanceof ShipEntity) {
 			return false;
 		}
 		// Players are simulated by their own client, which collides them with the hull it

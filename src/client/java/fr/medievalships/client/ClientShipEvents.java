@@ -56,8 +56,9 @@ public final class ClientShipEvents {
 	}
 
 	/**
-	 * Mod-independent safety net: if the local player ended up inside the deck (another mod
-	 * replacing the collision code, lag...), put him back on top of it, with no visible jump.
+	 * Mod-independent safety net: if the local player ended up inside the deck or fell through it
+	 * during the tick (another mod replacing the collision code, lag...), put him back on top of
+	 * it, with no visible jump.
 	 */
 	private static void rescue(ClientWorld world, ClientPlayerEntity player) {
 		if (player == null || player.hasVehicle() || player.isSpectator() || player.noClip) {
@@ -70,6 +71,10 @@ public final class ClientShipEvents {
 			ShipPose pose = ship.pose();
 			double[] l = pose.toLocal(player.getX(), player.getY(), player.getZ());
 			double top = ship.geometry().deckRescueY(l[0], l[1], l[2]);
+			if (Double.isNaN(top)) {
+				// fast fall straight through a deck in a single tick
+				top = ship.geometry().deckCrossingY(l[0], l[2], player.lastY - pose.y(), l[1], 1e-3, true);
+			}
 			if (!Double.isNaN(top)) {
 				player.setPosition(player.getX(), pose.y() + top, player.getZ());
 				if (player.getVelocity().y < 0) {

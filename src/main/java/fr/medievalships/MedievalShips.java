@@ -139,16 +139,54 @@ public final class MedievalShips implements ModInitializer {
 	}
 
 	private static void serverTick(MinecraftServer server) {
-		// players walking on a ship are not flying, whatever the blocks under the raised decks say
 		for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-			if (!player.hasVehicle() && ShipTracker.shipUnder(player) != null) {
+			double lastY = PLAYER_Y.getOrDefault(player.getUuid(), player.getY());
+			PLAYER_Y.put(player.getUuid(), player.getY());
+			if (player.hasVehicle() || player.isSpectator() || player.getAbilities().flying) {
+				continue;
+			}
+			// players walking on a ship are not flying, whatever the blocks under the raised decks say
+			if (ShipTracker.shipUnder(player) != null) {
 				((ServerPlayNetworkHandlerAccessor) player.networkHandler).medievalships$setFloatingTicks(0);
 			}
+			catchFallingPlayer(player, lastY);
+		}
+		if (server.getTicks() % 1200 == 0) {
+			PLAYER_Y.keySet().removeIf(id -> server.getPlayerManager().getPlayer(id) == null);
 		}
 		// keep the chunks of autopilot ships that are not loaded yet (after a restart) loaded until
 		// the entity appears and takes over its own tickets
 		if (server.getTicks() % 200 == 0) {
 			reloadFerries(server);
+		}
+	}
+
+	/** Server Y of each player at the previous tick (fall-through detection). */
+	private static final Map<UUID, Double> PLAYER_Y = new java.util.HashMap<>();
+
+	/**
+	 * Server-side safety net: players are moved by their own client, which collides them with the
+	 * hulls. If the client could not (another mod replacing the collision code on that client) and
+	 * the player falls through a deck, put him back on it. The depth threshold is larger than the
+	 * small deck steps, so the slight lag between the client's and the server's hull never triggers it.
+	 */
+	private static void catchFallingPlayer(ServerPlayerEntity player, double lastY) {
+		if (player.getY() >= lastY - 0.05) {
+			return;
+		}
+		for (ShipEntity ship : ShipTracker.ships(player.getEntityWorld())) {
+			if (ship.isRemoved()) {
+				continue;
+			}
+			fr.medievalships.core.ShipPose pose = ship.pose();
+			double[] l = pose.toLocal(player.getX(), player.getY(), player.getZ());
+			double top = ship.geometry().deckCrossingY(l[0], l[2], lastY - pose.y(), l[1], 0.6, false);
+			if (!Double.isNaN(top)) {
+				player.requestTeleport(player.getX(), pose.y() + top + 0.01, player.getZ());
+				player.fallDistance = 0;
+				PLAYER_Y.put(player.getUuid(), pose.y() + top + 0.01);
+				return;
+			}
 		}
 	}
 

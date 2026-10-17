@@ -185,6 +185,19 @@ class GalleonTest {
 		assertTrue(Double.isNaN(G.deckRescueY(0, GalleonLayout.MAIN_DECK_Y + 1.25, -12)));
 	}
 
+	/** Fast fall through a deck in one tick (collisions replaced by another mod): caught. */
+	@Test
+	void fastFallThroughDeckIsCaught() {
+		double main = GalleonLayout.MAIN_DECK_Y;
+		assertEquals(main, G.deckCrossingY(0, 3, main + 0.5, main - 2.0, 1e-3, true), 1e-9);
+		assertEquals(GalleonLayout.QUARTERDECK_Y, G.deckCrossingY(0, -12, 4.5, 2.0, 1e-3, true), 1e-9);
+		// the server ignores the castle floors and small steps
+		assertTrue(Double.isNaN(G.deckCrossingY(0, -12, 4.5, 3.3, 0.6, false)));
+		// walking in the cabin, jumping on deck: nothing to do
+		assertTrue(Double.isNaN(G.deckCrossingY(0, -12, main + 0.2, main, 1e-3, true)));
+		assertTrue(Double.isNaN(G.deckCrossingY(0, 3, main + 1.0, main + 0.4, 1e-3, true)));
+	}
+
 	@Test
 	void gunports() {
 		assertEquals(12, G.gunports().size());

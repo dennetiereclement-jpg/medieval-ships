@@ -436,6 +436,26 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		context.waitTicks(10);
 		shot(context, "g11_galleon_sails_front");
 		server.runCommand("gamemode survival @a");
+		// safety nets: collisions switched off (as if another mod had replaced them), the player
+		// must still be caught by the deck when falling onto it from high above
+		fr.medievalships.entity.ShipCollisions.disableForTest(true);
+		try {
+			for (int k = 0; k < 2; k++) {
+				ShipPose sp2 = shipPose(sp, Ships.GALLEON);
+				double dropZ = k == 0 ? 3 : -12;
+				double surface = k == 0 ? GalleonLayout.MAIN_DECK_Y : GalleonLayout.QUARTERDECK_Y;
+				tpLocal(server, sp2, -1.5, surface + 9, dropZ, 0, 20);
+				context.waitTicks(60);
+				double[] q = playerPos(context);
+				double[] ql = shipPose(sp, Ships.GALLEON).toLocal(q[0], q[1], q[2]);
+				log("no collisions, drop %d: local %.2f %.2f %.2f", k, ql[0], ql[1], ql[2]);
+				check(Math.abs(ql[1] - surface) < 0.15, "safety net: without collisions the player is still caught by the %s (local y=%.2f)",
+						k == 0 ? "main deck" : "quarterdeck", ql[1]);
+			}
+		} finally {
+			fr.medievalships.entity.ShipCollisions.disableForTest(false);
+		}
+
 		server.runCommand("clear @a");
 		server.runCommand("ship give galleon @p");
 		Integer items = server.computeOnServer(s ->
