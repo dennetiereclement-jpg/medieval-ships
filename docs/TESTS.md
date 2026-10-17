@@ -10,9 +10,22 @@ le `.jar` obtenu est celui qui vous est livré.
 
 La tâche *In-game test* lance un **vrai client Minecraft 1.21.11** avec le `.jar` de
 production (mod remappé, comme sur un vrai serveur), deux fois : **sans** et **avec Lithium**.
+Chaque fois, tout le scénario est joué **en solo** puis sur un **vrai serveur dédié** auquel le
+client se connecte par le réseau (contrôles de mouvement du serveur actifs) : 54 vérifications,
+toutes réussies.
 Le test (`src/gametest/.../ShipClientGameTest.java`) crée un monde, des bassins, met les navires
 à l'eau puis vérifie (résultats et captures publiés sur les branches `test-results-vanilla` et
 `test-results-lithium`) :
+
+### Filets de sécurité (collisions désactivées)
+
+Pour simuler un mod qui remplacerait le code des collisions (autre que Lithium), le test coupe
+les collisions des coques puis lâche le joueur de 9 blocs de haut :
+
+| Vérification | Solo | Serveur dédié |
+|---|---|---|
+| il est quand même rattrapé par le pont principal du galion | réussi | réussi |
+| il est quand même rattrapé par le gaillard d'arrière | réussi | réussi |
 
 ### Galère (non-régression)
 
@@ -81,9 +94,8 @@ Les modèles ont aussi été vérifiés visuellement (`docs/preview.png`, `docs/
 
 Ce que les tests automatiques ne peuvent pas juger ou n'ont pas couvert :
 
-1. **Serveur dédié avec plusieurs joueurs** : les tests tournent en solo (serveur intégré).
-   Le code est le même, mais vérifiez à deux joueurs : marcher sur le galion pendant qu'un
-   autre barre, s'asseoir, descendre.
+1. **Plusieurs joueurs en même temps** : le serveur dédié est testé avec un joueur ; vérifiez à
+   deux : marcher sur le galion pendant qu'un autre barre, s'asseoir, descendre.
 2. **Aspect** : rendu du galion de nuit (fenêtres et lanternes éclairées), voiles au vent,
    drapeaux, roulis — jugement esthétique.
 3. **Mise à l'eau avec l'objet** *Grand galion* (clic droit sur l'eau) : la vérification de
