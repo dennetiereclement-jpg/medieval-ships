@@ -78,7 +78,10 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			server.runCommand("tp @p 2 -50 22 160 30");
 			context.waitTicks(20);
 			context.takeScreenshot("02b_bow");
-			server.runCommand("gamemode creative @a");
+			server.runCommand("gamemode survival @a");
+			server.runCommand("effect give @a minecraft:resistance infinite 4 true");
+			server.runCommand("effect give @a minecraft:saturation infinite 4 true");
+			server.runCommand("effect give @a minecraft:water_breathing infinite 0 true");
 
 			// 1. falling onto the deck
 			server.runCommand("tp @p 1.5 -53 -3 0 30");
