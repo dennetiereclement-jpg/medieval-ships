@@ -50,6 +50,7 @@ import fr.medievalships.entity.ShipTracker;
 import fr.medievalships.item.ShipItem;
 import fr.medievalships.entity.GalleonEntity;
 import fr.medievalships.entity.GalleyEntity;
+import fr.medievalships.entity.WarshipEntity;
 import fr.medievalships.core.ShipType;
 import fr.medievalships.core.Ships;
 import fr.medievalships.mixin.ServerPlayNetworkHandlerAccessor;
@@ -64,6 +65,8 @@ public final class MedievalShips implements ModInitializer {
 	public static Item GALLEY_ITEM;
 	public static EntityType<GalleonEntity> GALLEON;
 	public static Item GALLEON_ITEM;
+	public static EntityType<WarshipEntity> WARSHIP;
+	public static Item WARSHIP_ITEM;
 
 	private static final Map<ShipType, EntityType<? extends ShipEntity>> ENTITY_TYPES = new LinkedHashMap<>();
 	private static final Map<ShipType, Item> ITEMS = new LinkedHashMap<>();
@@ -94,6 +97,8 @@ public final class MedievalShips implements ModInitializer {
 		GALLEY_ITEM = ITEMS.get(Ships.GALLEY);
 		GALLEON = registerShip(Ships.GALLEON, GalleonEntity::new, 4.0f, 0.4f, 16);
 		GALLEON_ITEM = ITEMS.get(Ships.GALLEON);
+		WARSHIP = registerShip(Ships.WARSHIP, WarshipEntity::new, 5.0f, 0.4f, 20);
+		WARSHIP_ITEM = ITEMS.get(Ships.WARSHIP);
 
 		RegistryKey<ItemGroup> groupKey = RegistryKey.of(RegistryKeys.ITEM_GROUP, id("ships"));
 		Registry.register(Registries.ITEM_GROUP, groupKey, FabricItemGroup.builder()

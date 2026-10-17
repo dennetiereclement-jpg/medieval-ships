@@ -3,9 +3,11 @@ package fr.medievalships.client;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.particle.ParticleTypes;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
+import fr.medievalships.client.render.ShipModels;
 import fr.medievalships.core.ShipGeometry;
 import fr.medievalships.core.ShipPose;
 import fr.medievalships.entity.ShipEntity;
@@ -51,6 +53,11 @@ public final class ClientShipEvents {
 				player.setBodyYaw(player.bodyYaw + dyaw);
 			}
 		}
+		for (ShipEntity ship : ShipTracker.ships(world)) {
+			if (!ship.isRemoved()) {
+				wake(world, ship, player);
+			}
+		}
 		rescue(world, player);
 		showHint(client);
 	}
@@ -84,6 +91,35 @@ public final class ClientShipEvents {
 				player.fallDistance = 0;
 				return;
 			}
+		}
+	}
+
+	/**
+	 * Foam at the bow and a light wake behind ships that ask for it, proportional to the speed and
+	 * only near the player (a handful of vanilla particles per tick).
+	 */
+	private static void wake(ClientWorld world, ShipEntity ship, ClientPlayerEntity player) {
+		ShipModels.Visual visual = ShipModels.of(ship.shipType());
+		double speed = Math.abs(ship.syncedSpeed());
+		if (visual == null || !visual.bowWake() || speed < 0.8 || player == null || player.squaredDistanceTo(ship) > 96 * 96) {
+			return;
+		}
+		ShipPose pose = ship.pose();
+		var hull = ship.geometry().hull();
+		double bowZ = hull.halfLength - 1.2;
+		int n = (int) Math.min(4, Math.ceil(speed));
+		for (int i = 0; i < n; i++) {
+			double side = world.random.nextBoolean() ? 1 : -1;
+			double z = bowZ - world.random.nextDouble() * 4.0;
+			double x = side * (hull.halfWidth(z) + 0.1);
+			double[] w = pose.toWorld(x, 0.15, z);
+			double[] out = pose.dirToWorld(side * 0.12, 0.08, 0.0);
+			world.addParticleClient(ParticleTypes.SPLASH, w[0], w[1], w[2], out[0], out[1] + 0.05, out[2]);
+		}
+		if (world.random.nextInt(3) == 0) {
+			double[] w = pose.toWorld((world.random.nextDouble() - 0.5) * 3.0, 0.1, -hull.halfLength - 0.8);
+			world.addParticleClient(ParticleTypes.BUBBLE, w[0], w[1] - 0.2, w[2], 0, 0.02, 0);
+			world.addParticleClient(ParticleTypes.SPLASH, w[0], w[1], w[2], 0, 0.04, 0);
 		}
 	}
 

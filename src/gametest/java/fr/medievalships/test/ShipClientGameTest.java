@@ -28,6 +28,7 @@ import fr.medievalships.core.ShipPose;
 import fr.medievalships.core.ShipType;
 import fr.medievalships.core.Ships;
 import fr.medievalships.core.Ships.GalleonLayout;
+import fr.medievalships.core.Ships.WarshipLayout;
 import fr.medievalships.entity.ShipEntity;
 import fr.medievalships.entity.ShipTracker;
 
@@ -235,6 +236,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 				check(fr.medievalships.core.Ships.GALLEY.geometry().inCarryVolume(zl[0], zl[1], zl[2]), "carry: zombie should still be aboard");
 			}
 			galleon(context, sp);
+			warship(context, sp);
 		}
 	}
 
@@ -300,14 +302,14 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		context.runOnClient(c -> c.options.setPerspective(Perspective.FIRST_PERSON));
 
 		// 2. into the great cabin through the bulkhead door
-		l = walkLocal(context, sp, pose, 0, GalleonLayout.MAIN_DECK_Y, -6.0, 180, 0, 30);
+		l = walkLocal(context, sp, Ships.GALLEON, pose, 0, GalleonLayout.MAIN_DECK_Y, -6.0, 180, 0, 30);
 		log("galleon cabin: local %.2f %.2f %.2f", l[0], l[1], l[2]);
 		check(l[2] < GalleonLayout.BULKHEAD_Z - 1.5 && Math.abs(l[1] - GalleonLayout.MAIN_DECK_Y) < 0.1,
 				"galleon cabin: player walked into the cabin (local z=%.2f y=%.2f)", l[2], l[1]);
 		shot(context, "g06_galleon_cabin");
 
 		// 3. through the transom door onto the stern balcony
-		l = walkLocal(context, sp, pose, 0, GalleonLayout.MAIN_DECK_Y, -15.0, 180, 0, 40);
+		l = walkLocal(context, sp, Ships.GALLEON, pose, 0, GalleonLayout.MAIN_DECK_Y, -15.0, 180, 0, 40);
 		log("galleon balcony: local %.2f %.2f %.2f", l[0], l[1], l[2]);
 		check(l[2] < -g.hull().halfLength && l[2] > GalleonLayout.BALCONY_BACK && Math.abs(l[1] - GalleonLayout.MAIN_DECK_Y) < 0.1,
 				"galleon balcony: player on the balcony, held by the balustrade (local z=%.2f y=%.2f)", l[2], l[1]);
@@ -318,7 +320,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 
 		// 4. up the stairs to the quarterdeck, and to the forecastle
 		double qx = (GalleonLayout.STAIR_X0 + GalleonLayout.STAIR_X1) / 2;
-		l = walkLocal(context, sp, pose, qx, GalleonLayout.MAIN_DECK_Y, -5.0, 180, 0, 50);
+		l = walkLocal(context, sp, Ships.GALLEON, pose, qx, GalleonLayout.MAIN_DECK_Y, -5.0, 180, 0, 50);
 		log("galleon quarterdeck: local %.2f %.2f %.2f", l[0], l[1], l[2]);
 		check(Math.abs(l[1] - GalleonLayout.QUARTERDECK_Y) < 0.1 && l[2] < GalleonLayout.BULKHEAD_Z,
 				"galleon stairs: player climbed onto the quarterdeck (local y=%.2f z=%.2f)", l[1], l[2]);
@@ -327,7 +329,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		shot(context, "g08_galleon_quarterdeck");
 		context.runOnClient(c -> c.options.setPerspective(Perspective.FIRST_PERSON));
 		double fx = (GalleonLayout.FC_STAIR_X0 + GalleonLayout.FC_STAIR_X1) / 2;
-		l = walkLocal(context, sp, pose, fx, GalleonLayout.MAIN_DECK_Y, 7.6, 0, 0, 40);
+		l = walkLocal(context, sp, Ships.GALLEON, pose, fx, GalleonLayout.MAIN_DECK_Y, 7.6, 0, 0, 40);
 		log("galleon forecastle: local %.2f %.2f %.2f", l[0], l[1], l[2]);
 		check(Math.abs(l[1] - GalleonLayout.FORECASTLE_Y) < 0.1 && l[2] > GalleonLayout.FORECASTLE_START,
 				"galleon stairs: player climbed onto the forecastle (local y=%.2f z=%.2f)", l[1], l[2]);
@@ -463,15 +465,211 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		check(items != null && items == 1, "galleon item: /ship give galleon gives the item (%s)", items);
 	}
 
+	// ------------------------------------------------------------------ great warship
+
+	private void warship(ClientGameTestContext context, Env sp) {
+		var server = sp.getServer();
+		ShipGeometry g = Ships.WARSHIP.geometry();
+		server.runCommand("ride @p dismount");
+		server.runCommand("gamemode spectator @a");
+		// a third, larger basin west of the others (the warship is about 67 blocks long overall)
+		server.runCommand("tp @p -90 -30 10 180 40");
+		context.waitTicks(40);
+		server.runCommand("fill -110 -63 -60 -70 -59 80 water");
+		server.runCommand("execute positioned -90 -58 -20 rotated 0 0 run ship spawn warship");
+		sp.getClientWorld().waitForChunksRender();
+		context.waitTicks(40);
+		ShipPose pose = shipPose(sp, Ships.WARSHIP);
+		if (pose == null) {
+			fail("warship: not spawned");
+			return;
+		}
+		log("warship at %.2f %.2f %.2f yaw %.1f", pose.x(), pose.y(), pose.z(), pose.yaw());
+		Boolean others = server.computeOnServer(s -> ship(s.getOverworld(), Ships.GALLEY) != null && ship(s.getOverworld(), Ships.GALLEON) != null);
+		check(Boolean.TRUE.equals(others), "warship: the galley and the galleon are still there (three ships coexist)");
+		double main = pose.y() + WarshipLayout.MAIN_DECK_Y;
+
+		lookLocal(server, pose, 40, 22, 34, 0, 12, 0);
+		context.waitTicks(30);
+		shot(context, "w01_warship_overview");
+		lookLocal(server, pose, -50, 10, 4, 0, 10, 4);
+		context.waitTicks(20);
+		shot(context, "w02_warship_side");
+		lookLocal(server, pose, -14, 11, -50, 0, 7, -26);
+		context.waitTicks(20);
+		shot(context, "w03_warship_stern");
+		lookLocal(server, pose, 16, 12, 52, 0, 8, 26);
+		context.waitTicks(20);
+		shot(context, "w04_warship_bow");
+
+		server.runCommand("gamemode survival @a");
+		// 1. main deck: fall and jumps
+		tpLocal(server, pose, 2.0, WarshipLayout.MAIN_DECK_Y + 5, 5.5, 0, 30);
+		context.waitTicks(60);
+		double[] p = playerPos(context);
+		check(Math.abs(p[1] - main) < 0.08, "warship falling: player on the main deck (y=%.3f, deck=%.3f)", p[1], main);
+		double minY = Double.MAX_VALUE;
+		for (int i = 0; i < 3; i++) {
+			context.getInput().holdKeyFor(o -> o.jumpKey, 2);
+			for (int t = 0; t < 14; t++) {
+				context.waitTick();
+				minY = Math.min(minY, playerPos(context)[1]);
+			}
+		}
+		context.waitTicks(20);
+		p = playerPos(context);
+		check(Math.abs(p[1] - main) < 0.08 && minY > main - 0.1, "warship jumping: back on the deck (y=%.3f min=%.3f)", p[1], minY);
+		context.runOnClient(c -> c.options.setPerspective(Perspective.THIRD_PERSON_BACK));
+		context.waitTicks(5);
+		shot(context, "w05_warship_deck");
+		context.runOnClient(c -> c.options.setPerspective(Perspective.FIRST_PERSON));
+
+		// 2. great cabin through the bulkhead door
+		double[] l = walkLocal(context, sp, Ships.WARSHIP, pose, 0, WarshipLayout.MAIN_DECK_Y, -8.0, 180, 0, 30);
+		log("warship cabin: local %.2f %.2f %.2f", l[0], l[1], l[2]);
+		check(l[2] < WarshipLayout.QUARTERDECK_START - 2 && Math.abs(l[1] - WarshipLayout.MAIN_DECK_Y) < 0.1,
+				"warship cabin: player walked into the great cabin (local z=%.2f y=%.2f)", l[2], l[1]);
+		shot(context, "w06_warship_cabin");
+
+		// 3. main deck -> quarterdeck -> poop deck by the two staircases, then the forecastle
+		double qx = (WarshipLayout.QD_STAIR_X0 + WarshipLayout.POOP_STAIR_X1) / 2;
+		l = walkLocal(context, sp, Ships.WARSHIP, pose, qx, WarshipLayout.MAIN_DECK_Y, -6.8, 180, 0, 70);
+		log("warship poop deck: local %.2f %.2f %.2f", l[0], l[1], l[2]);
+		check(Math.abs(l[1] - WarshipLayout.POOP_Y) < 0.1 && l[2] < WarshipLayout.POOP_START,
+				"warship stairs: player climbed to the quarterdeck then the poop deck (local y=%.2f z=%.2f)", l[1], l[2]);
+		context.runOnClient(c -> c.options.setPerspective(Perspective.THIRD_PERSON_FRONT));
+		context.waitTicks(5);
+		shot(context, "w07_warship_poop_deck");
+		context.runOnClient(c -> c.options.setPerspective(Perspective.FIRST_PERSON));
+		double fx = (WarshipLayout.FC_STAIR_X0 + WarshipLayout.FC_STAIR_X1) / 2;
+		l = walkLocal(context, sp, Ships.WARSHIP, pose, fx, WarshipLayout.MAIN_DECK_Y, 13.8, 0, 0, 40);
+		log("warship forecastle: local %.2f %.2f %.2f", l[0], l[1], l[2]);
+		check(Math.abs(l[1] - WarshipLayout.FORECASTLE_Y) < 0.1 && l[2] > WarshipLayout.FORECASTLE_START,
+				"warship stairs: player climbed onto the forecastle (local y=%.2f z=%.2f)", l[1], l[2]);
+
+		// 4. twenty-four seats: 23 armor stands + the player at the helm; a 25th is refused
+		int n = g.seats().size();
+		for (int i = 1; i < n; i++) {
+			ShipGeometry.Seat seat = g.seats().get(i);
+			double[] w = pose.toWorld(seat.x(), seat.y() + 0.5, seat.z());
+			server.runCommand(String.format(Locale.ROOT, "summon minecraft:armor_stand %.2f %.2f %.2f {Tags:[\"wcrew\",\"wcrew%d\"]}",
+					w[0], w[1], w[2], i));
+		}
+		server.runCommand(String.format(Locale.ROOT, "summon minecraft:armor_stand %.2f %.2f %.2f {Tags:[\"wextra\"]}",
+				pose.worldX(-1.5, 3), main + 1, pose.worldZ(-1.5, 3)));
+		server.runCommand(String.format(Locale.ROOT, "summon minecraft:armor_stand %.2f %.2f %.2f {Tags:[\"warshipmob\"]}",
+				pose.worldX(1.5, -2.0), main + 2, pose.worldZ(1.5, -2.0)));
+		context.waitTicks(20);
+		int[] seated = server.computeOnServer(s -> {
+			ShipEntity ship = ship(s.getOverworld(), Ships.WARSHIP);
+			ServerPlayerEntity player = s.getPlayerManager().getPlayerList().get(0);
+			List<Entity> all = new ArrayList<>();
+			s.getOverworld().iterateEntities().forEach(all::add);
+			int ok = 0;
+			for (Entity e : all) {
+				for (int i = 1; i < n; i++) {
+					if (e.getCommandTags().contains("wcrew" + i) && ship.seat(e, i)) {
+						ok++;
+					}
+				}
+			}
+			boolean pilot = ship.seat(player, ShipGeometry.PILOT_SEAT);
+			int refused = 0;
+			for (Entity e : all) {
+				if (e.getCommandTags().contains("wextra")) {
+					refused += e.startRiding(ship) ? 0 : 1;
+				}
+			}
+			return new int[] {ok, pilot ? 1 : 0, ship.getPassengerList().size(), refused};
+		});
+		log("warship seats: %d crew seated, pilot %d, passengers %d, refusals %d", seated[0], seated[1], seated[2], seated[3]);
+		check(seated[0] == n - 1 && seated[1] == 1 && seated[2] == 24, "warship seats: 24 passengers seated (%d + %d)", seated[0], seated[1]);
+		check(seated[3] == 1, "warship seats: a 25th passenger is refused");
+		context.waitTicks(10);
+
+		// 5. very heavy handling
+		ShipPose start = shipPose(sp, Ships.WARSHIP);
+		context.getInput().holdKey(o -> o.forwardKey);
+		context.waitTicks(40);
+		ShipPose after2s = shipPose(sp, Ships.WARSHIP);
+		context.waitTicks(160);
+		context.getInput().releaseKey(o -> o.forwardKey);
+		ShipPose released = shipPose(sp, Ships.WARSHIP);
+		context.getInput().holdKey(o -> o.rightKey);
+		context.waitTicks(80);
+		context.getInput().releaseKey(o -> o.rightKey);
+		ShipPose coasted = shipPose(sp, Ships.WARSHIP);
+		double d2 = Math.hypot(after2s.x() - start.x(), after2s.z() - start.z());
+		double d10 = Math.hypot(released.x() - start.x(), released.z() - start.z());
+		double glide = Math.hypot(coasted.x() - released.x(), coasted.z() - released.z());
+		double turned = Math.abs(ShipPose.wrapDegrees(coasted.yaw() - released.yaw()));
+		log("warship handling: %.2f blocks in 2 s, %.2f in 10 s, %.2f coasting in 4 s while turning %.1f deg", d2, d10, glide, turned);
+		check(d2 < 1.0 && d10 > 4, "warship handling: very slow acceleration (%.2f in 2 s, %.2f in 10 s)", d2, d10);
+		check(glide > 3, "warship handling: strong inertia (%.2f)", glide);
+		check(turned > 1 && turned < 30, "warship handling: wide, slow turns (%.1f deg in 4 s)", turned);
+		int still = server.computeOnServer(s -> ship(s.getOverworld(), Ships.WARSHIP).getPassengerList().size());
+		check(still == 24, "warship carry: the 24 passengers are still seated (%d)", still);
+		double[] m = server.computeOnServer(s -> {
+			for (Entity e : s.getOverworld().iterateEntities()) {
+				if (e.getCommandTags().contains("warshipmob")) {
+					return new double[] {e.getX(), e.getY(), e.getZ()};
+				}
+			}
+			return null;
+		});
+		if (m != null) {
+			double[] ml = coasted.toLocal(m[0], m[1], m[2]);
+			log("warship deck mob local after sailing: %.2f %.2f %.2f", ml[0], ml[1], ml[2]);
+			check(g.inCarryVolume(ml[0], ml[1], ml[2]) && Math.abs(ml[1] - WarshipLayout.MAIN_DECK_Y) < 0.1,
+					"warship carry: the mob standing on deck is carried");
+		} else {
+			fail("warship carry: deck mob missing");
+		}
+		server.runCommand("ride @p dismount");
+		context.waitTicks(10);
+		p = playerPos(context);
+		ShipPose now = shipPose(sp, Ships.WARSHIP);
+		l = now.toLocal(p[0], p[1], p[2]);
+		check(g.inCarryVolume(l[0], l[1], l[2]) && Math.abs(l[1] - WarshipLayout.QUARTERDECK_Y) < 0.15,
+				"warship dismount: the pilot steps off onto the quarterdeck (local %.2f %.2f %.2f)", l[0], l[1], l[2]);
+		server.runCommand("gamemode spectator @a");
+		lookLocal(server, now, 42, 20, 36, 0, 16, 2);
+		context.waitTicks(15);
+		shot(context, "w08_warship_sails_set");
+		server.runCommand("gamemode survival @a");
+
+		// 6. safety net with the collisions switched off
+		fr.medievalships.entity.ShipCollisions.disableForTest(true);
+		try {
+			for (int k = 0; k < 2; k++) {
+				ShipPose sp2 = shipPose(sp, Ships.WARSHIP);
+				double surface = k == 0 ? WarshipLayout.MAIN_DECK_Y : WarshipLayout.POOP_Y;
+				tpLocal(server, sp2, -1.5, surface + 9, k == 0 ? 5.5 : -23.5, 0, 20);
+				context.waitTicks(60);
+				double[] q = playerPos(context);
+				double[] ql = shipPose(sp, Ships.WARSHIP).toLocal(q[0], q[1], q[2]);
+				check(Math.abs(ql[1] - surface) < 0.15, "warship safety net: without collisions the player is still caught by the %s (local y=%.2f)",
+						k == 0 ? "main deck" : "poop deck", ql[1]);
+			}
+		} finally {
+			fr.medievalships.entity.ShipCollisions.disableForTest(false);
+		}
+		server.runCommand("clear @a");
+		server.runCommand("ship give warship @p");
+		Integer items = server.computeOnServer(s ->
+				s.getPlayerManager().getPlayerList().get(0).getInventory().count(fr.medievalships.MedievalShips.WARSHIP_ITEM));
+		check(items != null && items == 1, "warship item: /ship give warship gives the item (%s)", items);
+	}
+
 	/** Teleports the player to a ship-local position, then walks forward for {@code ticks}; returns the local position. */
-	private double[] walkLocal(ClientGameTestContext context, Env sp, ShipPose pose, double lx, double ly, double lz,
+	private double[] walkLocal(ClientGameTestContext context, Env sp, ShipType type, ShipPose pose, double lx, double ly, double lz,
 			float localYaw, float pitch, int ticks) {
 		tpLocal(sp.getServer(), pose, lx, ly + 0.02, lz, localYaw, pitch);
 		context.waitTicks(15);
 		context.getInput().holdKeyFor(o -> o.forwardKey, ticks);
 		context.waitTicks(15);
 		double[] p = playerPos(context);
-		return shipPose(sp, Ships.GALLEON).toLocal(p[0], p[1], p[2]);
+		return shipPose(sp, type).toLocal(p[0], p[1], p[2]);
 	}
 
 	/** Spectator camera at a ship-local point, looking at another ship-local point. */

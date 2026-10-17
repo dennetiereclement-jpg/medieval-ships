@@ -796,18 +796,18 @@ def face_uv(cube, bbface, spec, seed):
     return [round(x, 4) for x in uv], tex
 
 
-def texture_entry(name, size, png, rel):
+def texture_entry(name, size, png, rel, default_name="galleon.png"):
     return {
         "path": "", "name": name, "folder": "entity", "namespace": "medievalships", "id": str(len(name) % 2),
         "group": "", "width": size, "height": size, "uv_width": size, "uv_height": size,
-        "particle": False, "use_as_default": name == "galleon.png", "layers_enabled": False, "sync_to_project": "",
+        "particle": False, "use_as_default": name == default_name, "layers_enabled": False, "sync_to_project": "",
         "render_mode": "default", "render_sides": "auto", "frame_time": 1, "frame_order_type": "loop",
         "frame_order": "", "frame_interpolate": False, "visible": True, "internal": True, "saved": True,
         "uuid": new_uuid(), "relative_path": "../src/main/resources/assets/medievalships/textures/entity/" + name,
         "source": "data:image/png;base64," + base64.b64encode(png).decode()}
 
 
-def export(root, anims, textures, out_paths):
+def export(root, anims, textures, out_paths, name="galleon", visible_box=(40, 32, 0)):
     elements = []
 
     def group_json(b):
@@ -848,9 +848,9 @@ def export(root, anims, textures, out_paths):
     outliner = [group_json(root)]
     model = {
         "meta": {"format_version": "4.10", "model_format": "free", "box_uv": False},
-        "name": "galleon",
-        "model_identifier": "galleon",
-        "visible_box": [40, 32, 0],
+        "name": name,
+        "model_identifier": name,
+        "visible_box": list(visible_box),
         "variable_placeholders": "",
         "variable_placeholder_buttons": [],
         "timeline_setups": [],

@@ -31,13 +31,25 @@ public final class ShipModels {
 	 * @param cullRadius horizontal / vertical half extent of the render culling box
 	 */
 	public record Visual(ShipType type, Identifier model, List<Identifier> textures, float rocking,
-			double cullRadius, double cullHeight) {
+			double cullRadius, double cullHeight, boolean bowWake) {
 	}
 
-	public static final Visual GALLEY = new Visual(Ships.GALLEY, model("galley"), List.of(texture("galley")), 1f, 12, 16);
+	public static final Visual GALLEY = new Visual(Ships.GALLEY, model("galley"), List.of(texture("galley")), 1f, 12, 16, false);
 	public static final Visual GALLEON = new Visual(Ships.GALLEON, model("galleon"),
-			List.of(texture("galleon"), texture("galleon_flag")), 0.55f, 24, 30);
-	public static final List<Visual> ALL = List.of(GALLEY, GALLEON);
+			List.of(texture("galleon"), texture("galleon_flag")), 0.55f, 24, 30, false);
+	public static final Visual WARSHIP = new Visual(Ships.WARSHIP, model("warship"),
+			List.of(texture("warship"), texture("warship_flag")), 0.4f, 42, 48, true);
+	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP);
+
+	@Nullable
+	public static Visual of(ShipType type) {
+		for (Visual v : ALL) {
+			if (v.type() == type) {
+				return v;
+			}
+		}
+		return null;
+	}
 
 	private static final Map<Visual, BbModel> LOADED = new LinkedHashMap<>();
 

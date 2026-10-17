@@ -10,7 +10,7 @@ permissions:
 jobs:
   client-gametest:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
@@ -35,7 +35,7 @@ jobs:
       - name: Install virtual display
         run: sudo apt-get update -q && sudo apt-get install -y -q xvfb mesa-utils
       - name: Run the real client with the mod
-        timeout-minutes: 12
+        timeout-minutes: 22
         run: |
           set -o pipefail
           xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew runProductionClientGameTest --stacktrace -Dfabric.client.gametest.disableNetworkSynchronizer=true 2>&1 | tee /tmp/gradle-output.txt
