@@ -127,7 +127,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			context.getInput().holdKey(o -> o.forwardKey);
 			context.waitTicks(3);
 			context.getInput().holdKeyFor(o -> o.jumpKey, 2);
-			context.waitTicks(8);
+			context.waitTicks(20);
 			context.getInput().releaseKey(o -> o.forwardKey);
 			context.waitTicks(30);
 			p = playerPos(context);
