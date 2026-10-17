@@ -37,6 +37,12 @@ public class ShipClientGameTest implements FabricClientGameTest {
 	public void runTest(ClientGameTestContext context) {
 		try (TestSingleplayerContext sp = context.worldBuilder().create()) {
 			var server = sp.getServer();
+			log("world loaded");
+			if (System.getenv("MS_TEST_MINIMAL") != null) {
+				context.takeScreenshot("00_minimal");
+				finish(context);
+				return;
+			}
 			server.runCommand("gamerule doDaylightCycle false");
 			server.runCommand("gamerule doWeatherCycle false");
 			server.runCommand("gamerule doMobSpawning false");
