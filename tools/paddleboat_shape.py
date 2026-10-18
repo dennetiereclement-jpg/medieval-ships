@@ -42,6 +42,7 @@ WHEEL_R = 2.45
 WHEEL_X0, WHEEL_X1 = 4.2, 5.7      # inner and outer faces of the wheel (|x|)
 BOX_X1 = 6.0                       # outer face of the paddle box
 # guns on turntables, fore and aft
+GUN_PLATFORM = 0.6        # raised round gun platforms (barbettes), half width 0.95
 GUN_FORE_Z = 8.0
 GUN_AFT_Z = -7.6
 MAST_Z, MAST_TOP = -9.0, 9.6

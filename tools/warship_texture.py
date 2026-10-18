@@ -183,8 +183,14 @@ def make_textures(path, flag_path, lateen_tri, jib_tri):
     u, v, w, h = reg("gunport")
     for y in range(h):
         for x in range(w):
-            frame = x < 2 or x >= w - 2 or y < 2 or y >= h - 2
-            px[u + x, v + y] = (_rgb("3a2a18") if frame else _rgb("0b0807")) + (255,)
+            ring = min(x, y, w - 1 - x, h - 1 - y)  # gold frame, red lining, dark opening
+            if ring < 2:
+                c = _rgb("f0cf6f") if (ring == 0 or (x + y) % 5 == 0) else _rgb("c9a043")
+            elif ring < 4:
+                c = _rgb("9a1d16")
+            else:
+                c = _rgb("0b0807") if y > h // 2 - 1 else _rgb("1c120c")
+            px[u + x, v + y] = c + (255,)
     # cannon barrel: dark bronze-iron with rings
     u, v, w, h = reg("cannon")
     for y in range(h):

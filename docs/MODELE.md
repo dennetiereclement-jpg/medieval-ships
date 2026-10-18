@@ -191,7 +191,7 @@ python3 tools/preview.py blockbench/galleon.bbmodel - docs/preview_galleon.png -
 | Coque | 29 tronçons × 2 bords × 10 bordages **inclinés** sur des sections arrondies : œuvres vives **blanches**, bandes **noires** et **ocre** alternées qui **suivent la tonture** (elles remontent vers la proue et la poupe, comme les rangées de sabords), fines moulures dorées entre les bandes, œuvres mortes noires, trois préceintes, plat-bord doré, rentré de la muraille, porte d'entrée dorée avec ses marches sur chaque bord |
 | Dimensions | coque 55 blocs, ≈ 67 avec beaupré, bout-dehors et galeries ; 13 de large ; 12 blocs de la quille au couronnement ; 42 jusqu'au sommet du grand mât |
 | Ponts | pont principal (canons sur affûts), gaillard d'avant, **gaillard d'arrière** au-dessus de la grande cabine, **dunette** au-dessus de la chambre du conseil ; 3 escaliers doubles, barrières à balustres |
-| Canons | **58** : 12 + 11 par bord dans deux rangées de sabords de la coque, 6 par bord sur affûts au pont principal, encadrés de **guirlandes dorées** (les 12 affûts sont des sièges) ; un os par canon `cannon_l1`…`cannon_l29`, `cannon_r1`…`cannon_r29` |
+| Canons | **58** : 12 + 11 par bord dans deux rangées de sabords de la coque (**cadres dorés**, doublure rouge), 6 par bord sur affûts au pont principal, encadrés de **guirlandes dorées** (les 12 affûts sont des sièges) ; un os par canon `cannon_l1`…`cannon_l29`, `cannon_r1`…`cannon_r29` |
 | Poupe | les **bandes de la coque font le tour de la voûte** (noir, ocre, préceintes, moulure dorée), **deux canons de retraite** dans leurs sabords à guirlandes, tableau de nom sculpté ; tableau très haut, chaque fenêtre dans un **cadre doré avec appui et clé sculptée**, trois étages de fenêtres éclairées (cintrées en haut) avec pilastres, corniches et frises sculptées dorées, **colonnes dorées** aux angles, **couronnement sculpté** en arc autour des grandes armes, **deux galeries** à balustres avec bandeau sculpté, retours latéraux, poteaux d'angle et consoles dorées, **deux statues dorées** (renommées à trompette) de part et d'autre des armes devant un fond sculpté, bouteilles d'angle sur deux étages (pilastres dorés entre les fenêtres, qui suivent le rétrécissement de la coque sans dépasser dans les cabines) coiffées de **dômes dorés** à épi, culs-de-lampe sculptés, 3 grandes lanternes à potences dorées, pavillon de poupe |
 | Grande cabine | accessible par la porte de la cloison ; **fenêtres des deux côtés et au fond, visibles aussi de l'intérieur** (5 fenêtres par bord encadrées d'or, 5 au tableau arrière, 6 dans la cloison) ; **table du conseil** de 4,4 blocs sur un grand tapis avec 8 chaises rouges, 2 candélabres allumés, carte marine et couverts ; **lit du capitaine** à ciel rouge, bureau avec chaise, globe et chandelier, bibliothèque, râtelier d'armes, coffres, 4 tableaux, lanternes suspendues ; les 2 chaises des flancs restent les places assises |
 | Mâture | 3 mâts en trois parties (bas-mât, mât de hune, perroquet) avec hunes éclairées d'une lanterne et barres de flèche, vergues sombres ; **3 voiles carrées par mât** à l'avant et au centre, hunier et latine à l'artimon ; beaupré, bout-dehors, civadière, **3 focs** |
@@ -240,10 +240,10 @@ D'après l'image de référence (« 3. Galère médiévale »).
 |---|---|
 | Coque très longue et étroite, extrémités très relevées | 20 tronçons × 2 bords × 8 bordages inclinés ; la tonture en croissant monte de 2,2 blocs aux deux bouts et les bordages la suivent |
 | Coque rouge et brun foncé, bordures bleues, décorations dorées | œuvres vives brun foncé, bordé rouge, préceinte sombre, liston bleu sous le plat-bord rouge, filets dorés entre les bordages |
-| Sculptures rouges aux extrémités | deux têtes de dragon en écailles rouges : cou épais qui monte de l'étrave et de l'étambot, crête dorsale, mâchoire ouverte, dents, langue, yeux d'or, cornes dorées, nageoires |
+| Sculptures rouges aux extrémités | deux têtes de dragon en écailles rouges : cou épais qui monte de l'étrave et de l'étambot, crête dorsale, mâchoire ouverte, dents, langue, yeux d'or à pupille fendue, cornes dorées, nageoires, **crête dorée** de quatre pointes sur le crâne, **moustaches dorées** qui retombent du museau, plaques dorées sous les yeux |
 | Boucliers ronds alignés | 14 boucliers par bord (rouges, croix blanche, cerclage doré, umbo), jointifs le long du plat-bord |
 | Nombreuses rames | 12 rames par bord, chacune un os animé, sortant sous les boucliers |
-| Grande voile rectangulaire rayée, mât central | voile carrée gonflée à 9 laizes verticales rouges et blanches (rouge aux bords), sur une vergue orientée, mât de 13 blocs |
+| Grande voile rectangulaire rayée, mât central | voile carrée gonflée à 9 laizes verticales rouges et blanches (rouge aux bords), têtière renforcée, **deux bandes de ris** avec leurs garcettes, sur une vergue orientée, mât de 13 blocs |
 | Drapeau, cordages | drapeau rouge à croix blanche à deux segments animés ; étai, pataras, haubans, bras et écoutes |
 | Pont ouvert | pont, coursive centrale, 11 bancs de nage, tabouret et aviron de gouverne du barreur, tonneaux, coffre, glènes, 4 lanternes sur poteaux |
 
@@ -258,14 +258,14 @@ D'après l'image de référence (« 2. Bateau à roue à vapeur »). Fichiers : 
 |---|---|
 | Coque blindée, basse et massive, plaques gris foncé rivetées | bordé en plaques rivetées (texture), bandes rivetées, plaques plus sombres et rouillées près de l'eau, hublots éclairés à cerclage de laiton, double blindage aux épaules |
 | Proue renforcée | étrave en laiton et éperon en fer à la flottaison |
-| Rouf, fenêtres, ouvertures et trappes | rouf en panneaux de bois cerclés de laiton, fenêtres éclairées, portes en fer, manomètres, tuyau de cuivre ; passerelle sur le toit, sifflet ; panneaux de cale à caillebotis |
-| Deux cheminées | deux cheminées verticales en briques grises cerclées de fer, l'une derrière l'autre, sommet noirci et évasé, tuyaux de vapeur, haubans |
-| Grande roue à aubes latérale | **une seule roue, à tribord**, comme sur la vue de côté de l'image : rond parfait (2 jantes de 20 segments, 2 couronnes intérieures, 20 rayons), 10 aubes radiales, moyeu en laiton ; elle tourne autour de son axe ; axe fixe de la coque au palier extérieur, palier et entretoises ; tambour en arc (tôles + arc doré) qui la couvre ; elle ne touche pas la coque (0,2 bloc d'écart) et plonge d'environ 0,9 bloc dans l'eau |
-| Canons sur le pont | deux canons en laiton sur affût de bois à roues, sur plaques tournantes, à la proue (vers l'avant) et à la poupe (vers l'arrière) |
+| Rouf, fenêtres, ouvertures et trappes | rouf en panneaux de bois cerclés de laiton, fenêtres éclairées, portes en fer, manomètres, tuyau de cuivre ; passerelle sur le toit entourée d'une **rambarde à lanternes d'angle**, claires-voies vitrées, sifflet ; panneaux de cale à caillebotis |
+| Deux cheminées | deux cheminées verticales en briques grises cerclées de fer, l'une derrière l'autre, sommet noirci et évasé coiffé d'une **couronne** et d'un anneau de laiton, tuyaux de vapeur, haubans |
+| Grandes roues à aubes latérales | **une roue de chaque côté** (bâbord et tribord, symétriques) : rond parfait (2 jantes de 20 segments, 2 couronnes intérieures, 20 rayons), 10 aubes radiales, moyeu en laiton ; elle tourne autour de son axe ; axe fixe de la coque au palier extérieur, palier et entretoises ; tambour en arc (tôles + arc doré) qui la couvre ; elle ne touche pas la coque (0,2 bloc d'écart) et plonge d'environ 0,9 bloc dans l'eau |
+| Canons sur le pont | deux canons en laiton sur affût de bois à roues, posés sur des **barbettes** surélevées (plate-forme circulaire blindée, rambarde de laiton, marches), à la proue (vers l'avant) et à la poupe (vers l'arrière) |
 | Rambardes métalliques, lanternes | rambarde en fer à main courante de laiton tout autour, 10 lanternes sur poteaux |
 | Éléments mécaniques | manches à air en laiton, télégraphe des machines, cabestan, ancres, mât de signaux et son pavillon (rouage doré sur fond rouge) |
 
-Animations : `paddle` (un tour de roue par boucle, jouée avec la **vitesse signée** : la roue
+Animations : `paddle` (les deux roues, un tour par boucle, jouée avec la **vitesse signée** : la roue
 tourne plus vite quand le bateau accélère et en arrière en marche arrière ; le générateur vérifie
 le sens de rotation), `steer` (roue de barre et gouvernail), `flag_wave`. Effets côté client,
 seulement près du joueur : fumée des cheminées (plus épaisse en marche), écume et gerbes à la
@@ -278,12 +278,12 @@ D'après l'image de référence (« 4. Voilier elfique »). Fichiers : `elven_sa
 
 | Élément de l'image | Réalisation |
 |---|---|
-| Coque longue et fine, bleu turquoise et or | coque élancée (30 blocs hors tout, 6 de large), œuvres vives bleu nuit, flancs turquoise, bandeau de filigrane doré, filets et plat-bord dorés, léger rentré |
-| Ornements elfiques | gemmes turquoise lumineuses serties d'or le long des flancs ; nageoires dorées sur l'étrave |
+| Coque longue et fine, bleu turquoise et or | coque élancée (30 blocs hors tout, 6 de large), œuvres vives bleu nuit, flancs turquoise, bandeau de filigrane doré, **volutes dorées** (5 par bord), filets et plat-bord dorés, léger rentré |
+| Ornements elfiques | gemmes turquoise lumineuses serties d'or le long des flancs ; nageoires dorées sur l'étrave ; **ailes dorées** déployées le long des flancs à la proue et à la poupe |
 | Proue très élancée | longue proue en volute dorée qui s'avance de 3 blocs, grosse gemme de chaque côté, lanterne suspendue à son extrémité |
 | Poupe légèrement relevée | étambot recourbé en crosse dorée, lanterne suspendue |
 | Grand mât central, voiles triangulaires | grand mât à bagues dorées et pomme ; grand-voile sur bôme, foc vers la proue, petit hunier triangulaire ; toile crème à bordure bleue et filet d'or |
-| Symboles solaires et lunaires | **dans la texture** : étoile dorée à huit branches à cœur bleu et petites étoiles sur la grand-voile, croissant de lune doré et étoiles sur le foc, étoile sur le hunier |
+| Symboles solaires et lunaires | **dans la texture** : grande **rose des vents** dorée à huit branches (quatre longues, quatre diagonales, or à deux tons) à cœur bleu et petites étoiles sur la grand-voile, croissant de lune doré et étoiles sur le foc, étoile sur le hunier |
 | Lanternes suspendues, cordages | 4 lanternes à potences dorées + celles de la proue et de la poupe, chacune sur son os ; étai, pataras, haubans, écoutes |
 | Pont ouvert | pont clair, bancs dorés à coussins bleus, coffre, barre à roue sur piédestal doré |
 

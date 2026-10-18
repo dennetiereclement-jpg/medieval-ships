@@ -161,6 +161,12 @@ def make_texture(path):
             c = tuple(int(min(255, k_ * shade)) for k_ in c)
             if abs(x * n / w - round(x * n / w)) < 0.06 and 0 < x < w - 1:
                 c = tuple(int(k_ * 0.8) for k_ in c)  # seam between two cloths
+            for band in (0.3, 0.48):  # reef bands: a doubled strip with a row of reef points
+                by = int(h * band)
+                if by <= y <= by + 1:
+                    c = tuple(int(k_ * 0.86) for k_ in c)
+                if y == by + 3 and x % 6 == 3:
+                    c = _rgb("5a3a1c")
             if y < 3:
                 c = _rgb("8a1b15") if red else _rgb("c9bfa6")
             if x < 1 or x >= w - 1 or y >= h - 1:

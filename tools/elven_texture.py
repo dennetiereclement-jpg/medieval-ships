@@ -24,6 +24,8 @@ REGIONS = {
     "gem":         (288, 0, 16, 16),
     "silver":      (304, 0, 16, 16),
     "gold_relief": (320, 0, 32, 32),
+    "swirl":       (352, 0, 64, 32),
+    "wing":        (416, 0, 64, 32),
     "deck":        (0, 32, 64, 64),
     "mast":        (64, 32, 64, 16),
     "dark_wood":   (64, 48, 32, 16),
@@ -67,17 +69,40 @@ def _edge_dist(tri, x, y):
 
 
 def _star(x, y, cx, cy, r_out, r_in, points, rot=0.0):
-    """Inside a star polygon?"""
+    """Inside a star polygon (straight edges from each tip to the notches beside it)?"""
     dx, dy = x - cx, y - cy
     r = math.hypot(dx, dy)
     if r > r_out:
         return False
-    a = (math.atan2(dy, dx) - rot) % (2 * math.pi / points)
-    half = math.pi / points
-    # radius of the star outline at this angle (linear between tip and notch)
-    f = abs(a - half) / half
-    edge = r_in + (r_out - r_in) * f
-    return r <= edge
+    if r < r_in:
+        return True
+    step = 2 * math.pi / points
+    a = (math.atan2(dy, dx) - rot) % step
+    if a > step / 2:
+        a = step - a
+    # triangle tip (r_out, 0) - notch (r_in, step / 2): is the point on the centre side of that edge?
+    tx, ty = r_out, 0.0
+    nx, ny = r_in * math.cos(step / 2), r_in * math.sin(step / 2)
+    px, py = r * math.cos(a), r * math.sin(a)
+    return (nx - tx) * (py - ty) - (ny - ty) * (px - tx) >= 0
+
+
+def _compass(x, y, cx, cy, size):
+    """Compass-rose star: four long points, four short diagonal ones, each point gold with a light
+    and a dark half (carved relief), a blue heart. Returns a colour or None."""
+    dx, dy = x - cx, y - cy
+    r = math.hypot(dx, dy)
+    if r < size * 0.035:
+        return _rgb("bfe9f2")
+    if r < size * 0.06:
+        return BLUE
+    for rot, r_out, r_in in ((0.0, size * 0.25, size * 0.05), (math.pi / 4, size * 0.16, size * 0.045)):
+        if _star(x, y, cx, cy, r_out, r_in, 4, rot):
+            ang = (math.atan2(dy, dx) - rot) % (math.pi / 2)
+            return GOLD_HI if ang < math.pi / 4 else _rgb("b58a2e")
+    if abs(r - size * 0.1) < 1.0:
+        return BLUE
+    return None
 
 
 def _paint_sail(px, region, tri_unit, symbol, rng):
@@ -105,12 +130,9 @@ def _paint_sail(px, region, tri_unit, symbol, rng):
             elif d < 7.0:
                 c = GOLD
             elif symbol == "star":
-                if _star(x, y, cx, cy, size * 0.21, size * 0.11, 8, rot=math.pi / 8):
-                    c = GOLD_HI if _star(x, y, cx, cy, size * 0.17, size * 0.09, 8, rot=math.pi / 8) else _rgb("b58a2e")
-                    if _star(x, y, cx, cy, size * 0.095, size * 0.035, 4):
-                        c = BLUE
-                    if math.hypot(x - cx, y - cy) < size * 0.025:
-                        c = _rgb("bfe9f2")
+                cc = _compass(x, y, cx, cy, size * 1.25)
+                if cc is not None:
+                    c = cc
                 elif any(_star(x, y, sx, sy, size * 0.035, size * 0.012, 4) for sx, sy in small):
                     c = GOLD
             elif symbol == "moon":
@@ -121,10 +143,9 @@ def _paint_sail(px, region, tri_unit, symbol, rng):
                 elif any(_star(x, y, sx, sy, size * 0.035, size * 0.012, 4) for sx, sy in small):
                     c = GOLD
             elif symbol == "small_star":
-                if _star(x, y, cx, cy, size * 0.16, size * 0.06, 8, rot=math.pi / 8):
-                    c = GOLD
-                    if _star(x, y, cx, cy, size * 0.07, size * 0.03, 4):
-                        c = BLUE
+                cc = _compass(x, y, cx, cy, size * 1.0)
+                if cc is not None:
+                    c = cc
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
@@ -220,6 +241,47 @@ def make_texture(path, tris):
             if y in (0, h - 1) or x in (0, w - 1):
                 c = GOLD
             px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
+    # carved gold arabesque (transparent around it): two spirals joined by an S, with leaves
+    u, v, w, h = reg("swirl")
+    for y in range(h):
+        for x in range(w):
+            px[u + x, v + y] = (0, 0, 0, 0)
+    def dot(xx, yy, rad, col):
+        for yy2 in range(int(yy - rad - 1), int(yy + rad + 2)):
+            for xx2 in range(int(xx - rad - 1), int(xx + rad + 2)):
+                if 0 <= xx2 < w and 0 <= yy2 < h and math.hypot(xx2 + 0.5 - xx, yy2 + 0.5 - yy) <= rad:
+                    px[u + xx2, v + yy2] = col + (255,)
+    for side, (sx, sy) in ((1, (14.0, 16.0)), (-1, (50.0, 16.0))):
+        t = 0.0
+        while t < 4.6 * math.pi:
+            rad = 1.0 + 11.0 * t / (4.6 * math.pi)
+            xx = sx + side * rad * math.cos(t)
+            yy = sy + rad * math.sin(t) * 0.95
+            dot(xx, yy, 1.6 if t > 2 else 1.1, GOLD_HI if math.sin(t) > 0 else GOLD)
+            t += 0.05
+    for k in range(40):
+        f = k / 39
+        xx, yy = 14 + 36 * f, 16 + 9 * math.sin(f * 2 * math.pi)
+        dot(xx, yy, 1.7, GOLD)
+    for lx, ly, s_ in ((25, 8, 1), (39, 24, -1), (32, 5, 1), (32, 27, -1)):
+        for k in range(8):
+            dot(lx + s_ * k * 0.6, ly - s_ * k * 0.4 + 2 * math.sin(k * 0.6), 1.6 - k * 0.15, GOLD_HI)
+    # carved gold wing: feathers fanning out backwards (transparent around them)
+    u, v, w, h = reg("wing")
+    for y in range(h):
+        for x in range(w):
+            px[u + x, v + y] = (0, 0, 0, 0)
+    for k in range(7):
+        ang = math.radians(-8 + 9 * k)
+        length = 58 - 5 * k
+        for t in range(length):
+            xx = 60 - t * math.cos(ang)
+            yy = 26 - t * math.sin(ang) * 1.9 - 2 * k * (t / length)
+            width = 2.6 * (1 - t / length) + 0.8
+            dot(xx, yy, width, GOLD_HI if (t // 6 + k) % 2 else GOLD)
+        dot(60 - length * math.cos(ang), 26 - length * math.sin(ang) * 1.9 - 2 * k, 1.2, _rgb("6fd6e3"))
+    dot(58, 25, 4.0, GOLD)
+    dot(58, 25, 2.2, _rgb("4fd4e4"))
     # the three sails and their symbols
     _paint_sail(px, reg("sail_main"), tris["sail_main"], "star", rng)
     _paint_sail(px, reg("sail_jib"), tris["sail_jib"], "moon", rng)

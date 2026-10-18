@@ -694,7 +694,13 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		check(water > -58.3 && water < -57.7, "%s floats: water line at y=%.2f (basin surface -58)", id, water);
 		double deck = pose.y() + h.mainDeckY;
 
-		// the six views of the reference picture
+		// the six views of the reference picture, sails set (they furl after 5 s stopped otherwise)
+		boolean furl = server.computeOnServer(s -> {
+			var cfg = fr.medievalships.data.ConfigManager.ship(type);
+			boolean was = cfg.furlSailWhenStopped;
+			cfg.furlSailWhenStopped = false;
+			return was;
+		});
 		double L = h.tip, top = Math.max(8, L * 0.5);
 		String[][] views = {{"1_droite"}, {"2_gauche"}, {"3_proue"}, {"4_poupe"}, {"5_dessus"}, {"6_perspective"}};
 		double[][] eyes = {{-1.75 * L, 0.4 * top, 0.2}, {1.75 * L, 0.4 * top, 0.2}, {0.4, 0.45 * top, 1.9 * L},
@@ -704,6 +710,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			context.waitTicks(k == 0 ? 30 : 15);
 			shot(context, id + "_" + views[k][0]);
 		}
+		server.runOnServer(s -> fr.medievalships.data.ConfigManager.ship(type).furlSailWhenStopped = furl);
 
 		server.runCommand("gamemode survival @a");
 		// 1. falling onto the deck (a free spot by the side: amidships may be a deckhouse), jumping

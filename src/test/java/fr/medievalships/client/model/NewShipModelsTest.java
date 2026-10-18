@@ -35,7 +35,7 @@ class NewShipModelsTest {
 							"dragon_stern_head", "shields"},
 					new String[] {"row", "sail_wind", "sail_furl", "steer", "flag_wave"}),
 			new Expected("steam_paddleboat",
-					new String[] {"paddle_wheel", "helm_wheel", "rudder", "flag", "flag_tip", "funnels", "paddle_box", "guns"},
+					new String[] {"paddle_wheel", "paddle_wheel_port", "helm_wheel", "rudder", "flag", "flag_tip", "funnels", "paddle_box", "guns"},
 					new String[] {"paddle", "steer", "flag_wave"}),
 			new Expected("elven_sailboat",
 					new String[] {"sail_main", "sail_jib", "sail_top", "helm_wheel", "rudder", "flag", "flag_tip", "lantern_prow", "lantern_stern",

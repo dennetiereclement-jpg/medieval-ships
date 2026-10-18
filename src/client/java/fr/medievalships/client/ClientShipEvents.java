@@ -147,26 +147,32 @@ public final class ClientShipEvents {
 			for (double[] f : engine.funnels()) {
 				double[] w = pose.toWorld(f[0] + (world.random.nextDouble() - 0.5) * 0.5, f[1], f[2] + (world.random.nextDouble() - 0.5) * 0.5);
 				world.addParticleClient(ParticleTypes.LARGE_SMOKE, w[0], w[1], w[2], drift[0], 0.07 + 0.05 * load, drift[2]);
+				if (load > 0.05) {
+					// thick dark plume under way
+					world.addParticleClient(ParticleTypes.LARGE_SMOKE, w[0], w[1] + 0.2, w[2], drift[0] * 1.3, 0.1 + 0.05 * load, drift[2] * 1.3);
+				}
 				if (load > 0.4 && world.random.nextInt(3) == 0) {
 					world.addParticleClient(ParticleTypes.CAMPFIRE_COSY_SMOKE, w[0], w[1] + 0.3, w[2], drift[0], 0.05, drift[2]);
 				}
 			}
 		}
-		double[] wh = engine.wheel();
 		double water = ship.geometry().hull().waterlineY;
+		double[] wh = engine.wheels()[0];
 		if (speed > 0.3) {
-			// foam where the paddles enter and leave the water, spray at the back of the wheel
-			int n = (int) Math.ceil(3 * load);
-			for (int i = 0; i < n; i++) {
-				double z = wh[2] + (world.random.nextDouble() - 0.5) * 2 * wh[3];
-				double x = wh[0] + (world.random.nextDouble() - 0.5) * 1.2;
-				double[] w = pose.toWorld(x, water + 0.1, z);
-				double[] out = pose.dirToWorld(-0.05, 0.12 + 0.1 * load, -0.15 * Math.signum(ship.syncedSpeed()));
-				world.addParticleClient(ParticleTypes.SPLASH, w[0], w[1], w[2], out[0], out[1], out[2]);
-			}
-			if (world.random.nextInt(2) == 0) {
-				double[] w = pose.toWorld(wh[0], water - 0.3, wh[2] - Math.signum(ship.syncedSpeed()) * wh[3]);
-				world.addParticleClient(ParticleTypes.BUBBLE, w[0], w[1], w[2], 0, 0.05, 0);
+			for (double[] w0 : engine.wheels()) {
+				// foam where the paddles enter and leave the water, spray at the back of the wheel
+				int n = (int) Math.ceil(2 * load);
+				for (int i = 0; i < n; i++) {
+					double z = w0[2] + (world.random.nextDouble() - 0.5) * 2 * w0[3];
+					double x = w0[0] + (world.random.nextDouble() - 0.5) * 1.2;
+					double[] w = pose.toWorld(x, water + 0.1, z);
+					double[] out = pose.dirToWorld(Math.signum(w0[0]) * 0.05, 0.12 + 0.1 * load, -0.15 * Math.signum(ship.syncedSpeed()));
+					world.addParticleClient(ParticleTypes.SPLASH, w[0], w[1], w[2], out[0], out[1], out[2]);
+				}
+				if (world.random.nextInt(3) == 0) {
+					double[] w = pose.toWorld(w0[0], water - 0.3, w0[2] - Math.signum(ship.syncedSpeed()) * w0[3]);
+					world.addParticleClient(ParticleTypes.BUBBLE, w[0], w[1], w[2], 0, 0.05, 0);
+				}
 			}
 		}
 		// engine beat: faster with the speed; a slow idle beat at rest

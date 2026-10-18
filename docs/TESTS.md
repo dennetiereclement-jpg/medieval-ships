@@ -12,7 +12,7 @@ La tâche *In-game test* lance un **vrai client Minecraft 1.21.11** avec le `.ja
 production (mod remappé, comme sur un vrai serveur), deux fois : **sans** et **avec Lithium**.
 Chaque fois, tout le scénario est joué **en solo** puis sur un **vrai serveur dédié** auquel le
 client se connecte par le réseau (contrôles de mouvement du serveur actifs) : **154 vérifications,
-toutes réussies** (version 1.5.0, avec et sans Lithium, en solo et sur serveur dédié).
+toutes réussies** (version 1.5.1, avec et sans Lithium, en solo et sur serveur dédié).
 Le test (`src/gametest/.../ShipClientGameTest.java`) crée un monde, des bassins, met les navires
 à l'eau puis vérifie (résultats et captures publiés sur les branches `test-results-vanilla` et
 `test-results-lithium`) :
@@ -35,8 +35,8 @@ Le même scénario pour chacun, dans un quatrième bassin (44 × 100 blocs) :
 * `/ship give <type>` donne l'objet.
 
 Les captures sont dans les branches `test-results-*` (fichiers `*_medieval_galley_*`,
-`*_steam_paddleboat_*`, `*_elven_sailboat_*`). Dans les dernières vues, les voiles des navires à
-voiles sont carguées : le navire est arrêté depuis quelques secondes (`furlSailWhenStopped`).
+`*_steam_paddleboat_*`, `*_elven_sailboat_*`). Pendant les six vues, le test désactive
+`furlSailWhenStopped` côté serveur (puis le rétablit) pour que les voiles restent établies.
 
 ### Filets de sécurité (collisions désactivées)
 
@@ -124,7 +124,7 @@ cabine, balcon, gaillard d'arrière, navigation.
 | `WarshipTest` (16 tests) | vaisseau : dimensions, forme identique au générateur, 24 sièges, ponts sans trou à tous les caps, murailles sans brèche, embarquement, escaliers, grande cabine, visée, 58 sabords, filets de sécurité, plus lourd que le galion, aller-retour de 600 blocs autour d'une île de 90 blocs, route à 4 virages |
 | `matchesPythonReference` (×3) | le lecteur `.bbmodel` du mod produit exactement la même géométrie que le rendu de référence (galère 2 208 faces ; galion 7 943 faces, 2 textures) |
 | `bonesAnimationsAndTextures`, `requiredBonesAndAnimationsExist`, `furlCollapsesTheSail` | os, animations et textures attendus par le mod |
-| `NewShipsTest` (18 tests) | galère rouge, bateau à vapeur, voilier elfique : formes identiques aux générateurs, dimensions demandées (28 × 5 × 3, 22 × 8 × 5, 30 × 6 × 4), places et points de descente libres, ponts sans trou à tous les caps, embarquement, visée de la barre et de la coque, flottaison ; **roue à aubes** : une seule, à tribord, hors de la coque, immergée d'environ 0,9 bloc, tambour solide, largeur prise en compte par le pilote automatique ; maniement (galère vive, vapeur progressive et maniable à basse vitesse, voilier rapide et fluide) ; identifiants et alias `grand_warship` |
+| `NewShipsTest` (18 tests) | galère rouge, bateau à vapeur, voilier elfique : formes identiques aux générateurs, dimensions demandées (28 × 5 × 3, 22 × 8 × 5, 30 × 6 × 4), places et points de descente libres, ponts sans trou à tous les caps, embarquement, visée de la barre et de la coque, flottaison ; **roues à aubes** : une de chaque côté, hors de la coque, immergée d'environ 0,9 bloc, tambour solide, largeur prise en compte par le pilote automatique ; maniement (galère vive, vapeur progressive et maniable à basse vitesse, voilier rapide et fluide) ; identifiants et alias `grand_warship` |
 | `NewShipModelsTest` | les trois nouveaux modèles : os et animations attendus, géométrie identique au rendu de référence Python |
 | `tools/sail_check.py` (outil) | aucune voile n'en traverse une autre (vaisseau, galion, voilier, galère rouge) |
 

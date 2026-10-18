@@ -153,6 +153,16 @@ def build():
             axes = np.column_stack([u, v, n])
             add_cube(hull, "gem_setting_%s%d" % (sn, k), p + n * 0.03, axes, (0.42, 0.42, 0.05), "gold_relief")
             add_cube(hull, "glow_gem_%s%d" % (sn, k), p + n * 0.07, axes @ rz(math.pi / 4), (0.22, 0.22, 0.06), "gem", stretch=True)
+        # large carved gold arabesques along the upper hull, between the gems
+        for k, z in enumerate((-7.25, -3.75, -0.25, 3.25, 6.7)):
+            y = upper_y(z, 0.5)
+            gn.decal(hull, "swirl_%s%d" % (sn, k), z, y, side, 2.6, 1.0, "swirl", out=0.04, th=0.02)
+        # carved gold wings sweeping back from the prow, a smaller pair at the stern
+        for name, z, f, w_, h_, fwd in (("bow_wing", 9.9, 0.62, 3.4, 1.6, 1), ("stern_wing", -10.3, 0.6, 2.2, 1.0, -1)):
+            p, u, v, n = gn.side_frame(z, upper_y(z, f), side)
+            # the root of the wing towards the end of the ship, the feathers sweeping inboard
+            add_cube(hull, "%s_%s" % (name, sn), p + n * 0.07, np.column_stack([u, v, n]), (w_, h_, 0.02), "wing", stretch=True,
+                     u_dir=u * fwd, v_dir=v3(0, -1, 0))
     for i in range(len(STATIONS) - 1):
         za, zb = STATIONS[i], STATIONS[i + 1]
         beam(hull, "keel_%d" % i, (0, es.keel_y(za) - 0.05, za), (0, es.keel_y(zb) - 0.05, zb), 0.18, "hull_navy", width=0.22,

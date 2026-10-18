@@ -611,8 +611,8 @@ public final class Ships {
 	// ------------------------------------------------------------------ steam paddleboat
 
 	/**
-	 * Armoured steam paddleboat: 22 blocks, 8 wide (10 with the paddle box), riveted iron hull,
-	 * deckhouse with two funnels, one paddle wheel on the starboard side, two guns, 8 seats.
+	 * Armoured steam paddleboat: 22 blocks, 8 wide (12 with the paddle boxes), riveted iron hull,
+	 * deckhouse with two funnels, a paddle wheel on each side, two guns, 8 seats.
 	 * The same numbers are used by {@code tools/paddleboat_shape.py}.
 	 */
 	public static final ShipType STEAM_PADDLEBOAT = steamPaddleboat();
@@ -638,13 +638,15 @@ public final class Ships {
 		public static final double FUNNEL_TOP = 10.9;
 		public static final double HELM_Z = 5.75;
 		public static final double PILOT_Z = 5.0;
-		/** Paddle wheel on the starboard side (-x): centre, radius, inner / outer faces, box. */
+		/** Paddle wheels (one on each side, |x|): centre, radius, inner / outer faces, box. */
 		public static final double WHEEL_Z = 1.2;
 		public static final double WHEEL_Y = 0.75;
 		public static final double WHEEL_R = 2.45;
 		public static final double WHEEL_X0 = 4.2;
 		public static final double WHEEL_X1 = 5.7;
 		public static final double BOX_X1 = 6.0;
+		/** Raised round gun platforms (barbettes) under the two guns. */
+		public static final double GUN_PLATFORM = 0.6;
 		public static final double GUN_FORE_Z = 8.0;
 		public static final double GUN_AFT_Z = -7.6;
 		public static final double MAST_Z = -9.0;
@@ -688,9 +690,11 @@ public final class Ships {
 			double f = PaddleboatLayout.FUNNEL_HALF;
 			solids.add(new ShipGeometry.LocalBox(-f, PaddleboatLayout.HOUSE_TOP, z - f, f, PaddleboatLayout.FUNNEL_TOP, z + f));
 		}
-		// the two guns on their carriages
+		// the two guns on their carriages, on raised platforms one can step onto
+		double gp = PaddleboatLayout.GUN_PLATFORM;
 		for (double z : new double[] {PaddleboatLayout.GUN_FORE_Z, PaddleboatLayout.GUN_AFT_Z}) {
-			solids.add(new ShipGeometry.LocalBox(-0.5, main, z - 0.8, 0.5, main + 1.15, z + 0.8));
+			solids.add(new ShipGeometry.LocalBox(-0.95, main, z - 0.95, 0.95, main + gp, z + 0.95));
+			solids.add(new ShipGeometry.LocalBox(-0.5, main + gp, z - 0.8, 0.5, main + gp + 1.15, z + 0.8));
 		}
 		// the hull closes beyond the side walls: rounded counter at the stern, pointed bow
 		for (double z = hull.halfLength - 0.1; z < PaddleboatLayout.FORE_SCALE - 0.1; z += 0.3) {
@@ -701,10 +705,12 @@ public final class Ships {
 			double w = hull.halfWidth(z);
 			solids.add(new ShipGeometry.LocalBox(-w, hull.keelY(z), z - 0.3, w, hull.railY(z) + 0.1, z));
 		}
-		// the paddle box on the starboard side, outside the hull (above the water)
+		// the two paddle boxes, one on each side, outside the hull (above the water)
 		double wz = PaddleboatLayout.WHEEL_Z, r = PaddleboatLayout.WHEEL_R + 0.35;
-		solids.add(new ShipGeometry.LocalBox(-PaddleboatLayout.BOX_X1, PaddleboatLayout.WATERLINE_Y - 0.2, wz - r,
-				-hull.halfWidth(wz) + 0.05, PaddleboatLayout.WHEEL_Y + r + 0.1, wz + r));
+		for (double side : new double[] {1, -1}) {
+			solids.add(box(side, hull.halfWidth(wz) - 0.05, PaddleboatLayout.BOX_X1, PaddleboatLayout.WATERLINE_Y - 0.2,
+					PaddleboatLayout.WHEEL_Y + r + 0.1, wz - r, wz + r));
+		}
 
 		ShipGeometry.Spec spec = new ShipGeometry.Spec();
 		List<ShipGeometry.Seat> seats = new ArrayList<>();
@@ -716,8 +722,9 @@ public final class Ships {
 				seats.add(seat(seats.size(), x, main, z, x * 1.12, z + 0.8));
 			}
 		}
-		seats.add(seat(seats.size(), 1.0, main, PaddleboatLayout.GUN_FORE_Z - 0.4, 1.7, PaddleboatLayout.GUN_FORE_Z - 0.4));
-		seats.add(seat(seats.size(), -1.0, main, PaddleboatLayout.GUN_AFT_Z + 0.4, -1.7, PaddleboatLayout.GUN_AFT_Z + 0.4));
+		// the gunners sit on the gun platforms, beside their guns
+		seats.add(seat(seats.size(), 0.85, main + gp, PaddleboatLayout.GUN_FORE_Z - 0.4, 0.85, PaddleboatLayout.GUN_FORE_Z - 0.4));
+		seats.add(seat(seats.size(), -0.85, main + gp, PaddleboatLayout.GUN_AFT_Z + 0.4, -0.85, PaddleboatLayout.GUN_AFT_Z + 0.4));
 		seats.add(seat(seats.size(), 1.6, main, -9.0, 1.6, -8.2));
 		spec.seats = List.copyOf(seats);
 		spec.helm = new ShipGeometry.LocalBox(-0.65, main + 0.5, PaddleboatLayout.HELM_Z - 0.3, 0.65, main + 1.75,
@@ -726,9 +733,11 @@ public final class Ships {
 		spec.solids = List.copyOf(solids);
 		spec.probeHeights = new double[] {PaddleboatLayout.WATERLINE_Y + 0.15, 0.15, 1.2, 2.6};
 		List<double[]> extra = new ArrayList<>();
-		for (double z = wz - r; z <= wz + r + 1e-6; z += r / 2) {
-			extra.add(new double[] {-PaddleboatLayout.BOX_X1 + 0.1, PaddleboatLayout.WATERLINE_Y + 0.15, z});
-			extra.add(new double[] {-PaddleboatLayout.BOX_X1 + 0.1, PaddleboatLayout.WHEEL_Y + 1.5, z});
+		for (double side : new double[] {1, -1}) {
+			for (double z = wz - r; z <= wz + r + 1e-6; z += r / 2) {
+				extra.add(new double[] {side * (PaddleboatLayout.BOX_X1 - 0.1), PaddleboatLayout.WATERLINE_Y + 0.15, z});
+				extra.add(new double[] {side * (PaddleboatLayout.BOX_X1 - 0.1), PaddleboatLayout.WHEEL_Y + 1.5, z});
+			}
 		}
 		spec.extraProbes = List.copyOf(extra);
 		spec.aiHalfWidth = PaddleboatLayout.BOX_X1 - 0.3;

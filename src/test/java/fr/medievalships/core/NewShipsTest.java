@@ -114,7 +114,7 @@ class NewShipsTest {
 		assertEquals(8, g.seats().size());
 	}
 
-	/** One wheel, on the starboard side: round, outside the hull, partly under water, inside its box. */
+	/** A wheel on each side: round, outside the hull, partly under water, inside its box. */
 	@Test
 	void paddleWheel() {
 		HullShape h = Ships.STEAM_PADDLEBOAT.hull();
@@ -133,8 +133,8 @@ class NewShipsTest {
 		assertTrue(intersectsSolid(g, -(PaddleboatLayout.WHEEL_X0 + PaddleboatLayout.WHEEL_X1) / 2, PaddleboatLayout.WHEEL_Y + r - 0.2, z,
 				0.2, 0.2, 0.2));
 		assertTrue(g.aiHalfWidth() > PaddleboatLayout.WHEEL_X1 - 0.5);
-		assertFalse(intersectsSolid(g, (PaddleboatLayout.WHEEL_X0 + PaddleboatLayout.WHEEL_X1) / 2, PaddleboatLayout.WHEEL_Y + r - 0.2, z,
-				0.2, 0.2, 0.2), "only one wheel, on the starboard side");
+		assertTrue(intersectsSolid(g, (PaddleboatLayout.WHEEL_X0 + PaddleboatLayout.WHEEL_X1) / 2, PaddleboatLayout.WHEEL_Y + r - 0.2, z,
+				0.2, 0.2, 0.2), "the port wheel box is solid too");
 	}
 
 	@Test
@@ -263,7 +263,7 @@ class NewShipsTest {
 			assertNotNull(p, t.id() + " helm");
 			assertEquals(ShipGeometry.PickKind.HELM, p.kind(), t.id() + " helm");
 			double w = g.hull().maxHalfWidth;
-			p = g.pick(ORIGIN, w + 4, g.hull().mainDeckY + 0.6, 1.0, -1, 0, 0, 8);
+			p = g.pick(ORIGIN, w + 4, g.hull().mainDeckY + 0.6, -6.5, -1, 0, 0, 8);
 			assertNotNull(p, t.id() + " hull");
 			assertEquals(ShipGeometry.PickKind.HULL, p.kind(), t.id() + " hull");
 		}

@@ -164,6 +164,20 @@ def dragon(bone, tag, s):
                  (0.05, 0.42, 0.42), "dragon_dark")
     # tongue
     hcube(head, tag + "_tongue", jaw + Rj @ v3(0, 0.08, 0.15), Rj, (0.16, 0.04, 0.5), "red_paint")
+    # gold crest along the top of the skull, sweeping back into the neck crest
+    for k in range(4):
+        base = hb + out * (0.5 - 0.28 * k) + v3(0, 0.36 - 0.05 * k, 0)
+        tip = base + v3(0, 0.3 - 0.03 * k, -s * (0.22 + 0.04 * k))
+        beam_h(head, "%s_crown_%d" % (tag, k), base, tip, 0.05, "gold", width=0.07)
+    # whiskers: thin gold barbels curling down and back from the snout
+    for x in (0.26, -0.26):
+        w0 = hb + out * 1.1 + v3(x, -0.05, 0)
+        w1 = w0 + v3(x * 0.85, -0.18, s * 0.05)
+        beam_h(head, "%s_whisker_a_%d" % (tag, x > 0), w0, w1, 0.04, "gold")
+        beam_h(head, "%s_whisker_b_%d" % (tag, x > 0), w1, w1 + v3(x * 0.3, -0.3, -s * 0.06), 0.035, "gold")
+    # gold cheek plate under the eye
+    for x in (0.31, -0.31):
+        hcube(head, "%s_cheek_%d" % (tag, x > 0), hb + out * 0.55 + v3(x, -0.12, 0), R, (0.04, 0.14, 0.42), "gold")
 
 
 def build():

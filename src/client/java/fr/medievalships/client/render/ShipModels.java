@@ -44,9 +44,9 @@ public final class ShipModels {
 	 * paddle wheel, the beat of the engine. Ship-local blocks.
 	 *
 	 * @param funnels    funnel mouths (x, y, z)
-	 * @param wheel      paddle wheel: centre (x, y, z) and radius
+	 * @param wheels     paddle wheels: centre (x, y, z) and radius of each
 	 */
-	public record Engine(double[][] funnels, double[] wheel) {
+	public record Engine(double[][] funnels, double[][] wheels) {
 	}
 
 	public static final Visual GALLEY = new Visual(Ships.GALLEY, model("galley"), List.of(texture("galley")), 1f, 12, 16, false);
@@ -60,8 +60,11 @@ public final class ShipModels {
 			List.of(texture("steam_paddleboat")), 0.7f, 14, 14, true, new Engine(
 					new double[][] {{0, PaddleboatLayout.FUNNEL_TOP + 0.3, PaddleboatLayout.FUNNEL_Z[0]},
 							{0, PaddleboatLayout.FUNNEL_TOP + 0.3, PaddleboatLayout.FUNNEL_Z[1]}},
-					new double[] {-(PaddleboatLayout.WHEEL_X0 + PaddleboatLayout.WHEEL_X1) / 2, PaddleboatLayout.WHEEL_Y,
-							PaddleboatLayout.WHEEL_Z, PaddleboatLayout.WHEEL_R}));
+					new double[][] {
+							{(PaddleboatLayout.WHEEL_X0 + PaddleboatLayout.WHEEL_X1) / 2, PaddleboatLayout.WHEEL_Y, PaddleboatLayout.WHEEL_Z,
+									PaddleboatLayout.WHEEL_R},
+							{-(PaddleboatLayout.WHEEL_X0 + PaddleboatLayout.WHEEL_X1) / 2, PaddleboatLayout.WHEEL_Y, PaddleboatLayout.WHEEL_Z,
+									PaddleboatLayout.WHEEL_R}}));
 	public static final Visual ELVEN_SAILBOAT = new Visual(Ships.ELVEN_SAILBOAT, model("elven_sailboat"),
 			List.of(texture("elven_sailboat")), 0.85f, 18, 22, true);
 	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT);
