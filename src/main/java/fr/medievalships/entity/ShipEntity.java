@@ -73,10 +73,12 @@ public abstract class ShipEntity extends Entity {
 	private static final TrackedData<Float> VSPEED = DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.FLOAT);
 	/** Vessels with rooms: open doors (bit k = door k of the interior grid). */
 	private static final TrackedData<Long> DOORS = DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.LONG);
-	/** Vessels with rooms: the airlock is flooded. */
-	private static final TrackedData<Boolean> AIRLOCK = DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+	/** Vessels with rooms: water level in the airlock (0 pumped out .. 1 full). */
+	private static final TrackedData<Float> AIRLOCK = DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.FLOAT);
 	/** Submarines: depth below the surfaced position (blocks), for the pilot's gauges and the effects. */
 	private static final TrackedData<Float> DEPTH = DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.FLOAT);
+	/** Vessels with rooms: fittings switched on or off (bits, see {@link Ships.NautilusLayout#SHUTTERS_CLOSED}). */
+	private static final TrackedData<Integer> TOGGLES = DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.INTEGER);
 
 	private static final double DT = 0.05;
 
@@ -97,6 +99,13 @@ public abstract class ShipEntity extends Entity {
 	private boolean lastJump;
 	private boolean lastSprint;
 	private boolean seatsDirty;
+	/** Airlock: level the valves are bringing the water to (0 or 1). */
+	private float airlockTarget;
+	/** Submarines: depth ordered by a command (blocks below the surface), NaN = none. */
+	private double targetDepth = Double.NaN;
+	/** The lifeboat once launched (a boat entity), or null. */
+	@Nullable
+	private java.util.UUID lifeboat;
 
 	// ---- shared / client state
 	private final PositionInterpolator interpolator = new PositionInterpolator(this, 3);
@@ -127,6 +136,11 @@ public abstract class ShipEntity extends Entity {
 	/** Vessels with rooms: smoothed opening of each door (0 closed .. 1 open), for the animations. */
 	public final float[] doorVisual = new float[InteriorGrid.MAX_DOORS];
 	public final float[] lastDoorVisual = new float[InteriorGrid.MAX_DOORS];
+	/** Smoothed airlock water level and salon shutters (0 open .. 1 closed). */
+	public float airlockVisual;
+	public float lastAirlockVisual;
+	public float shutterVisual;
+	public float lastShutterVisual;
 
 	protected ShipEntity(EntityType<? extends ShipEntity> type, World world) {
 		super(type, world);
@@ -159,8 +173,9 @@ public abstract class ShipEntity extends Entity {
 		builder.add(SEATS, "");
 		builder.add(VSPEED, 0f);
 		builder.add(DOORS, 0L);
-		builder.add(AIRLOCK, false);
+		builder.add(AIRLOCK, 0f);
 		builder.add(DEPTH, 0f);
+		builder.add(TOGGLES, 0);
 	}
 
 	@Override
@@ -171,7 +186,20 @@ public abstract class ShipEntity extends Entity {
 		flight.vy = view.getDouble("VerticalSpeed", 0);
 		dive.vy = flight.vy;
 		dataTracker.set(DOORS, view.getLong("Doors", 0L));
-		dataTracker.set(AIRLOCK, view.getBoolean("AirlockFlooded", false));
+		float level = view.getFloat("AirlockLevel", view.getBoolean("AirlockFlooded", false) ? 1f : 0f);
+		dataTracker.set(AIRLOCK, level);
+		airlockTarget = view.getFloat("AirlockTarget", level);
+		dataTracker.set(TOGGLES, view.getInt("Toggles", 0));
+		targetDepth = view.getDouble("TargetDepth", -1);
+		if (targetDepth < 0) {
+			targetDepth = Double.NaN;
+		}
+		String boat = view.getString("Lifeboat", "");
+		try {
+			lifeboat = boat.isEmpty() ? null : java.util.UUID.fromString(boat);
+		} catch (IllegalArgumentException e) {
+			lifeboat = null;
+		}
 		gait = Gait.byOrdinal(view.getInt("Gait", Gait.NORMAL.ordinal()));
 		double limit = view.getDouble("SpeedLimit", -1);
 		speedLimit = limit > 0 ? limit : Double.NaN;
@@ -197,7 +225,11 @@ public abstract class ShipEntity extends Entity {
 		view.putDouble("Helm", physics.helm);
 		view.putDouble("VerticalSpeed", geometry().submarine() ? dive.vy : flight.vy);
 		view.putLong("Doors", dataTracker.get(DOORS));
-		view.putBoolean("AirlockFlooded", dataTracker.get(AIRLOCK));
+		view.putFloat("AirlockLevel", dataTracker.get(AIRLOCK));
+		view.putFloat("AirlockTarget", airlockTarget);
+		view.putInt("Toggles", dataTracker.get(TOGGLES));
+		view.putDouble("TargetDepth", Double.isNaN(targetDepth) ? -1 : targetDepth);
+		view.putString("Lifeboat", lifeboat == null ? "" : lifeboat.toString());
 		view.putInt("Gait", gait.ordinal());
 		view.putDouble("SpeedLimit", Double.isNaN(speedLimit) ? -1 : speedLimit);
 		view.putBoolean("Autopilot", aiEnabled);
@@ -317,6 +349,52 @@ public abstract class ShipEntity extends Entity {
 		return interiorState().doorOpen(door);
 	}
 
+	/** Fittings switched on or off (see {@link Ships.NautilusLayout#SHUTTERS_CLOSED}), synced. */
+	public boolean toggle(int bit) {
+		return (dataTracker.get(TOGGLES) & (1 << bit)) != 0;
+	}
+
+	public void setToggle(int bit, boolean on) {
+		int t = dataTracker.get(TOGGLES);
+		dataTracker.set(TOGGLES, on ? t | (1 << bit) : t & ~(1 << bit));
+	}
+
+	/** Water level in the airlock, 0 .. 1 (synced). */
+	public float airlockLevel() {
+		return dataTracker.get(AIRLOCK);
+	}
+
+	public void setAirlockLevel(float level) {
+		dataTracker.set(AIRLOCK, Math.max(0f, Math.min(1f, level)));
+	}
+
+	/** Level the airlock valves are bringing the water to (server). */
+	public float airlockTarget() {
+		return airlockTarget;
+	}
+
+	public void setAirlockTarget(float target) {
+		airlockTarget = target;
+	}
+
+	/** Depth ordered by a command, NaN = none (server). */
+	public double targetDepth() {
+		return targetDepth;
+	}
+
+	public void setTargetDepth(double depth) {
+		targetDepth = depth;
+	}
+
+	@Nullable
+	public java.util.UUID lifeboatId() {
+		return lifeboat;
+	}
+
+	public void setLifeboatId(@Nullable java.util.UUID id) {
+		lifeboat = id;
+	}
+
 	/** Server: opens or closes a door of the interior (no checks, see {@link #toggleDoor}). */
 	public void setDoor(int door, boolean open) {
 		dataTracker.set(DOORS, interiorState().withDoor(door, open).openDoors());
@@ -336,12 +414,18 @@ public abstract class ShipEntity extends Entity {
 	@Nullable
 	public Text toggleDoor(int door) {
 		boolean open = !doorOpen(door);
-		if (open && geometry().submarine() && door == Ships.NautilusLayout.HATCH_DOOR && dataTracker.get(DEPTH) > Dive.SURFACED) {
-			return Text.literal("Le panneau ne s'ouvre qu'en surface : remontez d'abord.").formatted(Formatting.RED);
+		if (geometry().submarine()) {
+			Text refused = NautilusFittings.doorRefusal(this, door, open);
+			if (refused != null) {
+				return refused;
+			}
 		}
 		setDoor(door, open);
-		playSound(open ? net.minecraft.sound.SoundEvents.BLOCK_IRON_TRAPDOOR_OPEN : net.minecraft.sound.SoundEvents.BLOCK_IRON_TRAPDOOR_CLOSE,
-				1.0f, 0.8f);
+		double[] c = geometry().interior().doorCenter(door);
+		double[] w = c == null ? new double[] {getX(), getY(), getZ()} : pose().toWorld(c[0], c[1], c[2]);
+		getEntityWorld().playSound(null, w[0], w[1], w[2],
+				open ? net.minecraft.sound.SoundEvents.BLOCK_IRON_TRAPDOOR_OPEN : net.minecraft.sound.SoundEvents.BLOCK_IRON_TRAPDOOR_CLOSE,
+				getSoundCategory(), 1.0f, 0.8f);
 		return null;
 	}
 
@@ -422,6 +506,11 @@ public abstract class ShipEntity extends Entity {
 				float shut = (open & (1L << k)) != 0 ? 1f : 0f;
 				doorVisual[k] += Math.max(-0.12f, Math.min(0.12f, shut - doorVisual[k]));
 			}
+			lastAirlockVisual = airlockVisual;
+			airlockVisual += (dataTracker.get(AIRLOCK) - airlockVisual) * 0.5f;
+			lastShutterVisual = shutterVisual;
+			float closed = toggle(Ships.NautilusLayout.SHUTTERS_CLOSED) ? 1f : 0f;
+			shutterVisual += Math.max(-0.025f, Math.min(0.025f, closed - shutterVisual));
 		}
 	}
 
@@ -600,15 +689,25 @@ public abstract class ShipEntity extends Entity {
 		ShipPhysics.Controls controls = ShipPhysics.Controls.COAST;
 		double surfacedY = shipWorld.surfacedY(this);
 		double vy = Dive.hold(before.y(), surfacedY, cfg.dive);
+		int input = 0;
 		if (aiEnabled) {
 			Route route = ShipData.get(world.getServer()).route(routeName);
 			controls = autopilot.tick(route, before, physics.speed, physics.yawRate, gait, cfg, geometry(), shipWorld, new Announcer(world, route));
 		} else if (pilot instanceof ServerPlayerEntity player) {
 			controls = manualControls(player, cfg);
 			PlayerInput in = player.getPlayerInput();
-			vy = Dive.manual((in.jump() ? 1 : 0) - (in.sprint() ? 1 : 0), before.y(), surfacedY, cfg.dive);
+			input = (in.jump() ? 1 : 0) - (in.sprint() ? 1 : 0);
+			if (input != 0) {
+				targetDepth = Double.NaN; // the pilot takes the ballasts back
+			}
+			vy = Dive.manual(input, before.y(), surfacedY, cfg.dive);
 		}
-		boolean hatchOpen = doorOpen(Ships.NautilusLayout.HATCH_DOOR);
+		if (!Double.isNaN(targetDepth) && !Double.isNaN(surfacedY) && input == 0) {
+			// depth ordered by a command (/ship nautilus profondeur, ballasts): the hull goes there and holds it
+			double depth = Math.min(targetDepth, cfg.dive.maxDepth);
+			vy = depth < Dive.SURFACED ? Dive.towards(surfacedY, before.y(), cfg.dive) : Dive.towards(surfacedY - depth, before.y(), cfg.dive);
+		}
+		boolean hatchOpen = doorOpen(Ships.NautilusLayout.HATCH_DOOR) || doorOpen(Ships.NautilusLayout.BOAT_HATCH_DOOR);
 		if (hatchOpen && vy < 0 && Dive.depth(before.y(), surfacedY) < Dive.SURFACED) {
 			vy = Dive.hold(before.y(), surfacedY, cfg.dive); // never dive with the hatch open
 			if (pilot instanceof ServerPlayerEntity player && age % 20 == 0) {
@@ -655,6 +754,7 @@ public abstract class ShipEntity extends Entity {
 		if (pilot instanceof ServerPlayerEntity player && age % 10 == 0) {
 			player.sendMessage(diveStatus(depth), true);
 		}
+		NautilusFittings.tick(this, world);
 	}
 
 	private Text diveStatus(float depth) {

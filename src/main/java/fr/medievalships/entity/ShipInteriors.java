@@ -59,7 +59,7 @@ public final class ShipInteriors {
 			double[] l = ship.pose().toLocal(x, y, z);
 			byte kind = grid.kindAt(l[0], l[1], l[2]);
 			if (kind != InteriorGrid.OUT) {
-				return InteriorGrid.dry(kind, ship.interiorState());
+				return grid.dry(kind, l[1], ship.interiorState());
 			}
 		}
 		return false;

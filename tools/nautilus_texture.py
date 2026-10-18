@@ -70,6 +70,12 @@ REGIONS = {
     "chart":       (256, 112, 64, 48),
     "boat_wood":   (320, 112, 64, 32),
     "plank_light": (384, 112, 32, 32),
+    # translucent effects: the projector beam fading away (4 lengths), the water of the airlock
+    "beam0":       (464, 16, 16, 16),
+    "beam1":       (480, 16, 16, 16),
+    "beam2":       (496, 16, 16, 16),
+    "beam3":       (464, 32, 16, 16),
+    "water":       (480, 32, 16, 16),
 }
 
 
@@ -185,7 +191,23 @@ def make_texture(path):
     d.line((u + 8, v + h // 2, u + w - 9, v + h // 2), fill=_rgb("b8913c") + (255,), width=2)
     _paint_rooms(img, px, rng)
     _paint_furniture(img, px, rng)
+    _paint_effects(px, rng)
     img.save(path)
+
+
+def _paint_effects(px, rng):
+    for k, alpha in enumerate((96, 70, 44, 20)):
+        u, v, w, h = REGIONS["beam%d" % k]
+        for y in range(h):
+            for x in range(w):
+                a = alpha + rng.randint(-4, 4)
+                px[u + x, v + y] = (255, 246, 205, max(0, a))
+    u, v, w, h = REGIONS["water"]
+    for y in range(h):
+        for x in range(w):
+            t = 0.5 + 0.5 * math.sin(x * 0.8 + math.sin(y * 0.6) * 2.0)
+            c = (int(28 + 30 * t), int(80 + 40 * t), int(140 + 40 * t))
+            px[u + x, v + y] = c + (150,)
 
 
 def _paint_rooms(img, px, rng):

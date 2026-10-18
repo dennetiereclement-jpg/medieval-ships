@@ -43,6 +43,12 @@ public final class ShipInteractions {
 			case DECK -> {
 				// clicking the deck does nothing, but it must not reach the water under the hull
 			}
+			case SWITCH -> {
+				Text msg = fr.medievalships.entity.NautilusFittings.use(ship, player.getEntityWorld(), payload.seat());
+				if (msg != null) {
+					player.sendMessage(msg, true);
+				}
+			}
 			case DOOR -> {
 				if (payload.seat() >= 0 && payload.seat() < fr.medievalships.core.InteriorGrid.MAX_DOORS) {
 					Text msg = ship.toggleDoor(payload.seat());

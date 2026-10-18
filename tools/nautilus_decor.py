@@ -91,6 +91,7 @@ FALLBACK_REGION = {"furnish:red_showcase": "glass", "farmersdelight:stove": "iro
 BLOCKS = []   # dicts: block, x, y, z, yaw, solid (bool)
 SEATS = []    # dicts: x, y, z, dx, dy, dz
 CUSTOM = []   # furniture made for the Nautilus: (builder name, kwargs, solid box or None)
+SWITCHES = []  # controls the players click: action, centre and half sizes of the box they are clicked in
 
 
 def to_ship(bid, x, y, z, yaw, px, py, pz, scale=1.0):
@@ -118,6 +119,17 @@ def block(bid, x, y, z, facing="stern", solid=True, scale=1.0):
 def custom(builder, solid=None, **kwargs):
     """Furniture of tools/nautilus_furniture.py; solid = (x0, x1, y0, y1, z0, z1) added to the grid."""
     CUSTOM.append((builder, kwargs, solid))
+
+
+def switch(action, center, half):
+    """A control (lever, valve) the players click: its action (see NautilusFittings) and its box."""
+    SWITCHES.append({"action": action, "x": center[0], "y": center[1], "z": center[2], "hx": half[0], "hy": half[1], "hz": half[2]})
+
+
+def lever_switch(action, name, x, y, z, tilt=0.4):
+    """A floor lever that is a control."""
+    custom("lever", name=name, p=(x, y, z), tilt=tilt)
+    switch(action, (x, y + 0.45, z + 0.05), (0.15, 0.45, 0.22))
 
 
 def seat(x, y, z, dx, dz):
@@ -252,6 +264,10 @@ def salon():
     custom("painting", name="salon_painting_bow", center=(-2.0, 3.4, 6.5), normal=(0, 0, -1), w=2.4, h=1.6, region="painting_storm")
     for z in (-3.2, 3.2):
         custom("chandelier", name="salon_chandelier_%d" % (z > 0), hook=(0, ni.SALON_TOP, z), r=0.9, n=12, drop=0.9)
+    # the levers of the iron panels that close the great windows, and of the lamps
+    for x in (-3.0, 3.0):
+        lever_switch("shutters", "salon_shutter_lever_%d" % (x > 0), x, m, 3.1)
+    lever_switch("lights", "salon_light_lever", 2.9, m, -5.3)
 
 
 def cabins():
@@ -347,8 +363,12 @@ def airlock():
         custom("diving_suit", solid=(x - 0.35, x + 0.35, l, l + 2.4, 28.1, 28.9), name="suit_%d" % k, p=(x, l, 28.5), facing="stern")
     for k, (x, z) in enumerate(((2.1, 25.6), (2.1, 26.4))):
         custom("tank", solid=(x - 0.35, x + 0.35, l, l + 1.7, z - 0.35, z + 0.35), name="airlock_tank_%d" % k, p=(x, l, z))
-    custom("valve_wheel", name="airlock_fill_valve", p=(-0.9, l + 1.6, 25.0), normal=(0, 0, 1))
-    custom("valve_wheel", name="airlock_pump_valve", p=(0.9, l + 1.6, 25.0), normal=(0, 0, 1))
+    # the valves: filling (red wheel) and pumps (brass wheel), inside the airlock and in the corridor outside
+    for action, x_in, x_out, region in (("airlock_fill", -0.9, 1.6, "coral_red"), ("airlock_pump", 0.9, 1.0, "brass")):
+        custom("valve_wheel", name=action + "_valve_in", p=(x_in, l + 1.6, 25.12), normal=(0, 0, 1), region=region)
+        switch(action, (x_in, l + 1.6, 25.12), (0.26, 0.26, 0.14))
+        custom("valve_wheel", name=action + "_valve_out", p=(x_out, l + 1.6, 24.38), normal=(0, 0, -1), region=region, r=0.18)
+        switch(action, (x_out, l + 1.6, 24.38), (0.22, 0.22, 0.14))
     custom("pipe_run", name="airlock_pipe", a=(-2.3, ni.L0 + 3.2, 25.2), b=(2.3, ni.L0 + 3.2, 25.2), r=0.1)
 
 
@@ -378,8 +398,8 @@ def wheelhouse_and_cage():
     custom("helm", name="helm", center=(0, y + 1.35, 21.3))
     custom("binnacle", name="binnacle", p=(-1.0, y, 21.4))
     custom("telegraph", name="telegraph", p=(1.0, y, 21.4), normal=(0, 0, -1))
-    custom("lever", name="lever_a", p=(0.9, y, 20.2))
-    custom("lever", name="lever_b", p=(1.15, y, 19.9), tilt=-0.4)
+    lever_switch("floodlight", "lever_projector", 0.9, y, 20.2)
+    lever_switch("lights", "lever_lights", 1.5, y, 19.6, tilt=-0.4)
     custom("instrument_panel", name="helm_panel_port", center=(2.0, y + 1.9, 16.8), normal=(-1, 0, 0), w=1.4, h=0.9)
     custom("instrument_panel", name="helm_panel_stbd", center=(-2.0, y + 1.9, 16.8), normal=(1, 0, 0), w=1.4, h=0.9)
     custom("instrument_panel", name="helm_panel_fore_port", center=(2.0, y + 1.9, 20.8), normal=(-1, 0, 0), w=1.2, h=0.8)
@@ -391,12 +411,15 @@ def wheelhouse_and_cage():
 
 def lifeboat():
     custom("lifeboat", name="lifeboat", center=(0, 8.45, -19.0), length=6.4, width=2.4)
+    # its release lever on the casing, in front of the recess
+    lever_switch("lifeboat", "lifeboat_lever", -1.4, ni.ns.CASING_TOP_Y, -14.6)
 
 
 def build():
     BLOCKS.clear()
     SEATS.clear()
     CUSTOM.clear()
+    SWITCHES.clear()
     dining_room()
     library()
     salon()
@@ -426,7 +449,8 @@ def apply_to_grid(g):
 
 
 def write(path):
-    data = {"blocks": [], "seats": SEATS}
+    data = {"blocks": [], "seats": SEATS, "switches": [{k: (round(v, 4) if isinstance(v, float) else v) for k, v in w.items()}
+                                                      for w in SWITCHES]}
     for i, b in enumerate(BLOCKS):
         data["blocks"].append({"block": b["block"], "x": round(b["x"], 4), "y": round(b["y"], 4), "z": round(b["z"], 4),
                                "yaw": b["yaw"], "scale": b["scale"], "fallback": "fallback_%d" % i})

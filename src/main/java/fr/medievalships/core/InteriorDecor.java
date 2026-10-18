@@ -34,12 +34,26 @@ public final class InteriorDecor {
 	public record SeatSpot(double x, double y, double z, double dismountX, double dismountY, double dismountZ) {
 	}
 
+	/**
+	 * A control the players use with a click (a lever, a valve): its action, e.g. {@code shutters},
+	 * {@code floodlight}, {@code lights}, {@code airlock_fill}, {@code airlock_pump}, {@code lifeboat},
+	 * and the box it is clicked in (centre and half sizes, ship-local).
+	 */
+	public record Switch(String action, double x, double y, double z, double hx, double hy, double hz) {
+	}
+
 	private final List<Block> blocks;
 	private final List<SeatSpot> seats;
+	private final List<Switch> switches;
 
-	InteriorDecor(List<Block> blocks, List<SeatSpot> seats) {
+	InteriorDecor(List<Block> blocks, List<SeatSpot> seats, List<Switch> switches) {
 		this.blocks = List.copyOf(blocks);
 		this.seats = List.copyOf(seats);
+		this.switches = List.copyOf(switches);
+	}
+
+	public List<Switch> switches() {
+		return switches;
 	}
 
 	public List<Block> blocks() {
@@ -80,6 +94,13 @@ public final class InteriorDecor {
 			seats.add(new SeatSpot(o.get("x").getAsDouble(), o.get("y").getAsDouble(), o.get("z").getAsDouble(),
 					o.get("dx").getAsDouble(), o.get("dy").getAsDouble(), o.get("dz").getAsDouble()));
 		}
-		return new InteriorDecor(blocks, seats);
+		List<Switch> switches = new ArrayList<>();
+		JsonArray w = root.has("switches") ? root.getAsJsonArray("switches") : new JsonArray();
+		for (JsonElement e : w) {
+			JsonObject o = e.getAsJsonObject();
+			switches.add(new Switch(o.get("action").getAsString(), o.get("x").getAsDouble(), o.get("y").getAsDouble(), o.get("z").getAsDouble(),
+					o.get("hx").getAsDouble(), o.get("hy").getAsDouble(), o.get("hz").getAsDouble()));
+		}
+		return new InteriorDecor(blocks, seats, switches);
 	}
 }

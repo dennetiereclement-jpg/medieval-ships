@@ -2,6 +2,7 @@ package fr.medievalships.client.render;
 
 import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.OverlayTexture;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderLayers;
 import net.minecraft.client.render.command.OrderedRenderCommandQueue;
 import net.minecraft.client.render.entity.EntityRenderer;
@@ -13,6 +14,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 
 import fr.medievalships.client.model.BbModel;
+import fr.medievalships.core.Ships;
 import fr.medievalships.entity.ShipEntity;
 import fr.medievalships.client.render.ShipModels.Visual;
 
@@ -67,6 +69,11 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 			for (int k = 0; k < state.doors.length; k++) {
 				state.doors[k] = MathHelper.lerp(tickProgress, entity.lastDoorVisual[k], entity.doorVisual[k]);
 			}
+			state.shutters = MathHelper.lerp(tickProgress, entity.lastShutterVisual, entity.shutterVisual);
+			state.airlockWater = MathHelper.lerp(tickProgress, entity.lastAirlockVisual, entity.airlockVisual);
+			state.floodlight = entity.toggle(Ships.NautilusLayout.FLOODLIGHT_ON);
+			state.lightsOff = entity.toggle(Ships.NautilusLayout.LIGHTS_OFF);
+			state.lifeboatAway = entity.toggle(Ships.NautilusLayout.LIFEBOAT_AWAY);
 		}
 	}
 
@@ -95,15 +102,26 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 			EmbeddedDecor decor = state.interiorLight ? EmbeddedDecor.of(visual.type()) : null;
 			boolean decorDrawn = decor != null && state.squaredDistanceToCamera < DECOR_DISTANCE * DECOR_DISTANCE;
 			int light = state.light;
-			// the rooms of a vessel are lit by its own lamps, even deep under the sea
-			int lit = state.interiorLight
+			// the rooms of a vessel are lit by its own lamps, even deep under the sea (unless they are switched off)
+			boolean lampsOn = state.interiorLight && !state.lightsOff;
+			int lit = lampsOn
 					? LightmapTextureManager.pack(Math.max(INTERIOR_BLOCK_LIGHT, LightmapTextureManager.getBlockLightCoordinates(light)),
 							LightmapTextureManager.getSkyLightCoordinates(light))
 					: light;
+			int glowLight = state.interiorLight && state.lightsOff ? light : LightmapTextureManager.MAX_LIGHT_COORDINATE;
+			float shutters = state.shutters, airlockWater = state.airlockWater;
+			boolean floodlight = state.floodlight, lifeboatAway = state.lifeboatAway;
+			boolean effects = state.interiorLight && model.hasEffects();
+			// pass 0: the model; pass 1: its translucent effects (projector beam, water of the airlock)
+			for (int pass = 0; pass < (effects ? 2 : 1); pass++) {
+			boolean fx = pass == 1;
 			for (int tex = 0; tex < model.textureCount() && tex < visual.textures().size(); tex++) {
 				int texture = tex;
-				queue.submitCustom(matrices, RenderLayers.entityCutoutNoCull(visual.textures().get(tex)), (entry, vertices) -> {
+				RenderLayer layer = fx ? RenderLayers.entityTranslucent(visual.textures().get(tex))
+						: RenderLayers.entityCutoutNoCull(visual.textures().get(tex));
+				queue.submitCustom(matrices, layer, (entry, vertices) -> {
 					BbModel.Pose pose = model.newPose();
+					pose.fxPass = fx;
 					model.apply(pose, "row", oarTime, oarWeight);
 					model.apply(pose, "paddle", wheel, 1f);
 					model.apply(pose, "sail_wind", age, sail);
@@ -125,6 +143,20 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 							model.hide(pose, bone);
 						}
 					}
+					if (doors != null) {
+						model.apply(pose, "shutters", shutters, 1f);
+						model.apply(pose, "airlock_water", airlockWater, 1f);
+						model.hide(pose, floodlight ? "lens_off" : "fx_beam");
+						if (!floodlight) {
+							model.hide(pose, "fx_lens");
+						}
+						if (airlockWater < 0.01f) {
+							model.hide(pose, "fx_airlock");
+						}
+						if (lifeboatAway) {
+							model.hide(pose, "lifeboat");
+						}
+					}
 					model.render(pose, visual.textures().size() > 1 ? texture : -1, new BbModel.QuadSink() {
 						@Override
 						public void quad(float[] p, float[] uv, float[] n, boolean glow) {
@@ -133,7 +165,7 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 
 						@Override
 						public void quad(float[] p, float[] uv, float[] n, boolean glow, boolean litFace) {
-							int l = glow ? LightmapTextureManager.MAX_LIGHT_COORDINATE : litFace ? lit : light;
+							int l = glow ? (fx ? LightmapTextureManager.MAX_LIGHT_COORDINATE : glowLight) : litFace ? lit : light;
 							for (int k = 0; k < 4; k++) {
 								vertices.vertex(entry, p[k * 3], p[k * 3 + 1], p[k * 3 + 2])
 										.color(0xFFFFFFFF)
@@ -145,6 +177,7 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 						}
 					});
 				});
+			}
 			}
 			// furniture from the decoration mods, drawn where it stands in the rooms
 			if (decorDrawn) {

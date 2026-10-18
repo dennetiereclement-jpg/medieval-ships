@@ -476,6 +476,98 @@ def doors(root, g):
     return anims
 
 
+SHUTTER_SHIFT = 3.6  # the salon panels slide fore and aft along the hull by this much to open
+
+
+def shutters(root, outside):
+    """Iron panels outside the two great windows of the salon (Verne: they open and close like
+    shutters): two flat leaves per window, in the plane tangent to the hull at the window, that meet
+    at the window's centre when closed and slide fore and aft on brass rails when open (the hull is a
+    cylinder there, so they keep their distance to it). Animation "shutters": 0 open .. 1 closed."""
+    wz, wy, wr = ns.SALON_WINDOW
+    half = wr + 0.35
+    out = 0.42  # clear of the window frame
+    tracks = []
+    for side in SIDES:
+        sn = "p" if side > 0 else "s"
+        c0, n = on_hull(wz, wy, side, 0.0)
+        ez = v3(0, 0, 1)
+        et = norm(np.cross(n, ez))
+        if et[1] < 0:
+            et = -et
+        R = np.column_stack([ez, et, n])
+        for leaf, sgn in (("fore", 1), ("aft", -1)):
+            bone = Bone("shutter_%s_%s" % (sn, leaf), parent=root)
+            c = c0 + n * out + ez * (sgn * half / 2)
+            add_cube(bone, "shutter_%s_%s" % (sn, leaf), c, R, (half, 2 * half, 0.1), "steel")
+            for k, t in enumerate((-0.5, 0.0, 0.5)):  # stiffeners
+                add_cube(bone, "shutter_%s_%s_rib%d" % (sn, leaf, k), c + et * (t * 2 * half * 0.8) + n * 0.07, R,
+                         (half - 0.1, 0.12, 0.06), "brass")
+            add_cube(bone, "shutter_%s_%s_edge" % (sn, leaf), c0 + n * (out + 0.07) + ez * (sgn * 0.06), R, (0.12, 2 * half, 0.06), "brass")
+            open_dz = sgn * SHUTTER_SHIFT
+            tracks.append((bone, [gg.kf("position", 0.0, (0, 0, -open_dz * 16)), gg.kf("position", 1.0, (0, 0, 0))]))
+        # the rails, top and bottom: from the hull out to the leaves, all along their travel
+        span = 2 * (half + SHUTTER_SHIFT) + 0.2
+        for tag, t in (("top", 1), ("bottom", -1)):
+            edge = c0 + n * out + et * (t * (half + 0.08))
+            hull_p, _ = on_hull(wz, edge[1], side, 0.0)
+            gap = float(np.dot(edge - hull_p, n))
+            mid = edge - n * (gap / 2)
+            add_cube(outside, "shutter_rail_%s_%s" % (sn, tag), mid, R, (span, 0.16, max(0.12, gap + 0.12)), "brass")
+    return [gg.animation("shutters", 1.0, "hold", tracks)]
+
+
+def projector_beam(root):
+    """The projector: its lens dark (off) or lit, and the beam it throws forward, a translucent cone
+    fading away (tilted up a little so that it clears the wheelhouse roof)."""
+    lens_c = v3(0, ns.LENS_Y, ns.TOWER_Z[0] + 0.48)
+    off = Bone("lens_off", parent=root)
+    add_cube(off, "lens_glass", lens_c, EYE, (1.6, 1.1, 0.04), "glass")
+    lens = Bone("fx_lens", parent=root)
+    add_cube(lens, "glow_projector_lens", lens_c + v3(0, 0, 0.01), EYE, (1.6, 1.1, 0.04), "glow")
+    beam_bone = Bone("fx_beam", parent=root)
+    length, r0, r1, n = 34.0, 0.5, 3.4, 10
+    tilt = math.atan((r1 - r0) / length)  # the lower edge stays level
+    axis = norm(v3(0, math.sin(tilt), math.cos(tilt)))
+    e1 = v3(1, 0, 0)
+    e2 = norm(np.cross(axis, e1))
+    start = lens_c + v3(0, 0, 0.05)
+    seg = 4
+    for k in range(seg):
+        t0, t1 = k / seg, (k + 1) / seg
+        c0, c1 = start + axis * length * t0, start + axis * length * t1
+        ra, rb = r0 + (r1 - r0) * t0, r0 + (r1 - r0) * t1
+        for q in range(n):
+            a0, a1 = 2 * math.pi * q / n, 2 * math.pi * (q + 1) / n
+            d0 = e1 * math.cos(a0) + e2 * math.sin(a0)
+            d1 = e1 * math.cos(a1) + e2 * math.sin(a1)
+            dm = e1 * math.cos((a0 + a1) / 2) + e2 * math.sin((a0 + a1) / 2)
+            panel(beam_bone, "glow_beam_%d_%d" % (k, q), c0 + d0 * ra, c0 + d1 * ra, c1 + d0 * rb, c1 + d1 * rb, 0.02,
+                  "beam%d" % k, dm, overlap=1.0)
+
+
+def airlock_water(root, g):
+    """Water of the airlock: rises from the floor with the level (animation "airlock_water", 0 .. 1)."""
+    m = g.k == ni.AIRLOCK
+    floor, top = g.Y[m].min() - ni.CELL / 2, g.Y[m].max() + ni.CELL / 2
+    fx = Bone("fx_airlock", parent=root)
+    x0, x1, _, _, z0, z1 = ni.ROOMS["airlock"]
+    room = Bone("airlock_water_room", origin=(0, floor, 0), parent=fx)
+    add_cube(room, "lit_airlock_water", v3((x0 + x1) / 2, (floor + top) / 2, (z0 + z1) / 2), EYE,
+             (x1 - x0 - 0.04, top - floor - 0.04, z1 - z0 - 0.04), "water")
+    tx0, tx1, ty0, ty1, tz0, tz1 = ni.AIRLOCK_TUNNEL
+    tm = m & (g.Z > tz0) & (g.Z < tz1) & (g.X < x0)
+    tx0 = g.X[tm].min() - ni.CELL / 2
+    tunnel = Bone("airlock_water_tunnel", origin=(0, floor, 0), parent=fx)
+    add_cube(tunnel, "lit_airlock_water_tunnel", v3((tx0 + x0) / 2, (ty0 + ty1) / 2, (tz0 + tz1) / 2), EYE,
+             (x0 - tx0 + 0.02, ty1 - ty0 - 0.04, tz1 - tz0 - 0.04), "water")
+    k_t = (ty1 - ty0) / (top - floor)  # the tunnel is full when the water reaches its ceiling
+    return [gg.animation("airlock_water", 1.0, "hold", [
+        (room, [gg.kf("scale", 0.0, (1, 0.001, 1)), gg.kf("scale", 1.0, (1, 1, 1))]),
+        (tunnel, [gg.kf("scale", 0.0, (1, 0.001, 1)), gg.kf("scale", k_t, (1, 1, 1)), gg.kf("scale", 1.0, (1, 1, 1))]),
+    ])]
+
+
 def fallbacks(root):
     """Stand-ins of the decoration blocks, shown only when their mod is missing on a client."""
     for i, b in enumerate(nd.BLOCKS):
@@ -509,10 +601,12 @@ def build(g):
         fn = getattr(nf, builder)
         if builder in ("engine_block", "helm"):
             fn(furniture, root, **kw)
+        elif builder == "lifeboat":
+            fn(Bone("lifeboat", parent=root), **kw)  # hidden while the boat is on the water
         else:
             fn(furniture, **kw)
-    # the projector lens at the front of the cage, over the wheelhouse roof
-    add_cube(lights, "glow_projector_lens", v3(0, ns.LENS_Y, ns.TOWER_Z[0] + 0.48), EYE, (1.6, 1.1, 0.04), "glow")
+    # the projector lens at the front of the cage, over the wheelhouse roof, and its beam
+    projector_beam(root)
     ring(outside, "projector_rim", v3(0, ns.LENS_Y, ns.TOWER_Z[0] + 0.52), v3(0, 0, 1), 0.85, 0.14, "brass", n=12, width=0.18)
     # lamps on the ceilings of the rooms
     for name, (x0, x1, y0, y1, z0, z1) in ni.ROOMS.items():
@@ -567,6 +661,8 @@ def main():
     root, n, m = build(g)
     anims = build_animations(root, g)
     anims += doors(root, g)
+    anims += shutters(root, gg.find(root, "superstructure"))
+    anims += airlock_water(root, g)
     tex_dir = os.path.join(ROOT, "src/main/resources/assets/medievalships/textures")
     tex_path = os.path.join(tex_dir, "entity/nautilus.png")
     nt.make_texture(tex_path)

@@ -20,6 +20,26 @@ public final class ClientShipEvents {
 	private static String lastHint = "";
 	private static int hintCooldown;
 
+	private static String switchHint(fr.medievalships.entity.ShipEntity ship, int index) {
+		var decor = ship.geometry().decor();
+		if (decor == null || index < 0 || index >= decor.switches().size()) {
+			return "";
+		}
+		return switch (decor.switches().get(index).action()) {
+			case "shutters" -> ship.toggle(fr.medievalships.core.Ships.NautilusLayout.SHUTTERS_CLOSED)
+					? "Clic droit : ouvrir les panneaux des baies" : "Clic droit : fermer les panneaux des baies";
+			case "floodlight" -> ship.toggle(fr.medievalships.core.Ships.NautilusLayout.FLOODLIGHT_ON)
+					? "Clic droit : éteindre le projecteur" : "Clic droit : allumer le projecteur";
+			case "lights" -> ship.toggle(fr.medievalships.core.Ships.NautilusLayout.LIGHTS_OFF)
+					? "Clic droit : allumer les lumières" : "Clic droit : éteindre les lumières";
+			case "airlock_fill" -> String.format("Clic droit : remplir le sas (eau %d %%)", Math.round(ship.airlockLevel() * 100));
+			case "airlock_pump" -> String.format("Clic droit : vider le sas (eau %d %%)", Math.round(ship.airlockLevel() * 100));
+			case "lifeboat" -> ship.toggle(fr.medievalships.core.Ships.NautilusLayout.LIFEBOAT_AWAY)
+					? "Clic droit : rembarquer le canot" : "Clic droit : mettre le canot à l'eau";
+			default -> "";
+		};
+	}
+
 	private ClientShipEvents() {
 	}
 
@@ -264,6 +284,7 @@ public final class ClientShipEvents {
 				case HULL -> "Clic droit : monter à bord";
 				case DECK -> "";
 				case DOOR -> t.ship().doorOpen(t.pick().seat()) ? "Clic droit : fermer" : "Clic droit : ouvrir";
+				case SWITCH -> switchHint(t.ship(), t.pick().seat());
 			};
 		}
 		if (hintCooldown > 0) {

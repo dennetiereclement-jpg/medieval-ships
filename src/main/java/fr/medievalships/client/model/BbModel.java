@@ -48,6 +48,8 @@ public final class BbModel {
 		final List<Bone> children = new ArrayList<>();
 		final List<Quad> quads = new ArrayList<>();
 		Bone parent;
+		/** Translucent effect (a light beam, water): bones named "fx_*" and their children, drawn in their own pass. */
+		boolean fx;
 
 		Bone(String name, int index, float[] origin, float[] rotation) {
 			this.name = name;
@@ -151,6 +153,8 @@ public final class BbModel {
 		final float[][] scale;
 		/** Bones not drawn (with their children) in this pose. */
 		final boolean[] hidden;
+		/** Draw only the translucent effects ("fx_*" bones), or only the rest. */
+		public boolean fxPass;
 		private final float[] tmp = new float[3];
 
 		Pose(int bones) {
@@ -169,6 +173,16 @@ public final class BbModel {
 				hidden[i] = false;
 			}
 		}
+	}
+
+	/** Does the model have translucent effects ("fx_*" bones)? */
+	public boolean hasEffects() {
+		for (Bone b : bones) {
+			if (b.fx) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/** Hides a bone (and its children) in a pose; unknown names are ignored. */
@@ -240,6 +254,7 @@ public final class BbModel {
 	private Bone readGroup(JsonObject g, Bone parent, Map<String, JsonObject> elements, Map<String, String> names) {
 		Bone bone = new Bone(g.get("name").getAsString(), bones.size(), vec(g, "origin", 0), vec(g, "rotation", 0));
 		bone.parent = parent;
+		bone.fx = bone.name.startsWith("fx_") || (parent != null && parent.fx);
 		bones.add(bone);
 		bonesByName.putIfAbsent(bone.name, bone);
 		if (g.has("uuid")) {
@@ -460,6 +475,9 @@ public final class BbModel {
 		}
 		float[] m = compose(parent, local);
 		for (Quad q : bone.quads) {
+			if (bone.fx != pose.fxPass) {
+				break;
+			}
 			if (texture >= 0 && q.texture != texture) {
 				continue;
 			}

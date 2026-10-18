@@ -377,13 +377,13 @@ def pipe_run(bone, name, a, b, r=0.18, region="copper", flanges=True):
             beam(bone, "lit_%s_flange%d" % (name, k), p - norm(b - a) * 0.05, p + norm(b - a) * 0.05, 2 * r + 0.1, "brass")
 
 
-def valve_wheel(bone, name, p, normal, r=0.22):
+def valve_wheel(bone, name, p, normal, r=0.22, region="coral_red"):
     R, u, n = frame(normal)
     p = v3(*p)
     for k in range(8):
         a0, a1 = 2 * math.pi * k / 8, 2 * math.pi * (k + 1) / 8
         beam(bone, "lit_%s_rim%d" % (name, k), p + (u * math.cos(a0) + v3(0, 1, 0) * math.sin(a0)) * r,
-             p + (u * math.cos(a1) + v3(0, 1, 0) * math.sin(a1)) * r, 0.04, "coral_red", up=n)
+             p + (u * math.cos(a1) + v3(0, 1, 0) * math.sin(a1)) * r, 0.04, region, up=n)
     box(bone, name + "_hub", p, R, (0.08, 0.08, 0.1), "brass")
     box(bone, name + "_stem", p - n * 0.12, R, (0.06, 0.06, 0.2), "brass")
 

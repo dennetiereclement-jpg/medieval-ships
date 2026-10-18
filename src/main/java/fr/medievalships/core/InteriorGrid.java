@@ -29,20 +29,28 @@ public final class InteriorGrid {
 	public static final byte DOOR = 16;
 	public static final int MAX_DOORS = 32;
 
-	/** Doors and airlock of one vessel. */
-	public record State(long openDoors, boolean airlockFlooded) {
-		public static final State CLOSED = new State(0L, false);
+	/** Doors and airlock of one vessel: the airlock water level goes from 0 (pumped out) to 1 (full). */
+	public record State(long openDoors, float airlockLevel) {
+		public static final State CLOSED = new State(0L, 0f);
 
 		public boolean doorOpen(int door) {
 			return (openDoors & (1L << door)) != 0;
 		}
 
-		public State withDoor(int door, boolean open) {
-			return new State(open ? openDoors | (1L << door) : openDoors & ~(1L << door), airlockFlooded);
+		public boolean airlockFlooded() {
+			return airlockLevel >= 0.999f;
 		}
 
-		public State withAirlock(boolean flooded) {
-			return new State(openDoors, flooded);
+		public boolean airlockDry() {
+			return airlockLevel <= 0.001f;
+		}
+
+		public State withDoor(int door, boolean open) {
+			return new State(open ? openDoors | (1L << door) : openDoors & ~(1L << door), airlockLevel);
+		}
+
+		public State withAirlock(float level) {
+			return new State(openDoors, Math.max(0f, Math.min(1f, level)));
 		}
 	}
 
@@ -54,6 +62,11 @@ public final class InteriorGrid {
 	public final double z0;
 	public final double cell;
 	private final byte[] cells;
+	/** Centre of each door (ship-local), null for the indices without door. */
+	private final double[][] doorCenters;
+	/** Floor and ceiling of the airlock (ship-local heights; NaN without airlock). */
+	public final double airlockFloor;
+	public final double airlockTop;
 	/** Cells where entities are carried along: inside, or in the 2.5 blocks above a walkable outside surface. */
 	private final boolean[] carry;
 
@@ -67,6 +80,35 @@ public final class InteriorGrid {
 		this.cell = cell;
 		this.cells = cells;
 		this.carry = new boolean[cells.length];
+		int lowest = Integer.MAX_VALUE, highest = -1;
+		for (int i = 0; i < cells.length; i++) {
+			if (cells[i] == AIRLOCK) {
+				lowest = Math.min(lowest, i % ny);
+				highest = Math.max(highest, i % ny);
+			}
+		}
+		double[][] sums = new double[MAX_DOORS][4];
+		for (int ix = 0; ix < nx; ix++) {
+			for (int iz = 0; iz < nz; iz++) {
+				for (int iy = 0; iy < ny; iy++) {
+					int k = cells[(ix * nz + iz) * ny + iy] - DOOR;
+					if (k >= 0 && k < MAX_DOORS) {
+						sums[k][0] += x0 + (ix + 0.5) * cell;
+						sums[k][1] += y0 + (iy + 0.5) * cell;
+						sums[k][2] += z0 + (iz + 0.5) * cell;
+						sums[k][3]++;
+					}
+				}
+			}
+		}
+		this.doorCenters = new double[MAX_DOORS][];
+		for (int k = 0; k < MAX_DOORS; k++) {
+			if (sums[k][3] > 0) {
+				doorCenters[k] = new double[] {sums[k][0] / sums[k][3], sums[k][1] / sums[k][3], sums[k][2] / sums[k][3]};
+			}
+		}
+		this.airlockFloor = highest < 0 ? Double.NaN : y0 + lowest * cell;
+		this.airlockTop = highest < 0 ? Double.NaN : y0 + (highest + 1) * cell;
 		int above = (int) Math.round(2.5 / cell);
 		for (int ix = 0; ix < nx; ix++) {
 			for (int iz = 0; iz < nz; iz++) {
@@ -167,11 +209,24 @@ public final class InteriorGrid {
 		return false;
 	}
 
-	/** Is this cell dry air (inside a watertight compartment, open door, airlock pumped out)? Walls count as dry. */
-	public static boolean dry(byte kind, State state) {
+	/** Centre of a door (ship-local), or null. */
+	public double[] doorCenter(int door) {
+		return door >= 0 && door < MAX_DOORS ? doorCenters[door] : null;
+	}
+
+	/** Height of the water in the airlock (ship-local). */
+	public double airlockWaterY(State state) {
+		return airlockFloor + state.airlockLevel() * (airlockTop - airlockFloor);
+	}
+
+	/**
+	 * Is this point dry air (inside a watertight compartment, open door, airlock above its water)?
+	 * Walls count as dry.
+	 */
+	public boolean dry(byte kind, double ly, State state) {
 		return switch (kind) {
 			case OUT -> false;
-			case AIRLOCK -> !state.airlockFlooded();
+			case AIRLOCK -> state.airlockDry() || ly > airlockWaterY(state);
 			default -> true;
 		};
 	}
@@ -181,7 +236,7 @@ public final class InteriorGrid {
 	}
 
 	public boolean dryAt(double lx, double ly, double lz, State state) {
-		return dry(kindAt(lx, ly, lz), state);
+		return dry(kindAt(lx, ly, lz), ly, state);
 	}
 
 	public boolean ladderAt(double lx, double ly, double lz) {

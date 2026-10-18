@@ -40,6 +40,7 @@ import fr.medievalships.core.ShipPose;
 import fr.medievalships.core.Waypoint;
 import fr.medievalships.data.ConfigManager;
 import fr.medievalships.data.ShipData;
+import fr.medievalships.entity.NautilusFittings;
 import fr.medievalships.entity.ShipEntity;
 import fr.medievalships.entity.ShipPermissions;
 import fr.medievalships.entity.ShipPlacement;
@@ -191,7 +192,145 @@ public final class ShipCommands {
 					return 1;
 				})));
 
+		// /ship nautilus ...: depth, ballasts, lights, projector, shutters, airlock, lifeboat
+		var nautilus = CommandManager.literal("nautilus");
+		for (String word : new String[] {"profondeur", "depth"}) {
+			nautilus.then(CommandManager.literal(word)
+					.then(CommandManager.literal("surface").executes(ctx -> depth(ctx, 0)))
+					.then(CommandManager.literal("libre").executes(ctx -> depth(ctx, Double.NaN)))
+					.then(CommandManager.argument("blocks", DoubleArgumentType.doubleArg(0, 256))
+							.executes(ctx -> depth(ctx, DoubleArgumentType.getDouble(ctx, "blocks")))));
+		}
+		for (String word : new String[] {"ballasts", "ballast"}) {
+			nautilus.then(CommandManager.literal(word)
+					.then(CommandManager.literal("remplir").executes(ctx -> depth(ctx, Double.POSITIVE_INFINITY)))
+					.then(CommandManager.literal("fill").executes(ctx -> depth(ctx, Double.POSITIVE_INFINITY)))
+					.then(CommandManager.literal("vider").executes(ctx -> depth(ctx, 0)))
+					.then(CommandManager.literal("empty").executes(ctx -> depth(ctx, 0))));
+		}
+		for (String[] t : new String[][] {{"lumieres", "lights"}, {"projecteur", "floodlight"}, {"volets", "shutters"}}) {
+			for (String word : t) {
+				nautilus.then(CommandManager.literal(word)
+						.then(CommandManager.literal("on").executes(ctx -> fitting(ctx, t[1], true)))
+						.then(CommandManager.literal("off").executes(ctx -> fitting(ctx, t[1], false))));
+			}
+		}
+		nautilus.then(CommandManager.literal("sas")
+				.then(CommandManager.literal("remplir").executes(ctx -> airlock(ctx, true)))
+				.then(CommandManager.literal("vider").executes(ctx -> airlock(ctx, false))));
+		nautilus.then(CommandManager.literal("canot")
+				.then(CommandManager.literal("lancer").executes(ctx -> lifeboat(ctx, 0)))
+				.then(CommandManager.literal("rembarquer").executes(ctx -> lifeboat(ctx, 1)))
+				.then(CommandManager.literal("remplacer").executes(ctx -> lifeboat(ctx, 2))));
+		nautilus.then(CommandManager.literal("porte")
+				.then(CommandManager.argument("index", IntegerArgumentType.integer(0, 31))
+						.then(CommandManager.literal("ouvrir").executes(ctx -> door(ctx, true)))
+						.then(CommandManager.literal("fermer").executes(ctx -> door(ctx, false)))));
+		nautilus.then(CommandManager.literal("etat").executes(ShipCommands::nautilusState));
+		root.then(nautilus);
+
 		dispatcher.register(root);
+	}
+
+	// ------------------------------------------------------------------ nautilus
+
+	private static ShipEntity submarine(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
+		ShipEntity ship = target(ctx);
+		if (!ship.geometry().submarine() || ship.geometry().interior() == null) {
+			throw error("Ce navire n'est pas le Nautilus.");
+		}
+		return ship;
+	}
+
+	private static void report(CommandContext<ServerCommandSource> ctx, @Nullable Text msg, String fallback) {
+		Text m = msg == null ? Text.literal(fallback).formatted(Formatting.GREEN) : msg;
+		ctx.getSource().sendFeedback(() -> m, true);
+	}
+
+	/** NaN: no ordered depth (the pilot's keys); infinity: ballasts full (down to the bottom or the deepest dive). */
+	private static int depth(CommandContext<ServerCommandSource> ctx, double depth) throws CommandSyntaxException {
+		ShipEntity ship = submarine(ctx);
+		double max = ship.config().dive.maxDepth;
+		double d = Double.isInfinite(depth) ? max : Double.isNaN(depth) ? Double.NaN : Math.min(depth, max);
+		ship.setTargetDepth(d);
+		if (d > 0 && (ship.doorOpen(Ships.NautilusLayout.HATCH_DOOR) || ship.doorOpen(Ships.NautilusLayout.BOAT_HATCH_DOOR))) {
+			ok(ctx, "Ordre noté, mais un panneau est ouvert : le Nautilus ne plongera qu'une fois fermé.");
+			return 1;
+		}
+		ok(ctx, Double.isNaN(d) ? "Profondeur libre : le pilote commande les ballasts."
+				: d == 0 ? "Ballasts vidés : le Nautilus remonte à la surface."
+				: Double.isInfinite(depth) ? String.format(Locale.ROOT, "Ballasts remplis : le Nautilus descend jusqu'au fond (au plus %.0f m).", d)
+				: String.format(Locale.ROOT, "Profondeur ordonnée : %.0f m.", d));
+		return 1;
+	}
+
+	private static int fitting(CommandContext<ServerCommandSource> ctx, String what, boolean on) throws CommandSyntaxException {
+		ShipEntity ship = submarine(ctx);
+		switch (what) {
+			case "lights" -> ship.setToggle(Ships.NautilusLayout.LIGHTS_OFF, !on);
+			case "floodlight" -> ship.setToggle(Ships.NautilusLayout.FLOODLIGHT_ON, on);
+			default -> ship.setToggle(Ships.NautilusLayout.SHUTTERS_CLOSED, !on);
+		}
+		ok(ctx, switch (what) {
+			case "lights" -> on ? "Lumières allumées." : "Lumières éteintes.";
+			case "floodlight" -> on ? "Projecteur allumé." : "Projecteur éteint.";
+			default -> on ? "Panneaux des baies ouverts." : "Panneaux des baies fermés.";
+		});
+		return 1;
+	}
+
+	private static int airlock(CommandContext<ServerCommandSource> ctx, boolean fill) throws CommandSyntaxException {
+		ShipEntity ship = submarine(ctx);
+		report(ctx, fill ? NautilusFittings.fill(ship) : NautilusFittings.pump(ship), "");
+		return 1;
+	}
+
+	private static int lifeboat(CommandContext<ServerCommandSource> ctx, int what) throws CommandSyntaxException {
+		ShipEntity ship = submarine(ctx);
+		ServerWorld world = ctx.getSource().getWorld();
+		boolean away = ship.toggle(Ships.NautilusLayout.LIFEBOAT_AWAY);
+		if (what == 0 && away) {
+			throw error("Le canot est déjà à l'eau.");
+		}
+		if (what == 1 && !away) {
+			throw error("Le canot est déjà dans son logement.");
+		}
+		report(ctx, what == 0 ? NautilusFittings.launchLifeboat(ship, world) : NautilusFittings.recoverLifeboat(ship, world, what == 2), "");
+		return 1;
+	}
+
+	private static int door(CommandContext<ServerCommandSource> ctx, boolean open) throws CommandSyntaxException {
+		ShipEntity ship = submarine(ctx);
+		int k = IntegerArgumentType.getInteger(ctx, "index");
+		if (ship.geometry().interior().doorCenter(k) == null) {
+			throw error("Pas de porte " + k + ".");
+		}
+		if (ship.doorOpen(k) == open) {
+			ok(ctx, open ? "Déjà ouverte." : "Déjà fermée.");
+			return 1;
+		}
+		report(ctx, ship.toggleDoor(k), open ? "Porte " + k + " ouverte." : "Porte " + k + " fermée.");
+		return 1;
+	}
+
+	private static int nautilusState(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
+		ShipEntity ship = submarine(ctx);
+		StringBuilder open = new StringBuilder();
+		for (int k = 0; k < fr.medievalships.core.InteriorGrid.MAX_DOORS; k++) {
+			if (ship.doorOpen(k)) {
+				open.append(open.length() == 0 ? "" : ",").append(k);
+			}
+		}
+		String msg = String.format(Locale.ROOT,
+				"Profondeur %.1f m (ordre : %s) - sas %d %% - portes ouvertes : %s - lumières %s - projecteur %s - panneaux %s - canot %s",
+				ship.syncedDepth(), Double.isNaN(ship.targetDepth()) ? "libre" : String.format(Locale.ROOT, "%.0f m", ship.targetDepth()),
+				Math.round(ship.airlockLevel() * 100), open.length() == 0 ? "aucune" : open,
+				ship.toggle(Ships.NautilusLayout.LIGHTS_OFF) ? "éteintes" : "allumées",
+				ship.toggle(Ships.NautilusLayout.FLOODLIGHT_ON) ? "allumé" : "éteint",
+				ship.toggle(Ships.NautilusLayout.SHUTTERS_CLOSED) ? "fermés" : "ouverts",
+				ship.toggle(Ships.NautilusLayout.LIFEBOAT_AWAY) ? "à l'eau" : "à bord");
+		ctx.getSource().sendFeedback(() -> Text.literal(msg).formatted(Formatting.GOLD), false);
+		return 1;
 	}
 
 	// ------------------------------------------------------------------ helpers

@@ -535,8 +535,11 @@ public final class ShipGeometry {
 
 	// ------------------------------------------------------------------ picking
 
-	/** DOOR (vessels with rooms): {@link Pick#seat()} is the door index. Append only: the ordinal goes over the network. */
-	public enum PickKind { HELM, SEAT, HULL, DECK, DOOR }
+	/**
+	 * DOOR (vessels with rooms): {@link Pick#seat()} is the door index; SWITCH: the index of the
+	 * control in {@link InteriorDecor#switches()}. Append only: the ordinal goes over the network.
+	 */
+	public enum PickKind { HELM, SEAT, HULL, DECK, DOOR, SWITCH }
 
 	public record Pick(PickKind kind, int seat, double distance, double lx, double ly, double lz) {
 	}
@@ -561,6 +564,16 @@ public final class ShipGeometry {
 			t = rayBox(o, d, seat.x() - 0.45, seat.y() - 0.35, seat.z() - 0.3, seat.x() + 0.45, seat.y() + 0.15, seat.z() + 0.3);
 			if (t >= 0 && t <= maxDist && (best == null || t < best.distance())) {
 				best = hit(PickKind.SEAT, seat.index(), t, o, d);
+			}
+		}
+		if (decor != null) {
+			java.util.List<InteriorDecor.Switch> switches = decor.switches();
+			for (int i = 0; i < switches.size(); i++) {
+				InteriorDecor.Switch w = switches.get(i);
+				t = rayBox(o, d, w.x() - w.hx(), w.y() - w.hy(), w.z() - w.hz(), w.x() + w.hx(), w.y() + w.hy(), w.z() + w.hz());
+				if (t >= 0 && t <= maxDist && (best == null || t < best.distance())) {
+					best = hit(PickKind.SWITCH, i, t, o, d);
+				}
 			}
 		}
 		if (interior != null) {

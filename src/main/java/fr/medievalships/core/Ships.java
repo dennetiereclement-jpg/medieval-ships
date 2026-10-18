@@ -1105,6 +1105,23 @@ public final class Ships {
 		public static final int AIRLOCK_INNER_DOOR = 8;
 		public static final int AIRLOCK_OUTER_DOOR = 9;
 		public static final int WHEELHOUSE_TRAP = 11;
+		/** Hatch from the engine room corridor up into the lifeboat's recess (outer hull, like the main hatch). */
+		public static final int BOAT_HATCH_DOOR = 16;
+		/** Outer airlock door: where it opens onto the sea (ship-local), to know whether there is water behind it. */
+		public static final double AIRLOCK_OUTER_X = -6.3;
+		public static final double AIRLOCK_OUTER_Y = -3.5;
+		public static final double AIRLOCK_OUTER_Z = 27.0;
+		/** Lifeboat in its recess on the casing (ship-local centre) and the side it is launched to. */
+		public static final double LIFEBOAT_Y = 8.45;
+		public static final double LIFEBOAT_Z = -19.0;
+		/** Engine room, for its sounds. */
+		public static final double ENGINE_Y = -3.0;
+		public static final double ENGINE_Z = -26.0;
+		/** Bits of the fittings state ({@code ShipEntity#toggles}). */
+		public static final int SHUTTERS_CLOSED = 0;
+		public static final int FLOODLIGHT_ON = 1;
+		public static final int LIGHTS_OFF = 2;
+		public static final int LIFEBOAT_AWAY = 3;
 		public static final String GRID = "/assets/medievalships/interiors/nautilus.grid";
 		public static final String DECOR = "/assets/medievalships/interiors/nautilus_decor.json";
 

@@ -197,7 +197,7 @@ class NautilusTest {
 		assertEquals(NautilusLayout.TOWER_FLOOR_Y, floorUnder(0, NautilusLayout.TOWER_FLOOR_Y, 19.0, closed), 1e-9, "walk over the closed trap");
 		// the airlock: dry when pumped out, sea when flooded; its outer door in the hull
 		assertTrue(GRID.dryAt(0, -3.5, 27.0, closed));
-		assertFalse(GRID.dryAt(0, -3.5, 27.0, closed.withAirlock(true)));
+		assertFalse(GRID.dryAt(0, -3.5, 27.0, closed.withAirlock(1f)));
 		assertTrue(GRID.kindAt(0, -3.5, 27.0) == InteriorGrid.AIRLOCK);
 	}
 
@@ -294,5 +294,46 @@ class NautilusTest {
 		Dive dive = new Dive();
 		ShipPose p = run(new ShipPose(0, 80, 0, 0), dive, new ShipPhysics(), 0, Double.NaN, seaBed(64), 5);
 		assertEquals(64.0, p.y() + G.lowestY(), 0.5, "rests on the ground");
+	}
+
+	@Test
+	void controlsAreClickable() {
+		java.util.List<InteriorDecor.Switch> switches = G.decor().switches();
+		java.util.Set<String> actions = new java.util.HashSet<>();
+		for (InteriorDecor.Switch w : switches) {
+			actions.add(w.action());
+		}
+		assertEquals(java.util.Set.of("shutters", "floodlight", "lights", "airlock_fill", "airlock_pump", "lifeboat"), actions);
+		// the lever of the shutters in the salon, from a player standing in front of it
+		double eye = Ships.NautilusLayout.MAIN_FLOOR_Y + 1.62;
+		double a = Math.toRadians(40);
+		ShipGeometry.Pick pick = G.pick(ORIGIN, 3.0, eye, 1.7, 0, -Math.sin(a), Math.cos(a), 5);
+		assertNotNull(pick);
+		assertEquals(ShipGeometry.PickKind.SWITCH, pick.kind());
+		assertEquals("shutters", switches.get(pick.seat()).action());
+		// a valve inside the airlock is not reached through its wall from the corridor
+		pick = G.pick(ORIGIN, -0.9, Ships.NautilusLayout.LOWER_FLOOR_Y + 1.6, 23.8, 0, 0, 1, 3);
+		assertTrue(pick == null || pick.kind() != ShipGeometry.PickKind.SWITCH || pick.lz() < 24.5, "valve through the wall");
+	}
+
+	@Test
+	void airlockWaterRises() {
+		InteriorGrid.State s = InteriorGrid.State.CLOSED;
+		double floor = GRID.airlockFloor, top = GRID.airlockTop;
+		assertEquals(Ships.NautilusLayout.LOWER_FLOOR_Y, floor, 1e-6);
+		assertTrue(GRID.dryAt(0, floor + 0.3, 27.0, s) && GRID.dryAt(0, top - 0.3, 27.0, s));
+		InteriorGrid.State half = s.withAirlock(0.5f);
+		assertFalse(GRID.dryAt(0, floor + 0.3, 27.0, half), "under the water");
+		assertTrue(GRID.dryAt(0, top - 0.3, 27.0, half), "above the water");
+		assertFalse(half.airlockFlooded() || half.airlockDry());
+		InteriorGrid.State full = s.withAirlock(1f);
+		assertFalse(GRID.dryAt(0, top - 0.3, 27.0, full));
+		assertTrue(full.airlockFlooded());
+		// the rest of the ship stays dry
+		assertTrue(GRID.dryAt(0, 0.5, 13.6, full));
+		// every door has a centre
+		for (int k : new int[] {0, 8, 9, 16}) {
+			assertNotNull(GRID.doorCenter(k), "door " + k);
+		}
 	}
 }

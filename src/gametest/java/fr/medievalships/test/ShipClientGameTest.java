@@ -1316,6 +1316,74 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		tpLocal(server, shipPose(sp, type), -1.0, 0.02, -2, -90, 0);
 		context.waitTicks(15);
 		shot(context, id + "_6b_baie_du_salon_en_plongee");
+
+		// the shutters of the great windows: a real click on the lever of the salon
+		tpLocal(server, shipPose(sp, type), 3.0, 0.02, 1.7, 0, 40);
+		context.waitTicks(15);
+		context.getInput().pressKey(o -> o.useKey);
+		context.waitTicks(60);
+		boolean shut = server.computeOnServer(srv -> ship(srv.getOverworld(), type).toggle(Ships.NautilusLayout.SHUTTERS_CLOSED));
+		check(shut, "%s salon: a click on the lever closes the shutters of the windows", id);
+		tpLocal(server, shipPose(sp, type), -1.0, 0.02, -2, -90, 0);
+		context.waitTicks(15);
+		shot(context, id + "_6c_volets_fermes");
+		// the lamps switched off, then on again (command)
+		nautilusCommand(server, "lumieres off");
+		context.waitTicks(10);
+		boolean dark = server.computeOnServer(srv -> ship(srv.getOverworld(), type).toggle(Ships.NautilusLayout.LIGHTS_OFF));
+		check(dark, "%s /ship nautilus lumieres off switches the lamps off", id);
+		shot(context, id + "_6d_lumieres_eteintes");
+		nautilusCommand(server, "lumieres on");
+		nautilusCommand(server, "volets on");
+		context.waitTicks(60);
+		shut = server.computeOnServer(srv -> ship(srv.getOverworld(), type).toggle(Ships.NautilusLayout.SHUTTERS_CLOSED));
+		check(!shut, "%s /ship nautilus volets on opens the shutters", id);
+
+		// the airlock: in through the inner door, fill it, out onto the sea, back, pump it out
+		nautilusCommand(server, "porte 8 ouvrir");
+		tpLocal(server, shipPose(sp, type), -0.6, Ships.NautilusLayout.LOWER_FLOOR_Y + 0.02, 26.3, 90, 0);
+		context.waitTicks(20);
+		nautilusCommand(server, "porte 8 fermer");
+		nautilusCommand(server, "porte 9 ouvrir");
+		context.waitTicks(5);
+		boolean outerOpen = server.computeOnServer(srv -> ship(srv.getOverworld(), type).doorOpen(Ships.NautilusLayout.AIRLOCK_OUTER_DOOR));
+		check(!outerOpen, "%s airlock: the outer door stays shut while the airlock is dry", id);
+		nautilusCommand(server, "sas remplir");
+		context.waitTicks(160);
+		w = playerWater(context, sp, shipPose(sp, type));
+		float level = server.computeOnServer(srv -> ship(srv.getOverworld(), type).airlockLevel());
+		log("%s airlock filled: level %.2f, touching water %s/%s, submerged %s/%s", id, level, w[0], w[3], w[1], w[4]);
+		check(level > 0.99 && w[3] == 1 && w[4] == 1, "%s airlock: filled with sea water, the player is under water (level %.2f)", id, level);
+		boolean innerOpen = server.computeOnServer(srv -> ship(srv.getOverworld(), type).toggleDoor(Ships.NautilusLayout.AIRLOCK_INNER_DOOR) == null);
+		check(!innerOpen, "%s airlock: the inner door stays shut while it is full", id);
+		nautilusCommand(server, "porte 9 ouvrir");
+		context.waitTicks(30);
+		outerOpen = server.computeOnServer(srv -> ship(srv.getOverworld(), type).doorOpen(Ships.NautilusLayout.AIRLOCK_OUTER_DOOR));
+		check(outerOpen, "%s airlock: full, the outer door opens onto the sea", id);
+		shot(context, id + "_8_sas_ouvert_sur_la_mer");
+		nautilusCommand(server, "sas vider");
+		context.waitTicks(20);
+		level = server.computeOnServer(srv -> ship(srv.getOverworld(), type).airlockLevel());
+		check(level > 0.99, "%s airlock: the pumps do not start while the outer door is open (level %.2f)", id, level);
+		nautilusCommand(server, "porte 9 fermer");
+		nautilusCommand(server, "sas vider");
+		context.waitTicks(80);
+		shot(context, id + "_8b_sas_se_vide");
+		context.waitTicks(100);
+		w = playerWater(context, sp, shipPose(sp, type));
+		level = server.computeOnServer(srv -> ship(srv.getOverworld(), type).airlockLevel());
+		log("%s airlock pumped out: level %.2f, touching water %s/%s, submerged %s/%s", id, level, w[0], w[3], w[1], w[4]);
+		check(level < 0.01 && w[3] == 0 && w[4] == 0, "%s airlock: pumped out, dry again (level %.2f)", id, level);
+		nautilusCommand(server, "porte 8 ouvrir");
+		innerOpen = server.computeOnServer(srv -> ship(srv.getOverworld(), type).doorOpen(Ships.NautilusLayout.AIRLOCK_INNER_DOOR));
+		check(innerOpen, "%s airlock: empty, the inner door opens", id);
+
+		// the projector, seen from the sea
+		nautilusCommand(server, "projecteur on");
+		server.runCommand("gamemode spectator @a");
+		lookLocal(server, shipPose(sp, type), 12, 15, 52, 0, 11, 24);
+		context.waitTicks(30);
+		shot(context, id + "_7b_projecteur");
 		server.runCommand("gamemode spectator @a");
 		lookLocal(server, shipPose(sp, type), -11, -2, -22, 0, 1, 0);
 		context.waitTicks(20);
@@ -1334,6 +1402,50 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		log("%s surfacing: depth %.2f", id, depthEnd);
 		check(depthEnd < 0.5, "%s rises back to the surface (depth %.2f)", id, depthEnd);
 		server.runCommand("ride @p dismount");
+
+		// the lifeboat: launched beside the hull, then taken back aboard
+		tpLocal(server, shipPose(sp, type), 0, Ships.NautilusLayout.TOWER_FLOOR_Y + 0.02, 17.0, 0, 0);
+		context.waitTicks(10);
+		nautilusCommand(server, "canot lancer");
+		context.waitTicks(20);
+		int boats = server.computeOnServer(srv -> {
+			int n = 0;
+			for (Entity e : srv.getOverworld().iterateEntities()) {
+				n += e.getCommandTags().contains("medievalships_lifeboat") ? 1 : 0;
+			}
+			return n;
+		});
+		boolean away = server.computeOnServer(srv -> ship(srv.getOverworld(), type).toggle(Ships.NautilusLayout.LIFEBOAT_AWAY));
+		check(boats == 1 && away, "%s lifeboat: launched on the water (%d boat)", id, boats);
+		server.runCommand("gamemode spectator @a");
+		lookLocal(server, shipPose(sp, type), 26, 10, -10, 0, 4, -19);
+		context.waitTicks(20);
+		shot(context, id + "_9_canot_a_l_eau");
+		server.runCommand("gamemode survival @a");
+		tpLocal(server, shipPose(sp, type), 0, Ships.NautilusLayout.TOWER_FLOOR_Y + 0.02, 17.0, 0, 0);
+		context.waitTicks(10);
+		nautilusCommand(server, "canot rembarquer");
+		context.waitTicks(10);
+		boats = server.computeOnServer(srv -> {
+			int n = 0;
+			for (Entity e : srv.getOverworld().iterateEntities()) {
+				n += e.getCommandTags().contains("medievalships_lifeboat") && !e.isRemoved() ? 1 : 0;
+			}
+			return n;
+		});
+		away = server.computeOnServer(srv -> ship(srv.getOverworld(), type).toggle(Ships.NautilusLayout.LIFEBOAT_AWAY));
+		check(boats == 0 && !away, "%s lifeboat: taken back into its recess", id);
+
+		// depth ordered by command, then the ballasts emptied
+		nautilusCommand(server, "profondeur 10");
+		context.waitTicks(500);
+		float ordered = server.computeOnServer(srv -> ship(srv.getOverworld(), type).syncedDepth());
+		log("%s /ship nautilus profondeur 10: depth %.2f", id, ordered);
+		check(Math.abs(ordered - 10) < 1.0, "%s goes to the ordered depth (%.2f)", id, ordered);
+		nautilusCommand(server, "ballasts vider");
+		context.waitTicks(500);
+		ordered = server.computeOnServer(srv -> ship(srv.getOverworld(), type).syncedDepth());
+		check(ordered < 0.5, "%s ballasts emptied: back on the surface (depth %.2f)", id, ordered);
 		server.runCommand("kill @e[type=minecraft:armor_stand,tag=ncrew]");
 
 		// the item: /ship give, and right click on the water places one
@@ -1371,6 +1483,11 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		});
 		server.runCommand(String.format(Locale.ROOT, "forceload remove %d %d %d %d", x0, z0, x1, z1));
 		context.waitTicks(10);
+	}
+
+	/** A /ship nautilus command run by the player (the ship is the one he is in or near). */
+	private static void nautilusCommand(net.fabricmc.fabric.api.client.gametest.v1.context.TestServerContext server, String args) {
+		server.runCommand("execute as @p at @p run ship nautilus " + args);
 	}
 
 	/** Teleports the player to a ship-local position, then walks forward for {@code ticks}; returns the local position. */
