@@ -71,6 +71,77 @@ peut pas redémarrer le serveur) ; les **sons** (joués côté client, inaudible
 plusieurs joueurs réels à bord en même temps (le test utilise des porte-armures comme
 passagers).
 
+### Nautilus — 1.7.0
+
+Le scénario tourne dans un bassin de 28 × 142 blocs, profond de 26 blocs et fermé par des vitres. Il est joué **en solo puis sur un serveur dédié**, en trois variantes :
+
+* **sans** Lithium ;
+* **avec** Lithium ;
+* **avec les mods de décoration**. Furnish, Farmhouse Decorations et Farmer's Delight Refabricated sont téléchargés depuis Modrinth pour le test seulement ; Fabric Loader 0.19.5 est nécessaire à ces mods. Le journal du jeu indique alors « 172 des 188 meubles dessinés depuis les mods installés ». Les 16 autres (Lands of Icaria, introuvable sur Modrinth, et Mebahel, non public) sont remplacés par leurs volumes de remplacement.
+
+Ce qui est vérifié :
+
+* **Mise à l'eau** : il flotte à sa ligne de flottaison et ne touche rien.
+* **Déplacements à bord** :
+  * marche sur le pont principal ;
+  * pont inférieur **sec sous la ligne de flottaison** : pas d'eau, pas de vue sous-marine, l'air reste plein ;
+  * montée de **l'escalier en colimaçon** ;
+  * **échelle** jusque sous le panneau fermé, puis sortie sur la coque une fois le panneau ouvert.
+* **Plongée** :
+  * il refuse de plonger **panneau ouvert** ;
+  * il plonge sur commande (14 blocs) et **tient sa profondeur** (au millième) ;
+  * le panneau ne s'ouvre pas sous l'eau ;
+  * il navigue en plongée en emportant un porte-armure debout dans une salle ;
+  * **salles sèches en plongée** (pas d'eau, pas de vue sous-marine, air plein), et on y marche ;
+  * il remonte en surface.
+* **Équipements** :
+  * un **clic sur le levier** du salon ferme les panneaux des baies, et la commande les rouvre ;
+  * un **clic sur le canapé** fait asseoir le joueur ;
+  * `/ship nautilus lumieres off` éteint les lampes.
+* **Sas, cycle complet** :
+  1. la porte extérieure reste fermée tant que le sas est sec ;
+  2. rempli, le joueur y est sous l'eau et la porte intérieure reste fermée ;
+  3. plein, la porte extérieure s'ouvre sur la mer, et les pompes refusent de démarrer tant qu'elle est ouverte ;
+  4. vidé, le joueur est de nouveau au sec et la porte intérieure s'ouvre.
+* **Canot** : mis à l'eau le long de la coque, puis rembarqué.
+* **Profondeur commandée** : `/ship nautilus profondeur 10` l'amène à 9,94 m, et `ballasts vider` le ramène en surface.
+* **Itinéraire en 3D** : d'une escale en surface à une escale à 9 blocs sous l'eau, il plonge en chemin, s'arrête à l'escale à 8,93 m et ne touche jamais le bassin.
+* **Redémarrage du monde** (solo : le monde est fermé puis rouvert). Le Nautilus retrouve :
+  * sa position et sa profondeur ;
+  * ses portes ouvertes et fermées ;
+  * le sas à moitié plein ;
+  * les panneaux fermés, le projecteur allumé et les lampes éteintes ;
+  * le canot à l'eau, qui reste rembarquable ;
+  * l'ordre de profondeur.
+* **Objet** : `/ship give nautilus`, puis clic droit sur l'eau.
+* **Captures** :
+  * vues extérieures, en surface et en plongée à travers la vitre du bassin ;
+  * les **15 panneaux** de la planche ;
+  * panneaux des baies fermés, lumières éteintes, sas ouvert sur la mer, sas qui se vide, faisceau du projecteur, canot à l'eau, après redémarrage.
+
+  Elles servent aux planches `docs/comparaison_nautilus_exterieur.png` et `docs/comparaison_nautilus_interieur.png`.
+
+Tests unitaires (`NautilusTest`, 16 tests) :
+
+* forme et dimensions, salles et allées, portes, escalier, échelles, sauvetage ;
+* grille relue à l'identique ;
+* plongée, maintien de profondeur et fond infranchissable ;
+* leviers cliquables et vanne inaccessible à travers une cloison ;
+* **eau du sas qui monte** (sous l'eau en dessous du niveau, au sec au-dessus) ;
+* **pilote automatique** :
+  * croisière à 24 blocs, remontée au-dessus d'une crête avant de l'atteindre, retour en surface à l'escale ;
+  * étape à profondeur imposée ;
+  * **refus d'un passage de 6 blocs** (plus étroit que la coque) et passage par un couloir de 40 blocs ;
+  * escale sous-marine dans le bassin du test en jeu.
+
+Non vérifié automatiquement :
+
+* **plusieurs joueurs réels** à bord en même temps (le test n'a qu'un client) ;
+* les **sons**, joués côté client et inaudibles pour le test ;
+* le rendu avec **Sodium**, qui dessine l'eau par son propre moteur : l'eau du monde pourrait y rester visible dans les salles qui traversent la ligne de flottaison ;
+* un long voyage automatique en vraie mer, avec récifs et hauts-fonds (seuls les tests unitaires le couvrent) ;
+* les meubles de **Lands of Icaria** et de **Mebahel** dessinés depuis leurs mods (absents du test).
+
 ### Filets de sécurité (collisions désactivées)
 
 Pour simuler un mod qui remplacerait le code des collisions (autre que Lithium), le test coupe
