@@ -18,23 +18,31 @@ Nautilus ». La modélisation ne commence qu'après validation des points de la 
 | Animations (hélice signée, gouvernail) | lecteur `.bbmodel` maison (os, rotations, boucles) | moteur, pistons, engrenages, portes, volets |
 | Éclairage « plein feu » des lanternes | éléments `glow*` dessinés en pleine luminosité | lumières intérieures et projecteurs |
 
-## 2. Inventaire des mods de décoration : **bloquant**
+## 2. Inventaire des mods de décoration (reçus le 18/10)
 
-Le cahier des charges demande d'inspecter tes mods de décoration et de réutiliser leurs meubles.
-**Dans mon environnement de travail (un conteneur cloud), il n'y a aucun mod de décoration** :
-pas de dossier `mods/`, pas de `.jar` tiers. Seuls sont présents le code de Medieval Ships, Minecraft,
-Fabric, Fabric API et Lithium (pour les tests).
-Je ne peux donc ni lister ni réutiliser tes meubles tant que tu ne me les fournis pas.
+| Mod | Version | Licence | Blocs | Utile pour le Nautilus |
+|---|---|---|---|---|
+| Farmhouse Decorations (`farmhouse_decorations`) | 26.4.0 | tous droits réservés | 68 | **le plus proche du style victorien** : piano, gramophone, canapé capitonné rouge (gauche/milieu/droite), fauteuil à bascule, chaise de salle à manger, table de salle à manger, table basse ronde, grand bureau à sous-main vert, machine à écrire, grande bibliothèque, pile de livres, lit double et lit simple en bois sculpté, commode, table de nuit, armoire, cabinet à liqueurs, lampadaire, lanterne à pétrole (suspendue ou posée), lampe, tapis rond 3×3 et 1×3, horloge à coucou, radiateur, cuisine (four ancien, plan de travail, évier, placards, étagère à épices), vasque de salle de bain, miroirs, verres et bouteilles de vin |
+| Furnish (`furnish`) | 31 | tous droits réservés | 341 | **vitrines** (16 couleurs, pour les coquillages, coraux et perles du salon), rideaux (rouge), assiettes anglaises et chinoises, cadres, piles de livres, échiquier, casiers métalliques, étagères ; tables, chaises et armoires plus cubiques (moins adaptées) |
+| Farmer's Delight (`farmersdelight`) | 1.21.11-3.6.16 | MIT | 133 | cuisine : fourneau en briques, marmite, poêle, planche à découper, placards |
+| Lands of Icaria (`landsoficaria`) | 1.0.2 | GPL-3.0 / CC-BY-NC-SA | 657 | jarres, tonneaux, barreaux et chaînes en acier (salle des machines, réserves) |
+| Mebahel Dwarven (`mebahelcreaturesdwarven`) | 1.3.3 | tous droits réservés | 5 | tuyaux et engrenages en métal doré (salle des machines) ; ce mod dépend de GeckoLib (déjà sur ton serveur), le Nautilus n'en dépend pas |
 
-Remarques techniques, valables quels que soient ces mods :
+Aperçus rendus depuis les fichiers des mods : `docs/nautilus_meubles_mods.png`.
 
-* un bloc de mod ne peut pas être posé dans une entité en mouvement ; il faudrait **dessiner son
-  modèle de bloc** dans le rendu du Nautilus (possible côté client, sans copier les fichiers, en
-  le lisant depuis le mod installé), avec dépendance **optionnelle** ;
-* leurs interactions (s'asseoir, ouvrir) sont codées pour des blocs dans le monde : elles ne
-  fonctionnent pas dans une entité, il faudrait les refaire de notre côté ;
-* si le mod n'est pas installé sur un client, le meuble serait invisible : il faut un modèle de
-  secours dans Medieval Ships.
+### Comment ces meubles seront utilisés
+
+* Un bloc ne peut pas être posé dans une entité qui bouge. Le Nautilus **dessine le modèle du bloc**
+  (celui du mod installé, lu à l'exécution) à sa place dans la pièce, avec le Nautilus : rien n'est
+  copié ni redistribué, les licences sont respectées.
+* Dépendances **optionnelles** : si un mod manque sur un client, le meuble est remplacé par un modèle
+  de secours du Nautilus (le jeu ne plante pas, le sous-marin reste utilisable).
+* Les collisions et les interactions (s'asseoir sur une chaise ou un canapé, allumer une lampe)
+  sont gérées par le Nautilus lui-même : celles des mods sont prévues pour des blocs posés dans le
+  monde et ne fonctionnent pas dans un véhicule.
+* Ce qui n'existe dans aucun mod sera modélisé : **orgue monumental**, lustres, globe terrestre,
+  baies vitrées et leurs volets, machines (batteries, moteur, pistons), scaphandres, instruments
+  de Nemo, timonerie, projecteur, portes étanches.
 
 ## 3. Contradiction entre les dimensions demandées et l'image
 
@@ -97,7 +105,7 @@ Coordonnées du Nautilus : z vers l'avant, y = 0 au plancher du niveau principal
 ## 6. Décisions
 
 * Dimensions retenues : **option C, 96 × 14 × 17** (timonerie à 23).
-* Meubles : tu m'envoies les `.jar` de tes mods de décoration ; je les inspecte avant la phase de décoration.
+* Meubles : tes 5 mods ont été reçus et inspectés (section 2).
 
 ## 6 bis. Points qui demandaient ta décision (pour mémoire)
 
