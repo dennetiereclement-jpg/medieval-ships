@@ -51,6 +51,7 @@ public final class ClientShipEvents {
 	 */
 	public static void endWorldTick(ClientWorld world) {
 		MinecraftClient client = MinecraftClient.getInstance();
+		fr.medievalships.client.render.DryWater.tick(client, world);
 		ClientPlayerEntity player = client.player;
 		for (ShipEntity ship : ShipTracker.ships(world)) {
 			if (ship.isRemoved()) {
