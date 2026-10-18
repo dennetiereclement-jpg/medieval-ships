@@ -1503,7 +1503,9 @@ public class ShipClientGameTest implements FabricClientGameTest {
 				log("%s route t=%d: phase %s target %s z %.1f depth %.2f speed %.2f altErr %.2f vy %.2f ai %s", id, t, st[0], st[1], st[3], st[2],
 						st[4], st[5], st[6], st[7]);
 			}
-			if (st[0] == fr.medievalships.core.Autopilot.Phase.DOCKED && (Integer) st[1] == 2) {
+			// at the last stop of a one-way route: docked, then finished once its wait is over
+			if ((st[0] == fr.medievalships.core.Autopilot.Phase.DOCKED || st[0] == fr.medievalships.core.Autopilot.Phase.FINISHED)
+					&& (Integer) st[1] == 2) {
 				docked = true;
 				docDepth = (Float) st[2];
 			}

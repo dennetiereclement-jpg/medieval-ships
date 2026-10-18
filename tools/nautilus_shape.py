@@ -46,7 +46,7 @@ LAMP_CAGE_TOP_Y = 14.2
 LENS_Y = 13.0
 # crests of spikes: (z0, z1, rise): the fore one climbs from the hull to the top of the wheelhouse front
 FORE_CREST = (31.5, 22.6)
-AFT_CREST = (-2.0, -13.0)
+AFT_CREST = (-1.0, -14.5)  # up to the lifeboat recess
 # windows: the great salon window (centre z, y, radius) on each side; the row of small windows
 SALON_WINDOW = (0.0, 2.6, 2.9)
 SMALL_WINDOWS_Y = -2.3

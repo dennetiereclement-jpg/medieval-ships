@@ -232,8 +232,9 @@ def crests(bone):
             spike(bone, "crest_fore_spike_%d" % k, (pts[k] + pts[k + 1]) / 2 + up * 0.2, norm(up + d * 0.35), 0.9, 0.35)
     # aft crest: spikes along the casing
     za, zb = ns.AFT_CREST
-    for k, z in enumerate(np.linspace(za, zb, 9)):
-        spike(bone, "crest_aft_spike_%d" % k, v3(0, ns.CASING_TOP_Y, z), v3(0, 1, 0.25), 1.1, 0.4)
+    for k, z in enumerate(np.linspace(za, zb, 11)):
+        h = 1.7 - 0.6 * k / 10  # tallest behind the wheelhouse, smaller towards the stern
+        spike(bone, "crest_aft_spike_%d" % k, v3(0, ns.CASING_TOP_Y, z), v3(0, 1, 0.3), h, 0.5)
     beam(bone, "crest_aft_band", v3(0, ns.CASING_TOP_Y + 0.15, za + 0.5), v3(0, ns.CASING_TOP_Y + 0.15, zb - 0.5), 0.3, "steel", width=0.3)
     # a row of smaller spikes along the casing edges, fore of the wheelhouse
     for k, z in enumerate(np.arange(ns.TOWER_Z[1] + 1.0, ns.CASING_Z[1] - 0.5, 1.4)):
@@ -501,7 +502,7 @@ def shutters(root, outside):
         for leaf, sgn in (("fore", 1), ("aft", -1)):
             bone = Bone("shutter_%s_%s" % (sn, leaf), parent=root)
             c = c0 + n * out + ez * (sgn * half / 2)
-            add_cube(bone, "shutter_%s_%s" % (sn, leaf), c, R, (half, 2 * half, 0.1), "steel")
+            add_cube(bone, "shutter_%s_%s" % (sn, leaf), c, R, (half, 2 * half, 0.1), "plate")  # copper plates like the hull
             for k, t in enumerate((-0.5, 0.0, 0.5)):  # stiffeners
                 add_cube(bone, "shutter_%s_%s_rib%d" % (sn, leaf, k), c + et * (t * 2 * half * 0.8) + n * 0.07, R,
                          (half - 0.1, 0.12, 0.06), "brass")
