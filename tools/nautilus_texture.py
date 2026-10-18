@@ -81,6 +81,7 @@ REGIONS = {
     "floor_tile":  (64, 96, 32, 32),   # terracotta and slate tiles
     "wall_engine": (96, 96, 32, 32),   # bronze plates with copper pipes
     "ceil_wood":   (128, 96, 32, 32),  # dark planks between beams
+    "globe":       (160, 96, 32, 32),  # map of the world for the globe (longitude across, latitude down)
 }
 
 
@@ -542,6 +543,35 @@ def _paint_smooth_rooms(px, rng):
                 c = tuple(q * 0.7 for q in c)
             elif (x % 32 == 2 or y % 32 == 2) and (x + y) % 6 == 0:
                 c = tuple(q * 1.3 for q in c)
+            _put(px, u, v, x, y, c)
+    # velvet and leather: smooth, a soft sheen, faint creases
+    for name, base, dark in (("red_velvet", "9a2226", "5e1014"), ("green_leather", "2e6a3e", "173a20")):
+        u, v, w, h = R[name]
+        n = _noise(w, h, 4, rng)
+        for y in range(h):
+            for x in range(w):
+                sheen = 0.5 + 0.5 * math.sin((x + y) * 2 * math.pi / 32 + 2.5 * n[y][x])
+                c = _mix(_rgb(dark), _rgb(base), 0.55 + 0.4 * sheen)
+                _put(px, u, v, x, y, c)
+    # the globe: parchment-coloured oceans, ochre and green continents, graticule
+    u, v, w, h = R["globe"]
+    n = _noise(w, h, 6, rng)
+    for y in range(h):
+        for x in range(w):
+            land = n[y][x] > 0.58
+            c = _mix(_rgb("8a7a4a"), _rgb("5a6a3a"), n[y][x]) if land else _mix(_rgb("d8c8a0"), _rgb("b8a878"), n[y][x])
+            if x % 8 == 0 or y % 8 == 0:
+                c = tuple(q * 0.82 for q in c)
+            _put(px, u, v, x, y, c)
+    # diving suit canvas: soft folds, seams
+    u, v, w, h = R["suit"]
+    n = _noise(w, h, 4, rng)
+    for y in range(h):
+        for x in range(w):
+            fold = 0.5 + 0.5 * math.sin(y * 2 * math.pi / 8 + 2.0 * n[y][x])
+            c = tuple(q * (0.86 + 0.16 * fold) for q in _rgb("a08458"))
+            if x % 16 == 0:
+                c = tuple(q * 0.78 for q in c)
             _put(px, u, v, x, y, c)
     # carpet: deep red with a small woven diamond pattern, no border (it covers whole floors)
     u, v, w, h = R["carpet"]

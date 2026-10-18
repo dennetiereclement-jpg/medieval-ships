@@ -20,6 +20,10 @@ def ry(a):
     return gg.ry(a)
 
 
+def rx(a):
+    return gg.rx(a)
+
+
 def frame(normal):
     """Axes (u, up, n) of a wall-mounted item facing `normal` (horizontal)."""
     n = norm(v3(normal[0], 0, normal[2]))
@@ -38,22 +42,53 @@ def box(bone, name, c, R, size, region):
 
 # ---------------------------------------------------------------- lights, paintings
 def chandelier(bone, name, hook, r=0.7, n=10, drop=0.7, tiers=2):
-    """Gilded electric chandelier: rod, a boss, one or two rings of arms ending in lit globes."""
+    """Gilded electric chandelier: a chain, a turned boss over a bowl, one or two tiers of S-shaped arms
+    ending in candle cups with lit flames, a ring hung with crystal drops."""
     hook = v3(*hook)
     c = hook - v3(0, drop, 0)
-    box(bone, name + "_rod", (hook + c) / 2, EYE, (0.05, drop, 0.05), "gold")
-    box(bone, name + "_boss", c, EYE, (0.24, 0.3, 0.24), "gold")
-    box(bone, name + "_drop", c - v3(0, 0.3, 0), EYE, (0.1, 0.22, 0.1), "gold")
+    for k in range(4):  # chain of links
+        y = hook[1] - (k + 0.5) * drop * 0.6 / 4
+        box(bone, "%s_link%d" % (name, k), v3(hook[0], y, hook[2]), ry(k * math.pi / 2), (0.08, drop * 0.6 / 4 + 0.02, 0.02), "gold")
+    box(bone, name + "_canopy", hook - v3(0, 0.04, 0), ry(math.pi / 4), (0.3, 0.08, 0.3), "gold")
+    box(bone, name + "_rod", c + v3(0, drop * 0.2, 0), EYE, (0.06, drop * 0.4, 0.06), "gold")
+    for k, rot in enumerate((EYE, ry(math.pi / 4))):
+        box(bone, "%s_boss%d" % (name, k), c, rot, (0.24, 0.3, 0.24), "gold")
+        box(bone, "%s_bowl%d" % (name, k), c - v3(0, 0.26, 0), rot, (0.38, 0.14, 0.38), "gold")
+    box(bone, name + "_finial", c - v3(0, 0.42, 0), ry(math.pi / 4), (0.1, 0.18, 0.1), "gold")
     for t in range(tiers):
-        rr, y, k_n = r * (1 - 0.35 * t), -0.1 + 0.28 * t, n - 3 * t
+        rr, y, k_n = r * (1 - 0.35 * t), -0.12 + 0.3 * t, n - 3 * t
         for k in range(k_n):
-            a0, a1 = 2 * math.pi * k / k_n, 2 * math.pi * (k + 1) / k_n
-            p0 = c + v3(math.cos(a0) * rr, y, math.sin(a0) * rr)
-            p1 = c + v3(math.cos(a1) * rr, y, math.sin(a1) * rr)
-            beam(bone, "lit_%s_ring%d_%d" % (name, t, k), p0, p1, 0.04, "gold", extend=0.02)
-            beam(bone, "lit_%s_arm%d_%d" % (name, t, k), c + v3(0, y - 0.05, 0), p0, 0.035, "gold")
-            add_cube(bone, "lit_%s_cup%d_%d" % (name, t, k), p0 + v3(0, 0.03, 0), EYE, (0.09, 0.05, 0.09), "gold")
-            add_cube(bone, "glow_%s_bulb%d_%d" % (name, t, k), p0 + v3(0, 0.12, 0), EYE, (0.08, 0.12, 0.08), "glow")
+            a = 2 * math.pi * (k + 0.5 * t) / k_n
+            d = v3(math.cos(a), 0, math.sin(a))
+            p0 = c + v3(0, y - 0.1, 0) + d * 0.12
+            p1 = c + v3(0, y - 0.18, 0) + d * (rr * 0.55)
+            p2 = c + v3(0, y - 0.05, 0) + d * rr
+            beam(bone, "lit_%s_arm%d_%d_a" % (name, t, k), p0, p1, 0.04, "gold")
+            beam(bone, "lit_%s_arm%d_%d_b" % (name, t, k), p1, p2, 0.04, "gold")
+            add_cube(bone, "lit_%s_cup%d_%d" % (name, t, k), p2 + v3(0, 0.02, 0), ry(math.pi / 4), (0.1, 0.05, 0.1), "gold")
+            add_cube(bone, "lit_%s_candle%d_%d" % (name, t, k), p2 + v3(0, 0.1, 0), EYE, (0.05, 0.12, 0.05), "wax")
+            add_cube(bone, "glow_%s_flame%d_%d" % (name, t, k), p2 + v3(0, 0.2, 0), ry(math.pi / 4), (0.05, 0.08, 0.05), "glow")
+            if t == 0:
+                drop_p = c + v3(0, y - 0.32, 0) + d * (rr * 0.62)
+                add_cube(bone, "lit_%s_crystal%d" % (name, k), drop_p, ry(math.pi / 4), (0.05, 0.12, 0.05), "pearl")
+        for k in range(k_n * 2):  # the ring the crystals hang from
+            a0, a1 = 2 * math.pi * k / (k_n * 2), 2 * math.pi * (k + 1) / (k_n * 2)
+            beam(bone, "lit_%s_ring%d_%d" % (name, t, k), c + v3(math.cos(a0) * rr * 0.62, y - 0.24, math.sin(a0) * rr * 0.62),
+                 c + v3(math.cos(a1) * rr * 0.62, y - 0.24, math.sin(a1) * rr * 0.62), 0.025, "gold", extend=0.01)
+
+
+def ceiling_lamp(bone, name, p):
+    """Ceiling lamp of the working rooms: a brass rose, a short rod, a lit glass globe in a cage."""
+    p = v3(*p)
+    box(bone, name + "_rose", p - v3(0, 0.03, 0), ry(math.pi / 4), (0.3, 0.06, 0.3), "brass")
+    box(bone, name + "_rod", p - v3(0, 0.15, 0), EYE, (0.05, 0.2, 0.05), "brass")
+    g = p - v3(0, 0.38, 0)
+    add_cube(bone, "glow_" + name, g, ry(math.pi / 4), (0.2, 0.24, 0.2), "glow")
+    box(bone, name + "_cap", g + v3(0, 0.14, 0), ry(math.pi / 4), (0.24, 0.05, 0.24), "brass")
+    box(bone, name + "_foot", g - v3(0, 0.14, 0), ry(math.pi / 4), (0.14, 0.04, 0.14), "brass")
+    for k in range(4):
+        a = math.pi / 2 * k
+        box(bone, "%s_bar%d" % (name, k), g + v3(math.cos(a) * 0.13, 0, math.sin(a) * 0.13), EYE, (0.025, 0.28, 0.025), "brass")
 
 
 def wall_lamp(bone, name, p, normal):
@@ -93,51 +128,119 @@ def drapes(bone, name, center, normal, w, h):
 
 
 # ---------------------------------------------------------------- salon
+def pipe(bone, name, foot, h, r, R, region="silver"):
+    """An organ pipe: a round body (two crossed square prisms read as round), a conical foot, a dark
+    mouth with its upper lip, a gilded band at the foot."""
+    foot = v3(*foot)
+    fh = min(0.45, h * 0.22)
+    body = foot + v3(0, fh + (h - fh) / 2, 0)
+    for k, rot in enumerate((R, R @ ry(math.pi / 4))):
+        box(bone, "%s_body%d" % (name, k), body, rot, (r * 1.7, h - fh, r * 1.7), region)
+    box(bone, name + "_foot", foot + v3(0, fh / 2, 0), R @ ry(math.pi / 4), (r * 1.1, fh, r * 1.1), region)
+    n = R[:, 2]
+    box(bone, name + "_mouth", foot + v3(0, fh + r * 1.1, 0) + n * (r * 0.86), R, (r * 1.0, r * 1.2, 0.02), "iron")
+    box(bone, name + "_lip", foot + v3(0, fh + r * 1.85, 0) + n * (r * 0.87), R, (r * 1.1, r * 0.25, 0.02), "gold")
+    box(bone, name + "_band", foot + v3(0, fh, 0), R @ ry(math.pi / 4), (r * 1.9, 0.05, r * 1.9), "gold")
+
+
 def organ(bone, name, base, normal, width=5.2, height=5.2):
     """The monumental organ of the grand salon, against a wall (base = middle of its foot on the floor,
-    `normal` towards the room): carved case with gilded trims, three tiers of silver pipes rising to
-    the centre, a console with two keyboards, a bench."""
+    `normal` towards the room): a carved case on panelled doors with gilded mouldings and pilasters,
+    a round central tower of tall silver pipes, flats of pipes stepping down on each side under
+    gilded arches, outer round towers with finials, a carved crest; the console with three keyboards,
+    banks of stop knobs, a music desk, candles, a pedal board and a bench."""
     R, u, n = frame(normal)
     b = v3(*base)
     depth = 1.1
-    # case
-    box(bone, name + "_case", b + v3(0, 1.1, 0) + n * (depth / 2), R, (width, 2.2, depth), "organ_wood")
-    box(bone, name + "_case_top", b + v3(0, 2.26, 0) + n * (depth / 2 + 0.03), R, (width + 0.2, 0.16, depth + 0.1), "gold")
-    box(bone, name + "_back", b + v3(0, height / 2, 0) + n * 0.15, R, (width, height, 0.3), "organ_wood")
-    for s in (-1, 1):
-        box(bone, "%s_tower_%d" % (name, s > 0), b + u * s * (width / 2 - 0.35) + v3(0, height / 2, 0) + n * 0.45, R,
-            (0.7, height, 0.6), "organ_wood")
-        box(bone, "%s_tower_cap_%d" % (name, s > 0), b + u * s * (width / 2 - 0.35) + v3(0, height + 0.08, 0) + n * 0.45, R,
-            (0.8, 0.16, 0.7), "gold")
-    # pipes: three tiers, tallest in the middle
-    for tier, (yb, maxh, dz, step) in enumerate(((2.35, 2.6, 0.75, 0.3), (2.35, 2.2, 0.48, 0.26), (2.6, 1.6, 0.3, 0.22))):
-        half = width / 2 - 0.8 - tier * 0.1
-        k = 0
-        x = -half
-        while x <= half + 1e-6:
-            f = 1 - abs(x) / (half + 0.01)
-            hh = maxh * (0.45 + 0.55 * f ** 0.8)
-            c = b + u * x + v3(0, yb + hh / 2, 0) + n * dz
-            box(bone, "%s_pipe%d_%d" % (name, tier, k), c, R, (step * 0.8, hh, step * 0.8), "silver")
-            box(bone, "%s_mouth%d_%d" % (name, tier, k), c + v3(0, -hh / 2 + 0.25, 0) + n * (step * 0.41), R,
-                (step * 0.5, 0.12, 0.02), "iron")
-            x += step
-            k += 1
-    # gilded crest at the top
-    box(bone, name + "_crest", b + v3(0, height - 0.1, 0) + n * 0.32, R, (1.6, 0.4, 0.12), "gold")
-    # console with two keyboards, a music stand, stops, a bench
-    cz = depth + 0.35
-    box(bone, name + "_console", b + v3(0, 0.55, 0) + n * cz, R, (2.2, 1.1, 0.7), "organ_wood")
-    for k, y in enumerate((0.95, 1.12)):
-        add_cube(bone, "lit_%s_keys%d" % (name, k), b + v3(0, y, 0) + n * (cz + 0.3 + 0.12 * (1 - k)), R, (1.8, 0.05, 0.24),
-                 {"all": "organ_wood", "+2": "keys"}, stretch=True)
-    box(bone, name + "_stand", b + v3(0, 1.45, 0) + n * (cz + 0.05), R, (1.0, 0.5, 0.05), "organ_wood")
+    W = width
+    # ---- the case: plinth, panelled front with pilasters, cornice
+    box(bone, name + "_plinth", b + v3(0, 0.12, 0) + n * (depth / 2 + 0.05), R, (W + 0.1, 0.24, depth + 0.1), "organ_wood")
+    box(bone, name + "_case", b + v3(0, 1.15, 0) + n * (depth / 2), R, (W, 1.9, depth), "organ_wood")
     for k in range(6):
-        box(bone, "%s_stop%d" % (name, k), b + u * (-0.9 + 0.36 * k) + v3(0, 1.3, 0) + n * (cz + 0.33), R, (0.06, 0.06, 0.1), "wax")
-    bench = b + n * (cz + 1.05)
-    box(bone, name + "_bench", bench + v3(0, 0.45, 0), R, (1.5, 0.1, 0.4), "organ_wood")
+        x = -W / 2 + W * (k + 0.5) / 6
+        if abs(x) < 1.2:
+            continue  # the console stands there
+        c = b + u * x + v3(0, 1.15, 0) + n * (depth + 0.01)
+        for dy, hgt in ((0.0, 1.5),):
+            box(bone, "%s_panel%d" % (name, k), c + v3(0, dy, 0), R, (W / 6 - 0.22, hgt, 0.03), "organ_wood")
+            for sy in (-1, 1):
+                box(bone, "%s_panel%d_mould_h%d" % (name, k, sy > 0), c + v3(0, sy * hgt / 2, 0) + n * 0.02, R, (W / 6 - 0.2, 0.04, 0.03), "gold")
+            for sx in (-1, 1):
+                box(bone, "%s_panel%d_mould_v%d" % (name, k, sx > 0), c + u * (sx * (W / 12 - 0.1)) + n * 0.02, R, (0.04, hgt, 0.03), "gold")
+    for x in (-W / 2 + 0.05, -1.25, 1.25, W / 2 - 0.05):
+        box(bone, "%s_pilaster_%d" % (name, int(x * 10)), b + u * x + v3(0, 1.15, 0) + n * (depth + 0.04), R, (0.18, 1.9, 0.08), "organ_wood")
+        box(bone, "%s_pilaster_cap_%d" % (name, int(x * 10)), b + u * x + v3(0, 2.05, 0) + n * (depth + 0.06), R, (0.26, 0.1, 0.12), "gold")
+    box(bone, name + "_cornice", b + v3(0, 2.2, 0) + n * (depth / 2 + 0.06), R, (W + 0.3, 0.2, depth + 0.22), "organ_wood")
+    box(bone, name + "_cornice_gilt", b + v3(0, 2.32, 0) + n * (depth / 2 + 0.08), R, (W + 0.34, 0.05, depth + 0.26), "gold")
+    box(bone, name + "_back", b + v3(0, height / 2, 0) + n * 0.12, R, (W, height, 0.24), "organ_wood")
+    # ---- pipes
+    yb = 2.35
+    # round central tower: tall pipes on a half circle, a gilded cap and a crest above
+    tower_r = 0.75
+    for k in range(9):
+        a = math.pi * k / 8
+        off = u * (-math.cos(a) * tower_r) + n * (0.45 + math.sin(a) * 0.45)
+        h = 2.45 - 0.35 * abs(k - 4) / 4
+        pipe(bone, "%s_ctower%d" % (name, k), b + off + v3(0, yb, 0), h, 0.085, R)
+    box(bone, name + "_ctower_cap", b + v3(0, yb + 2.55, 0) + n * 0.55, R, (1.8, 0.14, 1.1), "gold")
+    for k in range(7):  # a carved fan (shell) crowning the centre
+        a = math.pi * (k + 0.5) / 7
+        beam(bone, "lit_%s_fan%d" % (name, k), b + v3(0, yb + 2.65, 0) + n * 0.5,
+             b + u * (math.cos(a) * 0.8) + v3(0, yb + 2.65 + math.sin(a) * 0.65, 0) + n * 0.5, 0.06, "gold")
+    # flats: pipes stepping down towards the sides, under a gilded arch
+    for side in (-1, 1):
+        x0, x1 = 1.0, W / 2 - 0.95
+        count = 7
+        for k in range(count):
+            x = side * (x0 + (x1 - x0) * (k + 0.5) / count)
+            h = 2.0 - 0.9 * (k / (count - 1)) ** 0.9
+            pipe(bone, "%s_flat%d_%d" % (name, side > 0, k), b + u * x + v3(0, yb, 0) + n * 0.42, h, 0.07, R)
+        for k in range(10):  # the arch over the flat
+            t0, t1 = k / 10, (k + 1) / 10
+            def arc(t):
+                xx = side * (x0 + (x1 - x0) * t)
+                return b + u * xx + v3(0, yb + 2.15 - 0.85 * t ** 1.4 + 0.25 * math.sin(math.pi * t), 0) + n * 0.5
+            beam(bone, "lit_%s_arch%d_%d" % (name, side > 0, k), arc(t0), arc(t1), 0.08, "gold", width=0.06)
+        # outer round tower with a finial
+        tx = side * (W / 2 - 0.4)
+        for k in range(5):
+            a = math.pi * k / 4
+            off = u * (tx - math.cos(a) * 0.3 * side) + n * (0.35 + math.sin(a) * 0.3)
+            pipe(bone, "%s_otower%d_%d" % (name, side > 0, k), b + off + v3(0, yb, 0), 1.9 - 0.15 * abs(k - 2), 0.07, R)
+        box(bone, "%s_otower_case%d" % (name, side > 0), b + u * tx + v3(0, yb - 0.1, 0) + n * 0.4, R, (0.9, 0.2, 0.8), "organ_wood")
+        box(bone, "%s_otower_cap%d" % (name, side > 0), b + u * tx + v3(0, yb + 2.0, 0) + n * 0.4, R, (0.9, 0.12, 0.8), "gold")
+        box(bone, "%s_finial%d" % (name, side > 0), b + u * tx + v3(0, yb + 2.2, 0) + n * 0.4, R @ ry(math.pi / 4), (0.18, 0.28, 0.18), "gold")
+    # ---- console: three keyboards, stop knobs in terraces, music desk, candles, pedals, bench
+    cz = depth + 0.38
+    box(bone, name + "_console", b + v3(0, 0.55, 0) + n * cz, R, (2.3, 1.1, 0.76), "organ_wood")
+    box(bone, name + "_console_top", b + v3(0, 1.12, 0) + n * cz, R, (2.4, 0.05, 0.8), "gold")
+    for k, y in enumerate((0.93, 1.06, 1.19)):
+        add_cube(bone, "lit_%s_keys%d" % (name, k), b + v3(0, y, 0) + n * (cz + 0.32 + 0.11 * (2 - k)), R, (1.7, 0.05, 0.22),
+                 {"all": "organ_wood", "+2": "keys"}, stretch=True)
+    for side in (-1, 1):
+        box(bone, "%s_jamb%d" % (name, side > 0), b + u * (side * 1.02) + v3(0, 1.2, 0) + n * (cz + 0.12), R, (0.3, 0.55, 0.5), "organ_wood")
+        for row in range(3):
+            for col in range(2):
+                p = b + u * (side * (0.92 + 0.14 * col)) + v3(0, 1.0 + 0.16 * row, 0) + n * (cz + 0.38)
+                box(bone, "%s_stop%d_%d_%d" % (name, side > 0, row, col), p, R, (0.07, 0.07, 0.1), "wax")
+                box(bone, "%s_stop_ring%d_%d_%d" % (name, side > 0, row, col), p - n * 0.04, R, (0.1, 0.1, 0.02), "gold")
+        cand = b + u * (side * 1.05) + v3(0, 1.5, 0) + n * (cz + 0.1)
+        box(bone, "%s_candle_holder%d" % (name, side > 0), cand, R, (0.12, 0.04, 0.12), "gold")
+        box(bone, "%s_candle%d" % (name, side > 0), cand + v3(0, 0.14, 0), R, (0.05, 0.24, 0.05), "wax")
+        add_cube(bone, "glow_%s_flame%d" % (name, side > 0), cand + v3(0, 0.3, 0), R, (0.04, 0.07, 0.04), "glow")
+    desk = b + v3(0, 1.55, 0) + n * (cz + 0.05)
+    box(bone, name + "_desk", desk, R @ rx(-0.25), (1.1, 0.5, 0.04), "organ_wood")
+    box(bone, name + "_desk_rail", desk + v3(0, -0.24, 0) + n * 0.07, R, (1.1, 0.04, 0.06), "gold")
+    box(bone, name + "_score", desk + n * 0.03, R @ rx(-0.25), (0.6, 0.4, 0.01), "chart")
+    for k in range(9):  # pedal board
+        x = -0.8 + 1.6 * k / 8
+        box(bone, "%s_pedal%d" % (name, k), b + u * x + v3(0, 0.07, 0) + n * (cz + 0.7), R, (0.1, 0.06, 0.6), "organ_wood" if k % 2 else "wax")
+    bench = b + n * (cz + 1.1)
+    box(bone, name + "_bench", bench + v3(0, 0.48, 0), R, (1.5, 0.1, 0.42), "organ_wood")
+    box(bone, name + "_bench_cushion", bench + v3(0, 0.55, 0), R, (1.4, 0.06, 0.36), "red_velvet")
     for s in (-1, 1):
-        box(bone, "%s_bench_leg%d" % (name, s > 0), bench + u * s * 0.65 + v3(0, 0.2, 0), R, (0.08, 0.4, 0.34), "organ_wood")
+        box(bone, "%s_bench_leg%d" % (name, s > 0), bench + u * s * 0.62 + v3(0, 0.22, 0), R, (0.1, 0.44, 0.36), "organ_wood")
+        box(bone, "%s_bench_foot%d" % (name, s > 0), bench + u * s * 0.62 + v3(0, 0.03, 0), R, (0.16, 0.06, 0.44), "gold")
 
 
 def showcase_contents(bone, name, center, kind):
@@ -164,46 +267,95 @@ def showcase_contents(bone, name, center, kind):
 
 
 def armchair(bone, name, p, facing, region="red_velvet"):
-    """Wing armchair in velvet on gilded feet; the sitter looks along `facing`."""
+    """Wing armchair in velvet: a plump seat cushion, a curved buttoned back, rolled arms with gilded
+    fronts, wings, a carved apron and cabriole legs; the sitter looks along `facing`."""
     R = ry(yaw_of(facing))
     p = v3(*p)
-    box(bone, name + "_seat", p + v3(0, 0.38, 0), R, (0.82, 0.22, 0.8), region)
-    box(bone, name + "_back", p + R @ v3(0, 0.95, -0.34), R, (0.82, 0.95, 0.16), region)
-    for s in (-1, 1):
-        box(bone, "%s_arm%d" % (name, s > 0), p + R @ v3(s * 0.38, 0.62, 0.0), R, (0.14, 0.3, 0.8), region)
-        box(bone, "%s_wing%d" % (name, s > 0), p + R @ v3(s * 0.36, 1.05, -0.26), R, (0.1, 0.5, 0.3), region)
+    P = lambda x, y, z: p + R @ v3(x, y, z)
+    box(bone, name + "_frame", P(0, 0.3, 0.0), R, (0.84, 0.16, 0.8), region)
+    box(bone, name + "_apron", P(0, 0.24, 0.41), R, (0.78, 0.1, 0.03), "gold")
+    box(bone, name + "_cushion", P(0, 0.44, 0.04), R, (0.66, 0.14, 0.7), region)
+    box(bone, name + "_cushion_top", P(0, 0.52, 0.04), R, (0.6, 0.04, 0.64), region)
+    # back in three tilted pieces (curved), buttons
+    for k, (y, z, tilt) in enumerate(((0.72, -0.33, 0.1), (1.0, -0.37, 0.05), (1.26, -0.38, -0.08))):
+        box(bone, "%s_back%d" % (name, k), P(0, y, z), R @ rx(tilt), (0.8 - 0.06 * k, 0.3, 0.16), region)
+    box(bone, name + "_crest", P(0, 1.43, -0.37), R, (0.6, 0.08, 0.14), region)
+    for k in range(4):
+        box(bone, "%s_button%d" % (name, k), P(-0.18 + 0.12 * k, 0.95 + 0.12 * (k % 2), -0.28), R, (0.03, 0.03, 0.02), "gold")
+    for s_ in (-1, 1):
+        box(bone, "%s_arm%d" % (name, s_ > 0), P(s_ * 0.37, 0.56, 0.02), R, (0.12, 0.34, 0.76), region)
+        box(bone, "%s_roll%d" % (name, s_ > 0), P(s_ * 0.39, 0.75, 0.02), R, (0.18, 0.1, 0.8), region)
+        box(bone, "%s_arm_front%d" % (name, s_ > 0), P(s_ * 0.39, 0.62, 0.42), R, (0.16, 0.26, 0.03), "gold")
+        box(bone, "%s_wing%d" % (name, s_ > 0), P(s_ * 0.38, 1.08, -0.24), R @ ry(s_ * 0.2), (0.1, 0.56, 0.3), region)
         for t in (-1, 1):
-            box(bone, "%s_foot%d%d" % (name, s > 0, t > 0), p + R @ v3(s * 0.33, 0.13, t * 0.32), R, (0.08, 0.26, 0.08), "gold")
+            # cabriole leg: knee out, ankle in, a gilded foot
+            box(bone, "%s_knee%d%d" % (name, s_ > 0, t > 0), P(s_ * 0.35, 0.18, t * 0.33), R @ rx(t * 0.25), (0.07, 0.14, 0.07), "organ_wood")
+            box(bone, "%s_foot%d%d" % (name, s_ > 0, t > 0), P(s_ * 0.36, 0.05, t * 0.36), R, (0.08, 0.08, 0.08), "gold")
 
 
 def chesterfield(bone, name, p, facing, length=2.4, region="green_leather"):
-    """Tufted leather sofa with rolled arms; the sitters look along `facing`."""
+    """Chesterfield sofa in leather: deep-buttoned back and arms of the same height, scrolled arm
+    fronts, two seat cushions, turned feet; the sitters look along `facing`."""
     R = ry(yaw_of(facing))
     p = v3(*p)
-    box(bone, name + "_base", p + v3(0, 0.25, 0), R, (length, 0.3, 0.9), region)
-    box(bone, name + "_cushion", p + v3(0, 0.46, 0.05), R, (length - 0.5, 0.14, 0.75), region)
-    box(bone, name + "_back", p + R @ v3(0, 0.75, -0.36), R, (length, 0.62, 0.2), region)
-    for s in (-1, 1):
-        box(bone, "%s_arm%d" % (name, s > 0), p + R @ v3(s * (length / 2 - 0.13), 0.6, 0.0), R, (0.26, 0.4, 0.92), region)
-        box(bone, "%s_roll%d" % (name, s > 0), p + R @ v3(s * (length / 2 - 0.13), 0.82, 0.0), R, (0.32, 0.1, 0.96), region)
+    P = lambda x, y, z: p + R @ v3(x, y, z)
+    box(bone, name + "_base", P(0, 0.24, 0), R, (length, 0.26, 0.92), region)
+    for k in (-1, 1):
+        box(bone, "%s_cushion%d" % (name, k > 0), P(k * (length - 0.55) / 4, 0.44, 0.06), R, ((length - 0.6) / 2 - 0.03, 0.15, 0.74), region)
+    box(bone, name + "_back", P(0, 0.72, -0.36), R @ rx(0.06), (length - 0.1, 0.58, 0.22), region)
+    for s_ in (-1, 1):
+        box(bone, "%s_arm%d" % (name, s_ > 0), P(s_ * (length / 2 - 0.14), 0.56, 0.0), R, (0.26, 0.42, 0.92), region)
+        box(bone, "%s_roll%d" % (name, s_ > 0), P(s_ * (length / 2 - 0.1), 0.78, 0.0), R, (0.36, 0.14, 0.96), region)
+        box(bone, "%s_scroll%d" % (name, s_ > 0), P(s_ * (length / 2 - 0.1), 0.66, 0.48), R, (0.3, 0.3, 0.03), region)
         for t in (-1, 1):
-            box(bone, "%s_foot%d%d" % (name, s > 0, t > 0), p + R @ v3(s * (length / 2 - 0.15), 0.05, t * 0.35), R,
+            box(bone, "%s_foot%d%d" % (name, s_ > 0, t > 0), P(s_ * (length / 2 - 0.15), 0.05, t * 0.36), R @ ry(math.pi / 4),
                 (0.1, 0.1, 0.1), "organ_wood")
+    # deep buttoning: rows of buttons on the back and the arms
+    for row in range(2):
+        for k in range(int(length / 0.3)):
+            x = -length / 2 + 0.3 + k * 0.3 + (0.15 if row else 0)
+            if abs(x) < length / 2 - 0.3:
+                box(bone, "%s_btn%d_%d" % (name, row, k), P(x, 0.68 + 0.18 * row, -0.24), R, (0.03, 0.03, 0.02), "gold")
 
 
 def globe(bone, name, p):
-    """Terrestrial globe on a turned wooden stand with a brass meridian."""
+    """Terrestrial globe: a round ball (bands of panels mapped with a world map) tilted on its axis,
+    a brass meridian ring, a gilded horizon ring, a turned stand on three legs."""
     p = v3(*p)
-    box(bone, name + "_foot", p + v3(0, 0.04, 0), EYE, (0.5, 0.08, 0.5), "organ_wood")
-    box(bone, name + "_column", p + v3(0, 0.4, 0), EYE, (0.12, 0.7, 0.12), "organ_wood")
-    box(bone, name + "_horizon", p + v3(0, 0.95, 0), EYE, (0.86, 0.06, 0.86), "organ_wood")
-    c = p + v3(0, 1.0, 0)
     for k in range(3):
-        box(bone, "%s_ball%d" % (name, k), c, ry(k * math.pi / 6) @ gg.rx(0.4), (0.62 - 0.04 * k, 0.62, 0.62 - 0.04 * k), "chart")
-    for k in range(10):
-        a0, a1 = 2 * math.pi * k / 10, 2 * math.pi * (k + 1) / 10
-        beam(bone, "lit_%s_meridian%d" % (name, k), c + v3(0, math.cos(a0) * 0.4, math.sin(a0) * 0.4),
-             c + v3(0, math.cos(a1) * 0.4, math.sin(a1) * 0.4), 0.04, "brass")
+        a = 2 * math.pi * k / 3
+        beam(bone, "lit_%s_leg%d" % (name, k), p + v3(math.cos(a) * 0.3, 0.0, math.sin(a) * 0.3), p + v3(0, 0.55, 0), 0.06, "organ_wood")
+    box(bone, name + "_knop", p + v3(0, 0.6, 0), EYE, (0.14, 0.14, 0.14), "gold")
+    box(bone, name + "_column", p + v3(0, 0.72, 0), EYE, (0.08, 0.22, 0.08), "organ_wood")
+    c = p + v3(0, 1.12, 0)
+    r = 0.34
+    tilt = gg.rx(0.41)
+    nlat, nlon = 8, 16
+    def P(i, j):
+        lat = -math.pi / 2 + math.pi * i / nlat
+        lon = 2 * math.pi * j / nlon
+        return c + tilt @ v3(math.cos(lat) * math.cos(lon) * r, math.sin(lat) * r, math.cos(lat) * math.sin(lon) * r)
+    for i in range(nlat):
+        for j in range(nlon):
+            a0, a1, b0, b1 = P(i, j), P(i, j + 1), P(i + 1, j), P(i + 1, j + 1)
+            if np.linalg.norm(a1 - a0) < 1e-3 and np.linalg.norm(b1 - b0) < 1e-3:
+                continue
+            mid = (a0 + a1 + b0 + b1) / 4
+            cube = gg.board(bone, "lit_%s_ball%d_%d" % (name, i, j), a0, a1, b0, b1, 0.02, "globe", mid - c, overlap=1.04)
+            for f in cube.faces.values():
+                if f is not None:
+                    f["stretch"] = True
+                    f["sub"] = (j / nlon, 1 - (i + 1) / nlat, (j + 1) / nlon, 1 - i / nlat)
+    for k in range(16):  # meridian, round the tilted axis
+        a0, a1 = 2 * math.pi * k / 16, 2 * math.pi * (k + 1) / 16
+        q0 = c + tilt @ v3(0, math.cos(a0) * (r + 0.05), math.sin(a0) * (r + 0.05))
+        q1 = c + tilt @ v3(0, math.cos(a1) * (r + 0.05), math.sin(a1) * (r + 0.05))
+        beam(bone, "lit_%s_meridian%d" % (name, k), q0, q1, 0.035, "brass")
+        h0 = c + v3(math.cos(a0) * (r + 0.1), 0, math.sin(a0) * (r + 0.1))
+        h1 = c + v3(math.cos(a1) * (r + 0.1), 0, math.sin(a1) * (r + 0.1))
+        beam(bone, "lit_%s_horizon%d" % (name, k), h0, h1, 0.05, "gold", width=0.06)
+    for s_ in (-1, 1):
+        beam(bone, "lit_%s_horizon_post%d" % (name, s_ > 0), p + v3(0, 0.62, 0), c + v3(s_ * (r + 0.1), 0, 0), 0.04, "organ_wood")
 
 
 def tall_bookcase(bone, name, p, normal, w=1.0, h=4.0):
@@ -417,23 +569,52 @@ def valve_wheel(bone, name, p, normal, r=0.22, region="coral_red"):
 
 # ---------------------------------------------------------------- airlock, lifeboat
 def diving_suit(bone, name, p, facing):
-    """Diving suit on its stand: copper helmet with windows, canvas suit, lead boots, air tank."""
+    """Diving suit on its stand (panel 14): a round copper helmet with three barred windows on a bolted
+    breastplate, the canvas suit, a belt of lead weights, gloves, heavy boots, the air tank and hose."""
     R = ry(yaw_of(facing))
     p = v3(*p)
-    box(bone, name + "_stand", p + v3(0, 0.05, 0), R, (0.7, 0.1, 0.6), "steel")
-    for s in (-1, 1):
-        box(bone, "%s_boot%d" % (name, s > 0), p + R @ v3(s * 0.15, 0.2, 0.05), R, (0.22, 0.3, 0.36), "iron")
-        box(bone, "%s_leg%d" % (name, s > 0), p + R @ v3(s * 0.15, 0.75, 0), R, (0.24, 0.8, 0.26), "suit")
-        box(bone, "%s_arm%d" % (name, s > 0), p + R @ v3(s * 0.38, 1.4, 0.02), R, (0.2, 0.7, 0.22), "suit")
-        box(bone, "%s_glove%d" % (name, s > 0), p + R @ v3(s * 0.38, 1.0, 0.04), R, (0.18, 0.16, 0.2), "iron")
-    box(bone, name + "_body", p + v3(0, 1.45, 0), R, (0.6, 0.8, 0.4), "suit")
-    box(bone, name + "_collar", p + v3(0, 1.9, 0), R, (0.62, 0.12, 0.48), "copper")
-    h = p + v3(0, 2.18, 0)
-    box(bone, name + "_helmet", h, R, (0.5, 0.48, 0.5), "copper")
-    box(bone, name + "_helmet_b", h, R @ gg.ry(math.pi / 4), (0.5, 0.42, 0.5), "copper")
-    add_cube(bone, "lit_%s_window" % name, h + R @ v3(0, 0, 0.26), R, (0.26, 0.26, 0.04), {"all": "copper", "+3": "helmet"}, stretch=True)
-    box(bone, name + "_tank", p + R @ v3(0, 1.45, -0.3), R, (0.3, 0.7, 0.2), "copper")
-    beam(bone, "lit_%s_hose" % name, p + R @ v3(0.1, 1.85, -0.3), h + R @ v3(0.18, 0, -0.18), 0.05, "iron")
+    box(bone, name + "_stand", p + v3(0, 0.05, 0), R, (0.72, 0.1, 0.62), "steel")
+    for s_ in (-1, 1):
+        box(bone, "%s_boot%d" % (name, s_ > 0), p + R @ v3(s_ * 0.15, 0.22, 0.04), R, (0.24, 0.26, 0.38), "iron")
+        box(bone, "%s_sole%d" % (name, s_ > 0), p + R @ v3(s_ * 0.15, 0.11, 0.05), R, (0.27, 0.06, 0.42), "copper")
+        for k, rot in enumerate((R, R @ ry(math.pi / 4))):
+            box(bone, "%s_leg%d_%d" % (name, s_ > 0, k), p + R @ v3(s_ * 0.15, 0.76, 0), rot, (0.24, 0.82, 0.24), "suit")
+            box(bone, "%s_arm%d_%d" % (name, s_ > 0, k), p + R @ v3(s_ * 0.39, 1.38, 0.02), rot @ gg.rz(s_ * 0.12), (0.2, 0.66, 0.2), "suit")
+        box(bone, "%s_cuff%d" % (name, s_ > 0), p + R @ v3(s_ * 0.42, 1.06, 0.03), R, (0.2, 0.06, 0.2), "copper")
+        box(bone, "%s_glove%d" % (name, s_ > 0), p + R @ v3(s_ * 0.43, 0.94, 0.04), R, (0.17, 0.18, 0.2), "iron")
+    for k, rot in enumerate((R, R @ ry(math.pi / 4))):
+        box(bone, "%s_body%d" % (name, k), p + v3(0, 1.42, 0), rot, (0.56, 0.78, 0.4), "suit")
+    box(bone, name + "_belt", p + v3(0, 1.08, 0), R, (0.62, 0.1, 0.46), "iron")
+    for k in range(3):
+        box(bone, "%s_weight%d" % (name, k), p + R @ v3(-0.18 + 0.18 * k, 1.0, 0.24), R, (0.12, 0.14, 0.06), "steel")
+    # breastplate: copper, bolted
+    box(bone, name + "_corselet", p + v3(0, 1.86, 0), R, (0.7, 0.16, 0.56), "copper")
+    box(bone, name + "_corselet_low", p + R @ v3(0, 1.72, 0.12), R, (0.6, 0.14, 0.34), "copper")
+    for k in range(8):
+        a = 2 * math.pi * k / 8
+        box(bone, "%s_bolt%d" % (name, k), p + R @ v3(math.cos(a) * 0.32, 1.95, math.sin(a) * 0.26), R, (0.05, 0.05, 0.05), "brass")
+    # the helmet: round (three crossed boxes), front window and two side windows with bars
+    h = p + v3(0, 2.2, 0)
+    for k in range(3):
+        box(bone, "%s_helmet%d" % (name, k), h, R @ ry(k * math.pi / 6), (0.5, 0.5, 0.5), "copper")
+    box(bone, name + "_helmet_top", h + v3(0, 0.27, 0), R @ ry(math.pi / 4), (0.32, 0.08, 0.32), "copper")
+    for k, (d, side) in enumerate(((v3(0, 0, 1), 0), (v3(1, 0, 0), 1), (v3(-1, 0, 0), -1))):
+        n = R @ d
+        size = 0.26 if k == 0 else 0.18
+        rot = R if k == 0 else R @ ry(math.pi / 2)
+        add_cube(bone, "lit_%s_window%d" % (name, k), h + n * 0.28, rot, (size, size, 0.04), {"all": "brass", "+3": "helmet", "-3": "helmet"},
+                 stretch=True)
+        for q in range(8):
+            a0, a1 = 2 * math.pi * q / 8, 2 * math.pi * (q + 1) / 8
+            ax, ay = rot[:, 0], rot[:, 1]
+            beam(bone, "lit_%s_rim%d_%d" % (name, k, q), h + n * 0.3 + (ax * math.cos(a0) + ay * math.sin(a0)) * size * 0.62,
+                 h + n * 0.3 + (ax * math.cos(a1) + ay * math.sin(a1)) * size * 0.62, 0.04, "brass", up=n)
+    # air tank and hose
+    for k, rot in enumerate((R, R @ ry(math.pi / 4))):
+        box(bone, "%s_tank%d" % (name, k), p + R @ v3(0, 1.45, -0.32), rot, (0.28, 0.74, 0.28), "copper")
+    box(bone, name + "_tank_valve", p + R @ v3(0, 1.88, -0.32), R, (0.1, 0.12, 0.1), "brass")
+    beam(bone, "lit_%s_hose_a" % name, p + R @ v3(0, 1.92, -0.32), p + R @ v3(0.2, 2.05, -0.26), 0.05, "iron")
+    beam(bone, "lit_%s_hose_b" % name, p + R @ v3(0.2, 2.05, -0.26), h + R @ v3(0.2, 0, -0.18), 0.05, "iron")
 
 
 def tank(bone, name, p, h=1.6, r=0.35, region="copper"):

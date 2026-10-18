@@ -823,8 +823,10 @@ def build(g):
             continue
         step = 4.0
         zc = np.arange(z0 + step / 2, z1, step) if z1 - z0 > step else [(z0 + z1) / 2]
+        if name in ("dining", "library", "salon", "cabin_aronnax"):
+            continue  # lit by their chandeliers
         for z in zc:
-            add_cube(lights, "glow_lamp_%s_%d" % (name, int(z * 10)), v3((x0 + x1) / 2, y1 - 0.1, z), EYE, (0.4, 0.18, 0.4), "glow")
+            nf.ceiling_lamp(lights, "lamp_%s_%d" % (name, int(z * 10)), v3((x0 + x1) / 2, y1, z))
     return root, n, m
 
 
