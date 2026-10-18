@@ -1117,6 +1117,8 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		context.waitTicks(40);
 		// a basin 28 blocks wide, 142 long and 27 deep, walled with glass
 		int x0 = 200, x1 = 230, z0 = -72, z1 = 72, top = -34;
+		server.runCommand(String.format(Locale.ROOT, "forceload add %d %d %d %d", x0, z0, x1, z1));
+		context.waitTicks(40);
 		server.runCommand(String.format(Locale.ROOT, "fill %d -63 %d %d %d %d glass", x0, z0, x1, top, z0));
 		server.runCommand(String.format(Locale.ROOT, "fill %d -63 %d %d %d %d glass", x0, z1, x1, top, z1));
 		server.runCommand(String.format(Locale.ROOT, "fill %d -63 %d %d %d %d glass", x0, z0, x0, top, z1));
@@ -1124,6 +1126,15 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		for (int z = z0 + 1; z < z1; z += 40) {
 			server.runCommand(String.format(Locale.ROOT, "fill %d -63 %d %d -37 %d water", x0 + 1, z, x1 - 1, Math.min(z1 - 1, z + 39)));
 		}
+		int water = server.computeOnServer(srv -> {
+			ServerWorld w = srv.getOverworld();
+			int n = 0;
+			for (int z = z0 + 1; z < z1; z++) {
+				n += w.getFluidState(new net.minecraft.util.math.BlockPos(215, -50, z)).isIn(net.minecraft.registry.tag.FluidTags.WATER) ? 1 : 0;
+			}
+			return n;
+		});
+		check(water == z1 - z0 - 1, "%s basin filled with water all along (%d / %d)", id, water, z1 - z0 - 1);
 		server.runCommand("tp @p 215 -20 -50 0 30");
 		context.waitTicks(20);
 		server.runCommand("execute positioned 215 -37 -20 rotated 0 0 run ship spawn " + id);
@@ -1265,16 +1276,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		check(w[5] == w[6], "%s submerged: the player keeps all his air (%.0f/%.0f)", id, w[5], w[6]);
 		check(Math.abs(w[8]) < 0.06, "%s submerged: standing on the main level floor (local y %.3f)", id, w[8]);
 		shot(context, id + "_6_interieur_en_plongee");
-		// diagnosis of the far end of the hall: the end wall seen from 10 and from 30 blocks, and the hall looking aft
-		for (double[] v : new double[][] {{18, 0}, {-2, 0}, {0, 180}}) {
-			tpLocal(server, d5, 0, 0.02, v[0], (float) v[1], 0);
-			context.waitTicks(15);
-			shot(context, String.format(Locale.ROOT, "%s_6_diag_z%.0f_cap%.0f", id, v[0], v[1]));
-		}
-		String gfx = context.computeOnClient(mc -> mc.options.getPreset().getValue().toString());
-		log("%s graphics preset: %s", id, gfx);
-		tpLocal(server, d5, 0, 0.02, -14, 0, 0);
-		context.waitTicks(15);
+
 		context.getInput().holdKeyFor(o -> o.forwardKey, 60);
 		context.waitTicks(20);
 		w = playerWater(context, sp, shipPose(sp, type));
@@ -1332,6 +1334,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			}
 			return null;
 		});
+		server.runCommand(String.format(Locale.ROOT, "forceload remove %d %d %d %d", x0, z0, x1, z1));
 		context.waitTicks(10);
 	}
 
