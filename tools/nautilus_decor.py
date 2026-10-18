@@ -64,6 +64,15 @@ BOUNDS = {
     "farmhouse_decorations:seasoning_rack": (0.12, 0.88, 0.0, 0.78, 0.69, 1.0),
     "farmhouse_decorations:radiator": (-0.39, 1.25, 0.0, 0.83, 0.62, 0.94),
     "furnish:red_showcase": (0.0, 1.0, 0.0, 1.0, 0.0, 1.0),
+    "farmhouse_decorations:wardrobe": (-0.844, 0.844, 0.0, 1.984, 0.156, 1.0),
+    "farmhouse_decorations:rocking_chair": (0.0, 1.0, 0.0, 1.531, 0.0, 1.078),
+    "farmhouse_decorations:cuckoo_clock": (0.203, 0.797, 0.172, 0.969, 0.812, 1.0),
+    "farmhouse_decorations:coat_hanger": (0.078, 0.922, -0.047, 1.953, 0.078, 0.922),
+    "farmhouse_decorations:rug_3x_3": (-0.625, 1.625, 0.0, 0.031, -0.625, 1.625),
+    "furnish:picture_frame": (0.25, 0.75, -0.004, 0.621, 0.337, 0.562),
+    "furnish:chess_board": (0.125, 0.875, 0.0, 0.062, 0.125, 0.875),
+    "furnish:dark_oak_shelf": (0.0, 1.0, 0.125, 0.406, 0.5, 1.0),
+    "furnish:dark_oak_bedside_table": (0.0, 1.0, 0.0, 1.0, 0.0, 1.0),
     "furnish:rare_english_plate": (0.06, 0.94, 0.0, 0.06, 0.06, 0.94),
     "furnish:locker": (0.0, 1.0, 0.0, 1.0, 0.0, 1.0),
     "furnish:book_pile": (0.17, 0.88, 0.01, 0.39, 0.18, 0.86),
@@ -235,13 +244,9 @@ def salon():
                 block(FU + "red_showcase", x, y, z, "stern")
                 custom("showcase_contents", name="showcase_%d" % k, center=(x, y + 0.02, z), kind=k % 4)
                 k += 1
-    for x in (-3.0, 3.0):
-        for y in (m, m + 1.0):
-            block(FU + "red_showcase", x, y, -3.9, "stern")
-            custom("showcase_contents", name="showcase_%d" % k, center=(x, y + 0.02, -3.9), kind=k % 4)
-            k += 1
+    # (no showcases by the organ: the way to the stairs door stays clear)
     # the sitting group in the middle: a red sofa (Farmhouse Decorations) and two armchairs round two low tables
-    for x, part in ((-1.0, "sofa_right"), (0.0, "sofa_middle"), (1.0, "sofa_left")):
+    for x, part in ((-1.0, "sofa_left"), (0.0, "sofa_middle"), (1.0, "sofa_right")):
         block(FD + part, x, m, -1.7, "bow")
         seat(x, m + 0.45, -1.6, x, -0.9)
     for x in (-0.55, 0.55):
@@ -267,38 +272,53 @@ def salon():
     # the levers of the iron panels that close the great windows, and of the lamps
     for x in (-3.0, 3.0):
         lever_switch("shutters", "salon_shutter_lever_%d" % (x > 0), x, m, 3.1)
-    lever_switch("lights", "salon_light_lever", 2.9, m, -5.3)
+    lever_switch("lights", "salon_light_lever", -3.2, m, -3.9)
 
 
 def cabins():
     """Professor Aronnax's cabin (panel 4, comfortable) and Captain Nemo's (panel 5, austere)."""
     m = ni.M0
-    # Aronnax, port side: bed, desk with chair and lamp, shelf with books, dresser, washbasin, rug, porthole
+    # Aronnax, port side: bed with its night stand, a wardrobe, the writing desk with its chair, lamp,
+    # books and a cuckoo clock above, a reading armchair by the porthole under its drapes, a coat stand,
+    # rug, paintings, a small chandelier
     block(FD + "single_bed", 4.2, m, 25.4, "stern")
-    block(FD + "night_stand", 2.9, m, 26.0, "stern")
-    block(FD + "lamp", 2.9, m + 0.62, 26.0, "stern", solid=False)
+    block(FD + "night_stand", 3.25, m, 26.0, "stern")
+    block(FD + "lamp", 3.25, m + 0.62, 26.0, "stern", solid=False)
+    block(FD + "wardrobe", 2.35, m, 25.2, "port")
     block(FD + "desk", 3.6, m, 20.6, "bow")
     block(FD + "pile_of_books", 3.0, m + 1.02, 20.5, "bow", solid=False)
     block(FD + "lamp", 4.3, m + 1.02, 20.4, "bow", solid=False)
+    block(FD + "typewriter", 3.6, m + 1.02, 20.6, "bow", solid=False, scale=0.7)
     block(FD + "dining_chair", 3.6, m, 21.6, "stern", solid=False)
     seat(3.6, m + 0.45, 21.5, 2.6, 21.8)
     block(FD + "wall_shelf", 3.6, m + 2.0, 20.3, "bow", solid=False)
     block(FD + "pile_of_books", 3.4, m + 2.4, 20.3, "bow", solid=False)
-    block(FD + "bathroom_sink", 4.5, m, 23.3, "starboard")
+    block(FD + "cuckoo_clock", 4.6, m + 2.3, 20.0, "bow", solid=False)
+    custom("armchair", solid=(3.85, 4.75, m, m + 1.0, 22.75, 23.65), name="aronnax_armchair", p=(4.3, m, 23.2), facing="starboard")
+    seat(4.3, m + 0.5, 23.2, 3.4, 23.2)
+    block(FD + "coat_hanger", 2.45, m, 21.0, "port", solid=False)
     custom("rug", p=(3.3, m, 23.2), w=2.4, l=2.6)
-    custom("painting", name="aronnax_painting", center=(2.0, 2.6, 25.5), normal=(1, 0, 0), w=1.0, h=0.8, region="painting_sea")
+    custom("painting", name="aronnax_painting", center=(3.6, 2.9, 26.5), normal=(0, 0, -1), w=1.2, h=0.9, region="painting_sea")
+    custom("painting", name="aronnax_portrait", center=(2.0, 2.9, 22.0), normal=(1, 0, 0), w=0.7, h=0.9, region="portrait")
     custom("drapes", name="aronnax_drapes", center=(5.0, 2.0, 23.2), normal=(-1, 0, 0), w=1.2, h=2.0)
     custom("chandelier", name="aronnax_lamp", hook=(3.5, ni.M1, 23.2), r=0.35, n=6, drop=0.5, tiers=1)
-    # Nemo, starboard side: iron bed, raw wood table, iron chair, instruments, charts, a discreet lantern
+    # Nemo, starboard side: iron bed, raw wood table with charts and a lantern, iron chair, a tall
+    # bookcase of sea charts and logs, instruments on the hull side, a clock, a rug, a sconce
     custom("iron_bed", solid=(-4.85, -3.75, m, m + 1.1, 24.4, 26.4), name="nemo_bed", p=(-4.3, m, 25.4), facing="stern")
+    block(FU + "dark_oak_bedside_table", -3.3, m, 26.0, "stern")
+    block(FD + "kerosene_lantern", -3.3, m + 1.0, 26.0, "stern", solid=False)
     block(FU + "oak_square_table", -3.3, m, 21.0, "stern")
     block(FD + "kerosene_lantern", -3.1, m + 1.0, 21.1, "stern", solid=False)
     custom("chart_sheet", name="nemo_chart", p=(-3.45, m + 1.0, 20.9))
     custom("metal_chair", name="nemo_chair", p=(-3.3, m, 22.0), facing="stern")
     seat(-3.3, m + 0.5, 22.0, -2.4, 22.2)
+    custom("tall_bookcase", solid=(-2.45, -2.0, m, m + 2.6, 24.3, 26.3), name="nemo_bookcase", p=(-2.0, m, 25.3), normal=(-1, 0, 0), w=2.0,
+           h=2.6)
     custom("instrument_panel", name="nemo_panel_a", center=(-5.0, 2.4, 21.4), normal=(1, 0, 0), w=1.4, h=1.1)
     custom("instrument_panel", name="nemo_panel_b", center=(-5.0, 2.4, 25.0), normal=(1, 0, 0), w=1.0, h=0.9)
     custom("painting", name="nemo_chart_wall", center=(-3.5, 2.5, 20.0), normal=(0, 0, 1), w=2.0, h=1.4, region="chart")
+    block(FD + "cuckoo_clock", -2.4, m + 2.4, 20.0, "bow", solid=False)
+    custom("rug", p=(-3.4, m, 23.2), w=1.8, l=2.4, region="rug")
 
 
 def corridor_and_coursive():
@@ -333,15 +353,24 @@ def kitchen_and_crew():
     for z in (9.5, 10.5, 11.5):
         block(FU + "oak_square_table", -1.6, l, z, "stern")
     block(FR + "cutting_board", -1.6, l + 1.0, 10.5, "stern", solid=False)
-    # crew: four bunks, lockers, a table with stools
-    for z in (15.6, 17.8):
+    # crew: four bunks, lockers, a wardrobe, a coat stand, a table with stools and a game of chess,
+    # a shelf of books, a clock, framed pictures, a rug
+    for z in (15.6, 17.8, 20.2):
         block(FD + "single_bed", -3.9, l, z + 1.0, "stern")
     for x in (-0.4, 0.6):
         block(FU + "small_locker", x, l, 22.5, "stern")
+    block(FD + "wardrobe", 0.65, l, 15.6, "starboard")
+    block(FD + "coat_hanger", 0.9, l, 20.2, "starboard", solid=False)
     block(FU + "oak_square_table", -1.5, l, 21.5, "stern")
+    block(FU + "chess_board", -1.5, l + 1.0, 21.5, "stern", solid=False)
     for x in (-2.3, -0.7):
         block(FU + "spruce_stool", x, l, 21.5, "stern", solid=False)
         seat(x, l + 0.5, 21.5, x, 20.6)
+    block(FU + "dark_oak_shelf", -1.5, l + 1.8, 23.0, "stern", solid=False)
+    block(FU + "book_pile", -1.6, l + 2.2, 22.85, "stern", solid=False)
+    block(FD + "cuckoo_clock", -1.5, l + 2.4, 14.5, "bow", solid=False)
+    block(FU + "picture_frame", -0.4, l + 2.0, 14.5, "bow", solid=False)
+    block(FD + "rug_3x_3", -1.9, l, 17.3, "stern", solid=False)
     block(FD + "chained_kerosene_lantern", -1.5, ni.L1 - 1.0, 18.5, "stern", solid=False)
 
 
@@ -423,7 +452,7 @@ def sconces():
         *[(5.0, m + 2.0, z, (-1, 0, 0)) for z in (-15.5, -20.5, -25.5)],           # engine, along the catwalk
         (-2.5, l + 2.6, 25.6, (1, 0, 0)), (2.5, l + 2.6, 27.6, (-1, 0, 0)),         # airlock
         (-3.0, l + 2.2, -8.2, (1, 0, 0)), (-3.0, m + 2.2, -8.2, (1, 0, 0)),         # staircase, both levels
-        (-2.0, m + 2.0, 25.2, (-1, 0, 0)),                                          # Nemo's cabin
+        (-3.6, m + 2.3, 26.5, (0, 0, -1)),                                          # Nemo's cabin
         *[(x, m + 2.1, z, (-1 if x > 0 else 1, 0, 0)) for x in (1.5, -1.5) for z in (21.0, 25.2)],  # fore corridor
     ]
     for k, (x, y, z, n) in enumerate(spots):

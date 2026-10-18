@@ -76,6 +76,7 @@ REGIONS = {
     "beam2":       (496, 16, 16, 16),
     "beam3":       (464, 32, 16, 16),
     "water":       (480, 32, 16, 16),
+    "glassfx":     (496, 32, 16, 16),  # pale sea-green glass, see-through
     # warmer rooms (cabins, corridors, kitchen, machinery)
     "wall_wood":   (32, 96, 32, 32),   # copper plate above, brass rail, dark walnut planks below
     "floor_tile":  (64, 96, 32, 32),   # terracotta and slate tiles
@@ -208,6 +209,10 @@ def _paint_effects(px, rng):
             for x in range(w):
                 a = alpha + rng.randint(-4, 4)
                 px[u + x, v + y] = (255, 246, 205, max(0, a))
+    u, v, w, h = REGIONS["glassfx"]
+    for y in range(h):
+        for x in range(w):
+            px[u + x, v + y] = (150, 205, 210, 60 if (x + y) % 7 else 95)
     u, v, w, h = REGIONS["water"]
     for y in range(h):
         for x in range(w):

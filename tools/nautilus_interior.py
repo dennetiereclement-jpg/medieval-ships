@@ -226,12 +226,15 @@ def build():
     ring = (r >= SPIRAL_R[0]) & (r < SPIRAL_R[1]) & (g.Z > -12.0) & (g.Z < -7.0)
     k = np.minimum(steps - 1, (ang / 360.0 * steps).astype(int))
     step_top = L0 + (k + 1) * CELL
-    g.k[ring & (g.Y > step_top - 0.5) & (g.Y < step_top)] = SOLID  # each step a slab: room underneath for the turn below
-    g.k[(r < SPIRAL_R[0]) & (g.Y > L0 - 0.6) & (g.Y < M1) & (np.abs(g.Z - scz) < 1.0)] = SOLID  # the column
+    # each step a slab (room underneath for the turn below); steps and column are drawn as furniture
+    # (tools/generate_nautilus.py spiral_stair), the cells only stop the players
+    g.k[ring & (g.Y > step_top - 0.5) & (g.Y < step_top)] = FURNITURE
+    g.k[(r < SPIRAL_R[0]) & (g.Y > L0 - 0.6) & (g.Y < M1) & (np.abs(g.Z - scz) < 1.0)] = FURNITURE  # the column
     # main level of the stair hall: a landing along the ladder side and towards the engine room
     g.set(SOLID, 1.0, 2.5, M0 - 0.5, M0, -12.0, -7.0)
-    g.set(SOLID, -3.0, 3.5, M0 - 0.5, M0, -7.5, -7.0)  # gallery along the salon wall, from the top of the stairs
-    g.set(DRY, 2.5, 3.5, M0, M0 + 2.5, -7.5, -7.0)     # ... to the salon door in its corner
+    g.set(SOLID, -3.0, 3.5, M0 - 0.5, M0, -8.0, -7.0)  # gallery along the salon wall, from the top of the stairs
+    g.set(SOLID, 2.5, 3.5, M0 - 0.5, M0, -8.5, -7.0)   # ... widening into a landing behind the salon door
+    g.set(DRY, 2.5, 3.5, M0, M0 + 2.5, -8.5, -7.0, where=g.k != DOOR + 6)
     # engine room: catwalk with its rail, the partition between the batteries and the engine
     g.set(SOLID, *CATWALK)
     g.set(FURNITURE, CATWALK[0], CATWALK[0] + 0.5, M0, M0 + 1.0, CATWALK[4], CATWALK[5])  # its rail: drawn as a railing

@@ -299,6 +299,95 @@ def smoothstep(t):
     return t * t * (3 - 2 * t)
 
 
+def porthole_sleeves(bone, fx, g):
+    """Seen from the rooms, each porthole is a bronze sleeve narrowing through the hull to its glass,
+    framed on the wall by a bolted brass collar (instead of a square hole in the wall)."""
+    ports = [(z, ns.SMALL_WINDOWS_Y) for z in ns.SMALL_WINDOWS_Z] + list(ns.CABIN_PORTHOLES)
+    C = ni.CELL
+    count = 0
+    for z, y in ports:
+        for side in SIDES:
+            def kind(x, yy):
+                return g.k[int((x - ni.X0) / C), int((yy - ni.Y0) / C), int((z - ni.Z0) / C)]
+            glass = wall = None
+            for x in np.arange(1.0, 8.0, C / 2) * side:
+                if kind(x, y) == ni.WINDOW:
+                    glass = x
+                    break
+            if glass is not None:
+                # back from the glass along the tunnel until the room opens above it: the wall's face
+                x = glass
+                while abs(x) > 1.0 and kind(x, y + 0.75) not in (ni.DRY, ni.FURNITURE, ni.LADDER):
+                    x -= side * C / 2
+                i_room = int((x - ni.X0) / C)
+                wall = ni.X0 + (i_room + 1) * C if side > 0 else ni.X0 + i_room * C  # the wall's face on the room
+            if wall is None or glass is None:
+                continue
+            glass = glass + side * C if abs(glass) - abs(wall) < 0.3 else glass  # thin wall: the glass in the hull's skin
+            n = 10
+            name = "porthole_%d_%d_%d" % (int(z * 10), int(y * 10), side > 0)
+            for j in range(n):
+                a0, a1 = 2 * math.pi * j / n, 2 * math.pi * (j + 1) / n
+                def P(x, r, a):
+                    return v3(x, y + math.sin(a) * r, z + math.cos(a) * r)
+                am = (a0 + a1) / 2
+                panel(bone, "lit_%s_sleeve%d" % (name, j), P(wall - side * 0.02, 0.74, a0), P(wall - side * 0.02, 0.74, a1), P(glass, 0.45, a0),
+                      P(glass, 0.45, a1), 0.05,
+                      "copper", v3(0, -math.sin(am), -math.cos(am)), overlap=1.04)
+                beam(bone, "lit_%s_collar%d" % (name, j), P(wall - side * 0.06, 0.68, a0), P(wall - side * 0.06, 0.68, a1), 0.1, "brass",
+                     width=0.22, up=v3(side, 0, 0))
+                if j % 2 == 0:
+                    add_cube(bone, "lit_%s_bolt%d" % (name, j), P(wall - side * 0.12, 0.68, am), EYE, (0.06, 0.06, 0.06), "steel")
+            # a square brass plate on the wall round the collar: it covers the edges of the opening
+            for k, (dy, dz, sy, sz) in enumerate(((0.6, 0, 0.2, 1.4), (-0.6, 0, 0.2, 1.4), (0, 0.6, 1.0, 0.2), (0, -0.6, 1.0, 0.2))):
+                add_cube(bone, "lit_%s_plate%d" % (name, k), v3(wall - side * 0.025, y + dy, z + dz), EYE, (0.05, sy, sz), "brass")
+            add_cube(fx, "lit_%s_glass" % name, v3(glass + side * 0.1, y, z), EYE, (0.02, 0.9, 0.9), "glassfx")
+            count += 1
+    return count
+
+
+def spiral_stair(bone):
+    """The central spiral staircase (panel 9): open treads of dark wood with brass nosings on iron
+    brackets, round the column, a helical handrail on balusters (the grid's slab cells stop the
+    players, these are what is drawn)."""
+    scx, scz = ni.SPIRAL_CENTER
+    r0, r1 = ni.SPIRAL_R
+    steps = int(round((ni.M0 - ni.L0) / ni.CELL))
+    c = v3(scx, 0, scz)
+    def at(a_deg, r, y):
+        a = math.radians(a_deg)
+        return v3(scx + math.sin(a) * r, y, scz + math.cos(a) * r)
+    for k in range(steps):
+        top = ni.L0 + (k + 1) * ni.CELL
+        a0, a1 = 360.0 * k / steps, 360.0 * (k + 1) / steps
+        for q in range(3):  # a tread in three slices: its outer edge follows the circle
+            b0, b1 = a0 + (a1 - a0) * q / 3, a0 + (a1 - a0) * (q + 1) / 3
+            panel(bone, "lit_stair_tread_%d_%d" % (k, q), at(b0, r0, top), at(b0, r1, top), at(b1, r0, top), at(b1, r1, top), 0.1,
+                  "floor", v3(0, 1, 0), overlap=1.03)
+        beam(bone, "lit_stair_nosing_%d" % k, at(a0 + 1, r0 + 0.05, top - 0.03), at(a0 + 1, r1 - 0.02, top - 0.03), 0.07, "brass", width=0.08)
+        beam(bone, "lit_stair_bracket_%d" % k, at((a0 + a1) / 2, r0, top - 0.25), at((a0 + a1) / 2, r1 - 0.2, top - 0.12), 0.08, "iron")
+        # baluster and handrail segment
+        bt = at(a0 + 20, r1 - 0.08, top)
+        beam(bone, "lit_stair_baluster_%d" % k, bt, bt + v3(0, 0.95, 0), 0.05, "iron")
+        h0 = at(a0, r1 - 0.08, top + 0.95)
+        h1 = at(a1, r1 - 0.08, top + 0.95 + ni.CELL)
+        mid = at((a0 + a1) / 2, r1 - 0.08, top + 0.95 + ni.CELL / 2)
+        beam(bone, "lit_stair_rail_%d_a" % k, h0, mid, 0.08, "brass")
+        beam(bone, "lit_stair_rail_%d_b" % k, mid, h1, 0.08, "brass")
+    # the column: round, iron with brass rings
+    n = 12
+    rc = r0 - 0.02
+    for j in range(n):
+        a0, a1 = 360.0 * j / n, 360.0 * (j + 1) / n
+        out = at((a0 + a1) / 2, 1.0, 0) - c
+        panel(bone, "lit_stair_column_%d" % j, at(a0, rc, ni.L0), at(a1, rc, ni.L0), at(a0, rc, ni.M1), at(a1, rc, ni.M1), 0.06, "wall_engine",
+              v3(out[0], 0, out[2]), overlap=1.04)
+    for y in (ni.L0 + 0.1, ni.L0 + 2.0, ni.M0 + 0.1, ni.M1 - 0.2):
+        for j in range(n):
+            a0, a1 = 360.0 * j / n, 360.0 * (j + 1) / n
+            beam(bone, "lit_stair_column_ring_%d_%d" % (int(y * 10), j), at(a0, rc + 0.05, y), at(a1, rc + 0.05, y), 0.1, "brass", width=0.06)
+
+
 def casing_fairing(bone):
     """The casing on the back of the hull, faired: a flat deck (the walkway) on rounded shoulders
     that melt into the hull, and long sloping ends (the grid's box under it keeps the collisions)."""
@@ -796,6 +885,8 @@ def build(g):
     ram(outside)
     crests(outside)
     keels(outside)
+    spiral_stair(fittings)
+    porthole_sleeves(fittings, Bone("fx_portholes", parent=root), g)
     casing_fairing(outside)
     tower_shell(outside)
     cage_hood(outside)

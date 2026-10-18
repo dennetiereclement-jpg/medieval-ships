@@ -120,7 +120,7 @@ class NautilusTest {
 		room("aronnax", 2.4, 2.8, m, 22.0, 24.0);
 		room("coursive", 2.4, 3.5, l, 5.0, 23.0);
 		room("kitchen", -2.8, -2.4, l, 6.5, 13.5);
-		room("crew", -2.6, 1.1, l, 15.0, 20.4);
+		room("crew", -2.6, -0.2, l, 15.0, 20.4);
 		room("aft corridor", -0.6, 0.6, l, -6.5, 5.0);
 		room("wheelhouse", -0.6, 0.6, NautilusLayout.TOWER_FLOOR_Y, 16.0, 18.0);
 		room("engine room (batteries)", -3.0, 0.0, l, -20.4, -13.5);

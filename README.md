@@ -73,6 +73,13 @@ Pour tous :
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
 
+La version 1.7.2 corrige et enrichit le Nautilus :
+* les hublots, vus de l'intérieur, ont un manchon de cuivre, une collerette de laiton boulonnée et une vitre, au lieu d'un trou carré ;
+* le canapé du salon est remis dans le bon sens ;
+* les vitrines qui bloquaient la porte de l'escalier sont retirées, et le palier derrière cette porte est assez grand pour passer ;
+* l'escalier en colimaçon est refait : marches en bois à nez de laiton, colonne ronde, rampe en spirale sur balustres ;
+* les cabines et le quartier de l'équipage sont plus meublés (armoires, horloges, porte-manteaux, bibliothèque, fauteuil, tapis, échiquier, cadres, deux couchettes de plus).
+
 La version 1.7.1 améliore le Nautilus :
 * l'ordre de plongée referme lui-même les panneaux ouverts, et les messages au pilote ne sont plus masqués par la jauge de profondeur ;
 * les couloirs sont plus larges ;
@@ -122,7 +129,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.7.1.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.7.2.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
