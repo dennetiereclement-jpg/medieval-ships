@@ -868,7 +868,7 @@ def shutters(root, outside):
         et = norm(np.cross(n, ez))
         if et[1] < 0:
             et = -et
-        R = np.column_stack([ez, et, n])
+        R = np.column_stack([ez, et, np.cross(ez, et)])  # a rotation on both sides (n may point the other way)
         for leaf, sgn in (("fore", 1), ("aft", -1)):
             bone = Bone("shutter_%s_%s" % (sn, leaf), parent=root)
             c = c0 + n * out + ez * (sgn * half / 2)
