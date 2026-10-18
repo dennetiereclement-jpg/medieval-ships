@@ -450,4 +450,28 @@ class NautilusTest {
 			}
 		}
 	}
+
+	/** The in-game basin: 28 wide, 26 deep, glass at both ends; a short route down to a stop at 9 blocks. */
+	@Test
+	void autopilotStopsUnderWaterInTheBasin() {
+		TestSea basin = new TestSea((x, z) -> Math.abs(x) > 14 || Math.abs(z) > 72 ? Double.NaN : 37.0);
+		Route route = new Route("nautile", "minecraft:overworld");
+		route.mode = Route.Mode.ONCE;
+		route.points.add(new Waypoint(0, 63, -19.5, 3, "Quai"));
+		Waypoint mid = new Waypoint(0, 63, 1.0, 0, null);
+		mid.depth = 9.0;
+		mid.speed = 2.0;
+		route.points.add(mid);
+		Waypoint stop = new Waypoint(0, 63, 20.5, 5, "Grotte");
+		stop.depth = 9.0;
+		stop.speed = 2.0;
+		route.points.add(stop);
+		SubRun s = new SubRun(0, -19.5, route);
+		s.run(route, basin, 120, () -> s.ap.phase == Autopilot.Phase.DOCKED && s.ap.target == 2);
+		double surfaced = 63.0 - G.hull().waterlineY;
+		assertEquals(Autopilot.Phase.DOCKED, s.ap.phase, "docked; at " + s.pose + " target " + s.ap.target + " phase " + s.ap.phase
+				+ " depth " + (surfaced - s.pose.y()) + " speed " + s.physics.speed + " altErr " + s.ap.altitudeError);
+		assertEquals(9, surfaced - s.pose.y(), 1.0);
+		assertEquals(0, s.collisions);
+	}
 }
