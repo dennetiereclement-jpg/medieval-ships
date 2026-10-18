@@ -40,8 +40,8 @@ REGIONS = {
     "fin":         (0, 96, 96, 96),
 }
 
-CREAM = _rgb("eadcb8")
-CREAM_DARK = _rgb("c9b78f")
+CREAM = _rgb("e9d6ad")
+CREAM_DARK = _rgb("c4ac80")
 BLUE = _rgb("5e7088")
 BLUE_DARK = _rgb("3f4d61")
 ROPE = _rgb("b46e33")
@@ -133,7 +133,7 @@ def make_texture(path, fin_tri):
             d = abs(x - w / 2 + 0.5) + abs(y - h / 2 + 0.5)
             px[u + x, v + y] = (_rgb("fff1a8") if d < 5 else _rgb("ffc94a")) + (255,)
     # wood
-    _planks(img, reg("hull"), _rgb("5a3a22"), _rgb("2e1d10"), 4, rng)
+    _planks(img, reg("hull"), _rgb("6a4527"), _rgb("2e1d10"), 4, rng)
     _planks(img, reg("hull_light"), _rgb("7a5232"), _rgb("4a301a"), 4, rng)
     _planks(img, reg("deck"), _rgb("8a6644"), _rgb("4e3820"), 4, rng)
     _planks(img, reg("dark_wood"), _rgb("4a301a"), _rgb("281809"), 4, rng)
@@ -180,7 +180,7 @@ def make_texture(path, fin_tri):
                 px[u + x, v + y] = (0, 0, 0, 0)
                 continue
             d = edge_dist(x + 0.5, y + 0.5)
-            c = _shade(_rgb("efe2bf"), 1.0 - 0.04 * ((x * 3 + y) % 7 == 0))
+            c = _shade(_rgb("efdcae"), 1.0 - 0.04 * ((x * 3 + y) % 7 == 0))
             if (x + y) % 12 == 0:
                 c = _shade(c, 0.9)
             if d < 1.6:

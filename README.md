@@ -62,6 +62,10 @@ Pour tous :
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
 
+La version 1.6.1 améliore le dirigeable (hélice à 8 pales en pagaie, nez à nervures en laiton et
+collier doré, cerclages et suspentes plus épais terminés par des chaînes de maillons dorés,
+volant d'inertie, tuyau en laiton, couleurs plus chaudes) et donne du relief aux voiles de la
+galère, du galion et du vaisseau (ombre vers les bords, coutures et ralingue plus visibles).
 La version 1.6.0 ajoute le **dirigeable steampunk** (`steampunk_airship`), un véhicule volant
 reproduit d'après l'image de référence, avec sa propre physique de vol, ses itinéraires aériens
 en 3D et son pilote automatique, sans rien changer aux six navires.
@@ -97,7 +101,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.6.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.6.1.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation

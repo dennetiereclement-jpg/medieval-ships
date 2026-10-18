@@ -40,7 +40,7 @@ NOSE_ROD_Z = BALLOON_FRONT_Z + 2.0
 TAIL_END_Z = -14.6
 PROP_Z = -15.2
 PROP_R = 2.4
-PROP_BLADES = 6
+PROP_BLADES = 8
 # fins: azimuth from the top (degrees, + to port), root along the balloon, tip beyond it
 FIN_AZIMUTHS = (0.0, 125.0, -125.0)
 FIN_ROOT_Z = (-3.6, -9.6)

@@ -169,7 +169,10 @@ def _sail_cloth(px, region, rng):
     for y in range(h):
         fy = y / h
         for x in range(w):
+            fx = x / w
+            # the belly catches the light, the leeches and the head fall into shade
             k = cloth_tone[x // 12] * (1.0 - 0.07 * abs(fy - 0.4)) - 0.04 * max(0.0, fy - 0.75)
+            k -= 0.09 * (2 * abs(fx - 0.5)) ** 2 + 0.05 * max(0.0, 0.12 - fy) / 0.12
             if (x * 7 + y * 3) % 17 == 0:
                 k -= 0.03
             for bx, by, br in blot:  # faint weathering stains
@@ -180,9 +183,11 @@ def _sail_cloth(px, region, rng):
             c[2] = int(c[2] * (1.0 - 0.03 * fy))  # the foot yellows a little
             c = tuple(c)
             if x % 12 == 11:
-                c = tuple(int(q * 0.9) for q in c)
+                c = tuple(int(q * 0.84) for q in c)
             elif x % 12 == 10:
-                c = tuple(min(255, int(q * 1.03)) for q in c)
+                c = tuple(min(255, int(q * 1.04)) for q in c)
+            elif x % 12 == 0 and y % 3 == 1:
+                c = tuple(int(q * 0.93) for q in c)  # stitching of the seam
             for band in (0.14, 0.27):
                 yb = int(h * band)
                 if y == yb or y == yb + 1:

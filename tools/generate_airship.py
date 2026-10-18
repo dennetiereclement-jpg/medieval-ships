@@ -180,6 +180,16 @@ def build():
     # nose: brass cap and the rod with its rings and ball
     front = zs(1.0)
     disc(balloon, "nose_cap", v3(0, BY, front - 0.05), (0, 0, 1), 0.42, 0.14, "brass")
+    disc(balloon, "nose_dome", v3(0, BY, front - 0.2), (0, 0, 1), 0.62, 0.3, "iron")
+    ring(balloon, "nose_hub_ring", v3(0, BY, front - 0.14), (0, 0, 1), 0.66, 0.1, "gold", n=12)
+    # brass ribs on the blue cap, from the hub back to a gold collar where the cream cloth begins
+    zc = zs(NOSE_S)
+    for k in range(8):
+        az = 22.5 + 45 * k
+        pts = [P(zs(s_), az, 0.07) for s_ in (NOSE_S, 0.8, 0.88, 0.94, 0.975)]
+        for j in range(len(pts) - 1):
+            beam(balloon, "nose_rib_%d_%d" % (k, j), pts[j], pts[j + 1], 0.08, "brass", extend=0.04)
+    ring(balloon, "nose_collar", v3(0, BY, zc), (0, 0, 1), asp.balloon_radius(zc) + 0.1, 0.16, "gold", n=24)
     beam(balloon, "nose_rod", v3(0, BY, front - 0.2), v3(0, BY, asp.NOSE_ROD_Z), 0.14, "brass")
     for k, z in enumerate((front + 0.5, front + 1.2)):
         add_cube(balloon, "nose_rod_ring_%d" % k, v3(0, BY, z), EYE, (0.24, 0.24, 0.1), "gold")
@@ -213,11 +223,11 @@ def build():
     # rope hoops with gold clasps where they cross the bands
     for h, s in enumerate(HOOP_S):
         z = zs(s)
-        r = asp.balloon_radius(z) + 0.16
-        ring(balloon, "hoop_%d" % h, v3(0, BY, z), (0, 0, 1), r, 0.17, "rope", n=24)
+        r = asp.balloon_radius(z) + 0.18
+        ring(balloon, "hoop_%d" % h, v3(0, BY, z), (0, 0, 1), r, 0.24, "rope", n=24)
         for k, az in enumerate(BAND_AZ):
-            p = P(z, az, 0.2)
-            add_cube(balloon, "clasp_%d_%d" % (h, k), p, rz(-math.radians(az)), (0.3, 0.12, 0.34), "gold")
+            p = P(z, az, 0.24)
+            add_cube(balloon, "clasp_%d_%d" % (h, k), p, rz(-math.radians(az)), (0.34, 0.14, 0.4), "gold")
 
     # ---------------------------------------------------------------- tail: lattice cone, shaft, propeller
     rear = zs(BALLOON_S[0])
@@ -259,9 +269,15 @@ def build():
         w = side * math.cos(pitch) + v3(0, 0, 1) * math.sin(pitch)
         n = np.cross(d, w)
         axes = np.column_stack([d, w, n])
-        add_cube(prop, "prop_blade_%d" % k, hub + d * 1.45, axes, (2.1, 0.62, 0.1), "prop")
-        add_cube(prop, "prop_blade_tip_%d" % k, hub + d * (asp.PROP_R - 0.12), axes, (0.26, 0.48, 0.11), "prop")
-        add_cube(prop, "prop_sleeve_%d" % k, hub + d * 0.5, axes, (0.32, 0.32, 0.16), "brass")
+        # a wooden paddle: narrow shank from a brass sleeve, then a blade widening to a pointed tip
+        add_cube(prop, "prop_shank_%d" % k, hub + d * 0.72, axes, (0.7, 0.3, 0.12), "prop")
+        add_cube(prop, "prop_sleeve_%d" % k, hub + d * 0.5, axes, (0.3, 0.38, 0.18), "brass")
+        for j, (r0, r1, wd) in enumerate(((1.0, 1.55, 0.5), (1.55, 2.05, 0.66))):
+            add_cube(prop, "prop_blade_%d_%d" % (k, j), hub + d * ((r0 + r1) / 2), axes, (r1 - r0 + 0.02, wd, 0.1), "prop")
+        add_cube(prop, "prop_blade_tip_%d" % k, hub + d * (asp.PROP_R - 0.2), axes, (0.3, 0.42, 0.1), "prop")
+        add_cube(prop, "prop_blade_point_%d" % k, hub + d * (asp.PROP_R - 0.02), axes, (0.08, 0.2, 0.1), "prop")
+        add_cube(prop, "prop_blade_bolt_%d" % k, hub + d * 1.05 + n * 0.06, axes, (0.1, 0.1, 0.04), "brass")
+    ring(prop, "prop_hub_ring", hub + v3(0, 0, 0.05), (0, 0, 1), 0.46, 0.09, "gold", n=10)
 
     # ---------------------------------------------------------------- fins
     fin_tri = None
@@ -312,8 +328,9 @@ def build():
         za, zb = STATIONS[i], STATIONS[i + 1]
         beam(gondola, "keel_%d" % i, (0, asp.keel_y(za) - 0.05, za), (0, asp.keel_y(zb) - 0.05, zb), 0.2, "dark_wood", width=0.24,
              extend=0.05)
-    for k, z in enumerate((-4.2, 0.0, 4.2)):
-        add_cube(gondola, "foot_%d" % k, (0, asp.LOWEST_Y + 0.13, z), EYE, (0.5, 0.26, 0.7), "dark_wood")
+    for k, z in enumerate((-4.8, -2.4, 0.0, 2.4, 4.8)):
+        top, bot = asp.keel_y(z) + 0.05, max(asp.LOWEST_Y, asp.keel_y(z) - 0.3)
+        add_cube(gondola, "foot_%d" % k, (0, (top + bot) / 2, z), EYE, (0.5, top - bot, 0.7), "dark_wood")
     # stem and stern posts rising a little above the rail, with brass caps
     for s, tag in ((1, "stem"), (-1, "stern")):
         z0 = s * (asp.HALF_LENGTH + 0.2)
@@ -381,13 +398,21 @@ def build():
             a = 2 * math.pi * t / (12 if k == 0 else 8)
             d = v3(0, math.cos(a), math.sin(a))
             add_cube(engine, "gear_tooth_%d_%d" % (k, t), gc + d * (r + 0.08), rx(-a), (0.1, 0.12, 0.1), "brass")
+    # flywheel on the starboard side: a spoked wheel with a gold rim on a brass bearing
+    fc = v3(-0.8, main_y + 0.85, ec[2] - 0.1)
+    ring(engine, "flywheel_rim", fc, (1, 0, 0), 0.6, 0.14, "gold", n=12)
+    for t in range(3):
+        a = math.pi * t / 3
+        d = v3(0, math.cos(a), math.sin(a))
+        beam(engine, "flywheel_spoke_%d" % t, fc - d * 0.58, fc + d * 0.58, 0.07, "iron")
+    add_cube(engine, "flywheel_bearing", fc + v3(0.08, 0, 0), EYE, (0.2, 0.24, 0.24), "brass")
     # curved exhaust pipe: up from the boiler, bending back, flared mouth facing aft
     pts = [v3(0, main_y + 1.4, ez0 + 0.45), v3(0, 3.0, ez0 + 0.45), v3(0, 3.9, ez0 + 0.4), v3(0, 4.45, ez0 + 0.15),
            v3(0, 4.75, ez0 - 0.3), v3(0, 4.85, ez0 - 0.8)]
     for k in range(len(pts) - 1):
-        beam(engine, "exhaust_%d" % k, pts[k], pts[k + 1], 0.44, "iron", extend=0.1)
+        beam(engine, "exhaust_%d" % k, pts[k], pts[k + 1], 0.44, "brass", extend=0.1)
     for k, p in enumerate((pts[1], pts[3])):
-        add_cube(engine, "exhaust_ring_%d" % k, p, EYE, (0.54, 0.1, 0.54), "brass")
+        add_cube(engine, "exhaust_ring_%d" % k, p, EYE, (0.54, 0.1, 0.54), "iron")
     add_cube(engine, "exhaust_mouth", pts[-1] + v3(0, 0, -0.1), EYE, (0.64, 0.64, 0.16), "brass")
     add_cube(engine, "exhaust_soot", pts[-1] + v3(0, 0, -0.19), EYE, (0.34, 0.34, 0.02), "iron")
 
@@ -399,13 +424,15 @@ def build():
             top = P(z, side * 150, 0.2)
             zr = max(-asp.HALF_LENGTH + 1.0, min(asp.HALF_LENGTH - 1.0, z))
             rail = v3(side * hw(zr), sheer(zr) + 0.12, zr)
-            ringc = rail + (top - rail) * (0.95 / np.linalg.norm(top - rail))
-            beam(ropes, "line_%s%d" % (sn, k), top, rail + (top - rail) * (0.12 / np.linalg.norm(top - rail)), 0.16, "rope",
-                 extend=0.04)
-            # gold ring threaded on the line and a gold shackle where it is made fast to the rail
-            ring(ropes, "line_ring_%s%d" % (sn, k), ringc, top - rail, 0.2, 0.07, "gold", n=8)
-            beam(ropes, "line_shackle_%s%d" % (sn, k), rail, rail + (top - rail) * (0.3 / np.linalg.norm(top - rail)), 0.07,
-                 "gold", width=0.22)
+            dl = norm(top - rail)
+            # braided line from the hoop down to a short chain of big gold links made fast to the rail
+            beam(ropes, "line_%s%d" % (sn, k), top, rail + dl * 1.12, 0.21, "rope", extend=0.04)
+            ring(ropes, "line_ring_%s%d" % (sn, k), rail + dl * 1.5, dl, 0.19, 0.08, "gold", n=8)
+            p1 = norm(np.cross(dl, v3(0, 0, 1)))
+            p2 = np.cross(dl, p1)
+            for c in range(3):
+                ring(ropes, "line_link_%s%d_%d" % (sn, k, c), rail + dl * (0.22 + 0.33 * c), p1 if c % 2 else p2, 0.17, 0.07,
+                     "gold", n=6)
             add_cube(ropes, "line_clamp_%s%d" % (sn, k), rail, EYE, (0.16, 0.12, 0.3), "brass")
             add_cube(ropes, "line_clasp_%s%d" % (sn, k), top, rz(-math.radians(side * 150)), (0.28, 0.14, 0.3), "gold")
 

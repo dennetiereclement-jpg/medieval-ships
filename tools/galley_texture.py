@@ -162,15 +162,32 @@ def make_texture(path, sail_triangle):
         pos = d1 > 0 or d2 > 0 or d3 > 0
         return not (neg and pos)
 
+    tri = ((au, av), (bu, bv), (cu, cv))
+
+    def edge_dist(x, y):
+        d = 1e9
+        for i in range(3):
+            (x1, y1), (x2, y2) = tri[i], tri[(i + 1) % 3]
+            ex, ey = x2 - x1, y2 - y1
+            t = max(0.0, min(1.0, ((x - x1) * ex + (y - y1) * ey) / (ex * ex + ey * ey)))
+            d = min(d, math.hypot(x - x1 - ex * t, y - y1 - ey * t))
+        return d
+
     cloth = _rgb("efe6d2")
     for y in range(h):
         for x in range(w):
             if inside(x + 0.5, y + 0.5):
                 # clean cream canvas: cloths sewn across the yard, soft light in the belly
                 k = 1.0 - 0.07 * abs(y / h - 0.45) - (0.03 if (x * 7 + y * 3) % 17 == 0 else 0)
+                # light in the belly, shade towards the edges of the triangle
+                k -= 0.08 * max(0.0, 1.0 - edge_dist(x + 0.5, y + 0.5) / 18.0)
                 c = tuple(int(b * k) for b in (243, 234, 214))
                 if x % 12 == 11:
-                    c = tuple(int(b * 0.9) for b in c)
+                    c = tuple(int(b * 0.85) for b in c)
+                elif x % 12 == 0 and y % 3 == 1:
+                    c = tuple(int(b * 0.93) for b in c)  # stitching of the seam
+                if edge_dist(x + 0.5, y + 0.5) < 1.5:
+                    c = _rgb("c8ad7a")  # bolt rope
                 if y < 2:
                     c = _rgb("b89a62")  # reinforced head along the yard
                 px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
