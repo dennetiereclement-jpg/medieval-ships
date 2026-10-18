@@ -1341,6 +1341,20 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		tpLocal(server, shipPose(sp, type), -1.0, 0.02, -2, -90, 0);
 		context.waitTicks(15);
 		shot(context, id + "_6c_volets_fermes");
+		// a seat of the salon: a real click on the sofa
+		tpLocal(server, shipPose(sp, type), 0, 0.02, -0.6, 180, 60);
+		context.waitTicks(15);
+		context.getInput().pressKey(o -> o.useKey);
+		context.waitTicks(20);
+		int seat = server.computeOnServer(srv -> {
+			ShipEntity sh = ship(srv.getOverworld(), type);
+			ServerPlayerEntity pl = srv.getPlayerManager().getPlayerList().get(0);
+			return pl.getVehicle() == sh ? sh.seatOf(pl) : -1;
+		});
+		check(seat > ShipGeometry.PILOT_SEAT, "%s salon: a click on the sofa seats the player (seat %d)", id, seat);
+		shot(context, id + "_6e_assis_dans_le_salon");
+		server.runCommand("ride @p dismount");
+		context.waitTicks(10);
 		// the lamps switched off, then on again (command)
 		nautilusCommand(server, "lumieres off");
 		context.waitTicks(10);
