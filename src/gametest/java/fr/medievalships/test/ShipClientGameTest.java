@@ -52,11 +52,23 @@ public class ShipClientGameTest implements FabricClientGameTest {
 	@Override
 	public void runTest(ClientGameTestContext context) {
 		log("lithium installed: %s", net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("lithium"));
+		net.fabricmc.fabric.api.client.gametest.v1.world.TestWorldSave save = null;
 		try (TestSingleplayerContext sp = context.worldBuilder().create()) {
 			tag = "solo";
 			scenario(context, new Env(sp.getServer(), sp.getClientWorld()));
+			nautilusBeforeRestart(context, new Env(sp.getServer(), sp.getClientWorld()));
+			save = sp.getWorldSave();
 		} catch (Throwable t) {
 			fail("solo: exception: " + t);
+		}
+		// the same world reopened: the Nautilus finds its state again (persistence across a restart)
+		if (save != null) {
+			try (TestSingleplayerContext sp = save.open()) {
+				tag = "solo-redemarrage";
+				nautilusAfterRestart(context, new Env(sp.getServer(), sp.getClientWorld()));
+			} catch (Throwable t) {
+				fail("solo-redemarrage: exception: " + t);
+			}
 		}
 		// same scenario on a dedicated server, the client connected over the network (like a real server)
 		try {
@@ -1522,6 +1534,94 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		});
 		server.runCommand(String.format(Locale.ROOT, "forceload remove %d %d %d %d", x0, z0, x1, z1));
 		context.waitTicks(10);
+	}
+
+	/** Leaves a Nautilus with doors, airlock, fittings, lifeboat and an ordered depth set, before the world is closed. */
+	private void nautilusBeforeRestart(ClientGameTestContext context, Env sp) {
+		var server = sp.getServer();
+		ShipType type = Ships.NAUTILUS;
+		server.runCommand("ride @p dismount");
+		server.runCommand("gamemode spectator @a");
+		server.runCommand("forceload add 200 -72 230 72");
+		server.runCommand("tp @p 215 -20 -50 0 30");
+		context.waitTicks(40);
+		server.runCommand("execute positioned 215 -37 -20 rotated 0 0 run ship spawn nautilus");
+		context.waitTicks(60);
+		if (shipPose(sp, type) == null) {
+			fail("nautilus persistence: not spawned");
+			return;
+		}
+		server.runCommand("tp @p 215 -25 -35 0 30");
+		context.waitTicks(10);
+		nautilusCommand(server, "canot lancer");
+		context.waitTicks(10);
+		server.computeOnServer(srv -> {
+			ShipEntity s = ship(srv.getOverworld(), type);
+			s.setDoor(3, true);
+			s.setDoor(5, true);
+			s.setAirlockLevel(0.5f);
+			s.setAirlockTarget(0.5f);
+			s.setToggle(Ships.NautilusLayout.SHUTTERS_CLOSED, true);
+			s.setToggle(Ships.NautilusLayout.FLOODLIGHT_ON, true);
+			s.setToggle(Ships.NautilusLayout.LIGHTS_OFF, true);
+			s.setTargetDepth(6);
+			return null;
+		});
+		context.waitTicks(300);
+		ShipPose p = shipPose(sp, type);
+		float depth = server.computeOnServer(srv -> ship(srv.getOverworld(), type).syncedDepth());
+		log("nautilus before the restart: at %.2f %.2f %.2f, depth %.2f", p.x(), p.y(), p.z(), depth);
+		nautilusSaved = new double[] {p.x(), p.y(), p.z(), depth};
+		server.runCommand("tp @p 215 -20 -50 0 30");
+		context.waitTicks(20);
+	}
+
+	private double[] nautilusSaved;
+
+	private void nautilusAfterRestart(ClientGameTestContext context, Env sp) {
+		var server = sp.getServer();
+		ShipType type = Ships.NAUTILUS;
+		context.waitTicks(100);
+		sp.getClientWorld().waitForChunksRender();
+		ShipPose p = shipPose(sp, type);
+		check(p != null, "nautilus reloaded after the restart");
+		if (p == null || nautilusSaved == null) {
+			return;
+		}
+		Object[] st = server.computeOnServer(srv -> {
+			ShipEntity s = ship(srv.getOverworld(), type);
+			boolean boat = s.lifeboatId() != null && srv.getOverworld().getEntity(s.lifeboatId()) != null;
+			return new Object[] {s.doorOpen(3), s.doorOpen(5), s.doorOpen(4), s.airlockLevel(), s.toggle(Ships.NautilusLayout.SHUTTERS_CLOSED),
+					s.toggle(Ships.NautilusLayout.FLOODLIGHT_ON), s.toggle(Ships.NautilusLayout.LIGHTS_OFF),
+					s.toggle(Ships.NautilusLayout.LIFEBOAT_AWAY), boat, s.targetDepth(), s.syncedDepth()};
+		});
+		log("nautilus after the restart: at %.2f %.2f %.2f, state %s", p.x(), p.y(), p.z(), java.util.Arrays.toString(st));
+		check(Math.abs(p.x() - nautilusSaved[0]) < 1 && Math.abs(p.z() - nautilusSaved[2]) < 1 && Math.abs(p.y() - nautilusSaved[1]) < 0.6,
+				"nautilus restart: same place and depth (y %.2f, before %.2f)", p.y(), nautilusSaved[1]);
+		check((Boolean) st[0] && (Boolean) st[1] && !(Boolean) st[2], "nautilus restart: the doors open before are still open, the others shut");
+		check(Math.abs((Float) st[3] - 0.5f) < 0.02, "nautilus restart: airlock half full (%.2f)", (Float) st[3]);
+		check((Boolean) st[4] && (Boolean) st[5] && (Boolean) st[6], "nautilus restart: shutters closed, projector on, lamps off");
+		check((Boolean) st[7] && (Boolean) st[8], "nautilus restart: the lifeboat is still on the water and known to the Nautilus");
+		check(Math.abs((Double) st[9] - 6) < 0.01, "nautilus restart: ordered depth kept (%.1f)", (Double) st[9]);
+		server.runCommand("gamemode spectator @a");
+		lookLocal(server, p, 40, 12, 30, 0, 4, 0);
+		context.waitTicks(30);
+		shot(context, "nautilus_10_apres_redemarrage");
+		// taken back aboard after the restart
+		tpLocal(server, p, 0, Ships.NautilusLayout.TOWER_FLOOR_Y + 0.02, 17.0, 0, 0);
+		server.runCommand("gamemode survival @a");
+		context.waitTicks(10);
+		nautilusCommand(server, "canot rembarquer");
+		context.waitTicks(10);
+		boolean away = server.computeOnServer(srv -> ship(srv.getOverworld(), type).toggle(Ships.NautilusLayout.LIFEBOAT_AWAY));
+		check(!away, "nautilus restart: the lifeboat is taken back aboard");
+		server.computeOnServer(srv -> {
+			for (ShipEntity s : ShipTracker.ships(srv.getOverworld())) {
+				s.discard();
+			}
+			return null;
+		});
+		server.runCommand("forceload remove 200 -72 230 72");
 	}
 
 	/** A /ship nautilus command run by the player (the ship is the one he is in or near). */
