@@ -123,6 +123,20 @@ def inner_decal(bone, name, z, y, side, w, h, region, wall=0.12, th=0.03):
                     u_dir=u * side, v_dir=v3(0, -1, 0))
 
 
+def wainscot(bone, name, z0, z1, y0, y1, side, panel="panel", rail="gold", step=1.1, wall=0.12, skip=()):
+    """Panelled lower wall along the inside of the hull, from z0 to z1, with a gilded rail on top;
+    skip = (z_a, z_b) ranges left bare (doors, stairs)."""
+    n = max(1, int(round(abs(z1 - z0) / step)))
+    for k in range(n):
+        za = z0 + (z1 - z0) * k / n
+        zb = z0 + (z1 - z0) * (k + 1) / n
+        z = (za + zb) / 2
+        if any(a <= z <= b for a, b in skip):
+            continue
+        inner_decal(bone, "%s_%d" % (name, k), z, (y0 + y1) / 2, side, abs(zb - za) - 0.08, y1 - y0, panel, wall=wall)
+        inner_decal(bone, "%s_rail_%d" % (name, k), z, y1 + 0.05, side, abs(zb - za) + 0.01, 0.08, rail, wall=wall, th=0.06)
+
+
 def set_sub(cube, sub, faces=("north", "south")):
     for f in faces:
         if cube.faces.get(f):
@@ -466,6 +480,9 @@ def build():
     # furnishing: carpet, chart table and dining table by the two chairs, bunk, bookshelf,
     # weapon rack, globe, paintings between the windows, lanterns hanging from the beams
     sd.rug(gg, cabin, "cabin_rug", (0, main_y, -13.8), 1.9, 4.6)
+    sd.chandelier(gg, cabin, "cabin_chandelier", (0, slab_bottom - 0.12, -15.4), drop=0.4, r=0.38)
+    for side, sn in SIDES:
+        wainscot(cabin, "cabin_wainscot_" + sn, -9.9, -16.9, main_y + 0.12, main_y + 0.62, side)
     for side, sn in SIDES:
         sd.table(gg, cabin, "cabin_table_" + sn, (side * 1.35, main_y, -13.0), 0.7, 0.95, h=0.75)
         sd.hanging_lantern(gg, lanterns, "cabin_hanging_lantern_" + sn, (side * 1.3, slab_bottom - 0.2, -15.0), drop=0.2)

@@ -46,6 +46,8 @@ Pour tous :
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
 
+La version 1.5.6 aménage encore les grandes cabines du galion et du vaisseau : lambris à lisse
+dorée, lustres à bougies, carré autour du mât d'artimon et buffets dans le vaisseau.
 La version 1.5.5 orne les tambours des roues du bateau à vapeur d'un éventail doré et refait ses
 cheminées en viroles de fer rivetées.
 La version 1.5.4 sculpte un vrai lion couronné à la proue du galion et du vaisseau, une volute
@@ -76,7 +78,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.5.5.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.5.6.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation

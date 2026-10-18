@@ -242,3 +242,34 @@ def globe(m, bone, name, p, sea="blue_paint", metal="gold"):
     m.add_cube(bone, name + "_stand", p + v3(0, 0.05, 0), EYE, (0.22, 0.1, 0.22), metal)
     m.add_cube(bone, name + "_ball", p + v3(0, 0.3, 0), EYE, (0.34, 0.34, 0.34), sea)
     m.add_cube(bone, name + "_ring", p + v3(0, 0.3, 0), EYE, (0.04, 0.44, 0.44), {"all": metal, "+1": None, "-1": None})
+
+
+def chandelier(m, bone, name, hook, drop=0.45, r=0.45, n=8, metal="gold", wax="cloth_roll"):
+    """Brass chandelier hanging from a ceiling beam: rod, ring of n arms with lit candles, central boss."""
+    hook = v3(*hook)
+    c = hook - v3(0, drop, 0)
+    m.add_cube(bone, name + "_rod", (hook + c) / 2, EYE, (0.04, drop, 0.04), metal)
+    m.add_cube(bone, name + "_boss", c - v3(0, 0.06, 0), EYE, (0.16, 0.18, 0.16), metal)
+    m.add_cube(bone, name + "_drop", c - v3(0, 0.2, 0), EYE, (0.07, 0.12, 0.07), metal)
+    import math
+    for k in range(n):
+        a0, a1 = 2 * math.pi * k / n, 2 * math.pi * (k + 1) / n
+        p0 = c + v3(math.cos(a0) * r, -0.05, math.sin(a0) * r)
+        p1 = c + v3(math.cos(a1) * r, -0.05, math.sin(a1) * r)
+        m.beam(bone, "%s_ring_%d" % (name, k), p0, p1, 0.04, metal, extend=0.02)
+        m.beam(bone, "%s_arm_%d" % (name, k), c - v3(0, 0.05, 0), p0, 0.03, metal)
+        m.add_cube(bone, "%s_cup_%d" % (name, k), p0 + v3(0, 0.01, 0), EYE, (0.08, 0.03, 0.08), metal)
+        m.add_cube(bone, "%s_candle_%d" % (name, k), p0 + v3(0, 0.08, 0), EYE, (0.045, 0.11, 0.045), wax)
+        m.add_cube(bone, "glow_%s_flame_%d" % (name, k), p0 + v3(0, 0.17, 0), EYE, (0.03, 0.06, 0.03), "glow", stretch=True)
+
+
+def sideboard(m, bone, name, p, yaw=0.0, w=1.1, d=0.45, h=0.9, wood="dark_wood", top="hull_light", metal="gold"):
+    """Low cabinet with two doors, a polished top and brass handles."""
+    p = v3(*p)
+    R = ry(yaw)
+    m.add_cube(bone, name, p + v3(0, h / 2, 0), R, (w, h - 0.06, d), wood)
+    m.add_cube(bone, name + "_top", p + v3(0, h - 0.025, 0), R, (w + 0.06, 0.05, d + 0.05), top)
+    for k, x in enumerate((-w / 4, w / 4)):
+        m.add_cube(bone, "%s_door_%d" % (name, k), p + R @ v3(x, h / 2, d / 2 + 0.01), R, (w / 2 - 0.08, h - 0.22, 0.02), top)
+        m.add_cube(bone, "%s_handle_%d" % (name, k), p + R @ v3(x * 0.25, h / 2, d / 2 + 0.03), R, (0.04, 0.1, 0.03), metal)
+

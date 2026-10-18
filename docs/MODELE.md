@@ -301,6 +301,12 @@ lanternes se balancent doucement, chacune avec sa phase).
   2 575 sur le vaisseau, 505 sur la galère rouge, 1 825 sur le bateau à vapeur, 495 sur le
   voilier ; après : 0 (test `NoZFightingTest`). `python3 tools/zfight.py <navire> [--fix]` affiche
   les paires restantes.
+* **Intérieurs** (1.5.6, `docs/preview_interieurs.png`) : lambris (panneaux du décor de la
+  coque, lisse dorée) le long des murs des grandes cabines du galion et du vaisseau, sous les
+  fenêtres ; **lustres** en laiton à bougies allumées (8 au-dessus du tapis du galion, 10
+  au-dessus de la table du conseil du vaisseau) ; dans le vaisseau, un **carré** devant la table
+  du conseil : table ronde autour du mât d'artimon avec six tabourets, couverts et bougies, et
+  deux buffets à portes contre la cloison (`sd.chandelier`, `sd.sideboard`, `gn.wainscot`).
 * **Figures de proue** (1.5.4, `docs/preview_figures_de_proue.png`) : le galion et le vaisseau
   ont le même lion dressé et couronné (`lion_figurehead` dans `tools/generate_galleon.py`) :
   crinière en touffes autour de la face, arcade, museau, truffe, gueule ouverte avec crocs et

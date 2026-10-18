@@ -269,7 +269,27 @@ def build():
     sd.chart_on_table(gg, cabin, "council_chart", (0, tt, -21.5))
     sd.tableware(gg, cabin, "council_dinner_0", (0.3, tt, -19.8), yaw=math.pi)
     sd.tableware(gg, cabin, "council_dinner_1", (-0.3, tt, -23.2))
-    sd.hanging_lantern(gg, lanterns, "council_lantern", (0, slab_bottom - 0.2, -22.0), drop=0.25)
+    sd.chandelier(gg, cabin, "council_chandelier", (0, slab_bottom - 0.12, -21.5), drop=0.5, r=0.55, n=10)
+    # wardroom in the fore part of the cabin: a round table round the mizzen with stools, sideboards
+    # against the bulkhead, panelled walls with a gilded rail under the windows
+    mz = ws.MIZZEN_Z
+    for k in range(8):
+        a = 2 * math.pi * (k + 0.5) / 8
+        R8 = gg.ry(-a)
+        add_cube(cabin, "mast_table_%d" % k, (math.sin(a) * 0.62, main_y + 0.76, mz + math.cos(a) * 0.62), R8, (0.55, 0.06, 0.62),
+                 {"all": "dark_wood", "+2": "hull_light"})
+    add_cube(cabin, "mast_table_foot", (0, main_y + 0.37, mz), EYE, (1.0, 0.74, 1.0), "dark_wood")
+    for k in range(6):
+        a = 2 * math.pi * k / 6 + 0.3
+        sd.stool(gg, cabin, "mast_stool_%d" % k, (math.sin(a) * 1.35, main_y, mz + math.cos(a) * 1.35), top="red_paint")
+    sd.tableware(gg, cabin, "mast_dinner_0", (0.55, main_y + 0.79, mz + 0.35), yaw=0.6)
+    sd.tableware(gg, cabin, "mast_dinner_1", (-0.55, main_y + 0.79, mz - 0.35), yaw=3.7)
+    sd.candle(gg, cabin, "mast_candle_0", (0.6, main_y + 0.79, mz - 0.4))
+    sd.candle(gg, cabin, "mast_candle_1", (-0.6, main_y + 0.79, mz + 0.4))
+    for side, sn in SIDES:
+        sd.sideboard(gg, cabin, "sideboard_" + sn, (side * 2.6, main_y, bz0 - 0.3), yaw=math.pi, w=1.2)
+        sd.candle(gg, cabin, "sideboard_candle_" + sn, (side * 2.3, main_y + 0.9, bz0 - 0.3))
+        gn.wainscot(cabin, "cabin_wainscot_" + sn, bz0 - 0.2, -25.8, main_y + 0.12, main_y + 0.62, side, wall=0.14)
     for side, sn in SIDES:
         sd.hanging_lantern(gg, lanterns, "cabin_hanging_lantern_" + sn, (side * 2.4, slab_bottom - 0.2, -17.5), drop=0.15)
         # paintings: on the bulkhead between its windows and on the side walls between the windows
