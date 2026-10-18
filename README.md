@@ -79,6 +79,7 @@ La version 1.7.3 améliore encore le Nautilus :
 * par les baies et les hublots, la mer se voit comme quand on nage : brouillard et teinte bleue sous l'eau ;
 * les tableaux sont les tableaux vanilla de Minecraft ;
 * les matériaux sont affinés : or, laiton et acier polis avec un reflet doux au lieu de taches, tuyaux d'orgue à reflet cylindrique, velours à plis, cuir capitonné patiné, parquet en vannerie dans les salons, carrelage jointoyé ;
+* les deux grandes baies du salon sont bordées d'un manchon rond et lisse (boiserie, nervures et large moulure dorées) au lieu d'un trou en escalier ;
 * le grand salon est enrichi : vasque en tridacne géante avec sa fontaine, fauteuils et longues-vues tournés vers les baies, palmiers, pilastres cannelés, corniche et rosaces dorées.
 
 La version 1.7.2 corrige et enrichit le Nautilus :

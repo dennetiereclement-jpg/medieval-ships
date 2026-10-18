@@ -299,6 +299,44 @@ def smoothstep(t):
     return t * t * (3 - 2 * t)
 
 
+BAY_WALL_X = 3.5  # the salon's side walls
+
+
+def bay_sleeves(bone):
+    """The alcoves of the two great windows of the salon, seen from the room: a round sleeve of dark
+    panelling from the wall to the glass with gilded ribs, framed on the wall by a wide gilded
+    moulding (instead of the stepped hole the grid cuts through the wall)."""
+    wz, wy, wr = ns.SALON_WINDOW
+    r = wr - 0.25
+    n = 32
+    for side in SIDES:
+        sn = "p" if side > 0 else "s"
+        wall = side * BAY_WALL_X
+
+        def P(x, rr, a):
+            return v3(x, wy + math.sin(a) * rr, wz + math.cos(a) * rr)
+
+        def glass_x(a):
+            return on_hull(wz + math.cos(a) * r, wy + math.sin(a) * r, side, -0.12)[0][0]
+
+        for j in range(n):
+            a0, a1 = 2 * math.pi * j / n, 2 * math.pi * (j + 1) / n
+            am = (a0 + a1) / 2
+            g0, g1 = glass_x(a0), glass_x(a1)
+            panel(bone, "lit_bay_%s_sleeve%d" % (sn, j), P(wall - side * 0.02, r, a0), P(wall - side * 0.02, r, a1), P(g0, r, a0), P(g1, r, a1),
+                  0.06, "organ_wood", v3(0, math.sin(am), math.cos(am)), overlap=1.03)
+            # gilded ribs along the sleeve, and the wide moulding round its mouth on the wall
+            for t, w in ((0.0, 0.55), (0.5, 0.1), (0.92, 0.12)):
+                x0 = wall + (g0 - wall) * t
+                x1 = wall + (g1 - wall) * t
+                rr = r + (0.22 if t == 0 else -0.03)
+                beam(bone, "lit_bay_%s_rib%d_%d" % (sn, int(t * 100), j), P(x0 - side * (0.04 if t == 0 else 0), rr, a0),
+                     P(x1 - side * (0.04 if t == 0 else 0), rr, a1), 0.08 if t == 0 else 0.06, "gold",
+                     width=w, up=v3(side, 0, 0) if t == 0 else v3(0, math.sin(am), math.cos(am)), extend=0.02)
+            if j % 4 == 2:
+                add_cube(bone, "lit_bay_%s_rosette%d" % (sn, j), P(wall - side * 0.12, r + 0.22, am), EYE, (0.1, 0.12, 0.12), "gold")
+
+
 def porthole_sleeves(bone, fx, g):
     """Seen from the rooms, each porthole is a bronze sleeve narrowing through the hull to its glass,
     framed on the wall by a bolted brass collar (instead of a square hole in the wall)."""
@@ -639,6 +677,8 @@ def surfaces(rooms_bone, outside_bone, g):
     for name, box in ni.ROOMS.items():
         if name in ROOM_MATERIALS:
             mat_index[g.sel(*[b + d for b, d in zip(box, (-0.01, 0.01, -0.01, 0.01, -0.01, 0.01))])] = mats.index(ROOM_MATERIALS[name])
+    wz, wy, wr = ns.SALON_WINDOW
+    alcove = (np.abs(g.X) > 3.4) & ((g.Z - wz) ** 2 + (g.Y - wy) ** 2 < (wr + 0.15) ** 2)
     count = 0
     for a in range(3):
         for s in (1, -1):
@@ -654,7 +694,7 @@ def surfaces(rooms_bone, outside_bone, g):
             nb_out[tuple(dst)] = out[tuple(src)]
             nb_mat = np.zeros_like(mat_index)
             nb_mat[tuple(dst)] = mat_index[tuple(src)]
-            inner = solid & nb_open
+            inner = solid & nb_open & ~alcove  # the bay windows' alcoves: lined by bay_sleeves instead
             outer = solid & nb_out & ~body
             slot = 1 if (a == 1 and s > 0) else 2 if a == 1 else 0
             others = [b for b in range(3) if b != a]
@@ -925,6 +965,7 @@ def build(g):
     keels(outside)
     spiral_stair(fittings)
     porthole_sleeves(fittings, Bone("fx_portholes", parent=root), g)
+    bay_sleeves(fittings)
     casing_fairing(outside)
     tower_shell(outside)
     cage_hood(outside)
