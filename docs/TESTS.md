@@ -12,7 +12,7 @@ La tâche *In-game test* lance un **vrai client Minecraft 1.21.11** avec le `.ja
 production (mod remappé, comme sur un vrai serveur), deux fois : **sans** et **avec Lithium**.
 Chaque fois, tout le scénario est joué **en solo** puis sur un **vrai serveur dédié** auquel le
 client se connecte par le réseau (contrôles de mouvement du serveur actifs) : **154 vérifications,
-toutes réussies** (version 1.5.3, avec et sans Lithium, en solo et sur serveur dédié).
+toutes réussies** (version 1.5.4, avec et sans Lithium, en solo et sur serveur dédié).
 Le test (`src/gametest/.../ShipClientGameTest.java`) crée un monde, des bassins, met les navires
 à l'eau puis vérifie (résultats et captures publiés sur les branches `test-results-vanilla` et
 `test-results-lithium`) :

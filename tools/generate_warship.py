@@ -610,14 +610,8 @@ def build():
         beam(bow, "anchor_arm_b_" + sn, (ax, 4.0, z + 0.2), (ax, 4.6, z + 0.9), 0.16, "iron")
         add_cube(bow, "hawse_" + sn, gn.side_frame(26.0, 5.6, side)[0] + v3(side * 0.03, 0, 0), EYE, (0.06, 0.32, 0.32), "iron")
     fig = Bone("figurehead", origin=(0, 5.6, 31.0), parent=bow)
-    add_cube(fig, "figurehead_body", (0, 5.85, 31.35), rx(-0.55), (0.9, 1.0, 1.7), "gold_relief")
-    add_cube(fig, "figurehead_mane", (0, 6.75, 32.0), rx(-0.3), (1.2, 1.15, 0.5), "gold_relief")
-    add_cube(fig, "figurehead_head", (0, 6.75, 32.35), EYE, (0.8, 0.8, 0.75), "gold")
-    add_cube(fig, "figurehead_muzzle", (0, 6.6, 32.8), EYE, (0.45, 0.4, 0.3), "gold")
-    add_cube(fig, "figurehead_crown", (0, 7.3, 32.3), EYE, (0.6, 0.3, 0.55), "gold_relief")
+    gn.lion_figurehead(fig, (0, 5.85, 31.3), 1.0, relief="gold_relief")
     for side, sn in SIDES:
-        add_cube(fig, "figurehead_paw_" + sn, (side * 0.3, 5.3, 31.95), EYE, (0.28, 0.5, 0.35), "gold")
-        add_cube(fig, "figurehead_ear_" + sn, (side * 0.32, 7.15, 32.3), EYE, (0.18, 0.2, 0.15), "gold")
         pts = [v3(side * 1.4, 7.3, 26.8), v3(side * 1.05, 6.7, 28.6), v3(side * 0.55, 6.1, 30.1), v3(side * 0.2, 5.8, 31.0)]
         for j in range(len(pts) - 1):
             beam(bow, "head_rail_curve_%s%d" % (sn, j), pts[j], pts[j + 1], 0.14, "gold", extend=0.05)

@@ -301,6 +301,13 @@ lanternes se balancent doucement, chacune avec sa phase).
   2 575 sur le vaisseau, 505 sur la galère rouge, 1 825 sur le bateau à vapeur, 495 sur le
   voilier ; après : 0 (test `NoZFightingTest`). `python3 tools/zfight.py <navire> [--fix]` affiche
   les paires restantes.
+* **Figures de proue** (1.5.4, `docs/preview_figures_de_proue.png`) : le galion et le vaisseau
+  ont le même lion dressé et couronné (`lion_figurehead` dans `tools/generate_galleon.py`) :
+  crinière en touffes autour de la face, arcade, museau, truffe, gueule ouverte avec crocs et
+  langue, yeux, oreilles, couronne à cinq pointes, pattes avant posées sur l'éperon avec leurs
+  griffes. La galère d'origine a une volute dorée qui s'enroule vers l'avant, avec rosettes.
+* **Dorures et voiles** (1.5.4) : le galion et la galère d'origine ont l'or poli à reflets doux du
+  vaisseau ; les voiles du galion ont les laizes nuancées, la patine et les renforts aux coins.
 * **Lanternes** (1.5.3) : toutes les lanternes des six navires sont dessinées comme celles du
   bateau à vapeur (`tools/lanterns.py`, appelé à l'export) : vitres éclairées en pleine lumière la
   nuit dans un cadre de métal, montants d'angle, socle, chapeau, dôme, fleuron doré et anneau ; le

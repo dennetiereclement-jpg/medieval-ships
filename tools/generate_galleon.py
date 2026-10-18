@@ -201,6 +201,50 @@ def tri_sail(bone, name, head, tack, clew, depth, N, region, nx=1, ny=7):
     return [(0.0, 0.0), (1.0, 0.0), (uc, 1.0)]
 
 
+def lion_figurehead(bone, base, s, gold="gold", relief="carving", dark="iron", red="red_paint"):
+    """Rearing crowned lion leaning out over the beakhead, facing the bow (+z); base = its chest,
+    s = scale (1 = warship)."""
+    B = v3(*base)
+
+    def P(x, y, z):
+        return B + v3(x, y, z) * s
+
+    def cube(name, c, R, size, reg, **kw):
+        return add_cube(bone, "figurehead_" + name, c, R, tuple(q * s for q in size), reg, **kw)
+    cube("body", P(0, 0.2, -0.15), rx(-0.6), (0.85, 0.9, 1.5), gold)
+    cube("chest", P(0, 0.55, 0.42), rx(-0.3), (0.8, 0.75, 0.6), gold)
+    H = P(0, 1.15, 0.75)
+    # mane: tufts all round the face (not under the jaw), behind the head
+    for k in range(14):
+        a = 2 * math.pi * k / 14
+        if math.sin(a) < -0.75:
+            continue
+        r = 0.52 if k % 2 else 0.6
+        cube("mane_%d" % k, H + v3(math.cos(a) * r, math.sin(a) * r, -0.12) * s, rz(a), (0.36, 0.26, 0.42 if k % 2 else 0.5), relief)
+    cube("head", H, EYE, (0.76, 0.72, 0.7), gold)
+    cube("brow", H + v3(0, 0.26, 0.34) * s, EYE, (0.62, 0.1, 0.12), relief)
+    cube("muzzle", H + v3(0, -0.12, 0.44) * s, EYE, (0.48, 0.34, 0.32), gold)
+    cube("nose", H + v3(0, 0.04, 0.6) * s, EYE, (0.22, 0.12, 0.08), dark)
+    cube("jaw", H + v3(0, -0.4, 0.34) * s, rx(0.35), (0.42, 0.12, 0.44), gold)
+    cube("tongue", H + v3(0, -0.33, 0.42) * s, rx(0.35), (0.2, 0.04, 0.3), red)
+    for x in (0.2, -0.2):
+        t = "l" if x > 0 else "r"
+        cube("eye_" + t, H + v3(x, 0.13, 0.355) * s, EYE, (0.13, 0.08, 0.04), dark)
+        cube("ear_" + t, H + v3(x * 1.55, 0.42, 0.02) * s, EYE, (0.16, 0.18, 0.1), gold)
+        cube("fang_" + t, H + v3(x * 0.6, -0.31, 0.56) * s, EYE, (0.05, 0.1, 0.05), gold)
+        # forelegs reaching forward, paws resting on the beak
+        sh, paw = P(x * 1.5, 0.35, 0.3), P(x * 1.6, -0.35, 0.78)
+        beam(bone, "figurehead_leg_" + t, sh, paw, 0.24 * s, gold)
+        cube("paw_" + t, paw + v3(0, -0.05, 0.08) * s, EYE, (0.3, 0.18, 0.38), gold)
+        for j in (-1, 0, 1):
+            cube("claw_%s%d" % (t, j + 1), paw + v3(j * 0.09, -0.06, 0.3) * s, EYE, (0.06, 0.08, 0.08), relief)
+    # crown: band and five points
+    cube("crown", H + v3(0, 0.46, 0) * s, EYE, (0.6, 0.14, 0.58), gold)
+    for k in range(5):
+        a = math.pi * (0.1 + 0.8 * k / 4)
+        cube("crown_point_%d" % k, H + v3(math.cos(a) * 0.26, 0.6, math.sin(a) * 0.24 - 0.04) * s, EYE, (0.1, 0.16, 0.1), gold)
+
+
 # ---------------------------------------------------------------- the galleon
 def build():
     root = Bone("galleon")
@@ -614,9 +658,7 @@ def build():
     for side, sn in SIDES:
         beam(bow, "beak_rail_" + sn, (side * 0.5, 3.6, 17.3), (side * 0.1, 2.75, beak_z1), 0.1, "gold")
     lion = Bone("figurehead", origin=(0, 2.6, beak_z1), parent=bow)
-    add_cube(lion, "figurehead_body", (0, 2.75, beak_z1 + 0.25), rx(-0.5), (0.45, 0.5, 0.75), "gold")
-    add_cube(lion, "figurehead_head", (0, 3.15, beak_z1 + 0.55), EYE, (0.4, 0.4, 0.4), "gold")
-    add_cube(lion, "figurehead_mane", (0, 3.15, beak_z1 + 0.4), EYE, (0.55, 0.55, 0.15), "carving", stretch=True)
+    lion_figurehead(lion, (0, 2.75, beak_z1 + 0.2), 0.55)
     sprit_a, sprit_b = v3(0, 3.9, 16.4), v3(0, 6.9, 24.6)
     beam(bow, "bowsprit", sprit_a, sprit_b, 0.4, "mast")
     beam(bow, "bowsprit_cap", sprit_b - norm(sprit_b - sprit_a) * 0.15, sprit_b + norm(sprit_b - sprit_a) * 0.1, 0.48, "dark_wood")

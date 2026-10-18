@@ -3,6 +3,7 @@
 Every region used by the model is declared in REGIONS (u, v, w, h) so the
 model generator and the texture stay in sync.
 """
+import math
 import random
 from PIL import Image
 
@@ -99,7 +100,14 @@ def make_texture(path, sail_triangle):
     _planks(img, REGIONS["mast"], _rgb("7a4f27"), _rgb("4a2e15"), 8, rng, joints=False)
     _planks(img, REGIONS["oar"], _rgb("a0703a"), _rgb("6a4520"), 8, rng, joints=False)
     _planks(img, REGIONS["dark_wood"], _rgb("5a3a1c"), _rgb("33200e"), 4, rng)
-    _fill(img, REGIONS["gold"], _rgb("c9a043"), rng, 14)
+    # polished gilding: soft rounded reflections
+    u, v, w, h = REGIONS["gold"]
+    gpx = img.load()
+    for y in range(h):
+        for x in range(w):
+            t = 0.55 * math.sin(x * 0.42 + math.sin(y * 0.3) * 1.5) + 0.45 * math.cos(y * 0.36 + x * 0.12)
+            c = _rgb("fbe7a1") if t > 0.62 else _rgb("e6bf5a") if t > 0.2 else _rgb("cfa23f") if t > -0.35 else _rgb("a97f2a")
+            gpx[u + x, v + y] = _jitter(c, rng, 3) + (255,)
     _fill(img, REGIONS["iron"], _rgb("3b3b3f"), rng, 8)
     _fill(img, REGIONS["end_grain"], _rgb("8c5e30"), rng, 10)
 

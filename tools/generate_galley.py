@@ -316,8 +316,20 @@ def build():
     stem_top = post(bow, "stem", 1, *POSTS[1])
     stern_top = post(stern, "sternpost", -1, *POSTS[-1])
     # carved bow head
-    add_cube(bow, "figurehead", stem_top + v3(0, 0.25, 0.12), np.eye(3), (0.55, 0.5, 0.7), "gold")
-    add_cube(bow, "figurehead_top", stem_top + v3(0, 0.6, 0.0), np.eye(3), (0.35, 0.3, 0.45), "hull_light")
+    # gilded scroll: the stem head curls forwards and down into a volute with a rosette on each side
+    curl = [stem_top + v3(0, 0.05, 0)]
+    for j in range(1, 10):
+        a = math.pi * 0.5 - j * (math.pi * 1.45 / 9)   # from straight up, round forwards and under
+        r = 0.5 * (1 - 0.5 * j / 9)
+        curl.append(stem_top + v3(0, 0.45, 0.05) + v3(0, math.sin(a) * r, math.cos(a) * r) + v3(0, 0, 0.12 * j / 9))
+    for j in range(len(curl) - 1):
+        th = 0.22 * (1 - 0.45 * j / 9)
+        beam(bow, "figurehead_%d" % j, curl[j], curl[j + 1], th, "gold", width=th * 0.9, extend=0.04)
+    for side in (1, -1):
+        c = stem_top + v3(side * 0.12, 0.45, 0.08)
+        add_cube(bow, "figurehead_rosette_%d" % (side > 0), c, np.eye(3), (0.06, 0.24, 0.24), "gold")
+        add_cube(bow, "figurehead_boss_%d" % (side > 0), c + v3(side * 0.04, 0, 0), np.eye(3), (0.04, 0.1, 0.1), "hull_light")
+    add_cube(bow, "figurehead_collar", stem_top - v3(0, 0.12, 0), np.eye(3), (0.5, 0.12, 0.66), "gold")
     # stern scroll
     add_cube(stern, "stern_scroll", stern_top + v3(0, 0.3, 0.15), np.eye(3), (0.5, 0.5, 0.55), "hull_light")
     add_cube(stern, "stern_scroll_cap", stern_top + v3(0, 0.62, 0.3), np.eye(3), (0.36, 0.25, 0.4), "gold")
