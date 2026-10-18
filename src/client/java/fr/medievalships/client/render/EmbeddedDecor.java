@@ -12,6 +12,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 
+import fr.medievalships.MedievalShips;
 import fr.medievalships.core.InteriorDecor;
 import fr.medievalships.core.ShipType;
 
@@ -42,6 +43,8 @@ final class EmbeddedDecor {
 			}
 		}
 		this.hidden = List.copyOf(hide);
+		MedievalShips.LOGGER.info("Interior decor: {} of {} furniture blocks drawn from installed mods, the others by their stand-ins",
+				hide.size(), blocks.size());
 	}
 
 	@Nullable

@@ -94,9 +94,7 @@ configurations {
 dependencies {
 	productionMods "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 	productionMods fabricApi.module("fabric-client-gametest-api-v1", project.fabric_version)
-	if (file("libs/lithium.jar").exists()) {
-		productionMods files("libs/lithium.jar")
-	}
+	productionMods fileTree("libs") { include "*.jar" }
 }
 
 tasks.register("gametestJar", Jar) {

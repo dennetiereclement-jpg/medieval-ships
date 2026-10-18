@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: [vanilla, lithium]
+        variant: [vanilla, lithium, decor]
     env:
       MS_TEST_MINIMAL: ${{ matrix.variant == 'minimal' && '1' || '' }}
     steps:
@@ -31,6 +31,21 @@ jobs:
           url=$(curl -s 'https://api.modrinth.com/v2/project/lithium/version?game_versions=%5B%221.21.11%22%5D&loaders=%5B%22fabric%22%5D' | jq -r '.[0].files[0].url')
           echo "Lithium: $url"
           curl -sL -o libs/lithium.jar "$url"
+          ls -la libs
+      - name: Download the decoration mods the Nautilus furniture comes from (decor variant)
+        if: matrix.variant == 'decor'
+        run: |
+          mkdir -p libs
+          # downloaded from Modrinth for the test only: never committed nor shipped with the mod
+          for q in furnish-furniture farmers-delight-refabricated farmhouse-decorations lands-of-icaria; do
+            slug=$(curl -s "https://api.modrinth.com/v2/project/$q" | jq -r '.slug // empty')
+            if [ -z "$slug" ]; then
+              slug=$(curl -s "https://api.modrinth.com/v2/search?query=$q&facets=%5B%5B%22project_type%3Amod%22%5D%5D" | jq -r --arg w "${q%%-*}" '[.hits[] | select(.title | ascii_downcase | contains($w))][0].slug // empty')
+            fi
+            url=$(curl -s "https://api.modrinth.com/v2/project/$slug/version?game_versions=%5B%221.21.11%22%5D&loaders=%5B%22fabric%22%5D" | jq -r '.[0].files[0].url // empty')
+            echo "$q -> $slug -> $url"
+            [ -n "$url" ] && curl -sL -o "libs/$slug.jar" "$url" || true
+          done
           ls -la libs
       - name: Install virtual display
         run: sudo apt-get update -q && sudo apt-get install -y -q xvfb mesa-utils
