@@ -13,6 +13,10 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 /**
  * No two faces of a ship model lie in the same plane while overlapping: such faces flicker in game
  * (z-fighting). The renderer draws both sides of every face, so faces of either direction count.
@@ -72,6 +76,35 @@ class NoZFightingTest {
 				}
 			}
 			assertEquals(0, pairs, name + ": coplanar overlapping faces, first near " + first);
+		}
+	}
+
+	/** Every cube and every bone has its own uuid (Blockbench and the animations find them by it). */
+	@Test
+	void uniqueIds() throws Exception {
+		for (String name : MODELS) {
+			JsonObject m;
+			try (Reader r = Files.newBufferedReader(Path.of("src/main/resources/assets/medievalships/models/entity/" + name + ".bbmodel"),
+					StandardCharsets.UTF_8)) {
+				m = JsonParser.parseReader(r).getAsJsonObject();
+			}
+			java.util.Set<String> seen = new java.util.HashSet<>();
+			int dup = 0;
+			for (JsonElement e : m.getAsJsonArray("elements")) {
+				dup += seen.add(e.getAsJsonObject().get("uuid").getAsString()) ? 0 : 1;
+			}
+			java.util.ArrayDeque<JsonObject> groups = new java.util.ArrayDeque<>();
+			m.getAsJsonArray("outliner").forEach(g -> groups.add(g.getAsJsonObject()));
+			while (!groups.isEmpty()) {
+				JsonObject g = groups.poll();
+				dup += seen.add(g.get("uuid").getAsString()) ? 0 : 1;
+				for (JsonElement c : g.getAsJsonArray("children")) {
+					if (c.isJsonObject()) {
+						groups.add(c.getAsJsonObject());
+					}
+				}
+			}
+			assertEquals(0, dup, name + ": duplicate uuids");
 		}
 	}
 

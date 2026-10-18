@@ -38,6 +38,9 @@ import ship_details as sd  # noqa: E402
 from galley_texture import REGIONS, SIZE, make_texture  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# run as a script, this module is also what the export passes (lanterns, rope_follow) import: one
+# module, so one uuid counter and no duplicate uuids
+sys.modules.setdefault("generate_galley", sys.modules[__name__])
 _uuid_counter = [0]
 
 
@@ -716,6 +719,10 @@ def face_uv(cube, bbface, spec, rng_seed):
 
 
 def export(root, anims, texture_png_bytes, out_paths):
+    import lanterns  # every ship gets the same lit-glass lanterns
+    print("lanterns: %d" % lanterns.convert(root))
+    import rope_follow  # sheets stay on the clews when the sails are furled
+    print("ropes following the furled sails: %d" % rope_follow.follow(root, anims))
     import zfight  # coplanar faces would flicker in game
     zfight.fix(root)
     elements = []

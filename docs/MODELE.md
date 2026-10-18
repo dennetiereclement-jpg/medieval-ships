@@ -240,7 +240,7 @@ D'après l'image de référence (« 3. Galère médiévale »).
 |---|---|
 | Coque très longue et étroite, extrémités très relevées | 20 tronçons × 2 bords × 8 bordages inclinés ; la tonture en croissant monte de 2,2 blocs aux deux bouts et les bordages la suivent |
 | Coque rouge et brun foncé, bordures bleues, décorations dorées | œuvres vives brun foncé, bordé rouge, préceinte sombre, liston bleu sous le plat-bord rouge, filets dorés entre les bordages |
-| Sculptures rouges aux extrémités | comme sur un drakkar, **la tête du dragon à la proue et sa queue à la poupe**. Queue (os `dragon_tail`) : l'étambot monte en une queue écailleuse qui s'amincit, se recourbe au-dessus du navire et retombe, cerclée de trois anneaux dorés, avec une crête dorsale et une pointe dorée en fer de lance. Tête : cou épais qui monte de l'étrave, crête dorsale, mâchoire ouverte, dents, langue, yeux d'or à pupille fendue, cornes dorées, nageoires, **crête dorée** de quatre pointes sur le crâne, **moustaches dorées** qui retombent du museau, plaques dorées sous les yeux |
+| Sculptures rouges aux extrémités | comme sur un drakkar, **tête refaite en 1.5.3** (`docs/preview_tete_dragon.png`) : crâne à arcades sourcilières, museau effilé à arête et narines, crocs en haut et en bas, mâchoire articulée sous le crâne et ouverte, langue, **yeux dorés à pupille fendue qui luisent la nuit**, cornes dorées en trois segments qui se recourbent vers l'arrière, crête d'épines sur le crâne, nageoires derrière la mâchoire, barbillons dorés sous le menton ; **la tête du dragon à la proue et sa queue à la poupe**. Queue (os `dragon_tail`) : l'étambot monte en une queue écailleuse qui s'amincit, se recourbe au-dessus du navire et retombe, cerclée de trois anneaux dorés, avec une crête dorsale et une pointe dorée en fer de lance. Tête : cou épais qui monte de l'étrave, crête dorsale, mâchoire ouverte, dents, langue, yeux d'or à pupille fendue, cornes dorées, nageoires, **crête dorée** de quatre pointes sur le crâne, **moustaches dorées** qui retombent du museau, plaques dorées sous les yeux |
 | Boucliers ronds alignés | 14 boucliers par bord (rouges, croix blanche, cerclage doré, umbo), jointifs le long du plat-bord |
 | Nombreuses rames | 12 rames par bord, chacune un os animé, sortant sous les boucliers |
 | Grande voile rectangulaire rayée, mât central | voile carrée gonflée à 9 laizes verticales rouges et blanches (rouge aux bords), têtière renforcée, **deux bandes de ris** avec leurs garcettes, sur une vergue orientée, mât de 13 blocs |
@@ -301,6 +301,18 @@ lanternes se balancent doucement, chacune avec sa phase).
   2 575 sur le vaisseau, 505 sur la galère rouge, 1 825 sur le bateau à vapeur, 495 sur le
   voilier ; après : 0 (test `NoZFightingTest`). `python3 tools/zfight.py <navire> [--fix]` affiche
   les paires restantes.
+* **Lanternes** (1.5.3) : toutes les lanternes des six navires sont dessinées comme celles du
+  bateau à vapeur (`tools/lanterns.py`, appelé à l'export) : vitres éclairées en pleine lumière la
+  nuit dans un cadre de métal, montants d'angle, socle, chapeau, dôme, fleuron doré et anneau ; le
+  métal (fer ou or) est celui de l'ancienne lanterne.
+* **Écoutes qui suivent les voiles** (1.5.3) : quand une voile est carguée, les écoutes et amures
+  attachées à ses coins remontent avec elle jusqu'à la vergue (`tools/rope_follow.py` : chaque
+  écoute a son os, pivotant sur son point fixe du pont, tourné et allongé par `sail_furl`) ; elles
+  ne s'arrêtent plus dans le vide. Celles qui tiennent à un élément fixe (la bôme du voilier) ne
+  bougent pas. Vérifié : le bout de chaque écoute est à moins de 0,25 bloc de la voile carguée.
+* **Pont jusqu'aux extrémités** (1.5.3) : sur la galère rouge et le voilier elfique, le plancher
+  continue jusqu'à l'étrave et l'étambot (plus de creux à l'avant et à l'arrière) ; les autres
+  navires étaient déjà pontés jusqu'au bout.
 * **Proue et poupe raccordées à la coque** (1.5.2) : sur la galère d'origine et la galère rouge, les
   derniers bordages suivent la courbe de l'étrave et de l'étambot (cou et queue du dragon) au lieu
   de s'arrêter net devant eux ; sur le voilier elfique, un massif de bordages turquoise coiffé d'une

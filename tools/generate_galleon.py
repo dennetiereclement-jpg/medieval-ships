@@ -889,6 +889,10 @@ def texture_entry(name, size, png, rel, default_name="galleon.png"):
 
 
 def export(root, anims, textures, out_paths, name="galleon", visible_box=(40, 32, 0)):
+    import lanterns  # every ship gets the same lit-glass lanterns
+    print("lanterns: %d" % lanterns.convert(root))
+    import rope_follow  # sheets stay on the clews when the sails are furled
+    print("ropes following the furled sails: %d" % rope_follow.follow(root, anims))
     import zfight  # coplanar faces would flicker in game
     zfight.fix(root)
     elements = []

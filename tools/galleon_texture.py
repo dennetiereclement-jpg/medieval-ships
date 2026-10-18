@@ -14,7 +14,7 @@ from PIL import Image
 
 import interior_texture
 
-from galley_texture import _fill, _jitter, _planks, _rgb
+from galley_texture import _fill, _jitter, _planks, _rgb, paint_lamp_glass
 
 SIZE = 512
 FLAG_SIZE = 64
@@ -243,10 +243,7 @@ def make_textures(path, flag_path, lateen_tri, jib_tri):
             px[u + x, v + y] = c + (255,)
     # lantern frame and glow
     u, v, w, h = reg("lantern")
-    for y in range(h):
-        for x in range(w):
-            border = x in (0, w - 1) or y in (0, h - 1) or x == w // 2
-            px[u + x, v + y] = (_rgb("2c2a26") if border else _rgb("f2c25a")) + (255,)
+    paint_lamp_glass(px, u, v, w, h)
     u, v, w, h = reg("glow")
     for y in range(h):
         for x in range(w):

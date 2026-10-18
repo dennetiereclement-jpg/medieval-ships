@@ -246,10 +246,11 @@ def build():
     add_cube(rudder, "rudder_blade", (0, -0.9, AFT_END - 0.25), EYE, (0.14, 1.6, 0.8), {"all": "hull_navy", "+1": "hull_teal"})
 
     # ---- deck, benches with cushions, a few chests and coils
-    n = 32
+    # the planking runs right into the stem and the sternpost (no hollow left at the ends)
+    n, z0, z1 = 40, AFT_END + 0.3, FORE_END - 0.3
     for j in range(n):
-        za = es.DECK_MIN_Z - 0.4 + (es.DECK_MAX_Z - es.DECK_MIN_Z + 0.8) * j / n
-        zb = es.DECK_MIN_Z - 0.4 + (es.DECK_MAX_Z - es.DECK_MIN_Z + 0.8) * (j + 1) / n
+        za = z0 + (z1 - z0) * j / n
+        zb = z0 + (z1 - z0) * (j + 1) / n
         w = min(es.inner_half_width(za), es.inner_half_width(zb)) + 0.1
         add_cube(deck, "deck_%d" % j, (0, main_y - 0.06, (za + zb) / 2), EYE, (2 * w, 0.12, zb - za + 0.02),
                  {"all": "deck", "-2": "dark_wood"})

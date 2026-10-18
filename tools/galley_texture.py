@@ -132,11 +132,7 @@ def make_texture(path, sail_triangle):
             px[u + x, v + y] = _jitter(_rgb("c4231d"), rng, 10) + (255,)
     # lantern frame and glow
     u, v, w, h = REGIONS["lantern"]
-    for y in range(h):
-        for x in range(w):
-            border = x in (0, w - 1) or y in (0, h - 1) or x == w // 2
-            c = _rgb("2c2a26") if border else _rgb("f2c25a")
-            px[u + x, v + y] = c + (255,)
+    paint_lamp_glass(px, u, v, w, h)
     u, v, w, h = REGIONS["glow"]
     for y in range(h):
         for x in range(w):
@@ -174,3 +170,18 @@ def make_texture(path, sail_triangle):
     interior_texture.paint(px, REGIONS)
     img.save(path)
     return img
+
+
+def paint_lamp_glass(px, u, v, w, h):
+    """Lantern glass: thin dark iron frame and a glazing bar, warm light brighter round the flame
+    (shared by every ship: the lanterns are drawn full bright, see tools/lanterns.py)."""
+    for y in range(h):
+        for x in range(w):
+            if x in (0, w - 1) or y in (0, h - 1):
+                c = (42, 44, 48)
+            elif x == w // 2:
+                c = (58, 60, 64)
+            else:
+                d = ((x - w / 2 + 0.5) ** 2 + ((y - h * 0.55) * 0.8) ** 2) ** 0.5
+                c = (255, 246, 200) if d < 2.6 else (255, 215, 122) if d < 4.6 else (242, 172, 68) if d < 6.4 else (217, 138, 44)
+            px[u + x, v + y] = c + (255,)

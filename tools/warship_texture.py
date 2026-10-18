@@ -13,7 +13,7 @@ from PIL import Image
 
 import interior_texture
 
-from galley_texture import _fill, _jitter, _planks, _rgb
+from galley_texture import _fill, _jitter, _planks, _rgb, paint_lamp_glass
 from galleon_texture import _canvas, _tri_inside
 
 SIZE = 512
@@ -271,10 +271,7 @@ def make_textures(path, flag_path, lateen_tri, jib_tri):
         for x in range(w):
             px[u + x, v + y] = (_rgb("d9cdb2") if (x + y // 2) % 5 else _rgb("b8a888")) + (255,)
     u, v, w, h = reg("lantern")
-    for y in range(h):
-        for x in range(w):
-            border = x in (0, w - 1) or y in (0, h - 1) or x == w // 2
-            px[u + x, v + y] = (_rgb("2c2a26") if border else _rgb("f2c25a")) + (255,)
+    paint_lamp_glass(px, u, v, w, h)
     u, v, w, h = reg("glow")
     for y in range(h):
         for x in range(w):

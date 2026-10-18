@@ -178,56 +178,75 @@ def dragon(bone, tag, s):
         if back[2] * s > 0:
             back = -back
         beam(bone, "%s_crest_%d" % (tag, j), c, c + back * 0.42 + v3(0, 0.12, 0), 0.32, "dragon_dark", width=0.06)
-    # head: skull, snout, open lower jaw with teeth, eyes, horns, frills, nostrils
+    # head: skull with brow ridges, tapering snout with fangs, lower jaw hinged under the skull,
+    # glowing eyes, swept-back horns, a crest of spines and fins behind the jaw
     hb = P(7.75, END + 0.4)
     head = Bone(tag + "_head", origin=tuple(hb), parent=bone)
+    K = 1.45  # the head is drawn 1.45 times larger around its pivot
 
-    def hcube(b, name, c, R_, size, reg, **kw):
-        """Head parts are drawn 1.45 times larger around the head pivot."""
-        c = hb + (v3(*c) - hb) * 1.45
-        return add_cube(b, name, c, R_, tuple(x * 1.45 for x in size), reg, **kw)
+    def at(off_out, y, x=0.0):
+        return hb + (out * off_out + v3(x, y, 0)) * K
 
-    def beam_h(b, name, a, c, th, reg, **kw):
-        return beam(b, name, hb + (v3(*a) - hb) * 1.45, hb + (v3(*c) - hb) * 1.45, th * 1.45, reg, **kw)
+    def hcube(name, c, R_, size, reg, **kw):
+        return add_cube(head, name, c, R_, tuple(q * K for q in size), reg, **kw)
+
+    def hbeam(name, p0, p1, th, reg, **kw):
+        if "width" in kw:
+            kw["width"] = kw["width"] * K
+        return beam(head, name, p0, p1, th * K, reg, **kw)
     out = v3(0, 0, s)
     R = ry(0 if s > 0 else math.pi)
-    hcube(head, tag + "_skull", hb + out * 0.25 + v3(0, 0.05, 0), R, (0.62, 0.56, 0.78), "dragon")
-    hcube(head, tag + "_brow", hb + out * 0.32 + v3(0, 0.33, 0), R, (0.66, 0.12, 0.5), "dragon_dark")
-    hcube(head, tag + "_snout", hb + out * 0.85 + v3(0, -0.02, 0), R, (0.46, 0.32, 0.66), "dragon")
-    hcube(head, tag + "_snout_tip", hb + out * 1.2 + v3(0, 0.02, 0), R, (0.5, 0.3, 0.16), "dragon_dark")
-    jaw = hb + out * 0.78 + v3(0, -0.36, 0)
-    Rj = R @ rx(-0.35)
-    hcube(head, tag + "_jaw", jaw, Rj, (0.42, 0.13, 0.78), "dragon_dark")
-    for k, (x, dz) in enumerate(((0.16, 0.25), (-0.16, 0.25), (0.16, -0.05), (-0.16, -0.05), (0.08, 0.45), (-0.08, 0.45))):
-        hcube(head, "%s_tooth_up_%d" % (tag, k), hb + out * (0.85 + dz) + v3(x, -0.22, 0), R, (0.06, 0.12, 0.06), "ivory")
-        hcube(head, "%s_tooth_low_%d" % (tag, k), jaw + Rj @ v3(x, 0.1, 0.2 - dz * 0.6), Rj, (0.06, 0.11, 0.06), "ivory")
-    for x in (0.32, -0.32):
-        hcube(head, "%s_eye_%d" % (tag, x > 0), hb + out * 0.38 + v3(x, 0.15, 0), R, (0.03, 0.17, 0.2),
-                 {"all": "eye"}, stretch=True)
-        hcube(head, "%s_nostril_%d" % (tag, x > 0), hb + out * 1.24 + v3(x * 0.45, 0.13, 0), R, (0.08, 0.06, 0.04), "gold")
-        horn0 = hb + out * 0.05 + v3(x * 0.7, 0.3, 0)
-        beam_h(head, "%s_horn_a_%d" % (tag, x > 0), horn0, horn0 + v3(x * 0.25, 0.42, -s * 0.45), 0.1, "gold")
-        beam_h(head, "%s_horn_b_%d" % (tag, x > 0), horn0 + v3(x * 0.25, 0.42, -s * 0.45), horn0 + v3(x * 0.3, 0.55, -s * 0.85),
-               0.07, "gold")
-        # frill (ear fin) behind the jaw
-        hcube(head, "%s_frill_%d" % (tag, x > 0), hb + out * (-0.05) + v3(x * 1.05, -0.05, 0), R @ ry(x * 0.5) @ rz(-x * 0.5),
-                 (0.05, 0.42, 0.42), "dragon_dark")
-    # tongue
-    hcube(head, tag + "_tongue", jaw + Rj @ v3(0, 0.08, 0.15), Rj, (0.16, 0.04, 0.5), "red_paint")
-    # gold crest along the top of the skull, sweeping back into the neck crest
-    for k in range(4):
-        base = hb + out * (0.5 - 0.28 * k) + v3(0, 0.36 - 0.05 * k, 0)
-        tip = base + v3(0, 0.3 - 0.03 * k, -s * (0.22 + 0.04 * k))
-        beam_h(head, "%s_crown_%d" % (tag, k), base, tip, 0.05, "gold", width=0.07)
-    # whiskers: thin gold barbels curling down and back from the snout
-    for x in (0.26, -0.26):
-        w0 = hb + out * 1.1 + v3(x, -0.05, 0)
-        w1 = w0 + v3(x * 0.85, -0.18, s * 0.05)
-        beam_h(head, "%s_whisker_a_%d" % (tag, x > 0), w0, w1, 0.04, "gold")
-        beam_h(head, "%s_whisker_b_%d" % (tag, x > 0), w1, w1 + v3(x * 0.3, -0.3, -s * 0.06), 0.035, "gold")
-    # gold cheek plate under the eye
-    for x in (0.31, -0.31):
-        hcube(head, "%s_cheek_%d" % (tag, x > 0), hb + out * 0.55 + v3(x, -0.12, 0), R, (0.04, 0.14, 0.42), "gold")
+    # skull and brow
+    hcube(tag + "_skull", at(0.18, 0.05), R, (0.66, 0.5, 0.72), "dragon")
+    hcube(tag + "_skull_back", at(-0.15, 0.0), R, (0.56, 0.42, 0.3), "dragon_dark")
+    for x in (0.23, -0.23):
+        hcube("%s_brow_%d" % (tag, x > 0), at(0.36, 0.33, x), R @ rz(-x * 0.9), (0.24, 0.12, 0.44), "dragon_dark")
+    # upper snout, tapering, with a ridge, nostrils and fangs
+    hcube(tag + "_snout", at(0.72, 0.0), R @ rx(0.06), (0.52, 0.3, 0.6), "dragon")
+    hcube(tag + "_snout_tip", at(1.1, -0.02), R @ rx(0.1), (0.44, 0.26, 0.26), "dragon")
+    hcube(tag + "_snout_ridge", at(0.8, 0.18), R @ rx(0.12), (0.18, 0.08, 0.62), "dragon_dark")
+    for x in (0.12, -0.12):
+        hcube("%s_nostril_%d" % (tag, x > 0), at(1.2, 0.08, x), R, (0.09, 0.06, 0.06), "dragon_dark")
+    for k, (x, dz, ln) in enumerate(((0.2, 1.08, 0.2), (-0.2, 1.08, 0.2), (0.21, 0.88, 0.12), (-0.21, 0.88, 0.12),
+                                     (0.22, 0.68, 0.1), (-0.22, 0.68, 0.1), (0.22, 0.5, 0.09), (-0.22, 0.5, 0.09))):
+        hcube("%s_fang_up_%d" % (tag, k), at(dz, -0.17 - ln / 2, x), R, (0.06, ln, 0.06), "ivory")
+    # lower jaw: hinged under the back of the skull, open by ~22 degrees
+    a = 0.38
+    hinge = at(0.0, -0.17)
+    d = norm(out * math.cos(a) + v3(0, -math.sin(a), 0))
+    Rj = R @ rx(a)
+    jaw_c = hinge + d * 0.55 * K
+    hcube(tag + "_jaw", jaw_c, Rj, (0.44, 0.13, 1.05), "dragon_dark")
+    hcube(tag + "_jaw_chin", jaw_c + d * 0.45 * K + Rj @ v3(0, -0.04, 0) * K, Rj, (0.38, 0.15, 0.16), "dragon")
+    hcube(tag + "_tongue", jaw_c + Rj @ v3(0, 0.08, 0.05) * K, Rj, (0.16, 0.04, 0.8), "red_paint")
+    for k, (x, t) in enumerate(((0.17, 0.42), (-0.17, 0.42), (0.18, 0.2), (-0.18, 0.2), (0.18, -0.02), (-0.18, -0.02))):
+        hcube("%s_fang_low_%d" % (tag, k), jaw_c + Rj @ v3(x, 0.12, t) * K, Rj, (0.06, 0.12, 0.06), "ivory")
+    # eyes: gold with a slit pupil, glowing at night
+    for x in (0.335, -0.335):
+        hcube("glow_%s_eye_%d" % (tag, x > 0), at(0.36, 0.17, x), R, (0.03, 0.17, 0.2), {"all": "eye"}, stretch=True)
+    # horns: three tapering gold segments sweeping back and up
+    for x in (1, -1):
+        p0 = at(-0.05, 0.27, x * 0.22)
+        p1 = p0 + (v3(x * 0.1, 0.2, 0) - out * 0.32) * K
+        p2 = p1 + (v3(x * 0.05, 0.16, 0) - out * 0.32) * K
+        p3 = p2 + (v3(x * 0.02, 0.02, 0) - out * 0.28) * K
+        hbeam("%s_horn_a_%d" % (tag, x > 0), p0, p1, 0.13, "gold", extend=0.02)
+        hbeam("%s_horn_b_%d" % (tag, x > 0), p1, p2, 0.1, "gold", extend=0.02)
+        hbeam("%s_horn_c_%d" % (tag, x > 0), p2, p3, 0.06, "gold", extend=0.02)
+        # fins behind the jaw: three thin spines fanning backwards
+        for j, (dy, dx) in enumerate(((0.1, 0.32), (-0.05, 0.36), (-0.2, 0.3))):
+            f0 = at(-0.02, dy, x * 0.3)
+            f1 = f0 + (v3(x * dx, dy * 0.6, 0) - out * 0.3) * K
+            hbeam("%s_fin_%d_%d" % (tag, x > 0, j), f0, f1, 0.05, "dragon_dark", width=0.14 - 0.03 * j)
+    # crest: spines along the middle of the skull, continuing the one on the neck
+    for k in range(3):
+        c0 = at(0.45 - 0.25 * k, 0.3)
+        hbeam("%s_spine_%d" % (tag, k), c0, c0 + (v3(0, 0.2 + 0.04 * k, 0) - out * 0.14) * K, 0.05, "dragon_dark",
+              width=0.16)
+    # short gold barbels under the chin
+    for x in (0.1, -0.1):
+        b0 = jaw_c + d * 0.5 * K + Rj @ v3(x, -0.09, 0) * K
+        hbeam("%s_barbel_%d" % (tag, x > 0), b0, b0 + v3(x * 0.4, -0.28, 0) * K, 0.035, "gold")
 
 
 def build():
@@ -271,10 +290,11 @@ def build():
     dragon_tail(Bone("dragon_tail", parent=stern), "dragon_tail", -1)
 
     # ---- deck, rowing benches, mast step, barrels and ropes
-    n = 32
+    # the planking runs right into the stem and the sternpost (no hollow left at the ends)
+    n, z0, z1 = 40, -END + 0.3, END - 0.3
     for j in range(n):
-        za = ms.DECK_MIN_Z + (ms.DECK_MAX_Z - ms.DECK_MIN_Z) * j / n
-        zb = ms.DECK_MIN_Z + (ms.DECK_MAX_Z - ms.DECK_MIN_Z) * (j + 1) / n
+        za = z0 + (z1 - z0) * j / n
+        zb = z0 + (z1 - z0) * (j + 1) / n
         w = min(ms.inner_half_width(za), ms.inner_half_width(zb)) + 0.1
         add_cube(deck, "deck_%d" % j, (0, main_y - 0.06, (za + zb) / 2), EYE, (2 * w, 0.12, zb - za + 0.02),
                  {"all": "deck", "-2": "dark_wood"})

@@ -12,7 +12,7 @@ La tâche *In-game test* lance un **vrai client Minecraft 1.21.11** avec le `.ja
 production (mod remappé, comme sur un vrai serveur), deux fois : **sans** et **avec Lithium**.
 Chaque fois, tout le scénario est joué **en solo** puis sur un **vrai serveur dédié** auquel le
 client se connecte par le réseau (contrôles de mouvement du serveur actifs) : **154 vérifications,
-toutes réussies** (version 1.5.2, avec et sans Lithium, en solo et sur serveur dédié).
+toutes réussies** (version 1.5.3, avec et sans Lithium, en solo et sur serveur dédié).
 Le test (`src/gametest/.../ShipClientGameTest.java`) crée un monde, des bassins, met les navires
 à l'eau puis vérifie (résultats et captures publiés sur les branches `test-results-vanilla` et
 `test-results-lithium`) :
@@ -100,7 +100,7 @@ cabine, balcon, gaillard d'arrière, navigation.
 | collisions coupées : le joueur est quand même rattrapé par le pont principal et par la dunette | réussi |
 | `/ship give warship` donne l'objet *Grand vaisseau de guerre* | réussi |
 
-## Tests unitaires (75, tous réussis)
+## Tests unitaires (76, tous réussis)
 
 `./gradlew test` :
 
@@ -127,6 +127,7 @@ cabine, balcon, gaillard d'arrière, navigation.
 | `NewShipsTest` (18 tests) | galère rouge, bateau à vapeur, voilier elfique : formes identiques aux générateurs, dimensions demandées (28 × 5 × 3, 22 × 8 × 5, 30 × 6 × 4), places et points de descente libres, ponts sans trou à tous les caps, embarquement, visée de la barre et de la coque, flottaison ; **roues à aubes** : une de chaque côté, hors de la coque, immergée d'environ 0,9 bloc, tambour solide, largeur prise en compte par le pilote automatique ; maniement (galère vive, vapeur progressive et maniable à basse vitesse, voilier rapide et fluide) ; identifiants et alias `grand_warship` |
 | `NewShipModelsTest` | les trois nouveaux modèles : os et animations attendus, géométrie identique au rendu de référence Python |
 | `NoZFightingTest` | **aucun scintillement (z-fighting)** : dans les six modèles, tels que le mod les lit, aucune face n'est dans le même plan qu'une autre face qu'elle chevauche (les deux sens comptent, le rendu dessine les deux côtés des faces) |
+| `uniqueIds` | chaque cube et chaque os des six modèles a son propre identifiant |
 | `tools/sail_check.py` (outil) | aucune voile n'en traverse une autre (vaisseau, galion, voilier, galère rouge) |
 
 Les modèles ont aussi été vérifiés visuellement (`docs/preview.png`, `docs/preview_galleon.png`,

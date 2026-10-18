@@ -12,7 +12,7 @@ import random
 
 from PIL import Image
 
-from galley_texture import _fill, _jitter, _planks, _rgb
+from galley_texture import _fill, _jitter, _planks, _rgb, paint_lamp_glass
 
 SIZE = 512
 
@@ -243,10 +243,7 @@ def make_texture(path, tris):
         for x in range(w):
             px[u + x, v + y] = (_rgb("cdb98f") if (x + y) % 3 else _rgb("9c875f")) + (255,)
     u, v, w, h = reg("lantern")
-    for y in range(h):
-        for x in range(w):
-            border = x in (0, w - 1) or y in (0, h - 1) or x == w // 2
-            px[u + x, v + y] = (GOLD if border else _rgb("ffd98a")) + (255,)
+    paint_lamp_glass(px, u, v, w, h)
     u, v, w, h = reg("glow")
     for y in range(h):
         for x in range(w):
