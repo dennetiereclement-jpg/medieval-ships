@@ -99,6 +99,8 @@ public abstract class ShipEntity extends Entity {
 	private boolean lastJump;
 	private boolean lastSprint;
 	private boolean seatsDirty;
+	/** Until this age the pilot's action bar shows a message instead of the depth gauge. */
+	private int diveMessageUntil;
 	/** Airlock: level the valves are bringing the water to (0 or 1). */
 	private float airlockTarget;
 	/** Submarines: depth ordered by a command (blocks below the surface), NaN = none. */
@@ -713,9 +715,13 @@ public abstract class ShipEntity extends Entity {
 		}
 		boolean hatchOpen = doorOpen(Ships.NautilusLayout.HATCH_DOOR) || doorOpen(Ships.NautilusLayout.BOAT_HATCH_DOOR);
 		if (hatchOpen && vy < 0 && Dive.depth(before.y(), surfacedY) < Dive.SURFACED) {
-			vy = Dive.hold(before.y(), surfacedY, cfg.dive); // never dive with the hatch open
-			if (pilot instanceof ServerPlayerEntity player && age % 20 == 0) {
-				player.sendMessage(Text.literal("Fermez le panneau avant de plonger.").formatted(Formatting.RED), true);
+			// ordered to dive with a hatch open: the crew shuts it, unless someone stands in it
+			String blocker = NautilusFittings.shutHatchesForDive(this, world);
+			if (blocker == null) {
+				diveMessage(pilot, Text.literal("Panneaux refermés : plongée !").formatted(Formatting.GOLD));
+			} else {
+				vy = Dive.hold(before.y(), surfacedY, cfg.dive); // never dive with a hatch open
+				diveMessage(pilot, Text.literal("Impossible de plonger : quelqu'un est dans " + blocker + ".").formatted(Formatting.RED));
 			}
 		}
 		if (!Double.isNaN(speedLimit) && !Double.isNaN(controls.targetSpeed())) {
@@ -755,10 +761,23 @@ public abstract class ShipEntity extends Entity {
 			ShipData.get(world.getServer()).updateFerry(getUuid(), new ShipData.FerryRecord(
 					world.getRegistryKey().getValue().toString(), getX(), getZ(), routeName));
 		}
-		if (pilot instanceof ServerPlayerEntity player && age % 10 == 0) {
+		if (result.verticalBlocked() && vy < 0) {
+			diveMessage(pilot, Text.literal("Le fond est trop proche : impossible de descendre plus bas ici.").formatted(Formatting.RED));
+		} else if (Double.isNaN(surfacedY) && vy < 0) {
+			diveMessage(pilot, Text.literal("Pas d'eau sous la coque : impossible de plonger.").formatted(Formatting.RED));
+		}
+		if (pilot instanceof ServerPlayerEntity player && age % 10 == 0 && age >= diveMessageUntil) {
 			player.sendMessage(diveStatus(depth), true);
 		}
 		NautilusFittings.tick(this, world);
+	}
+
+	/** A message for the pilot that the depth gauge does not overwrite for two seconds. */
+	private void diveMessage(@Nullable Entity pilot, Text text) {
+		if (pilot instanceof ServerPlayerEntity player && age >= diveMessageUntil - 30) {
+			player.sendMessage(text, true);
+			diveMessageUntil = age + 40;
+		}
 	}
 
 	private Text diveStatus(float depth) {

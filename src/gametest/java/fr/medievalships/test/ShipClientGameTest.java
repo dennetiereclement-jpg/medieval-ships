@@ -1264,17 +1264,27 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			return ship.seat(srv.getPlayerManager().getPlayerList().get(0), ShipGeometry.PILOT_SEAT);
 		});
 		context.waitTicks(10);
+		// someone standing in the open hatch: no dive, the hatch stays open
+		double[] hw = shipPose(sp, type).toWorld(Ships.NautilusLayout.HATCH_X, Ships.NautilusLayout.CASING_TOP_Y - 1.6, Ships.NautilusLayout.HATCH_Z);
+		server.runCommand(String.format(Locale.ROOT, "summon minecraft:armor_stand %.2f %.2f %.2f {NoGravity:1b,Tags:[\"ncrew\",\"inhatch\"]}",
+				hw[0], hw[1], hw[2]));
+		context.waitTicks(10);
 		ShipPose d0 = shipPose(sp, type);
 		context.getInput().holdKey(o -> o.sprintKey);
 		context.waitTicks(60);
 		context.getInput().releaseKey(o -> o.sprintKey);
 		ShipPose d1 = shipPose(sp, type);
-		check(Math.abs(d1.y() - d0.y()) < 0.3, "%s does not dive with the hatch open (%.2f -> %.2f)", id, d0.y(), d1.y());
-		server.computeOnServer(srv -> ship(srv.getOverworld(), type).toggleDoor(Ships.NautilusLayout.HATCH_DOOR));
+		boolean stillOpen = server.computeOnServer(srv -> ship(srv.getOverworld(), type).doorOpen(Ships.NautilusLayout.HATCH_DOOR));
+		check(Math.abs(d1.y() - d0.y()) < 0.3 && stillOpen, "%s does not dive while someone stands in the open hatch (%.2f -> %.2f)", id, d0.y(),
+				d1.y());
+		// the hatch clear: the dive order shuts it and the Nautilus dives
+		server.runCommand("kill @e[type=minecraft:armor_stand,tag=inhatch]");
 		context.waitTicks(10);
 		context.getInput().holdKey(o -> o.sprintKey);
 		context.waitTicks(260);
 		context.getInput().releaseKey(o -> o.sprintKey);
+		boolean shutNow = server.computeOnServer(srv -> !ship(srv.getOverworld(), type).doorOpen(Ships.NautilusLayout.HATCH_DOOR));
+		check(shutNow, "%s the dive order shuts the open hatch", id);
 		context.waitTicks(100);
 		ShipPose d2 = shipPose(sp, type);
 		context.waitTicks(60);

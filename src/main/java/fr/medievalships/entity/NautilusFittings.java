@@ -142,6 +142,36 @@ public final class NautilusFittings {
 		return null;
 	}
 
+	/**
+	 * Before a dive: shuts the open hatches of the outer hull (main hatch, lifeboat hatch). Returns
+	 * null when they are shut, or the name of the hatch someone is standing in (it stays open).
+	 */
+	@Nullable
+	public static String shutHatchesForDive(ShipEntity ship, ServerWorld world) {
+		InteriorGrid grid = ship.geometry().interior();
+		int[] doors = {NautilusLayout.HATCH_DOOR, NautilusLayout.BOAT_HATCH_DOOR};
+		String[] names = {"le panneau d'accès", "la trappe du canot"};
+		for (int i = 0; i < doors.length; i++) {
+			if (!ship.doorOpen(doors[i])) {
+				continue;
+			}
+			double[] c = grid.doorCenter(doors[i]);
+			double[] w = ship.pose().toWorld(c[0], c[1], c[2]);
+			net.minecraft.util.math.Box box = new net.minecraft.util.math.Box(w[0] - 0.6, w[1] - 1.6, w[2] - 0.6, w[0] + 0.6, w[1] + 0.4, w[2] + 0.6);
+			if (!world.getOtherEntities(ship, box, e -> !e.isSpectator() && e.getVehicle() != ship).isEmpty()) {
+				return names[i];
+			}
+		}
+		for (int door : doors) {
+			if (ship.doorOpen(door)) {
+				ship.setDoor(door, false);
+				double[] c = grid.doorCenter(door);
+				sound(world, ship.pose().toWorld(c[0], c[1], c[2]), SoundEvents.BLOCK_IRON_TRAPDOOR_CLOSE, 1.0f, 0.8f);
+			}
+		}
+		return null;
+	}
+
 	// ------------------------------------------------------------------ lifeboat
 
 	/** Puts the lifeboat on the water beside the hull (on the surface only). */
