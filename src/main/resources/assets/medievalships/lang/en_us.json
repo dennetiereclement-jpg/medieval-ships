@@ -11,5 +11,7 @@
   "entity.medievalships.steam_paddleboat": "Steam Paddleboat",
   "item.medievalships.elven_sailboat": "Elven Sailboat",
   "entity.medievalships.elven_sailboat": "Elven Sailboat",
-  "itemGroup.medievalships.ships": "Medieval Ships"
+  "itemGroup.medievalships.ships": "Medieval Ships",
+  "item.medievalships.steampunk_airship": "Steampunk Airship",
+  "entity.medievalships.steampunk_airship": "Steampunk Airship"
 }

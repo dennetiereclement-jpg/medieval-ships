@@ -16,6 +16,7 @@ import fr.medievalships.MedievalShips;
 import fr.medievalships.client.model.BbModel;
 import fr.medievalships.core.ShipType;
 import fr.medievalships.core.Ships;
+import fr.medievalships.core.Ships.AirshipLayout;
 import fr.medievalships.core.Ships.PaddleboatLayout;
 
 /**
@@ -32,11 +33,26 @@ public final class ShipModels {
 	 * @param cullRadius horizontal / vertical half extent of the render culling box
 	 */
 	public record Visual(ShipType type, Identifier model, List<Identifier> textures, float rocking,
-			double cullRadius, double cullHeight, boolean bowWake, @Nullable Engine engine) {
+			double cullRadius, double cullHeight, boolean bowWake, @Nullable Engine engine, @Nullable Propeller propeller) {
 		public Visual(ShipType type, Identifier model, List<Identifier> textures, float rocking,
 				double cullRadius, double cullHeight, boolean bowWake) {
-			this(type, model, textures, rocking, cullRadius, cullHeight, bowWake, null);
+			this(type, model, textures, rocking, cullRadius, cullHeight, bowWake, null, null);
 		}
+
+		public Visual(ShipType type, Identifier model, List<Identifier> textures, float rocking,
+				double cullRadius, double cullHeight, boolean bowWake, @Nullable Engine engine) {
+			this(type, model, textures, rocking, cullRadius, cullHeight, bowWake, engine, null);
+		}
+	}
+
+	/**
+	 * Airship effects (client only): the propeller hums and the wind blows faster with the speed,
+	 * puffs of smoke from the exhaust, the creak of the gondola. Ship-local blocks.
+	 *
+	 * @param hub     propeller hub (x, y, z)
+	 * @param exhaust mouth of the exhaust pipe (x, y, z)
+	 */
+	public record Propeller(double[] hub, double[] exhaust) {
 	}
 
 	/**
@@ -67,7 +83,12 @@ public final class ShipModels {
 									PaddleboatLayout.WHEEL_R}}));
 	public static final Visual ELVEN_SAILBOAT = new Visual(Ships.ELVEN_SAILBOAT, model("elven_sailboat"),
 			List.of(texture("elven_sailboat")), 0.85f, 18, 22, true);
-	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT);
+	public static final Visual STEAMPUNK_AIRSHIP = new Visual(Ships.STEAMPUNK_AIRSHIP, model("steampunk_airship"),
+			List.of(texture("steampunk_airship")), 1f, 20, 20, false, null, new Propeller(
+					new double[] {0, AirshipLayout.BALLOON_Y, AirshipLayout.PROP_Z},
+					new double[] {0, 4.85, AirshipLayout.ENGINE_Z0 - 1.0}));
+	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT,
+			STEAMPUNK_AIRSHIP);
 
 	@Nullable
 	public static Visual of(ShipType type) {

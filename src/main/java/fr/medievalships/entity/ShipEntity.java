@@ -33,6 +33,7 @@ import net.minecraft.world.World;
 
 import fr.medievalships.MedievalShips;
 import fr.medievalships.core.Autopilot;
+import fr.medievalships.core.Flight;
 import fr.medievalships.core.Gait;
 import fr.medievalships.core.Route;
 import fr.medievalships.core.ShipConfig;
@@ -65,12 +66,15 @@ public abstract class ShipEntity extends Entity {
 	private static final TrackedData<Integer> GAIT = DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.INTEGER);
 	/** "entityId:seat,entityId:seat" so clients place passengers on the right seats. */
 	private static final TrackedData<String> SEATS = DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.STRING);
+	/** Aircraft: vertical speed (blocks/s), for the fins and the effects. */
+	private static final TrackedData<Float> VSPEED = DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.FLOAT);
 
 	private static final double DT = 0.05;
 
 	// ---- server state
 	private final ShipPhysics physics = new ShipPhysics();
 	private final Autopilot autopilot = new Autopilot();
+	private final Flight flight = new Flight();
 	private boolean aiEnabled;
 	@Nullable
 	private String routeName;
@@ -106,6 +110,9 @@ public abstract class ShipEntity extends Entity {
 	public float lastSailOpen = 1f;
 	public float helmVisual;
 	public float lastHelmVisual;
+	/** Aircraft: smoothed vertical speed order for the fins (-1 descending .. 1 climbing). */
+	public float climbVisual;
+	public float lastClimbVisual;
 	public float rockTime;
 
 	protected ShipEntity(EntityType<? extends ShipEntity> type, World world) {
@@ -137,6 +144,7 @@ public abstract class ShipEntity extends Entity {
 		builder.add(AUTOPILOT, false);
 		builder.add(GAIT, Gait.NORMAL.ordinal());
 		builder.add(SEATS, "");
+		builder.add(VSPEED, 0f);
 	}
 
 	@Override
@@ -144,6 +152,7 @@ public abstract class ShipEntity extends Entity {
 		physics.speed = view.getDouble("Speed", 0);
 		physics.yawRate = view.getDouble("YawRate", 0);
 		physics.helm = view.getDouble("Helm", 0);
+		flight.vy = view.getDouble("VerticalSpeed", 0);
 		gait = Gait.byOrdinal(view.getInt("Gait", Gait.NORMAL.ordinal()));
 		double limit = view.getDouble("SpeedLimit", -1);
 		speedLimit = limit > 0 ? limit : Double.NaN;
@@ -167,6 +176,7 @@ public abstract class ShipEntity extends Entity {
 		view.putDouble("Speed", physics.speed);
 		view.putDouble("YawRate", physics.yawRate);
 		view.putDouble("Helm", physics.helm);
+		view.putDouble("VerticalSpeed", flight.vy);
 		view.putInt("Gait", gait.ordinal());
 		view.putDouble("SpeedLimit", Double.isNaN(speedLimit) ? -1 : speedLimit);
 		view.putBoolean("Autopilot", aiEnabled);
@@ -265,6 +275,14 @@ public abstract class ShipEntity extends Entity {
 		return dataTracker.get(AUTOPILOT);
 	}
 
+	public float syncedVerticalSpeed() {
+		return dataTracker.get(VSPEED);
+	}
+
+	public Flight flight() {
+		return flight;
+	}
+
 	public Gait gait() {
 		return Gait.byOrdinal(dataTracker.get(GAIT));
 	}
@@ -329,6 +347,11 @@ public abstract class ShipEntity extends Entity {
 		}
 		sailOpen += ((sailSet() ? 1f : 0f) - sailOpen) * 0.05f;
 		helmVisual += (syncedHelm() - helmVisual) * 0.3f;
+		lastClimbVisual = climbVisual;
+		if (cfg.flight != null) {
+			float climb = Math.max(-1f, Math.min(1f, syncedVerticalSpeed() / (float) cfg.flight.climbSpeed));
+			climbVisual += (climb - climbVisual) * 0.15f;
+		}
 		rockTime += DT;
 	}
 
@@ -343,6 +366,12 @@ public abstract class ShipEntity extends Entity {
 		// ---- controls
 		ShipPhysics.Controls controls;
 		Entity pilot = passengerInSeat(ShipGeometry.PILOT_SEAT);
+		if (geometry().flying()) {
+			ShipPhysics.Controls manual = !aiEnabled && pilot instanceof ServerPlayerEntity player
+					? manualControls(player, cfg) : ShipPhysics.Controls.COAST;
+			flyTick(world, shipWorld, before, manual, pilot, cfg);
+			return;
+		}
 		if (aiEnabled) {
 			Route route = ShipData.get(world.getServer()).route(routeName);
 			controls = autopilot.tick(route, before, physics.speed, physics.yawRate, gait, cfg, geometry(), shipWorld, new Announcer(world, route));
@@ -426,8 +455,83 @@ public abstract class ShipEntity extends Entity {
 		}
 	}
 
+	/**
+	 * Aircraft: no water and no gravity while it flies. The pilot climbs (jump key) and comes down
+	 * (sprint key), the altitude holds by itself; the autopilot plans its own altitude.
+	 */
+	private void flyTick(ServerWorld world, ShipWorld shipWorld, ShipPose before, ShipPhysics.Controls manual, @Nullable Entity pilot,
+			ShipConfig cfg) {
+		ShipPhysics.Controls controls = manual;
+		double vy = 0;
+		if (aiEnabled) {
+			Route route = ShipData.get(world.getServer()).route(routeName);
+			Flight.Orders orders = Flight.autopilot(autopilot, route, before, physics, gait, cfg, geometry(), shipWorld,
+					new Announcer(world, route));
+			controls = orders.controls();
+			vy = orders.desiredVy();
+		} else if (pilot instanceof ServerPlayerEntity player) {
+			PlayerInput in = player.getPlayerInput();
+			vy = Flight.manual((in.jump() ? 1 : 0) - (in.sprint() ? 1 : 0), cfg.flight);
+		}
+		if (!Double.isNaN(speedLimit) && !Double.isNaN(controls.targetSpeed())) {
+			controls = new ShipPhysics.Controls(Math.max(-speedLimit, Math.min(speedLimit, controls.targetSpeed())), controls.helmTarget());
+		}
+		Flight.Result result = Flight.tick(geometry(), before, physics, flight, controls, vy, cfg, shipWorld, DT);
+		ShipPose after = result.pose();
+		setPosition(after.x(), after.y(), after.z());
+		setYaw((float) after.yaw());
+		dataTracker.set(SHIP_YAW, (float) after.yaw());
+		setVelocity(after.x() - before.x(), after.y() - before.y(), after.z() - before.z());
+		carryEntities(world, before, after);
+		if (Math.abs(dataTracker.get(SPEED) - physics.speed) > 0.02) {
+			dataTracker.set(SPEED, (float) physics.speed);
+		}
+		if (Math.abs(dataTracker.get(HELM) - physics.helm) > 0.02) {
+			dataTracker.set(HELM, (float) physics.helm);
+		}
+		if (Math.abs(dataTracker.get(VSPEED) - flight.vy) > 0.02) {
+			dataTracker.set(VSPEED, (float) flight.vy);
+		}
+		if (!dataTracker.get(SAIL_SET)) {
+			dataTracker.set(SAIL_SET, true);
+		}
+		if (dataTracker.get(AUTOPILOT) != aiEnabled) {
+			dataTracker.set(AUTOPILOT, aiEnabled);
+		}
+		if (aiEnabled && age % 20 == 0) {
+			if (ConfigManager.server().chunkLoadAutopilotShips) {
+				ChunkPos here = new ChunkPos(BlockPos.ofFloored(getX(), getY(), getZ()));
+				world.getChunkManager().addTicket(ChunkTicketType.PORTAL, here, ConfigManager.server().chunkLoadRadius);
+				double ahead = Math.max(24, geometry().aiReach() + 8) * Math.signum(physics.speed == 0 ? 1 : physics.speed);
+				ChunkPos front = new ChunkPos(BlockPos.ofFloored(after.worldX(0, ahead), getY(), after.worldZ(0, ahead)));
+				if (!front.equals(here)) {
+					world.getChunkManager().addTicket(ChunkTicketType.PORTAL, front, ConfigManager.server().chunkLoadRadius);
+				}
+			}
+			if (age % 100 == 0) {
+				ShipData.get(world.getServer()).updateFerry(getUuid(), new ShipData.FerryRecord(
+						world.getRegistryKey().getValue().toString(), getX(), getZ(), routeName));
+			}
+		}
+		if (pilot instanceof ServerPlayerEntity player && age % 10 == 0) {
+			player.sendMessage(flightStatus(cfg), true);
+		}
+	}
+
+	private Text flightStatus(ShipConfig cfg) {
+		String vertical = flight.vy > 0.05 ? " montée" : flight.vy < -0.05 ? " descente" : " palier";
+		String limit = Double.isNaN(speedLimit) ? "" : String.format(" max %.1f", speedLimit);
+		return Text.literal(String.format("Altitude %d (%s) - %.1f blocs/s%s  [Z/S: vitesse, Q/D: cap, Espace: monter, Ctrl: descendre, Maj: quitter]",
+				(int) Math.floor(getY()), vertical.trim(), Math.abs(physics.speed), limit)).formatted(Formatting.GOLD);
+	}
+
 	private ShipPhysics.Controls manualControls(ServerPlayerEntity player, ShipConfig cfg) {
 		PlayerInput in = player.getPlayerInput();
+		if (geometry().flying()) {
+			// jump / sprint climb and descend (see flyTick); the speed is the normal gait
+			double target = in.forward() && !in.backward() ? cfg.gaitSpeed(gait) : in.backward() && !in.forward() ? -cfg.reverseSpeed : Double.NaN;
+			return new ShipPhysics.Controls(target, (in.right() ? 1 : 0) - (in.left() ? 1 : 0));
+		}
 		if (in.jump() && !lastJump) {
 			setGait(gait.faster());
 		}

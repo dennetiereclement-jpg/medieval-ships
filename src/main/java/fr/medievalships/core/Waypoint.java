@@ -12,6 +12,10 @@ public final class Waypoint {
 	public int waitSeconds;
 	public String name;
 	public String gait;
+	/** Optional speed (blocks/s) on the leg leading to this point, instead of the gait. */
+	public Double speed;
+	/** Optional heading (degrees, Minecraft yaw) the ship turns to while waiting at this stop (aircraft). */
+	public Double yaw;
 
 	public Waypoint() {
 	}

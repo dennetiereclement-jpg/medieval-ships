@@ -59,6 +59,7 @@ public final class ClientShipEvents {
 			if (!ship.isRemoved()) {
 				wake(world, ship, player);
 				engine(world, ship, player);
+				airship(world, ship, player);
 			}
 		}
 		rescue(world, player);
@@ -190,6 +191,59 @@ public final class ClientShipEvents {
 		if (t % 40 == 0 && player.squaredDistanceTo(ship) < 32 * 32) {
 			double[] w = pose.toWorld(0, engine.funnels()[0][1] - 4, engine.funnels()[0][2]);
 			world.playSoundClient(w[0], w[1], w[2], SoundEvents.BLOCK_FURNACE_FIRE_CRACKLE, SoundCategory.NEUTRAL, 0.5f, 0.8f, false);
+		}
+	}
+
+	/**
+	 * Airship: puffs of smoke from the exhaust (more under way), the whirr of the propeller and the
+	 * wind faster with the speed, the beat of the little engine, now and then the creak of the
+	 * wooden gondola. Only near the player.
+	 */
+	private static void airship(ClientWorld world, ShipEntity ship, ClientPlayerEntity player) {
+		ShipModels.Visual visual = ShipModels.of(ship.shipType());
+		if (visual == null || visual.propeller() == null || player == null || player.squaredDistanceTo(ship) > 80 * 80) {
+			return;
+		}
+		ShipModels.Propeller prop = visual.propeller();
+		ShipPose pose = ship.pose();
+		double speed = Math.abs(ship.syncedSpeed());
+		double load = Math.min(1.0, (speed + Math.abs(ship.syncedVerticalSpeed())) / Math.max(0.5, ship.config().normalSpeed));
+		long t = world.getTime() + ship.getId() * 5L;
+		double[] e = prop.exhaust();
+		if (t % (load > 0.05 ? 3 : 10) == 0) {
+			double[] w = pose.toWorld(e[0], e[1], e[2]);
+			double[] drift = pose.dirToWorld(0, 0, -0.05 - 0.08 * load);
+			world.addParticleClient(ParticleTypes.SMOKE, w[0], w[1], w[2], drift[0], 0.03, drift[2]);
+			if (load > 0.3) {
+				world.addParticleClient(ParticleTypes.CAMPFIRE_COSY_SMOKE, w[0], w[1], w[2], drift[0], 0.02, drift[2]);
+			}
+		}
+		if (player.squaredDistanceTo(ship) > 48 * 48) {
+			return;
+		}
+		double[] h = prop.hub();
+		double[] hub = pose.toWorld(h[0], h[1], h[2]);
+		if (speed > 0.3) {
+			// propeller: faster beats with the speed
+			int beat = (int) Math.max(4, Math.round(14 - 9 * load));
+			if (t % beat == 0) {
+				world.playSoundClient(hub[0], hub[1], hub[2], SoundEvents.ENTITY_PHANTOM_FLAP, SoundCategory.NEUTRAL,
+						0.25f + 0.35f * (float) load, 0.7f + 0.5f * (float) load, false);
+			}
+			if (t % 60 == 0 && load > 0.4) {
+				world.playSoundClient(player.getX(), player.getY() + 1, player.getZ(), SoundEvents.ITEM_ELYTRA_FLYING, SoundCategory.NEUTRAL,
+						0.08f * (float) load, 1.2f, false);
+			}
+		}
+		int beat = (int) Math.round(18 - 10 * load);
+		if (t % beat == 0) {
+			double[] w = pose.toWorld(0, 0.8, (e[2] + 1.0));
+			world.playSoundClient(w[0], w[1], w[2], SoundEvents.BLOCK_PISTON_CONTRACT, SoundCategory.NEUTRAL,
+					0.06f + 0.1f * (float) load, 0.8f + 0.3f * (float) load, false);
+		}
+		if (t % 140 == 0) {
+			double[] w = pose.toWorld(0, 0.3, 0);
+			world.playSoundClient(w[0], w[1], w[2], SoundEvents.BLOCK_WOOD_STEP, SoundCategory.NEUTRAL, 0.35f, 0.6f, false);
 		}
 	}
 

@@ -65,6 +65,8 @@ public final class Autopilot {
 	private double bestDist = Double.MAX_VALUE;
 	private int stallTicks;
 	private int blockedEvaluations;
+	/** Aircraft only: target altitude minus the current one; a stop is reached only once it is small. */
+	public double altitudeError;
 
 	/** Starts (or restarts) the route from the ship's current position. */
 	public void start(Route route, ShipPose pose, ShipConfig cfg, ShipGeometry geometry) {
@@ -234,7 +236,7 @@ public final class Autopilot {
 
 		// ---- waypoint transitions
 		if (tgt.isStop() || nx == null) {
-			if (dist < cfg.aiStopRadius && Math.abs(speed) < 0.7) {
+			if (dist < cfg.aiStopRadius && Math.abs(speed) < 0.7 && Math.abs(altitudeError) < 1.0) {
 				if (nx == null && !tgt.isStop()) {
 					phase = Phase.FINISHED;
 					listener.finished();
@@ -331,7 +333,7 @@ public final class Autopilot {
 		if (tgt.gait != null && Gait.byName(tgt.gait) != null) {
 			gait = Gait.byName(tgt.gait);
 		}
-		double v = cfg.gaitSpeed(gait);
+		double v = tgt.speed != null && tgt.speed > 0 ? tgt.speed : cfg.gaitSpeed(gait);
 		double dStop = distanceToNextStop(route, pose, dist);
 		if (!Double.isNaN(dStop)) {
 			double room = Math.max(0, dStop - cfg.aiStopRadius * 0.5);

@@ -44,6 +44,9 @@ public final class ShipConfig {
 	/** Furl the sail when the ship has been stopped for a few seconds. */
 	public boolean furlSailWhenStopped = true;
 
+	// --- flight (aircraft only; absent for ships) ------------------------------
+	public FlightConfig flight;
+
 	public double gaitSpeed(Gait gait) {
 		return switch (gait) {
 			case SLOW -> slowSpeed;
@@ -73,6 +76,9 @@ public final class ShipConfig {
 		aiDefaultWaitSeconds = (int) clamp(aiDefaultWaitSeconds, 0, 86400);
 		aiStuckSeconds = (int) clamp(aiStuckSeconds, 2, 120);
 		aiTurnAroundSpeed = clamp(aiTurnAroundSpeed, 0.1, 10);
+		if (flight != null) {
+			flight.sanitize();
+		}
 	}
 
 	private static double clamp(double v, double lo, double hi) {

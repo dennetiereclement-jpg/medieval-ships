@@ -33,6 +33,8 @@ public final class Route {
 	/** Dimension id, e.g. "minecraft:overworld". */
 	public String dimension = "minecraft:overworld";
 	public Mode mode = Mode.PINGPONG;
+	/** Air route (for aircraft: the points' heights matter) or sea route (for ships). */
+	public boolean air;
 	public List<Waypoint> points = new ArrayList<>();
 
 	public Route() {

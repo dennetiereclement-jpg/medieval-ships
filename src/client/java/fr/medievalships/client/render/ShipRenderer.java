@@ -48,7 +48,8 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 		state.helm = MathHelper.lerp(tickProgress, entity.lastHelmVisual, entity.helmVisual);
 		state.speed = entity.syncedSpeed();
 		state.rockTime = entity.rockTime + tickProgress * 0.05f;
-		state.rockScale = entity.config().waveRocking * visual.rocking();
+		state.rockScale = entity.config().waveRocking * visual.rocking() * (entity.config().flight != null ? entity.config().flight.sway : 1.0);
+		state.climb = MathHelper.lerp(tickProgress, entity.lastClimbVisual, entity.climbVisual);
 	}
 
 	@Override
@@ -71,7 +72,7 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 			matrices.translate(0, Math.sin(t * 1.1) * 0.03 * rock, 0);
 
 			float oarTime = state.oarTime, oarWeight = state.oarWeight, sail = state.sailOpen, wheel = state.wheelTime;
-			float helm = state.helm, age = state.age / 20f;
+			float helm = state.helm, age = state.age / 20f, climb = state.climb;
 			int light = state.light;
 			for (int tex = 0; tex < model.textureCount() && tex < visual.textures().size(); tex++) {
 				int texture = tex;
@@ -85,6 +86,8 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 					model.apply(pose, "flag_wave", age, 1f);
 					model.apply(pose, "streamer_wave", age, 1f);
 					model.apply(pose, "lantern_sway", age, 1f);
+					model.apply(pose, "propeller", wheel, 1f);
+					model.apply(pose, "elevator", climb + 1f, 1f);
 					model.render(pose, visual.textures().size() > 1 ? texture : -1, (p, uv, n, glow) -> {
 						int l = glow ? LightmapTextureManager.MAX_LIGHT_COORDINATE : light;
 						for (int k = 0; k < 4; k++) {

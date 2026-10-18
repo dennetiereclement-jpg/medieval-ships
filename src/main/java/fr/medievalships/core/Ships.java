@@ -874,7 +874,189 @@ public final class Ships {
 		return c;
 	}
 
-	public static final List<ShipType> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT);
+	// ------------------------------------------------------------------ steampunk airship
+
+	/**
+	 * Steampunk airship: a long cream and blue-grey balloon (19 x 8.5 blocks) under a rope net, three
+	 * triangular fins and a wooden propeller at the tail, and a 15 block wooden gondola hanging
+	 * 5 blocks below it on ropes. It flies (no water, no gravity while flying); 6 places.
+	 */
+	public static final ShipType STEAMPUNK_AIRSHIP = steampunkAirship();
+
+	/** Airship layout, ship-local blocks (shared with the model generator, tools/airship_shape.py). */
+	public static final class AirshipLayout {
+		public static final double HALF_LENGTH = 7.0;
+		public static final double TIP = 7.6;
+		public static final double MAX_HALF_WIDTH = 1.8;
+		public static final double MAIN_DECK_Y = 0.0;
+		public static final double DECK_MIN_Z = -6.4;
+		public static final double DECK_MAX_Z = 6.4;
+		public static final double LOWEST_Y = -1.65;
+		public static final double BALLOON_Z = -1.1;
+		public static final double BALLOON_Y = 10.4;
+		public static final double BALLOON_HALF = 9.5;
+		public static final double BALLOON_R = 4.25;
+		public static final double BALLOON_REAR_T = 0.92;
+		public static final double NOSE_ROD_Z = BALLOON_Z + BALLOON_HALF + 2.0;
+		public static final double TAIL_END_Z = -14.6;
+		public static final double PROP_Z = -15.2;
+		public static final double PROP_R = 2.4;
+		public static final double[] FIN_AZIMUTHS = {0.0, 125.0, -125.0};
+		public static final double FIN_ROOT_Z0 = -3.6;
+		public static final double FIN_ROOT_Z1 = -9.6;
+		public static final double FIN_TIP_Z = -12.4;
+		public static final double FIN_SPAN = 5.0;
+		public static final double PILLAR_Z = BALLOON_Z;
+		public static final double HELM_Z = -3.6;
+		public static final double PILOT_Z = -4.5;
+		public static final double ENGINE_Z0 = -6.6;
+		public static final double ENGINE_Z1 = -5.0;
+		public static final double[] BENCH_Z = {1.0, 3.2};
+		public static final double BOW_SEAT_Z = 5.6;
+
+		/** Balloon radius at z (body of revolution about y = BALLOON_Y), as in airship_shape.py. */
+		public static double balloonRadius(double z) {
+			double t = (z - BALLOON_Z) / BALLOON_HALF;
+			double a = t >= 0 ? 2.4 : 2.0, b = t >= 0 ? 0.5 : 0.55;
+			t = Math.abs(t);
+			return t >= 1.0 ? 0.0 : BALLOON_R * Math.pow(1.0 - Math.pow(t, a), b);
+		}
+
+		private AirshipLayout() {
+		}
+	}
+
+	private static ShipType steampunkAirship() {
+		HullShape.Params p = new HullShape.Params();
+		p.halfLength = AirshipLayout.HALF_LENGTH;
+		p.tip = AirshipLayout.TIP;
+		p.maxHalfWidth = AirshipLayout.MAX_HALF_WIDTH;
+		p.foreScale = 7.6;
+		p.forePowA = 2.0;
+		p.forePowB = 0.75;
+		p.aftScale = 7.5;
+		p.aftPowA = 2.4;
+		p.aftPowB = 0.6;
+		p.keelDepth = 1.4;
+		p.keelRise = 1.3;
+		p.keelPow = 2.0;
+		p.railBase = 1.0;
+		p.railRiseFore = 1.7;
+		p.railRiseAft = 1.3;
+		p.railPow = 2.2;
+		p.waterlineY = 0.0;
+		p.mainDeckY = AirshipLayout.MAIN_DECK_Y;
+		p.deckMinZ = AirshipLayout.DECK_MIN_Z;
+		p.deckMaxZ = AirshipLayout.DECK_MAX_Z;
+		p.bottomSection = new double[][] {{0.0, 1.0}, {0.5, 0.88}, {0.85, 0.5}, {0.98, 0.1}};
+		HullShape hull = new HullShape(p);
+
+		double main = AirshipLayout.MAIN_DECK_Y;
+		ShipGeometry.Spec spec = new ShipGeometry.Spec();
+		List<ShipGeometry.Seat> seats = new ArrayList<>();
+		seats.add(new ShipGeometry.Seat(ShipGeometry.PILOT_SEAT, 0.0, main + 0.28, AirshipLayout.PILOT_Z, true,
+				new double[] {0.9, main + 0.02, AirshipLayout.PILOT_Z + 0.4}));
+		// benches along both sides, facing inwards, and a seat at the bow
+		for (double z : AirshipLayout.BENCH_Z) {
+			for (double x : new double[] {1.05, -1.05}) {
+				seats.add(seat(seats.size(), x, main, z, x * 0.3, z + 0.9));
+			}
+		}
+		seats.add(seat(seats.size(), 0.0, main, AirshipLayout.BOW_SEAT_Z, 0.0, AirshipLayout.BOW_SEAT_Z - 0.9));
+		spec.seats = List.copyOf(seats);
+		spec.helm = new ShipGeometry.LocalBox(-0.6, main + 0.45, AirshipLayout.HELM_Z - 0.3, 0.6, main + 1.65, AirshipLayout.HELM_Z + 0.35);
+		double balloonBottom = AirshipLayout.BALLOON_Y - AirshipLayout.BALLOON_R;
+		spec.masts = List.of(new ShipGeometry.Mast(0, AirshipLayout.PILLAR_Z, main, balloonBottom + 0.3, 0.3));
+		List<ShipGeometry.LocalBox> solids = new ArrayList<>();
+		// the engine at the stern of the gondola
+		solids.add(new ShipGeometry.LocalBox(-0.75, main, AirshipLayout.ENGINE_Z0, 0.75, main + 1.5, AirshipLayout.ENGINE_Z1));
+		// the balloon, in 1.5 block slices (players cannot walk through it, picking hits it)
+		double front = AirshipLayout.BALLOON_Z + AirshipLayout.BALLOON_HALF;
+		double rear = AirshipLayout.BALLOON_Z - AirshipLayout.BALLOON_HALF * AirshipLayout.BALLOON_REAR_T;
+		for (double z0 = rear; z0 < front - 0.3; z0 += 1.5) {
+			double z1 = Math.min(front, z0 + 1.5);
+			double r = Math.min(AirshipLayout.balloonRadius(z0), AirshipLayout.balloonRadius(z1)) * 0.86;
+			if (r < 0.3) {
+				continue;
+			}
+			solids.add(new ShipGeometry.LocalBox(-r, AirshipLayout.BALLOON_Y - r, z0, r, AirshipLayout.BALLOON_Y + r, z1));
+		}
+		spec.solids = List.copyOf(solids);
+		spec.probeHeights = new double[] {0.15, 1.2};
+		// terrain probes for everything outside the gondola: balloon rings, tail, propeller, fins, nose rod, keel
+		List<double[]> probes = new ArrayList<>();
+		for (double z = rear; z <= front + 1e-6; z += 1.4) {
+			double r = AirshipLayout.balloonRadius(z);
+			for (int k = 0; k < 8; k++) {
+				double a = Math.toRadians(45 * k);
+				probes.add(new double[] {Math.sin(a) * r, AirshipLayout.BALLOON_Y + Math.cos(a) * r, z});
+			}
+		}
+		probes.add(new double[] {0, AirshipLayout.BALLOON_Y, front});
+		probes.add(new double[] {0, AirshipLayout.BALLOON_Y, AirshipLayout.NOSE_ROD_Z});
+		for (double z = rear; z >= AirshipLayout.PROP_Z; z -= 1.2) {
+			probes.add(new double[] {0, AirshipLayout.BALLOON_Y, z});
+		}
+		for (int k = 0; k < 6; k++) {
+			double a = Math.toRadians(60 * k + 30);
+			double r = AirshipLayout.PROP_R;
+			probes.add(new double[] {Math.sin(a) * r, AirshipLayout.BALLOON_Y + Math.cos(a) * r, AirshipLayout.PROP_Z});
+		}
+		for (double az : AirshipLayout.FIN_AZIMUTHS) {
+			double a = Math.toRadians(az);
+			double rr = AirshipLayout.balloonRadius(AirshipLayout.FIN_TIP_Z + 2.5) + AirshipLayout.FIN_SPAN;
+			for (double f : new double[] {0.5, 1.0}) {
+				double r = AirshipLayout.balloonRadius(AirshipLayout.FIN_ROOT_Z1) * (1 - f) + rr * f;
+				double z = AirshipLayout.FIN_ROOT_Z1 + (AirshipLayout.FIN_TIP_Z - AirshipLayout.FIN_ROOT_Z1) * f;
+				probes.add(new double[] {Math.sin(a) * r, AirshipLayout.BALLOON_Y + Math.cos(a) * r, z});
+			}
+		}
+		for (double z = -5.5; z <= 5.5; z += 1.5) {
+			probes.add(new double[] {0, AirshipLayout.LOWEST_Y + 0.05, z});
+		}
+		spec.extraProbes = List.copyOf(probes);
+		spec.flying = true;
+		spec.boundingRadius = -AirshipLayout.PROP_Z + AirshipLayout.PROP_R + 0.6;
+		spec.aiReach = AirshipLayout.NOSE_ROD_Z + 0.3;
+		spec.aiBack = -AirshipLayout.PROP_Z;
+		spec.aiHalfWidth = AirshipLayout.BALLOON_R + 2.2;
+		spec.lowestY = AirshipLayout.LOWEST_Y;
+		spec.boardMinZ = -4.0;
+		spec.boardMaxZ = 6.0;
+		spec.avoidZ = new double[] {AirshipLayout.BENCH_Z[0], AirshipLayout.BENCH_Z[1], AirshipLayout.PILLAR_Z};
+		spec.sternPost = false;
+		return new ShipType("steampunk_airship", "dirigeable steampunk", new ShipGeometry(hull, spec), Ships::airshipConfig);
+	}
+
+	/** An airship, not an aeroplane: slow to gather way, long glide, gentle turns, can turn on the spot. */
+	private static ShipConfig airshipConfig() {
+		ShipConfig c = new ShipConfig();
+		c.slowSpeed = 2.5;
+		c.normalSpeed = 5.0;
+		c.fastSpeed = 8.0;
+		c.reverseSpeed = 1.5;
+		c.acceleration = 0.55;
+		c.braking = 0.9;
+		c.waterDrag = 0.22;
+		c.maxTurnRate = 12.0;
+		c.minTurnFactor = 0.55;
+		c.helmRate = 1.2;
+		c.helmReturnRate = 1.0;
+		c.turnResponse = 0.9;
+		c.turnSpeedLoss = 0.08;
+		c.waveRocking = 0.6;
+		c.aiWaypointRadius = 8.0;
+		c.aiStopRadius = 2.5;
+		c.aiLookahead = 16.0;
+		c.aiProbeDistance = 40.0;
+		c.aiStuckSeconds = 8;
+		c.aiTurnAroundSpeed = 0.8;
+		c.furlSailWhenStopped = false;
+		c.flight = new FlightConfig();
+		return c;
+	}
+
+	public static final List<ShipType> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT, STEAMPUNK_AIRSHIP);
 
 	/**
 	 * Other names accepted by the commands (the ids used in saves and configs never change):

@@ -59,6 +59,13 @@ public final class ShipGeometry {
 		public List<double[]> extraProbes = List.of();
 		/** Half width for the autopilot's clearance rays, if wider than the hull (NaN: from the hull). */
 		public double aiHalfWidth = Double.NaN;
+		/** An aircraft: flies instead of floating (no water, no gravity while flying). */
+		public boolean flying;
+		/** Parts beyond the hull (balloon, propeller...): overrides of the extents derived from the hull (NaN: from the hull). */
+		public double boundingRadius = Double.NaN;
+		public double aiReach = Double.NaN;
+		public double aiBack = Double.NaN;
+		public double lowestY = Double.NaN;
 	}
 
 	public interface BoxSink {
@@ -77,7 +84,7 @@ public final class ShipGeometry {
 		List<double[]> probeList = buildProbes(hull, spec.probeStep, spec.probeHeights);
 		probeList.addAll(spec.extraProbes);
 		this.probes = Collections.unmodifiableList(probeList);
-		this.boundingRadius = hull.tip + 0.6;
+		this.boundingRadius = Double.isNaN(spec.boundingRadius) ? hull.tip + 0.6 : spec.boundingRadius;
 		double top = 0;
 		for (Mast m : spec.masts) {
 			top = Math.max(top, m.top());
@@ -150,7 +157,27 @@ public final class ShipGeometry {
 
 	/** How far the hull extends ahead of its origin (for the autopilot). */
 	public double aiReach() {
-		return hull.tip - 0.3;
+		return Double.isNaN(spec.aiReach) ? hull.tip - 0.3 : spec.aiReach;
+	}
+
+	/** How far the ship extends behind its origin (for the autopilot of an aircraft). */
+	public double aiBack() {
+		return Double.isNaN(spec.aiBack) ? hull.tip - 0.3 : spec.aiBack;
+	}
+
+	/** Is this an aircraft? */
+	public boolean flying() {
+		return spec.flying;
+	}
+
+	/** Lowest point of the ship (keel), ship-local. */
+	public double lowestY() {
+		return Double.isNaN(spec.lowestY) ? hull.keelY(0) : spec.lowestY;
+	}
+
+	/** Highest point of the ship (mast top, balloon...), ship-local. */
+	public double topY() {
+		return Math.max(maxHeight, hull.railY(hull.halfLength));
 	}
 
 	/** Half width used by the autopilot's clearance rays. */

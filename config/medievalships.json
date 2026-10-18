@@ -152,6 +152,40 @@
       "aiStuckSeconds": 6,
       "aiTurnAroundSpeed": 1.2,
       "furlSailWhenStopped": false
+    },
+    "steampunk_airship": {
+      "slowSpeed": 2.5,
+      "normalSpeed": 5.0,
+      "fastSpeed": 8.0,
+      "reverseSpeed": 1.5,
+      "acceleration": 0.55,
+      "braking": 0.9,
+      "waterDrag": 0.22,
+      "maxTurnRate": 12.0,
+      "minTurnFactor": 0.55,
+      "helmRate": 1.2,
+      "helmReturnRate": 1.0,
+      "turnResponse": 0.9,
+      "turnSpeedLoss": 0.08,
+      "waveRocking": 0.6,
+      "aiWaypointRadius": 8.0,
+      "aiStopRadius": 2.5,
+      "aiLookahead": 16.0,
+      "aiProbeDistance": 40.0,
+      "aiDefaultWaitSeconds": 300,
+      "aiStuckSeconds": 8,
+      "aiTurnAroundSpeed": 0.8,
+      "furlSailWhenStopped": false,
+      "flight": {
+        "climbSpeed": 1.6,
+        "descendSpeed": 1.3,
+        "verticalAcceleration": 0.9,
+        "maxAltitude": 300.0,
+        "aiClearance": 5.0,
+        "aiApproachDistance": 26.0,
+        "aiLandingClearance": 1.2,
+        "sway": 1.0
+      }
     }
   }
 }

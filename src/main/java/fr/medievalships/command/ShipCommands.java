@@ -36,6 +36,7 @@ import fr.medievalships.core.Route;
 import fr.medievalships.core.ShipGeometry;
 import fr.medievalships.core.ShipType;
 import fr.medievalships.core.Ships;
+import fr.medievalships.core.ShipPose;
 import fr.medievalships.core.Waypoint;
 import fr.medievalships.data.ConfigManager;
 import fr.medievalships.data.ShipData;
@@ -123,9 +124,12 @@ public final class ShipCommands {
 		root.then(CommandManager.literal("route")
 				.then(CommandManager.literal("create")
 						.then(CommandManager.argument("name", StringArgumentType.word())
-								.executes(ctx -> routeCreate(ctx, "pingpong"))
+								.executes(ctx -> routeCreate(ctx, "pingpong", false))
+								.then(CommandManager.literal("air").executes(ctx -> routeCreate(ctx, "pingpong", true)))
 								.then(CommandManager.argument("mode", StringArgumentType.word()).suggests(MODES)
-										.executes(ctx -> routeCreate(ctx, StringArgumentType.getString(ctx, "mode"))))))
+										.executes(ctx -> routeCreate(ctx, StringArgumentType.getString(ctx, "mode"), false))
+										.then(CommandManager.literal("air")
+												.executes(ctx -> routeCreate(ctx, StringArgumentType.getString(ctx, "mode"), true))))))
 				.then(CommandManager.literal("addpoint")
 						.then(CommandManager.argument("name", StringArgumentType.word()).suggests(ROUTES)
 								.executes(ctx -> addPoint(ctx, 0, null))))
@@ -137,6 +141,24 @@ public final class ShipCommands {
 										.then(CommandManager.argument("label", StringArgumentType.greedyString())
 												.executes(ctx -> addPoint(ctx, IntegerArgumentType.getInteger(ctx, "seconds"),
 														StringArgumentType.getString(ctx, "label")))))))
+				.then(CommandManager.literal("edit")
+						.then(CommandManager.argument("name", StringArgumentType.word()).suggests(ROUTES)
+								.then(CommandManager.argument("index", IntegerArgumentType.integer(1))
+										.then(CommandManager.literal("yaw")
+												.then(CommandManager.argument("degrees", DoubleArgumentType.doubleArg(-360, 360))
+														.executes(ctx -> editPoint(ctx, "yaw", DoubleArgumentType.getDouble(ctx, "degrees"))))
+												.then(CommandManager.literal("here").executes(ctx -> editPoint(ctx, "yaw",
+														ctx.getSource().getRotation().y))))
+										.then(CommandManager.literal("speed")
+												.then(CommandManager.argument("blocksPerSecond", DoubleArgumentType.doubleArg(0.1, 40))
+														.executes(ctx -> editPoint(ctx, "speed", DoubleArgumentType.getDouble(ctx, "blocksPerSecond")))))
+										.then(CommandManager.literal("altitude")
+												.then(CommandManager.argument("y", DoubleArgumentType.doubleArg(-64, 2000))
+														.executes(ctx -> editPoint(ctx, "altitude", DoubleArgumentType.getDouble(ctx, "y")))))
+										.then(CommandManager.literal("wait")
+												.then(CommandManager.argument("seconds", IntegerArgumentType.integer(0, 86400))
+														.executes(ctx -> editPoint(ctx, "wait", IntegerArgumentType.getInteger(ctx, "seconds")))))
+										.then(CommandManager.literal("clear").executes(ctx -> editPoint(ctx, "clear", 0))))))
 				.then(CommandManager.literal("removepoint")
 						.then(CommandManager.argument("name", StringArgumentType.word()).suggests(ROUTES)
 								.then(CommandManager.argument("index", IntegerArgumentType.integer(1))
@@ -387,7 +409,7 @@ public final class ShipCommands {
 
 	// ------------------------------------------------------------------ routes
 
-	private static int routeCreate(CommandContext<ServerCommandSource> ctx, String modeName) throws CommandSyntaxException {
+	private static int routeCreate(CommandContext<ServerCommandSource> ctx, String modeName, boolean air) throws CommandSyntaxException {
 		String name = StringArgumentType.getString(ctx, "name");
 		ShipData data = ShipData.get(ctx.getSource().getServer());
 		if (data.route(name) != null) {
@@ -399,9 +421,11 @@ public final class ShipCommands {
 		}
 		Route route = new Route(name, ctx.getSource().getWorld().getRegistryKey().getValue().toString());
 		route.mode = mode;
+		route.air = air;
 		data.putRoute(route);
-		ok(ctx, "Itinéraire " + name + " créé (" + mode.name().toLowerCase(Locale.ROOT)
-				+ "). Ajoutez des points avec /ship route addstop|addpoint " + name);
+		ok(ctx, "Itinéraire " + (air ? "aérien " : "") + name + " créé (" + mode.name().toLowerCase(Locale.ROOT)
+				+ "). Ajoutez des points avec /ship route addstop|addpoint " + name
+				+ (air ? " (à l'endroit et à la hauteur où doit se trouver le pont de la nacelle)" : ""));
 		return 1;
 	}
 
@@ -414,12 +438,55 @@ public final class ShipCommands {
 		}
 		Vec3d p = source.getPosition();
 		Waypoint w = new Waypoint(Math.round(p.x * 10) / 10.0, Math.round(p.y * 10) / 10.0, Math.round(p.z * 10) / 10.0, waitSeconds, label);
+		if (route.air && waitSeconds > 0) {
+			// an airship turns to the heading the administrator faced when creating the stop
+			w.yaw = (double) Math.round(source.getRotation().y);
+		}
 		route.points.add(w);
 		ShipData.get(source.getServer()).putRoute(route);
 		int idx = route.size();
-		ok(ctx, String.format(Locale.ROOT, "Point %d ajouté à %s : %.1f %.1f%s", idx, route.name, w.x, w.z,
-				w.isStop() ? " (escale " + (label == null ? "" : label + ", ") + waitSeconds + " s)" : ""));
+		ok(ctx, String.format(Locale.ROOT, route.air ? "Point %d ajouté à %s : %.1f %.1f %.1f%s" : "Point %d ajouté à %s : %.1f %.1f%s",
+				route.air ? new Object[] {idx, route.name, w.x, w.y, w.z, w.isStop() ? " (escale " + (label == null ? "" : label + ", ")
+						+ waitSeconds + " s, cap " + Math.round(w.yaw) + ")" : ""} : new Object[] {idx, route.name, w.x, w.z,
+				w.isStop() ? " (escale " + (label == null ? "" : label + ", ") + waitSeconds + " s)" : ""}));
 		return idx;
+	}
+
+	/** Options of one point: heading at the stop, speed of the leg, altitude, waiting time. */
+	private static int editPoint(CommandContext<ServerCommandSource> ctx, String what, double value) throws CommandSyntaxException {
+		Route route = route(ctx);
+		int index = IntegerArgumentType.getInteger(ctx, "index");
+		if (index > route.size()) {
+			throw error("L'itinéraire n'a que " + route.size() + " point(s).");
+		}
+		Waypoint w = route.points.get(index - 1);
+		String msg;
+		switch (what) {
+			case "yaw" -> {
+				w.yaw = (double) Math.round(ShipPose.wrapDegrees(value));
+				msg = "cap à l'escale " + Math.round(w.yaw) + "°";
+			}
+			case "speed" -> {
+				w.speed = value;
+				msg = String.format(Locale.ROOT, "vitesse %.1f blocs/s jusqu'à ce point", value);
+			}
+			case "altitude" -> {
+				w.y = value;
+				msg = String.format(Locale.ROOT, "altitude du pont %.1f", value);
+			}
+			case "wait" -> {
+				w.waitSeconds = (int) value;
+				msg = value > 0 ? "escale de " + (int) value + " s" : "simple point de passage";
+			}
+			default -> {
+				w.yaw = null;
+				w.speed = null;
+				msg = "cap et vitesse effacés";
+			}
+		}
+		ShipData.get(ctx.getSource().getServer()).putRoute(route);
+		ok(ctx, "Point " + index + " de " + route.name + " : " + msg + ".");
+		return 1;
 	}
 
 	private static int removePoint(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
@@ -459,8 +526,8 @@ public final class ShipCommands {
 			ctx.getSource().sendFeedback(() -> Text.literal("Aucun itinéraire."), false);
 		}
 		for (Route r : routes.values()) {
-			String line = String.format(Locale.ROOT, "- %s : %d points, %.0f blocs, %s, %s", r.name, r.size(), r.totalLength(),
-					r.mode.name().toLowerCase(Locale.ROOT), r.dimension);
+			String line = String.format(Locale.ROOT, "- %s%s : %d points, %.0f blocs, %s, %s", r.name, r.air ? " (aérien)" : "", r.size(),
+					r.totalLength(), r.mode.name().toLowerCase(Locale.ROOT), r.dimension);
 			ctx.getSource().sendFeedback(() -> Text.literal(line), false);
 		}
 		return routes.size();
@@ -472,8 +539,10 @@ public final class ShipCommands {
 				route.mode.name().toLowerCase(Locale.ROOT), route.dimension, route.totalLength())).formatted(Formatting.GOLD), false);
 		for (int i = 0; i < route.size(); i++) {
 			Waypoint w = route.get(i);
-			String line = String.format(Locale.ROOT, " %d. %.1f %.1f %.1f%s", i + 1, w.x, w.y, w.z,
-					w.isStop() ? " escale " + w.label(i) + " (" + w.waitSeconds + " s)" : "");
+			String line = String.format(Locale.ROOT, " %d. %.1f %.1f %.1f%s%s%s", i + 1, w.x, w.y, w.z,
+					w.isStop() ? " escale " + w.label(i) + " (" + w.waitSeconds + " s)" : "",
+					w.yaw != null ? " cap " + Math.round(w.yaw) + "°" : "",
+					w.speed != null ? String.format(Locale.ROOT, " %.1f blocs/s", w.speed) : "");
 			ctx.getSource().sendFeedback(() -> Text.literal(line), false);
 		}
 		return route.size();
@@ -490,7 +559,7 @@ public final class ShipCommands {
 				double len = Math.hypot(w.x - a.x, w.z - a.z);
 				for (double t = 0; t < len; t += 2) {
 					double f = t / len;
-					world.spawnParticles(ParticleTypes.END_ROD, a.x + (w.x - a.x) * f, a.y + 1, a.z + (w.z - a.z) * f, 1, 0, 0, 0, 0);
+					world.spawnParticles(ParticleTypes.END_ROD, a.x + (w.x - a.x) * f, a.y + (w.y - a.y) * f + 1, a.z + (w.z - a.z) * f, 1, 0, 0, 0, 0);
 				}
 			}
 		}
@@ -504,6 +573,10 @@ public final class ShipCommands {
 			throw error("Il faut au moins 2 points (de préférence des escales aux extrémités).");
 		}
 		ShipEntity ship = target(ctx);
+		if (route.air != ship.geometry().flying()) {
+			throw error(route.air ? "C'est un itinéraire aérien : seul un dirigeable peut le suivre."
+					: "C'est un itinéraire maritime : un dirigeable a besoin d'un itinéraire aérien (/ship route create <nom> [mode] air).");
+		}
 		if (!ship.getEntityWorld().getRegistryKey().getValue().toString().equals(route.dimension)) {
 			throw error("Le navire n'est pas dans la dimension de l'itinéraire.");
 		}

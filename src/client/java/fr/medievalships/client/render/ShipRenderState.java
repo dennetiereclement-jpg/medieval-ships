@@ -12,4 +12,6 @@ public class ShipRenderState extends EntityRenderState {
 	public float speed;
 	public float rockTime;
 	public double rockScale;
+	/** Aircraft: -1 descending .. 1 climbing (fins). */
+	public float climb;
 }

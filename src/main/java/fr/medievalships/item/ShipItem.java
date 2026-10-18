@@ -38,7 +38,9 @@ public class ShipItem extends Item {
 	public ActionResult use(World world, PlayerEntity user, Hand hand) {
 		ItemStack stack = user.getStackInHand(hand);
 		BlockHitResult hit = raycast(world, user, RaycastContext.FluidHandling.ANY);
-		if (hit.getType() != HitResult.Type.BLOCK || !world.getFluidState(hit.getBlockPos()).isIn(FluidTags.WATER)) {
+		boolean flying = type.geometry().flying();
+		// ships go on water; an aircraft is placed above whatever was clicked (ground, water, roof)
+		if (hit.getType() != HitResult.Type.BLOCK || !flying && !world.getFluidState(hit.getBlockPos()).isIn(FluidTags.WATER)) {
 			return ActionResult.PASS;
 		}
 		if (!(world instanceof ServerWorld serverWorld)) {
@@ -50,6 +52,12 @@ public class ShipItem extends Item {
 		}
 		Vec3d hitPos = hit.getPos();
 		ShipEntity ship = ShipPlacement.place(serverWorld, type, hitPos.x, hitPos.y, hitPos.z, user.getYaw(), true);
+		if (ship == null && flying) {
+			user.sendMessage(Text.literal(String.format(java.util.Locale.ROOT,
+					"Pas assez d'espace libre ici pour le dirigeable (%.0f blocs de long, %.0f de haut) : visez un endroit dégagé.",
+					type.geometry().aiReach() + type.geometry().aiBack(), type.geometry().topY() - type.geometry().lowestY())).formatted(Formatting.RED), true);
+			return ActionResult.FAIL;
+		}
 		if (ship == null) {
 			user.sendMessage(Text.literal(String.format(java.util.Locale.ROOT, "Pas assez d'eau libre ici pour ce navire (%.0f x %.0f blocs, %.1f blocs de profondeur).", type.hull().tip * 2, type.hull().maxHalfWidth * 2 + 1, type.hull().waterlineY - type.hull().keelY(0) + 0.8)).formatted(Formatting.RED), true);
 			return ActionResult.FAIL;

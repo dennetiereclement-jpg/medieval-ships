@@ -9,15 +9,17 @@ import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.world.Heightmap;
 import net.minecraft.world.World;
 
 import fr.medievalships.core.Autopilot;
+import fr.medievalships.core.Flight;
 import fr.medievalships.core.ShipGeometry;
 import fr.medievalships.core.ShipMover;
 import fr.medievalships.core.ShipPose;
 
 /** Adapts the Minecraft world to the pure navigation code (terrain, water, other hulls). */
-final class ShipWorld implements ShipMover.Obstacles, Autopilot.Navigator {
+final class ShipWorld implements ShipMover.Obstacles, Autopilot.Navigator, Flight.Terrain {
 	private final World world;
 	private final ShipEntity self;
 	private final BlockPos.Mutable pos = new BlockPos.Mutable();
@@ -112,6 +114,15 @@ final class ShipWorld implements ShipMover.Obstacles, Autopilot.Navigator {
 		}
 		double wy = water + 0.2;
 		return !insideOtherHull(x, wy, z);
+	}
+
+	/** Top of the ground, trees and buildings in a column (aircraft autopilot); +infinity if not loaded. */
+	@Override
+	public double groundTop(double x, double z) {
+		if (!loaded(x, z)) {
+			return Double.POSITIVE_INFINITY;
+		}
+		return world.getTopY(Heightmap.Type.MOTION_BLOCKING, (int) Math.floor(x), (int) Math.floor(z));
 	}
 
 	/** Water surface height at a column near {@code nearY}, or NaN if there is no water. */
