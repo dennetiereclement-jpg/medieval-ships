@@ -73,6 +73,13 @@ Pour tous :
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
 
+La version 1.7.1 améliore le Nautilus :
+* l'ordre de plongée referme lui-même les panneaux ouverts, et les messages au pilote ne sont plus masqués par la jauge de profondeur ;
+* les couloirs sont plus larges ;
+* les murs intérieurs sont lisses (peinture, boiseries, damas), et leur texture court d'un bloc à l'autre sans répétition visible ;
+* l'extérieur est caréné : capot à épaules arrondies, timonerie arrondie à toit bombé, capot du projecteur arrondi, quilles et ailerons lisses, coque plus ronde ;
+* le mobilier est retravaillé : orgue monumental, globe, scaphandres, lustres, plafonniers, fauteuils, Chesterfield et canot.
+
 La version 1.7.0 ajoute le **Nautilus** (`nautilus`), reproduit d'après la planche de référence,
 sans rien changer aux autres navires : intérieur parcourable et étanche, plongée, sas, panneaux
 des baies, projecteur, lumières, canot, commandes `/ship nautilus`, itinéraires sous-marins.
@@ -115,7 +122,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.7.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.7.1.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation

@@ -625,26 +625,59 @@ def tank(bone, name, p, h=1.6, r=0.35, region="copper"):
 
 
 def lifeboat(bone, name, center, length=6.0, width=1.8):
-    """Wooden lifeboat in its recess on the casing: planked hull, thwarts, oars."""
+    """Wooden lifeboat in its recess on the casing (panel 15): a rounded planked hull (lofted strakes
+    following a curved sheer and a round bilge), a keel, stem and stern posts, a varnished gunwale
+    following the sheer, thwarts, oars and a coiled painter."""
     c = v3(*center)
-    n = 10
-    for k in range(n):
-        z0 = -length / 2 + length * k / n
-        z1 = z0 + length / n
-        zm = (z0 + z1) / 2
-        f = 1 - (2 * zm / length) ** 2
-        w = width / 2 * (0.25 + 0.75 * f ** 0.6)
-        depth = 0.55 * (0.4 + 0.6 * f ** 0.5)
-        for s in (-1, 1):
-            box(bone, "%s_side%d%d" % (name, k, s > 0), c + v3(s * w, 0.05, zm), EYE, (0.1, 0.6, z1 - z0 + 0.02), "boat_wood")
-        box(bone, "%s_bottom%d" % (name, k), c + v3(0, -depth + 0.3, zm), EYE, (2 * w, 0.1, z1 - z0 + 0.02), "boat_wood")
-        box(bone, "%s_keel%d" % (name, k), c + v3(0, -depth + 0.2, zm), EYE, (0.12, 0.12, z1 - z0 + 0.02), "organ_wood")
-    for k, z in enumerate((-1.5, 0.0, 1.5)):
-        box(bone, "%s_thwart%d" % (name, k), c + v3(0, 0.15, z), EYE, (width * 0.85, 0.08, 0.3), "plank_light")
-    for s in (-1, 1):
-        beam(bone, "lit_%s_oar%d" % (name, s > 0), c + v3(s * 0.4, 0.25, -2.0), c + v3(s * 0.4, 0.25, 2.2), 0.08, "plank_light")
-        beam(bone, "lit_%s_gunwale%d" % (name, s > 0), c + v3(s * width / 2 * 0.95, 0.36, -length / 2 + 0.3),
-             c + v3(s * width / 2 * 0.95, 0.36, length / 2 - 0.3), 0.1, "organ_wood")
+    nz, ns_ = 14, 5
+    def P(t, a):
+        # t: -1 (stern) .. 1 (bow); a: 0 (keel) .. 1 (gunwale), one side
+        f = 1 - abs(t) ** 2.2
+        half = width / 2 * (0.18 + 0.82 * f ** 0.55)
+        depth = 0.62 * (0.35 + 0.65 * f ** 0.4)
+        sheer = 0.38 + 0.18 * abs(t) ** 3
+        x = half * math.sin(a * math.pi / 2)
+        y = sheer - depth + (depth + 0.0) * (1 - math.cos(a * math.pi / 2)) * 1.0
+        return x, y, t * length / 2
+    for side in (-1, 1):
+        sections = []
+        for i in range(nz + 1):
+            t = -1 + 2 * i / nz
+            sec = []
+            for j in range(ns_ + 1):
+                x, y, z = P(t, j / ns_)
+                sec.append(c + v3(side * x, y, z))
+            sections.append(sec)
+        for i in range(nz):
+            for j in range(ns_):
+                a0, a1, b0, b1 = sections[i][j], sections[i][j + 1], sections[i + 1][j], sections[i + 1][j + 1]
+                mid = (a0 + a1 + b0 + b1) / 4
+                out = mid - (c + v3(0, 0.6, mid[2] - c[2]))
+                gg.board(bone, "lit_%s_strake%d_%d_%d" % (name, side > 0, i, j), a0, a1, b0, b1, 0.05,
+                         "boat_wood" if j < ns_ - 1 else "organ_wood", out, overlap=1.04)
+        for i in range(nz):  # gunwale along the sheer
+            x0, y0, z0 = P(-1 + 2 * i / nz, 1.0)
+            x1, y1, z1 = P(-1 + 2 * (i + 1) / nz, 1.0)
+            beam(bone, "lit_%s_gunwale%d_%d" % (name, side > 0, i), c + v3(side * x0, y0 + 0.03, z0), c + v3(side * x1, y1 + 0.03, z1),
+                 0.08, "organ_wood", width=0.1)
+    for i in range(nz):
+        _, y0, z0 = P(-1 + 2 * i / nz, 0.0)
+        _, y1, z1 = P(-1 + 2 * (i + 1) / nz, 0.0)
+        beam(bone, "lit_%s_keel%d" % (name, i), c + v3(0, y0 - 0.04, z0), c + v3(0, y1 - 0.04, z1), 0.1, "organ_wood")
+    for t, tag in ((1.0, "stem"), (-1.0, "sternpost")):
+        x, y, z = P(t, 0.0)
+        beam(bone, "lit_%s_%s" % (name, tag), c + v3(0, y, z), c + v3(0, 0.62, z + 0.08 * t), 0.1, "organ_wood")
+    for k, t in enumerate((-0.55, 0.0, 0.5)):
+        x, y, z = P(t, 1.0)
+        box(bone, "%s_thwart%d" % (name, k), c + v3(0, y - 0.18, z), EYE, (2 * x * 0.92, 0.06, 0.32), "plank_light")
+    for s_ in (-1, 1):
+        beam(bone, "lit_%s_oar%d" % (name, s_ > 0), c + v3(s_ * 0.35, 0.12, -2.1), c + v3(s_ * 0.35, 0.14, 2.0), 0.07, "plank_light")
+        box(bone, "%s_blade%d" % (name, s_ > 0), c + v3(s_ * 0.35, 0.14, 2.2), EYE, (0.18, 0.03, 0.5), "plank_light")
+    for k in range(8):  # coiled painter at the bow
+        a0, a1 = 2 * math.pi * k / 8, 2 * math.pi * (k + 1) / 8
+        q = c + v3(0, 0.12, length / 2 - 0.9)
+        beam(bone, "lit_%s_rope%d" % (name, k), q + v3(math.cos(a0) * 0.18, 0, math.sin(a0) * 0.18),
+             q + v3(math.cos(a1) * 0.18, 0, math.sin(a1) * 0.18), 0.05, "plank_light")
 
 
 def railing(bone, name, points, h=1.0, posts_every=1.0):

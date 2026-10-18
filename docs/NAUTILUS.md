@@ -50,7 +50,7 @@ On marche librement dans toutes les salles pendant que le sous-marin avance, tou
 * Sans touche, le Nautilus **tient sa profondeur**. Près de la surface, il y reste à flot.
 * Il ne monte jamais plus haut que la surface et ne plonge jamais dans le fond : les mouvements verticaux sont refusés comme les collisions horizontales.
 * La profondeur maximale est de 120 blocs sous la surface (réglable).
-* **Il ne plonge pas tant que le panneau d'accès (0) ou la trappe du canot (16) est ouvert.**
+* **Panneaux ouverts** : à l'ordre de plongée, l'équipage referme lui-même le panneau d'accès (0) et la trappe du canot (16). Si quelqu'un se tient dans l'ouverture, le Nautilus refuse de plonger et le dit au pilote. Si le fond est trop proche pour descendre, un message le signale.
 * Les panneaux de la coque (0 et 16) ne s'ouvrent qu'en surface.
 * La barre d'action indique la profondeur, l'état (plonge, remonte, immersion stable, en surface) et la vitesse.
 
