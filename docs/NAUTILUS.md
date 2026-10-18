@@ -6,6 +6,9 @@ On le pilote comme les autres navires, mais il plonge, tient sa profondeur et re
 
 ![Plan des salles](nautilus_plan.png)
 
+Comparaison avec la planche de référence (captures du test automatique dans le vrai jeu) :
+[extérieur](comparaison_nautilus_exterieur.png), [les 15 panneaux de l'intérieur](comparaison_nautilus_interieur.png).
+
 ## Obtenir et placer le Nautilus
 
 * `/ship give nautilus [joueurs]` donne l'objet « Nautilus — Sous-marin du capitaine Nemo ». `/ship spawn nautilus` le fait apparaître à la position de la commande.
