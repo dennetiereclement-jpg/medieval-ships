@@ -1265,6 +1265,16 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		check(w[5] == w[6], "%s submerged: the player keeps all his air (%.0f/%.0f)", id, w[5], w[6]);
 		check(Math.abs(w[8]) < 0.06, "%s submerged: standing on the main level floor (local y %.3f)", id, w[8]);
 		shot(context, id + "_6_interieur_en_plongee");
+		// diagnosis of the far end of the hall: the end wall seen from 10 and from 30 blocks, and the hall looking aft
+		for (double[] v : new double[][] {{18, 0}, {-2, 0}, {0, 180}}) {
+			tpLocal(server, d5, 0, 0.02, v[0], (float) v[1], 0);
+			context.waitTicks(15);
+			shot(context, String.format(Locale.ROOT, "%s_6_diag_z%.0f_cap%.0f", id, v[0], v[1]));
+		}
+		String gfx = context.computeOnClient(mc -> mc.options.getPreset().getValue().toString());
+		log("%s graphics preset: %s", id, gfx);
+		tpLocal(server, d5, 0, 0.02, -14, 0, 0);
+		context.waitTicks(15);
 		context.getInput().holdKeyFor(o -> o.forwardKey, 60);
 		context.waitTicks(20);
 		w = playerWater(context, sp, shipPose(sp, type));
