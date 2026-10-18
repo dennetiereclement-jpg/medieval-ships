@@ -234,7 +234,7 @@ def build():
     g.set(DRY, 2.5, 3.5, M0, M0 + 2.5, -7.5, -7.0)     # ... to the salon door in its corner
     # engine room: catwalk with its rail, the partition between the batteries and the engine
     g.set(SOLID, *CATWALK)
-    g.set(SOLID, CATWALK[0], CATWALK[0] + 0.5, M0, M0 + 1.0, CATWALK[4], CATWALK[5])
+    g.set(FURNITURE, CATWALK[0], CATWALK[0] + 0.5, M0, M0 + 1.0, CATWALK[4], CATWALK[5])  # its rail: drawn as a railing
     pz0, pz1 = ENGINE_PARTITION_Z
     g.set(SOLID, -5.0, 5.0, L0, M1, pz0, pz1, where=inner)
     g.set(DRY, 0.5, 2.5, L0, L0 + 2.5, pz0, pz1)        # walk-through below, beside the engine

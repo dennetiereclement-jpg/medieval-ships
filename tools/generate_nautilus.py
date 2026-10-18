@@ -312,11 +312,13 @@ LUX = ("wall_lux", "floor_lux", "ceil_lux")
 STEEL = ("wall_steel", "floor_grate", "ceil_steel")
 ROOM_MATERIALS = {
     "salon": LUX, "library": LUX, "dining": LUX, "cabin_aronnax": LUX,
-    "corridor_fore": ("wall_steel", "carpet", "ceil_steel"), "coursive": ("wall_steel", "carpet", "ceil_steel"),
-    "cabin_nemo": ("wall_steel", "floor", "ceil_steel"), "wheelhouse": ("wall_steel", "floor", "ceil_steel"),
-    "crew": ("wall_steel", "floor", "ceil_steel"), "store_port": ("wall_steel", "floor", "ceil_steel"),
+    "corridor_fore": ("wall_wood", "carpet", "ceil_wood"), "coursive": ("wall_steel", "carpet", "ceil_steel"),
+    "cabin_nemo": ("wall_wood", "floor", "ceil_wood"), "wheelhouse": ("wall_engine", "floor", "ceil_wood"),
+    "crew": ("wall_wood", "floor", "ceil_wood"), "store_port": ("wall_steel", "floor", "ceil_steel"),
     "store_stbd": ("wall_steel", "floor", "ceil_steel"), "corridor_aft": ("wall_steel", "carpet", "ceil_steel"),
     "junction": ("wall_steel", "carpet", "ceil_steel"), "cross_fore": ("wall_steel", "carpet", "ceil_steel"),
+    "kitchen": ("wall_steel", "floor_tile", "ceil_steel"), "engine_room": ("wall_engine", "floor_grate", "ceil_steel"),
+    "stair_hall": ("wall_wood", "floor", "ceil_wood"), "airlock": ("wall_engine", "floor_grate", "ceil_steel"),
 }
 
 
@@ -640,6 +642,11 @@ def build_animations(root, g):
             t = 2.0 * i / 12
             keys.append(gg.kf("position", t, (0, 0.35 * 16 * math.sin(3 * math.pi * t + k * math.pi / 2), 0)))
         tracks.append((b, keys))
+    for k in range(2):
+        b = gg.find(root, "engine_gear_%d" % k)
+        if b is not None:
+            sgn = 1 if k else -1  # the two wheels mesh: opposite turns
+            tracks.append((b, [gg.rot_kf(t, (sgn * a * 0.8, 0, 0)) for t, a in ((0.0, 0), (0.5, 270), (1.0, 540), (1.5, 810), (2.0, 1080))]))
     if tracks:
         anims.append(gg.animation("engine", 2.0, "loop", tracks))
     wheel = gg.find(root, "helm_wheel")

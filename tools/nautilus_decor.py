@@ -381,13 +381,13 @@ def engine_room():
     custom("battery_rack", solid=(3.0, 3.7, l, l + 2.0, -18.6, -13.4), name="batteries_port", p=(3.7, l, -16.0), normal=(-1, 0, 0),
            cells=10, rows=2)
     custom("instrument_panel", name="engine_board", center=(-2.0, l + 2.0, -21.0), normal=(0, 0, 1), w=2.4, h=1.4)
-    custom("engine_block", solid=(-2.9, -0.3, l, l + 3.1, -29.5, -22.5), name="engine", p=(-1.6, l, -26.0), length=7.0, cylinders=4)
+    custom("engine_block", solid=(-2.9, 0.15, l, l + 3.1, -29.5, -22.5), name="engine", p=(-1.6, l, -26.0), length=7.0, cylinders=4)
     for z in (-24.0, -28.0):
         block(MB + "dwemer_metal_pipe", 3.4, l + 3.2, z, "stern", solid=False)
         block(MB + "dwemer_metal_pipe_gear", 3.4, l + 3.2, z + 1.0, "stern", solid=False)
     custom("pipe_run", name="engine_pipe_a", a=(3.6, l + 0.5, -29.0), b=(3.6, l + 0.5, -13.0), r=0.16)
     custom("pipe_run", name="engine_pipe_b", a=(-4.0, l + 3.4, -28.0), b=(-4.0, l + 3.4, -13.0), r=0.14, region="brass")
-    custom("railing", name="catwalk_rail", points=[(1.0, m, -12.6), (1.0, m, -27.9)], h=1.0)
+    custom("railing", name="catwalk_rail", points=[(0.75, m, -12.6), (0.75, m, -27.9)], h=1.0)
     for z in (-15.0, -19.0, -24.0, -28.0):
         block(FD + "chained_kerosene_lantern", -1.6, ni.M1 - 1.0, z, "stern", solid=False)
 
@@ -407,6 +407,27 @@ def wheelhouse_and_cage():
     custom("speaking_tube", name="speaking_tube", p=(-1.7, y + 1.4, 16.1), top=(-1.7, y + 2.9, 16.1))
     block(FD + "chained_kerosene_lantern", 0.0, ni.ns.TOWER_TOP_Y - 1.5, 17.0, "stern", solid=False)
     custom("projector", name="projector", lens_center=(0, ni.ns.LENS_Y, ni.ns.TOWER_Z[0] - 0.05), r=0.55, length=2.4)
+
+
+def sconces():
+    """Brass sconces with lit globes along the corridors and in the working rooms (the reference
+    sheet shows warm lamps everywhere)."""
+    l, m = ni.L0, ni.M0
+    spots = [
+        # (x, y, z, normal)
+        *[(4.0, l + 2.1, z, (-1, 0, 0)) for z in (6.5, 12.5, 16.0, 21.5)],          # coursive
+        *[(-1.0, l + 2.1, z, (1, 0, 0)) for z in (-4.5, 2.5)],                     # aft corridor
+        *[(1.5, l + 2.1, z, (-1, 0, 0)) for z in (7.5, 12.5)],                     # kitchen
+        *[(1.5, l + 2.1, z, (-1, 0, 0)) for z in (16.0, 21.0)],                    # crew
+        *[(-5.0, l + 2.3, z, (1, 0, 0)) for z in (-21.5, -25.0, -28.5)],           # engine, lower level
+        *[(5.0, m + 2.0, z, (-1, 0, 0)) for z in (-15.5, -20.5, -25.5)],           # engine, along the catwalk
+        (-2.5, l + 2.6, 25.6, (1, 0, 0)), (2.5, l + 2.6, 27.6, (-1, 0, 0)),         # airlock
+        (-3.0, l + 2.2, -8.2, (1, 0, 0)), (-3.0, m + 2.2, -8.2, (1, 0, 0)),         # staircase, both levels
+        (-2.0, m + 2.0, 25.2, (-1, 0, 0)),                                          # Nemo's cabin
+        *[(x, m + 2.1, z, (-1 if x > 0 else 1, 0, 0)) for x in (1.5, -1.5) for z in (21.0, 25.2)],  # fore corridor
+    ]
+    for k, (x, y, z, n) in enumerate(spots):
+        custom("wall_lamp", name="sconce_%d" % k, p=(x, y, z), normal=n)
 
 
 def lifeboat():
@@ -430,6 +451,7 @@ def build():
     airlock()
     engine_room()
     wheelhouse_and_cage()
+    sconces()
     lifeboat()
     return BLOCKS, SEATS
 

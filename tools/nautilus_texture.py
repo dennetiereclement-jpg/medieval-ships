@@ -76,6 +76,11 @@ REGIONS = {
     "beam2":       (496, 16, 16, 16),
     "beam3":       (464, 32, 16, 16),
     "water":       (480, 32, 16, 16),
+    # warmer rooms (cabins, corridors, kitchen, machinery)
+    "wall_wood":   (32, 96, 32, 32),   # copper plate above, brass rail, dark walnut planks below
+    "floor_tile":  (64, 96, 32, 32),   # terracotta and slate tiles
+    "wall_engine": (96, 96, 32, 32),   # bronze plates with copper pipes
+    "ceil_wood":   (128, 96, 32, 32),  # dark planks between beams
 }
 
 
@@ -270,7 +275,7 @@ def _paint_rooms(img, px, rng):
             elif (x * 3 + y) % 11 == 0:
                 c = _rgb("6e1616")
             px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
-    _riveted(px, R["wall_steel"], _rgb("6b6158"), _rgb("3b342e"), _rgb("a39684"), rng, pw=16, ph=16)
+    _riveted(px, R["wall_steel"], _rgb("76624e"), _rgb("3a2c20"), _rgb("c49c64"), rng, pw=16, ph=16)
     u, v, w, h = R["wall_steel"]
     for y in range(13, 16):
         for x in range(w):
@@ -278,17 +283,68 @@ def _paint_rooms(img, px, rng):
     u, v, w, h = R["floor_grate"]
     for y in range(h):
         for x in range(w):
-            c = _rgb("1e1c1b") if (x % 4 == 0 or y % 4 == 0) else _rgb("45403c")
+            c = _rgb("1e1813") if (x % 4 == 0 or y % 4 == 0) else _rgb("4a3e33")
             if x % 16 == 0 or y % 16 == 0:
-                c = _rgb("5a5450")
+                c = _rgb("7a5e3e")
             px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
     u, v, w, h = R["ceil_steel"]
-    _riveted(px, (u, v, w, h), _rgb("35302c"), _rgb("1b1816"), _rgb("5d5650"), rng, pw=16, ph=16)
+    _riveted(px, (u, v, w, h), _rgb("3e3228"), _rgb("1c1510"), _rgb("7a6248"), rng, pw=16, ph=16)
     for x in range(w):
         for y in (6, 7, 22, 23):
             px[u + x, v + y] = _jitter(_rgb("7a4a26") if y % 2 else _rgb("a8693a"), rng, 4) + (255,)  # copper pipes
+    _paint_warm_rooms(px, rng)
     _hull_plates(px, R["hull_light"], _rgb("8a5632"), _rgb("2e1a0e"), _rgb("d09a62"), rng, wear=0.02)
     _fill(img, R["salon_frame"], _rgb("b8913c"), rng, 8)
+
+
+def _paint_warm_rooms(px, rng):
+    R = REGIONS
+    # wood panelling: riveted copper plate above, a brass rail, dark walnut planks below
+    u, v, w, h = R["wall_wood"]
+    _riveted(px, (u, v, w, 9), _rgb("8a5a36"), _rgb("3a2414"), _rgb("d8a862"), rng, pw=16, ph=9)
+    for y in range(9, h):
+        for x in range(w):
+            if y in (9, 10):
+                c = _rgb("e0b860") if y == 9 else _rgb("8a6a2a")
+            else:
+                plank = x // 4
+                base = _rgb("4a2c18") if plank % 2 else _rgb("553420")
+                c = base
+                if x % 4 == 0:
+                    c = _rgb("24140a")
+                elif (y * 7 + plank * 13) % 9 == 0:
+                    c = _shade(base, 0.82)
+                if y == h - 1:
+                    c = _rgb("2a180c")
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+    # terracotta and slate tiles
+    u, v, w, h = R["floor_tile"]
+    for y in range(h):
+        for x in range(w):
+            c = _rgb("9a4a2a") if (x // 8 + y // 8) % 2 == 0 else _rgb("3a3430")
+            if x % 8 == 0 or y % 8 == 0:
+                c = _rgb("1e1a16")
+            px[u + x, v + y] = _jitter(c, rng, 6) + (255,)
+    # machinery: bronze plates, two copper pipes running up
+    u, v, w, h = R["wall_engine"]
+    _riveted(px, (u, v, w, h), _rgb("6e5640"), _rgb("2e2218"), _rgb("c49a5e"), rng, pw=16, ph=16)
+    for x0 in (5, 21):
+        for y in range(h):
+            for dx, col in ((0, "6e3a1e"), (1, "c87a44"), (2, "e8a06a"), (3, "8a4a26")):
+                px[u + x0 + dx, v + y] = _jitter(_rgb(col), rng, 3) + (255,)
+            if y % 12 == 3:
+                for dx in range(-1, 5):
+                    px[u + x0 + dx, v + y] = _rgb("d8b25a") + (255,)
+    # dark planks between beams
+    u, v, w, h = R["ceil_wood"]
+    for y in range(h):
+        for x in range(w):
+            c = _rgb("3a2414") if (y // 4) % 2 else _rgb("33200f")
+            if y % 4 == 0:
+                c = _rgb("1e1208")
+            if x % 16 in (0, 1, 2):
+                c = _rgb("24160a") if x % 16 else _rgb("5a3a1e")
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
 def _metal_region(px, region, cols, rng):

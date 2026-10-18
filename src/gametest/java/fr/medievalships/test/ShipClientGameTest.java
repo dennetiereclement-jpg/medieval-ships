@@ -1587,7 +1587,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 				{"p10_acces_exterieur", new double[] {1.4, 1.2, -8.3, 1.6, 9.5, -8.6}},
 				{"p11_cuisine", new double[] {-0.5, l + 1.7, 14.0, -4.0, l + 0.8, 9.0}},
 				{"p12_machines_piles", new double[] {0, l + 1.7, -13.0, -4.0, l + 0.8, -17.0}},
-				{"p13_machines_moteur", new double[] {2.5, 1.9, -14.0, -1.6, l + 1.0, -25.0}},
+				{"p13_machines_moteur", new double[] {2.6, 1.8, -21.0, -1.6, l + 1.0, -27.0}},
 				{"p14_sas_des_scaphandres", new double[] {-1.5, l + 1.7, 25.3, 0.5, l + 1.0, 28.5}},
 				{"p15_canot", new double[] {1.0, 3.6, -18.4, 0.6, 9.0, -18.9}},
 		};

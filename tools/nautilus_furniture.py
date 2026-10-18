@@ -62,7 +62,12 @@ def wall_lamp(bone, name, p, normal):
     p = v3(*p)
     box(bone, name + "_plate", p + n * 0.02, R, (0.18, 0.28, 0.04), "brass")
     beam(bone, "lit_" + name + "_arm", p + n * 0.03, p + n * 0.22 + v3(0, 0.08, 0), 0.04, "brass")
-    add_cube(bone, "glow_" + name, p + n * 0.24 + v3(0, 0.18, 0), EYE, (0.14, 0.18, 0.14), "glow")
+    g = p + n * 0.24 + v3(0, 0.2, 0)
+    add_cube(bone, "glow_" + name, g, EYE, (0.16, 0.2, 0.16), "glow")
+    box(bone, name + "_cup", g - v3(0, 0.13, 0), EYE, (0.22, 0.06, 0.22), "brass")
+    box(bone, name + "_cap", g + v3(0, 0.13, 0), EYE, (0.2, 0.05, 0.2), "brass")
+    for k, (dx, dz) in enumerate(((1, 1), (1, -1), (-1, 1), (-1, -1))):
+        box(bone, "%s_bar%d" % (name, k), g + v3(dx * 0.1, 0, dz * 0.1), EYE, (0.025, 0.24, 0.025), "brass")
 
 
 def painting(bone, name, center, normal, w, h, region):
@@ -352,10 +357,14 @@ def engine_block(bone, root, name, p, length=8.0, cylinders=4):
         piston = gg.Bone("engine_piston_%d" % k, origin=tuple(base + v3(0, 1.2, 0)), parent=root)
         box(piston, name + "_rod%d" % k, base + v3(0, 1.5, 0), EYE, (0.16, 1.2, 0.16), "brass")
         box(piston, name + "_crosshead%d" % k, base + v3(0, 1.05, 0), EYE, (0.4, 0.16, 0.3), "steel")
-    shaft = gg.Bone("engine_shaft", origin=tuple(p + v3(0, 0.75, 0)), parent=root)
-    box(shaft, name + "_shaft", p + v3(0, 0.75, -length / 2 - 4), EYE, (0.3, 0.3, length + 8), "brass")
-    fly = gg.Bone("engine_flywheel", origin=tuple(p + v3(0, 0.75, length / 2 + 0.4)), parent=root)
-    c = p + v3(0, 0.75, length / 2 + 0.4)
+    axis_y = 1.55  # the crankshaft, high enough for the wheels to clear the floor
+    shaft = gg.Bone("engine_shaft", origin=tuple(p + v3(0, axis_y, 0)), parent=root)
+    box(shaft, name + "_shaft", p + v3(0, axis_y, -length / 2 - 4), EYE, (0.3, 0.3, length + 8), "brass")
+    for k in range(cylinders):
+        z = p[2] + length / 2 - pitch * (k + 1)
+        box(shaft, "%s_crank%d" % (name, k), p + v3(0, axis_y + 0.25, z - p[2]), EYE, (0.18, 0.55, 0.22), "steel")
+    fly = gg.Bone("engine_flywheel", origin=tuple(p + v3(0, axis_y, length / 2 + 0.35)), parent=root)
+    c = p + v3(0, axis_y, length / 2 + 0.35)
     for k in range(16):
         a0, a1 = 2 * math.pi * k / 16, 2 * math.pi * (k + 1) / 16
         beam(fly, "lit_%s_fly_rim%d" % (name, k), c + v3(math.cos(a0), math.sin(a0), 0) * 1.3, c + v3(math.cos(a1), math.sin(a1), 0) * 1.3,
@@ -364,6 +373,24 @@ def engine_block(bone, root, name, p, length=8.0, cylinders=4):
         a = 2 * math.pi * k / 6
         beam(fly, "lit_%s_fly_spoke%d" % (name, k), c, c + v3(math.cos(a), math.sin(a), 0) * 1.25, 0.12, "steel")
     add_cube(fly, "lit_%s_fly_hub" % name, c, EYE, (0.4, 0.4, 0.4), "brass")
+    # two great toothed wheels on the catwalk side, driven by the shaft (bones "engine_gear_<k>")
+    for g_i, dz in enumerate((-length * 0.2, length * 0.2)):
+        gc = p + v3(1.45, axis_y, dz)
+        gear = gg.Bone("engine_gear_%d" % g_i, origin=tuple(gc), parent=root)
+        r = 1.15
+        for k in range(20):
+            a0, a1 = 2 * math.pi * k / 20, 2 * math.pi * (k + 1) / 20
+            q0 = gc + v3(0, math.sin(a0), math.cos(a0)) * r
+            q1 = gc + v3(0, math.sin(a1), math.cos(a1)) * r
+            beam(gear, "lit_%s_gear%d_rim%d" % (name, g_i, k), q0, q1, 0.2, "brass" if g_i else "copper", up=v3(1, 0, 0), width=0.18)
+            am = (a0 + a1) / 2
+            tooth = gc + v3(0, math.sin(am), math.cos(am)) * (r + 0.14)
+            box(gear, "%s_gear%d_tooth%d" % (name, g_i, k), tooth, EYE, (0.16, 0.16, 0.16), "brass" if g_i else "copper")
+        for k in range(5):
+            a = 2 * math.pi * k / 5
+            beam(gear, "lit_%s_gear%d_spoke%d" % (name, g_i, k), gc, gc + v3(0, math.sin(a), math.cos(a)) * (r - 0.05), 0.14, "steel")
+        add_cube(gear, "lit_%s_gear%d_hub" % (name, g_i), gc, EYE, (0.3, 0.36, 0.36), "brass")
+        box(bone, "%s_gear%d_bearing" % (name, g_i), gc + v3(0, -(axis_y - 0.3) / 2 - 0.15, 0), EYE, (0.3, axis_y - 0.3, 0.4), "steel")
 
 
 def pipe_run(bone, name, a, b, r=0.18, region="copper", flanges=True):
