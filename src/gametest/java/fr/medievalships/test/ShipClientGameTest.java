@@ -1034,8 +1034,12 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		lookLocal(server, b, 26, 14, 20, 0, 6, -1);
 		context.waitTicks(15);
 		shot(context, id + "_8_pilote_auto");
-		context.waitTicks(100);
+		// it turns on the spot (about 6.6 deg/s): give it up to 30 s once docked
 		ShipPose c = shipPose(sp, type);
+		for (int i = 0; i < 30 && Math.abs(ShipPose.wrapDegrees(c.yaw() - 90)) >= 3; i++) {
+			context.waitTicks(20);
+			c = shipPose(sp, type);
+		}
 		check(Math.abs(ShipPose.wrapDegrees(c.yaw() - 90)) < 6, "%s autopilot: turns to the stop's heading while waiting (%.1f)", id, c.yaw());
 		server.runCommand(String.format(Locale.ROOT, "execute positioned %.1f %.1f %.1f run ship ai disable", c.x(), c.y(), c.z()));
 		server.runCommand("ship route delete " + route);
