@@ -144,15 +144,21 @@ def make_texture(path):
     for y in range(h):
         for x in range(w):
             px[u + x, v + y] = _jitter(_rgb("151515") if rng.random() < 0.7 else _rgb("2b2b2b"), rng, 4) + (255,)
-    # funnel: grey bricks with soot towards the top
+    # funnel: riveted iron rings (dark grey plates, a row of rivets at each joint), sooty towards the top
     u, v, w, h = reg("funnel")
     for y in range(h):
         for x in range(w):
-            row = y // 4
-            off = 4 if row % 2 else 0
-            mortar = y % 4 == 3 or (x + off) % 8 == 7
-            c = _rgb("2a2a2c") if mortar else _jitter(_rgb("6a6c70"), rng, 10)
-            k = 1.0 - 0.45 * (1 - y / h) ** 2
+            fy = y % 8
+            c = _jitter(_rgb("4c4f54"), rng, 5)
+            if fy == 0:
+                c = _rgb("26282b")
+            elif fy == 1 and x % 4 == 2:
+                c = _rgb("8d9399")
+            elif fy == 1:
+                c = tuple(min(255, q + 14) for q in c)
+            elif x % 16 == 0:
+                c = _rgb("35373b")  # vertical seam of the plates
+            k = 1.0 - 0.5 * (1 - y / h) ** 2
             c = tuple(int(q * k) for q in c)
             px[u + x, v + y] = c + (255,)
     # deckhouse: brown wooden panels in brass frames

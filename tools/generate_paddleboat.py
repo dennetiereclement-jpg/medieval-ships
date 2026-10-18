@@ -359,6 +359,19 @@ def build():
             # brass arch along the outer edge
             beam(box, "box_arch_%s%d" % (sn, k), v3(x1 + o * 0.05, p0[1], p0[2]), v3(x1 + o * 0.05, p1[1], p1[2]), 0.12, "brass",
                  width=0.34, up=v3(1, 0, 0), extend=0.05)
+        # gilded sunburst crest on top of the arch, as on the wheel boxes of real paddle steamers
+        cc = v3(bx + o * 0.06, wy + rr + 0.02, wz)
+        for k in range(11):
+            a = math.radians(-75 + 150 * k / 10)
+            d = v3(0, math.cos(a), math.sin(a))
+            ln = 0.95 if k % 2 == 0 else 0.7
+            beam(box, "crest_ray_%s%d" % (sn, k), cc + d * 0.2, cc + d * ln, 0.06, "brass", width=0.13 if k % 2 == 0 else 0.09,
+                 up=v3(1, 0, 0))
+        for k in range(10):
+            a0, a1 = math.radians(-75 + 15 * k), math.radians(-75 + 15 * (k + 1))
+            beam(box, "crest_rim_%s%d" % (sn, k), cc + v3(0, math.cos(a0), math.sin(a0)) * 1.0,
+                 cc + v3(0, math.cos(a1), math.sin(a1)) * 1.0, 0.07, "red_paint", width=0.1, up=v3(1, 0, 0), extend=0.02)
+        add_cube(box, "crest_boss_" + sn, cc + v3(0, 0.08, 0), EYE, (0.1, 0.3, 0.42), "brass")
         for k in range(5):
             a = math.radians(-60 + 30 * k)
             d = v3(0, math.cos(a), math.sin(a))
