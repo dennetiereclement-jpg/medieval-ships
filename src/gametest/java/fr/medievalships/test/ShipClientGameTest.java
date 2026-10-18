@@ -1176,6 +1176,8 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			shot(context, id + "_" + views[k]);
 		}
 
+		nautilusTour(context, sp, pose);
+
 		// inside, on the surface: main level, then the lower level (under the waterline)
 		server.runCommand("gamemode survival @a");
 		server.runCommand("effect clear @a minecraft:water_breathing");
@@ -1534,6 +1536,70 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		});
 		server.runCommand(String.format(Locale.ROOT, "forceload remove %d %d %d %d", x0, z0, x1, z1));
 		context.waitTicks(10);
+	}
+
+	/**
+	 * Photos for the comparison with the reference sheet: the outside views, then the 15 panels of
+	 * the sheet (the camera of a spectator, at the surface, lamps on).
+	 */
+	private void nautilusTour(ClientGameTestContext context, Env sp, ShipPose pose) {
+		var server = sp.getServer();
+		String id = "nautilus";
+		double l = Ships.NautilusLayout.LOWER_FLOOR_Y;
+		server.runCommand("gamemode spectator @a");
+		double[][] outside = {{0, 75, 0.5, 0, 0, 0}, {0, 5, 80, 0, 3, 0}, {16, 7, -78, 0, 2, 0}};
+		String[] outNames = {"0a_vue_de_dessus", "0b_vue_avant", "0c_vue_arriere"};
+		for (int k = 0; k < outside.length; k++) {
+			double[] v = outside[k];
+			lookLocal(server, pose, v[0], v[1], v[2], v[3], v[4], v[5]);
+			context.waitTicks(k == 0 ? 30 : 15);
+			shot(context, id + "_" + outNames[k]);
+		}
+		Object[][] rooms = {
+				{"p01_salle_a_manger", new double[] {0, 1.7, 17.6, 0, 0.8, 13.5}},
+				{"p02_bibliotheque", new double[] {-4.0, 1.8, 7.5, 2.0, 1.2, 11.5}},
+				{"p03_grand_salon", new double[] {0, 2.2, 5.8, 0, 2.2, -6.5}},
+				{"p04_cabine_aronnax", new double[] {2.4, 1.7, 20.3, 4.6, 0.8, 25.5}},
+				{"p05_cabine_nemo", new double[] {-2.4, 1.7, 20.3, -4.6, 0.8, 25.5}},
+				{"p06_timonerie", new double[] {0, 10.7, 16.0, 0, 10.3, 22.5}},
+				{"p07_cage_du_projecteur", new double[] {0, 10.6, 10.6, 0, 13.0, 16.0}},
+				{"p08_coursive", new double[] {3.0, l + 1.7, 5.0, 3.0, l + 1.2, 24.0}},
+				{"p09_escalier", new double[] {1.5, l + 1.7, -7.5, -1.0, 0, -9.5}},
+				{"p10_acces_exterieur", new double[] {1.5, 2.0, -8.0, 1.5, 9.0, -8.6}},
+				{"p11_cuisine", new double[] {-0.5, l + 1.7, 14.0, -4.0, l + 0.8, 9.0}},
+				{"p12_machines_piles", new double[] {0, l + 1.7, -13.0, -4.0, l + 0.8, -17.0}},
+				{"p13_machines_moteur", new double[] {2.5, 1.9, -14.0, -1.6, l + 1.0, -25.0}},
+				{"p14_sas_des_scaphandres", new double[] {-1.5, l + 1.7, 25.3, 0.5, l + 1.0, 28.5}},
+				{"p15_canot", new double[] {1.0, 5.5, -16.5, 0, 8.3, -19.5}},
+		};
+		for (Object[] r : rooms) {
+			String name = (String) r[0];
+			double[] v = (double[]) r[1];
+			if (name.startsWith("p07")) {
+				nautilusCommand(server, "projecteur on");
+			}
+			if (name.startsWith("p10")) {
+				nautilusCommand(server, "porte 0 ouvrir");
+			}
+			if (name.startsWith("p15")) {
+				nautilusCommand(server, "porte 16 ouvrir");
+			}
+			lookLocal(server, pose, v[0], v[1], v[2], v[3], v[4], v[5]);
+			context.waitTicks(15);
+			shot(context, id + "_" + name);
+			if (name.startsWith("p07")) {
+				lookLocal(server, pose, 12, 9, 46, 0, 12, 22);
+				context.waitTicks(15);
+				shot(context, id + "_p07b_faisceau");
+				nautilusCommand(server, "projecteur off");
+			}
+			if (name.startsWith("p10")) {
+				nautilusCommand(server, "porte 0 fermer");
+			}
+			if (name.startsWith("p15")) {
+				nautilusCommand(server, "porte 16 fermer");
+			}
+		}
 	}
 
 	/** Leaves a Nautilus with doors, airlock, fittings, lifeboat and an ordered depth set, before the world is closed. */
