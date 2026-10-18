@@ -201,6 +201,7 @@ def make_texture(path):
     _paint_effects(px, rng)
     _paint_smooth_rooms(px, rng)
     _paint_door_leaf(px, rng)
+    _paint_finish(px, rng)
     img.save(path)
 
 
@@ -487,6 +488,101 @@ def _paint_door_leaf(px, rng):
     for k in range(8):
         a = 2 * math.pi * k / 8
         put(int(round(cx + math.cos(a) * (r - 1))), int(round(cy + math.sin(a) * (r - 1))), _rgb("fff0b0"))
+
+
+def _polished(px, region, light, mid, dark, rng, period=None, brushed=0.06):
+    """Polished metal that tiles: a soft diagonal sheen (light bands on a darker body), fine brushed
+    streaks along x, no blotches."""
+    u, v, w, h = region
+    period = period or w
+    n = _noise(w, h, 4, rng)
+    rows = [rng.random() for _ in range(h)]
+    for y in range(h):
+        for x in range(w):
+            t = 0.5 + 0.5 * math.sin(2 * math.pi * (x + y) / period + 1.2 * (n[y][x] - 0.5))
+            t = 0.3 + 0.5 * t  # a gentle sheen, not stripes
+            c = _mix(dark, mid, t / 0.55) if t < 0.55 else _mix(mid, light, (t - 0.55) / 0.45)
+            k = 1.0 + brushed * (rows[y] - 0.5) + 0.04 * (n[y][x] - 0.5)
+            _put(px, u, v, x, y, tuple(q * k for q in c))
+
+
+def _parquet(px, region, light, dark, rng, cell=8):
+    """Basket-weave parquet: square cells of two planks each, alternately along x and along z, a
+    grain along each plank, dark joints, each plank its own tone; tiles."""
+    u, v, w, h = region
+    n = _noise(w, h, 8, rng)
+    tones = {}
+    for y in range(h):
+        for x in range(w):
+            cx, cy = x // cell, y // cell
+            along_x = (cx + cy) % 2 == 0
+            a, b = (x % cell, y % cell) if along_x else (y % cell, x % cell)
+            plank = (cx, cy, b // (cell // 2))
+            if plank not in tones:
+                tones[plank] = 0.85 + 0.3 * rng.random()
+            g = 0.5 + 0.5 * math.sin((a * 0.9 + b * 3.1) + 4.0 * n[y][x])
+            c = _mix(light, dark, 0.2 + 0.45 * g)
+            c = tuple(q * tones[plank] for q in c)
+            if b % (cell // 2) == 0 or a == 0:
+                c = _mix(c, (20, 10, 4), 0.6)
+            elif b % (cell // 2) == 1:
+                c = tuple(q * 1.08 for q in c)
+            _put(px, u, v, x, y, c)
+
+
+def _fabric(px, region, base, dark, rng, folds=True, crackle=False):
+    """Velvet / leather: a soft nap that changes with the light, vertical folds (curtains, backs),
+    leather with fine creases and a sheen; tiles."""
+    u, v, w, h = region
+    n1 = _noise(w, h, 4, rng)
+    n2 = _noise(w, h, 16, rng)
+    for y in range(h):
+        for x in range(w):
+            t = 0.55 + 0.3 * (n1[y][x] - 0.5)
+            if folds:
+                t += 0.22 * math.sin(2 * math.pi * x / w * 2 + 0.8 * n1[y][x])
+            c = _mix(dark, base, max(0.0, min(1.0, t + 0.25)))
+            c = tuple(q * (0.96 + 0.08 * n2[y][x]) for q in c)
+            if crackle and abs(n2[y][x] - 0.5) < 0.03:
+                c = _shade(c, 0.8)
+            if crackle and n1[y][x] > 0.72:
+                c = _mix(c, (255, 240, 220), 0.12 * (n1[y][x] - 0.72) / 0.28)
+            _put(px, u, v, x, y, c)
+
+
+def _paint_finish(px, rng):
+    """Last pass over the most seen materials: polished gold, brass and silver, velvet and leather,
+    the parquet of the salons and the tiled floors."""
+    R = REGIONS
+    _polished(px, R["gold"], _rgb("fff2b0"), _rgb("e0b450"), _rgb("9a6e20"), rng)
+    _polished(px, R["steel"], _rgb("6a6662"), _rgb("44403c"), _rgb("24211f"), rng, brushed=0.1)
+    _polished(px, R["brass"], _rgb("f8e0a0"), _rgb("c99a44"), _rgb("7a5420"), rng)
+    # organ pipes: a cylinder's sheen, light down one side, dark down the other, along the pipe
+    u, v, w, h = R["silver"]
+    for y in range(h):
+        for x in range(w):
+            t = 0.5 + 0.5 * math.cos(2 * math.pi * (x - 4) / w)
+            c = _mix(_rgb("6a6a68"), _rgb("f6f6f2"), t ** 1.5)
+            _put(px, u, v, x, y, tuple(q * (0.97 + 0.05 * rng.random()) for q in c))
+    _fabric(px, R["red_velvet"], _rgb("b02a30"), _rgb("4e0c10"), rng)
+    _fabric(px, R["green_leather"], _rgb("3a7a4a"), _rgb("123018"), rng, folds=False, crackle=True)
+    _parquet(px, R["floor_lux"], _rgb("8a5530"), _rgb("3a1e0e"), rng, cell=16)
+    # tiled floors: terracotta and slate in a checker, with grout and worn, slightly varied tiles
+    u, v, w, h = R["floor_tile"]
+    n = _noise(w, h, 8, rng)
+    tones = {}
+    for y in range(h):
+        for x in range(w):
+            cx, cy = x // 8, y // 8
+            if (cx, cy) not in tones:
+                tones[(cx, cy)] = 0.9 + 0.2 * rng.random()
+            c = _rgb("a85a38") if (cx + cy) % 2 == 0 else _rgb("4a4a50")
+            c = tuple(q * tones[(cx, cy)] * (0.94 + 0.12 * n[y][x]) for q in c)
+            if x % 8 == 0 or y % 8 == 0:
+                c = _rgb("2a2622")
+            elif x % 8 == 1 or y % 8 == 1:
+                c = _shade(c, 1.12)
+            _put(px, u, v, x, y, c)
 
 
 def _paint_smooth_rooms(px, rng):
