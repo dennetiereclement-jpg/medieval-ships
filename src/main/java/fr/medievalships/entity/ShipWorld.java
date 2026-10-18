@@ -13,13 +13,14 @@ import net.minecraft.world.Heightmap;
 import net.minecraft.world.World;
 
 import fr.medievalships.core.Autopilot;
+import fr.medievalships.core.Dive;
 import fr.medievalships.core.Flight;
 import fr.medievalships.core.ShipGeometry;
 import fr.medievalships.core.ShipMover;
 import fr.medievalships.core.ShipPose;
 
 /** Adapts the Minecraft world to the pure navigation code (terrain, water, other hulls). */
-final class ShipWorld implements ShipMover.Obstacles, Autopilot.Navigator, Flight.Terrain {
+final class ShipWorld implements ShipMover.Obstacles, Autopilot.Navigator, Flight.Terrain, Dive.Sea {
 	private final World world;
 	private final ShipEntity self;
 	private final BlockPos.Mutable pos = new BlockPos.Mutable();
@@ -157,6 +158,52 @@ final class ShipWorld implements ShipMover.Obstacles, Autopilot.Navigator, Fligh
 		}
 		pos.set(bx, y, bz);
 		return y + world.getFluidState(pos).getHeight(world, pos) - ship.geometry().hull().waterlineY;
+	}
+
+	// ---- submarine: the sea around it, for its autopilot (columns cached for the tick)
+
+	private double seaLevel = Double.NaN;
+	private final java.util.Map<Long, double[]> columns = new java.util.HashMap<>();
+
+	/** Water surface and sea bed of a column: {surface, bed}. */
+	private double[] column(double x, double z) {
+		int bx = (int) Math.floor(x), bz = (int) Math.floor(z);
+		long key = ((long) bx << 32) ^ (bz & 0xffffffffL);
+		double[] c = columns.get(key);
+		if (c != null) {
+			return c;
+		}
+		if (Double.isNaN(seaLevel)) {
+			double s = surfacedY(self);
+			seaLevel = Double.isNaN(s) ? self.getY() + self.geometry().hull().waterlineY : s + self.geometry().hull().waterlineY;
+		}
+		double surface = waterSurface(x, z, seaLevel - 0.5);
+		double bed = Double.NEGATIVE_INFINITY;
+		if (!Double.isNaN(surface)) {
+			int bottom = Math.max(world.getBottomY(), (int) Math.floor(surface) - 200);
+			bed = bottom;
+			for (int y = (int) Math.floor(surface) - 1; y >= bottom; y--) {
+				pos.set(bx, y, bz);
+				BlockState state = world.getBlockState(pos);
+				if (!state.isAir() && !state.getCollisionShape(world, pos).isEmpty()) {
+					bed = y + 1;
+					break;
+				}
+			}
+		}
+		c = new double[] {surface, bed};
+		columns.put(key, c);
+		return c;
+	}
+
+	@Override
+	public double surface(double x, double z) {
+		return column(x, z)[0];
+	}
+
+	@Override
+	public double bed(double x, double z) {
+		return column(x, z)[1];
 	}
 
 	/** Water surface height at a column near {@code nearY}, or NaN if there is no water. */

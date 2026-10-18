@@ -16,6 +16,12 @@ public final class Waypoint {
 	public Double speed;
 	/** Optional heading (degrees, Minecraft yaw) the ship turns to while waiting at this stop (aircraft). */
 	public Double yaw;
+	/**
+	 * Optional depth (blocks below the surface) of a submarine on the leg leading to this point and
+	 * at this stop: 0 = on the surface. Without it, a submarine cruises at its configured depth and
+	 * comes up at the stops.
+	 */
+	public Double depth;
 
 	public Waypoint() {
 	}

@@ -156,6 +156,12 @@ public final class ShipCommands {
 										.then(CommandManager.literal("altitude")
 												.then(CommandManager.argument("y", DoubleArgumentType.doubleArg(-64, 2000))
 														.executes(ctx -> editPoint(ctx, "altitude", DoubleArgumentType.getDouble(ctx, "y")))))
+										.then(CommandManager.literal("profondeur")
+												.then(CommandManager.argument("blocks", DoubleArgumentType.doubleArg(0, 256))
+														.executes(ctx -> editPoint(ctx, "depth", DoubleArgumentType.getDouble(ctx, "blocks")))))
+										.then(CommandManager.literal("depth")
+												.then(CommandManager.argument("blocks", DoubleArgumentType.doubleArg(0, 256))
+														.executes(ctx -> editPoint(ctx, "depth", DoubleArgumentType.getDouble(ctx, "blocks")))))
 										.then(CommandManager.literal("wait")
 												.then(CommandManager.argument("seconds", IntegerArgumentType.integer(0, 86400))
 														.executes(ctx -> editPoint(ctx, "wait", IntegerArgumentType.getInteger(ctx, "seconds")))))
@@ -613,6 +619,10 @@ public final class ShipCommands {
 				w.y = value;
 				msg = String.format(Locale.ROOT, "altitude du pont %.1f", value);
 			}
+			case "depth" -> {
+				w.depth = value;
+				msg = value < 0.5 ? "sous-marin : en surface jusqu'à ce point" : String.format(Locale.ROOT, "sous-marin : %.0f m de profondeur jusqu'à ce point", value);
+			}
 			case "wait" -> {
 				w.waitSeconds = (int) value;
 				msg = value > 0 ? "escale de " + (int) value + " s" : "simple point de passage";
@@ -620,7 +630,8 @@ public final class ShipCommands {
 			default -> {
 				w.yaw = null;
 				w.speed = null;
-				msg = "cap et vitesse effacés";
+				w.depth = null;
+				msg = "cap, vitesse et profondeur effacés";
 			}
 		}
 		ShipData.get(ctx.getSource().getServer()).putRoute(route);
@@ -678,10 +689,11 @@ public final class ShipCommands {
 				route.mode.name().toLowerCase(Locale.ROOT), route.dimension, route.totalLength())).formatted(Formatting.GOLD), false);
 		for (int i = 0; i < route.size(); i++) {
 			Waypoint w = route.get(i);
-			String line = String.format(Locale.ROOT, " %d. %.1f %.1f %.1f%s%s%s", i + 1, w.x, w.y, w.z,
+			String line = String.format(Locale.ROOT, " %d. %.1f %.1f %.1f%s%s%s%s", i + 1, w.x, w.y, w.z,
 					w.isStop() ? " escale " + w.label(i) + " (" + w.waitSeconds + " s)" : "",
 					w.yaw != null ? " cap " + Math.round(w.yaw) + "°" : "",
-					w.speed != null ? String.format(Locale.ROOT, " %.1f blocs/s", w.speed) : "");
+					w.speed != null ? String.format(Locale.ROOT, " %.1f blocs/s", w.speed) : "",
+					w.depth != null ? String.format(Locale.ROOT, " profondeur %.0f m", w.depth) : "");
 			ctx.getSource().sendFeedback(() -> Text.literal(line), false);
 		}
 		return route.size();

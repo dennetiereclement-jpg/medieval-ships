@@ -336,4 +336,118 @@ class NautilusTest {
 			assertNotNull(GRID.doorCenter(k), "door " + k);
 		}
 	}
+
+	// ------------------------------------------------------------------ autopilot
+
+	/** A sea whose surface is at 63, with a sea bed given per column (NaN = land, no water). */
+	private record TestSea(java.util.function.BiFunction<Double, Double, Double> bedAt) implements Dive.Sea {
+		@Override
+		public double surface(double x, double z) {
+			return Double.isNaN(bedAt.apply(x, z)) ? Double.NaN : 63.0;
+		}
+
+		@Override
+		public double bed(double x, double z) {
+			double b = bedAt.apply(x, z);
+			return Double.isNaN(b) ? 80 : b;
+		}
+
+		ShipMover.Obstacles obstacles() {
+			return (x, y, z) -> y < bed(x, z);
+		}
+	}
+
+	private static final class SubRun {
+		ShipPose pose;
+		final Dive dive = new Dive();
+		final ShipPhysics physics = new ShipPhysics();
+		final ShipConfig cfg = NAUTILUS.defaults().get();
+		final Autopilot ap = new Autopilot();
+		int collisions;
+		double maxDepth;
+		double minClearance = Double.MAX_VALUE;
+		double maxZ = Double.NEGATIVE_INFINITY;
+
+		SubRun(double x, double z, Route route) {
+			pose = new ShipPose(x, 63.0 - G.hull().waterlineY, z, 0);
+			ap.start(route, pose, cfg, G);
+		}
+
+		void run(Route route, TestSea sea, double seconds, java.util.function.BooleanSupplier until) {
+			Autopilot.Listener listener = new Autopilot.Listener() {
+			};
+			ShipMover.Obstacles world = sea.obstacles();
+			for (int i = 0; i < seconds / DT && !until.getAsBoolean(); i++) {
+				double surfacedY = sea.surface(pose.x(), pose.z()) - G.hull().waterlineY;
+				Dive.Orders o = Dive.autopilot(ap, route, pose, physics, Gait.NORMAL, cfg, G, sea, surfacedY, listener);
+				pose = Dive.tick(G, pose, physics, dive, o.controls(), o.desiredVy(), surfacedY, cfg, world, DT).pose();
+				if (ShipMover.countCollisions(G, pose, world) > 0) {
+					collisions++;
+				}
+				if (!Double.isNaN(surfacedY)) {
+					maxDepth = Math.max(maxDepth, surfacedY - pose.y());
+				}
+				double keel = pose.y() + G.lowestY();
+				for (double dz = -20; dz <= 30; dz += 2) {
+					minClearance = Math.min(minClearance, keel - sea.bed(pose.x(), pose.z() + dz));
+				}
+				maxZ = Math.max(maxZ, pose.z());
+			}
+		}
+	}
+
+	/** Cruises at depth, rises over a ridge on the way, comes up and docks at the stop. */
+	@Test
+	void autopilotDivesAlongARoute() {
+		TestSea sea = new TestSea((x, z) -> z > 300 && z < 340 ? 40.0 : 0.0);
+		Route route = new Route("sous-marin", "minecraft:overworld");
+		route.mode = Route.Mode.ONCE;
+		route.points.add(new Waypoint(0, 63, 0, 5, "Port"));
+		Waypoint b = new Waypoint(0, 63, 480, 30, "Île");
+		route.points.add(b);
+		SubRun s = new SubRun(0, 0, route);
+		double[] depthBefore = {0};
+		s.run(route, sea, 200, () -> s.pose.z() > 190);
+		depthBefore[0] = 63.0 - G.hull().waterlineY - s.pose.y();
+		s.run(route, sea, 600, () -> s.ap.phase == Autopilot.Phase.DOCKED && s.ap.target == 1);
+		double surfaced = 63.0 - G.hull().waterlineY;
+		assertEquals(Autopilot.Phase.DOCKED, s.ap.phase, "docked at the island; at " + s.pose);
+		assertEquals(0, s.collisions, "never inside the sea bed");
+		assertEquals(s.cfg.dive.aiCruiseDepth, depthBefore[0], 2.0, "cruising depth before the ridge");
+		assertTrue(s.minClearance > 0.5, "always above the sea bed: " + s.minClearance);
+		assertEquals(surfaced, s.pose.y(), 1.0, "surfaced at the stop");
+		// a leg with its own depth: 10 blocks
+		Route deep = new Route("profond", "minecraft:overworld");
+		deep.mode = Route.Mode.ONCE;
+		deep.points.add(new Waypoint(0, 63, 0, 5, "A"));
+		Waypoint c = new Waypoint(0, 63, 200, 0, "B");
+		c.depth = 10.0;
+		deep.points.add(c);
+		deep.points.add(new Waypoint(0, 63, 400, 0, "C"));
+		SubRun t = new SubRun(0, 0, deep);
+		TestSea flat = new TestSea((x, z) -> 0.0);
+		t.run(deep, flat, 200, () -> t.pose.z() > 150);
+		assertEquals(10, surfaced - t.pose.y(), 1.0, "holds the leg's depth");
+	}
+
+	/** A passage narrower than the hull through a reef: it does not go through; a wide one: it does. */
+	@Test
+	void autopilotRefusesANarrowPassage() {
+		for (double gap : new double[] {6, 40}) {
+			TestSea sea = new TestSea((x, z) -> z > 100 && z < 112 && Math.abs(x) > gap / 2 ? Double.NaN : 0.0);
+			Route route = new Route("passe", "minecraft:overworld");
+			route.mode = Route.Mode.ONCE;
+			route.points.add(new Waypoint(0, 63, 0, 5, "A"));
+			route.points.add(new Waypoint(0, 63, 220, 10, "B"));
+			SubRun s = new SubRun(0, 0, route);
+			s.run(route, sea, 200, () -> s.ap.phase == Autopilot.Phase.DOCKED && s.ap.target == 1);
+			assertEquals(0, s.collisions, "gap " + gap + ": never inside the reef");
+			if (gap < 2 * G.aiHalfWidth()) {
+				assertTrue(s.maxZ < 100, "gap " + gap + ": the hull did not go through, centre at most at z " + s.maxZ);
+				assertTrue(s.ap.phase != Autopilot.Phase.DOCKED || s.ap.target != 1, "gap " + gap + ": not arrived");
+			} else {
+				assertEquals(Autopilot.Phase.DOCKED, s.ap.phase, "gap " + gap + ": went through and docked; at " + s.pose);
+			}
+		}
+	}
 }

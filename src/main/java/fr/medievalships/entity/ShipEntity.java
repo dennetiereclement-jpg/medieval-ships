@@ -692,7 +692,11 @@ public abstract class ShipEntity extends Entity {
 		int input = 0;
 		if (aiEnabled) {
 			Route route = ShipData.get(world.getServer()).route(routeName);
-			controls = autopilot.tick(route, before, physics.speed, physics.yawRate, gait, cfg, geometry(), shipWorld, new Announcer(world, route));
+			Dive.Orders orders = Dive.autopilot(autopilot, route, before, physics, gait, cfg, geometry(), shipWorld, surfacedY,
+					new Announcer(world, route));
+			controls = orders.controls();
+			vy = orders.desiredVy();
+			targetDepth = Double.NaN; // the route gives the depth
 		} else if (pilot instanceof ServerPlayerEntity player) {
 			controls = manualControls(player, cfg);
 			PlayerInput in = player.getPlayerInput();
@@ -702,7 +706,7 @@ public abstract class ShipEntity extends Entity {
 			}
 			vy = Dive.manual(input, before.y(), surfacedY, cfg.dive);
 		}
-		if (!Double.isNaN(targetDepth) && !Double.isNaN(surfacedY) && input == 0) {
+		if (!aiEnabled && !Double.isNaN(targetDepth) && !Double.isNaN(surfacedY) && input == 0) {
 			// depth ordered by a command (/ship nautilus profondeur, ballasts): the hull goes there and holds it
 			double depth = Math.min(targetDepth, cfg.dive.maxDepth);
 			vy = depth < Dive.SURFACED ? Dive.towards(surfacedY, before.y(), cfg.dive) : Dive.towards(surfacedY - depth, before.y(), cfg.dive);

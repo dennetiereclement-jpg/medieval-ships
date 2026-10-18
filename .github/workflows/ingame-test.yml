@@ -53,7 +53,10 @@ jobs:
         timeout-minutes: 22
         run: |
           set -o pipefail
-          xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew runProductionClientGameTest --stacktrace -Dfabric.client.gametest.disableNetworkSynchronizer=true 2>&1 | tee /tmp/gradle-output.txt
+          # the decoration mods need a newer Fabric Loader than the one the mod is built against
+          extra=""
+          if [ "${{ matrix.variant }}" = "decor" ]; then extra="-Ploader_version=0.19.5"; fi
+          xvfb-run -a -s "-screen 0 1280x720x24" ./gradlew runProductionClientGameTest $extra --stacktrace -Dfabric.client.gametest.disableNetworkSynchronizer=true 2>&1 | tee /tmp/gradle-output.txt
       - name: Publish report and screenshots (branch test-results)
         if: always()
         run: |
@@ -61,6 +64,7 @@ jobs:
           find . -name "latest.log" -not -path "./.git/*" | head -5
           tail -n 400 /tmp/gradle-output.txt > /tmp/out/gradle-output.txt 2>/dev/null || true
           find . -name "medievalships-test.txt" -not -path "./.git/*" -exec cp {} /tmp/out/ \; || true
+          ls -la libs > /tmp/out/libs.txt 2>/dev/null || true
           find . -path "*screenshots*" -name "*.png" -not -path "./.git/*" -exec cp {} /tmp/out/ \; || true
           f=$(find . -path "*logs*" -name "latest.log" -not -path "./.git/*" | head -1); [ -n "$f" ] && cp "$f" /tmp/out/latest.log || true
           find . -name "*.log" -newer build.gradle -not -path "./.git/*" -not -path "./.gradle/*" | head -20 > /tmp/out/logfiles.txt || true

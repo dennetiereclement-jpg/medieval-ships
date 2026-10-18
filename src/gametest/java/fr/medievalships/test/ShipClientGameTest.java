@@ -1446,6 +1446,45 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		context.waitTicks(500);
 		ordered = server.computeOnServer(srv -> ship(srv.getOverworld(), type).syncedDepth());
 		check(ordered < 0.5, "%s ballasts emptied: back on the surface (depth %.2f)", id, ordered);
+
+		// a route in three dimensions: from a stop on the surface down to 9 blocks on the way, to a stop under water
+		ShipPose r0 = shipPose(sp, type);
+		double rz0 = r0.z(), rz1 = Math.min(22, r0.z() + 40);
+		server.runCommand("ship route create nautile once");
+		server.runCommand(String.format(Locale.ROOT, "execute positioned %.1f -37 %.1f run ship route addstop nautile 3 Quai", r0.x(), rz0));
+		server.runCommand(String.format(Locale.ROOT, "execute positioned %.1f -37 %.1f run ship route addpoint nautile", r0.x(), (rz0 + rz1) / 2));
+		server.runCommand(String.format(Locale.ROOT, "execute positioned %.1f -37 %.1f run ship route addstop nautile 5 Grotte", r0.x(), rz1));
+		server.runCommand("ship route edit nautile 2 profondeur 9");
+		server.runCommand("ship route edit nautile 3 profondeur 9");
+		server.runCommand("ship route edit nautile 2 speed 2");
+		server.runCommand("ship route edit nautile 3 speed 2");
+		nautilusCommand(server, "porte 0 fermer");
+		server.runCommand("execute as @p at @p run ship route start nautile");
+		int collided = 0;
+		boolean docked = false;
+		float docDepth = -1;
+		for (int t = 0; t < 1600 && !docked; t += 20) {
+			context.waitTicks(20);
+			collided += nautilusCollisions(sp);
+			Object[] st = server.computeOnServer(srv -> {
+				ShipEntity sh = ship(srv.getOverworld(), type);
+				return new Object[] {sh.autopilot().phase, sh.autopilot().target, sh.syncedDepth()};
+			});
+			if (st[0] == fr.medievalships.core.Autopilot.Phase.DOCKED && (Integer) st[1] == 2) {
+				docked = true;
+				docDepth = (Float) st[2];
+			}
+		}
+		ShipPose r1 = shipPose(sp, type);
+		log("%s route: docked at the underwater stop %s, depth %.2f, at z %.1f (stop %.1f), collisions %d", id, docked, docDepth, r1.z(), rz1,
+				collided);
+		check(docked && Math.abs(docDepth - 9) < 1.2, "%s autopilot: dives along the route and stops at 9 blocks under water (depth %.2f)", id,
+				docDepth);
+		check(collided == 0, "%s autopilot: never inside the basin", id);
+		server.runCommand("execute as @p at @p run ship ai disable");
+		server.runCommand("ship route delete nautile");
+		nautilusCommand(server, "ballasts vider");
+		context.waitTicks(400);
 		server.runCommand("kill @e[type=minecraft:armor_stand,tag=ncrew]");
 
 		// the item: /ship give, and right click on the water places one

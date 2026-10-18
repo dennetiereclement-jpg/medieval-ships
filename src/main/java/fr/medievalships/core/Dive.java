@@ -63,6 +63,124 @@ public final class Dive {
 		return Double.isNaN(surfacedY) ? 0 : Math.max(0, surfacedY - y);
 	}
 
+	// ------------------------------------------------------------------ autopilot
+
+	/** The sea around a submarine, for its autopilot. */
+	public interface Sea {
+		/** World height of the water surface in this column, NaN without open water (land, ice, unloaded). */
+		double surface(double x, double z);
+
+		/** World height of the top of the sea bed in this column (the first solid block under the surface). */
+		double bed(double x, double z);
+	}
+
+	/**
+	 * Can the submarine pass over this column at all: water deep enough for the hull to float on the
+	 * surface with {@code aiClearance} under its keel? (Shallower water, reefs, land: it goes round.)
+	 */
+	public static boolean navigable(Sea sea, double x, double z, ShipGeometry g, DiveConfig f) {
+		double s = sea.surface(x, z);
+		if (Double.isNaN(s)) {
+			return false;
+		}
+		return s - g.hull().waterlineY >= sea.bed(x, z) + f.aiClearance - g.lowestY();
+	}
+
+	/** Depth the autopilot keeps on the leg towards {@code wp} (0 = on the surface). */
+	public static double legDepth(Waypoint wp, double distance, DiveConfig f) {
+		if (wp.depth != null) {
+			return Math.max(0, Math.min(f.maxDepth, wp.depth));
+		}
+		if (wp.isStop() && distance < f.aiApproachDistance) {
+			return 0; // comes up at the stops
+		}
+		return Math.min(f.maxDepth, f.aiCruiseDepth);
+	}
+
+	/**
+	 * Highest sea bed under a corridor: from {@code back} behind to {@code ahead} in front of the hull
+	 * along {@code yaw}, {@code halfWidth} on each side (columns without water are skipped: the
+	 * horizontal autopilot keeps away from them).
+	 */
+	public static double bedAlong(ShipPose pose, double yaw, double back, double ahead, double halfWidth, Sea sea) {
+		double r = Math.toRadians(yaw);
+		double fx = -Math.sin(r), fz = Math.cos(r);
+		double sx = fz, sz = -fx;
+		double top = Double.NEGATIVE_INFINITY;
+		for (double d = -back; d <= ahead + 1e-6; d += 2.0) {
+			for (double s = -halfWidth; s <= halfWidth + 1e-6; s += Math.max(1.0, halfWidth)) {
+				double x = pose.x() + fx * d + sx * s, z = pose.z() + fz * d + sz * s;
+				if (!Double.isNaN(sea.surface(x, z))) {
+					top = Math.max(top, sea.bed(x, z));
+				}
+			}
+		}
+		return top;
+	}
+
+	/** Height (origin Y) the autopilot sails at, and the lowest safe height over the sea bed ahead. */
+	public record Plan(double targetY, double requiredY) {
+	}
+
+	/**
+	 * The autopilot's depth: the leg's depth below the surface here, but always {@code aiClearance}
+	 * over the highest sea bed on the way (it rises over a ridge before reaching it) and never above
+	 * the surface.
+	 */
+	public static Plan plan(Waypoint target, double distance, ShipPose pose, double speed, double surfacedY, ShipGeometry g, DiveConfig f,
+			Sea sea) {
+		double ahead = Math.max(16, g.aiReach() + 6 + Math.abs(speed) * 6);
+		double bed = bedAlong(pose, pose.yaw(), g.aiBack(), ahead, g.aiHalfWidth(), sea);
+		double required = bed + f.aiClearance - g.lowestY();
+		double depth = legDepth(target, distance, f);
+		double y = depth < SURFACED ? surfacedY : surfacedY - depth;
+		y = Math.min(Math.max(y, required), surfacedY);
+		return new Plan(y, Math.min(required, surfacedY));
+	}
+
+	/** Orders of the submarine's helmsman for one tick: helm and speed, and the vertical speed. */
+	public record Orders(ShipPhysics.Controls controls, double desiredVy) {
+	}
+
+	/**
+	 * Autopilot of a submarine: the ship autopilot steers and sets the speed along the route (the
+	 * navigable columns being those deep enough for the hull, so it goes round shoals, reefs and
+	 * passages too narrow or too shallow), this adds the depth: the depth of each leg, rising over
+	 * the sea bed ahead (slowing down, or stopping while it rises), surfacing at the stops.
+	 */
+	public static Orders autopilot(Autopilot ap, Route route, ShipPose pose, ShipPhysics physics, Gait gait, ShipConfig cfg, ShipGeometry g,
+			Sea sea, double surfacedY, Autopilot.Listener listener) {
+		DiveConfig f = cfg.dive;
+		Waypoint wp = ap.currentTarget(route);
+		Plan plan = null;
+		if (wp != null && ap.phase == Autopilot.Phase.SAILING && !Double.isNaN(surfacedY)) {
+			double dist = Math.hypot(wp.x - pose.x(), wp.z - pose.z());
+			plan = plan(wp, dist, pose, physics.speed, surfacedY, g, f, sea);
+			// at a stop it docks only once at the stop's depth
+			ap.altitudeError = wp.isStop() ? plan.targetY() - pose.y() : 0;
+		} else {
+			ap.altitudeError = 0;
+		}
+		Autopilot.Navigator nav = (x, z) -> navigable(sea, x, z, g, f);
+		ShipPhysics.Controls c = ap.tick(route, pose, physics.speed, physics.yawRate, gait, cfg, g, nav, listener);
+		double vy;
+		if (plan != null && ap.phase == Autopilot.Phase.SAILING) {
+			vy = towards(plan.targetY(), pose.y(), f);
+			double gap = plan.requiredY() - pose.y();
+			if (gap > 1.5 && !Double.isNaN(c.targetSpeed())) {
+				// the sea bed rises ahead: come up first (stop if it is much higher)
+				double v = gap > 6 ? 0 : Math.max(0.0, c.targetSpeed() * (1 - (gap - 1.5) / 4.5));
+				c = new ShipPhysics.Controls(Math.min(c.targetSpeed(), v), c.helmTarget());
+			}
+		} else if ((ap.phase == Autopilot.Phase.DOCKED || ap.phase == Autopilot.Phase.FINISHED) && wp != null && !Double.isNaN(surfacedY)) {
+			double depth = wp.depth == null ? 0 : Math.min(f.maxDepth, wp.depth);
+			vy = towards(depth < SURFACED ? surfacedY : surfacedY - depth, pose.y(), f);
+		} else {
+			vy = hold(pose.y(), surfacedY, f);
+		}
+		return new Orders(c, vy);
+	}
+
 	/** Pose and collision flags after one tick. */
 	public record Result(ShipPose pose, boolean forwardBlocked, boolean verticalBlocked) {
 	}
