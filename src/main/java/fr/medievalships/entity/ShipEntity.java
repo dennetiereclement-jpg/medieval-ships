@@ -419,8 +419,8 @@ public abstract class ShipEntity extends Entity {
 			long open = dataTracker.get(DOORS);
 			for (int k = 0; k < doorVisual.length; k++) {
 				lastDoorVisual[k] = doorVisual[k];
-				float target = (open & (1L << k)) != 0 ? 1f : 0f;
-				doorVisual[k] += Math.max(-0.12f, Math.min(0.12f, target - doorVisual[k]));
+				float shut = (open & (1L << k)) != 0 ? 1f : 0f;
+				doorVisual[k] += Math.max(-0.12f, Math.min(0.12f, shut - doorVisual[k]));
 			}
 		}
 	}
