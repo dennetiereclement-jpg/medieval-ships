@@ -52,6 +52,9 @@ public final class ConfigManager {
 		return FabricLoader.getInstance().getConfigDir().resolve(MedievalShips.MOD_ID + ".json");
 	}
 
+	/** 2 (1.5.2): the elven sailboat keeps its sails set when stopped. */
+	public static final int CONFIG_VERSION = 2;
+
 	public static void load() {
 		Path path = path();
 		JsonObject root = null;
@@ -97,6 +100,13 @@ public final class ConfigManager {
 						}
 					}
 				}
+				int version = root.has("configVersion") && root.get("configVersion").isJsonPrimitive()
+						? root.get("configVersion").getAsInt() : 1;
+				if (version < 2 && SHIPS.containsKey(Ships.ELVEN_SAILBOAT.id())) {
+					// 1.5.x wrote furlSailWhenStopped = true for the elven sailboat; it now keeps its sails set
+					SHIPS.get(Ships.ELVEN_SAILBOAT.id()).furlSailWhenStopped = false;
+					MedievalShips.LOGGER.info("medievalships.json: the elven sailboat now keeps its sails set when stopped");
+				}
 			}
 		}
 		if (server == null) {
@@ -123,6 +133,7 @@ public final class ConfigManager {
 
 	public static JsonObject toJson() {
 		JsonObject root = new JsonObject();
+		root.addProperty("configVersion", CONFIG_VERSION);
 		root.add("server", GSON.toJsonTree(server));
 		JsonObject ships = new JsonObject();
 		for (ShipType t : Ships.ALL) {

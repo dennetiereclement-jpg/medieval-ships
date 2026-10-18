@@ -90,6 +90,19 @@ gn.outer_x = outer_x
 gn.hw = hw
 
 
+# the stem and the sternpost rise from the keel and curve outwards (dragon neck and tail): the
+# last strakes end inside them instead of in a flat cut, so no gap is left between the two
+STEM_Y = [ms.keel_y(END) - 0.05, 0.7, 2.0, 3.3, 4.5]
+STEM_DZ = [-0.25, 0.3, 0.62, 0.72, 0.6]
+
+
+def end_z(z, y):
+    """z of the hull end at height y (z = +-END marks the ends)."""
+    if abs(z) < END - 1e-6:
+        return z
+    return math.copysign(END + float(np.interp(y, STEM_Y, STEM_DZ)), z)
+
+
 def section(z, side):
     w, yk = hw(z), ms.keel_y(z)
     pts = [(0.06, yk)]
@@ -98,7 +111,7 @@ def section(z, side):
     for f in UPPER:
         y = upper_y(z, f)
         pts.append((outer_x(z, y), y))
-    return [v3(side * max(x, 0.06), y, z) for x, y in pts]
+    return [v3(side * max(x, 0.06), y, end_z(z, y)) for x, y in pts]
 
 
 def dragon_tail(bone, tag, s):
@@ -239,12 +252,14 @@ def build():
                 board(hull, "hull_%s%d_%d" % (sn, i, k), A[k], A[k + 1], B[k], B[k + 1], 0.1, reg, outward,
                       inner="hull_light" if k >= 6 else None)
             # gunwale (red cap), blue trim under it, gold mouldings between the strakes
-            pa, pb = v3(side * hw(za), sheer(za) + 0.05, za), v3(side * hw(zb), sheer(zb) + 0.05, zb)
+            pa = v3(side * hw(za), sheer(za) + 0.05, end_z(za, sheer(za)))
+            pb = v3(side * hw(zb), sheer(zb) + 0.05, end_z(zb, sheer(zb)))
             beam(hull, "gunwale_%s%d" % (sn, i), pa, pb, 0.12, "red_paint", width=0.24, extend=0.04)
             for j, (f, reg, th) in enumerate(((0.9, "blue_trim", 0.13), (0.78, "gold", 0.05), (0.55, "gold", 0.05),
                                               (0.3, "blue_trim", 0.09))):
                 ya, yb = upper_y(za, f), upper_y(zb, f)
-                pa, pb = v3(side * (outer_x(za, ya) + 0.03), ya, za), v3(side * (outer_x(zb, yb) + 0.03), yb, zb)
+                pa = v3(side * (outer_x(za, ya) + 0.03), ya, end_z(za, ya))
+                pb = v3(side * (outer_x(zb, yb) + 0.03), yb, end_z(zb, yb))
                 beam(hull, "band_%s%d_%d" % (sn, i, j), pa, pb, th, reg, width=0.05, extend=0.04)
     for i in range(len(STATIONS) - 1):
         za, zb = STATIONS[i], STATIONS[i + 1]

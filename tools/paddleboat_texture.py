@@ -45,6 +45,7 @@ REGIONS = {
     "door":        (160, 64, 16, 32),
     "roof":        (0, 96, 64, 32),
     "red_paint":   (176, 64, 16, 16),
+    "lamp_glass":  (176, 80, 16, 16),
 }
 
 
@@ -66,9 +67,28 @@ def _plates(px, region, base, seam, rivet, rng, pw=16, ph=8, rust=0.0):
                 c = rivet
             elif fy == ph - 1 or fx == pw - 1:
                 c = tuple(max(0, k - 10) for k in c)
+            elif fy == 1:
+                c = tuple(min(255, k + 16) for k in c)  # light catching the upper edge of the plate
+            else:
+                c = tuple(max(0, int(k * (1.0 - 0.06 * fy / ph))) for k in c)  # a little darker downwards
             if rust and rng.random() < rust * (fy / ph):
                 c = _jitter(_rgb("6e3a1e"), rng, 10)
             px[u + x, v + y] = c + (255,)
+    # grime and rust running down from some rivets
+    for _ in range(int(w * h / 60 * (1 + 6 * rust))):
+        x = rng.randrange(w)
+        y = rng.randrange(h)
+        n = rng.randrange(2, 6)
+        col = _rgb("6e3a1e") if rng.random() < rust * 5 else None
+        for i in range(n):
+            if y + i >= h:
+                break
+            r, g, b, a = px[u + x, v + y + i]
+            if col is not None:
+                f = 0.55 * (1 - i / n)
+                px[u + x, v + y + i] = (int(r + (col[0] - r) * f), int(g + (col[1] - g) * f), int(b + (col[2] - b) * f), a)
+            else:
+                px[u + x, v + y + i] = (max(0, r - 12), max(0, g - 12), max(0, b - 11), a)
 
 
 def make_texture(path):
@@ -92,12 +112,27 @@ def make_texture(path):
         return REGIONS[name]
 
     # brass and copper with highlights
-    for name, base, hi in (("brass", "b8892e", "f0c868"), ("copper", "a0592e", "d08a54")):
+    for name, shades in (("brass", ("fbe39a", "e2b850", "c4952f", "936a1e", "6a4a14")),
+                         ("copper", ("f0b08a", "d08a54", "a8643a", "7e4526", "5a2e18"))):
         u, v, w, h = reg(name)
         for y in range(h):
             for x in range(w):
-                c = _rgb(hi) if (x * 3 + y * 7) % 13 == 0 or y == 1 else _rgb(base)
-                px[u + x, v + y] = _jitter(c, rng, 8) + (255,)
+                # polished metal: soft rounded reflections, never a regular pattern
+                t = 0.55 * math.sin(x * 0.42 + math.sin(y * 0.3) * 1.5) + 0.45 * math.cos(y * 0.36 + x * 0.12)
+                i = 0 if t > 0.65 else 1 if t > 0.2 else 2 if t > -0.35 else 3 if t > -0.75 else 4
+                px[u + x, v + y] = _jitter(_rgb(shades[i]), rng, 3) + (255,)
+    # lantern glass: thin dark iron frame and glazing bars, warm light brighter round the flame
+    u, v, w, h = reg("lamp_glass")
+    for y in range(h):
+        for x in range(w):
+            if x in (0, w - 1) or y in (0, h - 1):
+                c = _rgb("2a2c30")
+            elif x == w // 2:
+                c = _rgb("3a3c40")
+            else:
+                d = ((x - w / 2 + 0.5) ** 2 + ((y - h * 0.55) * 0.8) ** 2) ** 0.5
+                c = _rgb("fff6c8") if d < 2.6 else _rgb("ffd77a") if d < 4.6 else _rgb("f2ac44") if d < 6.4 else _rgb("d98a2c")
+            px[u + x, v + y] = c + (255,)
     # dark band with a row of rivets
     for name, base, top in (("rivet_band", "26282b", None), ("funnel_band", "1e1f21", None)):
         u, v, w, h = reg(name)

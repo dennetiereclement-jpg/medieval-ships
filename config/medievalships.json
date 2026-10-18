@@ -1,4 +1,5 @@
 {
+  "configVersion": 2,
   "server": {
     "announceDepartures": true,
     "announceRadius": 40.0,
@@ -150,7 +151,7 @@
       "aiDefaultWaitSeconds": 300,
       "aiStuckSeconds": 6,
       "aiTurnAroundSpeed": 1.2,
-      "furlSailWhenStopped": true
+      "furlSailWhenStopped": false
     }
   }
 }

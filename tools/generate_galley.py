@@ -244,7 +244,23 @@ def section(z, side):
         (1.01 * w, yr - 0.50),
         (1.02 * w, yr),
     ]
-    return [v3(side * max(x, 0.1), y, z) for x, y in pts]
+    return [v3(side * max(x, 0.1), y, end_z(z, y)) for x, y in pts]
+
+
+# stem and sternpost: (top height, reach) of the curve they follow from the keel (see post() in build)
+POSTS = {1: (3.9, 1.0), -1: (3.7, 0.95)}
+
+
+def end_z(z, y):
+    """At the two ends (z = +-10) the planking follows the curved stem / sternpost, so that it runs
+    into the post instead of stopping in a flat cut short of it."""
+    if abs(z) < 10.0 - 1e-6:
+        return z
+    sign = 1 if z > 0 else -1
+    top_y, reach = POSTS[sign]
+    yk = hp.keel_y(z)
+    t = min(1.0, max(0.0, (y - yk) / (top_y - yk)))
+    return z + sign * (reach * t ** 2.2 - 0.12)
 
 
 STRAKE_REGIONS = ["hull_dark", "hull_dark", "hull_mid", "red", "hull_light"]
@@ -272,8 +288,8 @@ def build():
                 board(hull, "hull_%s%d_%d" % (sname, i, k), A[k], A[k + 1], B[k], B[k + 1], 0.1, reg,
                       outward, inner="hull_mid" if k >= 2 else None)
             # rail cap
-            pa = v3(side * hp.half_width(za) * 1.02, hp.rail_y(za) + 0.06, za)
-            pb = v3(side * hp.half_width(zb) * 1.02, hp.rail_y(zb) + 0.06, zb)
+            pa = v3(side * hp.half_width(za) * 1.02, hp.rail_y(za) + 0.06, end_z(za, hp.rail_y(za)))
+            pb = v3(side * hp.half_width(zb) * 1.02, hp.rail_y(zb) + 0.06, end_z(zb, hp.rail_y(zb)))
             beam(hull, "rail_%s%d" % (sname, i), pa, pb, 0.12, "rail", width=0.28, extend=0.08)
     # keel
     for i in range(len(STATIONS) - 1):
@@ -294,8 +310,8 @@ def build():
             beam(bone, "%s_%d" % (name, j), pts[j], pts[j + 1], 0.42, region, width=0.62, extend=0.12)
         return pts[-1]
 
-    stem_top = post(bow, "stem", 1, 3.9, 1.0)
-    stern_top = post(stern, "sternpost", -1, 3.7, 0.95)
+    stem_top = post(bow, "stem", 1, *POSTS[1])
+    stern_top = post(stern, "sternpost", -1, *POSTS[-1])
     # carved bow head
     add_cube(bow, "figurehead", stem_top + v3(0, 0.25, 0.12), np.eye(3), (0.55, 0.5, 0.7), "gold")
     add_cube(bow, "figurehead_top", stem_top + v3(0, 0.6, 0.0), np.eye(3), (0.35, 0.3, 0.45), "hull_light")
@@ -700,6 +716,8 @@ def face_uv(cube, bbface, spec, rng_seed):
 
 
 def export(root, anims, texture_png_bytes, out_paths):
+    import zfight  # coplanar faces would flicker in game
+    zfight.fix(root)
     elements = []
 
     def group_json(b):

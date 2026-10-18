@@ -121,6 +121,39 @@ def hanging_lantern(parent, name, hook, drop=0.7, s=1.0):
     return b
 
 
+def stem_web(bone, name, post, z_in, join_y, th=0.32):
+    """Fills the space between the end of the planking (z_in) and the curved post (points from the
+    keel upwards) with horizontal teal planks capped by a gold rail, so the post grows out of the hull
+    instead of standing apart from it."""
+    sgn = 1 if z_in > 0 else -1
+    rising = [post[0]]
+    for q in post[1:]:
+        if q[1] <= rising[-1][1]:
+            break
+        rising.append(q)
+    ys = [q[1] for q in rising]
+    zs = [q[2] for q in rising]
+    join_z = float(np.interp(join_y, ys, zs))
+    top_in = sheer(z_in) + 0.02
+    y, dy = ys[0] + 0.05, 0.22
+    k = 0
+    while y < join_y - 0.02:
+        ym = min(y + dy, join_y) - min(dy, join_y - y) / 2
+        h = min(dy, join_y - y)
+        z_front = float(np.interp(ym, ys, zs)) - sgn * 0.12
+        z_back = z_in - sgn * 0.2
+        if ym > top_in:  # above the hull side: the web ends under the rail rising to the post
+            z_back = z_in + (join_z - z_in) * (ym - top_in) / (join_y - top_in)
+        L = (z_front - z_back) * sgn
+        if L > 0.05:
+            reg = "hull_navy" if ym < 0.15 else "hull_teal"
+            add_cube(bone, "%s_%d" % (name, k), (0, ym, (z_front + z_back) / 2), EYE, (th, h + 0.01, L), reg)
+        y += dy
+        k += 1
+    beam(bone, name + "_rail", v3(0, top_in + 0.04, z_in), v3(0, join_y + 0.04, join_z - sgn * 0.1), 0.12, "gold",
+         width=th + 0.12, extend=0.06)
+
+
 def build():
     root = Bone("elven_sailboat")
     hull = Bone("hull", parent=root)
@@ -175,6 +208,7 @@ def build():
             v3(0, 3.7, 15.8), v3(0, py - 0.25, pz - 0.35), v3(0, py, pz), v3(0, py + 0.5, pz - 0.05), v3(0, py + 0.45, pz - 0.5),
             v3(0, py + 0.1, pz - 0.45)]
     pts = curve(ctrl, 4)
+    stem_web(bow, "prow_web", pts, 12.6, 3.7)
     for j in range(len(pts) - 1):
         t = j / (len(pts) - 1)
         th = 0.5 * (1 - t) + 0.16 * t
@@ -201,6 +235,7 @@ def build():
     ctrl = [v3(0, es.keel_y(AFT_END) - 0.05, AFT_END + 0.25), v3(0, 0.8, AFT_END - 0.3), v3(0, 2.2, -13.6), v3(0, 3.6, -14.15),
             v3(0, sy, sz), v3(0, sy + 0.4, sz + 0.35), v3(0, sy + 0.2, sz + 0.75), v3(0, sy - 0.15, sz + 0.6)]
     pts = curve(ctrl, 4)
+    stem_web(stern, "stern_web", pts, -12.4, 3.5, th=0.28)
     for j in range(len(pts) - 1):
         t = j / (len(pts) - 1)
         th = 0.4 * (1 - t) + 0.13 * t

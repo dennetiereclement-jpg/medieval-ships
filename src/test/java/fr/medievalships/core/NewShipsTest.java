@@ -146,6 +146,11 @@ class NewShipsTest {
 		assertFalse(steam.furlSailWhenStopped);
 	}
 
+	@Test
+	void elvenSailsStaySetWhenStopped() {
+		assertFalse(Ships.ELVEN_SAILBOAT.defaults().get().furlSailWhenStopped);
+	}
+
 	/** Values printed by {@code python3 tools/elven_shape.py}: z, half width, rail, keel, bottom at 1.5. */
 	@Test
 	void elvenMatchesModelGenerator() {

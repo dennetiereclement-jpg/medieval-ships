@@ -889,6 +889,8 @@ def texture_entry(name, size, png, rel, default_name="galleon.png"):
 
 
 def export(root, anims, textures, out_paths, name="galleon", visible_box=(40, 32, 0)):
+    import zfight  # coplanar faces would flicker in game
+    zfight.fix(root)
     elements = []
 
     def group_json(b):

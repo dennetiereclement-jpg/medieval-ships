@@ -46,6 +46,11 @@ Pour tous :
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
 
+La version 1.5.2 supprime tout scintillement des textures (z-fighting) sur les six navires,
+raccorde la proue et la poupe de la galère, de la galère rouge et du voilier elfique à leur coque
+(plus aucun vide entre les deux), garde les voiles du voilier elfique établies à l'arrêt (un ancien
+fichier de configuration est mis à jour automatiquement) et refait les lanternes et les textures
+du bateau à vapeur.
 La version 1.5.1 soigne encore l'aspect des quatre navires de l'image : le bateau à vapeur a
 **une roue à aubes de chaque côté**, des canons sur barbettes, une rambarde sur le rouf et des
 cheminées couronnées ; le voilier elfique porte une rose des vents dorée, des volutes et des ailes
@@ -63,7 +68,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.5.1.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.5.2.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
@@ -133,7 +138,7 @@ automatiquement : ses valeurs deviennent celles de la galère.
 | `waveRocking` | 1.0 | 0.8 | 0.9 |
 | `aiWaypointRadius`, `aiStopRadius`, `aiLookahead`, `aiProbeDistance` | 8, 2, 14, 40 | 9, 2, 16, 48 | 9, 2, 16, 48 |
 | `aiDefaultWaitSeconds`, `aiStuckSeconds`, `aiTurnAroundSpeed` | 300, 6, 0.4 | 300, 8, 1 | 300, 6, 1.2 |
-| `furlSailWhenStopped` | true | false (pas de voile) | true |
+| `furlSailWhenStopped` | true | false (pas de voile) | false (voiles toujours établies ; un ancien fichier est mis à jour automatiquement) |
 
 ## Structure du projet
 

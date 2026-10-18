@@ -256,13 +256,13 @@ D'après l'image de référence (« 2. Bateau à roue à vapeur »). Fichiers : 
 
 | Élément de l'image | Réalisation |
 |---|---|
-| Coque blindée, basse et massive, plaques gris foncé rivetées | bordé en plaques rivetées (texture), bandes rivetées, plaques plus sombres et rouillées près de l'eau, hublots éclairés à cerclage de laiton, double blindage aux épaules |
+| Coque blindée, basse et massive, plaques gris foncé rivetées | bordé en plaques rivetées (texture : arête supérieure de chaque tôle qui accroche la lumière, coulures de rouille et de crasse sous les rivets ; laiton et cuivre polis à reflets doux), bandes rivetées, plaques plus sombres et rouillées près de l'eau, hublots éclairés à cerclage de laiton, double blindage aux épaules |
 | Proue renforcée | étrave en laiton et éperon en fer à la flottaison |
-| Rouf, fenêtres, ouvertures et trappes | rouf en panneaux de bois cerclés de laiton, fenêtres éclairées, portes en fer, manomètres, tuyau de cuivre ; passerelle sur le toit entourée d'une **rambarde à lanternes d'angle**, claires-voies vitrées, sifflet ; panneaux de cale à caillebotis |
+| Rouf, fenêtres, ouvertures et trappes | rouf en panneaux de bois cerclés de laiton, fenêtres éclairées, portes en fer, manomètres, tuyau de cuivre ; passerelle sur le toit entourée d'une **rambarde à lanternes d'angle**, claires-voies à toit de verre éclairé, sifflet ; panneaux de cale à caillebotis |
 | Deux cheminées | deux cheminées verticales en briques grises cerclées de fer, l'une derrière l'autre, sommet noirci et évasé coiffé d'une **couronne** et d'un anneau de laiton, tuyaux de vapeur, haubans |
 | Grandes roues à aubes latérales | **une roue de chaque côté** (bâbord et tribord, symétriques) : rond parfait (2 jantes de 20 segments, 2 couronnes intérieures, 20 rayons), 10 aubes radiales, moyeu en laiton ; elle tourne autour de son axe ; axe fixe de la coque au palier extérieur, palier et entretoises ; tambour en arc (tôles + arc doré) qui la couvre ; elle ne touche pas la coque (0,2 bloc d'écart) et plonge d'environ 0,9 bloc dans l'eau |
 | Canons sur le pont | deux canons en laiton sur affût de bois à roues, posés sur des **barbettes** surélevées (plate-forme circulaire blindée, rambarde de laiton, marches), à la proue (vers l'avant) et à la poupe (vers l'arrière) |
-| Rambardes métalliques, lanternes | rambarde en fer à main courante de laiton tout autour, 10 lanternes sur poteaux |
+| Rambardes métalliques, lanternes | rambarde en fer à main courante de laiton tout autour, 10 lanternes sur poteaux ; chaque lanterne (1.5.2) : vitres éclairées (pleine lumière la nuit) dans un cadre de fer, montants d'angle, socle, chapeau en dôme, fleuron et anneau de laiton |
 | Éléments mécaniques | manches à air en laiton, télégraphe des machines, cabestan, ancres, mât de signaux et son pavillon (rouage doré sur fond rouge) |
 
 Animations : `paddle` (les deux roues, un tour par boucle, jouée avec la **vitesse signée** : la roue
@@ -287,11 +287,25 @@ D'après l'image de référence (« 4. Voilier elfique »). Fichiers : `elven_sa
 | Lanternes suspendues, cordages | 4 lanternes à potences dorées + celles de la proue et de la poupe, chacune sur son os ; étai, pataras, haubans, écoutes |
 | Pont ouvert | pont clair **incrusté de filets d'or**, bancs dorés à coussins bleus, coffre, barre à roue sur piédestal doré |
 
-Animations : `sail_wind`, `sail_furl`, `steer`, `flag_wave` (flamme), `lantern_sway` (les
+Animations : `sail_wind`, `sail_furl` (seulement si on remet `furlSailWhenStopped` à true : par défaut
+les voiles restent établies à l'arrêt), `steer`, `flag_wave` (flamme), `lantern_sway` (les
 lanternes se balancent doucement, chacune avec sa phase).
 
 # Vérifications communes
 
+* **Pas de scintillement (z-fighting)** : `tools/zfight.py` est appelé par l'export de chaque
+  générateur. Il cherche les faces qui sont dans le même plan et se chevauchent (le mod dessine les
+  deux côtés de chaque face, donc les deux sens comptent) et écarte la plus petite des deux d'un
+  centième de bloc (invisible ; un coloriage du graphe des conflits évite qu'une chaîne de pièces
+  retombe dans un même plan). Avant correction : 355 paires sur la galère, 1 758 sur le galion,
+  2 575 sur le vaisseau, 505 sur la galère rouge, 1 825 sur le bateau à vapeur, 495 sur le
+  voilier ; après : 0 (test `NoZFightingTest`). `python3 tools/zfight.py <navire> [--fix]` affiche
+  les paires restantes.
+* **Proue et poupe raccordées à la coque** (1.5.2) : sur la galère d'origine et la galère rouge, les
+  derniers bordages suivent la courbe de l'étrave et de l'étambot (cou et queue du dragon) au lieu
+  de s'arrêter net devant eux ; sur le voilier elfique, un massif de bordages turquoise coiffé d'une
+  lisse dorée remplit l'espace entre la coque et la longue proue en volute (et la crosse de poupe).
+  Le galion, le vaisseau et le bateau à vapeur étaient déjà fermés.
 * `python3 tools/sail_check.py warship|galleon|elven|medieval_galley` : vérifie qu'**aucune voile
   n'en traverse une autre** (chaque laize est une boîte orientée ; les parties transparentes des
   voiles triangulaires sont ignorées). Les cinq croisements trouvés en 1.5.0 (misaine/focs et

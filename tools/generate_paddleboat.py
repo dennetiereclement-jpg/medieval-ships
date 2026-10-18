@@ -127,6 +127,22 @@ def gun(bone, tag, z, s):
     add_cube(bone, tag + "_trunnion", v3(0, y - 0.05, z - s * 0.2), EYE, (0.72, 0.14, 0.14), "gunmetal")
 
 
+def lamp(bone, name, c, s=1.0):
+    """Ship's lantern: lit glass (drawn full bright) in a thin iron frame, base plate, domed cap,
+    brass finial and carrying ring."""
+    c = v3(*c)
+    hw_, hh = 0.11 * s, 0.16 * s
+    add_cube(bone, "glow_" + name, c, EYE, (2 * hw_, 2 * hh, 2 * hw_), {"all": "lamp_glass", "+2": "gunmetal", "-2": "gunmetal"},
+             stretch=True)
+    for i, (dx, dz) in enumerate(((1, 1), (1, -1), (-1, 1), (-1, -1))):
+        add_cube(bone, "%s_frame_%d" % (name, i), c + v3(dx * hw_, 0, dz * hw_), EYE, (0.035 * s, 2 * hh + 0.02 * s, 0.035 * s), "gunmetal")
+    add_cube(bone, name + "_base", c - v3(0, hh + 0.025 * s, 0), EYE, (2 * hw_ + 0.07 * s, 0.05 * s, 2 * hw_ + 0.07 * s), "gunmetal")
+    add_cube(bone, name + "_cap", c + v3(0, hh + 0.025 * s, 0), EYE, (2 * hw_ + 0.08 * s, 0.05 * s, 2 * hw_ + 0.08 * s), "gunmetal")
+    add_cube(bone, name + "_dome", c + v3(0, hh + 0.09 * s, 0), EYE, (2 * hw_ - 0.02 * s, 0.08 * s, 2 * hw_ - 0.02 * s), "gunmetal")
+    add_cube(bone, name + "_finial", c + v3(0, hh + 0.16 * s, 0), EYE, (0.06 * s, 0.07 * s, 0.06 * s), "brass")
+    beam(bone, name + "_ring", c + v3(-0.06 * s, hh + 0.22 * s, 0), c + v3(0.06 * s, hh + 0.22 * s, 0), 0.025 * s, "brass")
+
+
 def build():
     root = Bone("steam_paddleboat")
     hull = Bone("hull", parent=root)
@@ -256,11 +272,14 @@ def build():
             beam(house, "roof_post_%d_%d" % (k, j), p, p + v3(0, 0.55, 0), 0.05, "iron")
         beam(house, "roof_rail_%d" % k, a + v3(0, 0.55, 0), b + v3(0, 0.55, 0), 0.06, "brass", extend=0.03)
         c = a + v3(0, 0.55, 0)
-        add_cube(lanterns, "roof_lamp_%d" % k, c + v3(0, 0.25, 0), EYE, (0.24, 0.32, 0.24), {"all": "lantern", "+2": "brass", "-2": "brass"},
-                 stretch=True)
-        add_cube(lanterns, "glow_roof_lamp_%d" % k, c + v3(0, 0.25, 0), EYE, (0.16, 0.24, 0.16), "glow", stretch=True)
+        lamp(lanterns, "roof_lamp_%d" % k, c + v3(0, 0.22, 0))
     for k, z in enumerate((-3.9, -0.3, 2.6)):
-        add_cube(house, "skylight_%d" % k, (0, top + 0.3, z), EYE, (1.1, 0.28, 0.7), {"all": "brass", "+2": "window"}, stretch=True)
+        # skylight: an iron curb and a pitched glass roof, lit from the cabin below
+        add_cube(house, "skylight_%d" % k, (0, top + 0.26, z), EYE, (1.1, 0.2, 0.7), {"all": "gunmetal", "+2": "iron"})
+        for side in (1, -1):
+            add_cube(house, "glow_skylight_%d_%d" % (k, side > 0), (side * 0.26, top + 0.46, z), gg.rz(-side * 0.42), (0.58, 0.04, 0.66),
+                     {"all": "window", "-2": "iron"}, stretch=True)
+        beam(house, "skylight_ridge_%d" % k, (0, top + 0.58, z - 0.36), (0, top + 0.58, z + 0.36), 0.05, "brass")
 
     # ---- funnels: grey brick, riveted iron bands, flared sooty tops; a steam pipe on each
     for k, z in enumerate(ps.FUNNEL_Z):
@@ -370,10 +389,7 @@ def build():
             x = side * (outer_x(z, ps.PLATING_TOP) - 0.12)
             base = v3(x, post_top + 0.05, z)
             beam(lanterns, "lamp_post_%s%d" % (sn, k), base, base + v3(0, 0.45, 0), 0.08, "brass")
-            add_cube(lanterns, "lamp_%s%d" % (sn, k), base + v3(0, 0.68, 0), EYE, (0.26, 0.36, 0.26),
-                     {"all": "lantern", "+2": "brass", "-2": "brass"}, stretch=True)
-            add_cube(lanterns, "glow_lamp_%s%d" % (sn, k), base + v3(0, 0.68, 0), EYE, (0.17, 0.26, 0.17), "glow", stretch=True)
-            add_cube(lanterns, "lamp_cap_%s%d" % (sn, k), base + v3(0, 0.92, 0), EYE, (0.2, 0.1, 0.2), "brass")
+            lamp(lanterns, "lamp_%s%d" % (sn, k), base + v3(0, 0.66, 0), s=1.15)
     # end rails across the bow and the stern
     for zz, tag in ((ps.DECK_MAX_Z + 0.2, "bow"), (ps.DECK_MIN_Z - 0.3, "stern")):
         w = outer_x(zz, ps.PLATING_TOP) - 0.15
@@ -406,9 +422,7 @@ def build():
     mz = ps.MAST_Z
     beam(deck, "mast", (0, main_y, mz), (0, ps.MAST_TOP, mz), 0.2, "gunmetal")
     beam(deck, "mast_yard", (-1.2, ps.MAST_TOP - 1.6, mz), (1.2, ps.MAST_TOP - 1.6, mz), 0.1, "gunmetal")
-    add_cube(lanterns, "mast_lamp", (0, ps.MAST_TOP - 1.2, mz + 0.15), EYE, (0.24, 0.32, 0.24), {"all": "lantern", "+2": "brass"},
-             stretch=True)
-    add_cube(lanterns, "glow_mast_lamp", (0, ps.MAST_TOP - 1.2, mz + 0.15), EYE, (0.16, 0.24, 0.16), "glow", stretch=True)
+    lamp(lanterns, "mast_lamp", (0, ps.MAST_TOP - 1.2, mz + 0.2))
     fb = Bone("flag", origin=(0, ps.MAST_TOP - 0.1, mz), parent=deck)
     root_pt = v3(0, ps.MAST_TOP - 0.05, mz)
     w, h = 1.6, 0.8

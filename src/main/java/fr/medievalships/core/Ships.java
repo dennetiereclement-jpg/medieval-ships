@@ -870,6 +870,7 @@ public final class Ships {
 		c.aiLookahead = 16.0;
 		c.aiProbeDistance = 48.0;
 		c.aiTurnAroundSpeed = 1.2;
+		c.furlSailWhenStopped = false; // the triangular sails stay set at rest
 		return c;
 	}
 
