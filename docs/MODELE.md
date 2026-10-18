@@ -188,14 +188,14 @@ python3 tools/preview.py blockbench/galleon.bbmodel - docs/preview_galleon.png -
 
 | Élément | Réalisation |
 |---|---|
-| Coque | 29 tronçons × 2 bords × 10 bordages **inclinés** sur des sections arrondies : œuvres vives **blanches**, bandes **noires** et **ocre** alternées qui **suivent la tonture** (elles remontent vers la proue et la poupe, comme les rangées de sabords), fines moulures dorées entre les bandes, œuvres mortes noires, trois préceintes, plat-bord doré, rentré de la muraille, porte d'entrée dorée avec ses marches sur chaque bord |
+| Coque | 29 tronçons × 2 bords × 10 bordages **inclinés** sur des sections arrondies : œuvres vives **blanches**, bandes **noires** et **ocre** alternées qui **suivent la tonture** (elles remontent vers la proue et la poupe, comme les rangées de sabords), fines moulures dorées entre les bandes, œuvres mortes noires, trois préceintes, plat-bord doré, peinture à reflets (lumière sur l'arête de chaque bordage, fil du bois), dorures polies, rentré de la muraille, porte d'entrée dorée avec ses marches sur chaque bord |
 | Dimensions | coque 55 blocs, ≈ 67 avec beaupré, bout-dehors et galeries ; 13 de large ; 12 blocs de la quille au couronnement ; 42 jusqu'au sommet du grand mât |
 | Ponts | pont principal (canons sur affûts), gaillard d'avant, **gaillard d'arrière** au-dessus de la grande cabine, **dunette** au-dessus de la chambre du conseil ; 3 escaliers doubles, barrières à balustres |
 | Canons | **58** : 12 + 11 par bord dans deux rangées de sabords de la coque (**cadres dorés**, doublure rouge), 6 par bord sur affûts au pont principal, encadrés de **guirlandes dorées** (les 12 affûts sont des sièges) ; un os par canon `cannon_l1`…`cannon_l29`, `cannon_r1`…`cannon_r29` |
 | Poupe | les **bandes de la coque font le tour de la voûte** (noir, ocre, préceintes, moulure dorée), **deux canons de retraite** dans leurs sabords à guirlandes, tableau de nom sculpté ; tableau très haut, chaque fenêtre dans un **cadre doré avec appui et clé sculptée**, trois étages de fenêtres éclairées (cintrées en haut) avec pilastres, corniches et frises sculptées dorées, **colonnes dorées** aux angles, **couronnement sculpté** en arc autour des grandes armes, **deux galeries** à balustres avec bandeau sculpté, retours latéraux, poteaux d'angle et consoles dorées, **deux statues dorées** (renommées à trompette) de part et d'autre des armes devant un fond sculpté, bouteilles d'angle sur deux étages (pilastres dorés entre les fenêtres, qui suivent le rétrécissement de la coque sans dépasser dans les cabines) coiffées de **dômes dorés** à épi, culs-de-lampe sculptés, 3 grandes lanternes à potences dorées, pavillon de poupe |
 | Grande cabine | accessible par la porte de la cloison ; **fenêtres des deux côtés et au fond, visibles aussi de l'intérieur** (5 fenêtres par bord encadrées d'or, 5 au tableau arrière, 6 dans la cloison) ; **table du conseil** de 4,4 blocs sur un grand tapis avec 8 chaises rouges, 2 candélabres allumés, carte marine et couverts ; **lit du capitaine** à ciel rouge, bureau avec chaise, globe et chandelier, bibliothèque, râtelier d'armes, coffres, 4 tableaux, lanternes suspendues ; les 2 chaises des flancs restent les places assises |
 | Mâture | 3 mâts en trois parties (bas-mât, mât de hune, perroquet) avec hunes éclairées d'une lanterne et barres de flèche, vergues sombres ; **3 voiles carrées par mât** à l'avant et au centre, hunier et latine à l'artimon ; beaupré, bout-dehors, civadière, **3 focs** |
-| Voiles | toile crème naturelle (coutures fines, bandes de ris et garcettes, ralingues), **gonflées dans les deux sens** (72 bandes par voile carrée qui se raccordent, la tête reste sur la vergue) |
+| Voiles | toile crème naturelle (laizes de teintes légèrement différentes, bas un peu patiné, taches d'usure discrètes, **renforts cousus aux coins**, coutures fines, bandes de ris et garcettes, ralingues), **gonflées dans les deux sens** (72 bandes par voile carrée qui se raccordent, la tête reste sur la vergue) |
 | Gréement | **cordages goudronnés sombres** : haubans avec enfléchures et caps-de-mouton sur porte-haubans, galhaubans, étais, bras, écoutes, sous-barbe |
 | Proue | éperon avec volutes dorées, grand **lion de proue** doré couronné, lisses de poulaine courbes dorées, bossoirs à masques dorés avec ancres, écubiers, lanterne |
 | Châteaux | murailles noires à **pilastres dorés**, fenêtres cintrées éclairées, bande ocre et lisse dorée |
@@ -278,14 +278,14 @@ D'après l'image de référence (« 4. Voilier elfique »). Fichiers : `elven_sa
 
 | Élément de l'image | Réalisation |
 |---|---|
-| Coque longue et fine, bleu turquoise et or | coque élancée (30 blocs hors tout, 6 de large), œuvres vives bleu nuit, flancs turquoise, bandeau de filigrane doré, **volutes dorées** (5 par bord), filets et plat-bord dorés, léger rentré |
+| Coque longue et fine, bleu turquoise et or | coque élancée (30 blocs hors tout, 6 de large), œuvres vives bleu nuit **semées de minuscules étoiles argentées**, flancs turquoise, bandeau de filigrane doré, **volutes dorées** (5 par bord), filets et plat-bord dorés, léger rentré |
 | Ornements elfiques | gemmes turquoise lumineuses serties d'or le long des flancs ; nageoires dorées sur l'étrave ; **ailes dorées** déployées le long des flancs à la proue et à la poupe |
 | Proue très élancée | longue proue en volute dorée qui s'avance de 3 blocs, grosse gemme de chaque côté, lanterne suspendue à son extrémité |
 | Poupe légèrement relevée | étambot recourbé en crosse dorée, lanterne suspendue |
-| Grand mât central, voiles triangulaires | grand mât à bagues dorées et pomme ; grand-voile sur bôme, foc vers la proue, petit hunier triangulaire ; toile crème à bordure bleue et filet d'or |
+| Grand mât central, voiles triangulaires | grand mât à bagues dorées et pomme ; grand-voile sur bôme, foc vers la proue, petit hunier triangulaire ; toile crème à bordure bleue et filet d'or, **coutures qui rayonnent depuis le point de drisse**, renforts cousus aux trois coins ; or poli à reflets doux, sculptures dorées à feuilles ombrées |
 | Symboles solaires et lunaires | **dans la texture** : grande **rose des vents** dorée à huit branches (quatre longues, quatre diagonales, or à deux tons) à cœur bleu et petites étoiles sur la grand-voile, croissant de lune doré et étoiles sur le foc, étoile sur le hunier |
 | Lanternes suspendues, cordages | 4 lanternes à potences dorées + celles de la proue et de la poupe, chacune sur son os ; étai, pataras, haubans, écoutes |
-| Pont ouvert | pont clair, bancs dorés à coussins bleus, coffre, barre à roue sur piédestal doré |
+| Pont ouvert | pont clair **incrusté de filets d'or**, bancs dorés à coussins bleus, coffre, barre à roue sur piédestal doré |
 
 Animations : `sail_wind`, `sail_furl`, `steer`, `flag_wave` (flamme), `lantern_sway` (les
 lanternes se balancent doucement, chacune avec sa phase).

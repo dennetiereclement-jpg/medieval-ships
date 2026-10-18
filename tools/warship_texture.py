@@ -88,6 +88,109 @@ LIS = [
 ]
 
 
+def _gold(px, region, rng):
+    """Polished gilding: soft rounded highlights and shadows instead of a regular pattern."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            t = 0.55 * math.sin(x * 0.42 + math.sin(y * 0.3) * 1.5) + 0.45 * math.cos(y * 0.36 + x * 0.12)
+            t -= 0.25 * ((y % 16) / 16.0)
+            if t > 0.62:
+                c = _rgb("fbe7a1")
+            elif t > 0.2:
+                c = _rgb("e6bf5a")
+            elif t > -0.35:
+                c = _rgb("cfa23f")
+            elif t > -0.75:
+                c = _rgb("a97f2a")
+            else:
+                c = _rgb("7c5a1c")
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+
+
+def _sheen(px, region, rng, plank, amount):
+    """Painted planks: a light catch along the top edge of each plank and faint grain streaks."""
+    u, v, w, h = region
+    streaks = [(rng.randrange(w), rng.randrange(h), rng.randrange(4, 14)) for _ in range(w * h // 90)]
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = px[u + x, v + y]
+            k = 0
+            if y % plank == 1:
+                k = amount
+            elif y % plank == 2:
+                k = amount // 2
+            px[u + x, v + y] = (min(255, r + k), min(255, g + k), min(255, b + k), a)
+    for sx, sy, n in streaks:
+        if sy % plank in (0, plank - 1):
+            continue
+        for i in range(n):
+            x = (sx + i) % w
+            r, g, b, a = px[u + x, v + sy]
+            px[u + x, v + sy] = (min(255, r + 9), min(255, g + 8), min(255, b + 6), a)
+
+
+def _sail_cloth(px, region, rng):
+    """Square sail: cloths of slightly different tone, weathered foot, reef bands with points,
+    reinforcing patches at the four corners, bolt rope."""
+    _, u, v, w, h = region
+    base = (243, 236, 220)
+    cloth_tone = [1.0 - 0.025 * rng.random() for _ in range(w // 12 + 2)]
+    blot = [(rng.uniform(0, w), rng.uniform(0, h), rng.uniform(8, 22)) for _ in range(6)]
+    for y in range(h):
+        fy = y / h
+        for x in range(w):
+            k = cloth_tone[x // 12] * (1.0 - 0.07 * abs(fy - 0.4)) - 0.04 * max(0.0, fy - 0.75)
+            if (x * 7 + y * 3) % 17 == 0:
+                k -= 0.03
+            for bx, by, br in blot:  # faint weathering stains
+                d = math.hypot(x - bx, y - by)
+                if d < br:
+                    k -= 0.025 * (1 - d / br)
+            c = [int(b * k) for b in base]
+            c[2] = int(c[2] * (1.0 - 0.03 * fy))  # the foot yellows a little
+            c = tuple(c)
+            if x % 12 == 11:
+                c = tuple(int(q * 0.9) for q in c)
+            elif x % 12 == 10:
+                c = tuple(min(255, int(q * 1.03)) for q in c)
+            for band in (0.14, 0.27):
+                yb = int(h * band)
+                if y == yb or y == yb + 1:
+                    c = (222, 212, 188)
+                if y == yb + 2 and x % 8 == 4:
+                    c = (150, 130, 95)
+                if y == yb + 3 and x % 8 == 4:
+                    c = (175, 155, 118)
+            corner = min(x, w - 1 - x) + min(y, h - 1 - y)
+            if corner < 14:
+                c = tuple(int(q * 0.93) for q in c)
+                if corner == 13 and (x + y) % 2 == 0:
+                    c = (160, 140, 104)  # stitching of the patch
+            if y < 3 or x < 2 or x >= w - 2 or y >= h - 2:
+                c = (186, 160, 112)
+            px[u + x, v + y] = _jitter(c, rng, 2) + (255,)
+
+
+def _patch_corners(px, region, tri, rng):
+    """Reinforcing patches at the three corners of a triangular sail, and a bolt rope."""
+    _, u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            if not _tri_inside(tri, x + 0.5, y + 0.5):
+                continue
+            r, g, b, a = px[u + x, v + y]
+            dmin = min(math.hypot(x + 0.5 - cx, y + 0.5 - cy) for cx, cy in tri)
+            if dmin < 16:
+                k = 0.93
+                if 15 <= dmin and (x + y) % 2 == 0:
+                    r, g, b, k = 160, 140, 104, 1.0
+                px[u + x, v + y] = (int(r * k), int(g * k), int(b * k), a)
+            inside_edge = all(_tri_inside(tri, x + 0.5 + dx, y + 0.5 + dy) for dx, dy in ((1.5, 0), (-1.5, 0), (0, 1.5), (0, -1.5)))
+            if not inside_edge:
+                px[u + x, v + y] = (186, 160, 112, a)
+
+
 def make_textures(path, flag_path, lateen_tri, jib_tri):
     rng = random.Random(1665)
     img = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
@@ -112,13 +215,10 @@ def make_textures(path, flag_path, lateen_tri, jib_tri):
     _fill(img, reg("iron"), _rgb("2f2f33"), rng, 6)
     _fill(img, reg("end_grain"), _rgb("8c5e30"), rng, 10)
 
-    u, v, w, h = reg("gold")
-    for y in range(h):
-        for x in range(w):
-            c = _rgb("d4aa45") if (x + 2 * y) % 7 else _rgb("f2d27a")
-            if (x * 3 + y) % 11 == 0:
-                c = _rgb("9c7426")
-            px[u + x, v + y] = _jitter(c, rng, 8) + (255,)
+    _gold(px, reg("gold"), rng)
+    _sheen(px, reg("hull_black"), rng, 4, 14)
+    _sheen(px, reg("wale"), rng, 4, 14)
+    _sheen(px, reg("ochre"), rng, 4, 10)
     u, v, w, h = reg("carving")
     for y in range(h):
         for x in range(w):
@@ -234,14 +334,16 @@ def make_textures(path, flag_path, lateen_tri, jib_tri):
             c = _rgb("f5d77d") if t > 2.2 else (_rgb("d4aa45") if t > -1.5 else _rgb("8f6a22"))
             px[u + x, v + y] = _jitter(c, rng, 5) + (255,)
 
-    _canvas(px, REGIONS["course"], rng)
-    _canvas(px, REGIONS["topsail"], rng)
+    _sail_cloth(px, REGIONS["course"], rng)
+    _sail_cloth(px, REGIONS["topsail"], rng)
     _, u, v, w, h = REGIONS["lateen"]
     tri = [(p[0] * w, p[1] * h) for p in lateen_tri]
     _canvas(px, REGIONS["lateen"], rng, mask=lambda x, y, w_, h_: _tri_inside(tri, x, y), vertical=False)
     _, u, v, w, h = REGIONS["jib"]
     tri2 = [(p[0] * w, p[1] * h) for p in jib_tri]
     _canvas(px, REGIONS["jib"], rng, mask=lambda x, y, w_, h_: _tri_inside(tri2, x, y), vertical=False)
+    _patch_corners(px, REGIONS["lateen"], tri, rng)
+    _patch_corners(px, REGIONS["jib"], tri2, rng)
     interior_texture.paint(px, {k: r[1:] for k, r in REGIONS.items() if r[0] == 0})
     img.save(path)
 

@@ -50,7 +50,7 @@ La version 1.5.1 soigne encore l'aspect des quatre navires de l'image : le batea
 **une roue à aubes de chaque côté**, des canons sur barbettes, une rambarde sur le rouf et des
 cheminées couronnées ; le voilier elfique porte une rose des vents dorée, des volutes et des ailes
 dorées ; la galère rouge porte la tête du dragon à la proue (crête et moustaches dorées) et sa queue à la poupe, sa voile des bandes
-de ris ; les sabords du vaisseau de guerre sont encadrés d'or.
+de ris ; les sabords du vaisseau de guerre sont encadrés d'or, sa coque peinte prend la lumière et ses voiles ont des laizes, une patine et des renforts cousus ; le voilier elfique a une coque bleu nuit semée d'étoiles, des voiles aux coutures rayonnantes et un pont incrusté d'or.
 La version 1.5.0 ajoute la galère rouge, le bateau à roue à vapeur et le voilier elfique, d'après
 l'image de référence ; le galion et le vaisseau de guerre flottent plus haut sur une coque plus
 profonde et plus arrondie, et leurs voiles sont orientées et plus gonflées. La galère d'origine

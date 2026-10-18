@@ -112,6 +112,10 @@ def _paint_sail(px, region, tri_unit, symbol, rng):
     cy = sum(p[1] for p in tri) / 3
     # the symbol sits a little towards the wide part of the sail
     size = min(w, h)
+    head = min(tri, key=lambda p: p[1] + 0.001 * p[0])
+    others = [p for p in tri if p is not head]
+    angs = sorted(math.atan2(p[1] - head[1], p[0] - head[0]) for p in others)
+    a0, seam_step = angs[0], (angs[1] - angs[0]) / 9
     small = [(cx + size * dx, cy + size * dy) for dx, dy in ((-0.2, -0.17), (0.17, -0.2), (0.22, 0.14), (-0.12, 0.2), (0.02, -0.3))]
     for y in range(h):
         for x in range(w):
@@ -121,8 +125,15 @@ def _paint_sail(px, region, tri_unit, symbol, rng):
             d = _edge_dist(tri, x + 0.5, y + 0.5)
             k = 1.0 - 0.05 * ((x * 7 + y * 3) % 11 == 0)
             c = tuple(int(q * k) for q in CREAM)
-            if (x + 2 * y) % 24 == 0:
-                c = _rgb("e4d6b4")  # seam
+            hx, hy = head
+            ang = math.atan2(y + 0.5 - hy, x + 0.5 - hx)
+            if abs(((ang - a0) / seam_step) - round((ang - a0) / seam_step)) * seam_step * math.hypot(x - hx, y - hy) < 0.6:
+                c = _rgb("e2d3ae")  # seams radiating from the head
+            dc = min(math.hypot(x + 0.5 - qx, y + 0.5 - qy) for qx, qy in tri)
+            if dc < size * 0.11:
+                c = tuple(int(q * 0.94) for q in c)  # reinforcing patch at each corner
+                if dc > size * 0.11 - 1.2 and (x + y) % 2 == 0:
+                    c = _rgb("b49a6a")
             if d < 1.2:
                 c = _rgb("8a6a3a")  # bolt rope
             elif d < 5.5:
@@ -169,14 +180,38 @@ def make_texture(path, tris):
     u, v, w, h = reg("gold")
     for y in range(h):
         for x in range(w):
-            c = GOLD_HI if (x * 3 + y * 5) % 11 == 0 or y % 16 == 1 else GOLD
-            px[u + x, v + y] = _jitter(c, rng, 8) + (255,)
+            # polished gold: soft rounded highlights, never a regular pattern
+            t = 0.55 * math.sin(x * 0.4 + math.sin(y * 0.28) * 1.6) + 0.45 * math.cos(y * 0.33 + x * 0.1)
+            c = (_rgb("fff0b8") if t > 0.7 else GOLD_HI if t > 0.25 else GOLD if t > -0.4 else _rgb("b38a30"))
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
     u, v, w, h = reg("gold_relief")
     for y in range(h):
         for x in range(w):
+            # carved leaves: lit tops, shaded hollows, a dark line where two leaves meet
             s = math.sin(x * 0.55) * math.cos(y * 0.4) + 0.5 * math.sin((x + y) * 0.3)
-            c = GOLD_HI if s > 0.6 else (GOLD if s > -0.4 else _rgb("8f6a22"))
-            px[u + x, v + y] = _jitter(c, rng, 5) + (255,)
+            if abs(s + 0.15) < 0.09:
+                c = _rgb("7a5a1c")
+            elif s > 0.85:
+                c = _rgb("fff0b8")
+            elif s > 0.35:
+                c = GOLD_HI
+            elif s > -0.5:
+                c = GOLD
+            else:
+                c = _rgb("a07a28")
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+    # night-blue bottom: a scatter of tiny silver stars in the paint
+    u, v, w, h = reg("hull_navy")
+    for _ in range(w * h // 70):
+        x, y = rng.randrange(w), rng.randrange(h)
+        if y % 4:
+            px[u + x, v + y] = (_rgb("d8e4f0") if rng.random() < 0.6 else _rgb("8fb4dc")) + (255,)
+    # pale deck with a thin gold inlay between some planks
+    u, v, w, h = reg("deck")
+    for y in range(h):
+        if y % 16 == 0:
+            for x in range(w):
+                px[u + x, v + y] = _jitter(_rgb("d9ad45"), rng, 6) + (255,)
     # filigree band: turquoise with gold scrolls and a gold line along both edges
     u, v, w, h = reg("ornament")
     for y in range(h):
