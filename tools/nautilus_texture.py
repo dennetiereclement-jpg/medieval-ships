@@ -13,7 +13,7 @@ from PIL import Image, ImageDraw
 
 from galley_texture import _fill, _jitter, _planks, _rgb, paint_lamp_glass
 
-SIZE = 256
+SIZE = 512
 
 REGIONS = {
     "plate":       (0, 0, 64, 32),     # copper plates of the upper hull
@@ -42,6 +42,34 @@ REGIONS = {
     "ceil_steel":  (192, 64, 32, 32),  # steel with ribs and pipes
     "hull_light":  (224, 64, 32, 32),  # lighter copper (casing, wheelhouse)
     "salon_frame": (0, 96, 32, 16),
+    # furniture made for the Nautilus (what the decoration mods do not have)
+    "gold":        (256, 0, 16, 16),
+    "silver":      (272, 0, 16, 16),   # organ pipes
+    "wax":         (288, 0, 16, 16),
+    "pearl":       (304, 0, 16, 16),
+    "shell":       (320, 0, 16, 16),
+    "coral_red":   (336, 0, 16, 16),
+    "coral_pink":  (352, 0, 16, 16),
+    "coral_orange": (368, 0, 16, 16),
+    "gauge":       (384, 0, 16, 16),   # dial with a needle
+    "copper":      (400, 0, 16, 16),
+    "coil":        (416, 0, 16, 16),   # copper winding
+    "keys":        (432, 0, 32, 8),    # organ keyboard
+    "bedding":     (464, 0, 16, 16),
+    "helmet":      (480, 0, 16, 16),   # diving helmet window
+    "red_velvet":  (256, 16, 32, 32),
+    "green_leather": (288, 16, 32, 32),
+    "books":       (320, 16, 64, 32),
+    "organ_wood":  (384, 16, 32, 32),
+    "battery":     (416, 16, 16, 32),
+    "suit":        (432, 16, 32, 32),  # diving suit canvas
+    "rug":         (256, 48, 64, 64),  # oriental rug
+    "painting_sea": (320, 48, 64, 48),
+    "painting_storm": (384, 48, 64, 48),
+    "portrait":    (448, 48, 32, 48),
+    "chart":       (256, 112, 64, 48),
+    "boat_wood":   (320, 112, 64, 32),
+    "plank_light": (384, 112, 32, 32),
 }
 
 
@@ -156,6 +184,7 @@ def make_texture(path):
     d.line((u + w // 2, v + 8, u + w // 2, v + h - 9), fill=_rgb("b8913c") + (255,), width=2)
     d.line((u + 8, v + h // 2, u + w - 9, v + h // 2), fill=_rgb("b8913c") + (255,), width=2)
     _paint_rooms(img, px, rng)
+    _paint_furniture(img, px, rng)
     img.save(path)
 
 
@@ -238,6 +267,179 @@ def _paint_rooms(img, px, rng):
             px[u + x, v + y] = _jitter(_rgb("7a4a26") if y % 2 else _rgb("a8693a"), rng, 4) + (255,)  # copper pipes
     _hull_plates(px, R["hull_light"], _rgb("8a5632"), _rgb("2e1a0e"), _rgb("d09a62"), rng, wear=0.02)
     _fill(img, R["salon_frame"], _rgb("b8913c"), rng, 8)
+
+
+def _metal_region(px, region, cols, rng):
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            t = 0.55 * math.sin(x * 0.42 + math.sin(y * 0.3) * 1.5) + 0.45 * math.cos(y * 0.36 + x * 0.12)
+            i = 0 if t > 0.65 else 1 if t > 0.2 else 2 if t > -0.35 else 3 if t > -0.75 else 4
+            px[u + x, v + y] = _jitter(_rgb(cols[i]), rng, 3) + (255,)
+
+
+def _paint_furniture(img, px, rng):
+    R = REGIONS
+    d = ImageDraw.Draw(img)
+    _metal_region(px, R["gold"], ("fff0a8", "f0c85a", "d4a43c", "a87c26", "7a5816"), rng)
+    _metal_region(px, R["silver"], ("f4f4f0", "d8d8d2", "b4b4ae", "8a8a86", "62625e"), rng)
+    _metal_region(px, R["copper"], ("f0b08a", "d08a54", "a8643a", "7e4526", "5a2e18"), rng)
+    _fill(img, R["wax"], _rgb("efe6cc"), rng, 6)
+    _fill(img, R["bedding"], _rgb("e8e4da"), rng, 5)
+    for name, base, dark in (("coral_red", "c8322e", "8a1c1a"), ("coral_pink", "e87a9a", "b04a6a"), ("coral_orange", "f08a3a", "b45a1e")):
+        u, v, w, h = R[name]
+        for y in range(h):
+            for x in range(w):
+                c = _rgb(base) if (x * 5 + y * 3) % 7 else _rgb(dark)
+                px[u + x, v + y] = _jitter(c, rng, 10) + (255,)
+    u, v, w, h = R["shell"]
+    for y in range(h):
+        for x in range(w):
+            c = _rgb("f2e2c8") if (x + y) % 4 else _rgb("d8a878")
+            px[u + x, v + y] = _jitter(c, rng, 6) + (255,)
+    u, v, w, h = R["pearl"]
+    for y in range(h):
+        for x in range(w):
+            dd = math.hypot(x - 5.5, y - 5.5)
+            px[u + x, v + y] = (_rgb("ffffff") if dd < 3 else _rgb("ece6f0") if dd < 8 else _rgb("c8c0d0")) + (255,)
+    u, v, w, h = R["gauge"]
+    d.rectangle((u, v, u + w - 1, v + h - 1), fill=_rgb("b8913c") + (255,))
+    d.ellipse((u + 1, v + 1, u + w - 2, v + h - 2), fill=_rgb("f2ead6") + (255,), outline=_rgb("3a2a14") + (255,))
+    for k in range(8):
+        a = math.radians(-135 + 270 * k / 7)
+        d.point((u + 7.5 + math.sin(a) * 5.5, v + 7.5 - math.cos(a) * 5.5), fill=_rgb("2a2a2a") + (255,))
+    d.line((u + 7, v + 8, u + 11, v + 4), fill=_rgb("a01818") + (255,))
+    u, v, w, h = R["coil"]
+    for y in range(h):
+        for x in range(w):
+            c = _rgb("d08a54") if y % 2 else _rgb("8a4a24")
+            px[u + x, v + y] = _jitter(c, rng, 6) + (255,)
+    u, v, w, h = R["keys"]
+    for y in range(h):
+        for x in range(w):
+            c = _rgb("f2ecdc")
+            if x % 3 == 2:
+                c = _rgb("6a6050")
+            if y < 5 and x % 7 in (1, 4):
+                c = _rgb("1a1612")
+            px[u + x, v + y] = c + (255,)
+    u, v, w, h = R["helmet"]
+    d.rectangle((u, v, u + w - 1, v + h - 1), fill=_rgb("c88a40") + (255,))
+    d.ellipse((u + 3, v + 3, u + 12, v + 12), fill=_rgb("1d3a48") + (255,), outline=_rgb("e8c070") + (255,))
+    d.line((u + 5, v + 7, u + 11, v + 7), fill=_rgb("c88a40") + (255,))
+    d.line((u + 7, v + 5, u + 7, v + 11), fill=_rgb("c88a40") + (255,))
+    # velvet, leather (tufted), books
+    u, v, w, h = R["red_velvet"]
+    for y in range(h):
+        for x in range(w):
+            c = _shade(_rgb("8a1a20"), 1.0 - 0.15 * ((x + y) % 5 == 0) + 0.08 * math.sin(x * 0.5))
+            px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
+    u, v, w, h = R["green_leather"]
+    for y in range(h):
+        for x in range(w):
+            fx, fy = (x + (4 if (y // 8) % 2 else 0)) % 8, y % 8
+            dd = math.hypot(fx - 4, fy - 4)
+            c = _shade(_rgb("2e5a36"), 1.15 - dd * 0.06)
+            if dd < 0.8:
+                c = _rgb("163020")
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+    u, v, w, h = R["books"]
+    cols = ["7a1e1e", "1e3a6a", "2a5a2a", "6a4a1e", "4a1e4a", "8a6a2a", "2a2a2a", "5a2a14"]
+    x = 0
+    while x < w:
+        bw = rng.choice((2, 2, 3, 3, 4))
+        c = _rgb(rng.choice(cols))
+        for row in (0, 16):
+            bh = rng.randint(11, 15)
+            for yy in range(16 - bh, 16):
+                for xx in range(x, min(w, x + bw)):
+                    cc = c
+                    if yy in (16 - bh + 2, 14) or (xx == x):
+                        cc = _shade(c, 0.6) if xx == x else _rgb("c9a24a")
+                    px[u + xx, v + row + yy] = cc + (255,)
+            for yy in range(0, 16 - bh):
+                for xx in range(x, min(w, x + bw)):
+                    px[u + xx, v + row + yy] = _rgb("1a0e06") + (255,)
+        x += bw
+    for x in range(w):
+        for yy in (15, 31):
+            px[u + x, v + yy] = _rgb("3e2414") + (255,)
+    _riveted(px, R["organ_wood"], _rgb("3a2010"), _rgb("1e100a"), _rgb("c9a24a"), rng, pw=16, ph=32)
+    u, v, w, h = R["battery"]
+    for y in range(h):
+        for x in range(w):
+            c = _rgb("9ac8c0") if y > 8 else _rgb("dcecea")
+            if x in (0, w - 1) or y in (0, h - 1):
+                c = _rgb("5a6a68")
+            elif x in (4, 11) and y > 4:
+                c = _rgb("b8753e")
+            px[u + x, v + y] = c + (255,)
+    u, v, w, h = R["suit"]
+    for y in range(h):
+        for x in range(w):
+            c = _rgb("8a6a44") if (x + y) % 3 else _rgb("6e5234")
+            if y % 10 == 0:
+                c = _rgb("5a4228")
+            px[u + x, v + y] = _jitter(c, rng, 5) + (255,)
+    # oriental rug: red field, a medallion, a blue border with gold
+    u, v, w, h = R["rug"]
+    for y in range(h):
+        for x in range(w):
+            bx = min(x, w - 1 - x, y, h - 1 - y)
+            c = _rgb("8a1c1c")
+            if bx < 3:
+                c = _rgb("1e2a5a")
+            elif bx < 5:
+                c = _rgb("c9a24a")
+            elif bx < 9:
+                c = _rgb("1e2a5a") if (x + y) % 4 else _rgb("c9a24a")
+            else:
+                dd = abs(x - w / 2) + abs(y - h / 2)
+                if dd < 10:
+                    c = _rgb("c9a24a") if dd > 7 else _rgb("1e2a5a")
+                elif (x * 3 + y * 5) % 13 == 0:
+                    c = _rgb("e0b070")
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+    # paintings: a seascape with a ship, a stormy sea, a portrait, a sea chart
+    for name in ("painting_sea", "painting_storm"):
+        u, v, w, h = R[name]
+        storm = name == "painting_storm"
+        for y in range(h):
+            for x in range(w):
+                if y < h * 0.55:
+                    t = y / (h * 0.55)
+                    c = tuple(int(a + (b - a) * t) for a, b in zip(_rgb("3a4a5a" if storm else "8ab0d0"), _rgb("6a6a6a" if storm else "e8d8b0")))
+                else:
+                    t = (y - h * 0.55) / (h * 0.45)
+                    c = tuple(int(a + (b - a) * t) for a, b in zip(_rgb("2a5a6a" if storm else "2a6a8a"), _rgb("10283a")))
+                    if (x + int(4 * math.sin(y * 0.8))) % 9 == 0:
+                        c = _rgb("d8e8e8")
+                px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
+        # a ship: hull and sails
+        cx, cy = u + w // 2 + (6 if storm else 0), v + int(h * 0.55)
+        d.polygon([(cx - 10, cy - 1), (cx + 10, cy - 1), (cx + 7, cy + 3), (cx - 7, cy + 3)], fill=_rgb("3a2414") + (255,))
+        for k, (dx, hh) in enumerate(((-5, 12), (1, 15), (6, 10))):
+            d.line((cx + dx, cy - 1, cx + dx, cy - 1 - hh), fill=_rgb("2a1a0e") + (255,))
+            d.rectangle((cx + dx - 3, cy - hh, cx + dx + 3, cy - hh + 8), fill=_rgb("f0e8d0") + (255,))
+    u, v, w, h = R["portrait"]
+    for y in range(h):
+        for x in range(w):
+            px[u + x, v + y] = _jitter(_rgb("2a1e14"), rng, 4) + (255,)
+    d.ellipse((u + 10, v + 8, u + 21, v + 22), fill=_rgb("d8b090") + (255,))
+    d.polygon([(u + 4, v + h - 1), (u + 27, v + h - 1), (u + 22, v + 26), (u + 9, v + 26)], fill=_rgb("1a2a3a") + (255,))
+    d.rectangle((u + 13, v + 25, u + 18, v + 28), fill=_rgb("e8e4da") + (255,))
+    u, v, w, h = R["chart"]
+    for y in range(h):
+        for x in range(w):
+            c = _rgb("e8d8a8")
+            if (x - 20) ** 2 / 300 + (y - 20) ** 2 / 120 < 1 or (x - 48) ** 2 / 80 + (y - 32) ** 2 / 60 < 1:
+                c = _rgb("b89a5a")
+            if x % 12 == 0 or y % 12 == 0:
+                c = _shade(c, 0.85)
+            px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
+    d.line((u + 6, v + 40, u + 30, v + 26, u + 56, v + 12), fill=_rgb("a01818") + (255,))
+    _planks(img, R["boat_wood"], _rgb("8a5a30"), _rgb("4a2e16"), 4, rng)
+    _planks(img, R["plank_light"], _rgb("a87a48"), _rgb("6a4a28"), 4, rng)
 
 
 def make_item_icon(path):

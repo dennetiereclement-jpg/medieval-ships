@@ -1074,7 +1074,7 @@ public final class Ships {
 		public static final double SHELL = 0.5;
 		public static final double RAM_TIP_Z = 48.0;
 		public static final double TAIL_END_Z = -48.0;
-		public static final double PROP_Z = -41.6;
+		public static final double PROP_Z = -40.4;
 		public static final double PROP_R = 3.2;
 		public static final double FIN_TOP = 9.6;
 		public static final double FIN_BOTTOM = -8.4;
@@ -1092,7 +1092,7 @@ public final class Ships {
 		public static final double TOWER_TOP_Y = 12.5;
 		public static final double TOWER_Z0 = 15.0;
 		public static final double TOWER_Z1 = 22.5;
-		public static final double TOWER_HALF_WIDTH = 2.0;
+		public static final double TOWER_HALF_WIDTH = 2.5;
 		public static final double LAMP_CAGE_Z0 = 10.0;
 		public static final double LAMP_CAGE_TOP_Y = 14.2;
 		public static final double LENS_Y = 13.0;

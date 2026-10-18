@@ -1317,7 +1317,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		context.waitTicks(15);
 		shot(context, id + "_6b_baie_du_salon_en_plongee");
 		server.runCommand("gamemode spectator @a");
-		lookLocal(server, shipPose(sp, type), -22, -3, -10, 0, 0, 0);
+		lookLocal(server, shipPose(sp, type), -11, -2, -22, 0, 1, 0);
 		context.waitTicks(20);
 		shot(context, id + "_7_sous_l_eau");
 

@@ -40,6 +40,7 @@ import nautilus_shape as ns  # noqa: E402
 import nautilus_interior as ni  # noqa: E402
 import nautilus_texture as nt  # noqa: E402
 import nautilus_decor as nd  # noqa: E402
+import nautilus_furniture as nf  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _uuid_counter = [0]
@@ -98,7 +99,7 @@ def panel(bone, name, a0, a1, b0, b1, th, region, outward, overlap=1.04):
 
 # windows cut in the hull: (z, y, radius) on both sides
 WINDOWS = [(ns.SALON_WINDOW[0], ns.SALON_WINDOW[1], ns.SALON_WINDOW[2] - 0.2)] + \
-          [(z, ns.SMALL_WINDOWS_Y, 0.45) for z in ns.SMALL_WINDOWS_Z]
+          [(z, ns.SMALL_WINDOWS_Y, 0.45) for z in ns.SMALL_WINDOWS_Z] + [(z, y, 0.45) for z, y in ns.CABIN_PORTHOLES]
 
 
 def in_window(p):
@@ -175,9 +176,19 @@ def windows(bone, lights):
             p, nn = on_hull(zz, yy, side, 0.12)
             add_cube(lights, "glow_salon_lamp_%s%d" % (sn, k), p, EYE, (0.3, 0.3, 0.3), "glow")
             add_cube(bone, "salon_lamp_socket_%s%d" % (sn, k), on_hull(zz, yy, side, 0.02)[0], EYE, (0.42, 0.42, 0.42), "brass")
-        for z in ns.SMALL_WINDOWS_Z:
-            c, nrm = on_hull(z, ns.SMALL_WINDOWS_Y, side, 0.06)
-            ring(bone, "porthole_%s_%d" % (sn, int(z * 10)), c, nrm, 0.5, 0.12, "brass", n=8, width=0.16)
+        for z, y in [(z, ns.SMALL_WINDOWS_Y) for z in ns.SMALL_WINDOWS_Z] + list(ns.CABIN_PORTHOLES):
+            c, nrm = on_hull(z, y, side, 0.06)
+            ring(bone, "porthole_%s_%d_%d" % (sn, int(z * 10), int(y * 10)), c, nrm, 0.5, 0.12, "brass", n=8, width=0.16)
+    # brass frames of the wheelhouse windows, outside and inside
+    wy0, wy1 = ns.TOWER_WINDOWS_Y
+    yc, r = (wy0 + wy1) / 2, (wy1 - wy0) / 2 + 0.05
+    for k, (x0, x1) in enumerate(ns.TOWER_FRONT_WINDOWS_X):
+        for z, tag in ((ns.TOWER_Z[1] + 0.06, "out"), (ns.TOWER_Z[1] - 0.56, "in")):
+            ring(bone, "tower_window_%d_%s" % (k, tag), v3((x0 + x1) / 2, yc, z), v3(0, 0, 1), r, 0.12, "brass", n=8, width=0.14)
+    for side in SIDES:
+        for x, tag in ((side * (ns.TOWER_HALF_WIDTH + 0.06), "out"), (side * (ns.TOWER_HALF_WIDTH - 0.56), "in")):
+            ring(bone, "tower_window_side_%d_%s" % (side > 0, tag), v3(x, yc, sum(ns.TOWER_SIDE_WINDOW_Z) / 2), v3(1, 0, 0), r, 0.12,
+                 "brass", n=8, width=0.14)
 
 
 def ram(bone):
@@ -343,7 +354,7 @@ def greedy(mask, key):
 def surfaces(rooms_bone, outside_bone, g):
     k = g.k
     solid = k == ni.SOLID
-    opened = np.isin(k, OPEN_KINDS) | (k >= ni.DOOR) | (k == ni.WINDOW)
+    opened = np.isin(k, OPEN_KINDS) | (k >= ni.DOOR) | (k == ni.WINDOW) | (k == ni.FURNITURE)
     out = k == ni.OUT
     body = g.inside(0.0)
     C = ni.CELL
@@ -351,6 +362,8 @@ def surfaces(rooms_bone, outside_bone, g):
     # material of the open cells: index into a list of (wall, floor, ceiling)
     mats = [STEEL] + list(dict.fromkeys(ROOM_MATERIALS.values()))
     mat_index = np.zeros(k.shape, dtype=np.int16)
+    for x0, x1 in ((-8.0, -3.4), (3.4, 8.0)):  # the bay windows' alcoves are part of the salon
+        mat_index[g.sel(x0, x1, -1.0, 6.0, -3.2, 3.2)] = mats.index(ROOM_MATERIALS["salon"])
     for name, box in ni.ROOMS.items():
         if name in ROOM_MATERIALS:
             mat_index[g.sel(*[b + d for b, d in zip(box, (-0.01, 0.01, -0.01, 0.01, -0.01, 0.01))])] = mats.index(ROOM_MATERIALS[name])
@@ -489,6 +502,15 @@ def build(g):
     m = surfaces(rooms, outside, g)
     ladders(fittings)
     fallbacks(root)
+    furniture = Bone("furniture", parent=root)
+    for k, (builder, kwargs, solid) in enumerate(nd.CUSTOM):
+        kw = dict(kwargs)
+        kw.setdefault("name", "%s_%d" % (builder, k))
+        fn = getattr(nf, builder)
+        if builder in ("engine_block", "helm"):
+            fn(furniture, root, **kw)
+        else:
+            fn(furniture, **kw)
     # the projector lens at the front of the cage, over the wheelhouse roof
     add_cube(lights, "glow_projector_lens", v3(0, ns.LENS_Y, ns.TOWER_Z[0] + 0.48), EYE, (1.6, 1.1, 0.04), "glow")
     ring(outside, "projector_rim", v3(0, ns.LENS_Y, ns.TOWER_Z[0] + 0.52), v3(0, 0, 1), 0.85, 0.14, "brass", n=12, width=0.18)
@@ -508,6 +530,28 @@ def build_animations(root, g):
     prop = gg.find(root, "propeller")
     anims.append(gg.animation("propeller", 2.0, "loop", [(prop, [
         gg.rot_kf(t, (0, 0, a)) for t, a in ((0.0, 0), (0.5, 270), (1.0, 540), (1.5, 810), (2.0, 1080))])]))
+    # the engine runs with the propeller (same signed phase): the shaft and the flywheel turn, the pistons rise and fall
+    tracks = []
+    spin = [gg.rot_kf(t, (0, 0, a)) for t, a in ((0.0, 0), (0.5, 270), (1.0, 540), (1.5, 810), (2.0, 1080))]
+    for name in ("engine_shaft", "engine_flywheel"):
+        b = gg.find(root, name)
+        if b is not None:
+            tracks.append((b, spin))
+    for k in range(8):
+        b = gg.find(root, "engine_piston_%d" % k)
+        if b is None:
+            continue
+        keys = []
+        for i in range(13):
+            t = 2.0 * i / 12
+            keys.append(gg.kf("position", t, (0, 0.35 * 16 * math.sin(3 * math.pi * t + k * math.pi / 2), 0)))
+        tracks.append((b, keys))
+    if tracks:
+        anims.append(gg.animation("engine", 2.0, "loop", tracks))
+    wheel = gg.find(root, "helm_wheel")
+    if wheel is not None:
+        anims.append(gg.animation("steer", 2.0, "hold", [(wheel, [gg.rot_kf(0.0, (0, 0, -120)), gg.rot_kf(1.0, (0, 0, 0)),
+                                                                  gg.rot_kf(2.0, (0, 0, 120))])]))
     return anims
 
 

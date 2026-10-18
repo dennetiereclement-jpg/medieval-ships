@@ -107,23 +107,26 @@ class NautilusTest {
 	@Test
 	void rooms() {
 		double m = NautilusLayout.MAIN_FLOOR_Y, l = NautilusLayout.LOWER_FLOOR_Y;
+		// the aisles of the furnished rooms
 		room("corridor", -1.1, 1.1, m, 20.4, 26.0);
 		room("dining room (aisle)", -4.0, 4.0, m, 13.4, 13.9);
 		room("dining room (table end)", 3.4, 3.8, m, 13.4, 16.8);
 		assertFalse(fits(0, m, 15.5, InteriorGrid.State.CLOSED), "the dining table is solid");
-		room("library", -4.0, 4.0, m, 7.4, 12.0);
-		room("salon", -3.0, 3.0, m, -6.1, 6.1);
-		room("nemo", -4.6, -2.4, m, 20.4, 26.0);
-		room("aronnax", 2.4, 4.6, m, 20.4, 26.0);
+		room("library (aisle)", -0.9, 0.9, m, 7.6, 12.0);
+		room("salon (centre)", -0.4, 0.4, m, 2.4, 6.0);
+		room("salon (side)", 1.85, 2.15, m, -4.0, 3.6);
+		room("salon (corner by the stairs door)", 2.6, 3.1, m, -6.1, -5.0);
+		room("nemo", -2.6, -2.4, m, 22.6, 24.0);
+		room("aronnax", 2.4, 2.8, m, 22.0, 24.0);
 		room("coursive", 2.4, 3.5, l, 5.0, 23.0);
-		room("kitchen", -3.4, 1.1, l, 6.5, 13.5);
-		room("crew", -3.4, 1.1, l, 15.0, 22.5);
+		room("kitchen", -2.8, -2.4, l, 6.5, 13.5);
+		room("crew", -2.6, 1.1, l, 15.0, 20.4);
 		room("aft corridor", -0.6, 0.6, l, -6.5, 5.0);
-		room("wheelhouse", -1.1, 1.1, NautilusLayout.TOWER_FLOOR_Y, 16.0, 18.0);
-		room("engine room (engine)", -3.0, 0.0, l, -26.0, -22.2);
+		room("wheelhouse", -0.6, 0.6, NautilusLayout.TOWER_FLOOR_Y, 16.0, 18.0);
 		room("engine room (batteries)", -3.0, 0.0, l, -20.4, -13.5);
-		room("engine room (passage)", -0.6, 0.6, l, -22.2, -20.4);
-		room("catwalk", 2.0, 3.6, m, -25.0, -13.5);
+		room("engine room (beside the engine)", 0.4, 1.9, l, -28.0, -22.2);
+		room("engine room (passage)", 0.9, 2.1, l, -22.2, -20.4);
+		room("catwalk", 2.0, 2.6, m, -25.0, -13.5);
 		// the salon is 7 wide, 13 long and 5.5 high
 		assertTrue(fits(0, 3.6, 0, InteriorGrid.State.CLOSED), "salon: high ceiling");
 		// outside, beside the hull: the sea, not carried, not dry

@@ -113,6 +113,7 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 					model.apply(pose, "streamer_wave", age, 1f);
 					model.apply(pose, "lantern_sway", age, 1f);
 					model.apply(pose, "propeller", wheel, 1f);
+					model.apply(pose, "engine", wheel, 1f);
 					model.apply(pose, "elevator", climb + 1f, 1f);
 					if (doors != null) {
 						for (int k = 0; k < doors.length; k++) {
