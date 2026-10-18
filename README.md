@@ -6,8 +6,8 @@
 ![Galère rouge, bateau à roue à vapeur, voilier elfique](docs/comparaison_nouveaux_navires.png)
 ![Dirigeable steampunk](docs/preview_steampunk_airship.png)
 
-Six navires et un **dirigeable volant**, qui sont de **véritables entités**, pas des constructions
-en blocs :
+Six navires, un **dirigeable volant** et le **Nautilus**, un sous-marin dont on parcourt les salles en
+plongée. Ce sont de **véritables entités**, pas des constructions en blocs :
 
 | | Galère médiévale | Grand galion | Grand vaisseau de guerre |
 |---|---|---|---|
@@ -36,6 +36,17 @@ en blocs :
 | Maniement | un dirigeable, pas un avion : accélération et virages lents, inertie, montée et descente progressives, **vol stationnaire**, l'altitude se maintient seule, plafond réglable |
 | Particularités | se pose au-dessus du sol, de l'eau ou d'un toit (clic droit), ne traverse ni le relief ni les bâtiments ; pilote automatique en **3D** sur des itinéraires aériens (décollage, altitude de croisière au-dessus du relief, descente aux escales, cap à l'escale) ; fumée d'échappement, bruit d'hélice, de vent, de moteur et de bois |
 
+| | Nautilus — Sous-marin du capitaine Nemo |
+|---|---|
+| Objet / commande | *Nautilus — Sous-marin du capitaine Nemo*, `nautilus` |
+| Taille | 96 blocs de l'éperon à la queue, 14 de large, 17 de haut (quille au projecteur) |
+| Propulsion | **il plonge** : hélice, ballasts (Ctrl plonger, Espace remonter), tient sa profondeur seul, jusqu'à 120 blocs |
+| Places assises | 28 (barre de la timonerie + 27 chaises, fauteuils et canapés) |
+| Particularités | **intérieur complet où l'on marche pendant qu'il navigue et plonge, au sec** : salle à manger, bibliothèque, grand salon (orgue, baies à panneaux de fer), cabines de Nemo et d'Aronnax, timonerie, cage du projecteur, coursives, escalier en colimaçon, échelles, cuisine, équipage, cales, salle des machines (piles, moteur animé), **sas** qui se remplit et se vide, canot détachable, double fond ; 18 portes étanches animées ; projecteur à faisceau ; mobilier tiré des mods de décoration du joueur s'ils sont installés ; pilote automatique **3D sous-marin** |
+
+Le Nautilus a son guide : [docs/NAUTILUS.md](docs/NAUTILUS.md) (plan des salles, équipements,
+commandes `/ship nautilus`, itinéraires sous-marins, mobilier utilisé).
+
 Pilotage du dirigeable : Z/S vitesse, Q/D cap, **Espace monter, Ctrl descendre** (relâchées : il
 garde son altitude), Maj quitter le poste. Voir [docs/COMMANDES.md](docs/COMMANDES.md) pour les
 itinéraires aériens et [docs/comparaison_dirigeable.png](docs/comparaison_dirigeable.png) pour la
@@ -62,6 +73,9 @@ Pour tous :
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
 
+La version 1.7.0 ajoute le **Nautilus** (`nautilus`), reproduit d'après la planche de référence,
+sans rien changer aux autres navires : intérieur parcourable et étanche, plongée, sas, panneaux
+des baies, projecteur, lumières, canot, commandes `/ship nautilus`, itinéraires sous-marins.
 La version 1.6.1 améliore le dirigeable (hélice à 8 pales en pagaie, nez à nervures en laiton et
 collier doré, cerclages et suspentes plus épais terminés par des chaînes de maillons dorés,
 volant d'inertie, tuyau en laiton, couleurs plus chaudes) et donne du relief aux voiles de la
@@ -101,7 +115,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.6.1.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.7.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
@@ -120,6 +134,7 @@ pour 1.21.11 sur <https://fabricmc.net/develop>.
 ## Documentation
 
 * [Guide des commandes administrateur](docs/COMMANDES.md)
+* [Le Nautilus : salles, équipements, commandes, itinéraires sous-marins](docs/NAUTILUS.md)
 * [Créer un ferry automatique](docs/FERRY.md)
 * [Modèle Blockbench, textures et animations](docs/MODELE.md)
 * [Architecture technique (marche sur le pont, collisions, IA, performances)](docs/ARCHITECTURE.md)
@@ -187,6 +202,18 @@ plus un bloc **`flight`** propre aux aéronefs (ajouté automatiquement à un fi
 | `aiLandingClearance` | 1.2 | pilote automatique : hauteur gardée sous la quille en descendant à une escale |
 | `sway` | 1.0 | balancement visuel de la nacelle (0 = aucun) |
 
+**`ships.nautilus`** : mêmes clés de vitesse, d'inertie et de pilote automatique (vitesses 2 / 4,5 / 7
+blocs/s, accélération 0,35, virage maximal 6°/s), plus un bloc **`dive`** propre aux sous-marins :
+
+| Clé de `dive` | Défaut | Rôle |
+|---|---|---|
+| `riseSpeed` / `diveSpeed` | 1.1 / 1.1 | vitesses de remontée et de plongée (blocs/s) |
+| `verticalAcceleration` | 0.35 | accélération verticale (blocs/s²) : les ballasts répondent lentement |
+| `maxDepth` | 120 | profondeur maximale sous la surface |
+| `aiClearance` | 3 | pilote automatique : eau gardée sous la quille au-dessus du fond |
+| `aiCruiseDepth` | 24 | pilote automatique : profondeur de croisière des étapes sans profondeur indiquée |
+| `aiApproachDistance` | 40 | pilote automatique : distance d'une escale où il remonte à sa profondeur |
+
 ## Structure du projet
 
 ```
@@ -196,6 +223,9 @@ blockbench/warship.bbmodel       grand vaisseau de guerre éditable (2 textures 
 blockbench/medieval_galley.bbmodel   galère rouge éditable (texture intégrée, 5 animations)
 blockbench/steam_paddleboat.bbmodel  bateau à roue à vapeur éditable (texture intégrée, 3 animations)
 blockbench/elven_sailboat.bbmodel    voilier elfique éditable (texture intégrée, 5 animations)
+blockbench/steampunk_airship.bbmodel dirigeable steampunk éditable
+blockbench/nautilus.bbmodel          Nautilus éditable (texture intégrée, 23 animations : hélice, moteur, barre, 18 portes, panneaux, eau du sas)
+src/main/resources/.../interiors/    salles du Nautilus (grille des cloisons, portes, échelles, sas) et mobilier
 config/medievalships.json        configuration par défaut
 docs/                            documentation et aperçu
 src/main/java/.../core           navigation en Java pur (testée)

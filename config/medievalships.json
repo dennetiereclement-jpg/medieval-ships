@@ -186,6 +186,39 @@
         "aiLandingClearance": 1.2,
         "sway": 1.0
       }
+    },
+    "nautilus": {
+      "slowSpeed": 2.0,
+      "normalSpeed": 4.5,
+      "fastSpeed": 7.0,
+      "reverseSpeed": 1.5,
+      "acceleration": 0.35,
+      "braking": 0.7,
+      "waterDrag": 0.12,
+      "maxTurnRate": 6.0,
+      "minTurnFactor": 0.25,
+      "helmRate": 0.8,
+      "helmReturnRate": 0.8,
+      "turnResponse": 0.6,
+      "turnSpeedLoss": 0.15,
+      "waveRocking": 0.25,
+      "aiWaypointRadius": 14.0,
+      "aiStopRadius": 4.0,
+      "aiLookahead": 30.0,
+      "aiProbeDistance": 70.0,
+      "aiDefaultWaitSeconds": 300,
+      "aiStuckSeconds": 10,
+      "aiTurnAroundSpeed": 0.6,
+      "furlSailWhenStopped": false,
+      "dive": {
+        "riseSpeed": 1.1,
+        "diveSpeed": 1.1,
+        "verticalAcceleration": 0.35,
+        "maxDepth": 120.0,
+        "aiClearance": 3.0,
+        "aiCruiseDepth": 24.0,
+        "aiApproachDistance": 40.0
+      }
     }
   }
 }
