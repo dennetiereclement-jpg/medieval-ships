@@ -19,7 +19,10 @@ jobs:
           java-version: 21
       - uses: gradle/actions/setup-gradle@v4
       - name: Build and test
-        run: ./gradlew build --stacktrace
+        shell: bash
+        run: |
+          set -o pipefail
+          ./gradlew build --stacktrace 2>&1 | tee build.log
       - name: Read version
         run: echo "MOD_VERSION=$(grep '^mod_version=' gradle.properties | cut -d= -f2)" >> "$GITHUB_ENV"
       - name: Upload jar
@@ -35,6 +38,15 @@ jobs:
           git config user.name github-actions && git config user.email github-actions@users.noreply.github.com
           git add -A && git commit -q -m "medieval-ships ${MOD_VERSION} (${GITHUB_SHA})"
           git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" builds
+      - name: Publish the build log (failed builds)
+        if: failure()
+        run: |
+          mkdir -p /tmp/log && cp build.log /tmp/log/ || true
+          cp -r build/test-results /tmp/log/ 2>/dev/null || true
+          cd /tmp/log && git init -q && git checkout -q -b build-log
+          git config user.name github-actions && git config user.email github-actions@users.noreply.github.com
+          git add -A && git commit -q -m "build log ${GITHUB_SHA}"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" build-log
       - name: Upload test reports
         if: failure()
         uses: actions/upload-artifact@v4
