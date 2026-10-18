@@ -125,6 +125,40 @@ final class ShipWorld implements ShipMover.Obstacles, Autopilot.Navigator, Fligh
 		return world.getTopY(Heightmap.Type.MOTION_BLOCKING, (int) Math.floor(x), (int) Math.floor(z));
 	}
 
+	/**
+	 * Submarine: origin height at which it floats on the surface here, from the top of the water
+	 * column that contains its hull (however deep it is), or NaN if it is not in the water.
+	 */
+	double surfacedY(ShipEntity ship) {
+		double x = ship.getX(), z = ship.getZ();
+		if (!loaded(x, z)) {
+			return Double.NaN;
+		}
+		int bx = (int) Math.floor(x), bz = (int) Math.floor(z);
+		int start = (int) Math.floor(ship.getY() + ship.geometry().hull().mainDeckY - 1.0);
+		int y = Integer.MIN_VALUE;
+		for (int k = 0; k <= 3; k++) {
+			pos.set(bx, start - k, bz);
+			if (world.getFluidState(pos).isIn(FluidTags.WATER)) {
+				y = start - k;
+				break;
+			}
+		}
+		if (y == Integer.MIN_VALUE) {
+			return Double.NaN;
+		}
+		int top = world.getTopYInclusive();
+		while (y < top) {
+			pos.set(bx, y + 1, bz);
+			if (!world.getFluidState(pos).isIn(FluidTags.WATER)) {
+				break;
+			}
+			y++;
+		}
+		pos.set(bx, y, bz);
+		return y + world.getFluidState(pos).getHeight(world, pos) - ship.geometry().hull().waterlineY;
+	}
+
 	/** Water surface height at a column near {@code nearY}, or NaN if there is no water. */
 	double waterSurface(double x, double z, double nearY) {
 		if (!loaded(x, z)) {

@@ -81,10 +81,10 @@ public final class ClientShipEvents {
 			}
 			ShipPose pose = ship.pose();
 			double[] l = pose.toLocal(player.getX(), player.getY(), player.getZ());
-			double top = ship.geometry().deckRescueY(l[0], l[1], l[2]);
+			double top = ship.geometry().deckRescueY(l[0], l[1], l[2], ship.interiorState());
 			if (Double.isNaN(top) && falling(player)) {
 				// fast fall straight through a deck in a single tick
-				top = ship.geometry().deckCrossingY(l[0], l[2], player.lastY - pose.y(), l[1], 1e-3, true);
+				top = ship.geometry().deckCrossingY(l[0], l[2], player.lastY - pose.y(), l[1], 1e-3, true, ship.interiorState());
 			}
 			if (!Double.isNaN(top)) {
 				player.setPosition(player.getX(), pose.y() + top, player.getZ());
@@ -263,6 +263,7 @@ public final class ClientShipEvents {
 				case SEAT -> "Clic droit : s'asseoir";
 				case HULL -> "Clic droit : monter à bord";
 				case DECK -> "";
+				case DOOR -> t.ship().doorOpen(t.pick().seat()) ? "Clic droit : fermer" : "Clic droit : ouvrir";
 			};
 		}
 		if (hintCooldown > 0) {

@@ -47,6 +47,9 @@ public final class ShipConfig {
 	// --- flight (aircraft only; absent for ships) ------------------------------
 	public FlightConfig flight;
 
+	// --- diving (submarines only; absent for the others) ----------------------
+	public DiveConfig dive;
+
 	public double gaitSpeed(Gait gait) {
 		return switch (gait) {
 			case SLOW -> slowSpeed;
@@ -76,6 +79,9 @@ public final class ShipConfig {
 		aiDefaultWaitSeconds = (int) clamp(aiDefaultWaitSeconds, 0, 86400);
 		aiStuckSeconds = (int) clamp(aiStuckSeconds, 2, 120);
 		aiTurnAroundSpeed = clamp(aiTurnAroundSpeed, 0.1, 10);
+		if (dive != null) {
+			dive.sanitize();
+		}
 		if (flight != null) {
 			flight.sanitize();
 		}

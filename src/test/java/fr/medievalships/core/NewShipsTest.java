@@ -200,7 +200,7 @@ class NewShipsTest {
 		// the great warship keeps its id (saves, configs) and is also known as grand_warship
 		assertEquals(Ships.WARSHIP, Ships.byId("grand_warship"));
 		assertEquals("warship", Ships.WARSHIP.id());
-		assertEquals(7, Ships.ALL.size());
+		assertEquals(8, Ships.ALL.size());
 	}
 
 	// ------------------------------------------------------------------ every new ship

@@ -33,6 +33,9 @@ import net.minecraft.world.World;
 
 import fr.medievalships.MedievalShips;
 import fr.medievalships.core.Autopilot;
+import fr.medievalships.core.Dive;
+import fr.medievalships.core.InteriorGrid;
+import fr.medievalships.core.Ships;
 import fr.medievalships.core.Flight;
 import fr.medievalships.core.Gait;
 import fr.medievalships.core.Route;
@@ -68,6 +71,12 @@ public abstract class ShipEntity extends Entity {
 	private static final TrackedData<String> SEATS = DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.STRING);
 	/** Aircraft: vertical speed (blocks/s), for the fins and the effects. */
 	private static final TrackedData<Float> VSPEED = DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.FLOAT);
+	/** Vessels with rooms: open doors (bit k = door k of the interior grid). */
+	private static final TrackedData<Long> DOORS = DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.LONG);
+	/** Vessels with rooms: the airlock is flooded. */
+	private static final TrackedData<Boolean> AIRLOCK = DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.BOOLEAN);
+	/** Submarines: depth below the surfaced position (blocks), for the pilot's gauges and the effects. */
+	private static final TrackedData<Float> DEPTH = DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.FLOAT);
 
 	private static final double DT = 0.05;
 
@@ -75,6 +84,7 @@ public abstract class ShipEntity extends Entity {
 	private final ShipPhysics physics = new ShipPhysics();
 	private final Autopilot autopilot = new Autopilot();
 	private final Flight flight = new Flight();
+	private final Dive dive = new Dive();
 	private boolean aiEnabled;
 	@Nullable
 	private String routeName;
@@ -114,6 +124,9 @@ public abstract class ShipEntity extends Entity {
 	public float climbVisual;
 	public float lastClimbVisual;
 	public float rockTime;
+	/** Vessels with rooms: smoothed opening of each door (0 closed .. 1 open), for the animations. */
+	public final float[] doorVisual = new float[InteriorGrid.MAX_DOORS];
+	public final float[] lastDoorVisual = new float[InteriorGrid.MAX_DOORS];
 
 	protected ShipEntity(EntityType<? extends ShipEntity> type, World world) {
 		super(type, world);
@@ -145,6 +158,9 @@ public abstract class ShipEntity extends Entity {
 		builder.add(GAIT, Gait.NORMAL.ordinal());
 		builder.add(SEATS, "");
 		builder.add(VSPEED, 0f);
+		builder.add(DOORS, 0L);
+		builder.add(AIRLOCK, false);
+		builder.add(DEPTH, 0f);
 	}
 
 	@Override
@@ -153,6 +169,9 @@ public abstract class ShipEntity extends Entity {
 		physics.yawRate = view.getDouble("YawRate", 0);
 		physics.helm = view.getDouble("Helm", 0);
 		flight.vy = view.getDouble("VerticalSpeed", 0);
+		dive.vy = flight.vy;
+		dataTracker.set(DOORS, view.getLong("Doors", 0L));
+		dataTracker.set(AIRLOCK, view.getBoolean("AirlockFlooded", false));
 		gait = Gait.byOrdinal(view.getInt("Gait", Gait.NORMAL.ordinal()));
 		double limit = view.getDouble("SpeedLimit", -1);
 		speedLimit = limit > 0 ? limit : Double.NaN;
@@ -176,7 +195,9 @@ public abstract class ShipEntity extends Entity {
 		view.putDouble("Speed", physics.speed);
 		view.putDouble("YawRate", physics.yawRate);
 		view.putDouble("Helm", physics.helm);
-		view.putDouble("VerticalSpeed", flight.vy);
+		view.putDouble("VerticalSpeed", geometry().submarine() ? dive.vy : flight.vy);
+		view.putLong("Doors", dataTracker.get(DOORS));
+		view.putBoolean("AirlockFlooded", dataTracker.get(AIRLOCK));
 		view.putInt("Gait", gait.ordinal());
 		view.putDouble("SpeedLimit", Double.isNaN(speedLimit) ? -1 : speedLimit);
 		view.putBoolean("Autopilot", aiEnabled);
@@ -283,6 +304,47 @@ public abstract class ShipEntity extends Entity {
 		return flight;
 	}
 
+	public Dive dive() {
+		return dive;
+	}
+
+	/** Doors and airlock of a vessel with rooms (synced: the same on the server and the clients). */
+	public InteriorGrid.State interiorState() {
+		return new InteriorGrid.State(dataTracker.get(DOORS), dataTracker.get(AIRLOCK));
+	}
+
+	public boolean doorOpen(int door) {
+		return interiorState().doorOpen(door);
+	}
+
+	/** Server: opens or closes a door of the interior (no checks, see {@link #toggleDoor}). */
+	public void setDoor(int door, boolean open) {
+		dataTracker.set(DOORS, interiorState().withDoor(door, open).openDoors());
+	}
+
+	/** Submarines: depth below the surfaced position (synced). */
+	public float syncedDepth() {
+		return dataTracker.get(DEPTH);
+	}
+
+	/**
+	 * Server: a player opens or closes a door. A hatch of the outer hull only opens on the surface
+	 * (it would let the sea in), and while it is open the submarine does not dive.
+	 *
+	 * @return a message for the player, or null
+	 */
+	@Nullable
+	public Text toggleDoor(int door) {
+		boolean open = !doorOpen(door);
+		if (open && geometry().submarine() && door == Ships.NautilusLayout.HATCH_DOOR && dataTracker.get(DEPTH) > Dive.SURFACED) {
+			return Text.literal("Le panneau ne s'ouvre qu'en surface : remontez d'abord.").formatted(Formatting.RED);
+		}
+		setDoor(door, open);
+		playSound(open ? net.minecraft.sound.SoundEvents.BLOCK_IRON_TRAPDOOR_OPEN : net.minecraft.sound.SoundEvents.BLOCK_IRON_TRAPDOOR_CLOSE,
+				1.0f, 0.8f);
+		return null;
+	}
+
 	public Gait gait() {
 		return Gait.byOrdinal(dataTracker.get(GAIT));
 	}
@@ -353,6 +415,14 @@ public abstract class ShipEntity extends Entity {
 			climbVisual += (climb - climbVisual) * 0.15f;
 		}
 		rockTime += DT;
+		if (geometry().interior() != null) {
+			long open = dataTracker.get(DOORS);
+			for (int k = 0; k < doorVisual.length; k++) {
+				lastDoorVisual[k] = doorVisual[k];
+				float target = (open & (1L << k)) != 0 ? 1f : 0f;
+				doorVisual[k] += Math.max(-0.12f, Math.min(0.12f, target - doorVisual[k]));
+			}
+		}
 	}
 
 	private void serverTick(ServerWorld world) {
@@ -370,6 +440,10 @@ public abstract class ShipEntity extends Entity {
 			ShipPhysics.Controls manual = !aiEnabled && pilot instanceof ServerPlayerEntity player
 					? manualControls(player, cfg) : ShipPhysics.Controls.COAST;
 			flyTick(world, shipWorld, before, manual, pilot, cfg);
+			return;
+		}
+		if (geometry().submarine()) {
+			diveTick(world, shipWorld, before, pilot, cfg);
 			return;
 		}
 		if (aiEnabled) {
@@ -518,6 +592,78 @@ public abstract class ShipEntity extends Entity {
 		}
 	}
 
+	/**
+	 * Submarine: floats like a ship on the surface, dives (sprint key) and rises (jump key) with a
+	 * lot of inertia, holds its depth by itself. It never dives with the hatch open.
+	 */
+	private void diveTick(ServerWorld world, ShipWorld shipWorld, ShipPose before, @Nullable Entity pilot, ShipConfig cfg) {
+		ShipPhysics.Controls controls = ShipPhysics.Controls.COAST;
+		double surfacedY = shipWorld.surfacedY(this);
+		double vy = Dive.hold(before.y(), surfacedY, cfg.dive);
+		if (aiEnabled) {
+			Route route = ShipData.get(world.getServer()).route(routeName);
+			controls = autopilot.tick(route, before, physics.speed, physics.yawRate, gait, cfg, geometry(), shipWorld, new Announcer(world, route));
+		} else if (pilot instanceof ServerPlayerEntity player) {
+			controls = manualControls(player, cfg);
+			PlayerInput in = player.getPlayerInput();
+			vy = Dive.manual((in.jump() ? 1 : 0) - (in.sprint() ? 1 : 0), before.y(), surfacedY, cfg.dive);
+		}
+		boolean hatchOpen = doorOpen(Ships.NautilusLayout.HATCH_DOOR);
+		if (hatchOpen && vy < 0 && Dive.depth(before.y(), surfacedY) < Dive.SURFACED) {
+			vy = Dive.hold(before.y(), surfacedY, cfg.dive); // never dive with the hatch open
+			if (pilot instanceof ServerPlayerEntity player && age % 20 == 0) {
+				player.sendMessage(Text.literal("Fermez le panneau avant de plonger.").formatted(Formatting.RED), true);
+			}
+		}
+		if (!Double.isNaN(speedLimit) && !Double.isNaN(controls.targetSpeed())) {
+			controls = new ShipPhysics.Controls(Math.max(-speedLimit, Math.min(speedLimit, controls.targetSpeed())), controls.helmTarget());
+		}
+		Dive.Result result = Dive.tick(geometry(), before, physics, dive, controls, vy, surfacedY, cfg, shipWorld, DT);
+		ShipPose after = result.pose();
+		setPosition(after.x(), after.y(), after.z());
+		setYaw((float) after.yaw());
+		dataTracker.set(SHIP_YAW, (float) after.yaw());
+		setVelocity(after.x() - before.x(), after.y() - before.y(), after.z() - before.z());
+		carryEntities(world, before, after);
+		if (Math.abs(dataTracker.get(SPEED) - physics.speed) > 0.02) {
+			dataTracker.set(SPEED, (float) physics.speed);
+		}
+		if (Math.abs(dataTracker.get(HELM) - physics.helm) > 0.02) {
+			dataTracker.set(HELM, (float) physics.helm);
+		}
+		if (Math.abs(dataTracker.get(VSPEED) - dive.vy) > 0.02) {
+			dataTracker.set(VSPEED, (float) dive.vy);
+		}
+		float depth = (float) Dive.depth(after.y(), surfacedY);
+		if (Math.abs(dataTracker.get(DEPTH) - depth) > 0.05) {
+			dataTracker.set(DEPTH, depth);
+		}
+		if (!dataTracker.get(SAIL_SET)) {
+			dataTracker.set(SAIL_SET, true);
+		}
+		if (dataTracker.get(AUTOPILOT) != aiEnabled) {
+			dataTracker.set(AUTOPILOT, aiEnabled);
+		}
+		if (aiEnabled && age % 20 == 0 && ConfigManager.server().chunkLoadAutopilotShips) {
+			ChunkPos here = new ChunkPos(BlockPos.ofFloored(getX(), getY(), getZ()));
+			world.getChunkManager().addTicket(ChunkTicketType.PORTAL, here, ConfigManager.server().chunkLoadRadius);
+		}
+		if (aiEnabled && age % 100 == 0) {
+			ShipData.get(world.getServer()).updateFerry(getUuid(), new ShipData.FerryRecord(
+					world.getRegistryKey().getValue().toString(), getX(), getZ(), routeName));
+		}
+		if (pilot instanceof ServerPlayerEntity player && age % 10 == 0) {
+			player.sendMessage(diveStatus(depth), true);
+		}
+	}
+
+	private Text diveStatus(float depth) {
+		String vertical = dive.vy > 0.05 ? "remonte" : dive.vy < -0.05 ? "plonge" : depth < Dive.SURFACED ? "en surface" : "immersion stable";
+		String limit = Double.isNaN(speedLimit) ? "" : String.format(" max %.1f", speedLimit);
+		return Text.literal(String.format("Profondeur %.0f m (%s) - %.1f blocs/s%s  [Z/S: vitesse, Q/D: cap, Espace: remonter, Ctrl: plonger, Maj: quitter]",
+				depth, vertical, Math.abs(physics.speed), limit)).formatted(Formatting.GOLD);
+	}
+
 	private Text flightStatus(ShipConfig cfg) {
 		String vertical = flight.vy > 0.05 ? " montée" : flight.vy < -0.05 ? " descente" : " palier";
 		String limit = Double.isNaN(speedLimit) ? "" : String.format(" max %.1f", speedLimit);
@@ -527,8 +673,8 @@ public abstract class ShipEntity extends Entity {
 
 	private ShipPhysics.Controls manualControls(ServerPlayerEntity player, ShipConfig cfg) {
 		PlayerInput in = player.getPlayerInput();
-		if (geometry().flying()) {
-			// jump / sprint climb and descend (see flyTick); the speed is the normal gait
+		if (geometry().flying() || geometry().submarine()) {
+			// jump / sprint climb and descend (see flyTick, diveTick); the speed is the normal gait
 			double target = in.forward() && !in.backward() ? cfg.gaitSpeed(gait) : in.backward() && !in.forward() ? -cfg.reverseSpeed : Double.NaN;
 			return new ShipPhysics.Controls(target, (in.right() ? 1 : 0) - (in.left() ? 1 : 0));
 		}
@@ -564,7 +710,8 @@ public abstract class ShipEntity extends Entity {
 	private void carryEntities(ServerWorld world, ShipPose before, ShipPose after) {
 		double dYaw = after.yaw() - before.yaw();
 		double r = geometry().boundingRadius();
-		Box area = new Box(before.x() - r, before.y() - 2, before.z() - r, before.x() + r, before.y() + 8, before.z() + r);
+		Box area = new Box(before.x() - r, before.y() + Math.min(-2, geometry().lowestY() - 1), before.z() - r,
+				before.x() + r, before.y() + Math.max(8, geometry().topY() + 3), before.z() + r);
 		List<Entity> list = world.getOtherEntities(this, area, e -> !(e instanceof PlayerEntity) && !e.hasVehicle()
 				&& !(e instanceof ShipEntity) && !e.isRemoved());
 		for (Entity e : list) {
@@ -572,7 +719,7 @@ public abstract class ShipEntity extends Entity {
 			if (!geometry().inCarryVolume(l[0], l[1], l[2])) {
 				continue;
 			}
-			double rescue = geometry().deckRescueY(l[0], l[1], l[2]);
+			double rescue = geometry().deckRescueY(l[0], l[1], l[2], interiorState());
 			if (!Double.isNaN(rescue)) {
 				l[1] = rescue; // sank into the deck (another mod replaced the collisions): put it back on top
 				if (e.getVelocity().y < 0) {

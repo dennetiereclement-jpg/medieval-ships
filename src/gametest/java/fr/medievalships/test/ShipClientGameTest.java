@@ -21,6 +21,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
 
 import fr.medievalships.core.HullProfile;
 import fr.medievalships.core.ShipGeometry;
@@ -241,6 +242,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 				newShip(context, sp, type);
 			}
 			airship(context, sp);
+			nautilus(context, sp);
 		}
 	}
 
@@ -1065,6 +1067,256 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			for (ShipEntity s : ShipTracker.ships(srv.getOverworld())) {
 				if (s.shipType() == type) {
 					s.removeAllPassengers();
+					s.discard();
+				}
+			}
+			return null;
+		});
+		context.waitTicks(10);
+	}
+
+	// ------------------------------------------------------------------ Nautilus
+
+	private static int nautilusCollisions(Env sp) {
+		return sp.getServer().computeOnServer(srv -> {
+			ShipEntity s = ship(srv.getOverworld(), Ships.NAUTILUS);
+			if (s == null) {
+				return -1;
+			}
+			ServerWorld w = srv.getOverworld();
+			return fr.medievalships.core.ShipMover.countCollisions(s.geometry(), s.pose(), (x, y, z) -> {
+				var pos = net.minecraft.util.math.BlockPos.ofFloored(x, y, z);
+				return !w.getBlockState(pos).getCollisionShape(w, pos).isEmpty();
+			});
+		});
+	}
+
+	/** Client and server view of the player: in the water, under it, air, camera under water, local position. */
+	private double[] playerWater(ClientGameTestContext context, Env sp, ShipPose pose) {
+		double[] c = context.computeOnClient((MinecraftClient mc) -> new double[] {
+				mc.player.isTouchingWater() ? 1 : 0, mc.player.isSubmergedInWater() ? 1 : 0,
+				mc.gameRenderer.getCamera().getSubmersionType() == net.minecraft.block.enums.CameraSubmersionType.WATER ? 1 : 0,
+				mc.player.getX(), mc.player.getY(), mc.player.getZ(), mc.player.isOnGround() ? 1 : 0});
+		double[] s = sp.getServer().computeOnServer(srv -> {
+			ServerPlayerEntity pl = srv.getPlayerManager().getPlayerList().get(0);
+			return new double[] {pl.isTouchingWater() ? 1 : 0, pl.isSubmergedInWater() ? 1 : 0, pl.getAir(), pl.getMaxAir()};
+		});
+		double[] l = pose.toLocal(c[3], c[4], c[5]);
+		return new double[] {c[0], c[1], c[2], s[0], s[1], s[2], s[3], l[0], l[1], l[2], c[6]};
+	}
+
+	/** The Nautilus in a deep basin: placed, walked through, stairs, ladder, hatch, dive and surface, dry inside. */
+	private void nautilus(ClientGameTestContext context, Env sp) {
+		var server = sp.getServer();
+		ShipType type = Ships.NAUTILUS;
+		String id = type.id();
+		ShipGeometry g = type.geometry();
+		server.runCommand("ride @p dismount");
+		server.runCommand("gamemode spectator @a");
+		server.runCommand("tp @p 215 -20 -90 0 30");
+		context.waitTicks(40);
+		// a basin 28 blocks wide, 142 long and 27 deep, walled with glass
+		int x0 = 200, x1 = 230, z0 = -72, z1 = 72, top = -34;
+		server.runCommand(String.format(Locale.ROOT, "fill %d -63 %d %d %d %d glass", x0, z0, x1, top, z0));
+		server.runCommand(String.format(Locale.ROOT, "fill %d -63 %d %d %d %d glass", x0, z1, x1, top, z1));
+		server.runCommand(String.format(Locale.ROOT, "fill %d -63 %d %d %d %d glass", x0, z0, x0, top, z1));
+		server.runCommand(String.format(Locale.ROOT, "fill %d -63 %d %d %d %d glass", x1, z0, x1, top, z1));
+		for (int z = z0 + 1; z < z1; z += 40) {
+			server.runCommand(String.format(Locale.ROOT, "fill %d -63 %d %d -37 %d water", x0 + 1, z, x1 - 1, Math.min(z1 - 1, z + 39)));
+		}
+		server.runCommand("tp @p 215 -20 -50 0 30");
+		context.waitTicks(20);
+		server.runCommand("execute positioned 215 -37 -20 rotated 0 0 run ship spawn " + id);
+		sp.getClientWorld().waitForChunksRender();
+		context.waitTicks(60);
+		ShipPose pose = shipPose(sp, type);
+		if (pose == null) {
+			fail(id + ": not spawned");
+			return;
+		}
+		double surface = server.computeOnServer(srv -> {
+			ServerWorld w = srv.getOverworld();
+			var pos = new net.minecraft.util.math.BlockPos(215, -37, (int) Math.floor(pose.z()));
+			return pos.getY() + (double) w.getFluidState(pos).getHeight(w, pos);
+		});
+		log("%s at %.2f %.2f %.2f, water surface %.3f", id, pose.x(), pose.y(), pose.z(), surface);
+		check(Math.abs(pose.y() - (surface - g.hull().waterlineY)) < 0.2, "%s floats on the surface (y %.2f, surfaced %.2f)", id, pose.y(),
+				surface - g.hull().waterlineY);
+		check(nautilusCollisions(sp) == 0, "%s placed: inside nothing", id);
+
+		// outside views (step 1: prototype hull)
+		String[] views = {"1_droite", "2_gauche", "3_perspective"};
+		double[][] eyes = {{-60, 6, 0}, {60, 6, 0}, {40, 25, 55}};
+		for (int k = 0; k < views.length; k++) {
+			lookLocal(server, pose, eyes[k][0], eyes[k][1], eyes[k][2], 0, 2, 0);
+			context.waitTicks(k == 0 ? 30 : 15);
+			shot(context, id + "_" + views[k]);
+		}
+
+		// inside, on the surface: main level, then the lower level (under the waterline)
+		server.runCommand("gamemode survival @a");
+		server.runCommand("effect clear @a minecraft:water_breathing");
+		tpLocal(server, pose, 0, 0.02, -10, 0, 0);
+		context.waitTicks(40);
+		double[] w = playerWater(context, sp, shipPose(sp, type));
+		log("%s main level: water %s/%s camera %s, local y %.3f", id, w[0], w[3], w[2], w[8]);
+		check(w[0] == 0 && w[3] == 0 && Math.abs(w[8]) < 0.06 && w[10] > 0, "%s walks on the main level floor (local y %.3f)", id, w[8]);
+		tpLocal(server, pose, 0, Ships.NautilusLayout.LOWER_FLOOR_Y + 0.02, 0, 0, 0);
+		context.waitTicks(200);
+		w = playerWater(context, sp, shipPose(sp, type));
+		log("%s lower level (below the waterline): touching water client %s server %s, submerged %s/%s, camera %s, air %.0f/%.0f, y %.3f",
+				id, w[0], w[3], w[1], w[4], w[2], w[5], w[6], w[8]);
+		check(w[0] == 0 && w[3] == 0 && w[1] == 0 && w[4] == 0, "%s lower level is dry although below the waterline", id);
+		check(w[2] == 0, "%s lower level: no underwater view", id);
+		check(w[5] == w[6], "%s lower level: the player keeps all his air (%.0f/%.0f)", id, w[5], w[6]);
+		check(Math.abs(w[8] - Ships.NautilusLayout.LOWER_FLOOR_Y) < 0.06, "%s lower level: standing on its floor (local y %.3f)", id, w[8]);
+		shot(context, id + "_4_pont_inferieur");
+
+		// stairs from the lower level up to the main level
+		double[] l = walkLocal(context, sp, type, shipPose(sp, type), -1.75, Ships.NautilusLayout.LOWER_FLOOR_Y, 8.0, 0, 0, 70);
+		log("%s stairs: local %.2f %.2f %.2f", id, l[0], l[1], l[2]);
+		check(Math.abs(l[1] - Ships.NautilusLayout.MAIN_FLOOR_Y) < 0.06 && l[2] > 14.4, "%s climbs the stairs to the main level (local y %.2f z %.2f)",
+				id, l[1], l[2]);
+
+		// ladder up to the hatch: stopped under the closed hatch, out on the top of the hull once it is open
+		ShipPose here = shipPose(sp, type);
+		tpLocal(server, here, 0, 0.02, Ships.NautilusLayout.HATCH_Z - 0.2, 0, 0);
+		context.waitTicks(15);
+		context.getInput().holdKey(o -> o.forwardKey);
+		context.waitTicks(120);
+		w = playerWater(context, sp, shipPose(sp, type));
+		double hatchTop = Ships.NautilusLayout.AXIS_Y + Ships.NautilusLayout.halfHeight(Ships.NautilusLayout.HATCH_Z);
+		log("%s ladder, hatch closed: local y %.2f (hull top %.2f)", id, w[8], hatchTop);
+		check(w[8] > 3.5 && w[8] + 1.8 < hatchTop, "%s climbs the ladder and stops under the closed hatch (local y %.2f)", id, w[8]);
+		server.computeOnServer(srv -> ship(srv.getOverworld(), type).toggleDoor(Ships.NautilusLayout.HATCH_DOOR));
+		context.waitTicks(80);
+		context.getInput().releaseKey(o -> o.forwardKey);
+		context.waitTicks(20);
+		w = playerWater(context, sp, shipPose(sp, type));
+		log("%s ladder, hatch open: local %.2f %.2f %.2f", id, w[7], w[8], w[9]);
+		check(w[8] > hatchTop - 1.0, "%s goes out through the open hatch onto the hull (local y %.2f, top %.2f)", id, w[8], hatchTop);
+		shot(context, id + "_5_sur_la_coque");
+
+		// dive with the hatch open is refused; close it, take the helm in the wheelhouse and dive
+		boolean opened = server.computeOnServer(srv -> ship(srv.getOverworld(), type).doorOpen(Ships.NautilusLayout.HATCH_DOOR));
+		check(opened, "%s the hatch is open", id);
+		tpLocal(server, shipPose(sp, type), 0, Ships.NautilusLayout.TOWER_FLOOR_Y + 0.02, 27.5, 0, 0);
+		context.waitTicks(10);
+		server.computeOnServer(srv -> {
+			ShipEntity ship = ship(srv.getOverworld(), type);
+			return ship.seat(srv.getPlayerManager().getPlayerList().get(0), ShipGeometry.PILOT_SEAT);
+		});
+		context.waitTicks(10);
+		ShipPose d0 = shipPose(sp, type);
+		context.getInput().holdKey(o -> o.sprintKey);
+		context.waitTicks(60);
+		context.getInput().releaseKey(o -> o.sprintKey);
+		ShipPose d1 = shipPose(sp, type);
+		check(Math.abs(d1.y() - d0.y()) < 0.3, "%s does not dive with the hatch open (%.2f -> %.2f)", id, d0.y(), d1.y());
+		server.computeOnServer(srv -> ship(srv.getOverworld(), type).toggleDoor(Ships.NautilusLayout.HATCH_DOOR));
+		context.waitTicks(10);
+		context.getInput().holdKey(o -> o.sprintKey);
+		context.waitTicks(260);
+		context.getInput().releaseKey(o -> o.sprintKey);
+		context.waitTicks(100);
+		ShipPose d2 = shipPose(sp, type);
+		context.waitTicks(60);
+		ShipPose d3 = shipPose(sp, type);
+		float depth = server.computeOnServer(srv -> ship(srv.getOverworld(), type).syncedDepth());
+		log("%s dive: %.2f -> %.2f, then %.3f (depth %.1f)", id, d1.y(), d2.y(), d3.y(), depth);
+		check(d1.y() - d2.y() > 6, "%s dives under command (%.2f blocks)", id, d1.y() - d2.y());
+		check(Math.abs(d3.y() - d2.y()) < 0.05, "%s holds its depth (%.3f -> %.3f)", id, d2.y(), d3.y());
+		check(nautilusCollisions(sp) == 0, "%s dived: inside nothing", id);
+		Text msg = server.computeOnServer(srv -> ship(srv.getOverworld(), type).toggleDoor(Ships.NautilusLayout.HATCH_DOOR));
+		boolean still = server.computeOnServer(srv -> ship(srv.getOverworld(), type).doorOpen(Ships.NautilusLayout.HATCH_DOOR));
+		check(msg != null && !still, "%s the hatch does not open under water", id);
+
+		// sail submerged with an armor stand standing in the hall, then walk inside under the sea
+		ShipPose d4 = shipPose(sp, type);
+		double[] mw = d4.toWorld(1.0, 0.5, -4);
+		server.runCommand(String.format(Locale.ROOT, "summon minecraft:armor_stand %.2f %.2f %.2f {Tags:[\"ncrew\",\"nautilusmob\"]}", mw[0], mw[1], mw[2]));
+		context.waitTicks(40);
+		context.getInput().holdKey(o -> o.forwardKey);
+		context.waitTicks(120);
+		context.getInput().releaseKey(o -> o.forwardKey);
+		context.waitTicks(40);
+		ShipPose d5 = shipPose(sp, type);
+		double moved = Math.hypot(d5.x() - d4.x(), d5.z() - d4.z());
+		double[] mob = server.computeOnServer(srv -> {
+			for (Entity e : srv.getOverworld().iterateEntities()) {
+				if (e.getCommandTags().contains("nautilusmob")) {
+					return new double[] {e.getX(), e.getY(), e.getZ()};
+				}
+			}
+			return null;
+		});
+		double[] ml = mob == null ? new double[] {99, 99, 99} : d5.toLocal(mob[0], mob[1], mob[2]);
+		log("%s sailing submerged: %.2f blocks, armor stand local %.2f %.2f %.2f", id, moved, ml[0], ml[1], ml[2]);
+		check(moved > 2, "%s sails submerged (%.2f blocks)", id, moved);
+		check(Math.abs(ml[1]) < 0.1 && Math.abs(ml[2] + 4) < 1.5, "%s carries what stands in its rooms (armor stand local y %.2f z %.2f)", id, ml[1], ml[2]);
+		server.runCommand("ride @p dismount");
+		context.waitTicks(10);
+		tpLocal(server, d5, 0, 0.02, -14, 0, 0);
+		context.waitTicks(200);
+		w = playerWater(context, sp, shipPose(sp, type));
+		log("%s inside, submerged: touching water %s/%s, submerged %s/%s, camera %s, air %.0f/%.0f, local y %.3f", id, w[0], w[3], w[1], w[4],
+				w[2], w[5], w[6], w[8]);
+		check(w[0] == 0 && w[3] == 0 && w[1] == 0 && w[4] == 0 && w[2] == 0, "%s submerged: the rooms are dry (no water, no underwater view)", id);
+		check(w[5] == w[6], "%s submerged: the player keeps all his air (%.0f/%.0f)", id, w[5], w[6]);
+		check(Math.abs(w[8]) < 0.06, "%s submerged: standing on the main level floor (local y %.3f)", id, w[8]);
+		shot(context, id + "_6_interieur_en_plongee");
+		context.getInput().holdKeyFor(o -> o.forwardKey, 60);
+		context.waitTicks(20);
+		w = playerWater(context, sp, shipPose(sp, type));
+		check(Math.abs(w[8]) < 0.06 && Math.abs(w[7]) < 3.1 && w[1] == 0, "%s submerged: walking in the hall (local %.2f %.2f %.2f)", id, w[7], w[8], w[9]);
+		server.runCommand("gamemode spectator @a");
+		lookLocal(server, shipPose(sp, type), -22, -3, -10, 0, 0, 0);
+		context.waitTicks(20);
+		shot(context, id + "_7_sous_l_eau");
+
+		// back to the helm and up to the surface
+		server.runCommand("gamemode survival @a");
+		tpLocal(server, shipPose(sp, type), 0, Ships.NautilusLayout.TOWER_FLOOR_Y + 0.02, 27.5, 0, 0);
+		context.waitTicks(10);
+		server.computeOnServer(srv -> ship(srv.getOverworld(), type).seat(srv.getPlayerManager().getPlayerList().get(0), ShipGeometry.PILOT_SEAT));
+		context.getInput().holdKey(o -> o.jumpKey);
+		context.waitTicks(500);
+		context.getInput().releaseKey(o -> o.jumpKey);
+		context.waitTicks(60);
+		float depthEnd = server.computeOnServer(srv -> ship(srv.getOverworld(), type).syncedDepth());
+		log("%s surfacing: depth %.2f", id, depthEnd);
+		check(depthEnd < 0.5, "%s rises back to the surface (depth %.2f)", id, depthEnd);
+		server.runCommand("ride @p dismount");
+		server.runCommand("kill @e[type=minecraft:armor_stand,tag=ncrew]");
+
+		// the item: /ship give, and right click on the water places one
+		server.computeOnServer(srv -> {
+			for (ShipEntity s : ShipTracker.ships(srv.getOverworld())) {
+				if (s.shipType() == type) {
+					s.removeAllPassengers();
+					s.discard();
+				}
+			}
+			return null;
+		});
+		server.runCommand("clear @a");
+		server.runCommand("ship give " + id + " @p");
+		Integer items = server.computeOnServer(srv ->
+				srv.getPlayerManager().getPlayerList().get(0).getInventory().count(fr.medievalships.MedievalShips.item(type)));
+		check(items != null && items == 1, "%s item: /ship give %s gives the item (%s)", id, id, items);
+		server.runCommand("gamemode creative @a");
+		server.runCommand("tp @p 215 -33 -71 0 35");
+		context.waitTicks(20);
+		server.runCommand("item replace entity @p weapon.mainhand with medievalships:" + id);
+		context.waitTicks(5);
+		context.getInput().pressKey(o -> o.useKey);
+		context.waitTicks(20);
+		ShipPose placed = shipPose(sp, type);
+		check(placed != null, "%s item: right click on the water places the Nautilus", id);
+		server.runCommand("clear @a");
+		server.computeOnServer(srv -> {
+			for (ShipEntity s : ShipTracker.ships(srv.getOverworld())) {
+				if (s.shipType() == type) {
 					s.discard();
 				}
 			}

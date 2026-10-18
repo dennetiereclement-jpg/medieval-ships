@@ -24,6 +24,16 @@ import fr.medievalships.client.render.ShipModels.Visual;
  * every player sees the same thing.
  */
 public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
+	/** Block light of the rooms of a vessel (its electric lamps). */
+	private static final int INTERIOR_BLOCK_LIGHT = 13;
+	/** Animation of door k of a vessel with rooms: {@code door_<k>}, played from 0 (closed) to 1 (open). */
+	private static final String[] DOOR_ANIMATIONS = new String[fr.medievalships.core.InteriorGrid.MAX_DOORS];
+
+	static {
+		for (int k = 0; k < DOOR_ANIMATIONS.length; k++) {
+			DOOR_ANIMATIONS[k] = "door_" + k;
+		}
+	}
 	private final Visual visual;
 
 	public ShipRenderer(EntityRendererFactory.Context context, Visual visual) {
@@ -50,6 +60,12 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 		state.rockTime = entity.rockTime + tickProgress * 0.05f;
 		state.rockScale = entity.config().waveRocking * visual.rocking() * (entity.config().flight != null ? entity.config().flight.sway : 1.0);
 		state.climb = MathHelper.lerp(tickProgress, entity.lastClimbVisual, entity.climbVisual);
+		state.interiorLight = entity.geometry().interior() != null;
+		if (state.interiorLight) {
+			for (int k = 0; k < state.doors.length; k++) {
+				state.doors[k] = MathHelper.lerp(tickProgress, entity.lastDoorVisual[k], entity.doorVisual[k]);
+			}
+		}
 	}
 
 	@Override
@@ -73,7 +89,13 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 
 			float oarTime = state.oarTime, oarWeight = state.oarWeight, sail = state.sailOpen, wheel = state.wheelTime;
 			float helm = state.helm, age = state.age / 20f, climb = state.climb;
+			float[] doors = state.interiorLight ? state.doors : null;
 			int light = state.light;
+			// the rooms of a vessel are lit by its own lamps, even deep under the sea
+			int lit = state.interiorLight
+					? LightmapTextureManager.pack(Math.max(INTERIOR_BLOCK_LIGHT, LightmapTextureManager.getBlockLightCoordinates(light)),
+							LightmapTextureManager.getSkyLightCoordinates(light))
+					: light;
 			for (int tex = 0; tex < model.textureCount() && tex < visual.textures().size(); tex++) {
 				int texture = tex;
 				queue.submitCustom(matrices, RenderLayers.entityCutoutNoCull(visual.textures().get(tex)), (entry, vertices) -> {
@@ -88,15 +110,28 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 					model.apply(pose, "lantern_sway", age, 1f);
 					model.apply(pose, "propeller", wheel, 1f);
 					model.apply(pose, "elevator", climb + 1f, 1f);
-					model.render(pose, visual.textures().size() > 1 ? texture : -1, (p, uv, n, glow) -> {
-						int l = glow ? LightmapTextureManager.MAX_LIGHT_COORDINATE : light;
-						for (int k = 0; k < 4; k++) {
-							vertices.vertex(entry, p[k * 3], p[k * 3 + 1], p[k * 3 + 2])
-									.color(0xFFFFFFFF)
-									.texture(uv[k * 2], uv[k * 2 + 1])
-									.overlay(OverlayTexture.DEFAULT_UV)
-									.light(l)
-									.normal(entry, n[0], n[1], n[2]);
+					if (doors != null) {
+						for (int k = 0; k < doors.length; k++) {
+							model.apply(pose, DOOR_ANIMATIONS[k], doors[k], 1f);
+						}
+					}
+					model.render(pose, visual.textures().size() > 1 ? texture : -1, new BbModel.QuadSink() {
+						@Override
+						public void quad(float[] p, float[] uv, float[] n, boolean glow) {
+							quad(p, uv, n, glow, false);
+						}
+
+						@Override
+						public void quad(float[] p, float[] uv, float[] n, boolean glow, boolean litFace) {
+							int l = glow ? LightmapTextureManager.MAX_LIGHT_COORDINATE : litFace ? lit : light;
+							for (int k = 0; k < 4; k++) {
+								vertices.vertex(entry, p[k * 3], p[k * 3 + 1], p[k * 3 + 2])
+										.color(0xFFFFFFFF)
+										.texture(uv[k * 2], uv[k * 2 + 1])
+										.overlay(OverlayTexture.DEFAULT_UV)
+										.light(l)
+										.normal(entry, n[0], n[1], n[2]);
+							}
 						}
 					});
 				});

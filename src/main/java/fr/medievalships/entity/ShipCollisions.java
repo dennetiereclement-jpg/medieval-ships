@@ -49,7 +49,7 @@ public final class ShipCollisions {
 			if (ship.isRemoved() || (entity != null && entity.getRootVehicle() == ship)) {
 				continue;
 			}
-			ship.geometry().collectBoxes(ship.pose(), query.minX, query.minY, query.minZ, query.maxX, query.maxY, query.maxZ,
+			ship.geometry().collectBoxes(ship.pose(), ship.interiorState(), query.minX, query.minY, query.minZ, query.maxX, query.maxY, query.maxZ,
 					(a, b, c, d, e, f) -> out.add(VoxelShapes.cuboid(a, b, c, d, e, f)));
 		}
 		return out.size() > before;

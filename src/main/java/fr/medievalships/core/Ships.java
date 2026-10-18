@@ -1056,7 +1056,168 @@ public final class Ships {
 		return c;
 	}
 
-	public static final List<ShipType> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT, STEAMPUNK_AIRSHIP);
+	/**
+	 * The Nautilus of Captain Nemo: a 96 block steampunk submarine (ram and tail fin included),
+	 * 14 wide, 17 high, 23 with the wheelhouse. Its rooms are described by an interior grid
+	 * (tools/nautilus_interior.py): players walk inside while it sails and dives, the
+	 * compartments stay dry under the sea.
+	 */
+	public static final ShipType NAUTILUS = nautilus();
+
+	/** Nautilus layout, ship-local blocks (shared with tools/nautilus_shape.py and nautilus_interior.py). */
+	public static final class NautilusLayout {
+		public static final double BOW_Z = 42.0;
+		public static final double STERN_Z = -44.0;
+		public static final double MAX_HALF_WIDTH = 7.0;
+		public static final double MAX_HALF_HEIGHT = 8.5;
+		public static final double AXIS_Y = 0.5;
+		public static final double SHELL = 0.5;
+		public static final double RAM_TIP_Z = 48.0;
+		public static final double TAIL_END_Z = -48.0;
+		public static final double LOWER_FLOOR_Y = -4.5;
+		public static final double MAIN_FLOOR_Y = 0.0;
+		public static final double WATERLINE_Y = -0.2;
+		public static final double TOWER_FLOOR_Y = 6.5;
+		public static final double TOWER_TOP_Y = 10.0;
+		public static final double TOWER_Z0 = 25.0;
+		public static final double TOWER_Z1 = 31.0;
+		public static final double PILOT_Z = 29.6;
+		public static final double HATCH_Z = 18.5;
+		public static final int HATCH_DOOR = 0;
+		public static final String GRID = "/assets/medievalships/interiors/nautilus.grid";
+
+		/** Section scale at z (1 in the middle, 0 at the ends of the hull body), as in nautilus_shape.py. */
+		public static double scale(double z) {
+			double t, a, b;
+			if (z >= 0) {
+				t = z / BOW_Z;
+				a = 2.2;
+				b = 0.6;
+			} else {
+				t = z / STERN_Z;
+				a = 2.0;
+				b = 0.55;
+			}
+			return t >= 1.0 ? 0.0 : Math.pow(1.0 - Math.pow(t, a), b);
+		}
+
+		public static double halfWidth(double z) {
+			return MAX_HALF_WIDTH * scale(z);
+		}
+
+		public static double halfHeight(double z) {
+			return MAX_HALF_HEIGHT * scale(z);
+		}
+
+		private NautilusLayout() {
+		}
+	}
+
+	private static ShipType nautilus() {
+		HullShape.Params p = new HullShape.Params();
+		p.halfLength = NautilusLayout.BOW_Z;
+		p.tip = NautilusLayout.RAM_TIP_Z;
+		p.maxHalfWidth = NautilusLayout.MAX_HALF_WIDTH;
+		p.foreScale = NautilusLayout.BOW_Z;
+		p.forePowA = 2.2;
+		p.forePowB = 0.6;
+		p.aftScale = -NautilusLayout.STERN_Z;
+		p.aftPowA = 2.0;
+		p.aftPowB = 0.55;
+		p.keelDepth = NautilusLayout.MAX_HALF_HEIGHT - NautilusLayout.AXIS_Y;
+		p.keelRise = 4.0;
+		p.keelPow = 2.0;
+		p.railBase = NautilusLayout.AXIS_Y + NautilusLayout.MAX_HALF_HEIGHT;
+		p.railRiseFore = -4.0;
+		p.railRiseAft = -4.0;
+		p.railPow = 2.0;
+		p.waterlineY = NautilusLayout.WATERLINE_Y;
+		p.mainDeckY = NautilusLayout.MAIN_FLOOR_Y;
+		p.deckMinZ = -24.0;
+		p.deckMaxZ = 26.0;
+		HullShape hull = new HullShape(p);
+
+		ShipGeometry.Spec spec = new ShipGeometry.Spec();
+		spec.interior = NautilusLayout.GRID;
+		spec.submarine = true;
+		spec.hullProbes = false;
+		double tower = NautilusLayout.TOWER_FLOOR_Y;
+		List<ShipGeometry.Seat> seats = new ArrayList<>();
+		seats.add(new ShipGeometry.Seat(ShipGeometry.PILOT_SEAT, 0.0, tower + 0.28, NautilusLayout.PILOT_Z, true,
+				new double[] {0.0, tower + 0.02, NautilusLayout.PILOT_Z - 1.2}));
+		// prototype: benches along the main hall
+		double main = NautilusLayout.MAIN_FLOOR_Y;
+		for (double z : new double[] {-12.0, -6.0, 0.0, 6.0}) {
+			for (double x : new double[] {2.4, -2.4}) {
+				seats.add(seat(seats.size(), x, main, z, x * 0.5, z));
+			}
+		}
+		spec.seats = List.copyOf(seats);
+		spec.helm = new ShipGeometry.LocalBox(-0.7, tower + 0.4, NautilusLayout.PILOT_Z, 0.7, tower + 1.8, NautilusLayout.PILOT_Z + 0.9);
+		// terrain probes: rings around the hull body, the ram, the tail and the wheelhouse
+		List<double[]> probes = new ArrayList<>();
+		for (double z = NautilusLayout.STERN_Z + 1.0; z <= NautilusLayout.BOW_Z - 1.0 + 1e-6; z += 2.0) {
+			double w = NautilusLayout.halfWidth(z), h = NautilusLayout.halfHeight(z);
+			for (int k = 0; k < 12; k++) {
+				double a = Math.toRadians(30 * k);
+				probes.add(new double[] {Math.sin(a) * w, NautilusLayout.AXIS_Y + Math.cos(a) * h, z});
+			}
+		}
+		for (double z = NautilusLayout.BOW_Z - 1.0; z <= NautilusLayout.RAM_TIP_Z + 1e-6; z += 1.0) {
+			probes.add(new double[] {0, NautilusLayout.AXIS_Y, z});
+		}
+		for (double z = NautilusLayout.STERN_Z + 1.0; z >= NautilusLayout.TAIL_END_Z - 1e-6; z -= 1.0) {
+			probes.add(new double[] {0, NautilusLayout.AXIS_Y, z});
+		}
+		for (double z : new double[] {NautilusLayout.TOWER_Z0, NautilusLayout.TOWER_Z1}) {
+			for (double x : new double[] {-2.0, 2.0}) {
+				probes.add(new double[] {x, NautilusLayout.TOWER_TOP_Y, z});
+			}
+		}
+		spec.extraProbes = List.copyOf(probes);
+		spec.boundingRadius = NautilusLayout.RAM_TIP_Z + 1.0;
+		spec.aiReach = NautilusLayout.RAM_TIP_Z;
+		spec.aiBack = -NautilusLayout.TAIL_END_Z;
+		spec.aiHalfWidth = NautilusLayout.MAX_HALF_WIDTH + 1.0;
+		spec.lowestY = NautilusLayout.AXIS_Y - NautilusLayout.MAX_HALF_HEIGHT;
+		spec.boardMinZ = -24.0;
+		spec.boardMaxZ = 26.0;
+		spec.boardHalfWidth = 2.2;
+		spec.avoidZ = new double[] {};
+		spec.stemPost = false;
+		spec.sternPost = false;
+		return new ShipType("nautilus", "Nautilus", new ShipGeometry(hull, spec), Ships::nautilusConfig);
+	}
+
+	/** A very large hull: slow to gather way and to stop, wide turns, ballasts slow to answer. */
+	private static ShipConfig nautilusConfig() {
+		ShipConfig c = new ShipConfig();
+		c.slowSpeed = 2.0;
+		c.normalSpeed = 4.5;
+		c.fastSpeed = 7.0;
+		c.reverseSpeed = 1.5;
+		c.acceleration = 0.35;
+		c.braking = 0.7;
+		c.waterDrag = 0.12;
+		c.maxTurnRate = 6.0;
+		c.minTurnFactor = 0.25;
+		c.helmRate = 0.8;
+		c.helmReturnRate = 0.8;
+		c.turnResponse = 0.6;
+		c.turnSpeedLoss = 0.15;
+		c.waveRocking = 0.25;
+		c.aiWaypointRadius = 14.0;
+		c.aiStopRadius = 4.0;
+		c.aiLookahead = 30.0;
+		c.aiProbeDistance = 70.0;
+		c.aiStuckSeconds = 10;
+		c.aiTurnAroundSpeed = 0.6;
+		c.furlSailWhenStopped = false;
+		c.dive = new DiveConfig();
+		return c;
+	}
+
+	public static final List<ShipType> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT, STEAMPUNK_AIRSHIP, NAUTILUS);
 
 	/**
 	 * Other names accepted by the commands (the ids used in saves and configs never change):

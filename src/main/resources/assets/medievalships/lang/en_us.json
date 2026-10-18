@@ -13,5 +13,7 @@
   "entity.medievalships.elven_sailboat": "Elven Sailboat",
   "itemGroup.medievalships.ships": "Medieval Ships",
   "item.medievalships.steampunk_airship": "Steampunk Airship",
-  "entity.medievalships.steampunk_airship": "Steampunk Airship"
+  "entity.medievalships.steampunk_airship": "Steampunk Airship",
+  "item.medievalships.nautilus": "Nautilus — Captain Nemo's Submarine",
+  "entity.medievalships.nautilus": "Nautilus — Captain Nemo's Submarine"
 }

@@ -13,5 +13,7 @@
   "entity.medievalships.elven_sailboat": "Voilier elfique",
   "itemGroup.medievalships.ships": "Navires médiévaux",
   "item.medievalships.steampunk_airship": "Dirigeable steampunk",
-  "entity.medievalships.steampunk_airship": "Dirigeable steampunk"
+  "entity.medievalships.steampunk_airship": "Dirigeable steampunk",
+  "item.medievalships.nautilus": "Nautilus — Sous-marin du capitaine Nemo",
+  "entity.medievalships.nautilus": "Nautilus — Sous-marin du capitaine Nemo"
 }

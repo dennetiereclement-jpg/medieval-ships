@@ -52,6 +52,7 @@ import fr.medievalships.entity.GalleonEntity;
 import fr.medievalships.entity.GalleyEntity;
 import fr.medievalships.entity.MedievalGalleyEntity;
 import fr.medievalships.entity.ElvenSailboatEntity;
+import fr.medievalships.entity.NautilusEntity;
 import fr.medievalships.entity.SteampunkAirshipEntity;
 import fr.medievalships.entity.SteamPaddleboatEntity;
 import fr.medievalships.entity.WarshipEntity;
@@ -79,6 +80,8 @@ public final class MedievalShips implements ModInitializer {
 	public static Item ELVEN_SAILBOAT_ITEM;
 	public static EntityType<SteampunkAirshipEntity> STEAMPUNK_AIRSHIP;
 	public static Item STEAMPUNK_AIRSHIP_ITEM;
+	public static EntityType<NautilusEntity> NAUTILUS;
+	public static Item NAUTILUS_ITEM;
 
 	private static final Map<ShipType, EntityType<? extends ShipEntity>> ENTITY_TYPES = new LinkedHashMap<>();
 	private static final Map<ShipType, Item> ITEMS = new LinkedHashMap<>();
@@ -119,6 +122,8 @@ public final class MedievalShips implements ModInitializer {
 		ELVEN_SAILBOAT_ITEM = ITEMS.get(Ships.ELVEN_SAILBOAT);
 		STEAMPUNK_AIRSHIP = registerShip(Ships.STEAMPUNK_AIRSHIP, SteampunkAirshipEntity::new, 3.0f, 0.4f, 20);
 		STEAMPUNK_AIRSHIP_ITEM = ITEMS.get(Ships.STEAMPUNK_AIRSHIP);
+		NAUTILUS = registerShip(Ships.NAUTILUS, NautilusEntity::new, 6.0f, 0.4f, 24);
+		NAUTILUS_ITEM = ITEMS.get(Ships.NAUTILUS);
 
 		RegistryKey<ItemGroup> groupKey = RegistryKey.of(RegistryKeys.ITEM_GROUP, id("ships"));
 		Registry.register(Registries.ITEM_GROUP, groupKey, FabricItemGroup.builder()
@@ -206,7 +211,7 @@ public final class MedievalShips implements ModInitializer {
 			}
 			fr.medievalships.core.ShipPose pose = ship.pose();
 			double[] l = pose.toLocal(player.getX(), player.getY(), player.getZ());
-			double top = ship.geometry().deckCrossingY(l[0], l[2], lastY - pose.y(), l[1], 0.6, false);
+			double top = ship.geometry().deckCrossingY(l[0], l[2], lastY - pose.y(), l[1], 0.6, false, ship.interiorState());
 			if (!Double.isNaN(top)) {
 				player.requestTeleport(player.getX(), pose.y() + top + 0.01, player.getZ());
 				player.fallDistance = 0;

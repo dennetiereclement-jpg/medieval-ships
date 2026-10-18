@@ -66,6 +66,17 @@ public final class ShipGeometry {
 		public double aiReach = Double.NaN;
 		public double aiBack = Double.NaN;
 		public double lowestY = Double.NaN;
+		/**
+		 * A vessel with rooms (the Nautilus): class path of its interior grid. The grid then gives
+		 * the collisions, the carry volume and the floors instead of the open deck of a ship.
+		 */
+		public String interior;
+		/** Probe points along the hull sides and keel (false: only {@link #extraProbes}). */
+		public boolean hullProbes = true;
+		/** A submarine: dives instead of only floating. */
+		public boolean submarine;
+		/** Half width of the boarding area (NaN: the deck width). */
+		public double boardHalfWidth = Double.NaN;
 	}
 
 	public interface BoxSink {
@@ -77,11 +88,13 @@ public final class ShipGeometry {
 	private final List<double[]> probes;
 	private final double boundingRadius;
 	private final double maxHeight;
+	private final InteriorGrid interior;
 
 	public ShipGeometry(HullShape hull, Spec spec) {
 		this.hull = hull;
 		this.spec = spec;
-		List<double[]> probeList = buildProbes(hull, spec.probeStep, spec.probeHeights);
+		this.interior = spec.interior == null ? null : InteriorGrid.load(spec.interior);
+		List<double[]> probeList = spec.hullProbes ? buildProbes(hull, spec.probeStep, spec.probeHeights) : new ArrayList<>();
 		probeList.addAll(spec.extraProbes);
 		this.probes = Collections.unmodifiableList(probeList);
 		this.boundingRadius = Double.isNaN(spec.boundingRadius) ? hull.tip + 0.6 : spec.boundingRadius;
@@ -92,7 +105,20 @@ public final class ShipGeometry {
 		for (LocalBox b : spec.solids) {
 			top = Math.max(top, b.maxY());
 		}
+		if (interior != null) {
+			top = Math.max(top, interior.y0 + interior.ny * interior.cell);
+		}
 		this.maxHeight = top;
+	}
+
+	/** Interior grid of a vessel with rooms, null for an open ship. */
+	public InteriorGrid interior() {
+		return interior;
+	}
+
+	/** Is this a submarine? */
+	public boolean submarine() {
+		return spec.submarine;
 	}
 
 	private static List<double[]> buildProbes(HullShape h, double step, double[] heights) {
@@ -187,6 +213,9 @@ public final class ShipGeometry {
 
 	/** Is this local point inside the volume where entities are carried along with the ship? */
 	public boolean inCarryVolume(double lx, double ly, double lz) {
+		if (interior != null) {
+			return interior.carryAt(lx, ly, lz);
+		}
 		// on or around a superstructure (castles, stern balcony beyond the hull end...)
 		for (LocalBox b : spec.solids) {
 			if (lx >= b.minX() - 0.3 && lx <= b.maxX() + 0.3 && lz >= b.minZ() - 0.3 && lz <= b.maxZ() + 0.3
@@ -216,6 +245,14 @@ public final class ShipGeometry {
 	 * has sunk into the deck volume, returns the deck height to put it back on; NaN otherwise.
 	 */
 	public double deckRescueY(double lx, double ly, double lz) {
+		return deckRescueY(lx, ly, lz, InteriorGrid.State.CLOSED);
+	}
+
+	/** {@link #deckRescueY(double, double, double)} with the doors of a vessel with rooms. */
+	public double deckRescueY(double lx, double ly, double lz, InteriorGrid.State state) {
+		if (interior != null) {
+			return interior.floorAbove(lx, ly, lz, 1.2, state);
+		}
 		// sunk into a walkable superstructure (castle floor, stairs, balcony)
 		for (LocalBox b : spec.solids) {
 			if (lx > b.minX() && lx < b.maxX() && lz > b.minZ() && lz < b.maxZ()
@@ -236,6 +273,15 @@ public final class ShipGeometry {
 	 * surface height; NaN otherwise. {@code minDepth} is how far below it must have gone.
 	 */
 	public double deckCrossingY(double lx, double lz, double yBefore, double yAfter, double minDepth, boolean solids) {
+		return deckCrossingY(lx, lz, yBefore, yAfter, minDepth, solids, InteriorGrid.State.CLOSED);
+	}
+
+	/** {@link #deckCrossingY(double, double, double, double, double, boolean)} with the doors of a vessel with rooms. */
+	public double deckCrossingY(double lx, double lz, double yBefore, double yAfter, double minDepth, boolean solids,
+			InteriorGrid.State state) {
+		if (interior != null) {
+			return interior.floorCrossed(lx, lz, yBefore, yAfter, minDepth, state);
+		}
 		double best = Double.NaN;
 		if (lz >= hull.deckMinZ && lz <= hull.deckMaxZ && Math.abs(lx) <= hull.innerHalfWidth(lz)) {
 			double top = hull.deckY(lz);
@@ -256,6 +302,9 @@ public final class ShipGeometry {
 
 	/** Is this local point inside the solid hull (used for ship-to-ship collisions)? */
 	public boolean insideHull(double lx, double ly, double lz) {
+		if (interior != null) {
+			return interior.insideAt(lx, ly, lz);
+		}
 		if (Math.abs(lz) > hull.halfLength) {
 			return false;
 		}
@@ -271,6 +320,12 @@ public final class ShipGeometry {
 	 * a small rotated cell of the hull, so the union follows the hull shape for any heading.
 	 */
 	public void collectBoxes(ShipPose pose, double qMinX, double qMinY, double qMinZ,
+							 double qMaxX, double qMaxY, double qMaxZ, BoxSink sink) {
+		collectBoxes(pose, InteriorGrid.State.CLOSED, qMinX, qMinY, qMinZ, qMaxX, qMaxY, qMaxZ, sink);
+	}
+
+	/** {@link #collectBoxes(ShipPose, double, double, double, double, double, double, BoxSink)} with the doors of a vessel with rooms. */
+	public void collectBoxes(ShipPose pose, InteriorGrid.State state, double qMinX, double qMinY, double qMinZ,
 							 double qMaxX, double qMaxY, double qMaxZ, BoxSink sink) {
 		double cx = (qMinX + qMaxX) / 2, cz = (qMinZ + qMaxZ) / 2;
 		double rx = (qMaxX - qMinX) / 2, rz = (qMaxZ - qMinZ) / 2;
@@ -292,6 +347,27 @@ public final class ShipGeometry {
 		double lzMin = lc[2] - lrz, lzMax = lc[2] + lrz;
 		double lyMin = qMinY - pose.y(), lyMax = qMaxY - pose.y();
 		double cellHalf = CELL / 2 * (ac + as) + 1e-4;
+
+		if (interior != null) {
+			// walls, floors, ceilings, steps and closed doors of the rooms; each run of solid cells
+			// of a column is one world box covering the rotated cell
+			double h = interior.cell / 2 * (ac + as) + 1e-4;
+			double py = pose.y();
+			interior.solidRuns(lxMin, lyMin, lzMin, lxMax, lyMax, lzMax, state, (x0, y0, z0, x1, y1, z1) -> {
+				double xc = (x0 + x1) / 2, zc = (z0 + z1) / 2;
+				double wx = pose.x() + xc * c - zc * s;
+				double wz = pose.z() + xc * s + zc * c;
+				sink.accept(wx - h, py + y0, wz - h, wx + h, py + y1, wz + h);
+			});
+			for (LocalBox b : spec.solids) {
+				if (b.maxX() < lxMin || b.minX() > lxMax || b.maxZ() < lzMin || b.minZ() > lzMax
+						|| b.maxY() < lyMin || b.minY() > lyMax) {
+					continue;
+				}
+				emitLocalBox(pose, b, c, s, ac, as, sink);
+			}
+			return;
+		}
 
 		// solid hull: deck on top, hull bottom underneath. Nothing can get under the deck or
 		// inside the hull, from above or from the water.
@@ -423,7 +499,7 @@ public final class ShipGeometry {
 		} else if (hull.deckY(z - 0.3) - hull.deckY(z) > 0.6) {
 			z += 0.32;
 		}
-		double w = Math.max(0.0, hull.innerHalfWidth(z) - 0.55);
+		double w = Double.isNaN(spec.boardHalfWidth) ? Math.max(0.0, hull.innerHalfWidth(z) - 0.55) : spec.boardHalfWidth;
 		double x = Math.max(-w, Math.min(w, lx));
 		for (Mast m : spec.masts) {
 			double clear = Math.max(0.6, m.half() + 0.35);
@@ -450,7 +526,8 @@ public final class ShipGeometry {
 
 	// ------------------------------------------------------------------ picking
 
-	public enum PickKind { HELM, SEAT, HULL, DECK }
+	/** DOOR (vessels with rooms): {@link Pick#seat()} is the door index. Append only: the ordinal goes over the network. */
+	public enum PickKind { HELM, SEAT, HULL, DECK, DOOR }
 
 	public record Pick(PickKind kind, int seat, double distance, double lx, double ly, double lz) {
 	}
@@ -476,6 +553,21 @@ public final class ShipGeometry {
 			if (t >= 0 && t <= maxDist && (best == null || t < best.distance())) {
 				best = hit(PickKind.SEAT, seat.index(), t, o, d);
 			}
+		}
+		if (interior != null) {
+			// walls, floors, doors of the rooms (and the outer hull): the first cell met along the ray
+			boolean outside = interior.kindAt(o[0], o[1], o[2]) == InteriorGrid.OUT;
+			double limit = best == null ? maxDist : Math.min(maxDist, best.distance());
+			for (double tt = 0.05; tt <= limit; tt += 0.05) {
+				byte k = interior.kindAt(o[0] + d[0] * tt, o[1] + d[1] * tt, o[2] + d[2] * tt);
+				if (k >= InteriorGrid.DOOR) {
+					return hit(PickKind.DOOR, k - InteriorGrid.DOOR, tt, o, d);
+				}
+				if (k == InteriorGrid.SOLID) {
+					return hit(outside ? PickKind.HULL : PickKind.DECK, -1, tt, o, d);
+				}
+			}
+			return best;
 		}
 		// the deck itself: clicking it must not reach the water or the sea bed under the hull
 		for (double z0 = hull.deckMinZ; z0 < hull.deckMaxZ; z0 += 0.5) {

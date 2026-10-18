@@ -94,7 +94,12 @@ Coordonnées du Nautilus : z vers l'avant, y = 0 au plancher du niveau principal
   plate-forme.
 * **Accès extérieur** (planche, image 10) : puits avec échelle vers une trappe sur le dessus.
 
-## 6. Points qui demandent ta décision
+## 6. Décisions
+
+* Dimensions retenues : **option C, 96 × 14 × 17** (timonerie à 23).
+* Meubles : tu m'envoies les `.jar` de tes mods de décoration ; je les inspecte avant la phase de décoration.
+
+## 6 bis. Points qui demandaient ta décision (pour mémoire)
 
 1. **Mods de décoration** : envoie-moi tes `.jar` (ou la liste exacte avec leurs versions et leurs
    liens). Sinon, je modélise tous les meubles moi-même, d'après les images.

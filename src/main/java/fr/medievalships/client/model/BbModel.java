@@ -63,6 +63,7 @@ public final class BbModel {
 		final float[] uv = new float[8];
 		final float[] normal = new float[3];
 		final boolean glow;
+		boolean lit;
 		/** Index in the model's texture list. */
 		final int texture;
 
@@ -174,6 +175,14 @@ public final class BbModel {
 		 * @param normal face normal in ship-local space
 		 */
 		void quad(float[] p, float[] uv, float[] normal, boolean glow);
+
+		/**
+		 * {@code lit}: elements whose name starts with {@code lit} (rooms of a vessel), lit by the
+		 * vessel's own lamps rather than by the world light where the entity stands.
+		 */
+		default void quad(float[] p, float[] uv, float[] normal, boolean glow, boolean lit) {
+			quad(p, uv, normal, glow);
+		}
 	}
 
 	public BbModel(Reader reader) {
@@ -253,6 +262,7 @@ public final class BbModel {
 		float[] origin = vec(el, "origin", 0);
 		float[][] rot = rotationMatrix(vec(el, "rotation", 0));
 		boolean glow = el.get("name").getAsString().startsWith("glow");
+		boolean lit = el.get("name").getAsString().startsWith("lit");
 		JsonObject faces = el.getAsJsonObject("faces");
 		for (int f = 0; f < 6; f++) {
 			JsonObject face = faces.has(FACE_NAMES[f]) ? faces.getAsJsonObject(FACE_NAMES[f]) : null;
@@ -268,6 +278,7 @@ public final class BbModel {
 			float u2 = uvArr.get(2).getAsFloat() / tw, v2 = uvArr.get(3).getAsFloat() / th;
 			int faceRot = face.has("rotation") ? face.get("rotation").getAsInt() : 0;
 			Quad q = new Quad(glow, tex);
+			q.lit = lit;
 			int[] ax = FACE_AXES[f];
 			float[] cu = {0, 1, 1, 0}, cv = {0, 0, 1, 1};
 			for (int k = 0; k < 4; k++) {
@@ -457,7 +468,7 @@ public final class BbModel {
 			n[0] = -nx / len;
 			n[1] = ny / len;
 			n[2] = -nz / len;
-			sink.quad(p, uv, n, q.glow);
+			sink.quad(p, uv, n, q.glow, q.lit);
 		}
 		for (Bone c : bone.children) {
 			renderBone(c, m, pose, texture, sink, p, uv, n);

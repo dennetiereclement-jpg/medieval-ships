@@ -3,6 +3,6 @@
   "minVersion": "0.8",
   "package": "fr.medievalships.mixin",
   "compatibilityLevel": "JAVA_21",
-  "mixins": ["EntityCollisionMixin", "ServerPlayNetworkHandlerAccessor"],
+  "mixins": ["EntityCollisionMixin", "EntityFluidMixin", "LivingEntityLadderMixin", "ServerPlayNetworkHandlerAccessor"],
   "injectors": { "defaultRequire": 1 }
 }
