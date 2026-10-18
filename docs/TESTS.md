@@ -11,8 +11,8 @@ le `.jar` obtenu est celui qui vous est livré.
 La tâche *In-game test* lance un **vrai client Minecraft 1.21.11** avec le `.jar` de
 production (mod remappé, comme sur un vrai serveur), deux fois : **sans** et **avec Lithium**.
 Chaque fois, tout le scénario est joué **en solo** puis sur un **vrai serveur dédié** auquel le
-client se connecte par le réseau (contrôles de mouvement du serveur actifs) : **154 vérifications,
-toutes réussies** (version 1.5.6, avec et sans Lithium, en solo et sur serveur dédié).
+client se connecte par le réseau (contrôles de mouvement du serveur actifs) : **194 vérifications,
+toutes réussies** (version 1.6.0, avec et sans Lithium, en solo et sur serveur dédié).
 Le test (`src/gametest/.../ShipClientGameTest.java`) crée un monde, des bassins, met les navires
 à l'eau puis vérifie (résultats et captures publiés sur les branches `test-results-vanilla` et
 `test-results-lithium`) :
@@ -37,6 +37,39 @@ Le même scénario pour chacun, dans un quatrième bassin (44 × 100 blocs) :
 Les captures sont dans les branches `test-results-*` (fichiers `*_medieval_galley_*`,
 `*_steam_paddleboat_*`, `*_elven_sailboat_*`). Pendant les six vues, le test désactive
 `furlSailWhenStopped` côté serveur (puis le rétablit) pour que les voiles restent établies.
+
+### Dirigeable steampunk — 1.6.0
+
+Au-dessus d'un terrain plat, à l'est des bassins, joué en solo et sur serveur dédié :
+
+* `/ship spawn steampunk_airship` : il apparaît **en l'air**, la quille un bloc au-dessus du sol,
+  sans rien toucher ; **il ne tombe pas** (même hauteur au millième après 3 s) ;
+* **six captures comparables à l'image de référence** (`steampunk_airship_1_droite` …
+  `6_perspective`, puis `7_vol` et `8_pilote_auto`) ;
+* **6 places occupées** (pilote + 5 passagers), un de plus refusé ;
+* pilotage : **Espace fait monter** (4,9 blocs en 4 s, montée progressive), touche relâchée il
+  **garde son altitude** (au millième), il **avance** (6,8 blocs en 5 s) et **vire** (13,9° en
+  3 s) **à altitude constante**, **Ctrl le fait descendre** (3,3 blocs) ; les passagers restent
+  assis ; le pilote descend sur le pont de la nacelle ; jamais à l'intérieur d'un bloc ;
+* **pilote automatique en 3D** : itinéraire aérien de 60 blocs jusqu'à une escale 12 blocs plus
+  haut, un **mur de 16 blocs** au milieu : il le **survole** (quille 5 blocs au-dessus), ne touche
+  jamais ni le mur ni le sol, **arrive à l'escale** (à 2,9 blocs, pont à 4 cm de la hauteur
+  voulue) puis se tourne vers le cap de l'escale ;
+* **clic droit avec l'objet** sur le sol : un second dirigeable apparaît au-dessus ;
+  `/ship give steampunk_airship` donne l'objet.
+
+Tests unitaires (`AirshipTest`, 9 tests) : forme identique au générateur, dimensions et
+places, vol stationnaire sans chute, montée et descente progressives avec inertie, atterrissage
+sans s'enfoncer, plafond `maxAltitude` et toit infranchissables, virages doux, arrêt devant une
+montagne, **itinéraire 3D par-dessus une colline** (décollage, survol à plus de 0,5 bloc du
+sol, descente à l'escale, cap tenu à l'escale).
+
+Non vérifié automatiquement : le **redémarrage d'un serveur** avec un dirigeable en route (la
+sauvegarde utilise le même mécanisme que les navires — position, vitesses, vitesse verticale,
+itinéraire et état du pilote automatique enregistrés avec l'entité — mais le test en jeu ne
+peut pas redémarrer le serveur) ; les **sons** (joués côté client, inaudibles pour le test) ;
+plusieurs joueurs réels à bord en même temps (le test utilise des porte-armures comme
+passagers).
 
 ### Filets de sécurité (collisions désactivées)
 
@@ -100,7 +133,7 @@ cabine, balcon, gaillard d'arrière, navigation.
 | collisions coupées : le joueur est quand même rattrapé par le pont principal et par la dunette | réussi |
 | `/ship give warship` donne l'objet *Grand vaisseau de guerre* | réussi |
 
-## Tests unitaires (76, tous réussis)
+## Tests unitaires (85, tous réussis)
 
 `./gradlew test` :
 
