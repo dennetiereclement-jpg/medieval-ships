@@ -723,6 +723,97 @@ def diving_suit(bone, name, p, facing):
     beam(bone, "lit_%s_hose_b" % name, p + R @ v3(0.2, 2.05, -0.26), h + R @ v3(0.2, 0, -0.18), 0.05, "iron")
 
 
+def spare_helmet(bone, name, p, facing, s=1.0):
+    """A diving helmet on its own: the round copper dome, its bolted collar, the barred front window."""
+    R = ry(yaw_of(facing))
+    h = v3(*p) + v3(0, 0.25 * s, 0)
+    for k in range(3):
+        box(bone, "%s_dome%d" % (name, k), h, R @ ry(k * math.pi / 6), (0.46 * s, 0.46 * s, 0.46 * s), "copper")
+    box(bone, name + "_top", h + v3(0, 0.25 * s, 0), R @ ry(math.pi / 4), (0.28 * s, 0.07 * s, 0.28 * s), "copper")
+    for k in range(2):
+        box(bone, "%s_collar%d" % (name, k), h - v3(0, 0.24 * s, 0), R @ ry(k * math.pi / 4), (0.52 * s, 0.08 * s, 0.52 * s), "brass")
+    n = R @ v3(0, 0, 1)
+    add_cube(bone, "lit_%s_window" % name, h + n * 0.25 * s, R, (0.24 * s, 0.24 * s, 0.04), {"all": "brass", "+3": "helmet", "-3": "helmet"},
+             stretch=True)
+    for q in range(8):
+        a0, a1 = 2 * math.pi * q / 8, 2 * math.pi * (q + 1) / 8
+        beam(bone, "lit_%s_rim%d" % (name, q), h + n * 0.27 * s + (R[:, 0] * math.cos(a0) + R[:, 1] * math.sin(a0)) * 0.15 * s,
+             h + n * 0.27 * s + (R[:, 0] * math.cos(a1) + R[:, 1] * math.sin(a1)) * 0.15 * s, 0.035, "brass", up=n)
+    for k in (-1, 1):
+        box(bone, "%s_bar%d" % (name, k > 0), h + n * 0.29 * s + R[:, 0] * (0.05 * k * s), R, (0.02, 0.24 * s, 0.02), "brass")
+
+
+def wall_shelf(bone, name, p, normal, w=1.2):
+    """A wooden shelf on brass brackets."""
+    R, u, n = frame(normal)
+    p = v3(*p)
+    box(bone, name + "_board", p + n * 0.2, R, (w, 0.06, 0.4), "organ_wood")
+    for k in (-1, 1):
+        box(bone, "%s_bracket%d" % (name, k > 0), p + n * 0.12 + u * (k * (w / 2 - 0.12)) - v3(0, 0.12, 0), R, (0.05, 0.2, 0.22), "brass")
+
+
+def bench(bone, name, p, facing, length=1.2):
+    """A plain bench of dark wood on iron legs."""
+    R = ry(yaw_of(facing))
+    p = v3(*p)
+    box(bone, name + "_seat", p + v3(0, 0.44, 0), R, (length, 0.07, 0.4), "organ_wood")
+    for k in (-1, 1):
+        box(bone, "%s_leg%d" % (name, k > 0), p + R @ v3(k * (length / 2 - 0.1), 0.2, 0), R, (0.06, 0.42, 0.34), "iron")
+    box(bone, name + "_stretcher", p + v3(0, 0.12, 0), R, (length - 0.2, 0.05, 0.05), "iron")
+
+
+def rifle_rack(bone, name, p, normal, n_rifles=3):
+    """Captain Nemo's electric hunting rifles (Verne: air guns firing electric bullets) on a wall rack:
+    a board with pegs, each rifle a stock, a long barrel and the air reservoir under it."""
+    R, u, nn = frame(normal)
+    p = v3(*p)
+    w = 0.42 * n_rifles + 0.2
+    box(bone, name + "_board", p + nn * 0.04, R, (w, 1.5, 0.06), "organ_wood")
+    box(bone, name + "_crest", p + nn * 0.06 + v3(0, 0.8, 0), R, (w + 0.1, 0.08, 0.1), "brass")
+    for k in range(n_rifles):
+        x = -w / 2 + 0.3 + 0.42 * k
+        base = p + nn * 0.14 + u * x
+        beam(bone, "lit_%s_stock%d" % (name, k), base - v3(0, 0.68, 0), base - v3(0, 0.2, 0), 0.1, "organ_wood", width=0.06)
+        beam(bone, "lit_%s_barrel%d" % (name, k), base - v3(0, 0.2, 0), base + v3(0, 0.72, 0), 0.04, "steel")
+        beam(bone, "lit_%s_reservoir%d" % (name, k), base + nn * 0.05 - v3(0, 0.15, 0), base + nn * 0.05 + v3(0, 0.3, 0), 0.07, "copper")
+        box(bone, "%s_trigger%d" % (name, k), base - v3(0, 0.22, 0) + nn * 0.05, R, (0.04, 0.06, 0.06), "brass")
+        for y in (-0.3, 0.45):
+            box(bone, "%s_peg%d_%d" % (name, k, int(y > 0)), p + nn * 0.1 + u * x + v3(0, y, 0), R, (0.18, 0.04, 0.12), "brass")
+
+
+def ruhmkorff_lamp(bone, name, p, normal):
+    """A Ruhmkorff lamp hung on a hook: the battery box on a strap, the glass coil glowing."""
+    R, u, n = frame(normal)
+    p = v3(*p)
+    box(bone, name + "_hook", p + n * 0.05, R, (0.05, 0.12, 0.1), "brass")
+    beam(bone, "lit_%s_strap" % name, p + n * 0.08, p + n * 0.12 - v3(0, 0.3, 0), 0.03, "iron")
+    box(bone, name + "_box", p + n * 0.15 - v3(0, 0.45, 0), R, (0.22, 0.26, 0.14), "copper")
+    box(bone, name + "_lid", p + n * 0.15 - v3(0, 0.31, 0), R, (0.24, 0.03, 0.16), "brass")
+    add_cube(bone, "glow_%s_coil" % name, p + n * 0.26 - v3(0, 0.45, 0), R, (0.12, 0.14, 0.08), "glow")
+
+
+def boots(bone, name, p, facing):
+    """A pair of lead-soled diving boots."""
+    R = ry(yaw_of(facing))
+    p = v3(*p)
+    for s_ in (-1, 1):
+        box(bone, "%s_%d" % (name, s_ > 0), p + R @ v3(s_ * 0.14, 0.14, 0.03), R, (0.2, 0.24, 0.34), "iron")
+        box(bone, "%s_sole%d" % (name, s_ > 0), p + R @ v3(s_ * 0.14, 0.04, 0.05), R, (0.23, 0.08, 0.4), "copper")
+
+
+def hose_coil(bone, name, p, normal, r=0.3):
+    """A coil of air hose hung on the wall."""
+    R, u, n = frame(normal)
+    c = v3(*p) + n * 0.1
+    for t in range(3):
+        rr = r - 0.05 * t
+        for q in range(10):
+            a0, a1 = 2 * math.pi * q / 10, 2 * math.pi * (q + 1) / 10
+            beam(bone, "lit_%s_%d_%d" % (name, t, q), c + n * (0.04 * t) + (u * math.cos(a0) + v3(0, 1, 0) * math.sin(a0)) * rr,
+                 c + n * (0.04 * t) + (u * math.cos(a1) + v3(0, 1, 0) * math.sin(a1)) * rr, 0.05, "iron", up=n)
+    box(bone, name + "_peg", c, R, (0.08, 0.08, 0.2), "brass")
+
+
 def tank(bone, name, p, h=1.6, r=0.35, region="copper"):
     p = v3(*p)
     box(bone, name, p + v3(0, h / 2, 0), EYE, (2 * r, h, 2 * r), region)

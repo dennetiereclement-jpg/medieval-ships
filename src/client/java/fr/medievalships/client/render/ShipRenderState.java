@@ -24,4 +24,6 @@ public class ShipRenderState extends EntityRenderState {
 	public boolean floodlight;
 	public boolean lightsOff;
 	public boolean lifeboatAway;
+	/** The camera is in the dry rooms of this vessel, under the water: the sea behind the glass is murky. */
+	public boolean murk;
 }

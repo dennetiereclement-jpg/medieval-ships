@@ -61,7 +61,7 @@ rx, ry, rz = gg.rx, gg.ry, gg.rz
 EYE = np.eye(3)
 SIDES = (1, -1)
 
-NAZ = 40
+NAZ = 56
 HULL_S = [-1.0, -0.985, -0.95, -0.9, -0.83, -0.74, -0.63, -0.5, -0.36, -0.22, -0.08, 0.0, 0.08, 0.2, 0.33, 0.46,
           0.58, 0.69, 0.78, 0.86, 0.92, 0.96, 0.985, 1.0]
 FINE = 0.3  # size of the panels cut around the windows
@@ -168,8 +168,8 @@ def windows(bone, lights):
     for side in SIDES:
         sn = "p" if side > 0 else "s"
         c, nrm = on_hull(wz, wy, side, 0.08)
-        ring(bone, "salon_frame_%s" % sn, c, nrm, wr - 0.05, 0.3, "brass", n=16, width=0.36)
-        ring(bone, "salon_iris_%s" % sn, c, nrm, wr * 0.7, 0.06, "brass", n=16, width=0.1)
+        ring(bone, "salon_frame_%s" % sn, c, nrm, wr - 0.05, 0.3, "brass", n=32, width=0.36)
+        ring(bone, "salon_iris_%s" % sn, c, nrm, wr * 0.7, 0.06, "brass", n=32, width=0.1)
         for k in range(8):
             t = 2 * math.pi * (k + 0.5) / 8
             zz, yy = wz + math.cos(t) * (wr + 0.45), wy + math.sin(t) * (wr + 0.45)
@@ -177,18 +177,27 @@ def windows(bone, lights):
             add_cube(lights, "glow_salon_lamp_%s%d" % (sn, k), p, EYE, (0.3, 0.3, 0.3), "glow")
             add_cube(bone, "salon_lamp_socket_%s%d" % (sn, k), on_hull(zz, yy, side, 0.02)[0], EYE, (0.42, 0.42, 0.42), "brass")
         for z, y in [(z, ns.SMALL_WINDOWS_Y) for z in ns.SMALL_WINDOWS_Z] + list(ns.CABIN_PORTHOLES):
-            c, nrm = on_hull(z, y, side, 0.06)
-            ring(bone, "porthole_%s_%d_%d" % (sn, int(z * 10), int(y * 10)), c, nrm, 0.5, 0.12, "brass", n=8, width=0.16)
+            # a round bolted collar, its inner lip and a ring of bolts
+            name = "porthole_%s_%d_%d" % (sn, int(z * 10), int(y * 10))
+            c, nrm = on_hull(z, y, side, 0.07)
+            ring(bone, name, c, nrm, 0.56, 0.14, "brass", n=20, width=0.2)
+            ring(bone, name + "_lip", c + nrm * 0.04, nrm, 0.45, 0.08, "brass", n=16, width=0.06)
+            e1 = norm(np.cross(nrm, v3(0, 0, 1)))
+            e2 = np.cross(nrm, e1)
+            for k in range(8):
+                t = 2 * math.pi * k / 8
+                add_cube(bone, "%s_bolt%d" % (name, k), c + nrm * 0.08 + (e1 * math.cos(t) + e2 * math.sin(t)) * 0.56, EYE,
+                         (0.07, 0.07, 0.07), "steel")
     # brass frames of the wheelhouse windows, outside and inside
     wy0, wy1 = ns.TOWER_WINDOWS_Y
     yc, r = (wy0 + wy1) / 2, (wy1 - wy0) / 2 + 0.05
     for k, (x0, x1) in enumerate(ns.TOWER_FRONT_WINDOWS_X):
         for z, tag in ((ns.TOWER_Z[1] + 0.16, "out"), (ns.TOWER_Z[1] - 0.56, "in")):
-            ring(bone, "tower_window_%d_%s" % (k, tag), v3((x0 + x1) / 2, yc, z), v3(0, 0, 1), r, 0.12, "brass", n=8, width=0.14)
+            ring(bone, "tower_window_%d_%s" % (k, tag), v3((x0 + x1) / 2, yc, z), v3(0, 0, 1), r, 0.12, "brass", n=16, width=0.14)
     for side in SIDES:
         for x, tag in ((side * (ns.TOWER_HALF_WIDTH + 0.16), "out"), (side * (ns.TOWER_HALF_WIDTH - 0.56), "in")):
             ring(bone, "tower_window_side_%d_%s" % (side > 0, tag), v3(x, yc, sum(ns.TOWER_SIDE_WINDOW_Z) / 2), v3(1, 0, 0), r, 0.12,
-                 "brass", n=8, width=0.14)
+                 "brass", n=16, width=0.14)
 
 
 def ram(bone):
@@ -355,7 +364,7 @@ def porthole_sleeves(bone, fx, g):
             if glass is not None:
                 # back from the glass along the tunnel until the room opens above it: the wall's face
                 x = glass
-                while abs(x) > 1.0 and kind(x, y + 0.75) not in (ni.DRY, ni.FURNITURE, ni.LADDER):
+                while abs(x) > 1.0 and kind(x, y + 0.75) not in (ni.DRY, ni.FURNITURE, ni.LADDER, ni.AIRLOCK):
                     x -= side * C / 2
                 i_room = int((x - ni.X0) / C)
                 wall = ni.X0 + (i_room + 1) * C if side > 0 else ni.X0 + i_room * C  # the wall's face on the room
@@ -486,7 +495,7 @@ def tower_shell(bone):
     """The wheelhouse as one rounded shell (corners and roof rounded), its four windows left open."""
     a, b = ns.TOWER_HALF_WIDTH + 0.08, (ns.TOWER_Z[1] - ns.TOWER_Z[0]) / 2 + 0.08
     zc = (ns.TOWER_Z[0] + ns.TOWER_Z[1]) / 2
-    plan = superellipse(a, b, 6, 56, zc)
+    plan = superellipse(a, b, 4.0, 64, zc)
     wy0, wy1 = ns.TOWER_WINDOWS_Y
     levels = [ns.CASING_TOP_Y, wy0, wy1, ns.TOWER_TOP_Y]
     sections = [[v3(x, yy, z) for x, z in plan] for yy in levels]
@@ -501,7 +510,7 @@ def tower_shell(bone):
     loft(bone, "tower_wall", sections, "hull_light", centre, closed=True, skip=window)
     # the roof, gently domed
     roof = []
-    for k, (sc, dyr) in enumerate(((1.0, 0.0), (0.93, 0.22), (0.75, 0.4), (0.45, 0.5), (0.04, 0.53))):
+    for k, (sc, dyr) in enumerate(((1.0, 0.0), (0.96, 0.25), (0.86, 0.5), (0.68, 0.72), (0.42, 0.86), (0.04, 0.92))):
         roof.append([v3(x * sc, ns.TOWER_TOP_Y + dyr, zc + (z - zc) * sc) for x, z in plan])
     loft(bone, "tower_roof", roof, "hull_light", lambda p: v3(0, ns.TOWER_TOP_Y - 2.0, zc), closed=True)
     # brass bands at the foot and under the roof
@@ -839,7 +848,10 @@ def doors(root, g):
         bone = Bone("door_%d" % d, origin=tuple(hinge), parent=root)
         c = v3((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2)
         size = (sx if sx > thin * 2 else thin, sy if not flat else thin, sz if sz > thin * 2 else thin)
-        if d == 9:
+        if flat:
+            add_cube(bone, "lit_door_%d" % d, c, EYE, size, {"all": "steel", "+2": "hatch", "-2": "hatch"}, stretch=True,
+                     u_dir=v3(1, 0, 0), v_dir=v3(0, 0, 1))
+        elif d == 9:
             size = (thin, sy, sz)
             add_cube(bone, "lit_door_%d" % d, c, EYE, size, {"all": "steel", "+1": "door_leaf", "-1": "door_leaf"}, stretch=True,
                      u_dir=v3(0, 0, 1), v_dir=v3(0, -1, 0))

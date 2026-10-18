@@ -131,7 +131,7 @@ ROOMS = {
 # doors: index -> (name, box). Doors are 2 blocks wide (two leaves), 2 high, as thick as the wall; hatches
 # lie flat and stay 1 block
 DOORS = {
-    0: ("hatch", (1.0, 2.0, ns.CASING_TOP_Y - 0.5, ns.CASING_TOP_Y, -9.0, -8.0)),
+    0: ("hatch", (0.0, 2.0, ns.CASING_TOP_Y - 0.5, ns.CASING_TOP_Y, -9.5, -7.5)),
     1: ("nemo", (-2.0, -1.5, M0, M0 + 2.0, 22.0, 24.0)),
     2: ("aronnax", (1.5, 2.0, M0, M0 + 2.0, 22.0, 24.0)),
     3: ("corridor_dining", (-1.0, 1.0, M0, M0 + 2.0, 18.0, 18.5)),
@@ -142,11 +142,11 @@ DOORS = {
     8: ("airlock_inner", (-1.0, 1.0, L0, L0 + 2.0, 24.5, 25.0)),
     9: ("airlock_outer", None),  # in the hull at the end of the airlock tunnel, see build()
     10: ("wheelhouse_cage", (-1.0, 1.0, ns.CASING_TOP_Y, ns.CASING_TOP_Y + 2.0, ns.TOWER_Z[0], ns.TOWER_Z[0] + 0.5)),
-    11: ("wheelhouse_trap", (-0.5, 0.5, ns.CASING_TOP_Y - 0.5, ns.CASING_TOP_Y, 18.5, 19.5)),
+    11: ("wheelhouse_trap", (-1.0, 1.0, ns.CASING_TOP_Y - 0.5, ns.CASING_TOP_Y, 18.5, 20.0)),
     12: ("coursive_kitchen", (1.5, 2.0, L0, L0 + 2.0, 9.0, 11.0)),
     13: ("coursive_crew", (1.5, 2.0, L0, L0 + 2.0, 17.5, 19.5)),
     15: ("secret_trap", (-0.5, 0.5, L0 - 0.5, L0, 1.0, 2.0)),
-    16: ("boat_hatch", (0.5, 1.5, 7.5, 8.0, -19.0, -18.0)),
+    16: ("boat_hatch", (-0.5, 1.5, 7.5, 8.0, -19.5, -17.5)),
     17: ("store_port", (1.5, 2.0, L0, L0 + 2.0, -1.5, 0.5)),
     18: ("store_stbd", (-2.0, -1.5, L0, L0 + 2.0, -1.5, 0.5)),
 }
@@ -161,6 +161,13 @@ LADDERS = {
     "engine":     ((2.5, 3.5, L0, M0, -26.5, -25.5), (2.5, 3.5, L0, M0, -27.0, -26.5)),
     "bilge":      ((-0.5, 0.5, B0, L0, 1.0, 2.0), (-0.5, 0.5, B0, B1, 2.0, 2.5)),
 }
+
+# shafts round the ladders, from the ceiling of the room below to the hatch (2 x 2 blocks or so)
+SHAFTS = [
+    (0.0, 2.0, M1 - 0.5, ns.CASING_TOP_Y - 0.5, -9.5, -7.5),     # hatch to the casing
+    (-1.0, 1.0, M1 - 0.5, ns.CASING_TOP_Y - 0.5, 18.5, 20.0),    # trap of the wheelhouse
+    (-0.5, 1.5, M1 - 0.5, 7.5, -19.5, -17.5),                    # hatch of the lifeboat
+]
 
 # spiral staircase in the stair hall, lower level to main level, around a column
 SPIRAL_CENTER = (-1.0, -9.5)
@@ -244,6 +251,9 @@ def build():
     g.set(SOLID, -5.0, 5.0, L0, M1, pz0, pz1, where=inner)
     g.set(DRY, 0.5, 2.5, L0, L0 + 2.5, pz0, pz1)        # walk-through below, beside the engine
     g.set(DRY, CATWALK[0] + 0.5, CATWALK[1], M0, M0 + 2.5, pz0, pz1)  # and along the catwalk
+    # the shafts of the ladders through the hull, 2 blocks wide, up to the hatches
+    for box in SHAFTS:
+        g.set(DRY, *box)
     # ladders and their pillars
     for name, (box, pillar) in LADDERS.items():
         g.set(LADDER, *box)

@@ -12,9 +12,9 @@ import fr.medievalships.entity.ShipInteriors;
 /** The view from the rooms of a submerged vessel: the sea behind the glass is fogged as for a swimmer. */
 public final class ShipFog {
 	/** Distance (blocks) the fog leaves clear: a room is seen as it is. */
-	public static final float CLEAR_DISTANCE = 6f;
+	public static final float CLEAR_DISTANCE = 5f;
 	/** Distance at which the sea fog hides everything. */
-	public static final float END_DISTANCE = 64f;
+	public static final float END_DISTANCE = 36f;
 
 	private ShipFog() {
 	}

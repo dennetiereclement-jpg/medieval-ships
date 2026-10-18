@@ -1331,6 +1331,8 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		check(w[0] == 0 && w[3] == 0 && w[1] == 0 && w[4] == 0 && w[2] == 0, "%s submerged: the rooms are dry (no water, no underwater view)", id);
 		check(w[5] == w[6], "%s submerged: the player keeps all his air (%.0f/%.0f)", id, w[5], w[6]);
 		check(Math.abs(w[8]) < 0.06, "%s submerged: standing on the main level floor (local y %.3f)", id, w[8]);
+		boolean murky = context.computeOnClient((MinecraftClient mc) -> fr.medievalships.client.render.ShipFog.inDryRoomUnderWater(mc.gameRenderer.getCamera()));
+		check(murky, "%s submerged: the sea seen through the glass is murky (sea fog and veils behind the windows)", id);
 		shot(context, id + "_6_interieur_en_plongee");
 
 		context.getInput().holdKeyFor(o -> o.forwardKey, 60);

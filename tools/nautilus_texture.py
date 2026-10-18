@@ -32,6 +32,7 @@ REGIONS = {
     "rung":        (160, 32, 16, 16),
     "hatch":       (176, 32, 32, 32),
     "door":        (208, 32, 32, 32),  # watertight door: riveted steel, thick frame, wheel painted
+    "murk":        (416, 96, 8, 8),    # plain white: the murky sea behind the glass (tinted by the renderer, see ShipRenderer)
     "door_leaf":   (192, 96, 32, 64),  # one leaf of a 2 block door (1 x 2): mahogany, bronze straps, porthole, panels
     # rooms: luxury (salon, library, dining room, Aronnax), austere and technical
     "wall_lux":    (0, 64, 32, 32),    # dark wood panelling, gilded band, red fabric above
@@ -550,10 +551,76 @@ def _fabric(px, region, base, dark, rng, folds=True, crackle=False):
             _put(px, u, v, x, y, c)
 
 
+def _skin(px, region, base, rng, patina=0.0):
+    """Smooth copper skin for the hull, the casing and the wheelhouse: no seams or rivets that would
+    repeat on every panel (the panels then read as one smooth curved surface), only a soft, slow
+    mottling and some verdigris; tiles."""
+    u, v, w, h = region
+    n1 = _noise(w, h, 2, rng)
+    n2 = _noise(w, h, 4, rng)
+    for y in range(h):
+        for x in range(w):
+            k = 0.95 + 0.07 * n1[y][x] + 0.03 * n2[y][x]
+            c = tuple(q * k for q in base)
+            if patina and n2[y][x] > 0.8:
+                c = _mix(c, _rgb("4f7a5c"), patina * (n2[y][x] - 0.8) / 0.2)
+            _put(px, u, v, x, y, c)
+
+
+def _paint_hatch(px, rng):
+    """Watertight hatch, seen from above or below: a dished steel plate, a raised brass coaming ring,
+    six dogs clamping it, a handwheel with spokes in the middle, two hinge straps, rivets."""
+    u, v, w, h = REGIONS["hatch"]
+    n = _noise(w, h, 4, rng)
+    cx = cy = (w - 1) / 2
+    steel, steel_l, steel_d = _rgb("5a5550"), _rgb("8a847c"), _rgb("2a2724")
+    brass, gold, brass_d = _rgb("c9a24a"), _rgb("f0d27a"), _rgb("7a5a20")
+    for y in range(h):
+        for x in range(w):
+            d = math.hypot(x - cx, y - cy)
+            c = _mix(steel_l, steel, min(1.0, d / 14))  # dished: lighter in the middle
+            c = tuple(q * (0.94 + 0.1 * n[y][x]) for q in c)
+            if min(x, y, w - 1 - x, h - 1 - y) == 0:
+                c = steel_d
+            elif min(x, y, w - 1 - x, h - 1 - y) == 1:
+                c = _shade(steel, 1.15)
+            elif min(x, y, w - 1 - x, h - 1 - y) == 2 and (x + y) % 4 == 0:
+                c = steel_l
+            if 12.2 < d < 14.2:  # coaming ring
+                c = gold if (y - cy) < -(x - cx) * 0.3 else brass if d < 13.6 else brass_d
+            if 4.5 < d < 6.0:  # handwheel rim
+                c = gold if y < cy else brass
+            elif d < 1.6:
+                c = brass_d
+            elif d < 5.0:
+                a = math.degrees(math.atan2(y - cy, x - cx)) % 60
+                if a < 8 or a > 52:  # six spokes
+                    c = brass
+            _put(px, u, v, x, y, c)
+    for k in range(6):  # the dogs, clamping the coaming
+        a = 2 * math.pi * k / 6 + math.pi / 6
+        for t in range(-1, 2):
+            x = int(round(cx + math.cos(a) * (13.2 + t)))
+            y = int(round(cy + math.sin(a) * (13.2 + t)))
+            _put(px, u, v, x, y, steel_d if t else _rgb("b8b0a4"))
+    for y0 in (8, 22):  # hinge straps on one side
+        for y in range(y0, y0 + 3):
+            for x in range(2, 9):
+                _put(px, u, v, x, y, _rgb("3a3634") if y != y0 else _rgb("6d6660"))
+
+
 def _paint_finish(px, rng):
     """Last pass over the most seen materials: polished gold, brass and silver, velvet and leather,
     the parquet of the salons and the tiled floors."""
     R = REGIONS
+    _paint_hatch(px, rng)
+    u, v, w, h = R["murk"]
+    for y in range(h):
+        for x in range(w):
+            px[u + x, v + y] = (255, 255, 255, 255)
+    _skin(px, R["plate"], _rgb("7e4a2a"), rng, patina=0.25)
+    _skin(px, R["plate_dark"], _rgb("53331f"), rng, patina=0.35)
+    _skin(px, R["hull_light"], _rgb("8a5632"), rng, patina=0.2)
     _polished(px, R["gold"], _rgb("fff2b0"), _rgb("e0b450"), _rgb("9a6e20"), rng)
     _polished(px, R["steel"], _rgb("6a6662"), _rgb("44403c"), _rgb("24211f"), rng, brushed=0.1)
     _polished(px, R["brass"], _rgb("f8e0a0"), _rgb("c99a44"), _rgb("7a5420"), rng)

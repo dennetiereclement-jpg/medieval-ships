@@ -39,6 +39,18 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 			DOOR_ANIMATIONS[k] = "door_" + k;
 		}
 	}
+	/**
+	 * The murky sea seen through the glass from the rooms of a submerged vessel: veils of sea water,
+	 * one behind the other, outside the hull (only drawn while the camera is in its dry rooms under
+	 * the water). Each veil: x0, x1, y0, y1, z0, z1 (ship-local), the planes along x on both sides and
+	 * across z ahead of the wheelhouse.
+	 */
+	private static final int MURK_LAYERS = 8;
+	private static final float MURK_STEP = 1.5f;
+	private static final int MURK_COLOR = 0x2A5A80;
+	private static final int MURK_ALPHA = 44;
+	/** The plain white texel of the Nautilus texture (region "murk" of tools/nautilus_texture.py). */
+	private static final float MURK_U = 420f / 512f, MURK_V = 100f / 512f;
 	/** A painting is drawn this far in front of the centre of its frame's canvas. */
 	private static final float PAINTING_OFFSET = 0.062f;
 	private final Visual visual;
@@ -77,6 +89,8 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 			state.floodlight = entity.toggle(Ships.NautilusLayout.FLOODLIGHT_ON);
 			state.lightsOff = entity.toggle(Ships.NautilusLayout.LIGHTS_OFF);
 			state.lifeboatAway = entity.toggle(Ships.NautilusLayout.LIFEBOAT_AWAY);
+			net.minecraft.client.render.Camera camera = net.minecraft.client.MinecraftClient.getInstance().gameRenderer.getCamera();
+			state.murk = camera != null && entity.squaredDistanceTo(camera.getCameraPos()) < 80 * 80 && ShipFog.inDryRoomUnderWater(camera);
 		}
 	}
 
@@ -182,6 +196,10 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 				});
 			}
 			}
+			// the murky sea behind the glass, seen from the rooms under water
+			if (state.murk && !visual.textures().isEmpty()) {
+				submitMurk(matrices, queue, visual.textures().get(0), light);
+			}
 			// vanilla paintings in their gilded frames
 			if (decorDrawn) {
 				for (fr.medievalships.core.InteriorDecor.Painting p : decor.paintings) {
@@ -209,6 +227,38 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 			matrices.pop();
 		}
 		super.render(state, matrices, queue, cameraState);
+	}
+
+	/** Veils of murky sea water outside the hull, along both sides and ahead of the wheelhouse. */
+	private static void submitMurk(MatrixStack matrices, OrderedRenderCommandQueue queue, Identifier texture, int light) {
+		RenderLayer layer = RenderLayers.entityTranslucent(texture);
+		int color = (MURK_ALPHA << 24) | MURK_COLOR;
+		float casing = (float) Ships.NautilusLayout.CASING_TOP_Y;
+		queue.submitCustom(matrices, layer, (entry, vertices) -> {
+			for (int k = 0; k < MURK_LAYERS; k++) {
+				float d = k * MURK_STEP;
+				for (int side = -1; side <= 1; side += 2) {
+					float x = side * (7.4f + d);
+					murkQuad(entry, vertices, color, light, new float[] {x, -8, -48}, new float[] {x, -8, 48}, new float[] {x, 16, 48},
+							new float[] {x, 16, -48}, side);
+				}
+				float z = 23.2f + d;
+				murkQuad(entry, vertices, color, light, new float[] {-8, casing + 0.1f, z}, new float[] {8, casing + 0.1f, z},
+						new float[] {8, casing + 8, z}, new float[] {-8, casing + 8, z}, 0);
+			}
+		});
+	}
+
+	private static void murkQuad(MatrixStack.Entry entry, net.minecraft.client.render.VertexConsumer vertices, int color, int light,
+			float[] a, float[] b, float[] c, float[] d, int side) {
+		for (float[] p : new float[][] {a, b, c, d, d, c, b, a}) { // both windings: seen from either side
+			vertices.vertex(entry, p[0], p[1], p[2])
+					.color(color)
+					.texture(MURK_U, MURK_V)
+					.overlay(OverlayTexture.DEFAULT_UV)
+					.light(light)
+					.normal(entry, side == 0 ? 0f : -side, 0f, side == 0 ? -1f : 0f);
+		}
 	}
 
 	/** A vanilla painting: its texture on the canvas, just in front of the canvas of its frame. */

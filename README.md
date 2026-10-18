@@ -73,6 +73,13 @@ Pour tous :
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
 
+La version 1.7.4 continue le Nautilus :
+* extérieur lisse : la coque, le capot et la timonerie n'ont plus de quadrillage de plaques, la coque a plus de facettes, la timonerie est arrondie avec un toit bombé ;
+* hublots extérieurs ronds, à collerette de laiton boulonnée ;
+* vue trouble à travers les vitres en plongée : voiles d'eau de mer derrière les vitres et brouillard sous-marin plus dense ;
+* trappes texturées (panneau étanche, couronne de laiton, volant, crabots) et trous d'échelle de 2 blocs de large (panneau d'accès, timonerie, canot) ;
+* le sas des scaphandres est équipé : banc, étagère de casques de rechange, chaussures lestées, lampes Ruhmkorff, râtelier de fusils électriques, tuyau d'air enroulé ; un hublot ne traverse plus le sas.
+
 La version 1.7.3 améliore encore le Nautilus :
 * toutes les portes des salles font 2 blocs de large, avec deux battants en acajou (hublot à collerette de laiton, panneaux moulurés dorés, ferrures de bronze rivetées) dans un cadre de laiton ;
 * les petits passages sont élargis : devant le sas, entre le couloir et la coursive du pont inférieur, palier de l'escalier ;
@@ -138,7 +145,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.7.3.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.7.4.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation

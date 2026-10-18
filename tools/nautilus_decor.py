@@ -423,6 +423,18 @@ def airlock():
         custom("valve_wheel", name=action + "_valve_out", p=(x_out, l + 1.6, 24.38), normal=(0, 0, -1), region=region, r=0.18)
         switch(action, (x_out, l + 1.6, 24.38), (0.22, 0.22, 0.14))
     custom("pipe_run", name="airlock_pipe", a=(-2.3, ni.L0 + 3.2, 25.2), b=(2.3, ni.L0 + 3.2, 25.2), r=0.1)
+    # the divers' gear: a bench under a shelf of spare helmets, boots under the bench, Ruhmkorff lamps on
+    # their hooks, the rack of electric rifles, coils of air hose
+    custom("bench", name="airlock_bench", p=(-2.15, l, 25.85), facing="port", length=1.1)
+    seat(-2.15, l + 0.5, 25.85, -1.2, 25.85)
+    custom("wall_shelf", name="airlock_shelf", p=(-2.5, l + 1.9, 28.35), normal=(1, 0, 0), w=1.1)
+    for k, z in enumerate((28.05, 28.65)):
+        custom("spare_helmet", name="airlock_helmet_%d" % k, p=(-2.1, l + 1.93, z), facing="port", s=0.9)
+    custom("boots", name="airlock_boots", p=(-1.75, l, 26.1), facing="port")
+    for k, z in enumerate((25.35, 27.75)):
+        custom("ruhmkorff_lamp", name="airlock_lamp_%d" % k, p=(-2.5, l + 1.5 if k else l + 1.9, z), normal=(1, 0, 0))
+    custom("rifle_rack", name="airlock_rifles", p=(2.5, l + 1.6, 28.1), normal=(-1, 0, 0), n_rifles=3)
+    custom("hose_coil", name="airlock_hose", p=(2.5, l + 2.5, 25.4), normal=(-1, 0, 0))
 
 
 def engine_room():

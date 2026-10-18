@@ -19,14 +19,14 @@ Comparaison avec la planche de référence (captures du test automatique dans le
 ## À bord
 
 * **Monter à bord** : clic droit sur la coque depuis l'extérieur. Le joueur est déposé sur la plate-forme (le dessus de la coque), en face de l'endroit cliqué.
-* **Panneau d'accès** (porte 0) : sur la plate-forme. Une échelle descend au pont principal.
+* **Panneau d'accès** (porte 0) : sur la plate-forme. Une échelle descend au pont principal par un puits de 2 blocs de large. La trappe de la timonerie et celle du canot ont aussi des puits de 2 blocs.
 * **Portes** : clic droit pour ouvrir ou fermer. Les 18 portes sont étanches et animées, et elles bloquent réellement le passage une fois fermées. Les portes des salles font 2 blocs de large, à deux battants en acajou (hublot, panneaux moulurés, ferrures de bronze) dans un cadre de laiton ; les panneaux et les trappes font 1 bloc.
 * **Échelles** : on les monte et descend comme des échelles vanilla (touche avancer, saut).
 * **Escalier en colimaçon** : il relie le pont inférieur au pont principal.
-* **Sièges** : clic droit sur une chaise, un fauteuil ou un canapé pour s'asseoir (30 places), puis Maj pour se lever.
+* **Sièges** : clic droit sur une chaise, un fauteuil ou un canapé pour s'asseoir (31 places), puis Maj pour se lever.
 * **Barre** : dans la timonerie, sur la plate-forme. Clic droit sur la roue pour prendre la barre.
 
-On marche librement dans toutes les salles pendant que le sous-marin avance, tourne ou plonge : les joueurs et les entités sont emportés avec la coque. L'intérieur est sec en plongée : pas de noyade, pas de nage. Par les baies et les hublots, la mer se voit comme quand on nage : un brouillard bleu qui se referme avec la distance. Il laisse nets les 6 premiers blocs, donc la salle elle-même reste claire. L'eau du monde n'est pas modifiée ; ce sont les compartiments du navire qui sont étanches.
+On marche librement dans toutes les salles pendant que le sous-marin avance, tourne ou plonge : les joueurs et les entités sont emportés avec la coque. L'intérieur est sec en plongée : pas de noyade, pas de nage. Par les baies et les hublots, la mer se voit comme quand on nage : une eau trouble, avec des voiles d'eau de mer derrière les vitres et un brouillard bleu qui se referme avec la distance. Il laisse nets les 5 premiers blocs, donc la salle elle-même reste claire. L'eau du monde n'est pas modifiée ; ce sont les compartiments du navire qui sont étanches.
 
 ### Les salles (d'après la planche)
 
