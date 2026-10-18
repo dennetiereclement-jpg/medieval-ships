@@ -63,6 +63,8 @@ public final class Autopilot {
 	private double lastError;
 	private boolean stuckReported;
 	private double bestDist = Double.MAX_VALUE;
+	/** Smallest altitude / depth error seen on this leg: climbing or diving to it is progress too. */
+	private double bestAltitudeError = Double.MAX_VALUE;
 	private int stallTicks;
 	private int blockedEvaluations;
 	/** Aircraft only: target altitude minus the current one; a stop is reached only once it is small. */
@@ -105,6 +107,7 @@ public final class Autopilot {
 
 	private void resetProgress() {
 		bestDist = Double.MAX_VALUE;
+		bestAltitudeError = Double.MAX_VALUE;
 		stallTicks = 0;
 	}
 
@@ -264,6 +267,10 @@ public final class Autopilot {
 		// ---- progress towards the target: local avoidance cannot solve every coastline
 		if (dist < bestDist - 2.0) {
 			bestDist = dist;
+			stallTicks = 0;
+		} else if (Math.abs(altitudeError) < bestAltitudeError - 0.5) {
+			// still coming to the stop's altitude or depth over it: not stuck
+			bestAltitudeError = Math.abs(altitudeError);
 			stallTicks = 0;
 		} else if (++stallTicks > STALL_SECONDS * 20 * Math.max(1.0, reach / 10.6)) {
 			resetProgress();
