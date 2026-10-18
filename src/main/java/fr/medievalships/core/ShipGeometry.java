@@ -71,6 +71,8 @@ public final class ShipGeometry {
 		 * the collisions, the carry volume and the floors instead of the open deck of a ship.
 		 */
 		public String interior;
+		/** Class path of the furniture of a vessel with rooms (blocks of decoration mods drawn in the rooms). */
+		public String decor;
 		/** Probe points along the hull sides and keel (false: only {@link #extraProbes}). */
 		public boolean hullProbes = true;
 		/** A submarine: dives instead of only floating. */
@@ -89,11 +91,13 @@ public final class ShipGeometry {
 	private final double boundingRadius;
 	private final double maxHeight;
 	private final InteriorGrid interior;
+	private final InteriorDecor decor;
 
 	public ShipGeometry(HullShape hull, Spec spec) {
 		this.hull = hull;
 		this.spec = spec;
 		this.interior = spec.interior == null ? null : InteriorGrid.load(spec.interior);
+		this.decor = spec.decor == null ? null : InteriorDecor.load(spec.decor);
 		List<double[]> probeList = spec.hullProbes ? buildProbes(hull, spec.probeStep, spec.probeHeights) : new ArrayList<>();
 		probeList.addAll(spec.extraProbes);
 		this.probes = Collections.unmodifiableList(probeList);
@@ -114,6 +118,11 @@ public final class ShipGeometry {
 	/** Interior grid of a vessel with rooms, null for an open ship. */
 	public InteriorGrid interior() {
 		return interior;
+	}
+
+	/** Furniture of a vessel with rooms, null for an open ship. */
+	public InteriorDecor decor() {
+		return decor;
 	}
 
 	/** Is this a submarine? */

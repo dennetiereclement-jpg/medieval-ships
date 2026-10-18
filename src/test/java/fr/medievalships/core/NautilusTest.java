@@ -47,6 +47,9 @@ class NautilusTest {
 		assertTrue(G.boundingRadius() >= NautilusLayout.RAM_TIP_Z);
 		assertNotNull(NAUTILUS.defaults().get().dive);
 		assertTrue(G.seats().get(ShipGeometry.PILOT_SEAT).pilot());
+		assertTrue(G.seats().size() >= 13, "the pilot and the chairs of the dining room");
+		assertNotNull(G.decor());
+		assertTrue(G.decor().blocks().size() > 40);
 		// every cell of the grid that is not outside lies inside the hull body, the casing, the wheelhouse, the cage or a keel
 		for (int ix = 0; ix < GRID.nx; ix++) {
 			for (int iz = 0; iz < GRID.nz; iz++) {
@@ -105,7 +108,9 @@ class NautilusTest {
 	void rooms() {
 		double m = NautilusLayout.MAIN_FLOOR_Y, l = NautilusLayout.LOWER_FLOOR_Y;
 		room("corridor", -1.1, 1.1, m, 20.4, 26.0);
-		room("dining room", -4.0, 4.0, m, 13.5, 17.6);
+		room("dining room (aisle)", -4.0, 4.0, m, 13.4, 13.9);
+		room("dining room (table end)", 3.4, 3.8, m, 13.4, 16.8);
+		assertFalse(fits(0, m, 15.5, InteriorGrid.State.CLOSED), "the dining table is solid");
 		room("library", -4.0, 4.0, m, 7.4, 12.0);
 		room("salon", -3.0, 3.0, m, -6.1, 6.1);
 		room("nemo", -4.6, -2.4, m, 20.4, 26.0);
@@ -196,10 +201,10 @@ class NautilusTest {
 	@Test
 	void rescueAndFalls() {
 		InteriorGrid.State s = InteriorGrid.State.CLOSED;
-		assertEquals(0.0, G.deckRescueY(0, -0.3, 15, s), 1e-9, "sunk into the dining room floor");
-		assertTrue(Double.isNaN(G.deckRescueY(0, 0.5, 15, s)), "standing in the dining room");
-		assertEquals(0.0, G.deckCrossingY(0, 15, 0.4, -1.5, 1e-3, true, s), 1e-9, "fell through the main floor");
-		assertTrue(Double.isNaN(G.deckCrossingY(0, 15, 3.0, 1.0, 1e-3, true, s)), "jumping in the dining room");
+		assertEquals(0.0, G.deckRescueY(0, -0.3, 13.6, s), 1e-9, "sunk into the dining room floor");
+		assertTrue(Double.isNaN(G.deckRescueY(0, 0.5, 13.6, s)), "standing in the dining room");
+		assertEquals(0.0, G.deckCrossingY(0, 13.6, 0.4, -1.5, 1e-3, true, s), 1e-9, "fell through the main floor");
+		assertTrue(Double.isNaN(G.deckCrossingY(0, 13.6, 3.0, 1.0, 1e-3, true, s)), "jumping in the dining room");
 	}
 
 	@Test

@@ -1,0 +1,534 @@
+{
+ "blocks": [
+  {
+   "block": "farmhouse_decorations:dining_table_side",
+   "x": -2.5,
+   "y": 0.0,
+   "z": 15.5,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_0"
+  },
+  {
+   "block": "farmhouse_decorations:dining_table_middle",
+   "x": -1.5,
+   "y": 0.0,
+   "z": 15.5,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_1"
+  },
+  {
+   "block": "farmhouse_decorations:dining_table_middle",
+   "x": -0.5,
+   "y": 0.0,
+   "z": 15.5,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_2"
+  },
+  {
+   "block": "farmhouse_decorations:dining_table_middle",
+   "x": 0.5,
+   "y": 0.0,
+   "z": 15.5,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_3"
+  },
+  {
+   "block": "farmhouse_decorations:dining_table_middle",
+   "x": 1.5,
+   "y": 0.0,
+   "z": 15.5,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_4"
+  },
+  {
+   "block": "farmhouse_decorations:dining_table_side",
+   "x": 2.5,
+   "y": 0.0,
+   "z": 15.5,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_5"
+  },
+  {
+   "block": "farmhouse_decorations:dining_chair",
+   "x": -2.5,
+   "y": 0.0,
+   "z": 14.45,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_6"
+  },
+  {
+   "block": "farmhouse_decorations:dining_chair",
+   "x": -2.5,
+   "y": 0.0,
+   "z": 16.55,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_7"
+  },
+  {
+   "block": "furnish:rare_english_plate",
+   "x": -2.5,
+   "y": 1.0,
+   "z": 15.25,
+   "yaw": 0.0,
+   "scale": 0.45,
+   "fallback": "fallback_8"
+  },
+  {
+   "block": "furnish:rare_english_plate",
+   "x": -2.5,
+   "y": 1.0,
+   "z": 15.75,
+   "yaw": 0.0,
+   "scale": 0.45,
+   "fallback": "fallback_9"
+  },
+  {
+   "block": "farmhouse_decorations:wine_glass",
+   "x": -2.2,
+   "y": 1.0,
+   "z": 15.15,
+   "yaw": 0.0,
+   "scale": 0.8,
+   "fallback": "fallback_10"
+  },
+  {
+   "block": "farmhouse_decorations:wine_glass",
+   "x": -2.8,
+   "y": 1.0,
+   "z": 15.85,
+   "yaw": 0.0,
+   "scale": 0.8,
+   "fallback": "fallback_11"
+  },
+  {
+   "block": "farmhouse_decorations:dining_chair",
+   "x": -1.5,
+   "y": 0.0,
+   "z": 14.45,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_12"
+  },
+  {
+   "block": "farmhouse_decorations:dining_chair",
+   "x": -1.5,
+   "y": 0.0,
+   "z": 16.55,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_13"
+  },
+  {
+   "block": "furnish:rare_english_plate",
+   "x": -1.5,
+   "y": 1.0,
+   "z": 15.25,
+   "yaw": 0.0,
+   "scale": 0.45,
+   "fallback": "fallback_14"
+  },
+  {
+   "block": "furnish:rare_english_plate",
+   "x": -1.5,
+   "y": 1.0,
+   "z": 15.75,
+   "yaw": 0.0,
+   "scale": 0.45,
+   "fallback": "fallback_15"
+  },
+  {
+   "block": "farmhouse_decorations:wine_glass",
+   "x": -1.2,
+   "y": 1.0,
+   "z": 15.15,
+   "yaw": 0.0,
+   "scale": 0.8,
+   "fallback": "fallback_16"
+  },
+  {
+   "block": "farmhouse_decorations:wine_glass",
+   "x": -1.8,
+   "y": 1.0,
+   "z": 15.85,
+   "yaw": 0.0,
+   "scale": 0.8,
+   "fallback": "fallback_17"
+  },
+  {
+   "block": "farmhouse_decorations:dining_chair",
+   "x": -0.5,
+   "y": 0.0,
+   "z": 14.45,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_18"
+  },
+  {
+   "block": "farmhouse_decorations:dining_chair",
+   "x": -0.5,
+   "y": 0.0,
+   "z": 16.55,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_19"
+  },
+  {
+   "block": "furnish:rare_english_plate",
+   "x": -0.5,
+   "y": 1.0,
+   "z": 15.25,
+   "yaw": 0.0,
+   "scale": 0.45,
+   "fallback": "fallback_20"
+  },
+  {
+   "block": "furnish:rare_english_plate",
+   "x": -0.5,
+   "y": 1.0,
+   "z": 15.75,
+   "yaw": 0.0,
+   "scale": 0.45,
+   "fallback": "fallback_21"
+  },
+  {
+   "block": "farmhouse_decorations:wine_glass",
+   "x": -0.2,
+   "y": 1.0,
+   "z": 15.15,
+   "yaw": 0.0,
+   "scale": 0.8,
+   "fallback": "fallback_22"
+  },
+  {
+   "block": "farmhouse_decorations:wine_glass",
+   "x": -0.8,
+   "y": 1.0,
+   "z": 15.85,
+   "yaw": 0.0,
+   "scale": 0.8,
+   "fallback": "fallback_23"
+  },
+  {
+   "block": "farmhouse_decorations:dining_chair",
+   "x": 0.5,
+   "y": 0.0,
+   "z": 14.45,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_24"
+  },
+  {
+   "block": "farmhouse_decorations:dining_chair",
+   "x": 0.5,
+   "y": 0.0,
+   "z": 16.55,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_25"
+  },
+  {
+   "block": "furnish:rare_english_plate",
+   "x": 0.5,
+   "y": 1.0,
+   "z": 15.25,
+   "yaw": 0.0,
+   "scale": 0.45,
+   "fallback": "fallback_26"
+  },
+  {
+   "block": "furnish:rare_english_plate",
+   "x": 0.5,
+   "y": 1.0,
+   "z": 15.75,
+   "yaw": 0.0,
+   "scale": 0.45,
+   "fallback": "fallback_27"
+  },
+  {
+   "block": "farmhouse_decorations:wine_glass",
+   "x": 0.8,
+   "y": 1.0,
+   "z": 15.15,
+   "yaw": 0.0,
+   "scale": 0.8,
+   "fallback": "fallback_28"
+  },
+  {
+   "block": "farmhouse_decorations:wine_glass",
+   "x": 0.2,
+   "y": 1.0,
+   "z": 15.85,
+   "yaw": 0.0,
+   "scale": 0.8,
+   "fallback": "fallback_29"
+  },
+  {
+   "block": "farmhouse_decorations:dining_chair",
+   "x": 1.5,
+   "y": 0.0,
+   "z": 14.45,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_30"
+  },
+  {
+   "block": "farmhouse_decorations:dining_chair",
+   "x": 1.5,
+   "y": 0.0,
+   "z": 16.55,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_31"
+  },
+  {
+   "block": "furnish:rare_english_plate",
+   "x": 1.5,
+   "y": 1.0,
+   "z": 15.25,
+   "yaw": 0.0,
+   "scale": 0.45,
+   "fallback": "fallback_32"
+  },
+  {
+   "block": "furnish:rare_english_plate",
+   "x": 1.5,
+   "y": 1.0,
+   "z": 15.75,
+   "yaw": 0.0,
+   "scale": 0.45,
+   "fallback": "fallback_33"
+  },
+  {
+   "block": "farmhouse_decorations:wine_glass",
+   "x": 1.8,
+   "y": 1.0,
+   "z": 15.15,
+   "yaw": 0.0,
+   "scale": 0.8,
+   "fallback": "fallback_34"
+  },
+  {
+   "block": "farmhouse_decorations:wine_glass",
+   "x": 1.2,
+   "y": 1.0,
+   "z": 15.85,
+   "yaw": 0.0,
+   "scale": 0.8,
+   "fallback": "fallback_35"
+  },
+  {
+   "block": "farmhouse_decorations:dining_chair",
+   "x": 2.5,
+   "y": 0.0,
+   "z": 14.45,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_36"
+  },
+  {
+   "block": "farmhouse_decorations:dining_chair",
+   "x": 2.5,
+   "y": 0.0,
+   "z": 16.55,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_37"
+  },
+  {
+   "block": "furnish:rare_english_plate",
+   "x": 2.5,
+   "y": 1.0,
+   "z": 15.25,
+   "yaw": 0.0,
+   "scale": 0.45,
+   "fallback": "fallback_38"
+  },
+  {
+   "block": "furnish:rare_english_plate",
+   "x": 2.5,
+   "y": 1.0,
+   "z": 15.75,
+   "yaw": 0.0,
+   "scale": 0.45,
+   "fallback": "fallback_39"
+  },
+  {
+   "block": "farmhouse_decorations:wine_glass",
+   "x": 2.8,
+   "y": 1.0,
+   "z": 15.15,
+   "yaw": 0.0,
+   "scale": 0.8,
+   "fallback": "fallback_40"
+  },
+  {
+   "block": "farmhouse_decorations:wine_glass",
+   "x": 2.2,
+   "y": 1.0,
+   "z": 15.85,
+   "yaw": 0.0,
+   "scale": 0.8,
+   "fallback": "fallback_41"
+  },
+  {
+   "block": "farmhouse_decorations:red_wine_bottle",
+   "x": -1.0,
+   "y": 1.0,
+   "z": 15.5,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_42"
+  },
+  {
+   "block": "farmhouse_decorations:red_wine_bottle",
+   "x": 1.0,
+   "y": 1.0,
+   "z": 15.5,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_43"
+  },
+  {
+   "block": "farmhouse_decorations:liquor_cabinet",
+   "x": 4.65,
+   "y": 0.0,
+   "z": 15.5,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_44"
+  },
+  {
+   "block": "farmhouse_decorations:liquor_cabinet",
+   "x": -4.65,
+   "y": 0.0,
+   "z": 15.5,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_45"
+  },
+  {
+   "block": "farmhouse_decorations:dresser",
+   "x": -3.5,
+   "y": 0.0,
+   "z": 17.65,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_46"
+  },
+  {
+   "block": "farmhouse_decorations:dresser",
+   "x": 3.5,
+   "y": 0.0,
+   "z": 17.65,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_47"
+  }
+ ],
+ "seats": [
+  {
+   "x": -2.5,
+   "y": 0.45,
+   "z": 14.55,
+   "dx": -2.5,
+   "dy": 0.02,
+   "dz": 13.9
+  },
+  {
+   "x": -2.5,
+   "y": 0.45,
+   "z": 16.45,
+   "dx": -2.5,
+   "dy": 0.02,
+   "dz": 17.1
+  },
+  {
+   "x": -1.5,
+   "y": 0.45,
+   "z": 14.55,
+   "dx": -1.5,
+   "dy": 0.02,
+   "dz": 13.9
+  },
+  {
+   "x": -1.5,
+   "y": 0.45,
+   "z": 16.45,
+   "dx": -1.5,
+   "dy": 0.02,
+   "dz": 17.1
+  },
+  {
+   "x": -0.5,
+   "y": 0.45,
+   "z": 14.55,
+   "dx": -0.5,
+   "dy": 0.02,
+   "dz": 13.9
+  },
+  {
+   "x": -0.5,
+   "y": 0.45,
+   "z": 16.45,
+   "dx": -0.5,
+   "dy": 0.02,
+   "dz": 17.1
+  },
+  {
+   "x": 0.5,
+   "y": 0.45,
+   "z": 14.55,
+   "dx": 0.5,
+   "dy": 0.02,
+   "dz": 13.9
+  },
+  {
+   "x": 0.5,
+   "y": 0.45,
+   "z": 16.45,
+   "dx": 0.5,
+   "dy": 0.02,
+   "dz": 17.1
+  },
+  {
+   "x": 1.5,
+   "y": 0.45,
+   "z": 14.55,
+   "dx": 1.5,
+   "dy": 0.02,
+   "dz": 13.9
+  },
+  {
+   "x": 1.5,
+   "y": 0.45,
+   "z": 16.45,
+   "dx": 1.5,
+   "dy": 0.02,
+   "dz": 17.1
+  },
+  {
+   "x": 2.5,
+   "y": 0.45,
+   "z": 14.55,
+   "dx": 2.5,
+   "dy": 0.02,
+   "dz": 13.9
+  },
+  {
+   "x": 2.5,
+   "y": 0.45,
+   "z": 16.45,
+   "dx": 2.5,
+   "dy": 0.02,
+   "dz": 17.1
+  }
+ ]
+}

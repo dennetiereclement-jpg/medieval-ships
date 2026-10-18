@@ -149,12 +149,15 @@ public final class BbModel {
 		final float[][] rot;
 		final float[][] pos;
 		final float[][] scale;
+		/** Bones not drawn (with their children) in this pose. */
+		final boolean[] hidden;
 		private final float[] tmp = new float[3];
 
 		Pose(int bones) {
 			rot = new float[bones][3];
 			pos = new float[bones][3];
 			scale = new float[bones][3];
+			hidden = new boolean[bones];
 			reset();
 		}
 
@@ -163,7 +166,16 @@ public final class BbModel {
 				rot[i][0] = rot[i][1] = rot[i][2] = 0;
 				pos[i][0] = pos[i][1] = pos[i][2] = 0;
 				scale[i][0] = scale[i][1] = scale[i][2] = 1;
+				hidden[i] = false;
 			}
+		}
+	}
+
+	/** Hides a bone (and its children) in a pose; unknown names are ignored. */
+	public void hide(Pose pose, String bone) {
+		Bone b = bonesByName.get(bone);
+		if (b != null) {
+			pose.hidden[b.index] = true;
 		}
 	}
 
@@ -430,6 +442,9 @@ public final class BbModel {
 
 	private void renderBone(Bone bone, float[] parent, Pose pose, int texture, QuadSink sink, float[] p, float[] uv, float[] n) {
 		int b = bone.index;
+		if (pose.hidden[b]) {
+			return;
+		}
 		float[] r = {bone.rotation[0] + pose.rot[b][0], bone.rotation[1] + pose.rot[b][1], bone.rotation[2] + pose.rot[b][2]};
 		float[][] R = rotationMatrix(r);
 		float[] s = pose.scale[b], o = bone.origin, t = pose.pos[b];

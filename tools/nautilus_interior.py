@@ -305,8 +305,11 @@ GRID_PATH = "src/main/resources/assets/medievalships/interiors/nautilus.grid"
 
 if __name__ == "__main__":
     import os
+    import nautilus_decor
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     g = build()
+    nautilus_decor.build()
+    nautilus_decor.apply_to_grid(g)
     path = os.path.join(root, GRID_PATH)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     size = g.write(path)

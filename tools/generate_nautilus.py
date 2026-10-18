@@ -39,6 +39,7 @@ import generate_galley as gg  # noqa: E402
 import nautilus_shape as ns  # noqa: E402
 import nautilus_interior as ni  # noqa: E402
 import nautilus_texture as nt  # noqa: E402
+import nautilus_decor as nd  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _uuid_counter = [0]
@@ -462,6 +463,16 @@ def doors(root, g):
     return anims
 
 
+def fallbacks(root):
+    """Stand-ins of the decoration blocks, shown only when their mod is missing on a client."""
+    for i, b in enumerate(nd.BLOCKS):
+        x0, x1, y0, y1, z0, z1 = nd.footprint(b["block"], b["x"], b["y"], b["z"], b["yaw"], b["scale"])
+        bone = Bone("fallback_%d" % i, parent=root)
+        region = nd.FALLBACK_REGION.get(b["block"], "floor")
+        add_cube(bone, "lit_fallback_%d" % i, v3((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2), EYE,
+                 (max(0.04, x1 - x0), max(0.04, y1 - y0), max(0.04, z1 - z0)), region)
+
+
 def build(g):
     root = Bone("nautilus")
     hull_bone = Bone("hull", parent=root)
@@ -477,6 +488,7 @@ def build(g):
     tail(outside, root)
     m = surfaces(rooms, outside, g)
     ladders(fittings)
+    fallbacks(root)
     # the projector lens at the front of the cage, over the wheelhouse roof
     add_cube(lights, "glow_projector_lens", v3(0, ns.LENS_Y, ns.TOWER_Z[0] + 0.48), EYE, (1.6, 1.1, 0.04), "glow")
     ring(outside, "projector_rim", v3(0, ns.LENS_Y, ns.TOWER_Z[0] + 0.52), v3(0, 0, 1), 0.85, 0.14, "brass", n=12, width=0.18)
@@ -501,7 +513,13 @@ def build_animations(root, g):
 
 def main():
     g = ni.build()
+    nd.build()
+    nd.apply_to_grid(g)
+    nd.write(os.path.join(ROOT, nd.DECOR_PATH))
     size = g.write(os.path.join(ROOT, ni.GRID_PATH))
+    reached, total = ni.walkable_report(g)
+    unreachable = [name for name, n in reached.items() if not n]
+    print("decor blocks:", len(nd.BLOCKS), "seats:", len(nd.SEATS), "standing places:", total, "unreachable rooms:", unreachable)
     root, n, m = build(g)
     anims = build_animations(root, g)
     anims += doors(root, g)

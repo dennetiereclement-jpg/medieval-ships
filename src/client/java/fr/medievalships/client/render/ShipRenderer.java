@@ -26,6 +26,8 @@ import fr.medievalships.client.render.ShipModels.Visual;
 public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 	/** Block light of the rooms of a vessel (its electric lamps). */
 	private static final int INTERIOR_BLOCK_LIGHT = 13;
+	/** The furniture of the rooms is drawn within this distance of the camera. */
+	private static final double DECOR_DISTANCE = 96.0;
 	/** Animation of door k of a vessel with rooms: {@code door_<k>}, played from 0 (closed) to 1 (open). */
 	private static final String[] DOOR_ANIMATIONS = new String[fr.medievalships.core.InteriorGrid.MAX_DOORS];
 
@@ -90,6 +92,8 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 			float oarTime = state.oarTime, oarWeight = state.oarWeight, sail = state.sailOpen, wheel = state.wheelTime;
 			float helm = state.helm, age = state.age / 20f, climb = state.climb;
 			float[] doors = state.interiorLight ? state.doors : null;
+			EmbeddedDecor decor = state.interiorLight ? EmbeddedDecor.of(visual.type()) : null;
+			boolean decorDrawn = decor != null && state.squaredDistanceToCamera < DECOR_DISTANCE * DECOR_DISTANCE;
 			int light = state.light;
 			// the rooms of a vessel are lit by its own lamps, even deep under the sea
 			int lit = state.interiorLight
@@ -115,6 +119,11 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 							model.apply(pose, DOOR_ANIMATIONS[k], doors[k], 1f);
 						}
 					}
+					if (decorDrawn) {
+						for (String bone : decor.hidden) {
+							model.hide(pose, bone);
+						}
+					}
 					model.render(pose, visual.textures().size() > 1 ? texture : -1, new BbModel.QuadSink() {
 						@Override
 						public void quad(float[] p, float[] uv, float[] n, boolean glow) {
@@ -135,6 +144,24 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 						}
 					});
 				});
+			}
+			// furniture from the decoration mods, drawn where it stands in the rooms
+			if (decorDrawn) {
+				for (int i = 0; i < decor.states.length; i++) {
+					if (decor.states[i] == null) {
+						continue;
+					}
+					fr.medievalships.core.InteriorDecor.Block b = decor.blocks.get(i);
+					matrices.push();
+					matrices.translate(b.x(), b.y(), b.z());
+					matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(b.yaw()));
+					if (b.scale() != 1f) {
+						matrices.scale(b.scale(), b.scale(), b.scale());
+					}
+					matrices.translate(-0.5, 0, -0.5);
+					queue.submitBlock(matrices, decor.states[i], lit, OverlayTexture.DEFAULT_UV, 0);
+					matrices.pop();
+				}
 			}
 			matrices.pop();
 		}

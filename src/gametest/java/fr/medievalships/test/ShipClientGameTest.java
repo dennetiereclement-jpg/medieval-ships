@@ -1167,7 +1167,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		// inside, on the surface: main level, then the lower level (under the waterline)
 		server.runCommand("gamemode survival @a");
 		server.runCommand("effect clear @a minecraft:water_breathing");
-		tpLocal(server, pose, 0, 0.02, 15, 0, 0);
+		tpLocal(server, pose, 0, 0.02, 13.6, 0, 20);
 		context.waitTicks(40);
 		double[] w = playerWater(context, sp, shipPose(sp, type));
 		log("%s dining room: water %s/%s camera %s, local y %.3f", id, w[0], w[3], w[2], w[8]);

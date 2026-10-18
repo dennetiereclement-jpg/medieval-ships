@@ -1106,6 +1106,7 @@ public final class Ships {
 		public static final int AIRLOCK_OUTER_DOOR = 9;
 		public static final int WHEELHOUSE_TRAP = 11;
 		public static final String GRID = "/assets/medievalships/interiors/nautilus.grid";
+		public static final String DECOR = "/assets/medievalships/interiors/nautilus_decor.json";
 
 		/** Section scale at z (1 in the middle, 0 at the ends of the hull body), as in nautilus_shape.py. */
 		public static double scale(double z) {
@@ -1160,12 +1161,18 @@ public final class Ships {
 
 		ShipGeometry.Spec spec = new ShipGeometry.Spec();
 		spec.interior = NautilusLayout.GRID;
+		spec.decor = NautilusLayout.DECOR;
 		spec.submarine = true;
 		spec.hullProbes = false;
 		double tower = NautilusLayout.TOWER_FLOOR_Y;
 		List<ShipGeometry.Seat> seats = new ArrayList<>();
 		seats.add(new ShipGeometry.Seat(ShipGeometry.PILOT_SEAT, 0.0, tower + 0.28, NautilusLayout.PILOT_Z, true,
 				new double[] {0.0, tower + 0.02, NautilusLayout.PILOT_Z - 1.0}));
+		// the chairs, sofas and benches of the rooms
+		for (InteriorDecor.SeatSpot spot : InteriorDecor.load(NautilusLayout.DECOR).seats()) {
+			seats.add(new ShipGeometry.Seat(seats.size(), spot.x(), spot.y(), spot.z(), false,
+					new double[] {spot.dismountX(), spot.dismountY(), spot.dismountZ()}));
+		}
 		spec.seats = List.copyOf(seats);
 		spec.helm = new ShipGeometry.LocalBox(-0.7, tower + 0.4, NautilusLayout.PILOT_Z + 0.2, 0.7, tower + 1.8, NautilusLayout.PILOT_Z + 1.0);
 		// terrain probes: rings around the hull body, the ram, the tail and its fins, the casing, the wheelhouse, the keels
