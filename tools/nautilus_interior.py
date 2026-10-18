@@ -24,11 +24,12 @@ SOLID = 1      # hull, walls, floors, ceilings, tanks, machinery
 DRY = 2        # air inside a watertight compartment
 LADDER = 3     # dry, and climbable
 AIRLOCK = 4    # dry or flooded, depending on the airlock
+WINDOW = 5     # glass in the hull: solid, dry, not drawn (the sea is seen through it)
 DOOR = 16      # DOOR + k: door k (solid when closed, dry when open), k < 32
 
 CELL = ns.CELL
 X0, X1 = -8.0, 8.0
-Y0, Y1 = -9.0, 16.0
+Y0, Y1 = -10.0, 16.0
 Z0, Z1 = -49.0, 49.0
 
 
@@ -92,20 +93,83 @@ class Grid:
         return len(out)
 
 
-# ---- layout of the spaces (prototype: will grow room by room, see docs/NAUTILUS_PLAN.md)
-MAIN_HALL = (-3.0, 3.0, ns.MAIN_FLOOR_Y, ns.MAIN_FLOOR_Y + ns.LEVEL_HEIGHT, -26.0, 28.0)
-LOWER_HALL = (-2.5, 2.5, ns.LOWER_FLOOR_Y, ns.LOWER_FLOOR_Y + 4.0, -20.0, 20.0)
-STAIR_X = (-2.5, -1.0)
-STAIR_Z0 = 10.0          # first step of the stairs from the lower level up to the main level
-HATCH_Z = (18.0, 19.0)   # ladder shaft and hatch to the top of the hull
-HATCH_X = (-0.5, 0.5)
+# ---- layout (docs/NAUTILUS_PLAN.md, section 5): rooms in enfilade on the main level, the lower level,
+# the double bottom, the wheelhouse and the projector cage on the casing. Boxes: (x0, x1, y0, y1, z0, z1).
+M0, M1 = ns.MAIN_FLOOR_Y, ns.MAIN_FLOOR_Y + ns.LEVEL_HEIGHT          # main level: 0 .. 4.5
+L0, L1 = ns.LOWER_FLOOR_Y, ns.MAIN_FLOOR_Y - 0.5                       # lower level: -4.5 .. -0.5
+B0, B1 = ns.BILGE_FLOOR_Y, ns.LOWER_FLOOR_Y - 0.5                      # double bottom crawlway: -7 .. -5
+SALON_TOP = 5.5
+
+ROOMS = {
+    # main level, bow to stern
+    "corridor_fore": (-1.5, 1.5, M0, M1, 18.5, 26.5),
+    "cabin_nemo":    (-5.0, -2.0, M0, M1, 20.0, 26.5),
+    "cabin_aronnax": (2.0, 5.0, M0, M1, 20.0, 26.5),
+    "dining":        (-5.0, 5.0, M0, M1, 13.0, 18.0),
+    "library":       (-5.0, 5.0, M0, M1, 7.0, 12.5),
+    "salon":         (-3.5, 3.5, M0, SALON_TOP, -6.5, 6.5),
+    "stair_hall":    (-3.0, 2.5, L0, M1, -12.0, -7.0),
+    "engine_room":   (-5.0, 5.0, L0, M1, -30.0, -12.5),
+    # lower level
+    "coursive":      (2.0, 4.0, L0, L1, 4.5, 24.5),
+    "cross_fore":    (-1.0, 2.0, L0, L1, 23.5, 24.5),
+    "airlock":       (-2.5, 2.5, L0, -1.0, 25.0, 29.0),
+    "kitchen":       (-4.5, 1.5, L0, L1, 6.0, 14.0),
+    "crew":          (-4.5, 1.5, L0, L1, 14.5, 23.0),
+    "corridor_aft":  (-1.0, 1.0, L0, L1, -7.0, 5.5),
+    "junction":      (-1.0, 4.0, L0, L1, 4.5, 5.5),
+    "store_port":    (1.5, 4.5, L0, L1, -6.0, 4.0),
+    "store_stbd":    (-4.5, -1.5, L0, L1, -6.0, 4.0),
+    # double bottom: crawlway between the ballast tanks
+    "crawlway":      (-1.5, 1.5, B0, B1, -12.0, 12.0),
+    # on the casing
+    "wheelhouse":    (-1.5, 1.5, ns.CASING_TOP_Y, ns.TOWER_TOP_Y - 0.5, ns.TOWER_Z[0] + 0.5, ns.TOWER_Z[1] - 0.5),
+    "lamp_cage":     (-1.0, 1.0, ns.CASING_TOP_Y, ns.LAMP_CAGE_TOP_Y - 0.5, ns.LAMP_CAGE_Z[0] + 0.5, ns.TOWER_Z[0]),
+}
+
+# doors: index -> (name, box). Doors are 1 block wide, 2 high, as thick as the wall (hatches lie flat)
+DOORS = {
+    0: ("hatch", (1.0, 2.0, ns.CASING_TOP_Y - 0.5, ns.CASING_TOP_Y, -9.0, -8.0)),
+    1: ("nemo", (-2.0, -1.5, M0, M0 + 2.0, 22.5, 23.5)),
+    2: ("aronnax", (1.5, 2.0, M0, M0 + 2.0, 22.5, 23.5)),
+    3: ("corridor_dining", (-0.5, 0.5, M0, M0 + 2.0, 18.0, 18.5)),
+    4: ("dining_library", (-0.5, 0.5, M0, M0 + 2.0, 12.5, 13.0)),
+    5: ("library_salon", (-0.5, 0.5, M0, M0 + 2.0, 6.5, 7.0)),
+    6: ("salon_stairs", (-1.5, -0.5, M0, M0 + 2.0, -7.0, -6.5)),
+    7: ("stairs_engine", (1.0, 2.0, M0, M0 + 2.0, -12.5, -12.0)),
+    8: ("airlock_inner", (-0.5, 0.5, L0, L0 + 2.0, 24.5, 25.0)),
+    9: ("airlock_outer", None),  # in the hull at the end of the airlock tunnel, see build()
+    10: ("wheelhouse_cage", (-0.5, 0.5, ns.CASING_TOP_Y, ns.CASING_TOP_Y + 2.0, ns.TOWER_Z[0], ns.TOWER_Z[0] + 0.5)),
+    11: ("wheelhouse_trap", (-0.5, 0.5, ns.CASING_TOP_Y - 0.5, ns.CASING_TOP_Y, 18.5, 19.5)),
+    12: ("coursive_kitchen", (1.5, 2.0, L0, L0 + 2.0, 9.5, 10.5)),
+    13: ("coursive_crew", (1.5, 2.0, L0, L0 + 2.0, 18.0, 19.0)),
+    15: ("secret_trap", (-0.5, 0.5, L0 - 0.5, L0, 1.0, 2.0)),
+    16: ("boat_hatch", (0.5, 1.5, 7.5, 8.0, -19.0, -18.0)),
+    17: ("store_port", (1.0, 1.5, L0, L0 + 2.0, -1.0, 0.0)),
+    18: ("store_stbd", (-1.5, -1.0, L0, L0 + 2.0, -1.0, 0.0)),
+}
 HATCH_DOOR = 0
-TOWER_Z = (25.0, 31.0)   # wheelhouse on top of the hull
-TOWER_X = (-2.0, 2.0)
-TOWER_FLOOR_Y = 6.5
-TOWER_HEIGHT = 3.0
-TOWER_SHAFT_Z = (25.5, 26.5)
-PILOT_Z = 29.6
+AIRLOCK_TUNNEL = (-7.0, -2.5, L0, L0 + 2.0, 26.5, 27.5)
+
+# ladders: (box, pillar box or None). The pillar gives something to push against at the bottom.
+LADDERS = {
+    "wheelhouse": ((-0.5, 0.5, M0, ns.CASING_TOP_Y + 0.5, 18.5, 19.5), (-0.5, 0.5, M0, M1, 19.5, 20.0)),
+    "hatch":      ((1.0, 2.0, M0, ns.CASING_TOP_Y - 0.5, -9.0, -8.0), (2.0, 2.5, M0, M1, -9.0, -8.0)),
+    "boat":       ((0.5, 1.5, M0, 7.5, -19.0, -18.0), (0.5, 1.5, M0, M1, -18.0, -17.5)),
+    "engine":     ((2.5, 3.5, L0, M0, -26.5, -25.5), (2.5, 3.5, L0, M0, -27.0, -26.5)),
+    "bilge":      ((-0.5, 0.5, B0, L0, 1.0, 2.0), (-0.5, 0.5, B0, B1, 2.0, 2.5)),
+}
+
+# spiral staircase in the stair hall, lower level to main level, around a column
+SPIRAL_CENTER = (-1.0, -9.5)
+SPIRAL_R = (0.75, 2.0)
+# catwalk along the engine room at the main level (the engine below), with a rail
+CATWALK = (0.5, 4.0, M0 - 0.5, M0, -28.0, -12.5)
+ENGINE_PARTITION_Z = (-21.5, -21.0)
+BOAT_RECESS = (-1.5, 1.5, 8.0, 9.5, -23.0, -15.0)
+TOWER_Z = ns.TOWER_Z
+PILOT_Z = 20.6
+HATCH_Z = (-9.0, -8.0)
 
 
 def build():
@@ -113,32 +177,128 @@ def build():
     hull = g.inside(0.0)
     g.k[hull] = SOLID
     inner = g.inside(ns.SHELL)
-    # main level, lower level
-    g.set(DRY, *MAIN_HALL, where=inner)
-    g.set(DRY, *LOWER_HALL, where=inner)
-    # stairs from the lower level to the main level: 9 steps of 0.5, opening in the main floor
-    rise = ns.MAIN_FLOOR_Y - ns.LOWER_FLOOR_Y
-    steps = int(round(rise / CELL))
-    x0, x1 = STAIR_X
-    g.set(DRY, x0, x1, ns.LOWER_FLOOR_Y, ns.MAIN_FLOOR_Y + 0.01, STAIR_Z0, STAIR_Z0 + steps * CELL)
-    for i in range(steps):
-        z = STAIR_Z0 + i * CELL
-        g.set(SOLID, x0, x1, ns.LOWER_FLOOR_Y - 0.01, ns.LOWER_FLOOR_Y + (i + 1) * CELL, z, z + CELL)
-    # ladder up to the hatch on the top of the hull
-    top = ns.hull_top((HATCH_Z[0] + HATCH_Z[1]) / 2, 0.5)
-    g.set(LADDER, HATCH_X[0], HATCH_X[1], ns.MAIN_FLOOR_Y, top - ns.SHELL, *HATCH_Z)
-    g.set(DOOR + HATCH_DOOR, HATCH_X[0], HATCH_X[1], top - ns.SHELL, top + 0.3, *HATCH_Z, where=g.k != OUT)
-    # wheelhouse: armoured box on the top of the hull, floor at TOWER_FLOOR_Y, ladder from the main level
-    tx0, tx1 = TOWER_X
-    tz0, tz1 = TOWER_Z
-    ty0, ty1 = TOWER_FLOOR_Y - ns.SHELL, TOWER_FLOOR_Y + TOWER_HEIGHT + ns.SHELL
-    g.set(SOLID, tx0, tx1, 0.0, ty1, tz0, tz1, where=(g.k == OUT) & (g.Y > 2.0))
-    g.set(DRY, tx0 + ns.SHELL, tx1 - ns.SHELL, TOWER_FLOOR_Y, TOWER_FLOOR_Y + TOWER_HEIGHT, tz0 + ns.SHELL, tz1 - ns.SHELL)
-    g.set(LADDER, HATCH_X[0], HATCH_X[1], ns.MAIN_FLOOR_Y, TOWER_FLOOR_Y + 1.0, *TOWER_SHAFT_Z)
-    # in the hall, each ladder is fixed against a pillar (something to hold on and to push against)
-    for z_top in (HATCH_Z[1], TOWER_SHAFT_Z[1]):
-        g.set(SOLID, HATCH_X[0], HATCH_X[1], ns.MAIN_FLOOR_Y, ns.MAIN_FLOOR_Y + ns.LEVEL_HEIGHT, z_top, z_top + CELL)
+    above_axis = g.Y > ns.AXIS_Y
+    # raised casing along the top, the wheelhouse and the projector cage on it, the keels below
+    cx = ns.CASING_HALF_WIDTH
+    g.set(SOLID, -cx, cx, ns.AXIS_Y, ns.CASING_TOP_Y, *ns.CASING_Z, where=above_axis)
+    tw = ns.TOWER_HALF_WIDTH
+    g.set(SOLID, -tw, tw, ns.AXIS_Y, ns.TOWER_TOP_Y, *ns.TOWER_Z, where=above_axis)
+    cw = ns.LAMP_CAGE_HALF_WIDTH
+    g.set(SOLID, -cw, cw, ns.AXIS_Y, ns.LAMP_CAGE_TOP_Y, ns.LAMP_CAGE_Z[0], ns.TOWER_Z[0] + 0.5, where=above_axis)
+    for z0, z1 in ns.KEELS:
+        bottom = min(ns.hull_bottom(z0), ns.hull_bottom(z1))
+        g.set(SOLID, -0.5, 0.5, bottom - ns.KEEL_DEPTH, ns.AXIS_Y, z0, z1, where=g.Y < ns.AXIS_Y)
+    g.set(OUT, *BOAT_RECESS)
+    # rooms (inside the pressure hull only; what is not a room stays solid: tanks, machinery, walls)
+    for name, box in ROOMS.items():
+        on_top = name in ("wheelhouse", "lamp_cage")
+        g.set(DRY, *box, where=None if on_top else inner)
+    # great salon bay windows: round alcoves through the side walls down to the glass in the hull
+    wz, wy, wr = ns.SALON_WINDOW
+    disc = (g.Z - wz) ** 2 + (g.Y - wy) ** 2 < (wr - 0.25) ** 2
+    g.k[disc & inner & (np.abs(g.X) > 3.0) & (g.k == SOLID)] = DRY
+    g.k[disc & hull & ~inner & (np.abs(g.X) > 3.0)] = WINDOW
+    # portholes of the lower coursive and of the cabins / rooms (tunnels to the glass in the hull)
+    for z in ns.SMALL_WINDOWS_Z:
+        port = (np.abs(g.Z - z) < 0.5) & (np.abs(g.Y - ns.SMALL_WINDOWS_Y) < 0.5) & inner & (g.k == SOLID)
+        g.k[port & (g.X > 3.5)] = DRY
+        g.k[port & (g.X < -4.0)] = DRY
+        glass = (np.abs(g.Z - z) < 0.5) & (np.abs(g.Y - ns.SMALL_WINDOWS_Y) < 0.5) & hull & ~inner
+        g.k[glass & (np.abs(g.X) > 3.5)] = WINDOW
+    # wheelhouse: two windows in front, one on each side; the projector lens at the front of the cage
+    wy0 = ns.CASING_TOP_Y + 1.25
+    for x in (-0.75, 0.75):
+        g.set(WINDOW, x - 0.5, x + 0.5, wy0, wy0 + 1.0, ns.TOWER_Z[1] - 0.5, ns.TOWER_Z[1])
+    for x in (-ns.TOWER_HALF_WIDTH, ns.TOWER_HALF_WIDTH - 0.5):
+        g.set(WINDOW, x, x + 0.5, wy0, wy0 + 1.0, 18.0, 19.0)
+    g.set(WINDOW, -1.0, 1.0, ns.TOWER_TOP_Y, ns.LAMP_CAGE_TOP_Y - 0.5, ns.TOWER_Z[0], ns.TOWER_Z[0] + 0.5)
+    # spiral staircase: one turn from the lower floor to the main floor, a step every 1/9 turn
+    scx, scz = SPIRAL_CENTER
+    r = np.hypot(g.X - scx, g.Z - scz)
+    ang = (np.degrees(np.arctan2(g.X - scx, g.Z - scz)) + 360.0) % 360.0  # 0 = towards +z (the entry), clockwise seen from above
+    steps = int(round((M0 - L0) / CELL))
+    ring = (r >= SPIRAL_R[0]) & (r < SPIRAL_R[1]) & (g.Z > -12.0) & (g.Z < -7.0)
+    k = np.minimum(steps - 1, (ang / 360.0 * steps).astype(int))
+    step_top = L0 + (k + 1) * CELL
+    g.k[ring & (g.Y > step_top - 0.5) & (g.Y < step_top)] = SOLID  # each step a slab: room underneath for the turn below
+    g.k[(r < SPIRAL_R[0]) & (g.Y > L0 - 0.6) & (g.Y < M1) & (np.abs(g.Z - scz) < 1.0)] = SOLID  # the column
+    # main level of the stair hall: a landing along the ladder side and towards the engine room
+    g.set(SOLID, 1.0, 2.5, M0 - 0.5, M0, -12.0, -7.0)
+    g.set(SOLID, -3.0, 2.5, M0 - 0.5, M0, -7.5, -7.0)  # gallery along the salon wall, from the top of the stairs
+    # engine room: catwalk with its rail, the partition between the batteries and the engine
+    g.set(SOLID, *CATWALK)
+    g.set(SOLID, CATWALK[0], CATWALK[0] + 0.5, M0, M0 + 1.0, CATWALK[4], CATWALK[5])
+    pz0, pz1 = ENGINE_PARTITION_Z
+    g.set(SOLID, -5.0, 5.0, L0, M1, pz0, pz1, where=inner)
+    g.set(DRY, -1.0, 1.0, L0, L0 + 2.5, pz0, pz1)       # walk-through below
+    g.set(DRY, CATWALK[0] + 0.5, CATWALK[1], M0, M0 + 2.5, pz0, pz1)  # and along the catwalk
+    # ladders and their pillars
+    for name, (box, pillar) in LADDERS.items():
+        g.set(LADDER, *box)
+        if pillar:
+            g.set(SOLID, *pillar)
+    # doors
+    for d, (name, box) in DOORS.items():
+        if box is not None:
+            g.set(DOOR + d, *box)
+    # airlock: its cells can be flooded; the tunnel through the hull ends at the outer door
+    g.k[g.sel(*ROOMS["airlock"]) & (g.k == DRY)] = AIRLOCK
+    tunnel = g.sel(*AIRLOCK_TUNNEL)
+    g.k[tunnel & inner] = AIRLOCK
+    g.k[tunnel & hull & ~inner] = DOOR + 9
     return g
+
+
+def walkable_report(g, open_all=True):
+    """Standing places (1 x 1 block footprint) reachable from the main corridor, with every door open:
+    returns (reached, total) counts per room."""
+    k = g.k
+    passable = np.isin(k, (DRY, LADDER, AIRLOCK)) | ((k >= DOOR) if open_all else False)
+    solid = ~passable & (k != OUT)
+    nx, ny, nz = k.shape
+    # a standing spot: cell (i, j, l) with 2x2 footprint, solid below, 4 cells (2 blocks) of room above;
+    # ladder cells count as standing spots (climbing)
+    from collections import deque
+    lad = k == LADDER
+
+    def free(i, j, l):
+        if i < 0 or l < 0 or i + 1 >= nx or l + 1 >= nz or j < 0 or j + 4 > ny:
+            return False
+        return passable[i:i + 2, j:j + 4, l:l + 2].all()
+
+    def stand(i, j, l):
+        if not free(i, j, l):
+            return False
+        if lad[i:i + 2, j, l:l + 2].any():
+            return True
+        return j > 0 and solid[i:i + 2, j - 1, l:l + 2].any()
+
+    start = (g.at(0, 0.1, 22.0), )
+    i0 = int((-0.5 - X0) / CELL)
+    j0 = int((ns.MAIN_FLOOR_Y + 0.01 - Y0) / CELL)
+    l0 = int((22.0 - Z0) / CELL)
+    seen = set()
+    q = deque()
+    if stand(i0, j0, l0):
+        q.append((i0, j0, l0))
+        seen.add((i0, j0, l0))
+    while q:
+        i, j, l = q.popleft()
+        onlad = lad[i:i + 2, j:j + 2, l:l + 2].any()
+        for di, dl in ((1, 0), (-1, 0), (0, 1), (0, -1), (0, 0)):
+            for dj in ((-1, 0, 1, 2) if (di or dl) else ()) + ((1, -1) if onlad else ()) + ((-1, -2, -3, -4, -5, -6) if (di or dl) else ()):
+                n = (i + di, j + dj, l + dl)
+                if n in seen:
+                    continue
+                if stand(*n):
+                    seen.add(n)
+                    q.append(n)
+    reached = {}
+    for name, (x0, x1, y0, y1, z0, z1) in ROOMS.items():
+        cells = [(i, j, l) for (i, j, l) in seen
+                 if x0 <= X0 + (i + 1) * CELL <= x1 and y0 - 0.1 <= Y0 + j * CELL <= y1 and z0 <= Z0 + (l + 1) * CELL <= z1]
+        reached[name] = len(cells)
+    return reached, len(seen)
 
 
 GRID_PATH = "src/main/resources/assets/medievalships/interiors/nautilus.grid"
@@ -150,5 +310,9 @@ if __name__ == "__main__":
     path = os.path.join(root, GRID_PATH)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     size = g.write(path)
-    counts = {k: int((g.k == k).sum()) for k in np.unique(g.k)}
+    counts = {int(k): int((g.k == k).sum()) for k in np.unique(g.k)}
     print("grid", g.nx, g.ny, g.nz, "bytes", size, "cells", counts)
+    reached, total = walkable_report(g)
+    print("standing places reached from the fore corridor (doors open):", total)
+    for name, n in reached.items():
+        print("  %-14s %s" % (name, n if n else "UNREACHABLE"))

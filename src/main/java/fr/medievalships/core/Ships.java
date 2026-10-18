@@ -1066,24 +1066,45 @@ public final class Ships {
 
 	/** Nautilus layout, ship-local blocks (shared with tools/nautilus_shape.py and nautilus_interior.py). */
 	public static final class NautilusLayout {
-		public static final double BOW_Z = 42.0;
-		public static final double STERN_Z = -44.0;
+		public static final double BOW_Z = 41.5;
+		public static final double STERN_Z = -35.0;
 		public static final double MAX_HALF_WIDTH = 7.0;
-		public static final double MAX_HALF_HEIGHT = 8.5;
-		public static final double AXIS_Y = 0.5;
+		public static final double MAX_HALF_HEIGHT = 7.75;
+		public static final double AXIS_Y = -0.25;
 		public static final double SHELL = 0.5;
 		public static final double RAM_TIP_Z = 48.0;
 		public static final double TAIL_END_Z = -48.0;
+		public static final double PROP_Z = -41.6;
+		public static final double PROP_R = 3.2;
+		public static final double FIN_TOP = 9.6;
+		public static final double FIN_BOTTOM = -8.4;
+		public static final double FIN_SPAN = 6.5;
 		public static final double LOWER_FLOOR_Y = -4.5;
 		public static final double MAIN_FLOOR_Y = 0.0;
+		public static final double BILGE_FLOOR_Y = -7.0;
 		public static final double WATERLINE_Y = -0.2;
-		public static final double TOWER_FLOOR_Y = 6.5;
-		public static final double TOWER_TOP_Y = 10.0;
-		public static final double TOWER_Z0 = 25.0;
-		public static final double TOWER_Z1 = 31.0;
-		public static final double PILOT_Z = 29.6;
-		public static final double HATCH_Z = 18.5;
+		public static final double CASING_HALF_WIDTH = 2.0;
+		public static final double CASING_TOP_Y = 9.0;
+		public static final double CASING_Z0 = -24.0;
+		public static final double CASING_Z1 = 27.0;
+		/** The wheelhouse stands on the casing: its floor is the casing top. */
+		public static final double TOWER_FLOOR_Y = CASING_TOP_Y;
+		public static final double TOWER_TOP_Y = 12.5;
+		public static final double TOWER_Z0 = 15.0;
+		public static final double TOWER_Z1 = 22.5;
+		public static final double TOWER_HALF_WIDTH = 2.0;
+		public static final double LAMP_CAGE_Z0 = 10.0;
+		public static final double LAMP_CAGE_TOP_Y = 14.2;
+		public static final double LENS_Y = 13.0;
+		public static final double PILOT_Z = 20.6;
+		public static final double KEEL_BOTTOM_Y = -9.5;
+		/** Ladder up to the hatch on the casing (stair hall), and the hatch itself (door 0). */
+		public static final double HATCH_X = 1.5;
+		public static final double HATCH_Z = -8.5;
 		public static final int HATCH_DOOR = 0;
+		public static final int AIRLOCK_INNER_DOOR = 8;
+		public static final int AIRLOCK_OUTER_DOOR = 9;
+		public static final int WHEELHOUSE_TRAP = 11;
 		public static final String GRID = "/assets/medievalships/interiors/nautilus.grid";
 
 		/** Section scale at z (1 in the middle, 0 at the ends of the hull body), as in nautilus_shape.py. */
@@ -1091,12 +1112,12 @@ public final class Ships {
 			double t, a, b;
 			if (z >= 0) {
 				t = z / BOW_Z;
-				a = 2.2;
-				b = 0.6;
+				a = 2.8;
+				b = 0.55;
 			} else {
 				t = z / STERN_Z;
-				a = 2.0;
-				b = 0.55;
+				a = 4.0;
+				b = 0.45;
 			}
 			return t >= 1.0 ? 0.0 : Math.pow(1.0 - Math.pow(t, a), b);
 		}
@@ -1119,22 +1140,22 @@ public final class Ships {
 		p.tip = NautilusLayout.RAM_TIP_Z;
 		p.maxHalfWidth = NautilusLayout.MAX_HALF_WIDTH;
 		p.foreScale = NautilusLayout.BOW_Z;
-		p.forePowA = 2.2;
-		p.forePowB = 0.6;
+		p.forePowA = 2.8;
+		p.forePowB = 0.55;
 		p.aftScale = -NautilusLayout.STERN_Z;
-		p.aftPowA = 2.0;
-		p.aftPowB = 0.55;
+		p.aftPowA = 4.0;
+		p.aftPowB = 0.45;
 		p.keelDepth = NautilusLayout.MAX_HALF_HEIGHT - NautilusLayout.AXIS_Y;
 		p.keelRise = 4.0;
 		p.keelPow = 2.0;
-		p.railBase = NautilusLayout.AXIS_Y + NautilusLayout.MAX_HALF_HEIGHT;
+		p.railBase = NautilusLayout.CASING_TOP_Y;
 		p.railRiseFore = -4.0;
 		p.railRiseAft = -4.0;
 		p.railPow = 2.0;
 		p.waterlineY = NautilusLayout.WATERLINE_Y;
 		p.mainDeckY = NautilusLayout.MAIN_FLOOR_Y;
-		p.deckMinZ = -24.0;
-		p.deckMaxZ = 26.0;
+		p.deckMinZ = -6.0;
+		p.deckMaxZ = 18.0;
 		HullShape hull = new HullShape(p);
 
 		ShipGeometry.Spec spec = new ShipGeometry.Spec();
@@ -1144,17 +1165,10 @@ public final class Ships {
 		double tower = NautilusLayout.TOWER_FLOOR_Y;
 		List<ShipGeometry.Seat> seats = new ArrayList<>();
 		seats.add(new ShipGeometry.Seat(ShipGeometry.PILOT_SEAT, 0.0, tower + 0.28, NautilusLayout.PILOT_Z, true,
-				new double[] {0.0, tower + 0.02, NautilusLayout.PILOT_Z - 1.2}));
-		// prototype: benches along the main hall
-		double main = NautilusLayout.MAIN_FLOOR_Y;
-		for (double z : new double[] {-12.0, -6.0, 0.0, 6.0}) {
-			for (double x : new double[] {2.4, -2.4}) {
-				seats.add(seat(seats.size(), x, main, z, x * 0.5, z));
-			}
-		}
+				new double[] {0.0, tower + 0.02, NautilusLayout.PILOT_Z - 1.0}));
 		spec.seats = List.copyOf(seats);
-		spec.helm = new ShipGeometry.LocalBox(-0.7, tower + 0.4, NautilusLayout.PILOT_Z, 0.7, tower + 1.8, NautilusLayout.PILOT_Z + 0.9);
-		// terrain probes: rings around the hull body, the ram, the tail and the wheelhouse
+		spec.helm = new ShipGeometry.LocalBox(-0.7, tower + 0.4, NautilusLayout.PILOT_Z + 0.2, 0.7, tower + 1.8, NautilusLayout.PILOT_Z + 1.0);
+		// terrain probes: rings around the hull body, the ram, the tail and its fins, the casing, the wheelhouse, the keels
 		List<double[]> probes = new ArrayList<>();
 		for (double z = NautilusLayout.STERN_Z + 1.0; z <= NautilusLayout.BOW_Z - 1.0 + 1e-6; z += 2.0) {
 			double w = NautilusLayout.halfWidth(z), h = NautilusLayout.halfHeight(z);
@@ -1166,23 +1180,37 @@ public final class Ships {
 		for (double z = NautilusLayout.BOW_Z - 1.0; z <= NautilusLayout.RAM_TIP_Z + 1e-6; z += 1.0) {
 			probes.add(new double[] {0, NautilusLayout.AXIS_Y, z});
 		}
-		for (double z = NautilusLayout.STERN_Z + 1.0; z >= NautilusLayout.TAIL_END_Z - 1e-6; z -= 1.0) {
+		for (double z = NautilusLayout.STERN_Z; z >= NautilusLayout.TAIL_END_Z - 1e-6; z -= 1.0) {
 			probes.add(new double[] {0, NautilusLayout.AXIS_Y, z});
 		}
+		double fz = NautilusLayout.TAIL_END_Z + 0.5;
+		probes.add(new double[] {0, NautilusLayout.AXIS_Y + NautilusLayout.FIN_TOP, fz});
+		probes.add(new double[] {0, NautilusLayout.AXIS_Y + NautilusLayout.FIN_BOTTOM, fz});
+		probes.add(new double[] {NautilusLayout.FIN_SPAN, NautilusLayout.AXIS_Y, fz});
+		probes.add(new double[] {-NautilusLayout.FIN_SPAN, NautilusLayout.AXIS_Y, fz});
+		for (double z = NautilusLayout.CASING_Z0; z <= NautilusLayout.CASING_Z1 + 1e-6; z += 2.0) {
+			for (double x : new double[] {-NautilusLayout.CASING_HALF_WIDTH, NautilusLayout.CASING_HALF_WIDTH}) {
+				probes.add(new double[] {x, NautilusLayout.CASING_TOP_Y, z});
+			}
+		}
 		for (double z : new double[] {NautilusLayout.TOWER_Z0, NautilusLayout.TOWER_Z1}) {
-			for (double x : new double[] {-2.0, 2.0}) {
+			for (double x : new double[] {-NautilusLayout.TOWER_HALF_WIDTH, NautilusLayout.TOWER_HALF_WIDTH}) {
 				probes.add(new double[] {x, NautilusLayout.TOWER_TOP_Y, z});
 			}
+		}
+		probes.add(new double[] {0, NautilusLayout.LAMP_CAGE_TOP_Y, NautilusLayout.LAMP_CAGE_Z0});
+		for (double z : new double[] {10.0, 15.5, 21.0, -22.0, -14.0, -6.0}) {
+			probes.add(new double[] {0, NautilusLayout.KEEL_BOTTOM_Y, z});
 		}
 		spec.extraProbes = List.copyOf(probes);
 		spec.boundingRadius = NautilusLayout.RAM_TIP_Z + 1.0;
 		spec.aiReach = NautilusLayout.RAM_TIP_Z;
 		spec.aiBack = -NautilusLayout.TAIL_END_Z;
 		spec.aiHalfWidth = NautilusLayout.MAX_HALF_WIDTH + 1.0;
-		spec.lowestY = NautilusLayout.AXIS_Y - NautilusLayout.MAX_HALF_HEIGHT;
-		spec.boardMinZ = -24.0;
-		spec.boardMaxZ = 26.0;
-		spec.boardHalfWidth = 2.2;
+		spec.lowestY = NautilusLayout.KEEL_BOTTOM_Y;
+		spec.boardMinZ = 13.5;
+		spec.boardMaxZ = 17.5;
+		spec.boardHalfWidth = 3.5;
 		spec.avoidZ = new double[] {};
 		spec.stemPost = false;
 		spec.sternPost = false;

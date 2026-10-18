@@ -22,10 +22,13 @@ SHELL = 0.5              # thickness of the pressure hull
 RAM_TIP_Z = 48.0
 TAIL_END_Z = -48.0
 # tail: a cone with rings from the end of the hull to the propeller, then the fish-tail fin
-TAIL_CONE_Z = -41.0      # end of the cone, the propeller just behind it
-PROP_Z = -41.6
+TAIL_CONE_Z = -39.8      # end of the cone, the propeller just behind it
+PROP_Z = -40.4
 PROP_R = 3.2
-FIN_Z0 = -42.4           # leading edge of the tail fin
+FIN_Z0 = -41.6           # leading edge of the tail fin (root)
+FIN_TIP_LE_Z = -45.8      # leading edge at the tip of a lobe
+FIN_TIP_TE_Z = -47.8      # trailing edge at the tip of a lobe
+FIN_NOTCH_Z = -44.8       # trailing edge at the root (the notch of the fish tail)
 FIN_TOP = 9.6            # tips of the fin lobes above / below the axis
 FIN_BOTTOM = -8.4
 FIN_SPAN = 6.5           # horizontal tail fins, beyond the axis on each side
@@ -34,7 +37,7 @@ FIN_SPAN = 6.5           # horizontal tail fins, beyond the axis on each side
 CASING_HALF_WIDTH = 2.0
 CASING_TOP_Y = 9.0
 CASING_Z = (-24.0, 27.0)
-TOWER_Z = (14.8, 22.3)   # wheelhouse
+TOWER_Z = (15.0, 22.5)   # wheelhouse
 TOWER_HALF_WIDTH = 2.0
 TOWER_TOP_Y = 12.5
 LAMP_CAGE_Z = (10.0, 14.2)  # projector cage behind the wheelhouse, its lens above the wheelhouse roof
@@ -102,5 +105,5 @@ def hull_bottom(z, x=0.0):
 
 
 if __name__ == "__main__":
-    for z in (-40.0, -20.0, 0.0, 20.0, 40.0):
+    for z in (-30.0, -20.0, 0.0, 20.0, 40.0):
         print("{%s, %.6f, %.6f}," % (z, half_width(z), half_height(z)))

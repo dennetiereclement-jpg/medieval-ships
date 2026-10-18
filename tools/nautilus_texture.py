@@ -31,6 +31,17 @@ REGIONS = {
     "prop":        (128, 32, 32, 16),
     "rung":        (160, 32, 16, 16),
     "hatch":       (176, 32, 32, 32),
+    "door":        (208, 32, 32, 32),  # watertight door: riveted steel, thick frame, wheel painted
+    # rooms: luxury (salon, library, dining room, Aronnax), austere and technical
+    "wall_lux":    (0, 64, 32, 32),    # dark wood panelling, gilded band, red fabric above
+    "floor_lux":   (32, 64, 32, 32),   # herringbone parquet
+    "ceil_lux":    (64, 64, 32, 32),   # coffered dark wood with gilded rosettes
+    "carpet":      (96, 64, 32, 32),   # red runner with a gold border
+    "wall_steel":  (128, 64, 32, 32),  # riveted steel, copper band
+    "floor_grate": (160, 64, 32, 32),  # iron grating
+    "ceil_steel":  (192, 64, 32, 32),  # steel with ribs and pipes
+    "hull_light":  (224, 64, 32, 32),  # lighter copper (casing, wheelhouse)
+    "salon_frame": (0, 96, 32, 16),
 }
 
 
@@ -64,13 +75,38 @@ def _riveted(px, region, base, seam, rivet, rng, pw=16, ph=8, wear=0.0):
             px[u + x, v + y] = c + (255,)
 
 
+def _hull_plates(px, region, base, seam, rivet, rng, wear=0.02):
+    """Hull plating for a panel stretched over a gore (64 px along the hull, 32 px round it): two
+    large plates along, overlapping, with a row of rivets on each seam and some patina."""
+    u, v, w, h = region
+    tones = [_jitter(base, rng, 10), _jitter(base, rng, 10)]
+    for y in range(h):
+        for x in range(w):
+            plate = x // 32
+            fx, fy = x % 32, y
+            c = tones[plate]
+            k = 1.0 + 0.08 * (1 - fy / h) - 0.05 * (fx / 32)
+            c = _shade(c, k)
+            if fx == 0 or fy == 0:
+                c = seam
+            elif fx == 1 or fy == 1:
+                c = _shade(c, 1.15)
+            elif (fx == 3 and fy % 4 == 2) or (fy == 3 and fx % 4 == 2):
+                c = rivet
+            elif fx == 31 or fy == h - 1:
+                c = _shade(c, 0.85)
+            if wear and rng.random() < wear:
+                c = _jitter(_rgb("4f6b52"), rng, 8)
+            px[u + x, v + y] = c + (255,)
+
+
 def make_texture(path):
     rng = random.Random(1870)
     img = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
     px = img.load()
     R = REGIONS
-    _riveted(px, R["plate"], _rgb("8a5a34"), _rgb("4a2c18"), _rgb("c08a52"), rng, wear=0.02)
-    _riveted(px, R["plate_dark"], _rgb("5a3b26"), _rgb("2e1d12"), _rgb("8f6a44"), rng, wear=0.03)
+    _hull_plates(px, R["plate"], _rgb("7e4a2a"), _rgb("2e1a0e"), _rgb("c48a52"), rng, wear=0.02)
+    _hull_plates(px, R["plate_dark"], _rgb("4e3020"), _rgb("1e120a"), _rgb("8a6040"), rng, wear=0.035)
     _riveted(px, R["steel"], _rgb("3a3634"), _rgb("1d1b1a"), _rgb("6d6660"), rng, pw=8, ph=8)
     _fill(img, R["iron"], _rgb("2f2d2c"), rng, 6)
     for name, cols in (("brass", ("f6dc93", "dcb055", "bf8f34", "906523", "684716")),):
@@ -119,7 +155,89 @@ def make_texture(path):
     d.ellipse((u + 6, v + 6, u + w - 7, v + h - 7), outline=_rgb("b8913c") + (255,), width=2)
     d.line((u + w // 2, v + 8, u + w // 2, v + h - 9), fill=_rgb("b8913c") + (255,), width=2)
     d.line((u + 8, v + h // 2, u + w - 9, v + h // 2), fill=_rgb("b8913c") + (255,), width=2)
+    _paint_rooms(img, px, rng)
     img.save(path)
+
+
+def _paint_rooms(img, px, rng):
+    R = REGIONS
+    d = ImageDraw.Draw(img)
+    # watertight door
+    u, v, w, h = R["door"]
+    _riveted(px, (u, v, w, h), _rgb("4d4743"), _rgb("1f1d1c"), _rgb("b8913c"), rng, pw=32, ph=32)
+    d.rectangle((u, v, u + w - 1, v + h - 1), outline=_rgb("2a2624") + (255,), width=3)
+    d.ellipse((u + 9, v + 9, u + 22, v + 22), outline=_rgb("c9a24a") + (255,), width=2)
+    d.line((u + 15, v + 9, u + 15, v + 22), fill=_rgb("c9a24a") + (255,))
+    d.line((u + 9, v + 15, u + 22, v + 15), fill=_rgb("c9a24a") + (255,))
+    # luxury panelling: dark wood panels in the lower two thirds, a gilded rail, red damask above
+    u, v, w, h = R["wall_lux"]
+    for y in range(h):
+        for x in range(w):
+            if y < 10:
+                c = _rgb("6e1f22") if (x + 2 * y) % 7 else _rgb("8a2c2c")
+                if (x % 8 == 4 and y % 5 == 2):
+                    c = _rgb("a8803a")
+            elif y < 12:
+                c = _rgb("d8b25a") if y == 10 else _rgb("8a6a2a")
+            else:
+                fx, fy = x % 16, (y - 12) % 20
+                c = _rgb("3e2414")
+                if fx in (0, 15) or fy in (0, 19):
+                    c = _rgb("2a170c")
+                elif fx in (2, 13) or fy in (2, 17):
+                    c = _rgb("5a3820")
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+    # herringbone parquet
+    u, v, w, h = R["floor_lux"]
+    for y in range(h):
+        for x in range(w):
+            a = ((x + y) // 4) % 2
+            c = _rgb("6a4024") if ((x // 4 + y // 4) % 2 == 0) == bool(a) else _rgb("4e2e18")
+            if (x + y) % 8 == 0 or (x - y) % 8 == 0:
+                c = _rgb("2e1a0c")
+            px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
+    # coffered ceiling
+    u, v, w, h = R["ceil_lux"]
+    for y in range(h):
+        for x in range(w):
+            fx, fy = x % 16, y % 16
+            c = _rgb("3a2414")
+            if fx < 2 or fy < 2:
+                c = _rgb("24160c")
+            elif 6 <= fx <= 9 and 6 <= fy <= 9:
+                c = _rgb("c9a24a") if (fx + fy) % 2 == 0 else _rgb("8a6a2a")
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+    # red runner with a gold border
+    u, v, w, h = R["carpet"]
+    for y in range(h):
+        for x in range(w):
+            c = _rgb("8a1e1e")
+            if x in (2, 3, w - 4, w - 3):
+                c = _rgb("c9a24a")
+            elif x < 2 or x > w - 3:
+                c = _rgb("4a1010")
+            elif (x * 3 + y) % 11 == 0:
+                c = _rgb("6e1616")
+            px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
+    _riveted(px, R["wall_steel"], _rgb("6b6158"), _rgb("3b342e"), _rgb("a39684"), rng, pw=16, ph=16)
+    u, v, w, h = R["wall_steel"]
+    for y in range(13, 16):
+        for x in range(w):
+            px[u + x, v + y] = _jitter(_rgb("b8753e") if y == 14 else _rgb("7a4a26"), rng, 4) + (255,)
+    u, v, w, h = R["floor_grate"]
+    for y in range(h):
+        for x in range(w):
+            c = _rgb("1e1c1b") if (x % 4 == 0 or y % 4 == 0) else _rgb("45403c")
+            if x % 16 == 0 or y % 16 == 0:
+                c = _rgb("5a5450")
+            px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
+    u, v, w, h = R["ceil_steel"]
+    _riveted(px, (u, v, w, h), _rgb("35302c"), _rgb("1b1816"), _rgb("5d5650"), rng, pw=16, ph=16)
+    for x in range(w):
+        for y in (6, 7, 22, 23):
+            px[u + x, v + y] = _jitter(_rgb("7a4a26") if y % 2 else _rgb("a8693a"), rng, 4) + (255,)  # copper pipes
+    _hull_plates(px, R["hull_light"], _rgb("8a5632"), _rgb("2e1a0e"), _rgb("d09a62"), rng, wear=0.02)
+    _fill(img, R["salon_frame"], _rgb("b8913c"), rng, 8)
 
 
 def make_item_icon(path):

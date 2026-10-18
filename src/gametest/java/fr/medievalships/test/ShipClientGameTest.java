@@ -1167,11 +1167,15 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		// inside, on the surface: main level, then the lower level (under the waterline)
 		server.runCommand("gamemode survival @a");
 		server.runCommand("effect clear @a minecraft:water_breathing");
-		tpLocal(server, pose, 0, 0.02, -10, 0, 0);
+		tpLocal(server, pose, 0, 0.02, 15, 0, 0);
 		context.waitTicks(40);
 		double[] w = playerWater(context, sp, shipPose(sp, type));
-		log("%s main level: water %s/%s camera %s, local y %.3f", id, w[0], w[3], w[2], w[8]);
+		log("%s dining room: water %s/%s camera %s, local y %.3f", id, w[0], w[3], w[2], w[8]);
 		check(w[0] == 0 && w[3] == 0 && Math.abs(w[8]) < 0.06 && w[10] > 0, "%s walks on the main level floor (local y %.3f)", id, w[8]);
+		shot(context, id + "_4a_salle_a_manger");
+		tpLocal(server, pose, 0, 0.02, -2, 90, 0);
+		context.waitTicks(20);
+		shot(context, id + "_4b_grand_salon");
 		tpLocal(server, pose, 0, Ships.NautilusLayout.LOWER_FLOOR_Y + 0.02, 0, 0, 0);
 		context.waitTicks(200);
 		w = playerWater(context, sp, shipPose(sp, type));
@@ -1183,36 +1187,64 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		check(Math.abs(w[8] - Ships.NautilusLayout.LOWER_FLOOR_Y) < 0.06, "%s lower level: standing on its floor (local y %.3f)", id, w[8]);
 		shot(context, id + "_4_pont_inferieur");
 
-		// stairs from the lower level up to the main level
-		double[] l = walkLocal(context, sp, type, shipPose(sp, type), -1.75, Ships.NautilusLayout.LOWER_FLOOR_Y, 8.0, 0, 0, 70);
-		log("%s stairs: local %.2f %.2f %.2f", id, l[0], l[1], l[2]);
-		check(Math.abs(l[1] - Ships.NautilusLayout.MAIN_FLOOR_Y) < 0.06 && l[2] > 14.4, "%s climbs the stairs to the main level (local y %.2f z %.2f)",
-				id, l[1], l[2]);
-
-		// ladder up to the hatch: stopped under the closed hatch, out on the top of the hull once it is open
+		// spiral staircase from the lower level up to the main level: the player is steered along the turn
 		ShipPose here = shipPose(sp, type);
-		tpLocal(server, here, 0, 0.02, Ships.NautilusLayout.HATCH_Z - 0.2, 0, 0);
+		double scx = -1.0, scz = -9.5, sr = 1.4;
+		tpLocal(server, here, scx + Math.sin(Math.toRadians(12)) * sr, Ships.NautilusLayout.LOWER_FLOOR_Y + 0.52,
+				scz + Math.cos(Math.toRadians(12)) * sr, 90, 0);
 		context.waitTicks(15);
 		context.getInput().holdKey(o -> o.forwardKey);
-		context.waitTicks(120);
+		double[] l = null;
+		for (int t = 0; t < 200; t++) {
+			double[] q = playerPos(context);
+			ShipPose now = shipPose(sp, type);
+			l = now.toLocal(q[0], q[1], q[2]);
+			double a = Math.atan2(l[0] - scx, l[2] - scz);
+			double r = Math.hypot(l[0] - scx, l[2] - scz);
+			if (Math.toDegrees(a) < 0 && Math.toDegrees(a) > -40 && l[1] > -0.1) {
+				break; // a full turn: on the main level, back above the start
+			}
+			double dx = Math.cos(a) + (sr - r) * Math.sin(a) * 1.5, dz = -Math.sin(a) + (sr - r) * Math.cos(a) * 1.5;
+			float yaw = (float) (now.yaw() + Math.toDegrees(Math.atan2(-dx, dz)));
+			context.runOnClient(c -> c.player.setYaw(yaw));
+			context.waitTick();
+		}
+		context.getInput().releaseKey(o -> o.forwardKey);
+		context.waitTicks(10);
+		double[] q = playerPos(context);
+		l = shipPose(sp, type).toLocal(q[0], q[1], q[2]);
+		log("%s spiral staircase: local %.2f %.2f %.2f", id, l[0], l[1], l[2]);
+		check(Math.abs(l[1] - Ships.NautilusLayout.MAIN_FLOOR_Y) < 0.06, "%s climbs the spiral staircase to the main level (local y %.2f)", id, l[1]);
+		shot(context, id + "_4c_escalier");
+
+		// ladder up to the hatch on the casing: stopped under the closed hatch, out on the casing once it is open
+		here = shipPose(sp, type);
+		tpLocal(server, here, Ships.NautilusLayout.HATCH_X - 0.05, 0.02, Ships.NautilusLayout.HATCH_Z, -90, 0);
+		context.waitTicks(15);
+		context.getInput().holdKey(o -> o.forwardKey);
+		context.waitTicks(50);
+		float aft = (float) (shipPose(sp, type).yaw() + 180);
+		context.runOnClient(c -> c.player.setYaw(aft));
+		context.waitTicks(100);
 		w = playerWater(context, sp, shipPose(sp, type));
-		double hatchTop = Ships.NautilusLayout.AXIS_Y + Ships.NautilusLayout.halfHeight(Ships.NautilusLayout.HATCH_Z);
-		log("%s ladder, hatch closed: local y %.2f (hull top %.2f)", id, w[8], hatchTop);
-		check(w[8] > 3.5 && w[8] + 1.8 < hatchTop, "%s climbs the ladder and stops under the closed hatch (local y %.2f)", id, w[8]);
+		double hatchBottom = Ships.NautilusLayout.CASING_TOP_Y - 0.5;
+		log("%s ladder, hatch closed: local y %.2f (hatch at %.2f)", id, w[8], hatchBottom);
+		check(w[8] > 3.5 && w[8] + 1.8 < hatchBottom + 0.05, "%s climbs the ladder and stops under the closed hatch (local y %.2f)", id, w[8]);
 		server.computeOnServer(srv -> ship(srv.getOverworld(), type).toggleDoor(Ships.NautilusLayout.HATCH_DOOR));
-		context.waitTicks(80);
+		context.waitTicks(60);
 		context.getInput().releaseKey(o -> o.forwardKey);
 		context.waitTicks(20);
 		w = playerWater(context, sp, shipPose(sp, type));
 		log("%s ladder, hatch open: local %.2f %.2f %.2f", id, w[7], w[8], w[9]);
-		check(w[8] > hatchTop - 1.0, "%s goes out through the open hatch onto the hull (local y %.2f, top %.2f)", id, w[8], hatchTop);
+		check(w[8] > Ships.NautilusLayout.CASING_TOP_Y - 0.6, "%s goes out through the open hatch onto the casing (local y %.2f)", id, w[8]);
 		shot(context, id + "_5_sur_la_coque");
 
 		// dive with the hatch open is refused; close it, take the helm in the wheelhouse and dive
 		boolean opened = server.computeOnServer(srv -> ship(srv.getOverworld(), type).doorOpen(Ships.NautilusLayout.HATCH_DOOR));
 		check(opened, "%s the hatch is open", id);
-		tpLocal(server, shipPose(sp, type), 0, Ships.NautilusLayout.TOWER_FLOOR_Y + 0.02, 27.5, 0, 0);
+		tpLocal(server, shipPose(sp, type), 0, Ships.NautilusLayout.TOWER_FLOOR_Y + 0.02, 17.0, 0, 0);
 		context.waitTicks(10);
+		shot(context, id + "_5b_timonerie");
 		server.computeOnServer(srv -> {
 			ShipEntity ship = ship(srv.getOverworld(), type);
 			return ship.seat(srv.getPlayerManager().getPlayerList().get(0), ShipGeometry.PILOT_SEAT);
@@ -1267,7 +1299,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		check(Math.abs(ml[1]) < 0.1 && Math.abs(ml[2] + 4) < 1.5, "%s carries what stands in its rooms (armor stand local y %.2f z %.2f)", id, ml[1], ml[2]);
 		server.runCommand("ride @p dismount");
 		context.waitTicks(10);
-		tpLocal(server, d5, 0, 0.02, -14, 0, 0);
+		tpLocal(server, d5, 0, 0.02, -2, 0, 0);
 		context.waitTicks(200);
 		w = playerWater(context, sp, shipPose(sp, type));
 		log("%s inside, submerged: touching water %s/%s, submerged %s/%s, camera %s, air %.0f/%.0f, local y %.3f", id, w[0], w[3], w[1], w[4],
@@ -1280,7 +1312,10 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		context.getInput().holdKeyFor(o -> o.forwardKey, 60);
 		context.waitTicks(20);
 		w = playerWater(context, sp, shipPose(sp, type));
-		check(Math.abs(w[8]) < 0.06 && Math.abs(w[7]) < 3.1 && w[1] == 0, "%s submerged: walking in the hall (local %.2f %.2f %.2f)", id, w[7], w[8], w[9]);
+		check(Math.abs(w[8]) < 0.06 && Math.abs(w[7]) < 3.6 && w[1] == 0, "%s submerged: walking in the salon (local %.2f %.2f %.2f)", id, w[7], w[8], w[9]);
+		tpLocal(server, shipPose(sp, type), -1.0, 0.02, -2, -90, 0);
+		context.waitTicks(15);
+		shot(context, id + "_6b_baie_du_salon_en_plongee");
 		server.runCommand("gamemode spectator @a");
 		lookLocal(server, shipPose(sp, type), -22, -3, -10, 0, 0, 0);
 		context.waitTicks(20);
@@ -1288,7 +1323,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 
 		// back to the helm and up to the surface
 		server.runCommand("gamemode survival @a");
-		tpLocal(server, shipPose(sp, type), 0, Ships.NautilusLayout.TOWER_FLOOR_Y + 0.02, 27.5, 0, 0);
+		tpLocal(server, shipPose(sp, type), 0, Ships.NautilusLayout.TOWER_FLOOR_Y + 0.02, 17.0, 0, 0);
 		context.waitTicks(10);
 		server.computeOnServer(srv -> ship(srv.getOverworld(), type).seat(srv.getPlayerManager().getPlayerList().get(0), ShipGeometry.PILOT_SEAT));
 		context.getInput().holdKey(o -> o.jumpKey);

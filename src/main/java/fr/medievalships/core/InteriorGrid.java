@@ -22,6 +22,8 @@ public final class InteriorGrid {
 	public static final byte DRY = 2;
 	public static final byte LADDER = 3;
 	public static final byte AIRLOCK = 4;
+	/** Glass in the hull: solid and dry; the model leaves it open, so the sea is seen through it. */
+	public static final byte WINDOW = 5;
 	public static final byte DOOR = 16;
 	public static final int MAX_DOORS = 32;
 
@@ -72,7 +74,7 @@ public final class InteriorGrid {
 					byte k = cells[base + iy];
 					if (k != OUT) {
 						carry[base + iy] = true;
-						sinceSolid = k == SOLID || k >= DOOR ? 0 : Integer.MAX_VALUE;
+						sinceSolid = k == SOLID || k == WINDOW || k >= DOOR ? 0 : Integer.MAX_VALUE;
 					} else {
 						if (sinceSolid != Integer.MAX_VALUE) {
 							sinceSolid++;
@@ -154,7 +156,7 @@ public final class InteriorGrid {
 
 	/** Does this cell stop entities (wall, floor, closed door)? */
 	public static boolean solid(byte kind, State state) {
-		if (kind == SOLID) {
+		if (kind == SOLID || kind == WINDOW) {
 			return true;
 		}
 		if (kind >= DOOR) {

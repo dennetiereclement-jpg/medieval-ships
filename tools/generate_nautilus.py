@@ -10,10 +10,18 @@ Outputs:
   src/main/resources/assets/medievalships/textures/item/nautilus.png
   src/main/resources/assets/medievalships/interiors/nautilus.grid         (collisions, dry rooms, ladders, doors)
 
-Step 1 of docs/NAUTILUS_PLAN.md (prototype): the elliptical copper hull in tilted panels, a ram,
-the tail with its propeller and fin, the wheelhouse; inside, the walls, floors and ceilings are
-drawn exactly on the boundaries of the interior grid (elements named "lit*", lit by the
-Nautilus's own lamps), with the ladders and the hatch (bone door_0).
+Reference: the Minecraft sheet of the Nautilus (side, top, front, rear and perspective views; see
+docs/NAUTILUS_PLAN.md for the measurements). A long spindle of aged copper plates, darker low on
+the hull, a steel ram at the bow, a crest of spikes climbing from the bow to the wheelhouse, a
+raised casing along the top with a second crest of spikes, the great round salon window with its
+ring of lights on each side, a row of portholes low on the fore half, two keels under the hull,
+a tail cone with rings carrying the propeller and a fish-tail fin crossed by two horizontal fins.
+
+The hull is a body with elliptical sections built from tilted panels (no staircase); around the
+windows the panels are cut finer and left open over the glass, so the sea is seen from inside.
+The casing, the wheelhouse and the projector cage, and inside every wall, floor and ceiling, are
+drawn exactly on the boundaries of the interior grid (tools/nautilus_interior.py): what is drawn
+is what collides. Room surfaces are named "lit*" (lit by the Nautilus's own lamps).
 
 Bones used by the mod (keep their names when editing in Blockbench):
   propeller (propeller: played with the signed speed)    door_<k> (door k: 0 = closed, 1 = open)
@@ -49,10 +57,12 @@ gn.SIZE = nt.SIZE
 v3, norm, Bone, add_cube, beam, board = gg.v3, gg.norm, gg.Bone, gg.add_cube, gg.beam, gg.board
 rx, ry, rz = gg.rx, gg.ry, gg.rz
 EYE = np.eye(3)
+SIDES = (1, -1)
 
 NAZ = 32
-HULL_S = [-1.0, -0.97, -0.92, -0.85, -0.76, -0.65, -0.52, -0.38, -0.24, -0.1, 0.05, 0.2, 0.35, 0.5, 0.63, 0.74, 0.83,
-          0.9, 0.95, 0.985, 1.0]
+HULL_S = [-1.0, -0.985, -0.95, -0.9, -0.83, -0.74, -0.63, -0.5, -0.36, -0.22, -0.08, 0.0, 0.08, 0.2, 0.33, 0.46,
+          0.58, 0.69, 0.78, 0.86, 0.92, 0.96, 0.985, 1.0]
+FINE = 0.3  # size of the panels cut around the windows
 
 
 def hull_z(s):
@@ -63,6 +73,15 @@ def P(z, az_deg, out=0.0):
     a = math.radians(az_deg)
     w, h = ns.half_width(z) + out, ns.half_height(z) + out
     return v3(math.sin(a) * w, ns.AXIS_Y + math.cos(a) * h, z)
+
+
+def on_hull(z, y, side, out=0.0):
+    """Point of the hull surface at (z, y) on one side, pushed out along the normal."""
+    w, h = ns.half_width(z), ns.half_height(z)
+    dy = max(-h, min(h, y - ns.AXIS_Y))
+    x = side * w * math.sqrt(max(0.0, 1.0 - (dy / h) ** 2))
+    n = norm(v3(x / max(w, 1e-6) ** 2, dy / max(h, 1e-6) ** 2, 0))
+    return v3(x, y, z) + n * out, n
 
 
 def stretched(cube):
@@ -76,13 +95,228 @@ def panel(bone, name, a0, a1, b0, b1, th, region, outward, overlap=1.04):
     return stretched(board(bone, name, a0, a1, b0, b1, th, region, outward, overlap=overlap))
 
 
-# ---------------------------------------------------------------- interior surfaces from the grid
+# windows cut in the hull: (z, y, radius) on both sides
+WINDOWS = [(ns.SALON_WINDOW[0], ns.SALON_WINDOW[1], ns.SALON_WINDOW[2] - 0.2)] + \
+          [(z, ns.SMALL_WINDOWS_Y, 0.45) for z in ns.SMALL_WINDOWS_Z]
+
+
+def in_window(p):
+    for z, y, r in WINDOWS:
+        if (p[2] - z) ** 2 + (p[1] - y) ** 2 < r * r and abs(p[0]) > 2.0:
+            return True
+    return False
+
+
+def near_window(points):
+    zs = [p[2] for p in points]
+    ys = [p[1] for p in points]
+    xs = [p[0] for p in points]
+    for z, y, r in WINDOWS:
+        if min(zs) - r < z < max(zs) + r and min(ys) - r < y < max(ys) + r and max(abs(x) for x in xs) > 2.0:
+            return True
+    return False
+
+
+def hull(bone):
+    n = 0
+    for i in range(len(HULL_S) - 1):
+        za, zb = hull_z(HULL_S[i]), hull_z(HULL_S[i + 1])
+        for j in range(NAZ):
+            a0, a1 = 360.0 * j / NAZ, 360.0 * (j + 1) / NAZ
+            am = (a0 + a1) / 2
+            outward = v3(math.sin(math.radians(am)), math.cos(math.radians(am)), 0)
+            region = "plate" if math.cos(math.radians(am)) > -0.3 else "plate_dark"
+            corners = [P(za, a0), P(za, a1), P(zb, a0), P(zb, a1)]
+            if not near_window(corners):
+                panel(bone, "hull_%d_%d" % (i, j), *corners, 0.12, region, outward)
+                n += 1
+                continue
+            # around a window: finer panels, left open over the glass
+            nz_ = max(1, int(math.ceil(abs(zb - za) / FINE)))
+            na_ = max(1, int(math.ceil(np.linalg.norm(corners[1] - corners[0]) / FINE)))
+            for p in range(nz_):
+                for q in range(na_):
+                    z0, z1 = za + (zb - za) * p / nz_, za + (zb - za) * (p + 1) / nz_
+                    b0, b1 = a0 + (a1 - a0) * q / na_, a0 + (a1 - a0) * (q + 1) / na_
+                    c = P((z0 + z1) / 2, (b0 + b1) / 2)
+                    if in_window(c):
+                        continue
+                    sub = panel(bone, "hull_%d_%d_%d_%d" % (i, j, p, q), P(z0, b0), P(z0, b1), P(z1, b0), P(z1, b1), 0.12, region,
+                                outward)
+                    for f in sub.faces.values():
+                        if f is not None:
+                            f["sub"] = (p / nz_, q / na_, (p + 1) / nz_, (q + 1) / na_)
+                    n += 1
+    return n
+
+
+def ring(bone, name, center, normal, r, th, region, n=16, width=None):
+    normal = norm(normal)
+    e1 = norm(np.cross(normal, v3(0, 0, 1) if abs(normal[2]) < 0.9 else v3(1, 0, 0)))
+    e2 = np.cross(normal, e1)
+    for k in range(n):
+        t0, t1 = 2 * math.pi * k / n, 2 * math.pi * (k + 1) / n
+        p0 = center + (e1 * math.cos(t0) + e2 * math.sin(t0)) * r
+        p1 = center + (e1 * math.cos(t1) + e2 * math.sin(t1)) * r
+        beam(bone, "%s_%d" % (name, k), p0, p1, th, region, width=width, up=normal, extend=th * 0.3)
+
+
+def windows(bone, lights):
+    wz, wy, wr = ns.SALON_WINDOW
+    for side in SIDES:
+        sn = "p" if side > 0 else "s"
+        c, nrm = on_hull(wz, wy, side, 0.08)
+        ring(bone, "salon_frame_%s" % sn, c, nrm, wr - 0.05, 0.3, "brass", n=16, width=0.36)
+        ring(bone, "salon_iris_%s" % sn, c, nrm, wr * 0.7, 0.06, "brass", n=16, width=0.1)
+        for k in range(8):
+            t = 2 * math.pi * (k + 0.5) / 8
+            zz, yy = wz + math.cos(t) * (wr + 0.45), wy + math.sin(t) * (wr + 0.45)
+            p, nn = on_hull(zz, yy, side, 0.12)
+            add_cube(lights, "glow_salon_lamp_%s%d" % (sn, k), p, EYE, (0.3, 0.3, 0.3), "glow")
+            add_cube(bone, "salon_lamp_socket_%s%d" % (sn, k), on_hull(zz, yy, side, 0.02)[0], EYE, (0.42, 0.42, 0.42), "brass")
+        for z in ns.SMALL_WINDOWS_Z:
+            c, nrm = on_hull(z, ns.SMALL_WINDOWS_Y, side, 0.06)
+            ring(bone, "porthole_%s_%d" % (sn, int(z * 10)), c, nrm, 0.5, 0.12, "brass", n=8, width=0.16)
+
+
+def ram(bone):
+    y = ns.AXIS_Y
+    segs = ((ns.BOW_Z - 3.0, ns.BOW_Z + 1.0, 1.3), (ns.BOW_Z + 1.0, ns.BOW_Z + 3.5, 0.9), (ns.BOW_Z + 3.5, ns.RAM_TIP_Z - 1.0, 0.55),
+            (ns.RAM_TIP_Z - 1.0, ns.RAM_TIP_Z, 0.22))
+    for k, (z0, z1, r) in enumerate(segs):
+        add_cube(bone, "ram_%d" % k, v3(0, y, (z0 + z1) / 2), rz(math.pi / 4), (r, r, z1 - z0 + 0.05), "steel")
+    # a flange on top and under the ram, with teeth
+    beam(bone, "ram_fin_top", v3(0, y + 0.3, ns.BOW_Z - 1.0), v3(0, y + 0.1, ns.RAM_TIP_Z - 1.2), 0.12, "steel", width=0.5, up=v3(1, 0, 0))
+    beam(bone, "ram_fin_bottom", v3(0, y - 0.3, ns.BOW_Z - 1.0), v3(0, y - 0.1, ns.RAM_TIP_Z - 1.2), 0.12, "steel", width=0.5, up=v3(1, 0, 0))
+    for k, z in enumerate(np.arange(ns.BOW_Z - 0.5, ns.RAM_TIP_Z - 1.5, 1.2)):
+        for s, yy in ((1, 0.55), (-1, -0.55)):
+            add_cube(bone, "ram_tooth_%d_%d" % (k, s > 0), v3(0, y + s * (0.42 - 0.03 * k), z), rx(math.radians(45)), (0.1, 0.3, 0.3), "steel")
+
+
+def spike(bone, name, base, up, h, w, region="steel"):
+    """A tapering spike from base along up (two crossed tapered plates)."""
+    up = norm(up)
+    for k in range(3):
+        f = k / 3
+        c = base + up * h * (f + 1 / 6)
+        s = w * (1 - f) * 0.9 + 0.06
+        add_cube(bone, "%s_%d" % (name, k), c, gg.frame_from(up, v3(0, 0, 1)), (h / 3 + 0.02, s, s), region)
+
+
+def crests(bone):
+    # fore crest: a curved band from the hull top near the bow to the top of the wheelhouse front, spikes on it
+    z0, z1 = ns.FORE_CREST
+    p0 = v3(0, ns.hull_top(z0) - 0.2, z0)
+    p2 = v3(0, ns.TOWER_TOP_Y - 0.2, z1)
+    p1 = v3(0, ns.TOWER_TOP_Y + 0.2, (z0 + z1) / 2 + 2.5)
+    pts = [(1 - t) ** 2 * p0 + 2 * (1 - t) * t * p1 + t * t * p2 for t in np.linspace(0, 1, 11)]
+    for k in range(len(pts) - 1):
+        beam(bone, "crest_fore_%d" % k, pts[k], pts[k + 1], 0.55, "steel", width=0.3, up=v3(1, 0, 0), extend=0.05)
+        if k % 1 == 0:
+            d = norm(pts[k + 1] - pts[k])
+            up = norm(np.cross(d, v3(1, 0, 0)))
+            if up[1] < 0:
+                up = -up
+            spike(bone, "crest_fore_spike_%d" % k, (pts[k] + pts[k + 1]) / 2 + up * 0.2, norm(up + d * 0.35), 0.9, 0.35)
+    # aft crest: spikes along the casing
+    za, zb = ns.AFT_CREST
+    for k, z in enumerate(np.linspace(za, zb, 9)):
+        spike(bone, "crest_aft_spike_%d" % k, v3(0, ns.CASING_TOP_Y, z), v3(0, 1, 0.25), 1.1, 0.4)
+    beam(bone, "crest_aft_band", v3(0, ns.CASING_TOP_Y + 0.15, za + 0.5), v3(0, ns.CASING_TOP_Y + 0.15, zb - 0.5), 0.3, "steel", width=0.3)
+    # a row of smaller spikes along the casing edges, fore of the wheelhouse
+    for k, z in enumerate(np.arange(ns.TOWER_Z[1] + 1.0, ns.CASING_Z[1] - 0.5, 1.4)):
+        for s in SIDES:
+            spike(bone, "casing_spike_%d_%d" % (k, s > 0), v3(s * (ns.CASING_HALF_WIDTH - 0.2), ns.CASING_TOP_Y, z), v3(s * 0.4, 1, 0.3),
+                  0.6, 0.25)
+
+
+def keels(bone):
+    for k, (z0, z1) in enumerate(ns.KEELS):
+        bottom = min(ns.hull_bottom(z0), ns.hull_bottom(z1)) - ns.KEEL_DEPTH
+        top = max(ns.hull_bottom(z0), ns.hull_bottom(z1)) + 0.4
+        add_cube(bone, "keel_%d" % k, v3(0, (top + bottom) / 2, (z0 + z1) / 2), EYE, (0.5, top - bottom, z1 - z0), "plate_dark")
+        add_cube(bone, "keel_shoe_%d" % k, v3(0, bottom + 0.08, (z0 + z1) / 2), EYE, (0.62, 0.16, z1 - z0 + 0.1), "steel")
+
+
+def tail(bone, root):
+    y = ns.AXIS_Y
+    # cone with rings from the end of the hull to the propeller
+    zs = np.linspace(ns.STERN_Z + 2.0, ns.TAIL_CONE_Z, 6)
+    rs = np.linspace(1.6, 0.5, 6)
+    for k in range(len(zs) - 1):
+        for j in range(12):
+            a0, a1 = 30.0 * j, 30.0 * (j + 1)
+            am = math.radians((a0 + a1) / 2)
+            outward = v3(math.sin(am), math.cos(am), 0)
+
+            def C(z, r, a):
+                return v3(math.sin(math.radians(a)) * r, y + math.cos(math.radians(a)) * r, z)
+            panel(bone, "tail_cone_%d_%d" % (k, j), C(zs[k], rs[k], a0), C(zs[k], rs[k], a1), C(zs[k + 1], rs[k + 1], a0),
+                  C(zs[k + 1], rs[k + 1], a1), 0.1, "plate_dark", outward)
+        ring(bone, "tail_ring_%d" % k, v3(0, y, zs[k]), v3(0, 0, 1), rs[k] + 0.05, 0.16, "brass", n=12, width=0.22)
+    beam(bone, "shaft", v3(0, y, ns.TAIL_CONE_Z + 0.3), v3(0, y, ns.PROP_Z - 0.6), 0.36, "steel")
+    prop = Bone("propeller", origin=(0, y, ns.PROP_Z), parent=root)
+    hub = v3(0, y, ns.PROP_Z)
+    add_cube(prop, "prop_hub", hub, EYE, (0.8, 0.8, 0.7), "brass")
+    add_cube(prop, "prop_cap", hub + v3(0, 0, -0.45), rz(math.pi / 4), (0.5, 0.5, 0.3), "brass")
+    pitch = math.radians(28)
+    for k in range(4):
+        a = 2 * math.pi * k / 4 + math.pi / 4
+        d = v3(math.sin(a), math.cos(a), 0)
+        side = np.cross(v3(0, 0, 1), d)
+        w = side * math.cos(pitch) + v3(0, 0, 1) * math.sin(pitch)
+        n = np.cross(d, w)
+        axes = np.column_stack([d, w, n])
+        add_cube(prop, "prop_root_%d" % k, hub + d * 0.8, axes, (0.8, 0.6, 0.14), "brass")
+        add_cube(prop, "prop_blade_%d" % k, hub + d * 2.0, axes, (1.7, 1.25, 0.12), "brass")
+        add_cube(prop, "prop_tip_%d" % k, hub + d * (ns.PROP_R - 0.2), axes, (0.45, 0.85, 0.12), "brass")
+    # fish-tail fin (vertical lobes) and the horizontal fins, as strips between the swept edges
+    def lobes(name, axis_dir, top):
+        span = abs(top)
+        for k, f in enumerate(np.arange(0.25, span, 0.5)):
+            le = ns.FIN_Z0 - max(0.0, f - 1.0) / (span - 1.0) * (ns.FIN_Z0 - ns.FIN_TIP_LE_Z)
+            te = ns.FIN_NOTCH_Z - f / span * (ns.FIN_NOTCH_Z - ns.FIN_TIP_TE_Z)
+            c = v3(0, y, 0) + axis_dir * math.copysign(f, top)
+            size = (0.24, 0.52, le - te) if axis_dir[1] else (0.52, 0.24, le - te)
+            add_cube(bone, "%s_%d" % (name, k), c + v3(0, 0, (le + te) / 2), EYE, size, "plate_dark")
+        tip_le = v3(0, y, ns.FIN_TIP_LE_Z) + axis_dir * top
+        tip_te = v3(0, y, ns.FIN_TIP_TE_Z) + axis_dir * top
+        root_le = v3(0, y, ns.FIN_Z0) + axis_dir * math.copysign(1.0, top)
+        notch = v3(0, y, ns.FIN_NOTCH_Z)
+        beam(bone, name + "_leading", root_le, tip_le, 0.34, "steel", width=0.34)
+        beam(bone, name + "_tip", tip_le, tip_te, 0.3, "steel", width=0.3)
+        beam(bone, name + "_trailing", notch, tip_te, 0.26, "steel", width=0.26)
+    lobes("fin_top", v3(0, 1, 0), ns.FIN_TOP)
+    lobes("fin_bottom", v3(0, 1, 0), ns.FIN_BOTTOM)
+    lobes("fin_port", v3(1, 0, 0), ns.FIN_SPAN)
+    lobes("fin_starboard", v3(1, 0, 0), -ns.FIN_SPAN)
+
+
+# ---------------------------------------------------------------- surfaces of the grid
 OPEN_KINDS = (ni.DRY, ni.LADDER, ni.AIRLOCK)
 MAX_TILE = 4  # cells (2 blocks): the texture regions are 32 px
 
+LUX = ("wall_lux", "floor_lux", "ceil_lux")
+STEEL = ("wall_steel", "floor_grate", "ceil_steel")
+ROOM_MATERIALS = {
+    "salon": LUX, "library": LUX, "dining": LUX, "cabin_aronnax": LUX,
+    "corridor_fore": ("wall_steel", "carpet", "ceil_steel"), "coursive": ("wall_steel", "carpet", "ceil_steel"),
+    "cabin_nemo": ("wall_steel", "floor", "ceil_steel"), "wheelhouse": ("wall_steel", "floor", "ceil_steel"),
+    "crew": ("wall_steel", "floor", "ceil_steel"), "store_port": ("wall_steel", "floor", "ceil_steel"),
+    "store_stbd": ("wall_steel", "floor", "ceil_steel"), "corridor_aft": ("wall_steel", "carpet", "ceil_steel"),
+    "junction": ("wall_steel", "carpet", "ceil_steel"), "cross_fore": ("wall_steel", "carpet", "ceil_steel"),
+}
 
-def greedy(mask):
-    """Rectangles (i0, j0, i1, j1) covering a 2D boolean mask, at most MAX_TILE cells a side."""
+
+def room_at(x, y, z):
+    for name, (x0, x1, y0, y1, z0, z1) in ni.ROOMS.items():
+        if x0 - 0.01 <= x <= x1 + 0.01 and y0 - 0.01 <= y <= y1 + 0.01 and z0 - 0.01 <= z <= z1 + 0.01:
+            return name
+    return None
+
+
+def greedy(mask, key):
+    """Rectangles (i0, j0, i1, j1) covering a 2D mask with the same key, at most MAX_TILE cells a side."""
     m = mask.copy()
     out = []
     ni_, nj_ = m.shape
@@ -92,52 +326,54 @@ def greedy(mask):
             if not m[i, j]:
                 j += 1
                 continue
+            kk = key[i, j]
             j1 = j
-            while j1 + 1 < nj_ and m[i, j1 + 1] and j1 + 1 - j < MAX_TILE:
+            while j1 + 1 < nj_ and m[i, j1 + 1] and key[i, j1 + 1] == kk and j1 + 1 - j < MAX_TILE:
                 j1 += 1
             i1 = i
-            while i1 + 1 < ni_ and i1 + 1 - i < MAX_TILE and m[i1 + 1, j:j1 + 1].all():
+            while i1 + 1 < ni_ and i1 + 1 - i < MAX_TILE and m[i1 + 1, j:j1 + 1].all() and (key[i1 + 1, j:j1 + 1] == kk).all():
                 i1 += 1
             m[i:i1 + 1, j:j1 + 1] = False
-            out.append((i, j, i1, j1))
+            out.append((i, j, i1, j1, kk))
             j = j1 + 1
     return out
 
 
-def interior_surfaces(bone, outside, g):
+def surfaces(rooms_bone, outside_bone, g):
     k = g.k
     solid = k == ni.SOLID
-    opened = np.isin(k, OPEN_KINDS) | (k >= ni.DOOR)
+    opened = np.isin(k, OPEN_KINDS) | (k >= ni.DOOR) | (k == ni.WINDOW)
     out = k == ni.OUT
+    body = g.inside(0.0)
     C = ni.CELL
     origin = (ni.X0, ni.Y0, ni.Z0)
+    # material of the open cells: index into a list of (wall, floor, ceiling)
+    mats = [STEEL] + list(dict.fromkeys(ROOM_MATERIALS.values()))
+    mat_index = np.zeros(k.shape, dtype=np.int16)
+    for name, box in ni.ROOMS.items():
+        if name in ROOM_MATERIALS:
+            mat_index[g.sel(*[b + d for b, d in zip(box, (-0.01, 0.01, -0.01, 0.01, -0.01, 0.01))])] = mats.index(ROOM_MATERIALS[name])
     count = 0
     for a in range(3):
         for s in (1, -1):
-            nb_open = np.zeros_like(opened)
-            nb_out = np.zeros_like(out)
             src = [slice(None)] * 3
             dst = [slice(None)] * 3
             if s > 0:
                 dst[a], src[a] = slice(0, -1), slice(1, None)
             else:
                 dst[a], src[a] = slice(1, None), slice(0, -1)
-            nb_open[tuple(dst)] = opened[tuple(src)]
+            nb_open = np.zeros_like(opened)
+            nb_open[tuple(dst)] = opened[tuple(src)] & (k[tuple(src)] != ni.WINDOW)
+            nb_out = np.zeros_like(out)
             nb_out[tuple(dst)] = out[tuple(src)]
+            nb_mat = np.zeros_like(mat_index)
+            nb_mat[tuple(dst)] = mat_index[tuple(src)]
             inner = solid & nb_open
-            # outside faces of the cells standing above the hull body (the wheelhouse)
-            above = np.zeros_like(solid)
-            if True:
-                Y, Z, X = g.Y, g.Z, g.X
-                top = ns.AXIS_Y + np.vectorize(ns.half_height)(Z) * np.sqrt(np.clip(1 - (X / np.maximum(1e-6, np.vectorize(ns.half_width)(Z))) ** 2, 0, 1))
-                above = Y > top + 0.05
-            outer = solid & nb_out & above
-            if a == 1:
-                mat = "floor" if s > 0 else "ceiling"
-            else:
-                mat = "wall"
+            outer = solid & nb_out & ~body
+            slot = 1 if (a == 1 and s > 0) else 2 if a == 1 else 0
             others = [b for b in range(3) if b != a]
-            for layer, kind, region in ((inner, "lit_" + mat, mat), (outer, "tower", "plate")):
+            for layer, kind in ((inner, "lit"), (outer, "out")):
+                key = nb_mat if kind == "lit" else np.zeros_like(nb_mat)
                 for idx in range(layer.shape[a]):
                     sl = [slice(None)] * 3
                     sl[a] = idx
@@ -145,9 +381,8 @@ def interior_surfaces(bone, outside, g):
                     if not m2.any():
                         continue
                     plane = origin[a] + (idx + (1 if s > 0 else 0)) * C
-                    for (i0, j0, i1, j1) in greedy(m2):
-                        lo = [0.0, 0.0, 0.0]
-                        hi = [0.0, 0.0, 0.0]
+                    for (i0, j0, i1, j1, kk) in greedy(m2, key[tuple(sl)]):
+                        lo, hi = [0.0] * 3, [0.0] * 3
                         b0, b1 = others
                         lo[b0], hi[b0] = origin[b0] + i0 * C, origin[b0] + (i1 + 1) * C
                         lo[b1], hi[b1] = origin[b1] + j0 * C, origin[b1] + (j1 + 1) * C
@@ -160,111 +395,116 @@ def interior_surfaces(bone, outside, g):
                             udir, vdir = v3(1, 0, 0), v3(0, 0, 1)
                         else:
                             udir, vdir = (v3(0, 0, 1) if a == 0 else v3(1, 0, 0)), v3(0, -1, 0)
-                        target = bone if kind.startswith("lit") else outside
-                        add_cube(target, "%s_%d" % (kind, count), center, EYE, size, {face: region}, u_dir=udir, v_dir=vdir)
+                        if kind == "lit":
+                            region = mats[kk][slot]
+                            add_cube(rooms_bone, "lit_%s_%d" % (region, count), center, EYE, size, {face: region}, u_dir=udir, v_dir=vdir)
+                        else:
+                            region = "deck" if (a == 1 and s > 0) else "hull_light"
+                            add_cube(outside_bone, "casing_%d" % count, center, EYE, size, {face: region}, u_dir=udir, v_dir=vdir)
                         count += 1
     return count
 
 
-def ladder(bone, name, x0, x1, z_wall, y0, y1, side):
-    """Rungs every half block against the wall at z_wall (side: +1 the wall is towards +z)."""
-    z = z_wall - side * 0.08
-    for k, x in enumerate((x0 + 0.08, x1 - 0.08)):
-        beam(bone, "%s_rail_%d" % (name, k), v3(x, y0, z), v3(x, y1, z), 0.07, "rung")
-    y = y0 + 0.25
-    i = 0
-    while y < y1 - 0.1:
-        beam(bone, "%s_rung_%d" % (name, i), v3(x0 + 0.08, y, z), v3(x1 - 0.08, y, z), 0.06, "rung")
-        y += 0.5
-        i += 1
+def ladders(bone):
+    for name, (box, pillar) in ni.LADDERS.items():
+        x0, x1, y0, y1, z0, z1 = box
+        cx, cz = (x0 + x1) / 2, (z0 + z1) / 2
+        if pillar is not None:
+            px_, pz_ = (pillar[0] + pillar[1]) / 2, (pillar[4] + pillar[5]) / 2
+        else:
+            px_, pz_ = cx, z1 + 1
+        if abs(px_ - cx) > abs(pz_ - cz):
+            sgn = 1 if px_ > cx else -1
+            wall = x1 if sgn > 0 else x0
+            p_a, p_b = (lambda y: v3(wall - sgn * 0.08, y, z0 + 0.12)), (lambda y: v3(wall - sgn * 0.08, y, z1 - 0.12))
+        else:
+            sgn = 1 if pz_ > cz else -1
+            wall = z1 if sgn > 0 else z0
+            p_a, p_b = (lambda y: v3(x0 + 0.12, y, wall - sgn * 0.08)), (lambda y: v3(x1 - 0.12, y, wall - sgn * 0.08))
+        beam(bone, "lit_ladder_%s_rail_a" % name, p_a(y0), p_a(y1), 0.07, "rung")
+        beam(bone, "lit_ladder_%s_rail_b" % name, p_b(y0), p_b(y1), 0.07, "rung")
+        y, i = y0 + 0.25, 0
+        while y < y1 - 0.1:
+            beam(bone, "lit_ladder_%s_rung_%d" % (name, i), p_a(y), p_b(y), 0.06, "rung")
+            y += 0.5
+            i += 1
+
+
+def doors(root, g):
+    anims = []
+    for d, (name, box) in ni.DOORS.items():
+        if box is None:
+            m = g.k == ni.DOOR + d
+            xs, ys, zs = g.X[m], g.Y[m], g.Z[m]
+            h = ni.CELL / 2
+            box = (xs.min() - h, xs.max() + h, ys.min() - h, ys.max() + h, zs.min() - h, zs.max() + h)
+        x0, x1, y0, y1, z0, z1 = box
+        sx, sy, sz = x1 - x0, y1 - y0, z1 - z0
+        flat = sy <= min(sx, sz) + 1e-6
+        if flat:
+            hinge = v3((x0 + x1) / 2, y1, z0)
+            axis_rot = (-110, 0, 0)
+        elif sx < sz:  # door in a wall across x: hinge on its fore edge, swings about y
+            hinge = v3((x0 + x1) / 2, y0, z1)
+            axis_rot = (0, 100, 0)
+        else:
+            hinge = v3(x1, y0, (z0 + z1) / 2)
+            axis_rot = (0, 100, 0)
+        bone = Bone("door_%d" % d, origin=tuple(hinge), parent=root)
+        c = v3((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2)
+        thin = 0.16
+        size = (sx if sx > thin * 2 else thin, sy if not flat else thin, sz if sz > thin * 2 else thin)
+        if d == 9:
+            size = (thin, sy, sz)
+        add_cube(bone, "lit_door_%d" % d, c, EYE, size, {"all": "steel", "+1": "door", "-1": "door", "+2": "hatch", "-2": "hatch",
+                                                           "+3": "door", "-3": "door"})
+        anims.append(gg.animation("door_%d" % d, 1.0, "hold", [(bone, [gg.rot_kf(0.0, (0, 0, 0)), gg.rot_kf(1.0, axis_rot)])]))
+    return anims
 
 
 def build(g):
     root = Bone("nautilus")
-    hull = Bone("hull", parent=root)
+    hull_bone = Bone("hull", parent=root)
+    outside = Bone("superstructure", parent=root)
     rooms = Bone("rooms", parent=root)
-    tail = Bone("tail", parent=root)
     fittings = Bone("fittings", parent=root)
-
-    # ---------------------------------------------------------------- hull: elliptical body in tilted panels
-    for i in range(len(HULL_S) - 1):
-        za, zb = hull_z(HULL_S[i]), hull_z(HULL_S[i + 1])
-        for j in range(NAZ):
-            a0, a1 = 360.0 * j / NAZ, 360.0 * (j + 1) / NAZ
-            am = (a0 + a1) / 2
-            outward = v3(math.sin(math.radians(am)), math.cos(math.radians(am)), 0)
-            region = "plate" if math.cos(math.radians(am)) > -0.35 else "plate_dark"
-            panel(hull, "hull_%d_%d" % (i, j), P(za, a0), P(za, a1), P(zb, a0), P(zb, a1), 0.12, region, outward)
-    # ram: a long tapering steel spike at the bow
-    for k, (z0, z1, r) in enumerate(((ns.BOW_Z - 2.0, ns.BOW_Z + 1.5, 0.9), (ns.BOW_Z + 1.5, ns.BOW_Z + 4.0, 0.55),
-                                     (ns.BOW_Z + 4.0, ns.RAM_TIP_Z, 0.25))):
-        add_cube(hull, "ram_%d" % k, v3(0, ns.AXIS_Y, (z0 + z1) / 2), rz(math.pi / 4), (r, r, z1 - z0), "steel")
-    # a few lit portholes along the sides (step 2 will place them as on the reference)
-    for side in (1, -1):
-        for k, z in enumerate((-18.0, -8.0, 8.0, 18.0)):
-            p = P(z, side * 90, 0.06)
-            add_cube(fittings, "glow_porthole_%d_%d" % (side > 0, k), p, EYE, (0.06, 0.7, 0.7), "glass")
-
-    # ---------------------------------------------------------------- tail: shaft, propeller, fin
-    beam(tail, "shaft", v3(0, ns.AXIS_Y, ns.STERN_Z + 2.0), v3(0, ns.AXIS_Y, ns.STERN_Z - 1.2), 0.5, "steel")
-    prop_z = ns.STERN_Z - 0.8
-    prop = Bone("propeller", origin=(0, ns.AXIS_Y, prop_z), parent=root)
-    hub = v3(0, ns.AXIS_Y, prop_z)
-    add_cube(prop, "prop_hub", hub, EYE, (0.8, 0.8, 0.6), "brass")
-    pitch = math.radians(25)
-    for k in range(4):
-        a = 2 * math.pi * k / 4
-        d = v3(math.sin(a), math.cos(a), 0)
-        side = np.cross(v3(0, 0, 1), d)
-        w = side * math.cos(pitch) + v3(0, 0, 1) * math.sin(pitch)
-        n = np.cross(d, w)
-        add_cube(prop, "prop_blade_%d" % k, hub + d * 1.7, np.column_stack([d, w, n]), (2.6, 1.1, 0.12), "brass")
-    fin_z0, fin_z1 = ns.STERN_Z - 1.6, ns.TAIL_END_Z
-    add_cube(tail, "fin", v3(0, ns.AXIS_Y, (fin_z0 + fin_z1) / 2), EYE, (0.2, 11.0, fin_z0 - fin_z1), "steel")
-    beam(tail, "fin_post", v3(0, ns.AXIS_Y, ns.STERN_Z + 0.5), v3(0, ns.AXIS_Y, fin_z1), 0.35, "steel")
-
-    # ---------------------------------------------------------------- rooms: walls, floors, ceilings on the grid
-    n = interior_surfaces(rooms, hull, g)
-    # ladders: up to the hatch and up into the wheelhouse
-    hz0, hz1 = ni.HATCH_Z
-    top = ns.hull_top((hz0 + hz1) / 2, 0.5)
-    ladder(fittings, "lit_ladder_hatch", ni.HATCH_X[0], ni.HATCH_X[1], hz1, ns.MAIN_FLOOR_Y, top - ns.SHELL, 1)
-    tz0, tz1 = ni.TOWER_SHAFT_Z
-    ladder(fittings, "lit_ladder_tower", ni.HATCH_X[0], ni.HATCH_X[1], tz1, ns.MAIN_FLOOR_Y, ni.TOWER_FLOOR_Y + 1.0, 1)
-    # hatch (door 0): a riveted lid hinged on its aft edge
-    hinge = v3(0, top + 0.06, hz0)
-    door = Bone("door_%d" % ni.HATCH_DOOR, origin=tuple(hinge), parent=root)
-    add_cube(door, "hatch_lid", v3(0, top + 0.06, (hz0 + hz1) / 2), EYE, (1.1, 0.12, 1.1), {"all": "steel", "+2": "hatch", "-2": "hatch"})
-    add_cube(door, "hatch_wheel", v3(0, top + 0.16, (hz0 + hz1) / 2), EYE, (0.5, 0.06, 0.5), "brass")
-    # wheelhouse: windows and a lamp
-    tower_front = ni.TOWER_Z[1]
-    for k, x in enumerate((-0.9, 0.9)):
-        add_cube(fittings, "glow_tower_window_%d" % k, v3(x, ni.TOWER_FLOOR_Y + 1.6, tower_front + 0.02), EYE, (0.7, 0.7, 0.04), "glass")
-    add_cube(fittings, "glow_tower_lamp", v3(0, ni.TOWER_FLOOR_Y + ni.TOWER_HEIGHT + 0.7, tower_front - 0.5), EYE, (0.4, 0.4, 0.4), "glow")
-    # lamps in the halls
-    for z in range(-24, 28, 6):
-        add_cube(fittings, "glow_hall_lamp_%d" % z, v3(0, ns.MAIN_FLOOR_Y + ns.LEVEL_HEIGHT - 0.12, z), EYE, (0.4, 0.2, 0.4), "glow")
-    for z in range(-18, 20, 6):
-        add_cube(fittings, "glow_lower_lamp_%d" % z, v3(0, ns.LOWER_FLOOR_Y + 4.0 - 0.12, z), EYE, (0.4, 0.2, 0.4), "glow")
-    return root, n
+    lights = Bone("lights", parent=root)
+    n = hull(hull_bone)
+    windows(outside, lights)
+    ram(outside)
+    crests(outside)
+    keels(outside)
+    tail(outside, root)
+    m = surfaces(rooms, outside, g)
+    ladders(fittings)
+    # the projector lens at the front of the cage, over the wheelhouse roof
+    add_cube(lights, "glow_projector_lens", v3(0, ns.LENS_Y, ns.TOWER_Z[0] + 0.48), EYE, (1.6, 1.1, 0.04), "glow")
+    ring(outside, "projector_rim", v3(0, ns.LENS_Y, ns.TOWER_Z[0] + 0.52), v3(0, 0, 1), 0.85, 0.14, "brass", n=12, width=0.18)
+    # lamps on the ceilings of the rooms
+    for name, (x0, x1, y0, y1, z0, z1) in ni.ROOMS.items():
+        if name in ("crawlway", "airlock"):
+            continue
+        step = 4.0
+        zc = np.arange(z0 + step / 2, z1, step) if z1 - z0 > step else [(z0 + z1) / 2]
+        for z in zc:
+            add_cube(lights, "glow_lamp_%s_%d" % (name, int(z * 10)), v3((x0 + x1) / 2, y1 - 0.1, z), EYE, (0.4, 0.18, 0.4), "glow")
+    return root, n, m
 
 
-def build_animations(root):
-    kf, rot_kf, animation, find = gg.kf, gg.rot_kf, gg.animation, gg.find
+def build_animations(root, g):
     anims = []
-    prop = find(root, "propeller")
-    anims.append(animation("propeller", 2.0, "loop", [(prop, [
-        rot_kf(t, (0, 0, a)) for t, a in ((0.0, 0), (0.5, 270), (1.0, 540), (1.5, 810), (2.0, 1080))])]))
-    door = find(root, "door_%d" % ni.HATCH_DOOR)
-    anims.append(animation("door_%d" % ni.HATCH_DOOR, 1.0, "hold", [(door, [rot_kf(0.0, (0, 0, 0)), rot_kf(1.0, (-110, 0, 0))])]))
+    prop = gg.find(root, "propeller")
+    anims.append(gg.animation("propeller", 2.0, "loop", [(prop, [
+        gg.rot_kf(t, (0, 0, a)) for t, a in ((0.0, 0), (0.5, 270), (1.0, 540), (1.5, 810), (2.0, 1080))])]))
     return anims
 
 
 def main():
     g = ni.build()
     size = g.write(os.path.join(ROOT, ni.GRID_PATH))
-    root, n = build(g)
-    anims = build_animations(root)
+    root, n, m = build(g)
+    anims = build_animations(root, g)
+    anims += doors(root, g)
     tex_dir = os.path.join(ROOT, "src/main/resources/assets/medievalships/textures")
     tex_path = os.path.join(tex_dir, "entity/nautilus.png")
     nt.make_texture(tex_path)
@@ -277,8 +517,8 @@ def main():
         os.path.join(ROOT, "blockbench/nautilus.bbmodel"),
         os.path.join(ROOT, "src/main/resources/assets/medievalships/models/entity/nautilus.bbmodel"),
     ], name="nautilus", visible_box=(100, 30, 0))
-    print("grid bytes:", size, "room surfaces:", n, "cubes:", len(model["elements"]),
-          "animations:", [a["name"] for a in model["animations"]])
+    print("grid bytes:", size, "hull panels:", n, "grid surfaces:", m, "cubes:", len(model["elements"]),
+          "animations:", len(model["animations"]))
 
 
 if __name__ == "__main__":
