@@ -23,7 +23,7 @@ Six navires qui sont de **véritables entités navigables**, pas des constructio
 | Propulsion | 24 rames + grande voile carrée rayée rouge et blanc | machine à vapeur : une roue à aubes de chaque côté, deux cheminées | un grand mât, trois voiles triangulaires |
 | Places assises | 10 (barreur + 8 bancs de nage + proue) | 8 (barre, bancs le long du rouf, 2 servants de canon, poupe) | 8 (barre, 6 bancs à coussins, proue) |
 | Maniement | vive et maniable : accélère vite, vire court, les rames la font pivoter à l'arrêt | accélération progressive, très maniable à basse vitesse, bonne marche arrière, pas de voile à carguer | rapide et fluide : grande vitesse, longue erre, virages doux |
-| Particularités | coque en croissant, deux têtes de dragon sculptées, 28 boucliers ronds à croix blanche, drapeau rouge à croix blanche | coque blindée rivetée, proue renforcée à éperon, rouf aux fenêtres éclairées, roues qui tournent avec la vitesse (en arrière en marche arrière), fumée des cheminées, écume et gerbes à la roue, battement de la machine, 2 canons en laiton, rambarde à lanternes | coque turquoise et or, gemmes lumineuses, longue proue sculptée en volute avec sa lanterne, poupe recourbée, rose des vents dorée et croissant de lune brodés sur les voiles, volutes et ailes dorées, lanternes qui se balancent |
+| Particularités | coque en croissant, tête de dragon sculptée à la proue et sa queue enroulée à la poupe, 28 boucliers ronds à croix blanche, drapeau rouge à croix blanche | coque blindée rivetée, proue renforcée à éperon, rouf aux fenêtres éclairées, roues qui tournent avec la vitesse (en arrière en marche arrière), fumée des cheminées, écume et gerbes à la roue, battement de la machine, 2 canons en laiton, rambarde à lanternes | coque turquoise et or, gemmes lumineuses, longue proue sculptée en volute avec sa lanterne, poupe recourbée, rose des vents dorée et croissant de lune brodés sur les voiles, volutes et ailes dorées, lanternes qui se balancent |
 
 Le grand vaisseau de guerre s'appelle aussi `grand_warship` dans les commandes ; son
 identifiant interne reste `warship` (navires déjà posés, sauvegardes et configuration intacts).
@@ -49,7 +49,7 @@ Pour tous :
 La version 1.5.1 soigne encore l'aspect des quatre navires de l'image : le bateau à vapeur a
 **une roue à aubes de chaque côté**, des canons sur barbettes, une rambarde sur le rouf et des
 cheminées couronnées ; le voilier elfique porte une rose des vents dorée, des volutes et des ailes
-dorées ; les dragons de la galère rouge ont une crête et des moustaches dorées, sa voile des bandes
+dorées ; la galère rouge porte la tête du dragon à la proue (crête et moustaches dorées) et sa queue à la poupe, sa voile des bandes
 de ris ; les sabords du vaisseau de guerre sont encadrés d'or.
 La version 1.5.0 ajoute la galère rouge, le bateau à roue à vapeur et le voilier elfique, d'après
 l'image de référence ; le galion et le vaisseau de guerre flottent plus haut sur une coque plus

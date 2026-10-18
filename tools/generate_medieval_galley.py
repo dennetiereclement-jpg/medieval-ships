@@ -101,6 +101,43 @@ def section(z, side):
     return [v3(side * max(x, 0.06), y, z) for x, y in pts]
 
 
+def dragon_tail(bone, tag, s):
+    """Carved dragon tail at the stern (s=-1): the sternpost rises into a scaly tail that tapers,
+    arches back over the ship and curls down, with a dorsal crest and a gold spade-shaped tip."""
+    def P(y, z):
+        return v3(0, y, s * z)
+    curve = [P(ms.keel_y(END) - 0.05, END - 0.25), P(0.7, END + 0.3), P(2.0, END + 0.62), P(3.3, END + 0.72),
+             P(4.5, END + 0.6), P(5.5, END + 0.25), P(6.2, END - 0.25), P(6.5, END - 0.85), P(6.3, END - 1.4),
+             P(5.8, END - 1.75), P(5.25, END - 1.8)]
+    widths = [0.5, 0.56, 0.6, 0.56, 0.5, 0.44, 0.38, 0.32, 0.27, 0.23, 0.2]
+    for j in range(len(curve) - 1):
+        reg = "hull_dark" if j < 2 else "dragon"
+        beam(bone, "%s_seg_%d" % (tag, j), curve[j], curve[j + 1], widths[j], reg, width=widths[j] * 0.85, extend=0.1)
+    beam(bone, tag + "_collar", P(1.6, END + 0.5), P(2.0, END + 0.6), 0.62, "gold", width=0.58)
+    # gold rings along the tail
+    for j in (3, 5, 7):
+        a, b = curve[j], curve[j + 1]
+        c = (a + b) / 2
+        d = norm(b - a)
+        beam(bone, "%s_ring_%d" % (tag, j), c - d * 0.06, c + d * 0.06, widths[j] + 0.1, "gold", width=widths[j] * 0.85 + 0.1)
+    # dorsal crest on the outside of the curve (pointing away from the curl centre)
+    centre = P(4.9, END - 0.6)
+    for j in range(2, len(curve) - 2):
+        a, b = curve[j], curve[j + 1]
+        c = (a + b) / 2
+        out = norm(c - centre)
+        size = 0.42 - 0.03 * j
+        beam(bone, "%s_crest_%d" % (tag, j), c + out * widths[j] * 0.4, c + out * (widths[j] * 0.4 + size),
+             0.26 - 0.015 * j, "dragon_dark", width=0.06)
+    # spade tip: a flat gold arrowhead continuing the last segment
+    a, b = curve[-2], curve[-1]
+    d = norm(b - a)
+    tip = b + d * 0.75
+    beam(bone, tag + "_tip_a", b, tip, 0.12, "gold", width=0.55)
+    beam(bone, tag + "_tip_b", b + d * 0.2, b + d * 0.5, 0.14, "gold", width=0.8)
+    beam(bone, tag + "_tip_c", tip - d * 0.1, tip + d * 0.25, 0.1, "gold", width=0.22)
+
+
 def dragon(bone, tag, s):
     """Carved dragon post at one end (s=+1 bow, s=-1 stern): the stem curves up into a scaly
     neck with a dorsal crest, the head looks outwards with its jaws open."""
@@ -216,7 +253,7 @@ def build():
 
     # ---- dragon posts at both ends
     dragon(bow, "dragon_bow", 1)
-    dragon(stern, "dragon_stern", -1)
+    dragon_tail(Bone("dragon_tail", parent=stern), "dragon_tail", -1)
 
     # ---- deck, rowing benches, mast step, barrels and ropes
     n = 32

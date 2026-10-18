@@ -32,7 +32,7 @@ class NewShipModelsTest {
 	private static final List<Expected> MODELS = List.of(
 			new Expected("medieval_galley",
 					new String[] {"oar_l1", "oar_l12", "oar_r1", "oar_r12", "sail", "rudder", "flag", "flag_tip", "dragon_bow_head",
-							"dragon_stern_head", "shields"},
+							"dragon_tail", "shields"},
 					new String[] {"row", "sail_wind", "sail_furl", "steer", "flag_wave"}),
 			new Expected("steam_paddleboat",
 					new String[] {"paddle_wheel", "paddle_wheel_port", "helm_wheel", "rudder", "flag", "flag_tip", "funnels", "paddle_box", "guns"},
