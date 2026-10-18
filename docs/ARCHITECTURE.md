@@ -65,6 +65,37 @@ sièges, boîtes de collision, visée, embarquement) à un instantané pris sur 
 * Commandes : `Ships.ALIASES` (`grand_warship` → `warship`) ; les identifiants des entités et
   des sauvegardes ne changent jamais.
 
+### Aéronefs : le dirigeable (1.6.0)
+
+Le dirigeable partage tout le reste du mod (entité `ShipEntity`, objet, réseau, sièges, marche
+libre sur le pont de la nacelle, emport des passagers, commandes, sauvegarde, configuration) ;
+seule sa physique change :
+
+* `ShipGeometry.Spec.flying` le désigne comme aéronef ; la nacelle est une coque comme celle
+  des navires (`HullShape`), le ballon est une suite de boîtes solides (on ne le traverse pas, il
+  bloque le terrain) et des sondes de terrain couvrent le ballon, la queue, l'hélice, les
+  ailerons et la tige avant (`extraProbes`). Les dimensions qui ne viennent pas de la coque
+  (`boundingRadius`, `aiReach`, `aiBack`, `lowestY`) sont données par la spec.
+* `core/Flight.java` : **pas de gravité en vol**, une vitesse verticale qui suit l'ordre
+  (Espace/Ctrl, ou le pilote automatique) avec une accélération limitée (montée et descente
+  lentes), et une **altitude qui se maintient seule** (touches relâchées, arrêt, pilote absent) ;
+  le **plafond** `maxAltitude` n'est jamais dépassé. Chaque tick : mouvement horizontal (même
+  physique et mêmes collisions que sur l'eau), puis mouvement vertical refusé s'il ferait entrer
+  le dirigeable dans un obstacle (posé au sol, il ne s'enfonce pas ; sous un toit, il ne monte
+  plus).
+* Pilote automatique : le pilote des navires suit l'itinéraire en plan (cap, vitesse, escales,
+  anticipation des virages, évitement), ses colonnes « navigables » étant celles que le
+  dirigeable peut survoler sous le plafond ; `Flight.autopilot` y ajoute l'altitude : celle du
+  point visé, mais au moins `aiClearance` au-dessus du relief et des bâtiments sur la longueur du
+  dirigeable et devant lui (`heightmap` MOTION_BLOCKING, peu coûteux), descente à l'altitude de
+  l'escale dans les `aiApproachDistance` derniers blocs, escale atteinte seulement à la bonne
+  hauteur, cap de l'escale pendant l'attente. Les mêmes calculs tournent dans les tests unitaires
+  (`AirshipTest`, monde simulé avec une colline) et dans le jeu.
+* Les **itinéraires aériens** (`Route.air`) sont distincts des itinéraires maritimes ; leurs
+  points ont une hauteur, un cap (`yaw`) et une vitesse (`speed`) facultatifs.
+* Placement : l'objet accepte n'importe quelle surface ; le dirigeable apparaît au-dessus, à la
+  première hauteur où il ne touche rien (`ShipPlacement.placeInTheAir`).
+
 ### Préparé pour les canons
 
 `ShipGeometry.gunports()` donne pour chaque sabord sa position (repère du navire) et son bord

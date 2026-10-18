@@ -4,8 +4,10 @@
 ![Grand galion](docs/preview_galleon.png)
 ![Grand vaisseau de guerre](docs/preview_warship.png)
 ![Galère rouge, bateau à roue à vapeur, voilier elfique](docs/comparaison_nouveaux_navires.png)
+![Dirigeable steampunk](docs/preview_steampunk_airship.png)
 
-Six navires qui sont de **véritables entités navigables**, pas des constructions en blocs :
+Six navires et un **dirigeable volant**, qui sont de **véritables entités**, pas des constructions
+en blocs :
 
 | | Galère médiévale | Grand galion | Grand vaisseau de guerre |
 |---|---|---|---|
@@ -24,6 +26,20 @@ Six navires qui sont de **véritables entités navigables**, pas des constructio
 | Places assises | 10 (barreur + 8 bancs de nage + proue) | 8 (barre, bancs le long du rouf, 2 servants de canon, poupe) | 8 (barre, 6 bancs à coussins, proue) |
 | Maniement | vive et maniable : accélère vite, vire court, les rames la font pivoter à l'arrêt | accélération progressive, très maniable à basse vitesse, bonne marche arrière, pas de voile à carguer | rapide et fluide : grande vitesse, longue erre, virages doux |
 | Particularités | coque en croissant, tête de dragon sculptée à la proue et sa queue enroulée à la poupe, 28 boucliers ronds à croix blanche, drapeau rouge à croix blanche | coque blindée rivetée, proue renforcée à éperon, rouf aux fenêtres éclairées, roues qui tournent avec la vitesse (en arrière en marche arrière), fumée des cheminées, écume et gerbes à la roue, battement de la machine, 2 canons en laiton, rambarde à lanternes | coque turquoise et or, gemmes lumineuses, longue proue sculptée en volute avec sa lanterne, poupe recourbée, rose des vents dorée et croissant de lune brodés sur les voiles, volutes et ailes dorées, lanternes qui se balancent |
+
+| | Dirigeable steampunk |
+|---|---|
+| Objet / commande | *Dirigeable steampunk*, `steampunk_airship` |
+| Taille | ballon de 19 × 8,5 blocs, nacelle de 15 × 3,6 blocs suspendue 5 blocs dessous, 27 blocs hors tout, 18 de haut |
+| Propulsion | **il vole** : hélice arrière en bois (tourne avec la vitesse), ailerons qui braquent dans les virages et suivent la montée ou la descente |
+| Places assises | 6 (pilote + 5 passagers) ; on peut aussi marcher sur le pont de la nacelle en vol |
+| Maniement | un dirigeable, pas un avion : accélération et virages lents, inertie, montée et descente progressives, **vol stationnaire**, l'altitude se maintient seule, plafond réglable |
+| Particularités | se pose au-dessus du sol, de l'eau ou d'un toit (clic droit), ne traverse ni le relief ni les bâtiments ; pilote automatique en **3D** sur des itinéraires aériens (décollage, altitude de croisière au-dessus du relief, descente aux escales, cap à l'escale) ; fumée d'échappement, bruit d'hélice, de vent, de moteur et de bois |
+
+Pilotage du dirigeable : Z/S vitesse, Q/D cap, **Espace monter, Ctrl descendre** (relâchées : il
+garde son altitude), Maj quitter le poste. Voir [docs/COMMANDES.md](docs/COMMANDES.md) pour les
+itinéraires aériens et [docs/comparaison_dirigeable.png](docs/comparaison_dirigeable.png) pour la
+comparaison avec l'image de référence.
 
 Le grand vaisseau de guerre s'appelle aussi `grand_warship` dans les commandes ; son
 identifiant interne reste `warship` (navires déjà posés, sauvegardes et configuration intacts).
@@ -46,6 +62,9 @@ Pour tous :
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
 
+La version 1.6.0 ajoute le **dirigeable steampunk** (`steampunk_airship`), un véhicule volant
+reproduit d'après l'image de référence, avec sa propre physique de vol, ses itinéraires aériens
+en 3D et son pilote automatique, sans rien changer aux six navires.
 La version 1.5.6 aménage encore les grandes cabines du galion et du vaisseau : lambris à lisse
 dorée, lustres à bougies, carré autour du mât d'artimon et buffets dans le vaisseau.
 La version 1.5.5 orne les tambours des roues du bateau à vapeur d'un éventail doré et refait ses
@@ -78,7 +97,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.5.6.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.6.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
@@ -149,6 +168,20 @@ automatiquement : ses valeurs deviennent celles de la galère.
 | `aiWaypointRadius`, `aiStopRadius`, `aiLookahead`, `aiProbeDistance` | 8, 2, 14, 40 | 9, 2, 16, 48 | 9, 2, 16, 48 |
 | `aiDefaultWaitSeconds`, `aiStuckSeconds`, `aiTurnAroundSpeed` | 300, 6, 0.4 | 300, 8, 1 | 300, 6, 1.2 |
 | `furlSailWhenStopped` | true | false (pas de voile) | false (voiles toujours établies ; un ancien fichier est mis à jour automatiquement) |
+
+**`ships.steampunk_airship`** : mêmes clés de vitesse, d'inertie et de pilote automatique
+(vitesses 2,5 / 5 / 8 blocs/s, accélération 0,55, virage maximal 12°/s, peut tourner sur place),
+plus un bloc **`flight`** propre aux aéronefs (ajouté automatiquement à un fichier existant) :
+
+| Clé de `flight` | Défaut | Rôle |
+|---|---|---|
+| `climbSpeed` / `descendSpeed` | 1.6 / 1.3 | vitesses de montée et de descente (blocs/s) |
+| `verticalAcceleration` | 0.9 | accélération verticale (blocs/s²) : montée et descente progressives |
+| `maxAltitude` | 300 | plafond : hauteur (Y) que le haut du dirigeable ne dépasse jamais |
+| `aiClearance` | 5 | pilote automatique : hauteur gardée sous la quille au-dessus du relief et des bâtiments |
+| `aiApproachDistance` | 26 | pilote automatique : distance d'une escale où il commence à descendre à sa hauteur |
+| `aiLandingClearance` | 1.2 | pilote automatique : hauteur gardée sous la quille en descendant à une escale |
+| `sway` | 1.0 | balancement visuel de la nacelle (0 = aucun) |
 
 ## Structure du projet
 

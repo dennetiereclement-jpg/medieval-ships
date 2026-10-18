@@ -276,9 +276,13 @@ def build():
         tri = gn.tri_sail(fb, name + "_cloth", C, A, B, 0.02, nrm, "fin", nx=3, ny=7)
         fin_tri = fin_tri or tri
         # wooden spars on the edges and a middle rib, brass hinges and the brass disc at the tip
-        mid = P((asp.FIN_ROOT_Z[0] + asp.FIN_ROOT_Z[1]) / 2, az, -0.05)
-        for k, (p0, p1) in enumerate(((A, C), (B, C), (mid, C), (A, B))):
-            beam(fb, "%s_spar_%d" % (name, k), p0, p1, 0.13 if k < 2 else 0.09, "wood", up=nrm, extend=0.05)
+        # a fan: ribs radiating from the brass disc at the tip to the root along the balloon
+        ribs = [(A, C), (B, C)]
+        for f in (0.25, 0.5, 0.75):
+            ribs.append((P(asp.FIN_ROOT_Z[0] + (asp.FIN_ROOT_Z[1] - asp.FIN_ROOT_Z[0]) * f, az, -0.05), C))
+        ribs.append((A, B))
+        for k, (p0, p1) in enumerate(ribs):
+            beam(fb, "%s_spar_%d" % (name, k), p0, p1, 0.13 if k < 2 else 0.08, "wood", up=nrm, extend=0.05)
         disc(fb, name + "_tip_disc", C, nrm, 0.26, 0.1, "brass")
         add_cube(fb, name + "_tip_boss", C, EYE, (0.14, 0.14, 0.14), "gold")
         for k, p in enumerate((A, B)):

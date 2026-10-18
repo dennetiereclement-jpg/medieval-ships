@@ -291,6 +291,44 @@ Animations : `sail_wind`, `sail_furl` (seulement si on remet `furlSailWhenStoppe
 les voiles restent établies à l'arrêt), `steer`, `flag_wave` (flamme), `lantern_sway` (les
 lanternes se balancent doucement, chacune avec sa phase).
 
+# Dirigeable steampunk (`steampunk_airship`)
+
+![Dirigeable steampunk](preview_steampunk_airship.png)
+
+D'après l'image de référence (vue principale, avant, arrière, dessus et détails de l'hélice, de
+la gondole, de l'aile et du filet). Fichiers : `steampunk_airship.*`, `tools/airship_shape.py`
+(formes partagées avec `Ships.AirshipLayout`), `tools/generate_airship.py`,
+`tools/airship_texture.py`. Comparaison avec la référence : `docs/comparaison_dirigeable.png`.
+
+**Proportions relevées sur l'image** (le ballon sert d'étalon, 19 blocs) : ballon de 8,5 blocs de
+diamètre ; nacelle de 15 blocs (≈ 0,8 fois le ballon, plus longue que les 9 blocs indicatifs du
+cahier des charges : la fidélité à l'image passe avant) ; 5 blocs de cordages entre le
+bastingage et le bas du ballon ; hélice ≈ 5,5 blocs derrière le ballon ; 27 blocs hors tout, 18
+de haut.
+
+| Élément de l'image | Réalisation |
+|---|---|
+| Ballon très allongé, rond au milieu, effilé aux deux bouts, symétrique | **corps de révolution lissé** : 24 fuseaux × 19 sections (panneaux inclinés qui se raccordent, aucun effet d'escalier), profil `rayon(z) = R (1 - t^a)^b` plus effilé à l'arrière qu'à l'avant |
+| Crème, bandes bleu-gris, pointe avant bleu-gris | toile crème cousue (coutures de chaque fuseau), **calotte avant bleu-gris** à fuseaux rayonnants et anneau bleu-gris à l'arrière, **7 bandes bleu-gris** le long du ballon avec œillets en laiton |
+| Filet de cordages | **coque transparente texturée** juste au-dessus de la toile (quadrillage en losanges de cordes brunes, nœuds aux croisements) sur la partie centrale ; seules les cordes principales sont en 3D |
+| Cordages de renfort, attaches dorées | **5 cerclages** de corde orange tressée tout autour du ballon, **fermoirs dorés** là où ils croisent les bandes |
+| Tige avant | tige en laiton avec bagues et boule dorées, plaque de nez en laiton |
+| Hélice arrière en bois, axe central, support | **cône en treillis** bleu-gris (6 longerons, filet, bagues en laiton) qui porte l'arbre en fer et son palier en laiton ; **hélice à 6 pales en bois vrillées** (bois, manchons en laiton, moyeu en laiton, cône doré) |
+| Ailerons triangulaires crème sur structure en bois | **3 ailerons** (un au-dessus, deux en bas sur les côtés à ±125°) : toile crème triangulaire à ralingue brune, longerons en bois sur les bords et une nervure, charnières en laiton, **disque en laiton à la pointe** ; symétriques |
+| Nacelle en bois brun foncé, proue et poupe relevées, pont ouvert | petite coque de bateau (mêmes formules que les navires) : bordés bruns, **tonture marquée** (+1,7 bloc à la proue, +1,3 à la poupe), fond arrondi qui remonte aux extrémités, liston en laiton et rivets dorés, plat-bord, étrave et étambot à chapeau de laiton, patins sous la quille, pont en planches, 4 bancs et un banc de proue |
+| Poste de pilotage | barre à roue en laiton sur piédestal (os `helm_wheel`) |
+| Éléments mécaniques | **moteur** à la poupe : chaudière en tôles rivetées cerclée de laiton, dôme, porte de foyer rougeoyante, **deux engrenages en laiton** à dents, **tuyau d'échappement coudé** vers l'arrière avec bagues et pavillon |
+| Mât central | poteau en bois du pont au ballon, colliers et plaque en laiton, 4 jambes de force |
+| Cordages de suspension, anneaux | **8 suspentes** de corde orange (4 par bord) des cerclages au bastingage, **anneaux dorés** et manilles dorées |
+| Lanternes, ancre | 2 lanternes de poupe sur potences + une à la proue (les mêmes que sur les autres navires, vitres éclairées la nuit), **ancre** sur sa chaîne à la hanche tribord |
+
+Animations : `propeller` (3 tours par boucle, jouée avec la **vitesse signée** comme les roues du
+vapeur : arrêtée en vol stationnaire, plus rapide en accélérant, à l'envers en marche arrière),
+`steer` (barre à roue et aileron supérieur qui braque), `elevator` (ailerons inférieurs : vers
+le bas en descente, vers le haut en montée). Le rendu balance doucement l'ensemble (option
+`flight.sway`). Effets côté client : fumée à l'échappement, ronronnement de l'hélice qui suit la
+vitesse, souffle du vent en vitesse, battement du moteur, craquement du bois.
+
 # Vérifications communes
 
 * **Pas de scintillement (z-fighting)** : `tools/zfight.py` est appelé par l'export de chaque

@@ -34,6 +34,8 @@ utilisable avec `/execute positioned ... run ship ...`).
 | `/ship spawn steam_paddleboat` | Met un bateau à roue à vapeur à l'eau (environ 26 × 16 blocs d'eau libre, une roue de chaque côté ; 2 de profondeur). |
 | `/ship give elven_sailboat [joueurs]` | Donne l'objet *Voilier elfique*. |
 | `/ship spawn elven_sailboat` | Met un voilier elfique à l'eau (environ 34 × 12 blocs d'eau libre, 2 de profondeur). |
+| `/ship give steampunk_airship [joueurs]` | Donne l'objet *Dirigeable steampunk* (clic droit sur le sol, l'eau ou un toit : il apparaît au-dessus, s'il y a la place pour tout le dirigeable). |
+| `/ship spawn steampunk_airship` | Fait apparaître un dirigeable au-dessus de votre position (environ 27 blocs de long, 9 de large, 18 de haut d'espace libre ; jamais dans une montagne ou un bâtiment). |
 | `/ship give grand_warship`, `/ship spawn grand_warship` | Autre nom du grand vaisseau de guerre (`warship`, identifiant inchangé). |
 | `/ship remove` | Supprime le navire ciblé (les passagers sont débarqués sur place). |
 | `/ship list` | Liste les navires chargés, et les navires automatiques connus mais non chargés. |
@@ -76,6 +78,7 @@ Il existe deux sortes de points :
 | `/ship route create <nom> [pingpong\|loop\|once]` | Crée un itinéraire. `pingpong` (défaut) = aller-retour, `loop` = boucle, `once` = aller simple. |
 | `/ship route addpoint <nom>` | Ajoute un point de passage à votre position. |
 | `/ship route addstop <nom> [secondes] [nom de l'escale]` | Ajoute une escale (attente par défaut : `aiDefaultWaitSeconds`, 300 s). Ex. `/ship route addstop ferry 300 Port de Valombre` |
+| `/ship route create <nom> [mode] air` | Itinéraire **aérien** (dirigeable), voir plus bas. |
 | `/ship route removepoint <nom> <n°>` | Supprime le point n° (numérotation de `info`). |
 | `/ship route mode <nom> <pingpong\|loop\|once>` | Change le mode. |
 | `/ship route info <nom>` | Liste les points. |
@@ -85,6 +88,46 @@ Il existe deux sortes de points :
 
 Les itinéraires sont enregistrés dans la sauvegarde du monde (`data/medievalships.dat`) et
 survivent aux redémarrages.
+
+### Itinéraires aériens (dirigeable)
+
+Un dirigeable ne suit que des **itinéraires aériens**, et un navire que des itinéraires
+maritimes (`assign` refuse le mélange). Les points d'un itinéraire aérien sont en **3D** :
+placez-vous **là où doit se trouver le pont de la nacelle** (en volant en créatif, ou debout sur
+le quai du port aérien) avant `addpoint` / `addstop`.
+
+| Commande | Effet |
+|---|---|
+| `/ship route create <nom> air` ou `/ship route create <nom> <mode> air` | Crée un itinéraire aérien. Ex. `/ship route create capitale_ville loop air` |
+| `/ship route addpoint <nom>` / `addstop <nom> [secondes] [nom]` | Comme sur l'eau, mais la **hauteur** compte ; une escale retient aussi votre **orientation** : le dirigeable s'y tourne pendant l'attente. |
+| `/ship route edit <nom> <n°> yaw <degrés>` ou `yaw here` | Cap à prendre pendant l'escale n°. |
+| `/ship route edit <nom> <n°> speed <blocs/s>` | Vitesse sur le tronçon qui mène au point n°. |
+| `/ship route edit <nom> <n°> altitude <y>` | Hauteur (pont de la nacelle) du point n°. |
+| `/ship route edit <nom> <n°> wait <secondes>` | Durée d'escale (0 = simple point de passage). |
+| `/ship route edit <nom> <n°> clear` | Efface le cap et la vitesse du point. |
+
+En route, le pilote automatique du dirigeable **décolle progressivement**, **monte** à la
+hauteur du point suivant, mais toujours au moins `aiClearance` (5) blocs au-dessus du relief et
+des bâtiments qu'il va survoler (il ralentit, ou s'arrête en vol stationnaire, le temps de
+monter assez) ; il **anticipe les virages**, **ralentit** à l'approche d'une escale, **descend**
+à sa hauteur dans les `aiApproachDistance` (26) derniers blocs, s'arrête, attend, se tourne vers
+le cap de l'escale, puis repart. Il ne traverse jamais rien : s'il n'y a pas de passage sûr
+(relief plus haut que le plafond `maxAltitude`), il s'arrête et prévient les administrateurs.
+
+Exemple (Capitale → Tour de surveillance → Ville marchande → retour) :
+
+```
+/ship route create aerien_capitale loop air
+# sur le quai du port aérien de la Capitale, tourné vers le large :
+/ship route addstop aerien_capitale 120 Port aérien de la Capitale
+# en vol au-dessus de la tour, à la hauteur voulue :
+/ship route addpoint aerien_capitale
+# sur la plate-forme de la ville marchande :
+/ship route addstop aerien_capitale 120 Ville marchande
+/ship route edit aerien_capitale 2 speed 6
+# près du dirigeable :
+/ship route assign aerien_capitale
+```
 
 ## Commandes de pilotage (joueurs)
 
@@ -101,3 +144,9 @@ survivent aux redémarrages.
 
 Les touches suivent les commandes de déplacement du joueur : elles fonctionnent avec n'importe
 quelle disposition de clavier.
+
+**Dirigeable** : Z avancer, S ralentir puis reculer, Q / D tourner, **Espace monter**,
+**Ctrl descendre** (relâchées : il garde son altitude, il ne tombe pas), Maj quitter le poste.
+Ce sont les touches *Sauter* et *Sprinter* de Minecraft : elles se changent dans *Options →
+Commandes* si un autre mod les utilise déjà. La barre d'action affiche l'altitude, la montée ou
+la descente et la vitesse.
