@@ -194,7 +194,9 @@ public final class NautilusFittings {
 			if (boat == null || boat.isRemoved()) {
 				return refused("Le canot est introuvable (trop loin ou détruit). Un administrateur peut le remplacer : /ship nautilus canot remplacer.");
 			}
-			if (boat.squaredDistanceTo(recess[0], recess[1], recess[2]) > LIFEBOAT_REACH * LIFEBOAT_REACH) {
+			// alongside: measured on the water, the recess being high on the casing
+			double dx = boat.getX() - recess[0], dz = boat.getZ() - recess[2];
+			if (dx * dx + dz * dz > LIFEBOAT_REACH * LIFEBOAT_REACH) {
 				return refused(String.format("Le canot est trop loin : ramenez-le à moins de %d blocs de son logement.", (int) LIFEBOAT_REACH));
 			}
 		}
