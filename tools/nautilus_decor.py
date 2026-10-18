@@ -100,6 +100,7 @@ FALLBACK_REGION = {"furnish:red_showcase": "glass", "farmersdelight:stove": "iro
 BLOCKS = []   # dicts: block, x, y, z, yaw, solid (bool)
 SEATS = []    # dicts: x, y, z, dx, dy, dz
 CUSTOM = []   # furniture made for the Nautilus: (builder name, kwargs, solid box or None)
+PAINTINGS = []  # vanilla paintings (minecraft:textures/painting/<motive>.png) in gilded frames of the model
 SWITCHES = []  # controls the players click: action, centre and half sizes of the box they are clicked in
 
 
@@ -128,6 +129,14 @@ def block(bid, x, y, z, facing="stern", solid=True, scale=1.0):
 def custom(builder, solid=None, **kwargs):
     """Furniture of tools/nautilus_furniture.py; solid = (x0, x1, y0, y1, z0, z1) added to the grid."""
     CUSTOM.append((builder, kwargs, solid))
+
+
+def painting(name, motive, center, normal, w, h):
+    """A vanilla painting (drawn by the renderer with the game's own texture) in a gilded frame of the model."""
+    custom("painting", name=name, center=center, normal=normal, w=w, h=h, region="iron")
+    n = math.hypot(normal[0], normal[2])
+    PAINTINGS.append({"motive": motive, "x": center[0], "y": center[1], "z": center[2], "nx": normal[0] / n, "nz": normal[2] / n,
+                      "w": w, "h": h})
 
 
 def switch(action, center, half):
@@ -182,10 +191,8 @@ def dining_room():
     for x in (-1.5, 1.5):
         custom("chandelier", name="dining_chandelier_%d" % (x > 0), hook=(x, ni.M1, zt), r=0.6, n=9, drop=0.8)
     for x in (-2.9, 2.9):
-        custom("painting", name="dining_painting_aft_%d" % (x > 0), center=(x, 2.6, 13.0), normal=(0, 0, 1), w=2.2, h=1.5,
-               region="painting_sea" if x < 0 else "painting_storm")
-        custom("painting", name="dining_painting_fore_%d" % (x > 0), center=(x, 2.9, 18.0), normal=(0, 0, -1), w=1.6, h=1.1,
-               region="portrait" if x < 0 else "painting_sea")
+        painting("dining_painting_aft_%d" % (x > 0), "lowmist" if x < 0 else "sunset", (x, 2.7, 13.0), (0, 0, 1), 2.2, 1.1 if x < 0 else 1.1)
+        painting("dining_painting_fore_%d" % (x > 0), "graham" if x < 0 else "wanderer", (x, 2.9, 18.0), (0, 0, -1), 0.85, 1.7)
     for z in (13.6, 17.4):
         for x in (-4.95, 4.95):
             custom("wall_lamp", name="dining_sconce_%d_%d" % (z > 15, x > 0), p=(x, 2.6, z), normal=(-math.copysign(1, x), 0, 0))
@@ -233,9 +240,9 @@ def salon():
     and pearls, red sofas and armchairs round a central table, paintings in gilded frames, red
     curtains at the two great windows, chandeliers, an oriental rug."""
     m = ni.M0
-    custom("organ", solid=(-3.0, 2.0, m, ni.SALON_TOP, -6.5, -4.55), name="organ", base=(-0.5, m, -6.5), normal=(0, 0, 1),
+    custom("organ", solid=(-3.5, 1.5, m, ni.SALON_TOP, -6.5, -4.55), name="organ", base=(-1.0, m, -6.5), normal=(0, 0, 1),
            width=5.0, height=5.3)
-    seat(-0.5, m + 0.55, -4.4, -0.5, -3.8)
+    seat(-1.0, m + 0.55, -4.4, -1.0, -3.8)
     # showcases (Furnish), two high, with corals, shells and pearls inside
     k = 0
     for x in (-3.0, 3.0):
@@ -262,13 +269,30 @@ def salon():
         custom("drapes", name="salon_drapes_%d" % (x > 0), center=(x, 2.6, 0.0), normal=(-math.copysign(1, x), 0, 0), w=5.4, h=5.0)
     # paintings over the showcases
     for x in (-3.5, 3.5):
-        custom("painting", name="salon_painting_fore_%d" % (x > 0), center=(x, 3.6, 4.7), normal=(-math.copysign(1, x), 0, 0),
-               w=2.2, h=1.5, region="painting_sea" if x < 0 else "painting_storm")
-        custom("painting", name="salon_painting_aft_%d" % (x > 0), center=(x, 3.6, -4.2), normal=(-math.copysign(1, x), 0, 0),
-               w=1.4, h=1.6, region="portrait")
-    custom("painting", name="salon_painting_bow", center=(-2.0, 3.4, 6.5), normal=(0, 0, -1), w=2.4, h=1.6, region="painting_storm")
+        painting("salon_painting_fore_%d" % (x > 0), "tides" if x < 0 else "water", (x, 3.7, 4.7), (-math.copysign(1, x), 0, 0), 1.6, 1.6)
+        painting("salon_painting_aft_%d" % (x > 0), "prairie_ride" if x < 0 else "wanderer", (x, 3.6, -4.2), (-math.copysign(1, x), 0, 0),
+                 0.9, 1.8)
+    painting("salon_painting_bow", "passage", (-2.3, 3.5, 6.5), (0, 0, -1), 2.2, 1.1)
     for z in (-3.2, 3.2):
         custom("chandelier", name="salon_chandelier_%d" % (z > 0), hook=(0, ni.SALON_TOP, z), r=0.9, n=12, drop=0.9)
+    # Verne's giant tridacna, a basin with its fountain, in the middle of the fore half
+    custom("clam_basin", solid=(-0.75, 0.75, m, m + 1.1, 3.15, 4.65), name="salon_clam", p=(0, m, 3.9), r=0.8)
+    # by each window: an armchair turned to the sea, a telescope, a palm in its jardinière
+    for x, facing in ((2.9, "port"), (-2.9, "starboard")):
+        s_ = 1 if x > 0 else -1
+        custom("armchair", solid=(x - 0.45, x + 0.45, m, m + 1.0, 0.35, 1.25), name="salon_window_chair_%d" % (x > 0), p=(x, m, 0.8),
+               facing=facing)
+        seat(x, m + 0.5, 0.8, x - s_ * 1.0, 0.8)
+        custom("telescope", solid=(x - 0.35, x + 0.35, m, m + 1.3, -1.75, -1.05), name="salon_telescope_%d" % (x > 0), p=(x, m, -1.4),
+               facing=facing)
+        custom("potted_palm", solid=(x - 0.3, x + 0.3, m, m + 0.7, -2.9, -2.3), name="salon_palm_%d" % (x > 0), p=(x, m, -2.6))
+        # fluted pilasters between the windows and the showcases / the organ
+        for z in (-3.4, 3.4):
+            custom("pilaster", name="salon_pilaster_%d_%d" % (x > 0, z > 0), p=(s_ * 3.5, m, z), normal=(-s_, 0, 0), h=ni.SALON_TOP - m)
+    painting("salon_painting_bow_port", "changing", (2.3, 3.5, 6.5), (0, 0, -1), 2.2, 1.1)
+    custom("cornice", name="salon_cornice", x0=-3.5, x1=3.5, z0=-6.5, z1=6.5, y=ni.SALON_TOP)
+    for z in (-3.2, 3.2):
+        custom("ceiling_rose", name="salon_rose_%d" % (z > 0), p=(0, ni.SALON_TOP, z), r=0.75)
     # the levers of the iron panels that close the great windows, and of the lamps
     for x in (-3.0, 3.0):
         lever_switch("shutters", "salon_shutter_lever_%d" % (x > 0), x, m, 3.1)
@@ -298,8 +322,8 @@ def cabins():
     seat(4.3, m + 0.5, 23.2, 3.4, 23.2)
     block(FD + "coat_hanger", 2.45, m, 21.0, "port", solid=False)
     custom("rug", p=(3.3, m, 23.2), w=2.4, l=2.6)
-    custom("painting", name="aronnax_painting", center=(3.6, 2.9, 26.5), normal=(0, 0, -1), w=1.2, h=0.9, region="painting_sea")
-    custom("painting", name="aronnax_portrait", center=(2.0, 2.9, 22.0), normal=(1, 0, 0), w=0.7, h=0.9, region="portrait")
+    painting("aronnax_painting", "sea", (3.6, 2.9, 26.5), (0, 0, -1), 1.6, 0.8)
+    painting("aronnax_portrait", "alban", (2.0, 3.1, 21.0), (1, 0, 0), 0.8, 0.8)
     custom("drapes", name="aronnax_drapes", center=(5.0, 2.0, 23.2), normal=(-1, 0, 0), w=1.2, h=2.0)
     custom("chandelier", name="aronnax_lamp", hook=(3.5, ni.M1, 23.2), r=0.35, n=6, drop=0.5, tiers=1)
     # Nemo, starboard side: iron bed, raw wood table with charts and a lantern, iron chair, a tall
@@ -325,11 +349,11 @@ def corridor_and_coursive():
     m, l = ni.M0, ni.L0
     for z in (20.5, 24.5):
         block(FD + "chained_kerosene_lantern", 0.0, ni.M1 - 1.0, z, "stern", solid=False)
-    custom("painting", name="corridor_portrait", center=(0, 2.6, 26.5), normal=(0, 0, -1), w=1.2, h=1.6, region="portrait")
+    painting("corridor_portrait", "backyard", (0, 2.6, 26.5), (0, 0, -1), 1.2, 1.6)
     for z in (7.0, 11.0, 15.0, 19.0, 23.0):
         block(FD + "chained_kerosene_lantern", 3.4, ni.L1 - 1.0, z, "stern", solid=False)
-    custom("pipe_run", name="coursive_pipe_a", a=(4.5, ni.L1 - 0.3, 5.0), b=(4.5, ni.L1 - 0.3, 24.2), r=0.12)
-    custom("pipe_run", name="coursive_pipe_b", a=(4.5, ni.L1 - 0.65, 5.0), b=(4.5, ni.L1 - 0.65, 24.2), r=0.08, region="brass")
+    custom("pipe_run", name="coursive_pipe_a", a=(4.5, ni.L1 - 0.3, 3.8), b=(4.5, ni.L1 - 0.3, 24.2), r=0.12)
+    custom("pipe_run", name="coursive_pipe_b", a=(4.5, ni.L1 - 0.65, 3.8), b=(4.5, ni.L1 - 0.65, 24.2), r=0.08, region="brass")
     for z in (-5.0, -1.0, 3.0):
         block(FD + "chained_kerosene_lantern", 0.0, ni.L1 - 1.0, z, "stern", solid=False)
 
@@ -355,19 +379,19 @@ def kitchen_and_crew():
     block(FR + "cutting_board", -1.6, l + 1.0, 10.5, "stern", solid=False)
     # crew: four bunks, lockers, a wardrobe, a coat stand, a table with stools and a game of chess,
     # a shelf of books, a clock, framed pictures, a rug
-    for z in (15.6, 17.8, 20.2):
-        block(FD + "single_bed", -3.9, l, z + 1.0, "stern")
-    for x in (-0.4, 0.6):
-        block(FU + "small_locker", x, l, 22.5, "stern")
+    for z in (15.0, 17.1, 19.2):
+        block(FD + "single_bed", -3.9, l, z, "stern")
+    for x in (0.1, 1.1):
+        block(FU + "small_locker", x, l, 21.5, "stern")
     block(FD + "wardrobe", 0.65, l, 15.6, "starboard")
     block(FD + "coat_hanger", 0.9, l, 20.2, "starboard", solid=False)
-    block(FU + "oak_square_table", -1.5, l, 21.5, "stern")
-    block(FU + "chess_board", -1.5, l + 1.0, 21.5, "stern", solid=False)
-    for x in (-2.3, -0.7):
-        block(FU + "spruce_stool", x, l, 21.5, "stern", solid=False)
-        seat(x, l + 0.5, 21.5, x, 20.6)
-    block(FU + "dark_oak_shelf", -1.5, l + 1.8, 23.0, "stern", solid=False)
-    block(FU + "book_pile", -1.6, l + 2.2, 22.85, "stern", solid=False)
+    block(FU + "oak_square_table", -1.7, l, 21.0, "stern")
+    block(FU + "chess_board", -1.7, l + 1.0, 21.0, "stern", solid=False)
+    for x in (-2.6, -0.8):
+        block(FU + "spruce_stool", x, l, 21.0, "stern", solid=False)
+        seat(x, l + 0.5, 21.0, x, 20.0)
+    block(FU + "dark_oak_shelf", -1.9, l + 1.8, 22.0, "stern", solid=False)
+    block(FU + "book_pile", -2.0, l + 2.2, 21.85, "stern", solid=False)
     block(FD + "cuckoo_clock", -1.5, l + 2.4, 14.5, "bow", solid=False)
     block(FU + "picture_frame", -0.4, l + 2.0, 14.5, "bow", solid=False)
     block(FD + "rug_3x_3", -1.9, l, 17.3, "stern", solid=False)
@@ -377,12 +401,12 @@ def kitchen_and_crew():
 def stores():
     l = ni.L0
     for x0, s_ in ((3.9, 1), (-3.9, -1)):
-        for k, z in enumerate((-5.3, -4.3, -3.3, 2.3, 3.3)):
+        for k, z in enumerate((-5.3, -4.3, -3.3, 1.5, 2.5)):
             block("landsoficaria:" + ("cypress_barrel" if k % 2 else "fir_barrel"), x0, l, z, "stern")
         for z in (-1.8, -0.8):
             block(FU + "oak_crate", x0, l, z, "stern")
             block(FU + "spruce_crate", x0, l + 1.0, z, "stern")
-        block("landsoficaria:green_storage_vase", x0 - s_ * 1.0, l, 3.3, "stern")
+        block("landsoficaria:green_storage_vase", x0 - s_ * 1.0, l, 2.5, "stern")
 
 
 def airlock():
@@ -468,6 +492,7 @@ def lifeboat():
 def build():
     BLOCKS.clear()
     SEATS.clear()
+    PAINTINGS.clear()
     CUSTOM.clear()
     SWITCHES.clear()
     dining_room()
@@ -500,7 +525,8 @@ def apply_to_grid(g):
 
 
 def write(path):
-    data = {"blocks": [], "seats": SEATS, "switches": [{k: (round(v, 4) if isinstance(v, float) else v) for k, v in w.items()}
+    data = {"blocks": [], "seats": SEATS, "paintings": [{k: (round(v, 4) if isinstance(v, float) else v) for k, v in q.items()}
+                                                        for q in PAINTINGS], "switches": [{k: (round(v, 4) if isinstance(v, float) else v) for k, v in w.items()}
                                                       for w in SWITCHES]}
     for i, b in enumerate(BLOCKS):
         data["blocks"].append({"block": b["block"], "x": round(b["x"], 4), "y": round(b["y"], 4), "z": round(b["z"], 4),

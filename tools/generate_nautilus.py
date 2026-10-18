@@ -759,14 +759,47 @@ def doors(root, g):
         else:
             hinge = v3(x1, y0, (z0 + z1) / 2)
             axis_rot = (0, 100, 0)
+        thin = 0.16
+        if not flat and d != 9:
+            # a riveted brass frame round the opening, on both faces of the wall
+            along_z = sx < sz
+            depth = (sx if along_z else sz) + 0.12
+            w = 0.14
+            p0, p1 = (z0, z1) if along_z else (x0, x1)
+            for k, at in enumerate((p0 - w / 2, p1 + w / 2)):
+                c = v3((x0 + x1) / 2, (y0 + y1 + w) / 2, at) if along_z else v3(at, (y0 + y1 + w) / 2, (z0 + z1) / 2)
+                size = (depth, sy + w, w) if along_z else (w, sy + w, depth)
+                add_cube(root, "lit_door_%d_jamb_%d" % (d, k), c, EYE, size, "brass")
+            c = v3((x0 + x1) / 2, y1 + w / 2, (z0 + z1) / 2)
+            size = (depth, w, sz + 2 * w) if along_z else (sx + 2 * w, w, depth)
+            add_cube(root, "lit_door_%d_lintel" % d, c, EYE, size, "brass")
+        faces = {"all": "steel", "+1": "door", "-1": "door", "+2": "hatch", "-2": "hatch", "+3": "door", "-3": "door"}
+        if not flat and d != 9 and max(sx, sz) > 1.5:
+            # a wide door: two leaves hinged on the jambs, swinging the same way
+            tracks = []
+            along_z = sx < sz
+            for leaf, sgn in (("a", 1), ("b", -1)):
+                if along_z:
+                    zh = z1 if sgn > 0 else z0
+                    hinge = v3((x0 + x1) / 2, y0, zh)
+                    c = v3((x0 + x1) / 2, (y0 + y1) / 2, zh - sgn * sz / 4)
+                    size = (thin, sy, sz / 2 - 0.02)
+                else:
+                    xh = x1 if sgn > 0 else x0
+                    hinge = v3(xh, y0, (z0 + z1) / 2)
+                    c = v3(xh - sgn * sx / 4, (y0 + y1) / 2, (z0 + z1) / 2)
+                    size = (sx / 2 - 0.02, sy, thin)
+                bone = Bone("door_%d_%s" % (d, leaf), origin=tuple(hinge), parent=root)
+                add_cube(bone, "lit_door_%d_%s" % (d, leaf), c, EYE, size, faces)
+                tracks.append((bone, [gg.rot_kf(0.0, (0, 0, 0)), gg.rot_kf(1.0, (0, sgn * 100, 0))]))
+            anims.append(gg.animation("door_%d" % d, 1.0, "hold", tracks))
+            continue
         bone = Bone("door_%d" % d, origin=tuple(hinge), parent=root)
         c = v3((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2)
-        thin = 0.16
         size = (sx if sx > thin * 2 else thin, sy if not flat else thin, sz if sz > thin * 2 else thin)
         if d == 9:
             size = (thin, sy, sz)
-        add_cube(bone, "lit_door_%d" % d, c, EYE, size, {"all": "steel", "+1": "door", "-1": "door", "+2": "hatch", "-2": "hatch",
-                                                           "+3": "door", "-3": "door"})
+        add_cube(bone, "lit_door_%d" % d, c, EYE, size, faces)
         anims.append(gg.animation("door_%d" % d, 1.0, "hold", [(bone, [gg.rot_kf(0.0, (0, 0, 0)), gg.rot_kf(1.0, axis_rot)])]))
     return anims
 

@@ -266,6 +266,112 @@ def showcase_contents(bone, name, center, kind):
         box(bone, name + "_pearl_dish", c + v3(0, 0.37, 0), EYE, (0.34, 0.04, 0.34), "gold")
 
 
+def clam_basin(bone, name, p, r=0.8):
+    """The giant tridacna of the salon (Verne: a basin made of one shell, a fountain of sea water
+    running into it): a turned gilded pedestal, the two scalloped valves of the shell opened wide with
+    their ribs, the water inside, a jet with its spray."""
+    p = v3(*p)
+    for k, rot in enumerate((EYE, ry(math.pi / 4))):
+        box(bone, "%s_foot%d" % (name, k), p + v3(0, 0.06, 0), rot, (r * 1.1, 0.12, r * 1.1), "organ_wood")
+        box(bone, "%s_knop%d" % (name, k), p + v3(0, 0.3, 0), rot, (0.34, 0.36, 0.34), "gold")
+        box(bone, "%s_cup%d" % (name, k), p + v3(0, 0.58, 0), rot, (0.5, 0.2, 0.5), "organ_wood")
+    c = p + v3(0, 0.78, 0)
+    n = 11
+    for side in (-1, 1):  # the two valves, each a fan of ribs rising from the hinge
+        for k in range(n):
+            a = math.pi * (k + 0.5) / n
+            d = norm(v3(math.cos(a), 0, side * math.sin(a)))
+            tip = c + d * r + v3(0, 0.22 + 0.06 * math.sin(a * 3), 0)
+            reg = "shell" if k % 2 else "pearl"
+            beam(bone, "lit_%s_rib%d_%d" % (name, side > 0, k), c + d * 0.12 - v3(0, 0.04, 0), tip, 0.17, reg)
+            box(bone, "%s_scallop%d_%d" % (name, side > 0, k), tip + v3(0, 0.03, 0), ry(-math.atan2(d[2], d[0])), (0.12, 0.06, 0.2), "shell")
+    for k, rot in enumerate((EYE, ry(math.pi / 4))):
+        box(bone, "%s_water%d" % (name, k), c + v3(0, 0.12, 0), rot, (r * 1.25, 0.04, r * 1.25), "glass")
+    # the fountain: a gilded dolphin spout in the middle, a short jet falling back in a ring of drops
+    box(bone, name + "_spout", c + v3(0, 0.24, 0), ry(math.pi / 4), (0.14, 0.24, 0.14), "gold")
+    box(bone, name + "_jet", c + v3(0, 0.5, 0), EYE, (0.05, 0.3, 0.05), "glass")
+    for k in range(6):
+        a = 2 * math.pi * k / 6
+        box(bone, "%s_drop%d" % (name, k), c + v3(math.cos(a) * 0.18, 0.55, math.sin(a) * 0.18), EYE, (0.05, 0.05, 0.05), "glass")
+    box(bone, name + "_pearl", c + v3(0.2, 0.17, 0.1), EYE, (0.12, 0.12, 0.12), "pearl")
+
+
+def telescope(bone, name, p, facing):
+    """A brass telescope on a wooden tripod, aimed at the window."""
+    R = ry(yaw_of(facing))
+    p = v3(*p)
+    head = p + v3(0, 1.15, 0)
+    for k in range(3):
+        a = 2 * math.pi * k / 3 + 0.4
+        beam(bone, "lit_%s_leg%d" % (name, k), p + v3(math.cos(a) * 0.4, 0.0, math.sin(a) * 0.4), head, 0.05, "organ_wood")
+    box(bone, name + "_mount", head, EYE, (0.14, 0.12, 0.14), "brass")
+    d = R @ norm(v3(0, 0.25, 1))
+    beam(bone, "lit_%s_tube" % name, head - d * 0.55, head + d * 0.5, 0.13, "brass")
+    beam(bone, "lit_%s_hood" % name, head + d * 0.42, head + d * 0.62, 0.17, "brass")
+    beam(bone, "lit_%s_eyepiece" % name, head - d * 0.7, head - d * 0.5, 0.07, "iron")
+    beam(bone, "lit_%s_band" % name, head - d * 0.05, head + d * 0.05, 0.155, "gold")
+
+
+def potted_palm(bone, name, p, h=2.2):
+    """A palm in a brass-banded jardinière: the pot, a ringed trunk leaning a little, a crown of
+    arching fronds."""
+    p = v3(*p)
+    for k, rot in enumerate((EYE, ry(math.pi / 4))):
+        box(bone, "%s_pot%d" % (name, k), p + v3(0, 0.3, 0), rot, (0.56, 0.6, 0.56), "organ_wood")
+        box(bone, "%s_band%d" % (name, k), p + v3(0, 0.52, 0), rot, (0.6, 0.06, 0.6), "brass")
+        box(bone, "%s_rim%d" % (name, k), p + v3(0, 0.62, 0), rot, (0.62, 0.05, 0.62), "gold")
+    top = p + v3(0.08, h, 0.05)
+    beam(bone, "lit_%s_trunk" % name, p + v3(0, 0.6, 0), top, 0.12, "organ_wood")
+    for k in range(4):
+        y = 0.9 + k * (h - 0.9) / 4
+        box(bone, "%s_ring%d" % (name, k), p + v3(0.08 * y / h, y, 0.05 * y / h), ry(0.4 * k), (0.16, 0.04, 0.16), "boat_wood")
+    for k in range(8):
+        a = 2 * math.pi * k / 8 + 0.2
+        d = v3(math.cos(a), 0, math.sin(a))
+        mid = top + d * 0.45 + v3(0, 0.18, 0)
+        tip = top + d * 0.95 - v3(0, 0.25, 0)
+        beam(bone, "lit_%s_frond%d_a" % (name, k), top, mid, 0.16, "green_leather")
+        beam(bone, "lit_%s_frond%d_b" % (name, k), mid, tip, 0.12, "green_leather")
+
+
+def pilaster(bone, name, p, normal, h):
+    """A fluted pilaster against a wall, gilded base and Corinthian-like capital."""
+    R, u, n = frame(normal)
+    p = v3(*p)
+    box(bone, name + "_shaft", p + v3(0, h / 2, 0) + n * 0.08, R, (0.34, h, 0.16), "organ_wood")
+    for k in (-1, 0, 1):
+        box(bone, "%s_flute%d" % (name, k), p + v3(0, h / 2, 0) + u * (k * 0.09) + n * 0.165, R, (0.025, h - 0.7, 0.01), "gold")
+    box(bone, name + "_base", p + v3(0, 0.15, 0) + n * 0.11, R, (0.44, 0.3, 0.22), "gold")
+    box(bone, name + "_capital", p + v3(0, h - 0.22, 0) + n * 0.12, R, (0.46, 0.24, 0.24), "gold")
+    box(bone, name + "_abacus", p + v3(0, h - 0.05, 0) + n * 0.14, R, (0.54, 0.1, 0.28), "gold")
+
+
+def cornice(bone, name, x0, x1, z0, z1, y):
+    """A gilded cornice round a room under its ceiling (y = ceiling), with a band of dentils."""
+    for k, (a, b) in enumerate(((v3(x0, 0, z0), v3(x1, 0, z0)), (v3(x0, 0, z1), v3(x1, 0, z1)),
+                                (v3(x0, 0, z0), v3(x0, 0, z1)), (v3(x1, 0, z0), v3(x1, 0, z1)))):
+        along = norm(b - a)
+        inward = v3(-along[2], 0, along[0])
+        mid = (a + b) / 2
+        if np.dot(inward, v3((x0 + x1) / 2, 0, (z0 + z1) / 2) - mid) < 0:
+            inward = -inward
+        R = np.column_stack([np.cross(v3(0, 1, 0), inward), v3(0, 1, 0), inward])
+        length = float(np.linalg.norm(b - a))
+        box(bone, "%s_%d_top" % (name, k), mid + v3(0, y - 0.1, 0) + inward * 0.12, R, (length, 0.2, 0.24), "gold")
+        box(bone, "%s_%d_band" % (name, k), mid + v3(0, y - 0.32, 0) + inward * 0.05, R, (length, 0.24, 0.1), "organ_wood")
+        for j in range(int(length / 0.3)):
+            t = -length / 2 + 0.15 + j * 0.3
+            box(bone, "%s_%d_dentil%d" % (name, k, j), mid + v3(0, y - 0.27, 0) + inward * 0.12 + R[:, 0] * t, R, (0.12, 0.12, 0.06), "gold")
+
+
+def ceiling_rose(bone, name, p, r=0.7):
+    """A gilded rose on the ceiling round the hook of a chandelier."""
+    p = v3(*p)
+    for k in range(3):
+        box(bone, "%s_%d" % (name, k), p - v3(0, 0.03 + 0.03 * k, 0), ry(math.pi / 6 * k), (r * (1 - 0.25 * k) * 2, 0.05, r * (1 - 0.25 * k) * 2),
+            "gold" if k != 1 else "organ_wood")
+
+
 def armchair(bone, name, p, facing, region="red_velvet"):
     """Wing armchair in velvet: a plump seat cushion, a curved buttoned back, rolled arms with gilded
     fronts, wings, a carved apron and cabriole legs; the sitter looks along `facing`."""

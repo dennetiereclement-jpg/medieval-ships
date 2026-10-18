@@ -1233,7 +1233,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 
 		// ladder up to the hatch on the casing: stopped under the closed hatch, out on the casing once it is open
 		here = shipPose(sp, type);
-		tpLocal(server, here, Ships.NautilusLayout.HATCH_X - 0.05, 0.02, Ships.NautilusLayout.HATCH_Z, -90, 0);
+		tpLocal(server, here, Ships.NautilusLayout.HATCH_X, 0.02, Ships.NautilusLayout.HATCH_Z, 180, 0);
 		context.waitTicks(15);
 		context.getInput().holdKey(o -> o.forwardKey);
 		context.waitTicks(50);

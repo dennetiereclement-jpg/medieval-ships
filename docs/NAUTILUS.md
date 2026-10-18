@@ -20,19 +20,19 @@ Comparaison avec la planche de référence (captures du test automatique dans le
 
 * **Monter à bord** : clic droit sur la coque depuis l'extérieur. Le joueur est déposé sur la plate-forme (le dessus de la coque), en face de l'endroit cliqué.
 * **Panneau d'accès** (porte 0) : sur la plate-forme. Une échelle descend au pont principal.
-* **Portes** : clic droit pour ouvrir ou fermer. Les 18 portes sont étanches et animées, et elles bloquent réellement le passage une fois fermées.
+* **Portes** : clic droit pour ouvrir ou fermer. Les 18 portes sont étanches et animées, et elles bloquent réellement le passage une fois fermées. Les portes des salles font 2 blocs de large, à deux battants dans un cadre de laiton ; les panneaux et les trappes font 1 bloc.
 * **Échelles** : on les monte et descend comme des échelles vanilla (touche avancer, saut).
 * **Escalier en colimaçon** : il relie le pont inférieur au pont principal.
-* **Sièges** : clic droit sur une chaise, un fauteuil ou un canapé pour s'asseoir (27 places), puis Maj pour se lever.
+* **Sièges** : clic droit sur une chaise, un fauteuil ou un canapé pour s'asseoir (30 places), puis Maj pour se lever.
 * **Barre** : dans la timonerie, sur la plate-forme. Clic droit sur la roue pour prendre la barre.
 
-On marche librement dans toutes les salles pendant que le sous-marin avance, tourne ou plonge : les joueurs et les entités sont emportés avec la coque. L'intérieur est sec en plongée : pas de noyade, pas de vue sous-marine, pas de nage. L'eau du monde n'est pas modifiée ; ce sont les compartiments du navire qui sont étanches.
+On marche librement dans toutes les salles pendant que le sous-marin avance, tourne ou plonge : les joueurs et les entités sont emportés avec la coque. L'intérieur est sec en plongée : pas de noyade, pas de nage. Par les baies et les hublots, la mer se voit comme quand on nage : un brouillard bleu qui se referme avec la distance. Il laisse nets les 6 premiers blocs, donc la salle elle-même reste claire. L'eau du monde n'est pas modifiée ; ce sont les compartiments du navire qui sont étanches.
 
 ### Les salles (d'après la planche)
 
 | Pont | Salles |
 |---|---|
-| Principal (y 0 à 4,5) | Coursive avant, cabine de Nemo (austère : lit de fer, cartes, instruments), cabine du professeur Aronnax (lit, bureau, livres), salle à manger (longue table, vaisselle, buffets, lustres), bibliothèque (rayonnages sur trois côtés, globe, bureau), grand salon (orgue monumental, vitrines de coraux et de perles, canapé et fauteuils rouges, tableaux, deux grandes baies), escalier en colimaçon, salle des machines (piles électriques, moteur à pistons) |
+| Principal (y 0 à 4,5) | Coursive avant, cabine de Nemo (austère : lit de fer, cartes, instruments), cabine du professeur Aronnax (lit, bureau, livres), salle à manger (longue table, vaisselle, buffets, lustres), bibliothèque (rayonnages sur trois côtés, globe, bureau), grand salon (orgue monumental, vasque en tridacne géante avec sa fontaine, vitrines de coraux et de perles, canapé et fauteuils rouges, fauteuils et longues-vues tournés vers les deux grandes baies, palmiers, pilastres cannelés, corniche dorée, tableaux), escalier en colimaçon, salle des machines (piles électriques, moteur à pistons) |
 | Inférieur (y -4,5 à -0,5) | Coursive, cuisine, quartier de l'équipage, cales bâbord et tribord, couloir, sas des scaphandres, bas de la salle des machines |
 | Double fond (y -7 à -5) | Boyau technique entre les ballasts, accessible par une trappe secrète (porte 15) |
 | Sur la coque (y 9) | Timonerie (barre, compas, transmetteur d'ordres, cadrans, porte-voix, 4 hublots), cage du projecteur, logement du canot |
@@ -142,11 +142,13 @@ Les meubles viennent des mods de décoration du joueur. Ils sont **dessinés** d
 
 Le reste a été modélisé pour le Nautilus, car ces mods n'ont rien d'approchant :
 
-* l'orgue, les coraux et les perles des vitrines, les lustres, les tableaux, les rideaux ;
+* l'orgue, la vasque en tridacne, les coraux et les perles des vitrines, les lustres, les cadres dorés, les rideaux, les longues-vues, les palmiers, les pilastres et la corniche ;
 * les fauteuils, le globe, le lit de fer de Nemo et ses instruments ;
 * la barre, le compas, le transmetteur, les leviers et le porte-voix ;
 * le projecteur, les piles, le moteur (pistons, arbre et volant animés), les tuyauteries et les vannes ;
 * les scaphandres, les bouteilles et le canot.
+
+Les toiles des cadres sont les **tableaux vanilla** de Minecraft (Lowmist, Sunset, Graham, Wanderer, Tides, Water, Prairie Ride, Passage, Changing, Sea, Alban, Backyard). Elles sont dessinées avec la texture du jeu lui-même, donc un pack de ressources qui change les tableaux les change aussi dans le Nautilus. La carte marine de Nemo reste une carte.
 
 ## Limites connues
 

@@ -9,6 +9,7 @@ import net.minecraft.client.render.entity.EntityRenderer;
 import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.state.CameraRenderState;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
@@ -38,6 +39,8 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 			DOOR_ANIMATIONS[k] = "door_" + k;
 		}
 	}
+	/** A painting is drawn this far in front of the centre of its frame's canvas. */
+	private static final float PAINTING_OFFSET = 0.062f;
 	private final Visual visual;
 
 	public ShipRenderer(EntityRendererFactory.Context context, Visual visual) {
@@ -179,6 +182,12 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 				});
 			}
 			}
+			// vanilla paintings in their gilded frames
+			if (decorDrawn) {
+				for (fr.medievalships.core.InteriorDecor.Painting p : decor.paintings) {
+					submitPainting(matrices, queue, p, lit);
+				}
+			}
 			// furniture from the decoration mods, drawn where it stands in the rooms
 			if (decorDrawn) {
 				for (int i = 0; i < decor.states.length; i++) {
@@ -200,5 +209,30 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 			matrices.pop();
 		}
 		super.render(state, matrices, queue, cameraState);
+	}
+
+	/** A vanilla painting: its texture on the canvas, just in front of the canvas of its frame. */
+	private static void submitPainting(MatrixStack matrices, OrderedRenderCommandQueue queue, fr.medievalships.core.InteriorDecor.Painting p,
+			int light) {
+		float nx = (float) p.nx(), nz = (float) p.nz();
+		float rx = nz, rz = -nx; // to the right of someone facing the wall
+		float hw = (float) p.w() / 2f, hh = (float) p.h() / 2f;
+		float cx = (float) p.x() + nx * PAINTING_OFFSET, cy = (float) p.y(), cz = (float) p.z() + nz * PAINTING_OFFSET;
+		float[] xs = {cx - rx * hw, cx + rx * hw, cx + rx * hw, cx - rx * hw};
+		float[] ys = {cy - hh, cy - hh, cy + hh, cy + hh};
+		float[] zs = {cz - rz * hw, cz + rz * hw, cz + rz * hw, cz - rz * hw};
+		float[] us = {0f, 1f, 1f, 0f};
+		float[] vs = {1f, 1f, 0f, 0f};
+		RenderLayer layer = RenderLayers.entityCutoutNoCull(Identifier.ofVanilla("textures/painting/" + p.motive() + ".png"));
+		queue.submitCustom(matrices, layer, (entry, vertices) -> {
+			for (int k = 0; k < 4; k++) {
+				vertices.vertex(entry, xs[k], ys[k], zs[k])
+						.color(0xFFFFFFFF)
+						.texture(us[k], vs[k])
+						.overlay(OverlayTexture.DEFAULT_UV)
+						.light(light)
+						.normal(entry, nx, 0f, nz);
+			}
+		});
 	}
 }

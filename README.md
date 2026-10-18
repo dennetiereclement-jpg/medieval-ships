@@ -73,6 +73,13 @@ Pour tous :
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
 
+La version 1.7.3 améliore encore le Nautilus :
+* toutes les portes des salles font 2 blocs de large, avec deux battants et un cadre de laiton ;
+* les petits passages sont élargis : devant le sas, entre le couloir et la coursive du pont inférieur, palier de l'escalier ;
+* par les baies et les hublots, la mer se voit comme quand on nage : brouillard et teinte bleue sous l'eau ;
+* les tableaux sont les tableaux vanilla de Minecraft ;
+* le grand salon est enrichi : vasque en tridacne géante avec sa fontaine, fauteuils et longues-vues tournés vers les baies, palmiers, pilastres cannelés, corniche et rosaces dorées.
+
 La version 1.7.2 corrige et enrichit le Nautilus :
 * les hublots, vus de l'intérieur, ont un manchon de cuivre, une collerette de laiton boulonnée et une vitre, au lieu d'un trou carré ;
 * le canapé du salon est remis dans le bon sens ;
@@ -129,7 +136,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.7.2.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.7.3.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation

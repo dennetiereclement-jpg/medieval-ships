@@ -113,7 +113,7 @@ class NautilusTest {
 		room("dining room (table end)", 3.4, 3.8, m, 13.4, 16.8);
 		assertFalse(fits(0, m, 15.5, InteriorGrid.State.CLOSED), "the dining table is solid");
 		room("library (aisle)", -0.9, 0.9, m, 7.6, 12.0);
-		room("salon (centre)", -0.4, 0.4, m, 2.4, 6.0);
+		room("salon (beside the basin)", 1.0, 1.6, m, 2.6, 6.0);
 		room("salon (side)", 1.85, 2.15, m, -4.0, 3.6);
 		room("salon (corner by the stairs door)", 2.6, 3.1, m, -6.1, -5.0);
 		room("nemo", -2.6, -2.4, m, 22.6, 24.0);
@@ -334,6 +334,34 @@ class NautilusTest {
 		// every door has a centre
 		for (int k : new int[] {0, 8, 9, 16}) {
 			assertNotNull(GRID.doorCenter(k), "door " + k);
+		}
+	}
+
+	@Test
+	void doorsAreTwoBlocksWide() {
+		InteriorGrid.State shut = InteriorGrid.State.CLOSED;
+		// door 3 (fore corridor / dining room), across the corridor: closed it is solid over 2 blocks, open it lets two walk abreast
+		double[] c = GRID.doorCenter(3);
+		for (double x : new double[] {-0.75, -0.25, 0.25, 0.75}) {
+			assertTrue(GRID.solidAt(x, 0.5, c[2], shut), "door 3 closed at x " + x);
+			assertFalse(GRID.solidAt(x, 0.5, c[2], shut.withDoor(3, true)), "door 3 open at x " + x);
+		}
+		// door 12 (coursive / kitchen), in a side wall
+		c = GRID.doorCenter(12);
+		for (double z : new double[] {-0.75, 0.75}) {
+			assertFalse(GRID.solidAt(c[0], c[1], c[2] + z, shut.withDoor(12, true)), "door 12 open at dz " + z);
+		}
+	}
+
+	@Test
+	void vanillaPaintings() {
+		java.util.List<InteriorDecor.Painting> paintings = G.decor().paintings();
+		assertTrue(paintings.size() >= 10, "paintings: " + paintings.size());
+		for (InteriorDecor.Painting p : paintings) {
+			assertTrue(p.motive().matches("[a-z0-9_]+"), p.motive());
+			assertEquals(1.0, Math.hypot(p.nx(), p.nz()), 1e-3, p.motive());
+			// on a wall: solid right behind the canvas, room in front of it
+			assertTrue(GRID.solidAt(p.x() - p.nx() * 0.3, p.y(), p.z() - p.nz() * 0.3, InteriorGrid.State.CLOSED), "wall behind " + p.motive());
 		}
 	}
 

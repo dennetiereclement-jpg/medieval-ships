@@ -112,15 +112,15 @@ ROOMS = {
     "stair_hall":    (-3.0, 2.5, L0, M1, -12.0, -7.0),
     "engine_room":   (-5.0, 5.0, L0, M1, -30.0, -12.5),
     # lower level
-    "coursive":      (2.0, 4.8, L0, L1, 4.5, 24.5),
-    "cross_fore":    (-1.5, 2.0, L0, L1, 23.5, 24.5),
+    "coursive":      (2.0, 4.8, L0, L1, 3.5, 24.5),
+    "cross_fore":    (-1.5, 2.0, L0, L1, 22.5, 24.5),
     "airlock":       (-2.5, 2.5, L0, -1.0, 25.0, 29.0),
     "kitchen":       (-4.5, 1.5, L0, L1, 6.0, 14.0),
-    "crew":          (-4.5, 1.5, L0, L1, 14.5, 23.0),
+    "crew":          (-4.5, 1.5, L0, L1, 14.5, 22.0),
     "corridor_aft":  (-1.5, 1.5, L0, L1, -7.0, 5.5),
-    "junction":      (-1.5, 4.8, L0, L1, 4.5, 5.5),
-    "store_port":    (2.0, 4.8, L0, L1, -6.0, 4.0),
-    "store_stbd":    (-4.8, -2.0, L0, L1, -6.0, 4.0),
+    "junction":      (-1.5, 4.8, L0, L1, 3.5, 5.5),
+    "store_port":    (2.0, 4.8, L0, L1, -6.0, 3.0),
+    "store_stbd":    (-4.8, -2.0, L0, L1, -6.0, 3.0),
     # double bottom: crawlway between the ballast tanks
     "crawlway":      (-1.5, 1.5, B0, B1, -12.0, 12.0),
     # on the casing
@@ -128,26 +128,27 @@ ROOMS = {
     "lamp_cage":     (-1.0, 1.0, ns.CASING_TOP_Y, ns.LAMP_CAGE_TOP_Y - 0.5, ns.LAMP_CAGE_Z[0] + 0.5, ns.TOWER_Z[0]),
 }
 
-# doors: index -> (name, box). Doors are 1 block wide, 2 high, as thick as the wall (hatches lie flat)
+# doors: index -> (name, box). Doors are 2 blocks wide (two leaves), 2 high, as thick as the wall; hatches
+# lie flat and stay 1 block
 DOORS = {
     0: ("hatch", (1.0, 2.0, ns.CASING_TOP_Y - 0.5, ns.CASING_TOP_Y, -9.0, -8.0)),
-    1: ("nemo", (-2.0, -1.5, M0, M0 + 2.0, 22.5, 23.5)),
-    2: ("aronnax", (1.5, 2.0, M0, M0 + 2.0, 22.5, 23.5)),
-    3: ("corridor_dining", (-0.5, 0.5, M0, M0 + 2.0, 18.0, 18.5)),
-    4: ("dining_library", (-0.5, 0.5, M0, M0 + 2.0, 12.5, 13.0)),
-    5: ("library_salon", (-0.5, 0.5, M0, M0 + 2.0, 6.5, 7.0)),
-    6: ("salon_stairs", (2.5, 3.5, M0, M0 + 2.0, -7.0, -6.5)),
-    7: ("stairs_engine", (1.0, 2.0, M0, M0 + 2.0, -12.5, -12.0)),
-    8: ("airlock_inner", (-0.5, 0.5, L0, L0 + 2.0, 24.5, 25.0)),
+    1: ("nemo", (-2.0, -1.5, M0, M0 + 2.0, 22.0, 24.0)),
+    2: ("aronnax", (1.5, 2.0, M0, M0 + 2.0, 22.0, 24.0)),
+    3: ("corridor_dining", (-1.0, 1.0, M0, M0 + 2.0, 18.0, 18.5)),
+    4: ("dining_library", (-1.0, 1.0, M0, M0 + 2.0, 12.5, 13.0)),
+    5: ("library_salon", (-1.0, 1.0, M0, M0 + 2.0, 6.5, 7.0)),
+    6: ("salon_stairs", (1.5, 3.5, M0, M0 + 2.0, -7.0, -6.5)),
+    7: ("stairs_engine", (1.0, 3.0, M0, M0 + 2.0, -12.5, -12.0)),
+    8: ("airlock_inner", (-1.0, 1.0, L0, L0 + 2.0, 24.5, 25.0)),
     9: ("airlock_outer", None),  # in the hull at the end of the airlock tunnel, see build()
-    10: ("wheelhouse_cage", (-0.5, 0.5, ns.CASING_TOP_Y, ns.CASING_TOP_Y + 2.0, ns.TOWER_Z[0], ns.TOWER_Z[0] + 0.5)),
+    10: ("wheelhouse_cage", (-1.0, 1.0, ns.CASING_TOP_Y, ns.CASING_TOP_Y + 2.0, ns.TOWER_Z[0], ns.TOWER_Z[0] + 0.5)),
     11: ("wheelhouse_trap", (-0.5, 0.5, ns.CASING_TOP_Y - 0.5, ns.CASING_TOP_Y, 18.5, 19.5)),
-    12: ("coursive_kitchen", (1.5, 2.0, L0, L0 + 2.0, 9.5, 10.5)),
-    13: ("coursive_crew", (1.5, 2.0, L0, L0 + 2.0, 18.0, 19.0)),
+    12: ("coursive_kitchen", (1.5, 2.0, L0, L0 + 2.0, 9.0, 11.0)),
+    13: ("coursive_crew", (1.5, 2.0, L0, L0 + 2.0, 17.5, 19.5)),
     15: ("secret_trap", (-0.5, 0.5, L0 - 0.5, L0, 1.0, 2.0)),
     16: ("boat_hatch", (0.5, 1.5, 7.5, 8.0, -19.0, -18.0)),
-    17: ("store_port", (1.5, 2.0, L0, L0 + 2.0, -1.0, 0.0)),
-    18: ("store_stbd", (-2.0, -1.5, L0, L0 + 2.0, -1.0, 0.0)),
+    17: ("store_port", (1.5, 2.0, L0, L0 + 2.0, -1.5, 0.5)),
+    18: ("store_stbd", (-2.0, -1.5, L0, L0 + 2.0, -1.5, 0.5)),
 }
 HATCH_DOOR = 0
 AIRLOCK_TUNNEL = (-7.0, -2.5, L0, L0 + 2.0, 26.5, 27.5)
@@ -155,7 +156,7 @@ AIRLOCK_TUNNEL = (-7.0, -2.5, L0, L0 + 2.0, 26.5, 27.5)
 # ladders: (box, pillar box or None). The pillar gives something to push against at the bottom.
 LADDERS = {
     "wheelhouse": ((-0.5, 0.5, M0, ns.CASING_TOP_Y + 0.5, 18.5, 19.5), (-0.5, 0.5, M0, M1, 19.5, 20.0)),
-    "hatch":      ((1.0, 2.0, M0, ns.CASING_TOP_Y - 0.5, -9.0, -8.0), (2.0, 2.5, M0, M1, -9.0, -8.0)),
+    "hatch":      ((1.0, 2.0, M0, ns.CASING_TOP_Y - 0.5, -9.0, -8.0), (1.0, 2.0, M0, M1, -9.5, -9.0)),  # pillar aft of it: the landing stays clear
     "boat":       ((0.5, 1.5, M0, 7.5, -19.0, -18.0), (0.5, 1.5, M0, M1, -18.0, -17.5)),
     "engine":     ((2.5, 3.5, L0, M0, -26.5, -25.5), (2.5, 3.5, L0, M0, -27.0, -26.5)),
     "bilge":      ((-0.5, 0.5, B0, L0, 1.0, 2.0), (-0.5, 0.5, B0, B1, 2.0, 2.5)),
@@ -233,8 +234,9 @@ def build():
     # main level of the stair hall: a landing along the ladder side and towards the engine room
     g.set(SOLID, 1.0, 2.5, M0 - 0.5, M0, -12.0, -7.0)
     g.set(SOLID, -3.0, 3.5, M0 - 0.5, M0, -8.0, -7.0)  # gallery along the salon wall, from the top of the stairs
-    g.set(SOLID, 2.5, 3.5, M0 - 0.5, M0, -8.5, -7.0)   # ... widening into a landing behind the salon door
-    g.set(DRY, 2.5, 3.5, M0, M0 + 2.5, -8.5, -7.0, where=g.k != DOOR + 6)
+    # ... widening into a landing 2.5 blocks wide from the salon door to the engine room door
+    g.set(SOLID, 2.5, 3.5, M0 - 0.5, M0, -12.0, -7.0)
+    g.set(DRY, 2.5, 3.5, M0, M1, -12.0, -7.0)
     # engine room: catwalk with its rail, the partition between the batteries and the engine
     g.set(SOLID, *CATWALK)
     g.set(FURNITURE, CATWALK[0], CATWALK[0] + 0.5, M0, M0 + 1.0, CATWALK[4], CATWALK[5])  # its rail: drawn as a railing

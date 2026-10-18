@@ -42,14 +42,28 @@ public final class InteriorDecor {
 	public record Switch(String action, double x, double y, double z, double hx, double hy, double hz) {
 	}
 
+	/**
+	 * A vanilla painting hung in a frame of the vessel's model: its motive (the texture
+	 * {@code minecraft:textures/painting/<motive>.png}), the centre of its canvas (ship-local), the
+	 * horizontal normal of the wall it hangs on (towards the room) and its size in blocks.
+	 */
+	public record Painting(String motive, double x, double y, double z, double nx, double nz, double w, double h) {
+	}
+
 	private final List<Block> blocks;
 	private final List<SeatSpot> seats;
 	private final List<Switch> switches;
+	private final List<Painting> paintings;
 
-	InteriorDecor(List<Block> blocks, List<SeatSpot> seats, List<Switch> switches) {
+	InteriorDecor(List<Block> blocks, List<SeatSpot> seats, List<Switch> switches, List<Painting> paintings) {
 		this.blocks = List.copyOf(blocks);
 		this.seats = List.copyOf(seats);
 		this.switches = List.copyOf(switches);
+		this.paintings = List.copyOf(paintings);
+	}
+
+	public List<Painting> paintings() {
+		return paintings;
 	}
 
 	public List<Switch> switches() {
@@ -101,6 +115,13 @@ public final class InteriorDecor {
 			switches.add(new Switch(o.get("action").getAsString(), o.get("x").getAsDouble(), o.get("y").getAsDouble(), o.get("z").getAsDouble(),
 					o.get("hx").getAsDouble(), o.get("hy").getAsDouble(), o.get("hz").getAsDouble()));
 		}
-		return new InteriorDecor(blocks, seats, switches);
+		List<Painting> paintings = new ArrayList<>();
+		JsonArray p = root.has("paintings") ? root.getAsJsonArray("paintings") : new JsonArray();
+		for (JsonElement e : p) {
+			JsonObject o = e.getAsJsonObject();
+			paintings.add(new Painting(o.get("motive").getAsString(), o.get("x").getAsDouble(), o.get("y").getAsDouble(), o.get("z").getAsDouble(),
+					o.get("nx").getAsDouble(), o.get("nz").getAsDouble(), o.get("w").getAsDouble(), o.get("h").getAsDouble()));
+		}
+		return new InteriorDecor(blocks, seats, switches, paintings);
 	}
 }

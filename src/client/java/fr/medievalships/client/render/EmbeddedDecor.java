@@ -28,9 +28,12 @@ final class EmbeddedDecor {
 	final BlockState[] states;
 	/** Stand-in bones of the blocks that are drawn. */
 	final List<String> hidden;
+	/** Vanilla paintings in the frames of the model. */
+	final List<InteriorDecor.Painting> paintings;
 
 	private EmbeddedDecor(InteriorDecor decor) {
 		this.blocks = decor.blocks();
+		this.paintings = decor.paintings();
 		this.states = new BlockState[blocks.size()];
 		List<String> hide = new ArrayList<>();
 		for (int i = 0; i < blocks.size(); i++) {

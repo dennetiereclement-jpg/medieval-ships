@@ -1381,7 +1381,7 @@
    "block": "farmhouse_decorations:single_bed",
    "x": -3.9,
    "y": -4.5,
-   "z": 16.6,
+   "z": 15.0,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_153"
@@ -1390,7 +1390,7 @@
    "block": "farmhouse_decorations:single_bed",
    "x": -3.9,
    "y": -4.5,
-   "z": 18.8,
+   "z": 17.1,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_154"
@@ -1399,25 +1399,25 @@
    "block": "farmhouse_decorations:single_bed",
    "x": -3.9,
    "y": -4.5,
-   "z": 21.2,
+   "z": 19.2,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_155"
   },
   {
    "block": "furnish:small_locker",
-   "x": -0.4,
+   "x": 0.1,
    "y": -4.5,
-   "z": 22.5,
+   "z": 21.5,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_156"
   },
   {
    "block": "furnish:small_locker",
-   "x": 0.6,
+   "x": 1.1,
    "y": -4.5,
-   "z": 22.5,
+   "z": 21.5,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_157"
@@ -1442,54 +1442,54 @@
   },
   {
    "block": "furnish:oak_square_table",
-   "x": -1.5,
+   "x": -1.7,
    "y": -4.5,
-   "z": 21.5,
+   "z": 21.0,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_160"
   },
   {
    "block": "furnish:chess_board",
-   "x": -1.5,
+   "x": -1.7,
    "y": -3.5,
-   "z": 21.5,
+   "z": 21.0,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_161"
   },
   {
    "block": "furnish:spruce_stool",
-   "x": -2.3,
+   "x": -2.6,
    "y": -4.5,
-   "z": 21.5,
+   "z": 21.0,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_162"
   },
   {
    "block": "furnish:spruce_stool",
-   "x": -0.7,
+   "x": -0.8,
    "y": -4.5,
-   "z": 21.5,
+   "z": 21.0,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_163"
   },
   {
    "block": "furnish:dark_oak_shelf",
-   "x": -1.5,
+   "x": -1.9,
    "y": -2.7,
-   "z": 23.0,
+   "z": 22.0,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_164"
   },
   {
    "block": "furnish:book_pile",
-   "x": -1.6,
+   "x": -2.0,
    "y": -2.3,
-   "z": 22.85,
+   "z": 21.85,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_165"
@@ -1561,7 +1561,7 @@
    "block": "landsoficaria:cypress_barrel",
    "x": 3.9,
    "y": -4.5,
-   "z": 2.3,
+   "z": 1.5,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_173"
@@ -1570,7 +1570,7 @@
    "block": "landsoficaria:fir_barrel",
    "x": 3.9,
    "y": -4.5,
-   "z": 3.3,
+   "z": 2.5,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_174"
@@ -1615,7 +1615,7 @@
    "block": "landsoficaria:green_storage_vase",
    "x": 2.9,
    "y": -4.5,
-   "z": 3.3,
+   "z": 2.5,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_179"
@@ -1651,7 +1651,7 @@
    "block": "landsoficaria:cypress_barrel",
    "x": -3.9,
    "y": -4.5,
-   "z": 2.3,
+   "z": 1.5,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_183"
@@ -1660,7 +1660,7 @@
    "block": "landsoficaria:fir_barrel",
    "x": -3.9,
    "y": -4.5,
-   "z": 3.3,
+   "z": 2.5,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_184"
@@ -1705,7 +1705,7 @@
    "block": "landsoficaria:green_storage_vase",
    "x": -2.9,
    "y": -4.5,
-   "z": 3.3,
+   "z": 2.5,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_189"
@@ -1930,10 +1930,10 @@
    "dz": 9.6
   },
   {
-   "x": -0.5,
+   "x": -1.0,
    "y": 0.55,
    "z": -4.4,
-   "dx": -0.5,
+   "dx": -1.0,
    "dy": 0.02,
    "dz": -3.8
   },
@@ -1978,6 +1978,22 @@
    "dz": 2.6
   },
   {
+   "x": 2.9,
+   "y": 0.5,
+   "z": 0.8,
+   "dx": 1.9,
+   "dy": 0.02,
+   "dz": 0.8
+  },
+  {
+   "x": -2.9,
+   "y": 0.5,
+   "z": 0.8,
+   "dx": -1.9,
+   "dy": 0.02,
+   "dz": 0.8
+  },
+  {
    "x": 3.6,
    "y": 0.45,
    "z": 21.5,
@@ -2002,20 +2018,152 @@
    "dz": 22.2
   },
   {
-   "x": -2.3,
+   "x": -2.6,
    "y": -4.0,
-   "z": 21.5,
-   "dx": -2.3,
+   "z": 21.0,
+   "dx": -2.6,
    "dy": 0.02,
-   "dz": 20.6
+   "dz": 20.0
   },
   {
-   "x": -0.7,
+   "x": -0.8,
    "y": -4.0,
-   "z": 21.5,
-   "dx": -0.7,
+   "z": 21.0,
+   "dx": -0.8,
    "dy": 0.02,
-   "dz": 20.6
+   "dz": 20.0
+  }
+ ],
+ "paintings": [
+  {
+   "motive": "lowmist",
+   "x": -2.9,
+   "y": 2.7,
+   "z": 13.0,
+   "nx": 0.0,
+   "nz": 1.0,
+   "w": 2.2,
+   "h": 1.1
+  },
+  {
+   "motive": "graham",
+   "x": -2.9,
+   "y": 2.9,
+   "z": 18.0,
+   "nx": 0.0,
+   "nz": -1.0,
+   "w": 0.85,
+   "h": 1.7
+  },
+  {
+   "motive": "sunset",
+   "x": 2.9,
+   "y": 2.7,
+   "z": 13.0,
+   "nx": 0.0,
+   "nz": 1.0,
+   "w": 2.2,
+   "h": 1.1
+  },
+  {
+   "motive": "wanderer",
+   "x": 2.9,
+   "y": 2.9,
+   "z": 18.0,
+   "nx": 0.0,
+   "nz": -1.0,
+   "w": 0.85,
+   "h": 1.7
+  },
+  {
+   "motive": "tides",
+   "x": -3.5,
+   "y": 3.7,
+   "z": 4.7,
+   "nx": 1.0,
+   "nz": 0.0,
+   "w": 1.6,
+   "h": 1.6
+  },
+  {
+   "motive": "prairie_ride",
+   "x": -3.5,
+   "y": 3.6,
+   "z": -4.2,
+   "nx": 1.0,
+   "nz": 0.0,
+   "w": 0.9,
+   "h": 1.8
+  },
+  {
+   "motive": "water",
+   "x": 3.5,
+   "y": 3.7,
+   "z": 4.7,
+   "nx": -1.0,
+   "nz": 0.0,
+   "w": 1.6,
+   "h": 1.6
+  },
+  {
+   "motive": "wanderer",
+   "x": 3.5,
+   "y": 3.6,
+   "z": -4.2,
+   "nx": -1.0,
+   "nz": 0.0,
+   "w": 0.9,
+   "h": 1.8
+  },
+  {
+   "motive": "passage",
+   "x": -2.3,
+   "y": 3.5,
+   "z": 6.5,
+   "nx": 0.0,
+   "nz": -1.0,
+   "w": 2.2,
+   "h": 1.1
+  },
+  {
+   "motive": "changing",
+   "x": 2.3,
+   "y": 3.5,
+   "z": 6.5,
+   "nx": 0.0,
+   "nz": -1.0,
+   "w": 2.2,
+   "h": 1.1
+  },
+  {
+   "motive": "sea",
+   "x": 3.6,
+   "y": 2.9,
+   "z": 26.5,
+   "nx": 0.0,
+   "nz": -1.0,
+   "w": 1.6,
+   "h": 0.8
+  },
+  {
+   "motive": "alban",
+   "x": 2.0,
+   "y": 3.1,
+   "z": 21.0,
+   "nx": 1.0,
+   "nz": 0.0,
+   "w": 0.8,
+   "h": 0.8
+  },
+  {
+   "motive": "backyard",
+   "x": 0,
+   "y": 2.6,
+   "z": 26.5,
+   "nx": 0.0,
+   "nz": -1.0,
+   "w": 1.2,
+   "h": 1.6
   }
  ],
  "switches": [
