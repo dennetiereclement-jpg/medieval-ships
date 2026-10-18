@@ -14,12 +14,12 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # panels of the reference sheet (1536 x 1024): name, crop box, screenshot name in the test
 EXTERIOR = [
-    ("Vue de côté", (0, 0, 1105, 325), "nautilus_1_droite"),
-    ("Vue de dessus", (1110, 0, 1370, 115), "nautilus_0a_vue_de_dessus"),
-    ("Vue avant (proue)", (1373, 0, 1536, 200), "nautilus_0b_vue_avant"),
-    ("Vue arrière (poupe)", (1110, 118, 1370, 325), "nautilus_0c_vue_arriere"),
-    ("Vue en perspective", (1373, 203, 1536, 325), "nautilus_3_perspective"),
-    ("Sous l'eau", (0, 0, 1105, 325), "nautilus_7_sous_l_eau"),
+    ("Vue de côté (en plongée, à travers la vitre du bassin)", (0, 0, 1105, 325), "nautilus_0d_en_plongee_cote"),
+    ("Vue en perspective (en plongée, projecteur allumé)", (1373, 203, 1536, 325), "nautilus_0e_en_plongee_perspective"),
+    ("Vue arrière (en plongée)", (1110, 118, 1370, 325), "nautilus_0f_en_plongee_arriere"),
+    ("Vue de dessus (en surface)", (1110, 0, 1370, 115), "nautilus_0a_vue_de_dessus"),
+    ("Vue avant (en surface)", (1373, 0, 1536, 200), "nautilus_0b_vue_avant"),
+    ("Vue de côté (en surface)", (0, 0, 1105, 325), "nautilus_1_droite"),
 ]
 INTERIOR = [
     ("1. Salle à manger", (5, 330, 315, 555), "nautilus_p01_salle_a_manger"),

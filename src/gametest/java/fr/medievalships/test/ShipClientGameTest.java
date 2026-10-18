@@ -1574,6 +1574,42 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			context.waitTicks(k == 0 ? 30 : 15);
 			shot(context, id + "_" + outNames[k]);
 		}
+		// submerged, seen through the glass of the basin like an aquarium (as on the sheet): side and perspective
+		lookLocal(server, pose, -20, 4, 0, 0, 2, 0);
+		context.waitTicks(5);
+		nautilusCommand(server, "profondeur 15");
+		nautilusCommand(server, "projecteur on");
+		for (int t = 0; t < 900; t += 20) {
+			context.waitTicks(20);
+			float dd = server.computeOnServer(srv -> ship(srv.getOverworld(), Ships.NAUTILUS).syncedDepth());
+			if (dd > 14.6) {
+				break;
+			}
+		}
+		ShipPose under = shipPose(sp, Ships.NAUTILUS);
+		double[][] sub = {{-62, 1, 0, 0, 1, 0}, {-50, 8, 34, 0, 1, 2}, {-50, -2, -36, 0, 1, -4}};
+		String[] subNames = {"0d_en_plongee_cote", "0e_en_plongee_perspective", "0f_en_plongee_arriere"};
+		for (int k = 0; k < sub.length; k++) {
+			double[] v = sub[k];
+			lookLocal(server, under, v[0], v[1], v[2], v[3], v[4], v[5]);
+			context.waitTicks(k == 0 ? 40 : 20);
+			shot(context, id + "_" + subNames[k]);
+		}
+		nautilusCommand(server, "projecteur off");
+		lookLocal(server, under, -20, 4, 0, 0, 2, 0);
+		context.waitTicks(5);
+		nautilusCommand(server, "profondeur surface");
+		for (int t = 0; t < 1200; t += 20) {
+			context.waitTicks(20);
+			float dd = server.computeOnServer(srv -> ship(srv.getOverworld(), Ships.NAUTILUS).syncedDepth());
+			if (dd < 0.1) {
+				break;
+			}
+		}
+		nautilusCommand(server, "profondeur libre");
+		context.waitTicks(40);
+		pose = shipPose(sp, Ships.NAUTILUS);
+
 		Object[][] rooms = {
 				{"p01_salle_a_manger", new double[] {0, 1.7, 17.6, 0, 0.8, 13.5}},
 				{"p02_bibliotheque", new double[] {-4.0, 1.8, 7.5, 2.0, 1.2, 11.5}},
