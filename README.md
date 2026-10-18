@@ -74,7 +74,7 @@ Pour tous :
   aucune apparition naturelle.
 
 La version 1.7.3 améliore encore le Nautilus :
-* toutes les portes des salles font 2 blocs de large, avec deux battants et un cadre de laiton ;
+* toutes les portes des salles font 2 blocs de large, avec deux battants en acajou (hublot à collerette de laiton, panneaux moulurés dorés, ferrures de bronze rivetées) dans un cadre de laiton ;
 * les petits passages sont élargis : devant le sas, entre le couloir et la coursive du pont inférieur, palier de l'escalier ;
 * par les baies et les hublots, la mer se voit comme quand on nage : brouillard et teinte bleue sous l'eau ;
 * les tableaux sont les tableaux vanilla de Minecraft ;

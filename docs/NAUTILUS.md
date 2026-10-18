@@ -20,7 +20,7 @@ Comparaison avec la planche de référence (captures du test automatique dans le
 
 * **Monter à bord** : clic droit sur la coque depuis l'extérieur. Le joueur est déposé sur la plate-forme (le dessus de la coque), en face de l'endroit cliqué.
 * **Panneau d'accès** (porte 0) : sur la plate-forme. Une échelle descend au pont principal.
-* **Portes** : clic droit pour ouvrir ou fermer. Les 18 portes sont étanches et animées, et elles bloquent réellement le passage une fois fermées. Les portes des salles font 2 blocs de large, à deux battants dans un cadre de laiton ; les panneaux et les trappes font 1 bloc.
+* **Portes** : clic droit pour ouvrir ou fermer. Les 18 portes sont étanches et animées, et elles bloquent réellement le passage une fois fermées. Les portes des salles font 2 blocs de large, à deux battants en acajou (hublot, panneaux moulurés, ferrures de bronze) dans un cadre de laiton ; les panneaux et les trappes font 1 bloc.
 * **Échelles** : on les monte et descend comme des échelles vanilla (touche avancer, saut).
 * **Escalier en colimaçon** : il relie le pont inférieur au pont principal.
 * **Sièges** : clic droit sur une chaise, un fauteuil ou un canapé pour s'asseoir (30 places), puis Maj pour se lever.

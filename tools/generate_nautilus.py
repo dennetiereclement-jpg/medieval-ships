@@ -790,7 +790,9 @@ def doors(root, g):
                     c = v3(xh - sgn * sx / 4, (y0 + y1) / 2, (z0 + z1) / 2)
                     size = (sx / 2 - 0.02, sy, thin)
                 bone = Bone("door_%d_%s" % (d, leaf), origin=tuple(hinge), parent=root)
-                add_cube(bone, "lit_door_%d_%s" % (d, leaf), c, EYE, size, faces)
+                big = ("+1", "-1") if along_z else ("+3", "-3")
+                add_cube(bone, "lit_door_%d_%s" % (d, leaf), c, EYE, size, {"all": "steel", big[0]: "door_leaf", big[1]: "door_leaf"},
+                         stretch=True, u_dir=v3(0, 0, 1) if along_z else v3(1, 0, 0), v_dir=v3(0, -1, 0))
                 tracks.append((bone, [gg.rot_kf(0.0, (0, 0, 0)), gg.rot_kf(1.0, (0, sgn * 100, 0))]))
             anims.append(gg.animation("door_%d" % d, 1.0, "hold", tracks))
             continue
@@ -799,7 +801,10 @@ def doors(root, g):
         size = (sx if sx > thin * 2 else thin, sy if not flat else thin, sz if sz > thin * 2 else thin)
         if d == 9:
             size = (thin, sy, sz)
-        add_cube(bone, "lit_door_%d" % d, c, EYE, size, faces)
+            add_cube(bone, "lit_door_%d" % d, c, EYE, size, {"all": "steel", "+1": "door_leaf", "-1": "door_leaf"}, stretch=True,
+                     u_dir=v3(0, 0, 1), v_dir=v3(0, -1, 0))
+        else:
+            add_cube(bone, "lit_door_%d" % d, c, EYE, size, faces)
         anims.append(gg.animation("door_%d" % d, 1.0, "hold", [(bone, [gg.rot_kf(0.0, (0, 0, 0)), gg.rot_kf(1.0, axis_rot)])]))
     return anims
 

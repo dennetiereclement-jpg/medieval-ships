@@ -32,6 +32,7 @@ REGIONS = {
     "rung":        (160, 32, 16, 16),
     "hatch":       (176, 32, 32, 32),
     "door":        (208, 32, 32, 32),  # watertight door: riveted steel, thick frame, wheel painted
+    "door_leaf":   (192, 96, 32, 64),  # one leaf of a 2 block door (1 x 2): mahogany, bronze straps, porthole, panels
     # rooms: luxury (salon, library, dining room, Aronnax), austere and technical
     "wall_lux":    (0, 64, 32, 32),    # dark wood panelling, gilded band, red fabric above
     "floor_lux":   (32, 64, 32, 32),   # herringbone parquet
@@ -199,6 +200,7 @@ def make_texture(path):
     _paint_furniture(img, px, rng)
     _paint_effects(px, rng)
     _paint_smooth_rooms(px, rng)
+    _paint_door_leaf(px, rng)
     img.save(path)
 
 
@@ -421,6 +423,70 @@ def _wood_grain(px, region, base, dark, rng, horizontal=True, plank=None):
             if plank and b % plank == 0:
                 c = _mix(c, dark, 0.6)
             _put(px, u, v, x, y, c)
+
+
+def _paint_door_leaf(px, rng):
+    """One leaf of the doors of the rooms (1 x 2 blocks, 32 x 64 px, drawn upright): varnished
+    mahogany with a vertical grain, a riveted bronze strap all round, a round porthole with a bolted
+    brass collar and a glint on its glass, a brass band, two raised panels with gilded mouldings and
+    bevels, a brass kick plate at the foot."""
+    u, v, w, h = REGIONS["door_leaf"]
+    _wood_grain(px, (u, v, w, h), _rgb("7a3a22"), _rgb("2e120a"), rng, horizontal=False)
+    bronze, bronze_dark, brass, gold = _rgb("8a5a2e"), _rgb("4a2e16"), _rgb("c9a24a"), _rgb("f0d27a")
+    n = _noise(w, h, 4, rng)
+
+    def put(x, y, c):
+        _put(px, u, v, x, y, tuple(q * (0.94 + 0.1 * n[y][x]) for q in c))
+
+    # raised panels: lighter field, bevel lit from the top left, a gilded moulding round them
+    for y0, y1 in ((27, 44), (47, 57)):
+        x0, x1 = 6, w - 7
+        for y in range(y0, y1 + 1):
+            for x in range(x0, x1 + 1):
+                if y in (y0, y1) or x in (x0, x1):
+                    c = gold if (y == y0 or x == x0) else brass
+                elif y == y0 + 1 or x == x0 + 1:
+                    c = _mix(_rgb("8a4a2c"), (255, 220, 180), 0.15)
+                elif y == y1 - 1 or x == x1 - 1:
+                    c = _rgb("2a1008")
+                else:
+                    continue
+                put(x, y, c)
+    # bronze strap round the leaf, rivets along it
+    for y in range(h):
+        for x in range(w):
+            edge = min(x, y, w - 1 - x, h - 1 - y)
+            if edge < 3:
+                c = bronze_dark if edge == 0 else _mix(bronze, (255, 230, 180), 0.2) if edge == 1 else bronze
+                if edge == 1 and (x + y) % 5 == 0:
+                    c = gold
+                put(x, y, c)
+    # brass band across the middle, and the kick plate
+    for y in range(22, 25):
+        for x in range(3, w - 3):
+            put(x, y, gold if y == 22 else brass if y == 23 else _rgb("7a5a20"))
+    for y in range(59, 61):
+        for x in range(3, w - 3):
+            put(x, y, brass if y == 59 else _rgb("8a6a2a"))
+    for x in range(5, w - 4, 4):
+        put(x, 23, _rgb("fff0b0"))
+    # porthole: brass collar with 8 bolts, green-blue glass with a glint
+    cx, cy, r = w / 2 - 0.5, 12.0, 7.5
+    for y in range(3, 22):
+        for x in range(3, w - 3):
+            d = math.hypot(x - cx, y - cy)
+            if d <= r - 2:
+                t = d / (r - 2)
+                c = _mix(_rgb("2a5a60"), _rgb("0e2228"), t)
+                if 1.5 < (x - cx + 3) ** 2 + (y - cy + 3) ** 2 < 6:
+                    c = _rgb("b8e8e8")
+                put(x, y, c)
+            elif d <= r:
+                c = gold if (y - cy) < 0 and d < r - 0.8 else brass if d < r - 0.8 else _rgb("6a4a18")
+                put(x, y, c)
+    for k in range(8):
+        a = 2 * math.pi * k / 8
+        put(int(round(cx + math.cos(a) * (r - 1))), int(round(cy + math.sin(a) * (r - 1))), _rgb("fff0b0"))
 
 
 def _paint_smooth_rooms(px, rng):
