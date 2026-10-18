@@ -307,9 +307,9 @@ def corridor_and_coursive():
         block(FD + "chained_kerosene_lantern", 0.0, ni.M1 - 1.0, z, "stern", solid=False)
     custom("painting", name="corridor_portrait", center=(0, 2.6, 26.5), normal=(0, 0, -1), w=1.2, h=1.6, region="portrait")
     for z in (7.0, 11.0, 15.0, 19.0, 23.0):
-        block(FD + "chained_kerosene_lantern", 3.0, ni.L1 - 1.0, z, "stern", solid=False)
-    custom("pipe_run", name="coursive_pipe_a", a=(3.75, ni.L1 - 0.3, 5.0), b=(3.75, ni.L1 - 0.3, 24.2), r=0.12)
-    custom("pipe_run", name="coursive_pipe_b", a=(3.75, ni.L1 - 0.65, 5.0), b=(3.75, ni.L1 - 0.65, 24.2), r=0.08, region="brass")
+        block(FD + "chained_kerosene_lantern", 3.4, ni.L1 - 1.0, z, "stern", solid=False)
+    custom("pipe_run", name="coursive_pipe_a", a=(4.5, ni.L1 - 0.3, 5.0), b=(4.5, ni.L1 - 0.3, 24.2), r=0.12)
+    custom("pipe_run", name="coursive_pipe_b", a=(4.5, ni.L1 - 0.65, 5.0), b=(4.5, ni.L1 - 0.65, 24.2), r=0.08, region="brass")
     for z in (-5.0, -1.0, 3.0):
         block(FD + "chained_kerosene_lantern", 0.0, ni.L1 - 1.0, z, "stern", solid=False)
 
@@ -347,7 +347,7 @@ def kitchen_and_crew():
 
 def stores():
     l = ni.L0
-    for x0, s_ in ((3.6, 1), (-3.6, -1)):
+    for x0, s_ in ((3.9, 1), (-3.9, -1)):
         for k, z in enumerate((-5.3, -4.3, -3.3, 2.3, 3.3)):
             block("landsoficaria:" + ("cypress_barrel" if k % 2 else "fir_barrel"), x0, l, z, "stern")
         for z in (-1.8, -0.8):
@@ -415,8 +415,8 @@ def sconces():
     l, m = ni.L0, ni.M0
     spots = [
         # (x, y, z, normal)
-        *[(4.0, l + 2.1, z, (-1, 0, 0)) for z in (6.5, 12.5, 16.0, 21.5)],          # coursive
-        *[(-1.0, l + 2.1, z, (1, 0, 0)) for z in (-4.5, 2.5)],                     # aft corridor
+        *[(4.8, l + 2.1, z, (-1, 0, 0)) for z in (6.5, 12.5, 16.0, 21.5)],          # coursive
+        *[(-1.5, l + 2.1, z, (1, 0, 0)) for z in (-4.5, 2.5)],                     # aft corridor
         *[(1.5, l + 2.1, z, (-1, 0, 0)) for z in (7.5, 12.5)],                     # kitchen
         *[(1.5, l + 2.1, z, (-1, 0, 0)) for z in (16.0, 21.0)],                    # crew
         *[(-5.0, l + 2.3, z, (1, 0, 0)) for z in (-21.5, -25.0, -28.5)],           # engine, lower level

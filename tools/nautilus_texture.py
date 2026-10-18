@@ -197,6 +197,7 @@ def make_texture(path):
     _paint_rooms(img, px, rng)
     _paint_furniture(img, px, rng)
     _paint_effects(px, rng)
+    _paint_smooth_rooms(px, rng)
     img.save(path)
 
 
@@ -345,6 +346,212 @@ def _paint_warm_rooms(px, rng):
             if x % 16 in (0, 1, 2):
                 c = _rgb("24160a") if x % 16 else _rgb("5a3a1e")
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+
+
+# ---------------------------------------------------------------- smooth interior materials
+def _noise(w, h, cells, rng):
+    """Tileable value noise (bilinear), values 0..1."""
+    grid = [[rng.random() for _ in range(cells)] for _ in range(cells)]
+    out = [[0.0] * w for _ in range(h)]
+    for y in range(h):
+        for x in range(w):
+            fx, fy = x * cells / w, y * cells / h
+            x0, y0 = int(fx), int(fy)
+            tx, ty = fx - x0, fy - y0
+            tx, ty = tx * tx * (3 - 2 * tx), ty * ty * (3 - 2 * ty)
+            a = grid[y0 % cells][x0 % cells]
+            b = grid[y0 % cells][(x0 + 1) % cells]
+            c = grid[(y0 + 1) % cells][x0 % cells]
+            d = grid[(y0 + 1) % cells][(x0 + 1) % cells]
+            out[y][x] = (a * (1 - tx) + b * tx) * (1 - ty) + (c * (1 - tx) + d * tx) * ty
+    return out
+
+
+def _mix(a, b, t):
+    return tuple(int(round(p + (q - p) * t)) for p, q in zip(a, b))
+
+
+def _put(px, u, v, x, y, c):
+    px[u + x, v + y] = tuple(max(0, min(255, int(q))) for q in c) + (255,)
+
+
+def _smooth_metal(px, region, top, bottom, rng, rail=None, rail_y=None, seam_every=32, wainscot=None):
+    """Painted metal: a soft vertical gradient (lighter at the top), faint mottling, a soft seam
+    every `seam_every` px with a few small rivets, an optional darker wainscot and a brass rail."""
+    u, v, w, h = region
+    n1 = _noise(w, h, 4, rng)
+    n2 = _noise(w, h, 8, rng)
+    for y in range(h):
+        for x in range(w):
+            t = y / (h - 1)
+            c = _mix(top, bottom, t)
+            if wainscot and y >= wainscot[0]:
+                c = _mix(c, wainscot[1], 0.55)
+            k = 0.93 + 0.1 * n1[y][x] + 0.04 * n2[y][x]
+            c = tuple(q * k for q in c)
+            if seam_every and x % seam_every == 0:
+                c = tuple(q * 0.78 for q in c)
+            elif seam_every and x % seam_every == 1:
+                c = tuple(q * 1.08 for q in c)
+            if seam_every and x % seam_every == 3 and y % 8 == 4:
+                c = tuple(q * 1.25 for q in c)  # small rivet head along the seam
+            if wainscot and y == wainscot[0]:
+                c = tuple(q * 0.75 for q in c)
+            _put(px, u, v, x, y, c)
+    if rail:
+        for y in range(rail_y, rail_y + 2):
+            for x in range(w):
+                c = _mix(rail, (255, 240, 190), 0.35) if y == rail_y else rail
+                _put(px, u, v, x, y, tuple(q * (0.95 + 0.08 * n2[y][x]) for q in c))
+
+
+def _wood_grain(px, region, base, dark, rng, horizontal=True, plank=None):
+    u, v, w, h = region
+    n = _noise(w, h, 4, rng)
+    for y in range(h):
+        for x in range(w):
+            a, b = (x, y) if horizontal else (y, x)
+            g = 0.5 + 0.5 * math.sin(b * 2 * math.pi * 7 / 32 + 3.0 * n[y][x] + math.sin(a * 2 * math.pi / 32) * 1.5)
+            c = _mix(base, dark, 0.25 + 0.35 * g)
+            if plank and b % plank == 0:
+                c = _mix(c, dark, 0.6)
+            _put(px, u, v, x, y, c)
+
+
+def _paint_smooth_rooms(px, rng):
+    R = REGIONS
+    brass = _rgb("b8913c")
+    # corridors and working rooms: warm painted steel, darker wainscot, brass rail
+    _smooth_metal(px, R["wall_steel"], _rgb("8a7258"), _rgb("6a5642"), rng, rail=brass, rail_y=19,
+                  wainscot=(21, _rgb("4a3a2c")))
+    _smooth_metal(px, R["wall"], _rgb("847060"), _rgb("605044"), rng, rail=brass, rail_y=19, wainscot=(21, _rgb("44382e")))
+    # machinery: bronze, the copper pipes kept smooth and round
+    _smooth_metal(px, R["wall_engine"], _rgb("8a6a4a"), _rgb("5e4630"), rng, seam_every=16)
+    u, v, w, h = R["wall_engine"]
+    for x0 in (5, 21):
+        for y in range(h):
+            for dx in range(4):
+                shade = 0.65 + 0.55 * math.sin(math.pi * (dx + 0.5) / 4)
+                c = tuple(q * shade for q in _rgb("b06a3a"))
+                if y % 16 == 7:
+                    c = _rgb("d8b25a")
+                _put(px, u, v, x0 + dx, y, c)
+    # ceilings: smooth plates between soft ribs
+    for name, top in (("ceil_steel", "4a3c2e"), ("ceiling", "463a30")):
+        u, v, w, h = R[name]
+        n = _noise(w, h, 4, rng)
+        for y in range(h):
+            for x in range(w):
+                c = tuple(q * (0.9 + 0.12 * n[y][x]) for q in _rgb(top))
+                if y % 16 in (0, 1):
+                    c = tuple(q * (0.7 if y % 16 == 0 else 1.2) for q in _rgb("6a5038"))
+                if y % 16 == 8 and x % 8 == 4:
+                    c = tuple(q * 1.3 for q in c)
+                _put(px, u, v, x, y, c)
+    # wood panelling: raised panels with bevels, a brass rail, copper-brown frieze above
+    u, v, w, h = R["wall_wood"]
+    _wood_grain(px, R["wall_wood"], _rgb("6a4228"), _rgb("2e1a0c"), rng, horizontal=False)
+    n = _noise(w, h, 4, rng)
+    for y in range(h):
+        for x in range(w):
+            if y < 8:
+                c = tuple(q * (0.92 + 0.1 * n[y][x]) for q in _rgb("7a4e30"))
+                _put(px, u, v, x, y, c)
+            elif y in (8, 9):
+                _put(px, u, v, x, y, _mix(brass, (255, 236, 180), 0.3) if y == 8 else brass)
+            else:
+                fx, fy = x % 16, y - 10
+                if fx in (0, 15) or fy in (0, 21):
+                    _put(px, u, v, x, y, tuple(q * 0.62 for q in px[u + x, v + y][:3]))
+                elif fx == 1 or fy == 1:
+                    _put(px, u, v, x, y, tuple(q * 1.18 for q in px[u + x, v + y][:3]))
+                elif fx == 14 or fy == 20:
+                    _put(px, u, v, x, y, tuple(q * 0.8 for q in px[u + x, v + y][:3]))
+    # luxury rooms: red damask frieze, gilded rail, dark carved panels
+    u, v, w, h = R["wall_lux"]
+    _wood_grain(px, R["wall_lux"], _rgb("4e2c18"), _rgb("22120a"), rng, horizontal=False)
+    n = _noise(w, h, 4, rng)
+    for y in range(h):
+        for x in range(w):
+            if y < 10:
+                dam = 0.5 + 0.5 * math.sin(x * 0.785) * math.sin(y * 0.63 + 0.4)
+                c = _mix(_rgb("6e1c20"), _rgb("8e2a2a"), 0.3 + 0.4 * dam)
+                c = tuple(q * (0.93 + 0.1 * n[y][x]) for q in c)
+                _put(px, u, v, x, y, c)
+            elif y < 12:
+                _put(px, u, v, x, y, _mix(_rgb("e0bc68"), _rgb("8a6a2a"), y - 10))
+            else:
+                fx, fy = x % 16, y - 12
+                if fx in (0, 15) or fy in (0, 19):
+                    _put(px, u, v, x, y, tuple(q * 0.6 for q in px[u + x, v + y][:3]))
+                elif fx == 1 or fy == 1:
+                    _put(px, u, v, x, y, tuple(q * 1.22 for q in px[u + x, v + y][:3]))
+                elif fx in (3, 12) and 3 <= fy <= 16 or fy in (3, 16) and 3 <= fx <= 12:
+                    _put(px, u, v, x, y, _mix(px[u + x, v + y][:3], _rgb("c9a24a"), 0.5))
+    # coffered ceiling: soft wells, gilded rosettes
+    u, v, w, h = R["ceil_lux"]
+    _wood_grain(px, R["ceil_lux"], _rgb("4a2c18"), _rgb("24140a"), rng)
+    for y in range(h):
+        for x in range(w):
+            fx, fy = x % 16, y % 16
+            c = px[u + x, v + y][:3]
+            if fx < 2 or fy < 2:
+                c = tuple(q * (0.7 if fx == 0 or fy == 0 else 1.15) for q in c)
+            elif math.hypot(fx - 8.5, fy - 8.5) < 2.2:
+                c = _mix(_rgb("e0bc68"), _rgb("8a6a2a"), math.hypot(fx - 8.5, fy - 8.5) / 2.2)
+            _put(px, u, v, x, y, c)
+    # floors: long planks with grain, herringbone in the luxury rooms
+    _wood_grain(px, R["floor"], _rgb("6a4428"), _rgb("2e1a0c"), rng, plank=8)
+    u, v, w, h = R["floor_lux"]
+    for y in range(h):
+        for x in range(w):
+            a = ((x + y) // 4) % 2
+            light = ((x // 4 + y // 4) % 2 == 0) == bool(a)
+            c = _rgb("7a4a2a") if light else _rgb("5a3420")
+            g = 0.9 + 0.12 * math.sin((x if light else y) * 1.4)
+            c = tuple(q * g for q in c)
+            if (x + y) % 8 == 0 or (x - y) % 8 == 0:
+                c = tuple(q * 0.72 for q in c)
+            _put(px, u, v, x, y, c)
+    _wood_grain(px, R["ceil_wood"], _rgb("4a2e1a"), _rgb("22140a"), rng, plank=8)
+    u, v, w, h = R["ceil_wood"]
+    for y in range(h):
+        for x in range(w):
+            if x % 16 in (0, 1, 2):
+                _put(px, u, v, x, y, _mix(_rgb("5a3a20"), _rgb("2a1a0c"), (x % 16) / 2))
+    # tiles: terracotta and slate, glazed, soft grout
+    u, v, w, h = R["floor_tile"]
+    n = _noise(w, h, 8, rng)
+    for y in range(h):
+        for x in range(w):
+            c = _rgb("a85a34") if (x // 8 + y // 8) % 2 == 0 else _rgb("4a423c")
+            c = tuple(q * (0.88 + 0.18 * n[y][x]) for q in c)
+            if x % 8 == 0 or y % 8 == 0:
+                c = _rgb("2a241e")
+            elif x % 8 == 1 or y % 8 == 1:
+                c = tuple(q * 1.12 for q in c)
+            _put(px, u, v, x, y, c)
+    # carpet: deep red with a small woven diamond pattern, no border (it covers whole floors)
+    u, v, w, h = R["carpet"]
+    n = _noise(w, h, 4, rng)
+    for y in range(h):
+        for x in range(w):
+            d = (abs((x % 16) - 7.5) + abs((y % 16) - 7.5))
+            c = _rgb("8a1e1e")
+            if 5.5 < d < 7.0:
+                c = _rgb("6e1414")  # a darker woven lozenge
+            elif d < 1.6:
+                c = _rgb("9a6a2a")  # small dull-gold dot at its centre
+            c = tuple(q * (0.92 + 0.12 * n[y][x]) for q in c)
+            _put(px, u, v, x, y, c)
+    # grating of the machinery floors: softer
+    u, v, w, h = R["floor_grate"]
+    for y in range(h):
+        for x in range(w):
+            c = _rgb("2a221a") if (x % 4 == 0 or y % 4 == 0) else _rgb("52463a")
+            if x % 4 == 1 or y % 4 == 1:
+                c = _rgb("6a5a48")
+            _put(px, u, v, x, y, c)
 
 
 def _metal_region(px, region, cols, rng):

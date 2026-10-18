@@ -330,8 +330,9 @@ def room_at(x, y, z):
     return None
 
 
-def greedy(mask, key):
-    """Rectangles (i0, j0, i1, j1) covering a 2D mask with the same key, at most MAX_TILE cells a side."""
+def greedy(mask, key, align_i=False, align_j=False):
+    """Rectangles (i0, j0, i1, j1) covering a 2D mask with the same key, at most MAX_TILE cells a side;
+    an aligned axis never crosses a multiple of MAX_TILE (the texture repeats there)."""
     m = mask.copy()
     out = []
     ni_, nj_ = m.shape
@@ -343,10 +344,12 @@ def greedy(mask, key):
                 continue
             kk = key[i, j]
             j1 = j
-            while j1 + 1 < nj_ and m[i, j1 + 1] and key[i, j1 + 1] == kk and j1 + 1 - j < MAX_TILE:
+            while j1 + 1 < nj_ and m[i, j1 + 1] and key[i, j1 + 1] == kk and j1 + 1 - j < MAX_TILE and not (
+                    align_j and (j1 + 1) % MAX_TILE == 0):
                 j1 += 1
             i1 = i
-            while i1 + 1 < ni_ and i1 + 1 - i < MAX_TILE and m[i1 + 1, j:j1 + 1].all() and (key[i1 + 1, j:j1 + 1] == kk).all():
+            while i1 + 1 < ni_ and i1 + 1 - i < MAX_TILE and not (align_i and (i1 + 1) % MAX_TILE == 0) and m[i1 + 1, j:j1 + 1].all() and (
+                    key[i1 + 1, j:j1 + 1] == kk).all():
                 i1 += 1
             m[i:i1 + 1, j:j1 + 1] = False
             out.append((i, j, i1, j1, kk))
@@ -398,7 +401,10 @@ def surfaces(rooms_bone, outside_bone, g):
                     if not m2.any():
                         continue
                     plane = origin[a] + (idx + (1 if s > 0 else 0)) * C
-                    for (i0, j0, i1, j1, kk) in greedy(m2, key[tuple(sl)]):
+                    # walls: aligned along the horizontal axis; floors and ceilings along both
+                    al_i = a == 1 or a == 2
+                    al_j = a == 1 or a == 0
+                    for (i0, j0, i1, j1, kk) in greedy(m2, key[tuple(sl)], al_i, al_j):
                         lo, hi = [0.0] * 3, [0.0] * 3
                         b0, b1 = others
                         lo[b0], hi[b0] = origin[b0] + i0 * C, origin[b0] + (i1 + 1) * C
@@ -414,7 +420,27 @@ def surfaces(rooms_bone, outside_bone, g):
                             udir, vdir = (v3(0, 0, 1) if a == 0 else v3(1, 0, 0)), v3(0, -1, 0)
                         if kind == "lit":
                             region = mats[kk][slot]
-                            add_cube(rooms_bone, "lit_%s_%d" % (region, count), center, EYE, size, {face: region}, u_dir=udir, v_dir=vdir)
+                            cube = add_cube(rooms_bone, "lit_%s_%d" % (region, count), center, EYE, size, {face: region}, u_dir=udir, v_dir=vdir)
+                            # world-aligned texture: the part of the 2-block pattern this tile covers; on a
+                            # wall the pattern spans the room's height (rail and wainscot at the same height)
+                            if a == 1:
+                                sub = ((i0 % MAX_TILE) / MAX_TILE, (j0 % MAX_TILE) / MAX_TILE,
+                                       (i1 % MAX_TILE + 1) / MAX_TILE, (j1 % MAX_TILE + 1) / MAX_TILE)
+                            else:
+                                hz0, hz1 = (j0, j1) if a == 0 else (i0, i1)
+                                y_lo, y_hi = lo[1], hi[1]
+                                room = room_at(center[0] + s * 0.3 if a == 0 else center[0], center[1],
+                                               center[2] + s * 0.3 if a == 2 else center[2])
+                                ry0, ry1 = (ni.ROOMS[room][2], ni.ROOMS[room][3]) if room else (y_lo, y_hi)
+                                if room == "salon":
+                                    ry1 = ni.SALON_TOP
+                                hgt = max(0.5, ry1 - ry0)
+                                v0 = min(1.0, max(0.0, (ry1 - y_hi) / hgt))
+                                v1 = min(1.0, max(v0 + 0.01, (ry1 - y_lo) / hgt))
+                                sub = ((hz0 % MAX_TILE) / MAX_TILE, v0, (hz1 % MAX_TILE + 1) / MAX_TILE, v1)
+                            for f in cube.faces.values():
+                                if f is not None:
+                                    f["sub"] = sub
                         else:
                             region = "deck" if (a == 1 and s > 0) else "hull_light"
                             add_cube(outside_bone, "casing_%d" % count, center, EYE, size, {face: region}, u_dir=udir, v_dir=vdir)
