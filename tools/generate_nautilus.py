@@ -61,7 +61,7 @@ rx, ry, rz = gg.rx, gg.ry, gg.rz
 EYE = np.eye(3)
 SIDES = (1, -1)
 
-NAZ = 32
+NAZ = 40
 HULL_S = [-1.0, -0.985, -0.95, -0.9, -0.83, -0.74, -0.63, -0.5, -0.36, -0.22, -0.08, 0.0, 0.08, 0.2, 0.33, 0.46,
           0.58, 0.69, 0.78, 0.86, 0.92, 0.96, 0.985, 1.0]
 FINE = 0.3  # size of the panels cut around the windows
@@ -183,10 +183,10 @@ def windows(bone, lights):
     wy0, wy1 = ns.TOWER_WINDOWS_Y
     yc, r = (wy0 + wy1) / 2, (wy1 - wy0) / 2 + 0.05
     for k, (x0, x1) in enumerate(ns.TOWER_FRONT_WINDOWS_X):
-        for z, tag in ((ns.TOWER_Z[1] + 0.06, "out"), (ns.TOWER_Z[1] - 0.56, "in")):
+        for z, tag in ((ns.TOWER_Z[1] + 0.16, "out"), (ns.TOWER_Z[1] - 0.56, "in")):
             ring(bone, "tower_window_%d_%s" % (k, tag), v3((x0 + x1) / 2, yc, z), v3(0, 0, 1), r, 0.12, "brass", n=8, width=0.14)
     for side in SIDES:
-        for x, tag in ((side * (ns.TOWER_HALF_WIDTH + 0.06), "out"), (side * (ns.TOWER_HALF_WIDTH - 0.56), "in")):
+        for x, tag in ((side * (ns.TOWER_HALF_WIDTH + 0.16), "out"), (side * (ns.TOWER_HALF_WIDTH - 0.56), "in")):
             ring(bone, "tower_window_side_%d_%s" % (side > 0, tag), v3(x, yc, sum(ns.TOWER_SIDE_WINDOW_Z) / 2), v3(1, 0, 0), r, 0.12,
                  "brass", n=8, width=0.14)
 
@@ -244,11 +244,175 @@ def crests(bone):
 
 
 def keels(bone):
+    """Bilge keels as faired fins: a rounded trapezoid section that grows out of the hull, deepest in
+    the middle and fading into the hull at both ends."""
     for k, (z0, z1) in enumerate(ns.KEELS):
-        bottom = min(ns.hull_bottom(z0), ns.hull_bottom(z1)) - ns.KEEL_DEPTH
-        top = max(ns.hull_bottom(z0), ns.hull_bottom(z1)) + 0.4
-        add_cube(bone, "keel_%d" % k, v3(0, (top + bottom) / 2, (z0 + z1) / 2), EYE, (0.5, top - bottom, z1 - z0), "plate_dark")
-        add_cube(bone, "keel_shoe_%d" % k, v3(0, bottom + 0.08, (z0 + z1) / 2), EYE, (0.62, 0.16, z1 - z0 + 0.1), "steel")
+        zs = np.linspace(z0 - 1.5, z1 + 1.5, 22)
+        sections = []
+        for z in zs:
+            t = (z - (z0 - 1.5)) / (z1 - z0 + 3.0)
+            d = ns.KEEL_DEPTH * math.sin(math.pi * t) ** 0.6
+            hb = ns.hull_bottom(z)
+            pts = []
+            for x, kind in ((-0.75, "root"), (-0.3, "foot"), (-0.12, "sole"), (0.12, "sole"), (0.3, "foot"), (0.75, "root")):
+                if kind == "root":
+                    yy = ns.hull_bottom(z, x) + 0.25
+                elif kind == "foot":
+                    yy = hb - d * 0.85
+                else:
+                    yy = hb - d
+                pts.append(v3(x, yy, z))
+            sections.append(pts)
+        for i in range(len(sections) - 1):
+            for j in range(len(sections[i]) - 1):
+                a0, a1 = sections[i][j], sections[i][j + 1]
+                b0, b1 = sections[i + 1][j], sections[i + 1][j + 1]
+                mid = (a0 + a1 + b0 + b1) / 4
+                out = mid - v3(0, ns.AXIS_Y + 2.0, mid[2])
+                panel(bone, "keel_%d_%d_%d" % (k, i, j), a0, a1, b0, b1, 0.08, "steel" if j == 2 else "plate_dark", out, overlap=1.02)
+
+
+def loft(bone, name, sections, region, centre, th=0.08, closed=False, skip=None):
+    """Panels between consecutive sections (lists of points of the same length), facing away from
+    centre(point). skip(i, j, mid) -> True leaves a hole (windows)."""
+    n = 0
+    for i in range(len(sections) - 1):
+        A, B = sections[i], sections[i + 1]
+        m = len(A) if closed else len(A) - 1
+        for j in range(m):
+            a0, a1 = A[j], A[(j + 1) % len(A)]
+            b0, b1 = B[j], B[(j + 1) % len(B)]
+            if np.linalg.norm(a1 - a0) < 1e-4 and np.linalg.norm(b1 - b0) < 1e-4:
+                continue
+            if np.linalg.norm(b0 - a0) < 1e-4 and np.linalg.norm(b1 - a1) < 1e-4:
+                continue
+            mid = (a0 + a1 + b0 + b1) / 4
+            if skip is not None and skip(i, j, mid):
+                continue
+            panel(bone, "%s_%d_%d" % (name, i, j), a0, a1, b0, b1, th, region, mid - centre(mid), overlap=1.03)
+            n += 1
+    return n
+
+
+def smoothstep(t):
+    t = max(0.0, min(1.0, t))
+    return t * t * (3 - 2 * t)
+
+
+def casing_fairing(bone):
+    """The casing on the back of the hull, faired: a flat deck (the walkway) on rounded shoulders
+    that melt into the hull, and long sloping ends (the grid's box under it keeps the collisions)."""
+    z0, z1 = ns.CASING_Z
+    top = ns.CASING_TOP_Y + 0.01
+    ramp = 4.0
+    zs = np.concatenate([np.arange(z0 - ramp, z0, 0.5), np.arange(z0, z1, 1.0), np.arange(z1, z1 + ramp + 0.01, 0.5)])
+    left, right, deck = [], [], []
+    for z in zs:
+        f = smoothstep(1 - (z0 - z) / ramp) if z < z0 else smoothstep(1 - (z - z1) / ramp) if z > z1 else 1.0
+        ht = ns.hull_top(z)
+        dy = ht + (top - ht) * f
+        hw = 1.75 * (0.3 + 0.7 * f)
+        xb = min(3.5, ns.half_width(z) * 0.85) * (0.55 + 0.45 * f)
+        yb = ns.hull_top(z, xb) - 0.2
+        sh = [v3(hw + (xb - hw) * math.sin(t), yb + (dy - yb) * math.cos(t), z) for t in np.linspace(0, math.pi / 2, 7)]
+        right.append(sh)
+        left.append([v3(-p[0], p[1], p[2]) for p in sh])
+        deck.append((z, hw, dy))
+    centre = lambda p: v3(0, ns.AXIS_Y + 3.0, p[2])
+    loft(bone, "casing_shoulder_p", right, "hull_light", centre)
+    loft(bone, "casing_shoulder_s", left, "hull_light", centre)
+    # the deck: plates between the shoulders, with holes for the wheelhouse and the projector cage
+    # (they stand on it), the lifeboat recess and the main hatch
+    holes = [(-2.6, 2.6, ns.LAMP_CAGE_Z[0] - 0.1, ns.TOWER_Z[1] + 0.1),
+             (-1.3, 1.3, ns.LIFEBOAT_RECESS[0], ns.LIFEBOAT_RECESS[1]),
+             (ns.HATCH_DECK[0], ns.HATCH_DECK[1], ns.HATCH_DECK[2], ns.HATCH_DECK[3])]
+    for i in range(len(deck) - 1):
+        za, hwa, ya = deck[i]
+        zb, hwb, yb_ = deck[i + 1]
+        xs = list(np.linspace(-max(hwa, hwb), max(hwa, hwb), 8))
+        for j in range(len(xs) - 1):
+            xm, zm = (xs[j] + xs[j + 1]) / 2, (za + zb) / 2
+            if any(h[0] < xm < h[1] and h[2] < zm < h[3] for h in holes):
+                continue
+            ca = lambda x: max(-hwa, min(hwa, x))
+            cb = lambda x: max(-hwb, min(hwb, x))
+            panel(bone, "casing_deck_%d_%d" % (i, j), v3(ca(xs[j]), ya, za), v3(ca(xs[j + 1]), ya, za), v3(cb(xs[j]), yb_, zb),
+                  v3(cb(xs[j + 1]), yb_, zb), 0.06, "deck", v3(0, 1, 0), overlap=1.02)
+    # the lifeboat's well
+    rz0, rz1 = ns.LIFEBOAT_RECESS
+    for x in (-1.3, 1.3):
+        add_cube(bone, "boat_well_side_%d" % (x > 0), v3(x, top - 0.45, (rz0 + rz1) / 2), EYE, (0.06, 0.9, rz1 - rz0), "steel")
+    for z in (rz0, rz1):
+        add_cube(bone, "boat_well_end_%d" % (z > rz0), v3(0, top - 0.45, z), EYE, (2.6, 0.9, 0.06), "steel")
+
+
+def superellipse(a, b, n, count, zc):
+    pts = []
+    for k in range(count):
+        t = 2 * math.pi * k / count
+        c, sn = math.cos(t), math.sin(t)
+        pts.append((a * math.copysign(abs(c) ** (2 / n), c), zc + b * math.copysign(abs(sn) ** (2 / n), sn)))
+    return pts
+
+
+def tower_shell(bone):
+    """The wheelhouse as one rounded shell (corners and roof rounded), its four windows left open."""
+    a, b = ns.TOWER_HALF_WIDTH + 0.08, (ns.TOWER_Z[1] - ns.TOWER_Z[0]) / 2 + 0.08
+    zc = (ns.TOWER_Z[0] + ns.TOWER_Z[1]) / 2
+    plan = superellipse(a, b, 6, 56, zc)
+    wy0, wy1 = ns.TOWER_WINDOWS_Y
+    levels = [ns.CASING_TOP_Y, wy0, wy1, ns.TOWER_TOP_Y]
+    sections = [[v3(x, yy, z) for x, z in plan] for yy in levels]
+
+    def window(i, j, mid):
+        if i != 1:
+            return False
+        front = mid[2] > zc + b * 0.85 and any(x0 - 0.05 < mid[0] < x1 + 0.05 for x0, x1 in ns.TOWER_FRONT_WINDOWS_X)
+        side = abs(mid[0]) > a * 0.85 and ns.TOWER_SIDE_WINDOW_Z[0] - 0.05 < mid[2] < ns.TOWER_SIDE_WINDOW_Z[1] + 0.05
+        return front or side
+    centre = lambda p: v3(0, p[1], zc)
+    loft(bone, "tower_wall", sections, "hull_light", centre, closed=True, skip=window)
+    # the roof, gently domed
+    roof = []
+    for k, (sc, dyr) in enumerate(((1.0, 0.0), (0.93, 0.22), (0.75, 0.4), (0.45, 0.5), (0.04, 0.53))):
+        roof.append([v3(x * sc, ns.TOWER_TOP_Y + dyr, zc + (z - zc) * sc) for x, z in plan])
+    loft(bone, "tower_roof", roof, "hull_light", lambda p: v3(0, ns.TOWER_TOP_Y - 2.0, zc), closed=True)
+    # brass bands at the foot and under the roof
+    for yy, tag in ((ns.CASING_TOP_Y + 0.08, "foot"), (ns.TOWER_TOP_Y - 0.05, "eave")):
+        for k in range(len(plan)):
+            (x0, z0), (x1, z1) = plan[k], plan[(k + 1) % len(plan)]
+            beam(bone, "tower_band_%s_%d" % (tag, k), v3(x0 * 1.02, yy, zc + (z0 - zc) * 1.02), v3(x1 * 1.02, yy, zc + (z1 - zc) * 1.02),
+                 0.14, "brass", width=0.1)
+
+
+def cage_hood(bone):
+    """The projector's cage behind the wheelhouse: a hood rounded over the top."""
+    w = ns.LAMP_CAGE_HALF_WIDTH + 0.08
+    top = ns.LAMP_CAGE_TOP_Y + 0.08
+    r = 1.3
+    prof = [(-w, ns.CASING_TOP_Y)]
+    prof += [(-w, top - r)]
+    prof += [(-w + r - r * math.cos(t), top - r + r * math.sin(t)) for t in np.linspace(0, math.pi / 2, 5)[1:]]
+    prof += [(w - r + r * math.sin(t), top - r + r * math.cos(t)) for t in np.linspace(0, math.pi / 2, 5)[:-1]]
+    prof += [(w, top - r), (w, ns.CASING_TOP_Y)]
+    z0, z1 = ns.LAMP_CAGE_Z[0] - 0.08, ns.TOWER_Z[0] + 0.02
+    sections = [[v3(x, yy, z) for x, yy in prof] for z in np.linspace(z0, z1, 6)]
+    loft(bone, "cage_hood", sections, "hull_light", lambda p: v3(0, ns.CASING_TOP_Y + 2.0, p[2]))
+    # its aft end and the part of its front above the wheelhouse roof (round the lens)
+    for z, tag, lens in ((z0, "aft", False), (z1, "front", True)):
+        ys = np.linspace(ns.CASING_TOP_Y if not lens else ns.TOWER_TOP_Y, top, 9)
+        for k in range(len(ys) - 1):
+            ym = (ys[k] + ys[k + 1]) / 2
+            dy = ym - (top - r)
+            hw = w if dy <= 0 else w - r + math.sqrt(max(0.0, r * r - dy * dy))
+            spans = [(-hw, hw)]
+            if lens and ns.LENS_Y - 0.6 < ym < ns.LENS_Y + 0.6:
+                spans = [(-hw, -0.85), (0.85, hw)]
+            for q, (xa, xb) in enumerate(spans):
+                if xb - xa < 0.05:
+                    continue
+                add_cube(bone, "cage_%s_%d_%d" % (tag, k, q), v3((xa + xb) / 2, ym, z), EYE, (xb - xa, ys[k + 1] - ys[k] + 0.02, 0.06),
+                         "hull_light")
 
 
 def tail(bone, root):
@@ -289,9 +453,22 @@ def tail(bone, root):
         for k, f in enumerate(np.arange(0.25, span, 0.5)):
             le = ns.FIN_Z0 - max(0.0, f - 1.0) / (span - 1.0) * (ns.FIN_Z0 - ns.FIN_TIP_LE_Z)
             te = ns.FIN_NOTCH_Z - f / span * (ns.FIN_NOTCH_Z - ns.FIN_TIP_TE_Z)
+            pass
+        # the lobe as one smooth plate, thick at the root and thin at the tip, its strips following
+        # the swept edges (no steps)
+        normal = v3(1, 0, 0) if axis_dir[1] else v3(0, 1, 0)
+        fs = np.linspace(0.6, span, 12)
+
+        def edges(f):
+            le = ns.FIN_Z0 - max(0.0, f - 1.0) / (span - 1.0) * (ns.FIN_Z0 - ns.FIN_TIP_LE_Z)
+            te = ns.FIN_NOTCH_Z - f / span * (ns.FIN_NOTCH_Z - ns.FIN_TIP_TE_Z)
             c = v3(0, y, 0) + axis_dir * math.copysign(f, top)
-            size = (0.24, 0.52, le - te) if axis_dir[1] else (0.52, 0.24, le - te)
-            add_cube(bone, "%s_%d" % (name, k), c + v3(0, 0, (le + te) / 2), EYE, size, "plate_dark")
+            return c + v3(0, 0, le), c + v3(0, 0, te)
+        for k in range(len(fs) - 1):
+            a_le, a_te = edges(fs[k])
+            b_le, b_te = edges(fs[k + 1])
+            th = 0.34 - 0.22 * (fs[k] / span)
+            panel(bone, "%s_%d" % (name, k), a_le, a_te, b_le, b_te, th, "plate_dark", normal, overlap=1.02)
         tip_le = v3(0, y, ns.FIN_TIP_LE_Z) + axis_dir * top
         tip_te = v3(0, y, ns.FIN_TIP_TE_Z) + axis_dir * top
         root_le = v3(0, y, ns.FIN_Z0) + axis_dir * math.copysign(1.0, top)
@@ -392,7 +569,7 @@ def surfaces(rooms_bone, outside_bone, g):
             outer = solid & nb_out & ~body
             slot = 1 if (a == 1 and s > 0) else 2 if a == 1 else 0
             others = [b for b in range(3) if b != a]
-            for layer, kind in ((inner, "lit"), (outer, "out")):
+            for layer, kind in ((inner, "lit"),):  # outside: the faired shells (casing_fairing, tower_shell...)
                 key = nb_mat if kind == "lit" else np.zeros_like(nb_mat)
                 for idx in range(layer.shape[a]):
                     sl = [slice(None)] * 3
@@ -619,6 +796,9 @@ def build(g):
     ram(outside)
     crests(outside)
     keels(outside)
+    casing_fairing(outside)
+    tower_shell(outside)
+    cage_hood(outside)
     tail(outside, root)
     m = surfaces(rooms, outside, g)
     ladders(fittings)

@@ -115,28 +115,27 @@ def _riveted(px, region, base, seam, rivet, rng, pw=16, ph=8, wear=0.0):
 
 
 def _hull_plates(px, region, base, seam, rivet, rng, wear=0.02):
-    """Hull plating for a panel stretched over a gore (64 px along the hull, 32 px round it): two
-    large plates along, overlapping, with a row of rivets on each seam and some patina."""
+    """Hull plating for a panel stretched over a gore: one large plate per panel, its light upper
+    edge and shadowed lower edge, a soft seam, a row of small rivets along the edges, faint patina."""
     u, v, w, h = region
-    tones = [_jitter(base, rng, 10), _jitter(base, rng, 10)]
+    n1 = _noise(w, h, 4, rng)
+    n2 = _noise(w, h, 8, rng)
+    tone = _jitter(base, rng, 6)
     for y in range(h):
         for x in range(w):
-            plate = x // 32
-            fx, fy = x % 32, y
-            c = tones[plate]
-            k = 1.0 + 0.08 * (1 - fy / h) - 0.05 * (fx / 32)
-            c = _shade(c, k)
-            if fx == 0 or fy == 0:
-                c = seam
-            elif fx == 1 or fy == 1:
-                c = _shade(c, 1.15)
-            elif (fx == 3 and fy % 4 == 2) or (fy == 3 and fx % 4 == 2):
-                c = rivet
-            elif fx == 31 or fy == h - 1:
-                c = _shade(c, 0.85)
-            if wear and rng.random() < wear:
-                c = _jitter(_rgb("4f6b52"), rng, 8)
-            px[u + x, v + y] = c + (255,)
+            k = 0.94 + 0.1 * (1 - y / h) + 0.08 * n1[y][x] + 0.03 * n2[y][x]
+            c = tuple(q * k for q in tone)
+            if x == 0 or y == 0:
+                c = _mix(c, seam, 0.55)
+            elif x == 1 or y == 1:
+                c = _shade(c, 1.1)
+            elif x == w - 1 or y == h - 1:
+                c = _shade(c, 0.84)
+            elif (x == 3 and y % 6 == 3) or (y == 3 and x % 6 == 3) or (x == w - 4 and y % 6 == 3):
+                c = _mix(c, rivet, 0.6)
+            if wear and n2[y][x] > 0.85:
+                c = _mix(c, _rgb("4f6b52"), 0.25 * (n2[y][x] - 0.85) / 0.15)
+            px[u + x, v + y] = tuple(max(0, min(255, int(q))) for q in c) + (255,)
 
 
 def make_texture(path):
@@ -530,6 +529,19 @@ def _paint_smooth_rooms(px, rng):
                 c = _rgb("2a241e")
             elif x % 8 == 1 or y % 8 == 1:
                 c = tuple(q * 1.12 for q in c)
+            _put(px, u, v, x, y, c)
+    # deck of the casing: bronze tread plate, soft seams and rivets
+    u, v, w, h = R["deck"]
+    n = _noise(w, h, 4, rng)
+    for y in range(h):
+        for x in range(w):
+            c = tuple(q * (0.9 + 0.12 * n[y][x]) for q in _rgb("6e5034"))
+            if (x + 2 * y) % 8 in (0, 1) and (x // 4 + y // 4) % 2 == 0:
+                c = tuple(q * 1.22 for q in c)  # raised tread
+            if x % 32 == 0 or y % 32 == 0:
+                c = tuple(q * 0.7 for q in c)
+            elif (x % 32 == 2 or y % 32 == 2) and (x + y) % 6 == 0:
+                c = tuple(q * 1.3 for q in c)
             _put(px, u, v, x, y, c)
     # carpet: deep red with a small woven diamond pattern, no border (it covers whole floors)
     u, v, w, h = R["carpet"]

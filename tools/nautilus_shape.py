@@ -57,6 +57,8 @@ TOWER_FRONT_WINDOWS_X = ((-1.75, -0.25), (0.25, 1.75))
 TOWER_SIDE_WINDOW_Z = (18.0, 19.5)
 # ventral keels under the hull: (z0, z1)
 KEELS = ((10.0, 21.0), (-22.0, -6.0))
+LIFEBOAT_RECESS = (-22.3, -15.7)        # its well in the casing deck (z)
+HATCH_DECK = (0.95, 2.05, -9.05, -7.95)  # the main hatch's opening in the deck (x0, x1, z0, z1)
 KEEL_DEPTH = 1.5
 
 # ---- levels (floor heights)
