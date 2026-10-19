@@ -110,9 +110,9 @@ def on_side(x, side):
     return abs(x) > 2.0 and (side == 0 or x * side > 0)
 
 
-def in_window(p):
+def in_window(p, pad=0.0):
     for z, y, r, side in WINDOWS:
-        if (p[2] - z) ** 2 + (p[1] - y) ** 2 < r * r and on_side(p[0], side):
+        if (p[2] - z) ** 2 + (p[1] - y) ** 2 < (r + pad) ** 2 and on_side(p[0], side):
             return True
     z0, z1, y0, y1 = AIRLOCK_MOUTH
     return p[0] < -2.0 and z0 < p[2] < z1 and y0 < p[1] < y1
@@ -427,16 +427,16 @@ def porthole_sleeves(bone, fx, g):
                 am = (a0 + a1) / 2
                 panel(bone, "lit_%s_sleeve%d" % (name, j), P(wall - side * 0.02, 0.74, a0), P(wall - side * 0.02, 0.74, a1), P(glass, 0.45, a0),
                       P(glass, 0.45, a1), 0.05,
-                      "copper", v3(0, -math.sin(am), -math.cos(am)), overlap=1.04)
+                      "hull_light", v3(0, -math.sin(am), -math.cos(am)), overlap=1.04)
                 beam(bone, "lit_%s_collar%d" % (name, j), P(wall - side * 0.06, 0.68, a0), P(wall - side * 0.06, 0.68, a1), 0.08, "brass",
                      width=0.2, up=v3(side, 0, 0), extend=0.01)
                 if j % 4 == 0:
-                    add_cube(bone, "lit_%s_bolt%d" % (name, j), P(wall - side * 0.12, 0.68, am), EYE, (0.06, 0.06, 0.06), "steel")
+                    add_cube(bone, "lit_%s_bolt%d" % (name, j), P(wall - side * 0.1, 0.68, am), EYE, (0.04, 0.045, 0.045), "brass")
             # four dogs clamping the glass frame, a hinge on one side
             for k in range(4):
                 am = math.pi / 4 + k * math.pi / 2
-                add_cube(bone, "lit_%s_dog%d" % (name, k), P(wall - side * 0.1, 0.56, am), EYE, (0.1, 0.09, 0.09), "steel")
-            add_cube(bone, "lit_%s_hinge" % name, P(wall - side * 0.1, 0.62, math.pi), EYE, (0.1, 0.22, 0.1), "brass")
+                add_cube(bone, "lit_%s_dog%d" % (name, k), P(wall - side * 0.09, 0.56, am), EYE, (0.05, 0.06, 0.06), "brass")
+            add_cube(bone, "lit_%s_hinge" % name, P(wall - side * 0.09, 0.62, math.pi), EYE, (0.05, 0.16, 0.06), "brass")
             # the corners of the square opening, hidden by a round bezel on the wall round the collar
             round_bezel(bone, "lit_%s_bezel" % name, v3(wall - side * 0.02, y, z), v3(-side, 0, 0), 0.6, 0.56, "brass", n=16)
             add_cube(fx, "lit_%s_glass" % name, v3(glass + side * 0.1, y, z), EYE, (0.02, 0.9, 0.9), "glassfx")
@@ -602,6 +602,50 @@ def cage_hood(bone):
                          "hull_light")
 
 
+SEAM_AZ_STEP = 4      # a longitudinal seam every 4 panels round the hull
+SEAM_Z = 3.0          # a ring of butt straps every 3 blocks along it
+
+
+def hull_seams(bone):
+    """The plating of the hull as in the reference sheet: large plates (about 3 blocks long) outlined by
+    riveted straps standing a little proud of the skin, without the panel-by-panel grid; and the belt,
+    a heavy riveted strake along each side under the great windows."""
+    z0, z1 = hull_z(-0.95), hull_z(0.93)
+    zs = np.linspace(z0, z1, 90)
+    n = 0
+    for j in range(0, NAZ, SEAM_AZ_STEP):
+        az = 360.0 * j / NAZ
+        if abs(((az + 180) % 360) - 180) < 30:
+            continue  # under the casing
+        for i in range(len(zs) - 1):
+            a, b = P(zs[i], az, 0.05), P(zs[i + 1], az, 0.05)
+            if in_window(a, 0.45) or in_window(b, 0.45):
+                continue
+            beam(bone, "seam_l_%d_%d" % (j, i), a, b, 0.05, "seam", width=0.14, up=norm(a - v3(0, ns.AXIS_Y, a[2])), extend=0.02)
+            n += 1
+    for zc in np.arange(math.ceil(z0 / SEAM_Z) * SEAM_Z, z1, SEAM_Z):
+        for j in range(0, NAZ, 2):
+            a0, a1 = 360.0 * j / NAZ, 360.0 * (j + 2) / NAZ
+            if abs(((a0 + 180) % 360) - 180) < 30 or abs(((a1 + 180) % 360) - 180) < 30:
+                continue
+            a, b = P(zc, a0, 0.05), P(zc, a1, 0.05)
+            if in_window(a, 0.45) or in_window(b, 0.45) or in_window((a + b) / 2, 0.45):
+                continue
+            beam(bone, "seam_r_%d_%d" % (int(zc * 10), j), a, b, 0.05, "seam", width=0.14, up=norm((a + b) / 2 - v3(0, ns.AXIS_Y, zc)),
+                 extend=0.02)
+            n += 1
+    # the belt
+    for side in SIDES:
+        az = 97.0 if side > 0 else 263.0
+        for i in range(len(zs) - 1):
+            a, b = P(zs[i], az, 0.1), P(zs[i + 1], az, 0.1)
+            if in_window(a, 0.45) or in_window(b, 0.45):
+                continue
+            beam(bone, "belt_%d_%d" % (side > 0, i), a, b, 0.14, "seam", width=0.3, up=norm(a - v3(0, ns.AXIS_Y, a[2])), extend=0.03)
+            n += 1
+    return n
+
+
 def tail(bone, root):
     y = ns.AXIS_Y
     # cone with rings from the end of the hull to the propeller
@@ -753,6 +797,14 @@ def surfaces(rooms_bone, outside_bone, g):
             mat_index[g.sel(*[b + d for b, d in zip(box, (-0.01, 0.01, -0.01, 0.01, -0.01, 0.01))])] = mats.index(ROOM_MATERIALS[name])
     wz, wy, wr = ns.SALON_WINDOW
     alcove = (np.abs(g.X) > 3.4) & ((g.Z - wz) ** 2 + (g.Y - wy) ** 2 < (wr + 0.15) ** 2)
+    # the tunnels of the portholes through the hull: lined by porthole_sleeves, their square sides not drawn
+    tunnel = np.zeros_like(alcove)
+    dry = k == ni.DRY
+    for z, y in [(z, ns.SMALL_WINDOWS_Y) for z in ns.SMALL_WINDOWS_Z]:
+        near = (np.abs(g.Z - z) < 0.6) & (np.abs(g.Y - y) < 0.6) & dry
+        tunnel |= near & ((g.X > 4.85) | (g.X < -4.55))
+    for z, y in ns.CABIN_PORTHOLES:
+        tunnel |= (np.abs(g.Z - z) < 0.6) & (np.abs(g.Y - y) < 0.6) & dry & (np.abs(g.X) > 5.05)
     count = 0
     for a in range(3):
         for s in (1, -1):
@@ -768,7 +820,11 @@ def surfaces(rooms_bone, outside_bone, g):
             nb_out[tuple(dst)] = out[tuple(src)]
             nb_mat = np.zeros_like(mat_index)
             nb_mat[tuple(dst)] = mat_index[tuple(src)]
+            nb_tunnel = np.zeros_like(tunnel)
+            nb_tunnel[tuple(dst)] = tunnel[tuple(src)]
             inner = solid & nb_open & ~alcove  # the bay windows' alcoves: lined by bay_sleeves instead
+            if a != 0:
+                inner &= ~nb_tunnel
             outer = solid & nb_out & ~body
             slot = 1 if (a == 1 and s > 0) else 2 if a == 1 else 0
             others = [b for b in range(3) if b != a]
@@ -1047,6 +1103,7 @@ def build(g):
     tower_shell(outside)
     cage_hood(outside)
     tail(outside, root)
+    hull_seams(outside)
     m = surfaces(rooms, outside, g)
     ladders(fittings)
     fallbacks(root)

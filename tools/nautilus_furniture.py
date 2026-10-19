@@ -778,7 +778,7 @@ def diving_suit(bone, name, p, facing):
     for s_ in (-1, 1):
         sd = s_ > 0
         # lead-soled boots: a rounded toe cap, the brass straps, the thick sole
-        ellipsoid(bone, "%s_boot%d" % (name, sd), P(s_ * 0.15, 0.17, 0.06), (0.13, 0.13, 0.21), R, "iron", nlat=4, nlon=12, lat0=-20.0)
+        ellipsoid(bone, "%s_boot%d" % (name, sd), P(s_ * 0.15, 0.17, 0.06), (0.13, 0.13, 0.21), R, "steel", nlat=4, nlon=12, lat0=-20.0)
         box(bone, "%s_sole%d" % (name, sd), P(s_ * 0.15, 0.06, 0.06), R, (0.27, 0.08, 0.44), "copper")
         box(bone, "%s_strap%d" % (name, sd), P(s_ * 0.15, 0.24, 0.06), R, (0.28, 0.04, 0.12), "brass")
         # the canvas legs, baggy at the knee, and the arms hanging a little out from the body
@@ -814,6 +814,17 @@ def diving_suit(bone, name, p, facing):
         for b_ in (-1, 0, 1):
             box(bone, "%s_bar%d_%d" % (name, k, b_ + 1), h + n * 0.285 + rot[:, 0] * (b_ * size * 0.25), rot, (0.018, size * 0.95, 0.018), "brass")
     # air tank and hose
+    # the lead weights hung front and back (heart-shaped plates), a knife in its brass sheath at the belt
+    for zz, tag in ((0.33, "front"), (-0.3, "back")):
+        nz = 1 if zz > 0 else -1
+        for k, (dx, dy, sw, sh) in enumerate(((0, 1.5, 0.3, 0.22), (-0.07, 1.62, 0.15, 0.1), (0.07, 1.62, 0.15, 0.1), (0, 1.36, 0.14, 0.1))):
+            box(bone, "%s_lead_%s%d" % (name, tag, k), P(dx, dy, zz), R, (sw, sh, 0.05), "steel")
+        box(bone, "%s_lead_%s_ring" % (name, tag), P(0, 1.68, zz + nz * 0.02), R, (0.06, 0.06, 0.03), "brass")
+    box(bone, name + "_sheath", P(0.22, 0.94, 0.26), R @ gg.rz(0.15), (0.07, 0.24, 0.04), "brass")
+    box(bone, name + "_knife", P(0.22, 1.1, 0.26), R, (0.05, 0.1, 0.05), "organ_wood")
+    # the helmet's air outlet valve on its right side
+    tube(bone, name + "_outlet", P(-0.26, 2.15, 0.06), P(-0.36, 2.15, 0.06), 0.04, 0.04, "brass", n=6)
+    box(bone, name + "_outlet_cap", P(-0.38, 2.15, 0.06), R, (0.03, 0.1, 0.1), "brass")
     # the Rouquayrol air tank on the back: a copper cylinder with domed ends in two brass straps, its
     # regulator, the hose curving up to the helmet
     tube(bone, name + "_tank", P(0, 1.12, -0.4), P(0, 1.76, -0.4), 0.14, 0.14, "hull_light", n=12)

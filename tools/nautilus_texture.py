@@ -32,7 +32,8 @@ REGIONS = {
     "rung":        (160, 32, 16, 16),
     "hatch":       (176, 32, 32, 32),
     "door":        (208, 32, 32, 32),  # watertight door: riveted steel, thick frame, wheel painted
-    "murk":        (416, 96, 8, 8),    # plain white: the murky sea behind the glass (tinted by the renderer, see ShipRenderer)
+    "murk":        (416, 96, 8, 8),
+    "seam":        (448, 96, 16, 8),   # a riveted butt strap of the hull plating (tiled along the seams)    # plain white: the murky sea behind the glass (tinted by the renderer, see ShipRenderer)
     "door_leaf":   (192, 96, 32, 64),  # one leaf of a 2 block door (1 x 2): mahogany, bronze straps, porthole, panels
     # rooms: luxury (salon, library, dining room, Aronnax), austere and technical
     "wall_lux":    (0, 64, 32, 32),    # dark wood panelling, gilded band, red fabric above
@@ -618,9 +619,20 @@ def _paint_finish(px, rng):
     for y in range(h):
         for x in range(w):
             px[u + x, v + y] = (255, 255, 255, 255)
-    _skin(px, R["plate"], _rgb("7e4a2a"), rng, patina=0.25)
-    _skin(px, R["plate_dark"], _rgb("53331f"), rng, patina=0.35)
-    _skin(px, R["hull_light"], _rgb("8a5632"), rng, patina=0.2)
+    _skin(px, R["plate"], _rgb("9a5a30"), rng, patina=0.25)
+    _skin(px, R["plate_dark"], _rgb("6e4228"), rng, patina=0.35)
+    _skin(px, R["hull_light"], _rgb("a2663a"), rng, patina=0.2)
+    u, v, w, h = R["seam"]
+    for y in range(h):
+        for x in range(w):
+            c = _rgb("7a4626")
+            if y == 0:
+                c = _rgb("b87a48")
+            elif y == h - 1:
+                c = _rgb("3e2010")
+            if y in (3, 4) and x % 4 in (1, 2):
+                c = _rgb("d49a62") if y == 3 else _rgb("5a3018")  # rivet heads, lit from above
+            _put(px, u, v, x, y, c)
     _polished(px, R["gold"], _rgb("fff2b0"), _rgb("e0b450"), _rgb("9a6e20"), rng)
     _polished(px, R["steel"], _rgb("6a6662"), _rgb("44403c"), _rgb("24211f"), rng, brushed=0.1)
     _polished(px, R["brass"], _rgb("f8e0a0"), _rgb("c99a44"), _rgb("7a5420"), rng)
