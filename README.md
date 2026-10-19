@@ -76,6 +76,7 @@ Pour tous :
 La version 1.7.8 :
 * la cage du projecteur, grosse et carrée derrière la timonerie, devient une petite lanterne ronde posée sur le toit de la timonerie (tambour de cuivre cerclé de laiton, coupole et évent, lentille vers l'avant), comme sur la planche ;
 * flancs plus détaillés : barres de plongée à l'avant, rangée de petites fenêtres rectangulaires dans le haut de la coque, N doré dans un anneau près de la proue, feux de position rouge (bâbord) et vert (tribord) sur la timonerie.
+* encore plus proche de la planche : bordé riveté plus serré, grande baie dans un cadre octogonal de bronze riveté à nervures en croix, rangée de fenêtres rectangulaires en bas de coque, arche à pointes plus lisse terminée par une lampe allumée dans sa cage, épi de petites pointes sur le dos de la proue.
 
 La version 1.7.7 :
 * hublots vus de l'intérieur : seul le manchon rond est visible (les parois carrées du trou ne sont plus dessinées), boulons et crabots plus fins ;

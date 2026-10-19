@@ -275,15 +275,26 @@ def crests(bone):
     p0 = v3(0, ns.hull_top(z0) - 0.2, z0)
     p2 = v3(0, ns.TOWER_TOP_Y - 0.2, z1)
     p1 = v3(0, ns.TOWER_TOP_Y + 0.2, (z0 + z1) / 2 + 2.5)
-    pts = [(1 - t) ** 2 * p0 + 2 * (1 - t) * t * p1 + t * t * p2 for t in np.linspace(0, 1, 11)]
+    pts = [(1 - t) ** 2 * p0 + 2 * (1 - t) * t * p1 + t * t * p2 for t in np.linspace(0, 1, 19)]
     for k in range(len(pts) - 1):
-        beam(bone, "crest_fore_%d" % k, pts[k], pts[k + 1], 0.55, "steel", width=0.3, up=v3(1, 0, 0), extend=0.05)
-        if k % 1 == 0:
+        beam(bone, "crest_fore_%d" % k, pts[k], pts[k + 1], 0.55, "plate_dark", width=0.3, up=v3(1, 0, 0), extend=0.05)
+        beam(bone, "crest_fore_edge_%d" % k, pts[k] - v3(0, 0.3, 0), pts[k + 1] - v3(0, 0.3, 0), 0.08, "brass", width=0.36, up=v3(1, 0, 0),
+             extend=0.03)
+        if k % 2 == 0:
             d = norm(pts[k + 1] - pts[k])
             up = norm(np.cross(d, v3(1, 0, 0)))
             if up[1] < 0:
                 up = -up
             spike(bone, "crest_fore_spike_%d" % k, (pts[k] + pts[k + 1]) / 2 + up * 0.2, norm(up + d * 0.35), 0.9, 0.35)
+    # the lamp hung under the top end of the arch, in front of the wheelhouse (reference sheet)
+    lamp = p2 + v3(0, -0.75, 0.55)
+    nf.ellipsoid(bone, "glow_arch_lamp", lamp, (0.38, 0.38, 0.38), EYE, "glow", nlat=4, nlon=12)
+    ring(bone, "arch_lamp_cage_h", lamp, v3(0, 1, 0), 0.42, 0.06, "brass", n=14, width=0.06)
+    ring(bone, "arch_lamp_cage_v", lamp, v3(1, 0, 0), 0.42, 0.06, "brass", n=14, width=0.06)
+    beam(bone, "arch_lamp_hanger", lamp + v3(0, 0.4, 0), p2 + v3(0, -0.2, 0.3), 0.08, "brass")
+    # a ridge of small spikes along the back of the bow, from the ram to the foot of the arch
+    for k, z in enumerate(np.arange(z0 + 1.2, ns.BOW_Z - 0.5, 1.1)):
+        spike(bone, "bow_ridge_spike_%d" % k, v3(0, ns.hull_top(z) - 0.05, z), v3(0, 1, 0.45), 0.55 - 0.03 * k, 0.24)
     # aft crest: spikes along the casing
     za, zb = ns.AFT_CREST
     for k, z in enumerate(np.linspace(za, zb, 11)):
@@ -599,8 +610,8 @@ def cage_hood(bone):
     loft(bone, "lantern_skirt", skirt, "hull_light", lambda p: v3(0, p[1], zc), closed=True)
 
 
-SEAM_AZ_STEP = 4      # a longitudinal seam every 4 panels round the hull
-SEAM_Z = 3.0          # a ring of butt straps every 3 blocks along it
+SEAM_AZ_STEP = 3      # a longitudinal seam every 3 panels round the hull
+SEAM_Z = 2.0          # a ring of butt straps every 2 blocks along it
 
 
 def hull_seams(bone):
@@ -678,6 +689,40 @@ def hull_details(bone, lights):
             pa = c + n_ * 0.04 + e_al * a_[0] + e_up * a_[1]
             pb = c + n_ * 0.04 + e_al * b_[0] + e_up * b_[1]
             beam(bone, "emblem_n_%s_%d" % (sn, k), pa, pb, 0.05, "gold", width=0.09, up=n_, extend=0.03)
+        # the great window of the salon in an octagonal bronze plate, riveted, with a cross of ribs
+        wz, wy, wr = ns.SALON_WINDOW
+        c0, n0 = on_hull(wz, wy, side, 0.1)
+        e_up = norm(v3(0, 1, 0) - n0 * n0[1])
+        e_al = v3(0, 0, 1)
+        for k in range(8):
+            a0, a1 = 2 * math.pi * (k + 0.5) / 8, 2 * math.pi * (k + 1.5) / 8
+            def oc(a, rr):
+                return c0 + (e_al * math.cos(a) + e_up * math.sin(a)) * rr
+            panel(bone, "salon_octa_%s_%d" % (sn, k), oc(a0, wr - 0.05), oc(a1, wr - 0.05), oc(a0, wr + 1.0), oc(a1, wr + 1.0), 0.12,
+                  "plate_dark", n0, overlap=1.02)
+            beam(bone, "salon_octa_rim_%s_%d" % (sn, k), oc(a0, wr + 1.05) + n0 * 0.05, oc(a1, wr + 1.05) + n0 * 0.05, 0.12, "brass",
+                 width=0.16, up=n0, extend=0.06)
+            for q in range(3):
+                t = (q + 0.5) / 3
+                add_cube(bone, "salon_octa_rivet_%s_%d_%d" % (sn, k, q), oc(a0, wr + 0.85) * (1 - t) + oc(a1, wr + 0.85) * t + n0 * 0.08, EYE,
+                         (0.08, 0.08, 0.08), "brass")
+        for k in range(4):
+            a = math.pi / 2 * k
+            beam(bone, "salon_cross_%s_%d" % (sn, k), c0 + (e_al * math.cos(a) + e_up * math.sin(a)) * (wr + 1.0) + n0 * 0.08,
+                 c0 + (e_al * math.cos(a) + e_up * math.sin(a)) * (wr + 2.0) + n0 * 0.02, 0.14, "brass", width=0.22, up=n0)
+        # a row of rectangular windows low on the hull, in brass frames
+        for z in np.arange(-28.0, 38.0, 5.0):
+            yy = ns.AXIS_Y - ns.half_height(z) * 0.62
+            p_, n_ = on_hull(z, yy, side, 0.05)
+            if in_window(p_, 0.6) or abs(z) < 4.0:
+                continue
+            u_ = v3(0, 0, 1)
+            w_ = norm(np.cross(n_, u_))
+            R = np.column_stack([u_, w_, np.cross(u_, w_)])
+            add_cube(bone, "lowlight_%s_%d" % (sn, int(z * 10)), p_, R, (0.9, 0.4, 0.04), "glass")
+            for k, (dz, dv, sz, sv) in enumerate(((0, 0.24, 1.06, 0.08), (0, -0.24, 1.06, 0.08), (0.49, 0, 0.08, 0.4), (-0.49, 0, 0.08, 0.4),
+                                                  (0, 0, 0.05, 0.4))):
+                add_cube(bone, "lowlight_%s_%d_f%d" % (sn, int(z * 10), k), p_ + u_ * dz + w_ * dv + n_ * 0.03, R, (sz, sv, 0.07), "brass")
         # navigation light on the wheelhouse side, in its brass box
         zl = ns.TOWER_Z[0] + 1.2
         pl = v3(side * (ns.TOWER_HALF_WIDTH + 0.12), ns.TOWER_TOP_Y - 0.9, zl)
