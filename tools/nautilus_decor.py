@@ -491,7 +491,7 @@ def wheelhouse_and_cage():
         custom("timber", name="wheelhouse_rib_aft_%d" % (x > 0), a=(x, y, z), b=(x, top, z))
     z = zc + ni.ns.wheelhouse_wall_z(0.0) - 0.07
     custom("timber", name="wheelhouse_rib_fore", a=(0.0, y, z), b=(0.0, top, z))  # between the two front windows
-    custom("rug", p=(0, y, 18.6), w=2.6, l=3.2)
+    custom("rug", p=(0, y, 16.9), w=2.4, l=2.2)  # aft of the trap, which stays in sight
     custom("projector", name="projector", lens_center=(0, ni.ns.LENS_Y, ni.ns.LAMP_CAGE_Z[1] + 0.02), r=0.5, length=1.3, compact=True)
 
 

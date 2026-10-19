@@ -354,6 +354,18 @@ class NautilusTest {
 	}
 
 	@Test
+	void wheelhouseLadderLeavesTheForeCorridorFree() {
+		InteriorGrid.State shut = InteriorGrid.State.CLOSED;
+		// in the fore corridor, where the ladder's pillar used to stand, one walks through to the cabins' doors
+		for (double y : new double[] {0.3, 1.0, 1.7}) {
+			assertFalse(GRID.solidAt(0, y, 19.75, shut), "free at y " + y);
+		}
+		// the ladder still goes up to the wheelhouse, its pillar in the shaft above the corridor ceiling
+		assertTrue(GRID.ladderAt(0, 1.0, 19.0));
+		assertTrue(GRID.solidAt(0, 6.5, 19.75, shut), "the pillar in the shaft");
+	}
+
+	@Test
 	void vanillaPaintings() {
 		java.util.List<InteriorDecor.Painting> paintings = G.decor().paintings();
 		assertTrue(paintings.size() >= 10, "paintings: " + paintings.size());

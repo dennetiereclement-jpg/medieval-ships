@@ -30,7 +30,12 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 	/** Block light of the rooms of a vessel (its electric lamps). */
 	private static final int INTERIOR_BLOCK_LIGHT = 13;
 	/** The furniture of the rooms is drawn within this distance of the camera. */
-	private static final double DECOR_DISTANCE = 96.0;
+	private static final double DECOR_DISTANCE = 48.0;
+	/** The rooms (walls, furniture, fittings) are drawn within this distance; beyond, only the hull. */
+	private static final double INTERIOR_DISTANCE = 48.0;
+	/** Small exterior details (rivets, rails, windows) are drawn within this distance. */
+	private static final double DETAIL_DISTANCE = 80.0;
+	private static final String[] INTERIOR_BONES = {"rooms", "furniture", "fittings"};
 	/** Animation of door k of a vessel with rooms: {@code door_<k>}, played from 0 (closed) to 1 (open). */
 	private static final String[] DOOR_ANIMATIONS = new String[fr.medievalships.core.InteriorGrid.MAX_DOORS];
 
@@ -118,6 +123,8 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 			float[] doors = state.interiorLight ? state.doors : null;
 			EmbeddedDecor decor = state.interiorLight ? EmbeddedDecor.of(visual.type()) : null;
 			boolean decorDrawn = decor != null && state.squaredDistanceToCamera < DECOR_DISTANCE * DECOR_DISTANCE;
+			boolean farInterior = state.interiorLight && state.squaredDistanceToCamera > INTERIOR_DISTANCE * INTERIOR_DISTANCE;
+			boolean farDetail = state.squaredDistanceToCamera > DETAIL_DISTANCE * DETAIL_DISTANCE;
 			int light = state.light;
 			// the rooms of a vessel are lit by its own lamps, even deep under the sea (unless they are switched off)
 			boolean lampsOn = state.interiorLight && !state.lightsOff;
@@ -159,6 +166,19 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 						for (String bone : decor.hidden) {
 							model.hide(pose, bone);
 						}
+					}
+					if (farInterior) {
+						for (String bone : INTERIOR_BONES) {
+							model.hide(pose, bone);
+						}
+						if (decor != null) {
+							for (fr.medievalships.core.InteriorDecor.Block blk : decor.blocks) {
+								model.hide(pose, blk.fallback());
+							}
+						}
+					}
+					if (farDetail) {
+						model.hide(pose, "detail");
 					}
 					if (doors != null) {
 						model.apply(pose, "shutters", shutters, 1f);

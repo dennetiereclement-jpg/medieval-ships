@@ -153,7 +153,8 @@ AIRLOCK_TUNNEL = (-7.0, -2.5, L0, L0 + 2.5, 26.0, 28.0)  # 2 blocks wide, 2.5 hi
 
 # ladders: (box, pillar box or None). The pillar gives something to push against at the bottom.
 LADDERS = {
-    "wheelhouse": ((-0.5, 0.5, M0, ns.CASING_TOP_Y + 0.5, 18.5, 19.5), (-0.5, 0.5, M0, ns.CASING_TOP_Y - 0.5, 19.5, 20.0)),
+    # its pillar only in the shaft: in the fore corridor the ladder stands free and one walks past it
+    "wheelhouse": ((-0.5, 0.5, M0, ns.CASING_TOP_Y + 0.5, 18.5, 19.5), (-0.5, 0.5, M1, ns.CASING_TOP_Y - 0.5, 19.5, 20.0)),
     "hatch":      ((1.0, 2.0, M0, ns.CASING_TOP_Y - 0.5, -9.0, -8.0), (1.0, 2.0, M0, ns.CASING_TOP_Y - 0.5, -9.5, -9.0)),  # pillar aft of it, up the shaft
     "boat":       ((0.5, 1.5, M0, 7.5, -19.0, -18.0), (0.5, 1.5, M0, 7.5, -18.0, -17.5)),
     "engine":     ((2.5, 3.5, L0, M0, -26.5, -25.5), (2.5, 3.5, L0, M0, -27.0, -26.5)),

@@ -38,7 +38,13 @@ public final class BbModel {
 	private final List<Bone> roots = new ArrayList<>();
 	/** Per texture UV size (Blockbench 4.9+ {@code uv_width}/{@code uv_height}), else the resolution. */
 	private final List<int[]> textureSizes = new ArrayList<>();
+	/** A plate thinner than this (Blockbench pixels)... */
+	private static final float THIN_PLATE_PX = 2.1f;
+	/** ...and wider than this on both other sides has no edge faces. */
+	private static final float THIN_PLATE_MIN_SIZE_PX = 6.4f;
 	private int quadCount;
+	/** Opt-in (model field "medievalships_cull_thin_plates"): thin plates are drawn without their edge faces. */
+	private boolean cullThinPlates;
 
 	public static final class Bone {
 		public final String name;
@@ -50,6 +56,12 @@ public final class BbModel {
 		Bone parent;
 		/** Translucent effect (a light beam, water): bones named "fx_*" and their children, drawn in their own pass. */
 		boolean fx;
+		/** Moved by an animation (itself or one of its parents): its quads are transformed every frame. */
+		boolean animated;
+		/** A bone that never moves: its transform and its quads in ship-local blocks, computed once. */
+		float[] staticMatrix;
+		float[] staticPos;
+		float[] staticNormal;
 
 		Bone(String name, int index, float[] origin, float[] rotation) {
 			this.name = name;
@@ -225,6 +237,7 @@ public final class BbModel {
 			}
 		}
 
+		cullThinPlates = root.has("medievalships_cull_thin_plates") && root.get("medievalships_cull_thin_plates").getAsBoolean();
 		Map<String, JsonObject> elements = new HashMap<>();
 		for (JsonElement e : root.getAsJsonArray("elements")) {
 			JsonObject o = e.getAsJsonObject();
@@ -240,6 +253,21 @@ public final class BbModel {
 			for (JsonElement e : root.getAsJsonArray("animations")) {
 				readAnimation(e.getAsJsonObject(), boneNameByUuid);
 			}
+		}
+		for (Animation anim : animations.values()) {
+			for (String name : anim.tracks.keySet()) {
+				Bone b = bonesByName.get(name);
+				if (b != null) {
+					markAnimated(b);
+				}
+			}
+		}
+	}
+
+	private static void markAnimated(Bone b) {
+		b.animated = true;
+		for (Bone c : b.children) {
+			markAnimated(c);
 		}
 	}
 
@@ -291,9 +319,27 @@ public final class BbModel {
 		boolean glow = el.get("name").getAsString().startsWith("glow");
 		boolean lit = el.get("name").getAsString().startsWith("lit");
 		JsonObject faces = el.getAsJsonObject("faces");
+		// a thin plate (a hull panel, a wall lining): its edge faces are never seen, they are not drawn
+		float[] dims = {Math.abs(to[0] - from[0]), Math.abs(to[1] - from[1]), Math.abs(to[2] - from[2])};
+		int thinAxis = -1;
+		{
+			int min = 0;
+			for (int a = 1; a < 3; a++) {
+				if (dims[a] < dims[min]) {
+					min = a;
+				}
+			}
+			float middle = Math.min(dims[(min + 1) % 3], dims[(min + 2) % 3]);
+			if (cullThinPlates && dims[min] < THIN_PLATE_PX && middle > THIN_PLATE_MIN_SIZE_PX) {
+				thinAxis = min;
+			}
+		}
 		for (int f = 0; f < 6; f++) {
 			JsonObject face = faces.has(FACE_NAMES[f]) ? faces.getAsJsonObject(FACE_NAMES[f]) : null;
 			if (face == null || !face.has("texture") || face.get("texture").isJsonNull()) {
+				continue;
+			}
+			if (thinAxis >= 0 && Math.abs(FACE_AXES[f][0]) - 1 != thinAxis) {
 				continue;
 			}
 			JsonElement texEl = face.get("texture");
@@ -460,6 +506,10 @@ public final class BbModel {
 		if (pose.hidden[b]) {
 			return;
 		}
+		if (!bone.animated) {
+			renderStatic(bone, parent, pose, texture, sink, p, uv, n);
+			return;
+		}
 		float[] r = {bone.rotation[0] + pose.rot[b][0], bone.rotation[1] + pose.rot[b][1], bone.rotation[2] + pose.rot[b][2]};
 		float[][] R = rotationMatrix(r);
 		float[] s = pose.scale[b], o = bone.origin, t = pose.pos[b];
@@ -505,6 +555,61 @@ public final class BbModel {
 		}
 		for (Bone c : bone.children) {
 			renderBone(c, m, pose, texture, sink, p, uv, n);
+		}
+	}
+
+	/** A bone that never moves: its quads are transformed once, then copied out every frame. */
+	private void renderStatic(Bone bone, float[] parent, Pose pose, int texture, QuadSink sink, float[] p, float[] uv, float[] n) {
+		if (bone.staticMatrix == null) {
+			float[][] R = rotationMatrix(bone.rotation);
+			float[] o = bone.origin;
+			float[] local = new float[12];
+			for (int i = 0; i < 3; i++) {
+				float off = o[i];
+				for (int j = 0; j < 3; j++) {
+					local[i * 4 + j] = R[i][j];
+					off -= R[i][j] * o[j];
+				}
+				local[i * 4 + 3] = off;
+			}
+			float[] m = compose(parent, local);
+			float[] pos = new float[bone.quads.size() * 12];
+			float[] nor = new float[bone.quads.size() * 3];
+			for (int qi = 0; qi < bone.quads.size(); qi++) {
+				Quad q = bone.quads.get(qi);
+				for (int k = 0; k < 4; k++) {
+					float x = q.pos[k * 3], y = q.pos[k * 3 + 1], z = q.pos[k * 3 + 2];
+					pos[qi * 12 + k * 3] = -(m[0] * x + m[1] * y + m[2] * z + m[3]) / 16f;
+					pos[qi * 12 + k * 3 + 1] = (m[4] * x + m[5] * y + m[6] * z + m[7]) / 16f;
+					pos[qi * 12 + k * 3 + 2] = -(m[8] * x + m[9] * y + m[10] * z + m[11]) / 16f;
+				}
+				float nx = m[0] * q.normal[0] + m[1] * q.normal[1] + m[2] * q.normal[2];
+				float ny = m[4] * q.normal[0] + m[5] * q.normal[1] + m[6] * q.normal[2];
+				float nz = m[8] * q.normal[0] + m[9] * q.normal[1] + m[10] * q.normal[2];
+				float len = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
+				len = len < 1e-6f ? 1f : len;
+				nor[qi * 3] = -nx / len;
+				nor[qi * 3 + 1] = ny / len;
+				nor[qi * 3 + 2] = -nz / len;
+			}
+			bone.staticPos = pos;
+			bone.staticNormal = nor;
+			bone.staticMatrix = m;
+		}
+		if (bone.fx == pose.fxPass) {
+			for (int qi = 0; qi < bone.quads.size(); qi++) {
+				Quad q = bone.quads.get(qi);
+				if (texture >= 0 && q.texture != texture) {
+					continue;
+				}
+				System.arraycopy(bone.staticPos, qi * 12, p, 0, 12);
+				System.arraycopy(q.uv, 0, uv, 0, 8);
+				System.arraycopy(bone.staticNormal, qi * 3, n, 0, 3);
+				sink.quad(p, uv, n, q.glow, q.lit);
+			}
+		}
+		for (Bone c : bone.children) {
+			renderBone(c, bone.staticMatrix, pose, texture, sink, p, uv, n);
 		}
 	}
 

@@ -73,6 +73,11 @@ Pour tous :
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
 
+La version 1.7.12 :
+* l'échelle de la timonerie ne bloque plus la coursive avant : son poteau ne descend plus dans le couloir (on passe à côté vers les deux cabines ; on monte en sautant sur l'échelle, puis en avançant dans le puits) ;
+* le tapis de la timonerie laisse voir la trappe ;
+* moins de lag : les pièces fixes du modèle ne sont plus recalculées à chaque image, les tranches des plaques fines ne sont plus dessinées, et de loin (au-delà de 48 blocs) l'intérieur et les meubles ne sont plus dessinés, ni les petits détails extérieurs au-delà de 80 blocs.
+
 La version 1.7.11 : derrière la timonerie, la pente en diagonale de la planche (carénage riveté du toit jusqu'au pont, arête à pointes, main courante, manche à air ; on peut y monter) ; sur le pont, garde-corps de laiton le long des bords, bittes d'amarrage et manches à air. Textures de la coque refaites : cuivre martelé plus riche avec patine et reflets, dessous bien plus sombre (bronze foncé, joints sombres), vitres plus profondes ; pointes en bronze, arche plus épaisse et rivetée, joints rivetés sur les ailerons, croix de laiton dans la vitre de la grande baie.
 
 La version 1.7.10 :
@@ -175,7 +180,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.7.11.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.7.12.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation

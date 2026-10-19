@@ -1399,6 +1399,7 @@ def build(g):
     rooms = Bone("rooms", parent=root)
     fittings = Bone("fittings", parent=root)
     lights = Bone("lights", parent=root)
+    detail = Bone("detail", parent=root)  # small exterior details, not drawn from far away (ShipRenderer)
     n = hull(hull_bone)
     windows(outside, lights)
     ram(outside)
@@ -1412,10 +1413,10 @@ def build(g):
     cage_hood(outside)
     wheelhouse_lining(rooms)
     aft_fairing(outside)
-    deck_fittings(outside)
+    deck_fittings(detail)
     tail(outside, root)
-    hull_seams(outside)
-    hull_details(outside, lights)
+    hull_seams(detail)
+    hull_details(detail, lights)
     bow_blade(outside)
     prop_shroud(outside)
     m = surfaces(rooms, outside, g)
@@ -1508,7 +1509,7 @@ def main():
     model = gn.export(root, anims, textures, [
         os.path.join(ROOT, "blockbench/nautilus.bbmodel"),
         os.path.join(ROOT, "src/main/resources/assets/medievalships/models/entity/nautilus.bbmodel"),
-    ], name="nautilus", visible_box=(100, 30, 0))
+    ], name="nautilus", visible_box=(100, 30, 0), extra={"medievalships_cull_thin_plates": True})
     print("grid bytes:", size, "hull panels:", n, "grid surfaces:", m, "cubes:", len(model["elements"]),
           "animations:", len(model["animations"]))
 

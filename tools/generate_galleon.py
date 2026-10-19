@@ -947,7 +947,7 @@ def texture_entry(name, size, png, rel, default_name="galleon.png"):
         "source": "data:image/png;base64," + base64.b64encode(png).decode()}
 
 
-def export(root, anims, textures, out_paths, name="galleon", visible_box=(40, 32, 0)):
+def export(root, anims, textures, out_paths, name="galleon", visible_box=(40, 32, 0), extra=None):
     import lanterns  # every ship gets the same lit-glass lanterns
     print("lanterns: %d" % lanterns.convert(root))
     import rope_follow  # sheets stay on the clews when the sails are furled
@@ -1007,6 +1007,7 @@ def export(root, anims, textures, out_paths, name="galleon", visible_box=(40, 32
         "textures": textures,
         "animations": anims,
     }
+    model.update(extra or {})
     for p in out_paths:
         os.makedirs(os.path.dirname(p), exist_ok=True)
         with open(p, "w") as f:
