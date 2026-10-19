@@ -416,23 +416,25 @@ def airlock():
         custom("diving_suit", solid=(x - 0.35, x + 0.35, l, l + 2.4, 28.1, 28.9), name="suit_%d" % k, p=(x, l, 28.5), facing="stern")
     for k, (x, z) in enumerate(((2.1, 25.6), (2.1, 26.4))):
         custom("tank", solid=(x - 0.35, x + 0.35, l, l + 1.7, z - 0.35, z + 0.35), name="airlock_tank_%d" % k, p=(x, l, z))
-    # the valves: filling (red wheel) and pumps (brass wheel), inside the airlock and in the corridor outside
-    for action, x_in, x_out, region in (("airlock_fill", -0.9, 1.6, "coral_red"), ("airlock_pump", 0.9, 1.0, "brass")):
-        custom("valve_wheel", name=action + "_valve_in", p=(x_in, l + 1.6, 25.12), normal=(0, 0, 1), region=region)
-        switch(action, (x_in, l + 1.6, 25.12), (0.26, 0.26, 0.14))
-        custom("valve_wheel", name=action + "_valve_out", p=(x_out, l + 1.6, 24.38), normal=(0, 0, -1), region=region, r=0.18)
-        switch(action, (x_out, l + 1.6, 24.38), (0.22, 0.22, 0.14))
+    # the valves: filling (red wheel) and pumps (brass wheel), on a panel inside the airlock and on another
+    # in the corridor outside, both clear of the door
+    wheels = ((-0.25, "coral_red", "coral_red"), (0.25, "brass", "green_leather"))
+    for side, p, normal, z_click in (("in", (-1.85, l + 1.45, 25.0), (0, 0, 1), 25.28), ("out", (2.3, l + 1.45, 24.5), (0, 0, -1), 24.22)):
+        custom("valve_panel", name="airlock_panel_" + side, p=p, normal=normal, wheels=wheels, w=1.0)
+        s_ = normal[2]
+        for (dx, _, _), action in zip(wheels, ("airlock_fill", "airlock_pump")):
+            # u (along the wall) is +x on a wall facing +z and -x on a wall facing -z
+            switch(action, (p[0] + dx * s_, p[1] - 0.12, z_click), (0.22, 0.22, 0.16))
     custom("pipe_run", name="airlock_pipe", a=(-2.3, ni.L0 + 3.2, 25.2), b=(2.3, ni.L0 + 3.2, 25.2), r=0.1)
     # the divers' gear: a bench under a shelf of spare helmets, boots under the bench, Ruhmkorff lamps on
     # their hooks, the rack of electric rifles, coils of air hose
-    custom("bench", name="airlock_bench", p=(-2.15, l, 25.85), facing="port", length=1.1)
-    seat(-2.15, l + 0.5, 25.85, -1.2, 25.85)
-    custom("wall_shelf", name="airlock_shelf", p=(-2.5, l + 1.9, 28.35), normal=(1, 0, 0), w=1.1)
-    for k, z in enumerate((28.05, 28.65)):
-        custom("spare_helmet", name="airlock_helmet_%d" % k, p=(-2.1, l + 1.93, z), facing="port", s=0.9)
-    custom("boots", name="airlock_boots", p=(-1.75, l, 26.1), facing="port")
-    for k, z in enumerate((25.35, 27.75)):
-        custom("ruhmkorff_lamp", name="airlock_lamp_%d" % k, p=(-2.5, l + 1.5 if k else l + 1.9, z), normal=(1, 0, 0))
+    custom("bench", name="airlock_bench", p=(-2.15, l, 25.55), facing="port", length=0.8)
+    seat(-2.15, l + 0.5, 25.55, -1.2, 25.55)
+    custom("wall_shelf", name="airlock_shelf", p=(-2.5, l + 2.0, 28.5), normal=(1, 0, 0), w=0.9)
+    for k, z in enumerate((28.27, 28.75)):
+        custom("spare_helmet", name="airlock_helmet_%d" % k, p=(-2.1, l + 2.03, z), facing="port", s=0.85)
+    custom("boots", name="airlock_boots", p=(-1.6, l, 25.55), facing="port")
+    custom("ruhmkorff_lamp", name="airlock_lamp_0", p=(2.5, l + 1.9, 27.0), normal=(-1, 0, 0))
     custom("rifle_rack", name="airlock_rifles", p=(2.5, l + 1.6, 28.1), normal=(-1, 0, 0), n_rifles=3)
     custom("hose_coil", name="airlock_hose", p=(2.5, l + 2.5, 25.4), normal=(-1, 0, 0))
 

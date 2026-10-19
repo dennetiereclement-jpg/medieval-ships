@@ -151,7 +151,7 @@ DOORS = {
     18: ("store_stbd", (-2.0, -1.5, L0, L0 + 2.0, -1.5, 0.5)),
 }
 HATCH_DOOR = 0
-AIRLOCK_TUNNEL = (-7.0, -2.5, L0, L0 + 2.0, 26.5, 27.5)
+AIRLOCK_TUNNEL = (-7.0, -2.5, L0, L0 + 2.5, 26.0, 28.0)  # 2 blocks wide, 2.5 high
 
 # ladders: (box, pillar box or None). The pillar gives something to push against at the bottom.
 LADDERS = {
@@ -210,10 +210,13 @@ def build():
     # portholes of the lower coursive and of the cabins / rooms (tunnels to the glass in the hull)
     for z in ns.SMALL_WINDOWS_Z:
         port = (np.abs(g.Z - z) < 0.5) & (np.abs(g.Y - ns.SMALL_WINDOWS_Y) < 0.5) & inner & (g.k == SOLID)
-        g.k[port & (g.X > 3.5)] = DRY
-        g.k[port & (g.X < -4.0)] = DRY
         glass = (np.abs(g.Z - z) < 0.5) & (np.abs(g.Y - ns.SMALL_WINDOWS_Y) < 0.5) & hull & ~inner
-        g.k[glass & (np.abs(g.X) > 3.5)] = WINDOW
+        if ns.porthole_on(z, 1):
+            g.k[port & (g.X > 3.5)] = DRY
+            g.k[glass & (g.X > 3.5)] = WINDOW
+        if ns.porthole_on(z, -1):
+            g.k[port & (g.X < -4.0)] = DRY
+            g.k[glass & (g.X < -3.5)] = WINDOW
     # portholes of the cabins on the main level
     for z, y in ns.CABIN_PORTHOLES:
         port = (np.abs(g.Z - z) < 0.5) & (np.abs(g.Y - y) < 0.5)

@@ -98,25 +98,35 @@ def panel(bone, name, a0, a1, b0, b1, th, region, outward, overlap=1.04):
 
 
 # windows cut in the hull: (z, y, radius) on both sides
-WINDOWS = [(ns.SALON_WINDOW[0], ns.SALON_WINDOW[1], ns.SALON_WINDOW[2] - 0.2)] + \
-          [(z, ns.SMALL_WINDOWS_Y, 0.45) for z in ns.SMALL_WINDOWS_Z] + [(z, y, 0.45) for z, y in ns.CABIN_PORTHOLES]
+# (z, y, radius, side: 1 port, -1 starboard, 0 both)
+WINDOWS = [(ns.SALON_WINDOW[0], ns.SALON_WINDOW[1], ns.SALON_WINDOW[2] - 0.2, 0)] + \
+          [(z, ns.SMALL_WINDOWS_Y, 0.45, side) for z in ns.SMALL_WINDOWS_Z for side in (1, -1) if ns.porthole_on(z, side)] + \
+          [(z, y, 0.45, 0) for z, y in ns.CABIN_PORTHOLES]
+# the airlock's way out through the starboard hull: (z0, z1, y0, y1)
+AIRLOCK_MOUTH = (ni.AIRLOCK_TUNNEL[4], ni.AIRLOCK_TUNNEL[5], ni.AIRLOCK_TUNNEL[2], ni.AIRLOCK_TUNNEL[3])
+
+
+def on_side(x, side):
+    return abs(x) > 2.0 and (side == 0 or x * side > 0)
 
 
 def in_window(p):
-    for z, y, r in WINDOWS:
-        if (p[2] - z) ** 2 + (p[1] - y) ** 2 < r * r and abs(p[0]) > 2.0:
+    for z, y, r, side in WINDOWS:
+        if (p[2] - z) ** 2 + (p[1] - y) ** 2 < r * r and on_side(p[0], side):
             return True
-    return False
+    z0, z1, y0, y1 = AIRLOCK_MOUTH
+    return p[0] < -2.0 and z0 < p[2] < z1 and y0 < p[1] < y1
 
 
 def near_window(points):
     zs = [p[2] for p in points]
     ys = [p[1] for p in points]
     xs = [p[0] for p in points]
-    for z, y, r in WINDOWS:
-        if min(zs) - r < z < max(zs) + r and min(ys) - r < y < max(ys) + r and max(abs(x) for x in xs) > 2.0:
+    for z, y, r, side in WINDOWS:
+        if min(zs) - r < z < max(zs) + r and min(ys) - r < y < max(ys) + r and any(on_side(x, side) for x in xs):
             return True
-    return False
+    z0, z1, y0, y1 = AIRLOCK_MOUTH
+    return min(xs) < -2.0 and min(zs) - 0.5 < z1 and max(zs) + 0.5 > z0 and min(ys) - 0.5 < y1 and max(ys) + 0.5 > y0
 
 
 def hull(bone):
@@ -152,6 +162,23 @@ def hull(bone):
     return n
 
 
+def round_bezel(bone, name, center, normal, r, half, region, n=24, th=0.04):
+    """A flat plate in a wall's plane that fills the space between a circle of radius r and the
+    square of half size `half` round it (covers the corners of a square hole behind a round frame)."""
+    normal = norm(normal)
+    e1 = norm(np.cross(normal, v3(0, 1, 0))) if abs(normal[1]) < 0.9 else v3(1, 0, 0)
+    e2 = np.cross(e1, normal)
+    def on_square(a):
+        c, s_ = math.cos(a), math.sin(a)
+        k = half / max(abs(c), abs(s_))
+        return center + (e1 * c + e2 * s_) * max(k, r + 0.02)
+    def on_circle(a):
+        return center + (e1 * math.cos(a) + e2 * math.sin(a)) * r
+    for j in range(n):
+        a0, a1 = 2 * math.pi * j / n, 2 * math.pi * (j + 1) / n
+        panel(bone, "%s_%d" % (name, j), on_circle(a0), on_circle(a1), on_square(a0), on_square(a1), th, region, normal, overlap=1.03)
+
+
 def ring(bone, name, center, normal, r, th, region, n=16, width=None):
     normal = norm(normal)
     e1 = norm(np.cross(normal, v3(0, 0, 1) if abs(normal[2]) < 0.9 else v3(1, 0, 0)))
@@ -176,7 +203,7 @@ def windows(bone, lights):
             p, nn = on_hull(zz, yy, side, 0.12)
             add_cube(lights, "glow_salon_lamp_%s%d" % (sn, k), p, EYE, (0.3, 0.3, 0.3), "glow")
             add_cube(bone, "salon_lamp_socket_%s%d" % (sn, k), on_hull(zz, yy, side, 0.02)[0], EYE, (0.42, 0.42, 0.42), "brass")
-        for z, y in [(z, ns.SMALL_WINDOWS_Y) for z in ns.SMALL_WINDOWS_Z] + list(ns.CABIN_PORTHOLES):
+        for z, y in [(z, ns.SMALL_WINDOWS_Y) for z in ns.SMALL_WINDOWS_Z if ns.porthole_on(z, side)] + list(ns.CABIN_PORTHOLES):
             # a round bolted collar, its inner lip and a ring of bolts
             name = "porthole_%s_%d_%d" % (sn, int(z * 10), int(y * 10))
             c, nrm = on_hull(z, y, side, 0.07)
@@ -188,16 +215,29 @@ def windows(bone, lights):
                 t = 2 * math.pi * k / 8
                 add_cube(bone, "%s_bolt%d" % (name, k), c + nrm * 0.08 + (e1 * math.cos(t) + e2 * math.sin(t)) * 0.56, EYE,
                          (0.07, 0.07, 0.07), "steel")
+    # a riveted brass frame round the airlock's way out, on the starboard hull
+    z0, z1, y0, y1 = AIRLOCK_MOUTH
+    corners = [on_hull(z, y, -1, 0.06)[0] for z, y in ((z0 - 0.1, y0 - 0.1), (z1 + 0.1, y0 - 0.1), (z1 + 0.1, y1 + 0.1), (z0 - 0.1, y1 + 0.1))]
+    for k in range(4):
+        a_, b_ = corners[k], corners[(k + 1) % 4]
+        beam(bone, "airlock_mouth_frame_%d" % k, a_, b_, 0.16, "brass", width=0.24, up=on_hull((z0 + z1) / 2, (y0 + y1) / 2, -1)[1],
+             extend=0.12)
     # brass frames of the wheelhouse windows, outside and inside
     wy0, wy1 = ns.TOWER_WINDOWS_Y
     yc, r = (wy0 + wy1) / 2, (wy1 - wy0) / 2 + 0.05
+    half = max((ns.TOWER_FRONT_WINDOWS_X[0][1] - ns.TOWER_FRONT_WINDOWS_X[0][0]) / 2, (wy1 - wy0) / 2) + 0.06
     for k, (x0, x1) in enumerate(ns.TOWER_FRONT_WINDOWS_X):
-        for z, tag in ((ns.TOWER_Z[1] + 0.16, "out"), (ns.TOWER_Z[1] - 0.56, "in")):
-            ring(bone, "tower_window_%d_%s" % (k, tag), v3((x0 + x1) / 2, yc, z), v3(0, 0, 1), r, 0.12, "brass", n=16, width=0.14)
+        for z, tag, nz in ((ns.TOWER_Z[1] + 0.16, "out", 1), (ns.TOWER_Z[1] - 0.56, "in", -1)):
+            c = v3((x0 + x1) / 2, yc, z)
+            ring(bone, "tower_window_%d_%s" % (k, tag), c, v3(0, 0, 1), r, 0.12, "brass", n=24, width=0.14)
+            round_bezel(bone, "lit_tower_bezel_%d_%s" % (k, tag), c - v3(0, 0, nz * 0.05), v3(0, 0, nz), r - 0.02, half,
+                        "wall_engine" if tag == "in" else "hull_light")
     for side in SIDES:
-        for x, tag in ((side * (ns.TOWER_HALF_WIDTH + 0.16), "out"), (side * (ns.TOWER_HALF_WIDTH - 0.56), "in")):
-            ring(bone, "tower_window_side_%d_%s" % (side > 0, tag), v3(x, yc, sum(ns.TOWER_SIDE_WINDOW_Z) / 2), v3(1, 0, 0), r, 0.12,
-                 "brass", n=16, width=0.14)
+        for x, tag, nx in ((side * (ns.TOWER_HALF_WIDTH + 0.16), "out", side), (side * (ns.TOWER_HALF_WIDTH - 0.56), "in", -side)):
+            c = v3(x, yc, sum(ns.TOWER_SIDE_WINDOW_Z) / 2)
+            ring(bone, "tower_window_side_%d_%s" % (side > 0, tag), c, v3(1, 0, 0), r, 0.12, "brass", n=24, width=0.14)
+            round_bezel(bone, "lit_tower_bezel_side_%d_%s" % (side > 0, tag), c - v3(nx * 0.05, 0, 0), v3(nx, 0, 0), r - 0.02, half,
+                        "wall_engine" if tag == "in" else "hull_light")
 
 
 def ram(bone):
@@ -354,6 +394,8 @@ def porthole_sleeves(bone, fx, g):
     count = 0
     for z, y in ports:
         for side in SIDES:
+            if y == ns.SMALL_WINDOWS_Y and not ns.porthole_on(z, side):
+                continue
             def kind(x, yy):
                 return g.k[int((x - ni.X0) / C), int((yy - ni.Y0) / C), int((z - ni.Z0) / C)]
             glass = wall = None
@@ -371,7 +413,7 @@ def porthole_sleeves(bone, fx, g):
             if wall is None or glass is None:
                 continue
             glass = glass + side * C if abs(glass) - abs(wall) < 0.3 else glass  # thin wall: the glass in the hull's skin
-            n = 10
+            n = 20
             name = "porthole_%d_%d_%d" % (int(z * 10), int(y * 10), side > 0)
             for j in range(n):
                 a0, a1 = 2 * math.pi * j / n, 2 * math.pi * (j + 1) / n
@@ -381,13 +423,12 @@ def porthole_sleeves(bone, fx, g):
                 panel(bone, "lit_%s_sleeve%d" % (name, j), P(wall - side * 0.02, 0.74, a0), P(wall - side * 0.02, 0.74, a1), P(glass, 0.45, a0),
                       P(glass, 0.45, a1), 0.05,
                       "copper", v3(0, -math.sin(am), -math.cos(am)), overlap=1.04)
-                beam(bone, "lit_%s_collar%d" % (name, j), P(wall - side * 0.06, 0.68, a0), P(wall - side * 0.06, 0.68, a1), 0.1, "brass",
-                     width=0.22, up=v3(side, 0, 0))
-                if j % 2 == 0:
+                beam(bone, "lit_%s_collar%d" % (name, j), P(wall - side * 0.06, 0.68, a0), P(wall - side * 0.06, 0.68, a1), 0.08, "brass",
+                     width=0.2, up=v3(side, 0, 0), extend=0.01)
+                if j % 4 == 0:
                     add_cube(bone, "lit_%s_bolt%d" % (name, j), P(wall - side * 0.12, 0.68, am), EYE, (0.06, 0.06, 0.06), "steel")
-            # a square brass plate on the wall round the collar: it covers the edges of the opening
-            for k, (dy, dz, sy, sz) in enumerate(((0.6, 0, 0.2, 1.4), (-0.6, 0, 0.2, 1.4), (0, 0.6, 1.0, 0.2), (0, -0.6, 1.0, 0.2))):
-                add_cube(bone, "lit_%s_plate%d" % (name, k), v3(wall - side * 0.025, y + dy, z + dz), EYE, (0.05, sy, sz), "brass")
+            # the corners of the square opening, hidden by a round bezel on the wall round the collar
+            round_bezel(bone, "lit_%s_bezel" % name, v3(wall - side * 0.02, y, z), v3(-side, 0, 0), 0.6, 0.56, "brass", n=16)
             add_cube(fx, "lit_%s_glass" % name, v3(glass + side * 0.1, y, z), EYE, (0.02, 0.9, 0.9), "glassfx")
             count += 1
     return count
@@ -557,8 +598,8 @@ def tail(bone, root):
     zs = np.linspace(ns.STERN_Z + 2.0, ns.TAIL_CONE_Z, 6)
     rs = np.linspace(1.6, 0.5, 6)
     for k in range(len(zs) - 1):
-        for j in range(12):
-            a0, a1 = 30.0 * j, 30.0 * (j + 1)
+        for j in range(24):
+            a0, a1 = 15.0 * j, 15.0 * (j + 1)
             am = math.radians((a0 + a1) / 2)
             outward = v3(math.sin(am), math.cos(am), 0)
 
@@ -566,7 +607,7 @@ def tail(bone, root):
                 return v3(math.sin(math.radians(a)) * r, y + math.cos(math.radians(a)) * r, z)
             panel(bone, "tail_cone_%d_%d" % (k, j), C(zs[k], rs[k], a0), C(zs[k], rs[k], a1), C(zs[k + 1], rs[k + 1], a0),
                   C(zs[k + 1], rs[k + 1], a1), 0.1, "plate_dark", outward)
-        ring(bone, "tail_ring_%d" % k, v3(0, y, zs[k]), v3(0, 0, 1), rs[k] + 0.05, 0.16, "brass", n=12, width=0.22)
+        ring(bone, "tail_ring_%d" % k, v3(0, y, zs[k]), v3(0, 0, 1), rs[k] + 0.05, 0.16, "brass", n=24, width=0.22)
     beam(bone, "shaft", v3(0, y, ns.TAIL_CONE_Z + 0.3), v3(0, y, ns.PROP_Z - 0.6), 0.36, "steel")
     prop = Bone("propeller", origin=(0, y, ns.PROP_Z), parent=root)
     hub = v3(0, y, ns.PROP_Z)
@@ -600,11 +641,21 @@ def tail(bone, root):
             te = ns.FIN_NOTCH_Z - f / span * (ns.FIN_NOTCH_Z - ns.FIN_TIP_TE_Z)
             c = v3(0, y, 0) + axis_dir * math.copysign(f, top)
             return c + v3(0, 0, le), c + v3(0, 0, te)
+        # each strip an airfoil: two skins bulging out from the leading to the trailing edge
+        cs = (0.0, 0.12, 0.3, 0.55, 0.8, 1.0)
+        half = (0.0, 0.7, 1.0, 0.85, 0.45, 0.08)
         for k in range(len(fs) - 1):
             a_le, a_te = edges(fs[k])
             b_le, b_te = edges(fs[k + 1])
-            th = 0.34 - 0.22 * (fs[k] / span)
-            panel(bone, "%s_%d" % (name, k), a_le, a_te, b_le, b_te, th, "plate_dark", normal, overlap=1.02)
+            ta = 0.3 - 0.18 * (fs[k] / span)
+            tb = 0.3 - 0.18 * (fs[k + 1] / span)
+            for sgn in (1, -1):
+                for i in range(len(cs) - 1):
+                    def pt(le, te, t, c, h):
+                        return le + (te - le) * c + normal * (sgn * t * h)
+                    panel(bone, "%s_%d_%d_%d" % (name, k, sgn > 0, i), pt(a_le, a_te, ta, cs[i], half[i]), pt(a_le, a_te, ta, cs[i + 1], half[i + 1]),
+                          pt(b_le, b_te, tb, cs[i], half[i]), pt(b_le, b_te, tb, cs[i + 1], half[i + 1]), 0.04, "plate_dark", normal * sgn,
+                          overlap=1.04)
         tip_le = v3(0, y, ns.FIN_TIP_LE_Z) + axis_dir * top
         tip_te = v3(0, y, ns.FIN_TIP_TE_Z) + axis_dir * top
         root_le = v3(0, y, ns.FIN_Z0) + axis_dir * math.copysign(1.0, top)

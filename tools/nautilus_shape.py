@@ -50,6 +50,13 @@ AFT_CREST = (-1.0, -14.5)  # up to the lifeboat recess
 # windows: the great salon window (centre z, y, radius) on each side; the row of small windows
 SALON_WINDOW = (0.0, 2.6, 2.9)
 SMALL_WINDOWS_Y = -2.3
+# portholes left out: over the airlock's way out (the tunnel through the hull is there), in its back wall
+NO_PORTHOLE = ((26.5, -1), (29.0, 1), (29.0, -1))  # and the two in the back wall of the airlock
+
+
+def porthole_on(z, side):
+    """Is there a porthole of the lower coursive row at z on this side (1 port, -1 starboard)?"""
+    return (z, side) not in NO_PORTHOLE
 SMALL_WINDOWS_Z = (29.0, 26.5, 24.0, 21.5, 19.0, 16.5, 14.0, 11.5, 9.0, 6.5)
 CABIN_PORTHOLES = ((23.2, 2.0),)       # (z, y): one in each cabin of the main level, on both sides
 TOWER_WINDOWS_Y = (9.75, 11.25)        # the four large windows of the wheelhouse (two ahead, one each side)

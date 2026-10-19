@@ -662,6 +662,71 @@ def pipe_run(bone, name, a, b, r=0.18, region="copper", flanges=True):
             beam(bone, "lit_%s_flange%d" % (name, k), p - norm(b - a) * 0.05, p + norm(b - a) * 0.05, 2 * r + 0.1, "brass")
 
 
+def ellipsoid(bone, name, c, radii, R, region, nlat=6, nlon=14, lat0=-90.0, lat1=90.0):
+    """A smooth round body (helmet, dome) as panels between latitude rings, in frame R (columns: x, y, z)."""
+    c = v3(*c)
+    rx, ry_, rz = radii
+    def P(lat, lon):
+        la, lo = math.radians(lat), math.radians(lon)
+        return c + R @ v3(math.cos(la) * math.sin(lo) * rx, math.sin(la) * ry_, math.cos(la) * math.cos(lo) * rz)
+    lats = np.linspace(lat0, lat1, nlat + 1)
+    for i in range(nlat):
+        for j in range(nlon):
+            lo0, lo1 = 360.0 * j / nlon, 360.0 * (j + 1) / nlon
+            a0, a1, b0, b1 = P(lats[i], lo0), P(lats[i], lo1), P(lats[i + 1], lo0), P(lats[i + 1], lo1)
+            mid = (a0 + a1 + b0 + b1) / 4
+            if np.linalg.norm(a1 - a0) < 1e-4 and np.linalg.norm(b1 - b0) < 1e-4:
+                continue
+            cube = gg.board(bone, "lit_%s_%d_%d" % (name, i, j), a0, a1, b0, b1, 0.03, region, mid - c, overlap=1.06)
+            for f in cube.faces.values():
+                if f is not None:
+                    f["stretch"] = True
+
+
+def round_ring(bone, name, c, normal, r, th, region, n=16, width=None):
+    """A thin round ring (window rim, wheel rim) facing `normal`."""
+    normal = norm(normal)
+    e1 = norm(np.cross(normal, v3(0, 1, 0))) if abs(normal[1]) < 0.9 else v3(1, 0, 0)
+    e2 = np.cross(normal, e1)
+    for k in range(n):
+        a0, a1 = 2 * math.pi * k / n, 2 * math.pi * (k + 1) / n
+        beam(bone, "lit_%s_%d" % (name, k), c + (e1 * math.cos(a0) + e2 * math.sin(a0)) * r, c + (e1 * math.cos(a1) + e2 * math.sin(a1)) * r,
+             th, region, width=width or th, up=normal, extend=0.01)
+
+
+def valve_panel(bone, name, p, normal, wheels, w=1.0):
+    """The control panel of the airlock: a riveted iron plate in a brass frame, a round pressure gauge at
+    the top, two handwheels (each with its coloured rim, four spokes and a hub) on their valve bodies,
+    the pipes from the valves up into the ceiling, an enamel label under each wheel.
+    wheels: [(x offset along the wall, rim region, label region)]."""
+    R, u, n = frame(normal)
+    p = v3(*p)
+    h = 1.3
+    box(bone, name + "_plate", p + n * 0.03, R, (w, h, 0.04), "iron")
+    for k, (dx, dy, sw, sh) in enumerate(((0, h / 2, w + 0.08, 0.06), (0, -h / 2, w + 0.08, 0.06), (w / 2, 0, 0.06, h), (-w / 2, 0, 0.06, h))):
+        box(bone, "%s_frame%d" % (name, k), p + u * dx + v3(0, dy, 0) + n * 0.05, R, (sw, sh, 0.06), "brass")
+    for k, (dx, dy) in enumerate(((-1, -1), (-1, 1), (1, -1), (1, 1))):
+        box(bone, "%s_rivet%d" % (name, k), p + u * (dx * (w / 2 - 0.1)) + v3(0, dy * (h / 2 - 0.1), 0) + n * 0.06, R, (0.05, 0.05, 0.03), "brass")
+    # the gauge
+    g = p + v3(0, h / 2 - 0.27, 0) + n * 0.07
+    add_cube(bone, "lit_%s_gauge" % name, g, R, (0.3, 0.3, 0.03), {"all": "brass", "+3": "gauge", "-3": "gauge"}, stretch=True,
+             u_dir=u, v_dir=v3(0, -1, 0))
+    round_ring(bone, name + "_gauge_rim", g + n * 0.02, n, 0.18, 0.04, "brass", n=14, width=0.05)
+    for k, (dx, rim, label) in enumerate(wheels):
+        c = p + u * dx + v3(0, -0.12, 0)
+        box(bone, "%s_valve%d" % (name, k), c + n * 0.09, R, (0.14, 0.14, 0.14), "brass")
+        box(bone, "%s_stem%d" % (name, k), c + n * 0.2, R, (0.05, 0.05, 0.16), "steel")
+        wc = c + n * 0.28
+        round_ring(bone, "%s_wheel%d" % (name, k), wc, n, 0.17, 0.045, rim, n=16, width=0.05)
+        for q in range(4):
+            a = math.pi / 4 + q * math.pi / 2
+            d = u * math.cos(a) + v3(0, 1, 0) * math.sin(a)
+            beam(bone, "lit_%s_spoke%d_%d" % (name, k, q), wc, wc + d * 0.16, 0.03, rim)
+        box(bone, "%s_hub%d" % (name, k), wc, R, (0.07, 0.07, 0.06), "brass")
+        box(bone, "%s_label%d" % (name, k), c - v3(0, 0.3, 0) + n * 0.06, R, (0.26, 0.08, 0.02), label)
+        beam(bone, "lit_%s_pipe%d" % (name, k), c + n * 0.09 + v3(0, 0.07, 0), c + n * 0.09 + v3(0, h, 0), 0.07, "copper")
+
+
 def valve_wheel(bone, name, p, normal, r=0.22, region="coral_red"):
     R, u, n = frame(normal)
     p = v3(*p)
@@ -693,28 +758,26 @@ def diving_suit(bone, name, p, facing):
     box(bone, name + "_belt", p + v3(0, 1.08, 0), R, (0.62, 0.1, 0.46), "iron")
     for k in range(3):
         box(bone, "%s_weight%d" % (name, k), p + R @ v3(-0.18 + 0.18 * k, 1.0, 0.24), R, (0.12, 0.14, 0.06), "steel")
-    # breastplate: copper, bolted
-    box(bone, name + "_corselet", p + v3(0, 1.86, 0), R, (0.7, 0.16, 0.56), "copper")
-    box(bone, name + "_corselet_low", p + R @ v3(0, 1.72, 0.12), R, (0.6, 0.14, 0.34), "copper")
+    # breastplate: a copper dome over the shoulders, its bolted brass rim
+    ellipsoid(bone, name + "_corselet", p + v3(0, 1.8, 0), (0.38, 0.2, 0.32), R, "hull_light", nlat=3, nlon=14, lat0=-10.0, lat1=90.0)
+    round_ring(bone, name + "_corselet_rim", p + v3(0, 1.78, 0), v3(0, 1, 0), 0.36, 0.05, "brass", n=16, width=0.06)
     for k in range(8):
         a = 2 * math.pi * k / 8
-        box(bone, "%s_bolt%d" % (name, k), p + R @ v3(math.cos(a) * 0.32, 1.95, math.sin(a) * 0.26), R, (0.05, 0.05, 0.05), "brass")
-    # the helmet: round (three crossed boxes), front window and two side windows with bars
+        box(bone, "%s_bolt%d" % (name, k), p + R @ v3(math.cos(a) * 0.36, 1.82, math.sin(a) * 0.36), R, (0.05, 0.05, 0.05), "brass")
+    # the helmet: a smooth copper sphere on its collar, a round front window and two side windows with bars
     h = p + v3(0, 2.2, 0)
-    for k in range(3):
-        box(bone, "%s_helmet%d" % (name, k), h, R @ ry(k * math.pi / 6), (0.5, 0.5, 0.5), "copper")
-    box(bone, name + "_helmet_top", h + v3(0, 0.27, 0), R @ ry(math.pi / 4), (0.32, 0.08, 0.32), "copper")
-    for k, (d, side) in enumerate(((v3(0, 0, 1), 0), (v3(1, 0, 0), 1), (v3(-1, 0, 0), -1))):
+    ellipsoid(bone, name + "_helmet", h, (0.27, 0.28, 0.27), R, "hull_light", nlat=6, nlon=14)
+    round_ring(bone, name + "_collar", h - v3(0, 0.2, 0), v3(0, 1, 0), 0.22, 0.06, "brass", n=14, width=0.07)
+    ellipsoid(bone, name + "_valve_top", h + v3(0, 0.29, 0), (0.06, 0.04, 0.06), R, "brass", nlat=2, nlon=8)
+    for k, d in enumerate((v3(0, 0, 1), v3(1, 0, 0), v3(-1, 0, 0))):
         n = R @ d
-        size = 0.26 if k == 0 else 0.18
+        size = 0.2 if k == 0 else 0.14
         rot = R if k == 0 else R @ ry(math.pi / 2)
-        add_cube(bone, "lit_%s_window%d" % (name, k), h + n * 0.28, rot, (size, size, 0.04), {"all": "brass", "+3": "helmet", "-3": "helmet"},
+        add_cube(bone, "lit_%s_window%d" % (name, k), h + n * 0.25, rot, (size * 0.9, size * 0.9, 0.04), {"all": "brass", "+3": "helmet", "-3": "helmet"},
                  stretch=True)
-        for q in range(8):
-            a0, a1 = 2 * math.pi * q / 8, 2 * math.pi * (q + 1) / 8
-            ax, ay = rot[:, 0], rot[:, 1]
-            beam(bone, "lit_%s_rim%d_%d" % (name, k, q), h + n * 0.3 + (ax * math.cos(a0) + ay * math.sin(a0)) * size * 0.62,
-                 h + n * 0.3 + (ax * math.cos(a1) + ay * math.sin(a1)) * size * 0.62, 0.04, "brass", up=n)
+        round_ring(bone, "%s_rim%d" % (name, k), h + n * 0.27, n, size * 0.55, 0.035, "brass", n=14, width=0.05)
+        for b_ in (-1, 0, 1):
+            box(bone, "%s_bar%d_%d" % (name, k, b_ + 1), h + n * 0.285 + rot[:, 0] * (b_ * size * 0.25), rot, (0.018, size * 0.95, 0.018), "brass")
     # air tank and hose
     for k, rot in enumerate((R, R @ ry(math.pi / 4))):
         box(bone, "%s_tank%d" % (name, k), p + R @ v3(0, 1.45, -0.32), rot, (0.28, 0.74, 0.28), "copper")
@@ -727,11 +790,8 @@ def spare_helmet(bone, name, p, facing, s=1.0):
     """A diving helmet on its own: the round copper dome, its bolted collar, the barred front window."""
     R = ry(yaw_of(facing))
     h = v3(*p) + v3(0, 0.25 * s, 0)
-    for k in range(3):
-        box(bone, "%s_dome%d" % (name, k), h, R @ ry(k * math.pi / 6), (0.46 * s, 0.46 * s, 0.46 * s), "copper")
-    box(bone, name + "_top", h + v3(0, 0.25 * s, 0), R @ ry(math.pi / 4), (0.28 * s, 0.07 * s, 0.28 * s), "copper")
-    for k in range(2):
-        box(bone, "%s_collar%d" % (name, k), h - v3(0, 0.24 * s, 0), R @ ry(k * math.pi / 4), (0.52 * s, 0.08 * s, 0.52 * s), "brass")
+    ellipsoid(bone, name + "_dome", h, (0.24 * s, 0.25 * s, 0.24 * s), R, "hull_light", nlat=5, nlon=12)
+    round_ring(bone, name + "_collar", h - v3(0, 0.2 * s, 0), v3(0, 1, 0), 0.22 * s, 0.06, "brass", n=14, width=0.07)
     n = R @ v3(0, 0, 1)
     add_cube(bone, "lit_%s_window" % name, h + n * 0.25 * s, R, (0.24 * s, 0.24 * s, 0.04), {"all": "brass", "+3": "helmet", "-3": "helmet"},
              stretch=True)

@@ -74,6 +74,8 @@ Clic droit sur le levier ou la vanne. Une aide s'affiche quand on les vise.
 
 Pour sortir en plongée :
 
+Les vannes sont sur deux panneaux de commande, à gauche de la porte dans le sas et à droite dans le couloir : volant rouge pour remplir, volant de laiton pour vider. Le tunnel de sortie, côté tribord, fait 2 blocs de large et 2,5 de haut.
+
 1. Entrer dans le sas et fermer la porte 8.
 2. Remplir le sas (vanne rouge), puis ouvrir la porte 9 et sortir à la nage.
 3. Au retour, fermer la porte 9, vider le sas (vanne de laiton), puis ouvrir la porte 8.

@@ -1401,6 +1401,19 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		outerOpen = server.computeOnServer(srv -> ship(srv.getOverworld(), type).doorOpen(Ships.NautilusLayout.AIRLOCK_OUTER_DOOR));
 		check(outerOpen, "%s airlock: full, the outer door opens onto the sea", id);
 		shot(context, id + "_8_sas_ouvert_sur_la_mer");
+		// out through the tunnel and the open outer door, swimming
+		tpLocal(server, shipPose(sp, type), -1.6, Ships.NautilusLayout.LOWER_FLOOR_Y + 0.3, 27.0, 90, 0);
+		context.waitTicks(10);
+		context.getInput().holdKey(o -> o.forwardKey);
+		context.waitTicks(100);
+		context.getInput().releaseKey(o -> o.forwardKey);
+		double[] swim = playerPos(context);
+		double[] swimLocal = shipPose(sp, type).toLocal(swim[0], swim[1], swim[2]);
+		log("%s swims out of the airlock: local %.2f %.2f %.2f", id, swimLocal[0], swimLocal[1], swimLocal[2]);
+		check(swimLocal[0] < -6.0, "%s swims out of the airlock through its tunnel into the sea (local x %.2f)", id, swimLocal[0]);
+		shot(context, id + "_8c_sorti_du_sas");
+		tpLocal(server, shipPose(sp, type), -0.6, Ships.NautilusLayout.LOWER_FLOOR_Y + 0.02, 26.3, 90, 0);
+		context.waitTicks(10);
 		nautilusCommand(server, "sas vider");
 		context.waitTicks(20);
 		level = server.computeOnServer(srv -> ship(srv.getOverworld(), type).airlockLevel());
