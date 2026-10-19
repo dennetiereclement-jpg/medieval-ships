@@ -510,7 +510,7 @@ def casing_fairing(bone):
     loft(bone, "casing_shoulder_s", left, "hull_light", centre)
     # the deck: plates between the shoulders, with holes for the wheelhouse and the projector cage
     # (they stand on it), the lifeboat recess and the main hatch
-    holes = [(-2.6, 2.6, ns.LAMP_CAGE_Z[0] - 0.1, ns.TOWER_Z[1] + 0.1),
+    holes = [(-2.6, 2.6, ns.TOWER_Z[0] - 0.1, ns.TOWER_Z[1] + 0.1),
              (-1.3, 1.3, ns.LIFEBOAT_RECESS[0], ns.LIFEBOAT_RECESS[1]),
              (ns.HATCH_DECK[0], ns.HATCH_DECK[1], ns.HATCH_DECK[2], ns.HATCH_DECK[3])]
     for i in range(len(deck) - 1):
@@ -573,33 +573,30 @@ def tower_shell(bone):
 
 
 def cage_hood(bone):
-    """The projector's cage behind the wheelhouse: a hood rounded over the top."""
-    w = ns.LAMP_CAGE_HALF_WIDTH + 0.08
-    top = ns.LAMP_CAGE_TOP_Y + 0.08
-    r = 1.3
-    prof = [(-w, ns.CASING_TOP_Y)]
-    prof += [(-w, top - r)]
-    prof += [(-w + r - r * math.cos(t), top - r + r * math.sin(t)) for t in np.linspace(0, math.pi / 2, 5)[1:]]
-    prof += [(w - r + r * math.sin(t), top - r + r * math.cos(t)) for t in np.linspace(0, math.pi / 2, 5)[:-1]]
-    prof += [(w, top - r), (w, ns.CASING_TOP_Y)]
-    z0, z1 = ns.LAMP_CAGE_Z[0] - 0.08, ns.TOWER_Z[0] + 0.02
-    sections = [[v3(x, yy, z) for x, yy in prof] for z in np.linspace(z0, z1, 6)]
-    loft(bone, "cage_hood", sections, "hull_light", lambda p: v3(0, ns.CASING_TOP_Y + 2.0, p[2]))
-    # its aft end and the part of its front above the wheelhouse roof (round the lens)
-    for z, tag, lens in ((z0, "aft", False), (z1, "front", True)):
-        ys = np.linspace(ns.CASING_TOP_Y if not lens else ns.TOWER_TOP_Y, top, 9)
-        for k in range(len(ys) - 1):
-            ym = (ys[k] + ys[k + 1]) / 2
-            dy = ym - (top - r)
-            hw = w if dy <= 0 else w - r + math.sqrt(max(0.0, r * r - dy * dy))
-            spans = [(-hw, hw)]
-            if lens and ns.LENS_Y - 0.6 < ym < ns.LENS_Y + 0.6:
-                spans = [(-hw, -0.85), (0.85, hw)]
-            for q, (xa, xb) in enumerate(spans):
-                if xb - xa < 0.05:
-                    continue
-                add_cube(bone, "cage_%s_%d_%d" % (tag, k, q), v3((xa + xb) / 2, ym, z), EYE, (xb - xa, ys[k + 1] - ys[k] + 0.02, 0.06),
-                         "hull_light")
+    """The projector's lantern on the wheelhouse roof (reference sheet: a small round housing over the
+    wheelhouse, the lens looking ahead): a copper drum with brass bands, a domed cap with its vent, the
+    lens in a heavy brass ring at the front."""
+    r = ns.LAMP_CAGE_HALF_WIDTH
+    zc = (ns.LAMP_CAGE_Z[0] + ns.LAMP_CAGE_Z[1]) / 2
+    y0, y1 = ns.TOWER_TOP_Y + 0.3, ns.LAMP_CAGE_TOP_Y - 0.45
+    n = 28
+    lens_a = ns.LENS_Y
+    def ring_pts(y, rr):
+        return [v3(math.sin(2 * math.pi * k / n) * rr, y, zc + math.cos(2 * math.pi * k / n) * rr) for k in range(n)]
+    ys = np.linspace(y0, y1, 6)
+    sections = [ring_pts(y, r) for y in ys]
+    def lens_hole(i, j, mid):
+        return mid[2] > zc + r * 0.6 and abs(mid[0]) < 0.62 and abs(mid[1] - lens_a) < 0.62
+    loft(bone, "lantern_drum", sections, "hull_light", lambda p: v3(0, p[1], zc), closed=True, skip=lens_hole)
+    cap = [ring_pts(y1 + 0.45 * math.sin(t), r * math.cos(t) + 0.02) for t in np.linspace(0, math.pi / 2 - 0.08, 5)]
+    loft(bone, "lantern_cap", cap, "hull_light", lambda p: v3(0, y1 - 1.0, zc), closed=True)
+    for yy, tag in ((y0 + 0.05, "foot"), (y1, "eave"), ((y0 + y1) / 2 - 0.55, "mid")):
+        ring(bone, "lantern_band_%s" % tag, v3(0, yy, zc), v3(0, 1, 0), r + 0.04, 0.12, "brass", n=n, width=0.1)
+    add_cube(bone, "lantern_vent", v3(0, ns.LAMP_CAGE_TOP_Y + 0.02, zc), ry(math.pi / 4), (0.3, 0.16, 0.3), "brass")
+    add_cube(bone, "lantern_vent_top", v3(0, ns.LAMP_CAGE_TOP_Y + 0.14, zc), EYE, (0.4, 0.05, 0.4), "brass")
+    # a skirt down to the domed roof of the wheelhouse
+    skirt = [ring_pts(y, r + 0.12 * (1 - (y - ns.TOWER_TOP_Y + 0.2) / 0.6)) for y in np.linspace(ns.TOWER_TOP_Y - 0.2, y0 + 0.05, 3)]
+    loft(bone, "lantern_skirt", skirt, "hull_light", lambda p: v3(0, p[1], zc), closed=True)
 
 
 SEAM_AZ_STEP = 4      # a longitudinal seam every 4 panels round the hull
@@ -644,6 +641,48 @@ def hull_seams(bone):
             beam(bone, "belt_%d_%d" % (side > 0, i), a, b, 0.14, "seam", width=0.3, up=norm(a - v3(0, ns.AXIS_Y, a[2])), extend=0.03)
             n += 1
     return n
+
+
+def hull_details(bone, lights):
+    """What the reference sheet shows along both flanks: the bow diving planes, a row of small
+    rectangular deadlights high on the hull, the gilded N of the Nautilus near the bow, the navigation
+    lights (red to port, green to starboard) on the wheelhouse."""
+    for side in SIDES:
+        sn = "p" if side > 0 else "s"
+        # bow diving planes: a rounded fin on a pivot boss
+        zp = ns.BOW_Z - 9.0
+        hp, nrm = on_hull(zp, ns.AXIS_Y - 0.6, side, 0.0)
+        nf.ellipsoid(bone, "plane_%s" % sn, hp + v3(side * 1.05, 0, 0), (1.15, 0.09, 0.85), EYE, "plate_dark", nlat=3, nlon=16)
+        nf.ellipsoid(bone, "plane_boss_%s" % sn, hp + v3(side * 0.05, 0, 0), (0.25, 0.3, 0.3), EYE, "brass", nlat=3, nlon=10)
+        beam(bone, "plane_edge_%s" % sn, hp + v3(side * 0.3, 0, 0.75), hp + v3(side * 1.95, 0, 0.3), 0.06, "brass", width=0.08)
+        # deadlights: small rectangular windows in brass frames, high on the hull
+        for z in np.arange(-30.0, 40.0, 4.0):
+            yy = ns.AXIS_Y + ns.half_height(z) * 0.6
+            p_, n_ = on_hull(z, yy, side, 0.05)
+            if in_window(p_, 0.6) or abs(z) < 4.5 or ns.TOWER_Z[0] - 1 < z < ns.TOWER_Z[1] + 1:
+                continue
+            R = np.column_stack([v3(0, 0, 1), norm(np.cross(n_, v3(0, 0, 1))) * (1 if side < 0 else -1), n_])
+            if np.linalg.det(R) < 0:
+                R[:, 1] = -R[:, 1]
+            add_cube(bone, "deadlight_%s_%d" % (sn, int(z * 10)), p_, R, (0.6, 0.36, 0.04), "glass")
+            for k, (dz, dv, sz, sv) in enumerate(((0, 0.22, 0.76, 0.08), (0, -0.22, 0.76, 0.08), (0.34, 0, 0.08, 0.36), (-0.34, 0, 0.08, 0.36))):
+                add_cube(bone, "deadlight_%s_%d_f%d" % (sn, int(z * 10), k), p_ + R[:, 0] * dz + R[:, 1] * dv + n_ * 0.03, R, (sz, sv, 0.07),
+                         "brass")
+        # the N, gilded, in a ring near the bow
+        zn = ns.BOW_Z - 4.5
+        c, n_ = on_hull(zn, ns.AXIS_Y + 1.4, side, 0.08)
+        ring(bone, "emblem_ring_%s" % sn, c, n_, 0.55, 0.08, "gold", n=20, width=0.1)
+        e_up = norm(v3(0, 1, 0) - n_ * n_[1])
+        e_al = norm(np.cross(e_up, n_)) * (-1 if side > 0 else 1)
+        for k, (a_, b_) in enumerate((((-0.2, -0.28), (-0.2, 0.28)), ((-0.2, 0.28), (0.2, -0.28)), ((0.2, -0.28), (0.2, 0.28)))):
+            pa = c + n_ * 0.04 + e_al * a_[0] + e_up * a_[1]
+            pb = c + n_ * 0.04 + e_al * b_[0] + e_up * b_[1]
+            beam(bone, "emblem_n_%s_%d" % (sn, k), pa, pb, 0.05, "gold", width=0.09, up=n_, extend=0.03)
+        # navigation light on the wheelhouse side, in its brass box
+        zl = ns.TOWER_Z[0] + 1.2
+        pl = v3(side * (ns.TOWER_HALF_WIDTH + 0.12), ns.TOWER_TOP_Y - 0.9, zl)
+        add_cube(bone, "navlight_box_%s" % sn, pl, EYE, (0.2, 0.42, 0.42), "brass")
+        add_cube(lights, "glow_navlight_%s" % sn, pl + v3(side * 0.11, 0, 0), EYE, (0.04, 0.3, 0.3), "coral_red" if side > 0 else "green_leather")
 
 
 def tail(bone, root):
@@ -1026,11 +1065,11 @@ def shutters(root, outside):
 def projector_beam(root):
     """The projector: its lens dark (off) or lit, and the beam it throws forward, a translucent cone
     fading away (tilted up a little so that it clears the wheelhouse roof)."""
-    lens_c = v3(0, ns.LENS_Y, ns.TOWER_Z[0] + 0.48)
+    lens_c = v3(0, ns.LENS_Y, ns.LAMP_CAGE_Z[1] + 0.04)
     off = Bone("lens_off", parent=root)
-    add_cube(off, "lens_glass", lens_c, EYE, (1.6, 1.1, 0.04), "glass")
+    add_cube(off, "lens_glass", lens_c, EYE, (1.15, 1.15, 0.04), "glass")
     lens = Bone("fx_lens", parent=root)
-    add_cube(lens, "glow_projector_lens", lens_c + v3(0, 0, 0.01), EYE, (1.6, 1.1, 0.04), "glow")
+    add_cube(lens, "glow_projector_lens", lens_c + v3(0, 0, 0.01), EYE, (1.15, 1.15, 0.04), "glow")
     beam_bone = Bone("fx_beam", parent=root)
     length, r0, r1, n = 34.0, 0.5, 3.4, 10
     tilt = math.atan((r1 - r0) / length)  # the lower edge stays level
@@ -1104,6 +1143,7 @@ def build(g):
     cage_hood(outside)
     tail(outside, root)
     hull_seams(outside)
+    hull_details(outside, lights)
     m = surfaces(rooms, outside, g)
     ladders(fittings)
     fallbacks(root)
@@ -1120,7 +1160,7 @@ def build(g):
             fn(furniture, **kw)
     # the projector lens at the front of the cage, over the wheelhouse roof, and its beam
     projector_beam(root)
-    ring(outside, "projector_rim", v3(0, ns.LENS_Y, ns.TOWER_Z[0] + 0.52), v3(0, 0, 1), 0.85, 0.14, "brass", n=12, width=0.18)
+    ring(outside, "projector_rim", v3(0, ns.LENS_Y, ns.LAMP_CAGE_Z[1] + 0.06), v3(0, 0, 1), 0.66, 0.14, "brass", n=20, width=0.18)
     # lamps on the ceilings of the rooms
     for name, (x0, x1, y0, y1, z0, z1) in ni.ROOMS.items():
         if name in ("crawlway", "airlock"):

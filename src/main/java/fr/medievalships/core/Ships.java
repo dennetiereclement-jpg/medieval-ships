@@ -1093,9 +1093,9 @@ public final class Ships {
 		public static final double TOWER_Z0 = 15.0;
 		public static final double TOWER_Z1 = 22.5;
 		public static final double TOWER_HALF_WIDTH = 2.5;
-		public static final double LAMP_CAGE_Z0 = 10.0;
-		public static final double LAMP_CAGE_TOP_Y = 14.2;
-		public static final double LENS_Y = 13.0;
+		public static final double LAMP_CAGE_Z0 = 15.9;
+		public static final double LAMP_CAGE_TOP_Y = 15.1;
+		public static final double LENS_Y = 14.0;
 		public static final double PILOT_Z = 20.6;
 		public static final double KEEL_BOTTOM_Y = -9.5;
 		/** Ladder up to the hatch on the casing (stair hall), and the hatch itself (door 0). */

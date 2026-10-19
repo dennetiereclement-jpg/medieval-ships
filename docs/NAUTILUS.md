@@ -1,6 +1,6 @@
 # Nautilus — Sous-marin du capitaine Nemo
 
-Le Nautilus est le huitième navire du mod Medieval Ships (identifiant `nautilus`). C'est un sous-marin steampunk de **96 × 14 × 17 blocs** (de l'éperon à la queue × largeur × hauteur de la quille au sommet de la cage du projecteur), reproduit d'après la planche de référence fournie (vues extérieures et 15 panneaux d'intérieur).
+Le Nautilus est le huitième navire du mod Medieval Ships (identifiant `nautilus`). C'est un sous-marin steampunk de **96 × 14 × 17 blocs** (de l'éperon à la queue × largeur × hauteur de la quille au sommet de la lanterne du projecteur), reproduit d'après la planche de référence fournie (vues extérieures et 15 panneaux d'intérieur).
 
 On le pilote comme les autres navires, mais il plonge, tient sa profondeur et remonte. Ses salles sont **réellement parcourables** pendant qu'il navigue ou plonge, et elles restent sèches sous l'eau.
 
@@ -20,7 +20,7 @@ Comparaison avec la planche de référence (captures du test automatique dans le
 
 * **Monter à bord** : clic droit sur la coque depuis l'extérieur. Le joueur est déposé sur la plate-forme (le dessus de la coque), en face de l'endroit cliqué.
 * **Panneau d'accès** (porte 0) : sur la plate-forme. Une échelle descend au pont principal par un puits de 2 blocs de large. La trappe de la timonerie et celle du canot ont aussi des puits de 2 blocs.
-* **Portes** : clic droit pour ouvrir ou fermer. Les 18 portes sont étanches et animées, et elles bloquent réellement le passage une fois fermées. Les portes des salles font 2 blocs de large, à deux battants en acajou (hublot, panneaux moulurés, ferrures de bronze) dans un cadre de laiton ; les panneaux et les trappes font 1 bloc.
+* **Portes** : clic droit pour ouvrir ou fermer. Les 17 portes sont étanches et animées, et elles bloquent réellement le passage une fois fermées. Les portes des salles font 2 blocs de large, à deux battants en acajou (hublot, panneaux moulurés, ferrures de bronze) dans un cadre de laiton ; les panneaux et les trappes font 1 bloc.
 * **Échelles** : on les monte et descend comme des échelles vanilla (touche avancer, saut).
 * **Escalier en colimaçon** : il relie le pont inférieur au pont principal.
 * **Sièges** : clic droit sur une chaise, un fauteuil ou un canapé pour s'asseoir (31 places), puis Maj pour se lever.
@@ -35,7 +35,7 @@ On marche librement dans toutes les salles pendant que le sous-marin avance, tou
 | Principal (y 0 à 4,5) | Coursive avant, cabine de Nemo (austère : lit de fer, cartes, instruments), cabine du professeur Aronnax (lit, bureau, livres), salle à manger (longue table, vaisselle, buffets, lustres), bibliothèque (rayonnages sur trois côtés, globe, bureau), grand salon (orgue monumental, vasque en tridacne géante avec sa fontaine, vitrines de coraux et de perles, canapé et fauteuils rouges, fauteuils et longues-vues tournés vers les deux grandes baies, palmiers, pilastres cannelés, corniche dorée, tableaux), escalier en colimaçon, salle des machines (piles électriques, moteur à pistons) |
 | Inférieur (y -4,5 à -0,5) | Coursive, cuisine, quartier de l'équipage, cales bâbord et tribord, couloir, sas des scaphandres, bas de la salle des machines |
 | Double fond (y -7 à -5) | Boyau technique entre les ballasts, accessible par une trappe secrète (porte 15) |
-| Sur la coque (y 9) | Timonerie (barre, compas, transmetteur d'ordres, cadrans, porte-voix, 4 hublots), cage du projecteur, logement du canot |
+| Sur la coque (y 9) | Timonerie (barre, compas, transmetteur d'ordres, cadrans, porte-voix, 4 hublots) et sa lanterne du projecteur sur le toit, logement du canot |
 
 ## Piloter
 

@@ -40,10 +40,10 @@ CASING_Z = (-24.0, 27.0)
 TOWER_Z = (15.0, 22.5)   # wheelhouse
 TOWER_HALF_WIDTH = 2.5
 TOWER_TOP_Y = 12.5
-LAMP_CAGE_Z = (10.0, 14.2)  # projector cage behind the wheelhouse, its lens above the wheelhouse roof
-LAMP_CAGE_HALF_WIDTH = 1.5
-LAMP_CAGE_TOP_Y = 14.2
-LENS_Y = 13.0
+LAMP_CAGE_Z = (15.9, 18.1)  # the projector lantern, a small round housing on the wheelhouse roof
+LAMP_CAGE_HALF_WIDTH = 1.1
+LAMP_CAGE_TOP_Y = 15.1
+LENS_Y = 14.0
 # crests of spikes: (z0, z1, rise): the fore one climbs from the hull to the top of the wheelhouse front
 FORE_CREST = (31.5, 22.6)
 AFT_CREST = (-1.0, -14.5)  # up to the lifeboat recess

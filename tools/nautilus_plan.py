@@ -29,7 +29,7 @@ LEVELS = [
                                                  "engine_room")),
     ("Pont inférieur (y -4,5 à -0,5)", ni.L0 + 1.0, ("coursive", "airlock", "kitchen", "crew", "corridor_aft", "store_port", "store_stbd",
                                                      "stair_hall", "engine_room")),
-    ("Sur la coque : timonerie et cage du projecteur (y 9)", ni.ns.CASING_TOP_Y + 1.0, ("wheelhouse", "lamp_cage")),
+    ("Sur la coque : timonerie (y 9)", ni.ns.CASING_TOP_Y + 1.0, ("wheelhouse",)),
 ]
 COLORS = {
     ni.OUT: (24, 32, 48), ni.SOLID: (92, 70, 52), ni.DRY: (226, 214, 190), ni.LADDER: (120, 170, 220), ni.AIRLOCK: (110, 170, 200),

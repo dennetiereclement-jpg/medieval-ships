@@ -125,7 +125,6 @@ ROOMS = {
     "crawlway":      (-1.5, 1.5, B0, B1, -12.0, 12.0),
     # on the casing
     "wheelhouse":    (-2.0, 2.0, ns.CASING_TOP_Y, ns.TOWER_TOP_Y - 0.5, ns.TOWER_Z[0] + 0.5, ns.TOWER_Z[1] - 0.5),
-    "lamp_cage":     (-1.0, 1.0, ns.CASING_TOP_Y, ns.LAMP_CAGE_TOP_Y - 0.5, ns.LAMP_CAGE_Z[0] + 0.5, ns.TOWER_Z[0]),
 }
 
 # doors: index -> (name, box). Doors are 2 blocks wide (two leaves), 2 high, as thick as the wall; hatches
@@ -141,7 +140,6 @@ DOORS = {
     7: ("stairs_engine", (1.0, 3.0, M0, M0 + 2.0, -12.5, -12.0)),
     8: ("airlock_inner", (-1.0, 1.0, L0, L0 + 2.0, 24.5, 25.0)),
     9: ("airlock_outer", None),  # in the hull at the end of the airlock tunnel, see build()
-    10: ("wheelhouse_cage", (-1.0, 1.0, ns.CASING_TOP_Y, ns.CASING_TOP_Y + 2.0, ns.TOWER_Z[0], ns.TOWER_Z[0] + 0.5)),
     11: ("wheelhouse_trap", (-1.0, 1.0, ns.CASING_TOP_Y - 0.5, ns.CASING_TOP_Y, 18.5, 20.0)),
     12: ("coursive_kitchen", (1.5, 2.0, L0, L0 + 2.0, 9.0, 11.0)),
     13: ("coursive_crew", (1.5, 2.0, L0, L0 + 2.0, 17.5, 19.5)),
@@ -193,14 +191,14 @@ def build():
     tw = ns.TOWER_HALF_WIDTH
     g.set(SOLID, -tw, tw, ns.AXIS_Y, ns.TOWER_TOP_Y, *ns.TOWER_Z, where=above_axis)
     cw = ns.LAMP_CAGE_HALF_WIDTH
-    g.set(SOLID, -cw, cw, ns.AXIS_Y, ns.LAMP_CAGE_TOP_Y, ns.LAMP_CAGE_Z[0], ns.TOWER_Z[0] + 0.5, where=above_axis)
+    g.set(SOLID, -cw, cw, ns.TOWER_TOP_Y, ns.LAMP_CAGE_TOP_Y - 0.3, *ns.LAMP_CAGE_Z)  # the projector lantern on the roof
     for z0, z1 in ns.KEELS:
         bottom = min(ns.hull_bottom(z0), ns.hull_bottom(z1))
         g.set(SOLID, -0.5, 0.5, bottom - ns.KEEL_DEPTH, ns.AXIS_Y, z0, z1, where=g.Y < ns.AXIS_Y)
     g.set(OUT, *BOAT_RECESS)
     # rooms (inside the pressure hull only; what is not a room stays solid: tanks, machinery, walls)
     for name, box in ROOMS.items():
-        on_top = name in ("wheelhouse", "lamp_cage")
+        on_top = name == "wheelhouse"
         g.set(DRY, *box, where=None if on_top else inner)
     # great salon bay windows: round alcoves through the side walls down to the glass in the hull
     wz, wy, wr = ns.SALON_WINDOW
@@ -228,7 +226,6 @@ def build():
         g.set(WINDOW, x0, x1, wy0, wy1, ns.TOWER_Z[1] - 0.5, ns.TOWER_Z[1])
     for x in (-ns.TOWER_HALF_WIDTH, ns.TOWER_HALF_WIDTH - 0.5):
         g.set(WINDOW, x, x + 0.5, wy0, wy1, *ns.TOWER_SIDE_WINDOW_Z)
-    g.set(WINDOW, -1.0, 1.0, ns.TOWER_TOP_Y, ns.LAMP_CAGE_TOP_Y - 0.5, ns.TOWER_Z[0], ns.TOWER_Z[0] + 0.5)
     # spiral staircase: one turn from the lower floor to the main floor, a step every 1/9 turn
     scx, scz = SPIRAL_CENTER
     r = np.hypot(g.X - scx, g.Z - scz)

@@ -224,7 +224,7 @@ class NautilusTest {
 		assertTrue(kinds[InteriorGrid.DRY] > 20000);
 		assertTrue(kinds[InteriorGrid.LADDER] > 100);
 		assertTrue(kinds[InteriorGrid.AIRLOCK] > 100);
-		for (int d : new int[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16, 17, 18}) {
+		for (int d : new int[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 15, 16, 17, 18}) {
 			assertTrue(kinds[InteriorGrid.DOOR + d] > 0, "door " + d);
 		}
 	}

@@ -556,7 +556,7 @@ def speaking_tube(bone, name, p, top):
 
 
 # ---------------------------------------------------------------- projector, engine room
-def projector(bone, name, lens_center, r=0.8, length=2.6):
+def projector(bone, name, lens_center, r=0.8, length=2.6, compact=False):
     """Electric projector: a long brass barrel pointing forward (+z), the lens at its front, cooling rings,
     the carbon arc box behind, cables."""
     c = v3(*lens_center)
@@ -573,6 +573,8 @@ def projector(bone, name, lens_center, r=0.8, length=2.6):
             beam(bone, "lit_%s_ring%d_%d" % (name, int(-z * 10), k), c + v3(math.cos(a0) * (r + 0.08), math.sin(a0) * (r + 0.08), z),
                  c + v3(math.cos(a1) * (r + 0.08), math.sin(a1) * (r + 0.08), z), 0.08, "steel")
     add_cube(bone, "glow_%s_lens" % name, c + v3(0, 0, -0.06), EYE, (1.45 * r, 1.45 * r, 0.04), "glow")
+    if compact:  # inside its lantern: no arc box, yoke or cable showing
+        return
     box(bone, name + "_arc_box", c + v3(0, 0, -length - 0.35), EYE, (1.1, 1.1, 0.7), "steel")
     box(bone, name + "_yoke", c + v3(0, -r - 0.5, -length / 2), EYE, (0.3, 1.0, 0.3), "steel")
     beam(bone, "lit_%s_cable" % name, c + v3(0.4, -0.3, -length - 0.6), c + v3(0.8, -2.5, -length - 0.8), 0.07, "iron")

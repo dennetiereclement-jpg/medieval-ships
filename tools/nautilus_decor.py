@@ -473,7 +473,7 @@ def wheelhouse_and_cage():
     custom("instrument_panel", name="helm_panel_fore_stbd", center=(-2.0, y + 1.9, 20.8), normal=(1, 0, 0), w=1.2, h=0.8)
     custom("speaking_tube", name="speaking_tube", p=(-1.7, y + 1.4, 16.1), top=(-1.7, y + 2.9, 16.1))
     block(FD + "chained_kerosene_lantern", 0.0, ni.ns.TOWER_TOP_Y - 1.5, 17.0, "stern", solid=False)
-    custom("projector", name="projector", lens_center=(0, ni.ns.LENS_Y, ni.ns.TOWER_Z[0] - 0.05), r=0.55, length=2.4)
+    custom("projector", name="projector", lens_center=(0, ni.ns.LENS_Y, ni.ns.LAMP_CAGE_Z[1] + 0.02), r=0.5, length=1.3, compact=True)
 
 
 def sconces():

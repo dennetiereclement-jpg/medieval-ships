@@ -42,7 +42,7 @@ plongée. Ce sont de **véritables entités**, pas des constructions en blocs :
 | Taille | 96 blocs de l'éperon à la queue, 14 de large, 17 de haut (quille au projecteur) |
 | Propulsion | **il plonge** : hélice, ballasts (Ctrl plonger, Espace remonter), tient sa profondeur seul, jusqu'à 120 blocs |
 | Places assises | 28 (barre de la timonerie + 27 chaises, fauteuils et canapés) |
-| Particularités | **intérieur complet où l'on marche pendant qu'il navigue et plonge, au sec** : salle à manger, bibliothèque, grand salon (orgue, baies à panneaux de fer), cabines de Nemo et d'Aronnax, timonerie, cage du projecteur, coursives, escalier en colimaçon, échelles, cuisine, équipage, cales, salle des machines (piles, moteur animé), **sas** qui se remplit et se vide, canot détachable, double fond ; 18 portes étanches animées ; projecteur à faisceau ; mobilier tiré des mods de décoration du joueur s'ils sont installés ; pilote automatique **3D sous-marin** |
+| Particularités | **intérieur complet où l'on marche pendant qu'il navigue et plonge, au sec** : salle à manger, bibliothèque, grand salon (orgue, baies à panneaux de fer), cabines de Nemo et d'Aronnax, timonerie surmontée de la lanterne du projecteur, coursives, escalier en colimaçon, échelles, cuisine, équipage, cales, salle des machines (piles, moteur animé), **sas** qui se remplit et se vide, canot détachable, double fond ; 17 portes étanches animées ; projecteur à faisceau ; mobilier tiré des mods de décoration du joueur s'ils sont installés ; pilote automatique **3D sous-marin** |
 
 Le Nautilus a son guide : [docs/NAUTILUS.md](docs/NAUTILUS.md) (plan des salles, équipements,
 commandes `/ship nautilus`, itinéraires sous-marins, mobilier utilisé).
@@ -72,6 +72,10 @@ Pour tous :
 * commandes `/ship` pour les administrateurs ;
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
+
+La version 1.7.8 :
+* la cage du projecteur, grosse et carrée derrière la timonerie, devient une petite lanterne ronde posée sur le toit de la timonerie (tambour de cuivre cerclé de laiton, coupole et évent, lentille vers l'avant), comme sur la planche ;
+* flancs plus détaillés : barres de plongée à l'avant, rangée de petites fenêtres rectangulaires dans le haut de la coque, N doré dans un anneau près de la proue, feux de position rouge (bâbord) et vert (tribord) sur la timonerie.
 
 La version 1.7.7 :
 * hublots vus de l'intérieur : seul le manchon rond est visible (les parois carrées du trou ne sont plus dessinées), boulons et crabots plus fins ;
@@ -161,7 +165,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.7.7.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.7.8.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
@@ -270,7 +274,7 @@ blockbench/medieval_galley.bbmodel   galère rouge éditable (texture intégrée
 blockbench/steam_paddleboat.bbmodel  bateau à roue à vapeur éditable (texture intégrée, 3 animations)
 blockbench/elven_sailboat.bbmodel    voilier elfique éditable (texture intégrée, 5 animations)
 blockbench/steampunk_airship.bbmodel dirigeable steampunk éditable
-blockbench/nautilus.bbmodel          Nautilus éditable (texture intégrée, 23 animations : hélice, moteur, barre, 18 portes, panneaux, eau du sas)
+blockbench/nautilus.bbmodel          Nautilus éditable (texture intégrée, 23 animations : hélice, moteur, barre, 17 portes, panneaux, eau du sas)
 src/main/resources/.../interiors/    salles du Nautilus (grille des cloisons, portes, échelles, sas) et mobilier
 config/medievalships.json        configuration par défaut
 docs/                            documentation et aperçu
