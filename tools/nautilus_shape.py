@@ -45,6 +45,27 @@ WHEELHOUSE_PLAN = (2.25, 3.55, 4.5)
 TOWER_SHELL_N = 3.0
 
 
+AFT_FAIRING_Z = (9.0, TOWER_Z[0] + 0.3)  # the slope down from the wheelhouse roof to the casing deck, behind it
+
+
+def aft_fairing(z):
+    """(half width, top) of the sloping fairing behind the wheelhouse at z, or None outside it."""
+    z0, z1 = AFT_FAIRING_Z
+    if not z0 <= z <= z1:
+        return None
+    t = (z - z0) / (z1 - z0)
+    return 1.2 + 1.3 * t, CASING_TOP_Y + (TOWER_TOP_Y - 0.15 - CASING_TOP_Y) * t
+
+
+def in_aft_fairing(x, y, z):
+    f = aft_fairing(z)
+    if f is None or y <= CASING_TOP_Y:
+        return False
+    w, top = f
+    h = top - CASING_TOP_Y
+    return h > 0 and (abs(x) / w) ** 3 + ((y - CASING_TOP_Y) / h) ** 3 <= 1.0
+
+
 def wheelhouse_inside(x, z, inset=0.0):
     a, b, n = WHEELHOUSE_PLAN
     zc = (TOWER_Z[0] + TOWER_Z[1]) / 2

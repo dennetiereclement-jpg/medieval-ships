@@ -192,6 +192,8 @@ def build():
     g.set(SOLID, -tw, tw, ns.AXIS_Y, ns.TOWER_TOP_Y, *ns.TOWER_Z, where=above_axis)
     cw = ns.LAMP_CAGE_HALF_WIDTH
     g.set(SOLID, -cw, cw, ns.TOWER_TOP_Y, ns.LAMP_CAGE_TOP_Y - 0.3, *ns.LAMP_CAGE_Z)  # the projector lantern on the roof
+    fair = np.vectorize(ns.in_aft_fairing)(g.X, g.Y, g.Z) & (g.k == OUT)
+    g.k[fair] = SOLID  # the slope behind the wheelhouse (one can walk up it onto the roof)
     for z0, z1 in ns.KEELS:
         bottom = min(ns.hull_bottom(z0), ns.hull_bottom(z1))
         g.set(SOLID, -0.5, 0.5, bottom - ns.KEEL_DEPTH, ns.AXIS_Y, z0, z1, where=g.Y < ns.AXIS_Y)

@@ -630,6 +630,76 @@ def tower_shell(bone):
                  0.14, "brass", width=0.1)
 
 
+def aft_fairing(bone):
+    """The fairing that slopes down from the back of the wheelhouse roof to the casing deck (the
+    diagonal behind the wheelhouse in the reference sheet): a rounded hood of plating, riveted ribs
+    across it, a ridge with small spikes, a handrail up its side and a vent cowl."""
+    z0, z1 = ns.AFT_FAIRING_Z
+    zs = np.linspace(z0, z1, 14)
+    n = 20
+    sections = []
+    for z in zs:
+        w, top = ns.aft_fairing(z)
+        h = max(0.05, top - ns.CASING_TOP_Y)
+        ring_ = []
+        for k in range(n + 1):
+            t = math.pi * k / n
+            c, s_ = math.cos(t), math.sin(t)
+            ring_.append(v3(w * math.copysign(abs(c) ** (2 / 3), c), ns.CASING_TOP_Y + h * abs(s_) ** (2 / 3), z))
+        sections.append(ring_)
+    loft(bone, "aft_fairing", sections, "hull_light", lambda p: v3(0, ns.CASING_TOP_Y, p[2]))
+    # its ribs, every other section, and the ridge
+    for i in range(1, len(zs) - 1, 2):
+        for k in range(n):
+            beam(bone, "aft_fairing_rib_%d_%d" % (i, k), sections[i][k] + v3(0, 0.03, 0), sections[i][k + 1] + v3(0, 0.03, 0), 0.05, "seam",
+                 width=0.14, extend=0.02)
+    for i in range(len(zs) - 1):
+        a_, b_ = sections[i][n // 2], sections[i + 1][n // 2]
+        beam(bone, "aft_fairing_ridge_%d" % i, a_ + v3(0, 0.06, 0), b_ + v3(0, 0.06, 0), 0.12, "brass", width=0.18, extend=0.03)
+        if i % 2 == 1:
+            spike(bone, "aft_fairing_spike_%d" % i, (a_ + b_) / 2 + v3(0, 0.08, 0), v3(0, 1, -0.4), 0.55, 0.24)
+    # a handrail up the starboard side, on stanchions
+    pts = []
+    for z in np.linspace(z0 + 0.6, z1 - 0.4, 5):
+        w, top = ns.aft_fairing(z)
+        pts.append(v3(-w * 0.75, ns.CASING_TOP_Y + (top - ns.CASING_TOP_Y) * 0.78, z))
+    for k, q in enumerate(pts):
+        beam(bone, "aft_fairing_post_%d" % k, q, q + v3(-0.1, 0.55, 0), 0.06, "brass")
+        if k:
+            beam(bone, "aft_fairing_rail_%d" % k, pts[k - 1] + v3(-0.1, 0.55, 0), q + v3(-0.1, 0.55, 0), 0.06, "brass")
+    # a vent cowl on the port side, turned aft
+    w, top = ns.aft_fairing(z0 + 2.2)
+    base = v3(w * 0.55, ns.CASING_TOP_Y + (top - ns.CASING_TOP_Y) * 0.75, z0 + 2.2)
+    nf.tube(bone, "aft_vent_stem", base, base + v3(0, 0.7, 0), 0.16, 0.16, "brass", n=10)
+    nf.tube(bone, "aft_vent_mouth", base + v3(0, 0.7, 0), base + v3(0, 0.95, -0.35), 0.17, 0.3, "brass", n=10)
+
+
+def deck_fittings(bone):
+    """On the casing deck: stanchions and a rail along both edges, mooring bollards, vent cowls."""
+    top = ns.CASING_TOP_Y
+    edge = ns.CASING_HALF_WIDTH - 0.2
+    skip = [(ns.LIFEBOAT_RECESS[0] - 0.5, ns.LIFEBOAT_RECESS[1] + 0.5), (ns.AFT_FAIRING_Z[0] - 0.3, ns.TOWER_Z[1] + 0.3), (-10.0, -7.0)]
+    zs = [z for z in np.arange(ns.CASING_Z[0] + 1.5, ns.TOWER_Z[1] + 0.5, 1.5) if not any(a <= z <= b for a, b in skip)]
+    for side in SIDES:
+        prev = None
+        for k, z in enumerate(zs):
+            p = v3(side * edge, top, z)
+            beam(bone, "deck_post_%d_%d" % (side > 0, k), p, p + v3(0, 0.75, 0), 0.06, "brass")
+            if prev is not None and abs(prev[2] - z) < 1.6:
+                beam(bone, "deck_rail_%d_%d" % (side > 0, k), prev + v3(0, 0.75, 0), p + v3(0, 0.75, 0), 0.05, "brass")
+                beam(bone, "deck_rail_low_%d_%d" % (side > 0, k), prev + v3(0, 0.4, 0), p + v3(0, 0.4, 0), 0.04, "iron")
+            prev = p
+    for k, z in enumerate((-23.5, -12.0, -3.0, 5.0)):
+        for side in SIDES:
+            c = v3(side * 1.1, top, z)
+            nf.tube(bone, "bollard_%d_%d" % (k, side > 0), c, c + v3(0, 0.35, 0), 0.14, 0.12, "steel", n=8)
+            nf.ellipsoid(bone, "bollard_cap_%d_%d" % (k, side > 0), c + v3(0, 0.38, 0), (0.18, 0.06, 0.18), EYE, "steel", nlat=2, nlon=8)
+    for k, (x, z) in enumerate(((1.2, -5.0), (-1.2, 2.0))):
+        c = v3(x, top, z)
+        nf.tube(bone, "deck_vent_%d" % k, c, c + v3(0, 0.6, 0), 0.15, 0.15, "brass", n=10)
+        nf.tube(bone, "deck_vent_mouth_%d" % k, c + v3(0, 0.6, 0), c + v3(0, 0.85, 0.3), 0.16, 0.28, "brass", n=10)
+
+
 def wheelhouse_lining(bone):
     """The inside of the wheelhouse, rounded as in panel 6: a smooth wall of dark panelling following its
     plan, with the four windows left open (their octagonal frames are set on it, see windows())."""
@@ -1327,6 +1397,8 @@ def build(g):
     tower_shell(outside)
     cage_hood(outside)
     wheelhouse_lining(rooms)
+    aft_fairing(outside)
+    deck_fittings(outside)
     tail(outside, root)
     hull_seams(outside)
     hull_details(outside, lights)
