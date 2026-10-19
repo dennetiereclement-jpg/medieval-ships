@@ -525,6 +525,33 @@ def casing_fairing(bone):
         left.append([v3(-p[0], p[1], p[2]) for p in sh])
         deck.append((z, hw, dy))
     centre = lambda p: v3(0, ns.AXIS_Y + 3.0, p[2])
+    # a row of slot windows along both shoulders, under the deck edge (reference sheet), and a riveted seam
+    for z in np.arange(z0 + 1.0, z1 - 0.5, 1.6):
+        if ns.TOWER_Z[0] - 0.8 < z < ns.TOWER_Z[1] + 0.8 or ns.LIFEBOAT_RECESS[0] - 0.5 < z < ns.LIFEBOAT_RECESS[1] + 0.5:
+            continue
+        hw = 1.75
+        xb = min(3.5, ns.half_width(z) * 0.85)
+        yb = ns.hull_top(z, xb) - 0.2
+        t = 0.55
+        for side in SIDES:
+            pt = v3(side * (hw + (xb - hw) * math.sin(t)), yb + (top - yb) * math.cos(t), z)
+            tan = norm(v3(side * (xb - hw) * math.cos(t), -(top - yb) * math.sin(t), 0))
+            nrm = norm(np.cross(tan, v3(0, 0, 1))) * (-side)  # out of the shoulder
+            R = np.column_stack([v3(0, 0, 1), tan, nrm])
+            if np.linalg.det(R) < 0:
+                R[:, 1] = -R[:, 1]
+            c = pt + nrm * 0.05
+            add_cube(bone, "slot_%d_%d" % (int(z * 10), side > 0), c, R, (0.6, 0.2, 0.04), "glass")
+            for k, (dz, dv, sz, sv) in enumerate(((0, 0.14, 0.74, 0.07), (0, -0.14, 0.74, 0.07), (0.34, 0, 0.07, 0.22), (-0.34, 0, 0.07, 0.22))):
+                add_cube(bone, "slot_%d_%d_f%d" % (int(z * 10), side > 0, k), c + R[:, 0] * dz + R[:, 1] * dv + nrm * 0.02, R, (sz, sv, 0.06),
+                         "brass")
+    for side in SIDES:
+        for i in range(len(zs) - 1):
+            pa, pb = right[i][2], right[i + 1][2]
+            if side < 0:
+                pa, pb = v3(-pa[0], pa[1], pa[2]), v3(-pb[0], pb[1], pb[2])
+            beam(bone, "shoulder_seam_%d_%d" % (side > 0, i), pa, pb, 0.05, "seam", width=0.14,
+                 up=norm(pa - v3(0, ns.AXIS_Y + 3.0, pa[2])), extend=0.05)
     loft(bone, "casing_shoulder_p", right, "hull_light", centre)
     loft(bone, "casing_shoulder_s", left, "hull_light", centre)
     # the deck: plates between the shoulders, with holes for the wheelhouse and the projector cage
