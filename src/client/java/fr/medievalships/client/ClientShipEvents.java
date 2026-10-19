@@ -81,6 +81,7 @@ public final class ClientShipEvents {
 				wake(world, ship, player);
 				engine(world, ship, player);
 				airship(world, ship, player);
+				submarine(world, ship, player);
 			}
 		}
 		rescue(world, player);
@@ -145,6 +146,42 @@ public final class ClientShipEvents {
 			double[] w = pose.toWorld((world.random.nextDouble() - 0.5) * 3.0, hull.waterlineY + 0.1, -hull.halfLength - 0.8);
 			world.addParticleClient(ParticleTypes.BUBBLE, w[0], w[1] - 0.2, w[2], 0, 0.02, 0);
 			world.addParticleClient(ParticleTypes.SPLASH, w[0], w[1], w[2], 0, 0.04, 0);
+		}
+	}
+
+	/**
+	 * Submarine under the sea: bubbles churned back by the propeller while it runs, and air escaping in
+	 * streams from the vents of the casing while it dives. Only near the player, only in water.
+	 */
+	private static void submarine(ClientWorld world, ShipEntity ship, ClientPlayerEntity player) {
+		if (!ship.geometry().submarine() || player == null || player.squaredDistanceTo(ship) > 80 * 80) {
+			return;
+		}
+		ShipPose pose = ship.pose();
+		double speed = Math.abs(ship.syncedSpeed());
+		if (speed > 0.3) {
+			int n = (int) Math.min(5, 1 + speed * 1.5);
+			for (int i = 0; i < n; i++) {
+				double a = world.random.nextDouble() * Math.PI * 2, r = Math.sqrt(world.random.nextDouble()) * 3.0;
+				double[] w = pose.toWorld(Math.sin(a) * r, fr.medievalships.core.Ships.NautilusLayout.AXIS_Y + Math.cos(a) * r,
+						fr.medievalships.core.Ships.NautilusLayout.PROP_Z - 0.6 - world.random.nextDouble());
+				if (!world.getFluidState(net.minecraft.util.math.BlockPos.ofFloored(w[0], w[1], w[2])).isIn(net.minecraft.registry.tag.FluidTags.WATER)) {
+					continue;
+				}
+				double back = Math.signum(ship.syncedSpeed()) * (0.2 + 0.1 * world.random.nextDouble());
+				double[] v = pose.dirToWorld(0, 0.02, -back);
+				world.addParticleClient(ParticleTypes.BUBBLE, w[0], w[1], w[2], v[0], v[1], v[2]);
+			}
+		}
+		if (ship.getY() - ship.lastY < -0.01) {
+			for (int i = 0; i < 3; i++) {
+				double z = -20.0 + world.random.nextDouble() * 45.0;
+				double x = (world.random.nextBoolean() ? 1 : -1) * 1.6;
+				double[] w = pose.toWorld(x, fr.medievalships.core.Ships.NautilusLayout.CASING_TOP_Y + 0.3, z);
+				if (world.getFluidState(net.minecraft.util.math.BlockPos.ofFloored(w[0], w[1], w[2])).isIn(net.minecraft.registry.tag.FluidTags.WATER)) {
+					world.addParticleClient(ParticleTypes.BUBBLE, w[0], w[1], w[2], 0, 0.25, 0);
+				}
+			}
 		}
 	}
 
