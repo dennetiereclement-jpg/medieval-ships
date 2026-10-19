@@ -620,7 +620,7 @@ def _paint_finish(px, rng):
         for x in range(w):
             px[u + x, v + y] = (255, 255, 255, 255)
     _skin(px, R["plate"], _rgb("9a5a30"), rng, patina=0.25)
-    _skin(px, R["plate_dark"], _rgb("6e4228"), rng, patina=0.35)
+    _skin(px, R["plate_dark"], _rgb("54402f"), rng, patina=0.3)
     _skin(px, R["hull_light"], _rgb("a2663a"), rng, patina=0.2)
     u, v, w, h = R["seam"]
     for y in range(h):

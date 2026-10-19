@@ -137,7 +137,7 @@ def hull(bone):
             a0, a1 = 360.0 * j / NAZ, 360.0 * (j + 1) / NAZ
             am = (a0 + a1) / 2
             outward = v3(math.sin(math.radians(am)), math.cos(math.radians(am)), 0)
-            region = "plate" if math.cos(math.radians(am)) > -0.3 else "plate_dark"
+            region = "plate" if math.cos(math.radians(am)) > -0.12 else "plate_dark"  # dark below the belt, as in the reference
             corners = [P(za, a0), P(za, a1), P(zb, a0), P(zb, a1)]
             if not near_window(corners):
                 panel(bone, "hull_%d_%d" % (i, j), *corners, 0.12, region, outward)
@@ -249,8 +249,13 @@ def ram(bone):
     y = ns.AXIS_Y
     segs = ((ns.BOW_Z - 3.0, ns.BOW_Z + 1.0, 1.3), (ns.BOW_Z + 1.0, ns.BOW_Z + 3.5, 0.9), (ns.BOW_Z + 3.5, ns.RAM_TIP_Z - 1.0, 0.55),
             (ns.RAM_TIP_Z - 1.0, ns.RAM_TIP_Z, 0.22))
-    for k, (z0, z1, r) in enumerate(segs):
-        add_cube(bone, "ram_%d" % k, v3(0, y, (z0 + z1) / 2), rz(math.pi / 4), (r, r, z1 - z0 + 0.05), "steel")
+    # a round spear tapering to its point, brass rings at the joints
+    stations = [(ns.BOW_Z - 3.0, 0.68), (ns.BOW_Z + 1.0, 0.52), (ns.BOW_Z + 3.5, 0.42), (ns.RAM_TIP_Z - 1.0, 0.26), (ns.RAM_TIP_Z, 0.03)]
+    for k in range(len(stations) - 1):
+        (z0, r0), (z1, r1) = stations[k], stations[k + 1]
+        nf.tube(bone, "ram_%d" % k, v3(0, y, z0), v3(0, y, z1), r0, r1, "steel", n=12)
+        if k < len(stations) - 2:
+            ring(bone, "ram_ring_%d" % k, v3(0, y, z1), v3(0, 0, 1), r1 + 0.04, 0.16, "brass", n=14, width=0.14)
     # a flange on top and under the ram, with teeth
     beam(bone, "ram_fin_top", v3(0, y + 0.3, ns.BOW_Z - 1.0), v3(0, y + 0.1, ns.RAM_TIP_Z - 1.2), 0.12, "steel", width=0.5, up=v3(1, 0, 0))
     beam(bone, "ram_fin_bottom", v3(0, y - 0.3, ns.BOW_Z - 1.0), v3(0, y - 0.1, ns.RAM_TIP_Z - 1.2), 0.12, "steel", width=0.5, up=v3(1, 0, 0))
@@ -295,6 +300,9 @@ def crests(bone):
     # a ridge of small spikes along the back of the bow, from the ram to the foot of the arch
     for k, z in enumerate(np.arange(z0 + 1.2, ns.BOW_Z - 0.5, 1.1)):
         spike(bone, "bow_ridge_spike_%d" % k, v3(0, ns.hull_top(z) - 0.05, z), v3(0, 1, 0.45), 0.55 - 0.03 * k, 0.24)
+    # and a row of spikes under the bow, along its keel line, as in the reference sheet
+    for k, z in enumerate(np.arange(ns.BOW_Z - 1.0, 22.0, -1.3)):
+        spike(bone, "bow_keel_spike_%d" % k, v3(0, ns.hull_bottom(z) + 0.05, z), v3(0, -1, 0.5), 0.6 - 0.015 * k, 0.26)
     # aft crest: spikes along the casing
     za, zb = ns.AFT_CREST
     for k, z in enumerate(np.linspace(za, zb, 11)):
@@ -575,6 +583,15 @@ def tower_shell(bone):
     for k, (sc, dyr) in enumerate(((1.0, 0.0), (0.96, 0.25), (0.86, 0.5), (0.68, 0.72), (0.42, 0.86), (0.04, 0.92))):
         roof.append([v3(x * sc, ns.TOWER_TOP_Y + dyr, zc + (z - zc) * sc) for x, z in plan])
     loft(bone, "tower_roof", roof, "hull_light", lambda p: v3(0, ns.TOWER_TOP_Y - 2.0, zc), closed=True)
+    # riveted vertical straps between the windows
+    for k in range(0, len(plan), 8):
+        x, z = plan[k]
+        mid = v3(x, (ns.CASING_TOP_Y + ns.TOWER_TOP_Y) / 2, z)
+        if window(1, k, v3(x * 0.99, (wy0 + wy1) / 2, z)):
+            continue
+        out = norm(v3(x, 0, z - zc))
+        beam(bone, "tower_strap_%d" % k, v3(x, ns.CASING_TOP_Y + 0.1, z) + out * 0.06, v3(x, ns.TOWER_TOP_Y - 0.05, z) + out * 0.06, 0.05, "seam",
+             width=0.16, up=out)
     # brass bands at the foot and under the roof
     for yy, tag in ((ns.CASING_TOP_Y + 0.08, "foot"), (ns.TOWER_TOP_Y - 0.05, "eave")):
         for k in range(len(plan)):
@@ -798,6 +815,14 @@ def tail(bone, root):
                     panel(bone, "%s_%d_%d_%d" % (name, k, sgn > 0, i), pt(a_le, a_te, ta, cs[i], half[i]), pt(a_le, a_te, ta, cs[i + 1], half[i + 1]),
                           pt(b_le, b_te, tb, cs[i], half[i]), pt(b_le, b_te, tb, cs[i + 1], half[i + 1]), 0.04, "plate_dark", normal * sgn,
                           overlap=1.04)
+        # brass ribs fanning out over both faces of the lobe
+        for c_ in (0.3, 0.55, 0.8):
+            a_le, a_te = edges(fs[0])
+            b_le, b_te = edges(fs[-1])
+            ra, rb = a_le + (a_te - a_le) * c_, b_le + (b_te - b_le) * c_
+            for sgn in (1, -1):
+                beam(bone, "%s_rib_%d_%d" % (name, int(c_ * 100), sgn > 0), ra + normal * (sgn * 0.2), rb + normal * (sgn * 0.08), 0.06, "brass",
+                     width=0.1, up=normal)
         tip_le = v3(0, y, ns.FIN_TIP_LE_Z) + axis_dir * top
         tip_te = v3(0, y, ns.FIN_TIP_TE_Z) + axis_dir * top
         root_le = v3(0, y, ns.FIN_Z0) + axis_dir * math.copysign(1.0, top)
