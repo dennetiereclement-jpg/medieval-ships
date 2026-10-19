@@ -683,6 +683,32 @@ def ellipsoid(bone, name, c, radii, R, region, nlat=6, nlon=14, lat0=-90.0, lat1
                     f["stretch"] = True
 
 
+def tube(bone, name, p0, p1, r0, r1, region, n=10, rx=1.0):
+    """A round tapered tube from p0 (radius r0) to p1 (radius r1); rx flattens it sideways (< 1)."""
+    p0, p1 = v3(*p0), v3(*p1)
+    d = norm(p1 - p0)
+    e1 = norm(np.cross(d, v3(0, 0, 1) if abs(d[2]) < 0.9 else v3(1, 0, 0)))
+    e2 = np.cross(d, e1)
+    def P(c, r, a):
+        return c + (e1 * math.cos(a) * rx + e2 * math.sin(a)) * r
+    for j in range(n):
+        a0, a1 = 2 * math.pi * j / n, 2 * math.pi * (j + 1) / n
+        am = (a0 + a1) / 2
+        cube = gg.board(bone, "lit_%s_%d" % (name, j), P(p0, r0, a0), P(p0, r0, a1), P(p1, r1, a0), P(p1, r1, a1), 0.03, region,
+                        e1 * math.cos(am) + e2 * math.sin(am), overlap=1.08)
+        for f in cube.faces.values():
+            if f is not None:
+                f["stretch"] = True
+
+
+def limb(bone, name, points, radii, region, n=10, rx=1.0):
+    """A limb as a chain of tubes through `points` with a radius at each point, a ball at each joint."""
+    for k in range(len(points) - 1):
+        tube(bone, "%s_%d" % (name, k), points[k], points[k + 1], radii[k], radii[k + 1], region, n=n, rx=rx)
+    for k in range(1, len(points) - 1):
+        ellipsoid(bone, "%s_joint%d" % (name, k), points[k], (radii[k] * rx, radii[k], radii[k]), EYE, region, nlat=3, nlon=8)
+
+
 def round_ring(bone, name, c, normal, r, th, region, n=16, width=None):
     """A thin round ring (window rim, wheel rim) facing `normal`."""
     normal = norm(normal)
@@ -744,20 +770,29 @@ def diving_suit(bone, name, p, facing):
     breastplate, the canvas suit, a belt of lead weights, gloves, heavy boots, the air tank and hose."""
     R = ry(yaw_of(facing))
     p = v3(*p)
-    box(bone, name + "_stand", p + v3(0, 0.05, 0), R, (0.72, 0.1, 0.62), "steel")
+    P = lambda x, y, z: p + R @ v3(x, y, z)
+    # the stand: a round iron base, a post up the back
+    ellipsoid(bone, name + "_stand", P(0, 0.04, -0.08), (0.38, 0.05, 0.4), R, "steel", nlat=2, nlon=14, lat0=-90.0, lat1=90.0)
+    tube(bone, name + "_post", P(0, 0.05, -0.58), P(0, 1.95, -0.58), 0.04, 0.04, "iron", n=6)
+    tube(bone, name + "_post_arm", P(0, 1.9, -0.58), P(0, 1.9, -0.25), 0.03, 0.03, "iron", n=6)
     for s_ in (-1, 1):
-        box(bone, "%s_boot%d" % (name, s_ > 0), p + R @ v3(s_ * 0.15, 0.22, 0.04), R, (0.24, 0.26, 0.38), "iron")
-        box(bone, "%s_sole%d" % (name, s_ > 0), p + R @ v3(s_ * 0.15, 0.11, 0.05), R, (0.27, 0.06, 0.42), "copper")
-        for k, rot in enumerate((R, R @ ry(math.pi / 4))):
-            box(bone, "%s_leg%d_%d" % (name, s_ > 0, k), p + R @ v3(s_ * 0.15, 0.76, 0), rot, (0.24, 0.82, 0.24), "suit")
-            box(bone, "%s_arm%d_%d" % (name, s_ > 0, k), p + R @ v3(s_ * 0.39, 1.38, 0.02), rot @ gg.rz(s_ * 0.12), (0.2, 0.66, 0.2), "suit")
-        box(bone, "%s_cuff%d" % (name, s_ > 0), p + R @ v3(s_ * 0.42, 1.06, 0.03), R, (0.2, 0.06, 0.2), "copper")
-        box(bone, "%s_glove%d" % (name, s_ > 0), p + R @ v3(s_ * 0.43, 0.94, 0.04), R, (0.17, 0.18, 0.2), "iron")
-    for k, rot in enumerate((R, R @ ry(math.pi / 4))):
-        box(bone, "%s_body%d" % (name, k), p + v3(0, 1.42, 0), rot, (0.56, 0.78, 0.4), "suit")
-    box(bone, name + "_belt", p + v3(0, 1.08, 0), R, (0.62, 0.1, 0.46), "iron")
-    for k in range(3):
-        box(bone, "%s_weight%d" % (name, k), p + R @ v3(-0.18 + 0.18 * k, 1.0, 0.24), R, (0.12, 0.14, 0.06), "steel")
+        sd = s_ > 0
+        # lead-soled boots: a rounded toe cap, the brass straps, the thick sole
+        ellipsoid(bone, "%s_boot%d" % (name, sd), P(s_ * 0.15, 0.17, 0.06), (0.13, 0.13, 0.21), R, "iron", nlat=4, nlon=12, lat0=-20.0)
+        box(bone, "%s_sole%d" % (name, sd), P(s_ * 0.15, 0.06, 0.06), R, (0.27, 0.08, 0.44), "copper")
+        box(bone, "%s_strap%d" % (name, sd), P(s_ * 0.15, 0.24, 0.06), R, (0.28, 0.04, 0.12), "brass")
+        # the canvas legs, baggy at the knee, and the arms hanging a little out from the body
+        limb(bone, "%s_leg%d" % (name, sd), [P(s_ * 0.15, 0.26, 0.04), P(s_ * 0.16, 0.66, 0.06), P(s_ * 0.15, 1.08, 0.0)], [0.12, 0.14, 0.15], "suit")
+        limb(bone, "%s_arm%d" % (name, sd), [P(s_ * 0.32, 1.66, 0.0), P(s_ * 0.42, 1.36, 0.02), P(s_ * 0.44, 1.08, 0.06)], [0.12, 0.11, 0.1], "suit")
+        round_ring(bone, "%s_cuff%d" % (name, sd), P(s_ * 0.44, 1.06, 0.06), v3(0, 1, 0), 0.1, 0.04, "copper", n=10, width=0.05)
+        ellipsoid(bone, "%s_glove%d" % (name, sd), P(s_ * 0.445, 0.95, 0.07), (0.07, 0.11, 0.08), R, "iron", nlat=3, nlon=8)
+        round_ring(bone, "%s_knee%d" % (name, sd), P(s_ * 0.16, 0.66, 0.06), v3(0, 1, 0), 0.15, 0.03, "iron", n=10, width=0.04)
+    # the body: a round canvas tube, wider at the chest
+    limb(bone, name + "_body", [P(0, 1.02, 0.0), P(0, 1.36, 0.0), P(0, 1.74, 0.0)], [0.27, 0.3, 0.3], "suit", n=14, rx=1.15)
+    round_ring(bone, name + "_belt", P(0, 1.08, 0.0), v3(0, 1, 0), 0.3, 0.1, "iron", n=14, width=0.06)
+    for k in range(5):
+        a = math.pi * (0.15 + 0.7 * k / 4)
+        box(bone, "%s_weight%d" % (name, k), P(math.cos(a) * 0.33, 1.0, math.sin(a) * 0.28), R @ ry(math.pi / 2 - a), (0.1, 0.14, 0.05), "steel")
     # breastplate: a copper dome over the shoulders, its bolted brass rim
     ellipsoid(bone, name + "_corselet", p + v3(0, 1.8, 0), (0.38, 0.2, 0.32), R, "hull_light", nlat=3, nlon=14, lat0=-10.0, lat1=90.0)
     round_ring(bone, name + "_corselet_rim", p + v3(0, 1.78, 0), v3(0, 1, 0), 0.36, 0.05, "brass", n=16, width=0.06)
@@ -779,11 +814,16 @@ def diving_suit(bone, name, p, facing):
         for b_ in (-1, 0, 1):
             box(bone, "%s_bar%d_%d" % (name, k, b_ + 1), h + n * 0.285 + rot[:, 0] * (b_ * size * 0.25), rot, (0.018, size * 0.95, 0.018), "brass")
     # air tank and hose
-    for k, rot in enumerate((R, R @ ry(math.pi / 4))):
-        box(bone, "%s_tank%d" % (name, k), p + R @ v3(0, 1.45, -0.32), rot, (0.28, 0.74, 0.28), "copper")
-    box(bone, name + "_tank_valve", p + R @ v3(0, 1.88, -0.32), R, (0.1, 0.12, 0.1), "brass")
-    beam(bone, "lit_%s_hose_a" % name, p + R @ v3(0, 1.92, -0.32), p + R @ v3(0.2, 2.05, -0.26), 0.05, "iron")
-    beam(bone, "lit_%s_hose_b" % name, p + R @ v3(0.2, 2.05, -0.26), h + R @ v3(0.2, 0, -0.18), 0.05, "iron")
+    # the Rouquayrol air tank on the back: a copper cylinder with domed ends in two brass straps, its
+    # regulator, the hose curving up to the helmet
+    tube(bone, name + "_tank", P(0, 1.12, -0.4), P(0, 1.76, -0.4), 0.14, 0.14, "hull_light", n=12)
+    for y_, lat0, lat1 in ((1.12, -90.0, 0.0), (1.76, 0.0, 90.0)):
+        ellipsoid(bone, "%s_tank_end%d" % (name, y_ > 1.5), P(0, y_, -0.4), (0.14, 0.08, 0.14), R, "hull_light", nlat=2, nlon=12, lat0=lat0,
+                  lat1=lat1)
+    for y_ in (1.25, 1.62):
+        round_ring(bone, "%s_tank_strap%d" % (name, y_ > 1.5), P(0, y_, -0.4), v3(0, 1, 0), 0.15, 0.04, "brass", n=12, width=0.05)
+    box(bone, name + "_tank_valve", P(0, 1.88, -0.4), R, (0.1, 0.1, 0.1), "brass")
+    limb(bone, name + "_hose", [P(0, 1.92, -0.4), P(0.16, 2.06, -0.38), P(0.22, 2.12, -0.2)], [0.035, 0.035, 0.035], "iron", n=6)
 
 
 def spare_helmet(bone, name, p, facing, s=1.0):

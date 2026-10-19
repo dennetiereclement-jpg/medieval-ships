@@ -215,6 +215,11 @@ def windows(bone, lights):
                 t = 2 * math.pi * k / 8
                 add_cube(bone, "%s_bolt%d" % (name, k), c + nrm * 0.08 + (e1 * math.cos(t) + e2 * math.sin(t)) * 0.56, EYE,
                          (0.07, 0.07, 0.07), "steel")
+            # an eyebrow over it, the rain lip of a ship's porthole
+            for k in range(7):
+                t0, t1 = math.radians(25 + 130 * k / 7), math.radians(25 + 130 * (k + 1) / 7)
+                beam(bone, "%s_brow%d" % (name, k), c + nrm * 0.1 + (e1 * math.cos(t0) + e2 * math.sin(t0)) * 0.76,
+                     c + nrm * 0.1 + (e1 * math.cos(t1) + e2 * math.sin(t1)) * 0.76, 0.06, "brass", width=0.16, up=nrm, extend=0.01)
     # a riveted brass frame round the airlock's way out, on the starboard hull
     z0, z1, y0, y1 = AIRLOCK_MOUTH
     corners = [on_hull(z, y, -1, 0.06)[0] for z, y in ((z0 - 0.1, y0 - 0.1), (z1 + 0.1, y0 - 0.1), (z1 + 0.1, y1 + 0.1), (z0 - 0.1, y1 + 0.1))]
@@ -427,6 +432,11 @@ def porthole_sleeves(bone, fx, g):
                      width=0.2, up=v3(side, 0, 0), extend=0.01)
                 if j % 4 == 0:
                     add_cube(bone, "lit_%s_bolt%d" % (name, j), P(wall - side * 0.12, 0.68, am), EYE, (0.06, 0.06, 0.06), "steel")
+            # four dogs clamping the glass frame, a hinge on one side
+            for k in range(4):
+                am = math.pi / 4 + k * math.pi / 2
+                add_cube(bone, "lit_%s_dog%d" % (name, k), P(wall - side * 0.1, 0.56, am), EYE, (0.1, 0.09, 0.09), "steel")
+            add_cube(bone, "lit_%s_hinge" % name, P(wall - side * 0.1, 0.62, math.pi), EYE, (0.1, 0.22, 0.1), "brass")
             # the corners of the square opening, hidden by a round bezel on the wall round the collar
             round_bezel(bone, "lit_%s_bezel" % name, v3(wall - side * 0.02, y, z), v3(-side, 0, 0), 0.6, 0.56, "brass", n=16)
             add_cube(fx, "lit_%s_glass" % name, v3(glass + side * 0.1, y, z), EYE, (0.02, 0.9, 0.9), "glassfx")
@@ -611,8 +621,8 @@ def tail(bone, root):
     beam(bone, "shaft", v3(0, y, ns.TAIL_CONE_Z + 0.3), v3(0, y, ns.PROP_Z - 0.6), 0.36, "steel")
     prop = Bone("propeller", origin=(0, y, ns.PROP_Z), parent=root)
     hub = v3(0, y, ns.PROP_Z)
-    add_cube(prop, "prop_hub", hub, EYE, (0.8, 0.8, 0.7), "brass")
-    add_cube(prop, "prop_cap", hub + v3(0, 0, -0.45), rz(math.pi / 4), (0.5, 0.5, 0.3), "brass")
+    nf.ellipsoid(prop, "prop_hub", hub, (0.45, 0.45, 0.4), EYE, "brass", nlat=4, nlon=12)
+    nf.ellipsoid(prop, "prop_cap", hub + v3(0, 0, -0.35), (0.3, 0.3, 0.35), EYE, "brass", nlat=3, nlon=12, lat0=-90.0, lat1=90.0)
     pitch = math.radians(28)
     for k in range(4):
         a = 2 * math.pi * k / 4 + math.pi / 4
@@ -621,9 +631,13 @@ def tail(bone, root):
         w = side * math.cos(pitch) + v3(0, 0, 1) * math.sin(pitch)
         n = np.cross(d, w)
         axes = np.column_stack([d, w, n])
-        add_cube(prop, "prop_root_%d" % k, hub + d * 0.8, axes, (0.8, 0.6, 0.14), "brass")
-        add_cube(prop, "prop_blade_%d" % k, hub + d * 2.0, axes, (1.7, 1.25, 0.12), "brass")
-        add_cube(prop, "prop_tip_%d" % k, hub + d * (ns.PROP_R - 0.2), axes, (0.45, 0.85, 0.12), "brass")
+        # a twisted blade: the pitch eases off and the chord swells then narrows towards the tip
+        for q, (r0, r1, ch, pt) in enumerate(((0.4, 1.0, 0.6, 34), (1.0, 1.6, 1.0, 30), (1.6, 2.2, 1.25, 26), (2.2, 2.7, 1.15, 22),
+                                              (2.7, ns.PROP_R, 0.75, 18))):
+            pr = math.radians(pt)
+            wq = side * math.cos(pr) + v3(0, 0, 1) * math.sin(pr)
+            ax = np.column_stack([d, wq, np.cross(d, wq)])
+            add_cube(prop, "prop_blade_%d_%d" % (k, q), hub + d * ((r0 + r1) / 2), ax, (r1 - r0 + 0.04, ch, 0.12 - 0.015 * q), "brass")
     # fish-tail fin (vertical lobes) and the horizontal fins, as strips between the swept edges
     def lobes(name, axis_dir, top):
         span = abs(top)

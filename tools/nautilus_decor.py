@@ -413,7 +413,7 @@ def airlock():
     """Sas des scaphandres (panel 14): diving suits on their stands, air tanks, valves."""
     l = ni.L0
     for k, x in enumerate((-1.4, 0.1, 1.6)):
-        custom("diving_suit", solid=(x - 0.35, x + 0.35, l, l + 2.4, 28.1, 28.9), name="suit_%d" % k, p=(x, l, 28.5), facing="stern")
+        custom("diving_suit", solid=(x - 0.35, x + 0.35, l, l + 2.4, 28.0, 28.95), name="suit_%d" % k, p=(x, l, 28.4), facing="stern")
     for k, (x, z) in enumerate(((2.1, 25.6), (2.1, 26.4))):
         custom("tank", solid=(x - 0.35, x + 0.35, l, l + 1.7, z - 0.35, z + 0.35), name="airlock_tank_%d" % k, p=(x, l, z))
     # the valves: filling (red wheel) and pumps (brass wheel), on a panel inside the airlock and on another
