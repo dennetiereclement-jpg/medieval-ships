@@ -33,7 +33,8 @@ REGIONS = {
     "hatch":       (176, 32, 32, 32),
     "door":        (208, 32, 32, 32),  # watertight door: riveted steel, thick frame, wheel painted
     "murk":        (416, 96, 8, 8),
-    "seam":        (448, 96, 16, 8),   # a riveted butt strap of the hull plating (tiled along the seams)    # plain white: the murky sea behind the glass (tinted by the renderer, see ShipRenderer)
+    "seam":        (448, 96, 16, 8),   # a riveted butt strap of the hull plating (tiled along the seams)
+    "seam_dark":   (448, 104, 16, 8),  # the same on the dark underside    # plain white: the murky sea behind the glass (tinted by the renderer, see ShipRenderer)
     "door_leaf":   (192, 96, 32, 64),  # one leaf of a 2 block door (1 x 2): mahogany, bronze straps, porthole, panels
     # rooms: luxury (salon, library, dining room, Aronnax), austere and technical
     "wall_lux":    (0, 64, 32, 32),    # dark wood panelling, gilded band, red fabric above
@@ -552,6 +553,26 @@ def _fabric(px, region, base, dark, rng, folds=True, crackle=False):
             _put(px, u, v, x, y, c)
 
 
+def _skin2(px, region, base, rng, patina=0.0, hammer=0.05, glint=0.0):
+    """Copper / bronze skin, richer than _skin: slow mottling, a fine hammered grain, a few small pits,
+    verdigris in the hollows, rare warm glints; no seams, no gradient (it tiles on every panel)."""
+    u, v, w, h = region
+    n1 = _noise(w, h, 2, rng)
+    n2 = _noise(w, h, 4, rng)
+    n3 = _noise(w, h, 8, rng)
+    for y in range(h):
+        for x in range(w):
+            k = 0.93 + 0.09 * n1[y][x] + 0.04 * n2[y][x] + hammer * (n3[y][x] - 0.5)
+            c = tuple(q * k for q in base)
+            if patina and n2[y][x] < 0.22:
+                c = _mix(c, _rgb("4a7058"), patina * (0.22 - n2[y][x]) / 0.22)
+            if glint and n3[y][x] > 0.86 and n1[y][x] > 0.5:
+                c = _mix(c, (255, 214, 160), glint * (n3[y][x] - 0.86) / 0.14)
+            if rng.random() < 0.004:
+                c = _shade(c, 0.9)
+            _put(px, u, v, x, y, c)
+
+
 def _skin(px, region, base, rng, patina=0.0):
     """Smooth copper skin for the hull, the casing and the wheelhouse: no seams or rivets that would
     repeat on every panel (the panels then read as one smooth curved surface), only a soft, slow
@@ -619,9 +640,28 @@ def _paint_finish(px, rng):
     for y in range(h):
         for x in range(w):
             px[u + x, v + y] = (255, 255, 255, 255)
-    _skin(px, R["plate"], _rgb("9a5a30"), rng, patina=0.25)
-    _skin(px, R["plate_dark"], _rgb("54402f"), rng, patina=0.3)
-    _skin(px, R["hull_light"], _rgb("a2663a"), rng, patina=0.2)
+    _skin2(px, R["plate"], _rgb("a05e32"), rng, patina=0.3, hammer=0.07, glint=0.35)
+    _skin2(px, R["plate_dark"], _rgb("3a2c22"), rng, patina=0.45, hammer=0.08, glint=0.12)  # the dark underside
+    _skin2(px, R["hull_light"], _rgb("a8693c"), rng, patina=0.25, hammer=0.07, glint=0.35)
+    # glass: deep sea-green, darker at the bottom, a diagonal glint
+    u, v, w, h = R["glass"]
+    for y in range(h):
+        for x in range(w):
+            c = _mix(_rgb("2c5e66"), _rgb("0c1e24"), y / (h - 1))
+            if abs((x - y) - 3) < 0.6:
+                c = _mix(c, (210, 240, 240), 0.4)
+            _put(px, u, v, x, y, c)
+    u, v, w, h = R["seam_dark"]
+    for y in range(h):
+        for x in range(w):
+            c = _rgb("2e2219")
+            if y == 0:
+                c = _rgb("5a4432")
+            elif y == h - 1:
+                c = _rgb("16100b")
+            if y in (3, 4) and x % 4 in (1, 2):
+                c = _rgb("7a5e44") if y == 3 else _rgb("1e150e")
+            _put(px, u, v, x, y, c)
     u, v, w, h = R["seam"]
     for y in range(h):
         for x in range(w):

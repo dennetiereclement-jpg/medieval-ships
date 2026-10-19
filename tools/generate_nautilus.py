@@ -266,7 +266,7 @@ def ram(bone):
             add_cube(bone, "ram_tooth_%d_%d" % (k, s > 0), v3(0, y + s * (0.42 - 0.03 * k), z), rx(math.radians(45)), (0.1, 0.3, 0.3), "steel")
 
 
-def spike(bone, name, base, up, h, w, region="steel"):
+def spike(bone, name, base, up, h, w, region="plate_dark"):
     """A tapering spike from base along up (two crossed tapered plates)."""
     up = norm(up)
     for k in range(3):
@@ -284,7 +284,10 @@ def crests(bone):
     p1 = v3(0, ns.TOWER_TOP_Y + 0.2, (z0 + z1) / 2 + 2.5)
     pts = [(1 - t) ** 2 * p0 + 2 * (1 - t) * t * p1 + t * t * p2 for t in np.linspace(0, 1, 19)]
     for k in range(len(pts) - 1):
-        beam(bone, "crest_fore_%d" % k, pts[k], pts[k + 1], 0.55, "plate_dark", width=0.3, up=v3(1, 0, 0), extend=0.05)
+        beam(bone, "crest_fore_%d" % k, pts[k], pts[k + 1], 0.7, "plate_dark", width=0.42, up=v3(1, 0, 0), extend=0.05)
+        for sd in (1, -1):  # riveted straps on both faces
+            beam(bone, "crest_fore_strap_%d_%d" % (k, sd > 0), pts[k] + v3(sd * 0.22, 0.12, 0), pts[k + 1] + v3(sd * 0.22, 0.12, 0), 0.03, "seam",
+                 width=0.16, up=v3(sd, 0, 0), extend=0.03)
         beam(bone, "crest_fore_edge_%d" % k, pts[k] - v3(0, 0.3, 0), pts[k + 1] - v3(0, 0.3, 0), 0.08, "brass", width=0.36, up=v3(1, 0, 0),
              extend=0.03)
         if k % 2 == 0:
@@ -774,7 +777,7 @@ def hull_seams(bone):
             a, b = P(zs[i], az, 0.05), P(zs[i + 1], az, 0.05)
             if in_window(a, 0.45) or in_window(b, 0.45):
                 continue
-            beam(bone, "seam_l_%d_%d" % (j, i), a, b, 0.05, "seam", width=0.14, up=norm(a - v3(0, ns.AXIS_Y, a[2])), extend=0.02)
+            beam(bone, "seam_l_%d_%d" % (j, i), a, b, 0.05, "seam" if math.cos(math.radians(az)) > -0.12 else "seam_dark", width=0.14, up=norm(a - v3(0, ns.AXIS_Y, a[2])), extend=0.02)
             n += 1
     for zc in np.arange(math.ceil(z0 / SEAM_Z) * SEAM_Z, z1, SEAM_Z):
         for j in range(0, NAZ, 2):
@@ -784,7 +787,8 @@ def hull_seams(bone):
             a, b = P(zc, a0, 0.05), P(zc, a1, 0.05)
             if in_window(a, 0.45) or in_window(b, 0.45) or in_window((a + b) / 2, 0.45):
                 continue
-            beam(bone, "seam_r_%d_%d" % (int(zc * 10), j), a, b, 0.05, "seam", width=0.14, up=norm((a + b) / 2 - v3(0, ns.AXIS_Y, zc)),
+            dark = math.cos(math.radians((a0 + a1) / 2)) <= -0.12
+            beam(bone, "seam_r_%d_%d" % (int(zc * 10), j), a, b, 0.05, "seam_dark" if dark else "seam", width=0.14, up=norm((a + b) / 2 - v3(0, ns.AXIS_Y, zc)),
                  extend=0.02)
             n += 1
     # the belt
@@ -851,6 +855,11 @@ def hull_details(bone, lights):
                 t = (q + 0.5) / 3
                 add_cube(bone, "salon_octa_rivet_%s_%d_%d" % (sn, k, q), oc(a0, wr + 0.85) * (1 - t) + oc(a1, wr + 0.85) * t + n0 * 0.08, EYE,
                          (0.08, 0.08, 0.08), "brass")
+        for k in range(4):  # a thin brass cross over the glass, as in the reference sheet
+            a = math.pi / 2 * k + math.pi / 4
+            beam(bone, "salon_glass_bar_%s_%d" % (sn, k), c0 + n0 * 0.02, c0 + (e_al * math.cos(a) + e_up * math.sin(a)) * (wr - 0.1) + n0 * 0.02,
+                 0.06, "brass", width=0.08, up=n0)
+        ring(bone, "salon_glass_hub_%s" % sn, c0 + n0 * 0.03, n0, 0.45, 0.06, "brass", n=16, width=0.08)
         for k in range(4):
             a = math.pi / 2 * k
             beam(bone, "salon_cross_%s_%d" % (sn, k), c0 + (e_al * math.cos(a) + e_up * math.sin(a)) * (wr + 1.0) + n0 * 0.08,
@@ -1003,6 +1012,11 @@ def tail(bone, root):
             for sgn in (1, -1):
                 beam(bone, "%s_rib_%d_%d" % (name, int(c_ * 100), sgn > 0), ra + normal * (sgn * 0.2), rb + normal * (sgn * 0.08), 0.06, "brass",
                      width=0.1, up=normal)
+        for f in fs[2::3]:  # riveted butt straps across the lobe
+            le, te = edges(f)
+            for sgn in (1, -1):
+                beam(bone, "%s_strap_%d_%d" % (name, int(f * 10), sgn > 0), le + normal * (sgn * 0.17), te + normal * (sgn * 0.05), 0.04, "seam",
+                     width=0.14, up=normal * sgn)
         tip_le = v3(0, y, ns.FIN_TIP_LE_Z) + axis_dir * top
         tip_te = v3(0, y, ns.FIN_TIP_TE_Z) + axis_dir * top
         root_le = v3(0, y, ns.FIN_Z0) + axis_dir * math.copysign(1.0, top)

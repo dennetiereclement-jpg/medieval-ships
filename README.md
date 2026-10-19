@@ -73,7 +73,7 @@ Pour tous :
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
 
-La version 1.7.11 : derrière la timonerie, la pente en diagonale de la planche (carénage riveté du toit jusqu'au pont, arête à pointes, main courante, manche à air ; on peut y monter) ; sur le pont, garde-corps de laiton le long des bords, bittes d'amarrage et manches à air.
+La version 1.7.11 : derrière la timonerie, la pente en diagonale de la planche (carénage riveté du toit jusqu'au pont, arête à pointes, main courante, manche à air ; on peut y monter) ; sur le pont, garde-corps de laiton le long des bords, bittes d'amarrage et manches à air. Textures de la coque refaites : cuivre martelé plus riche avec patine et reflets, dessous bien plus sombre (bronze foncé, joints sombres), vitres plus profondes ; pointes en bronze, arche plus épaisse et rivetée, joints rivetés sur les ailerons, croix de laiton dans la vitre de la grande baie.
 
 La version 1.7.10 :
 * timonerie arrondie, dedans et dehors, comme sur la planche : plan arrondi (les collisions le suivent), paroi lambrissée courbe avec plinthe et rambarde de laiton, nervures de bois, fenêtres octogonales, pupitres à instruments de chaque côté de la barre, lanternes, tapis ; coque extérieure plus ronde, lampes aux angles avant ;
