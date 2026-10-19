@@ -73,6 +73,8 @@ Pour tous :
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
 
+La version 1.7.13 : la queue comme sur la planche : deux nageoires seulement, au-dessus et au-dessous de l'hélice, qui naissent de la coque (leur bord d'attaque prolonge la ligne du dos et du ventre par-dessus l'anneau de l'hélice jusqu'aux pointes de la queue de poisson) ; les ailerons latéraux sont retirés.
+
 La version 1.7.12 :
 * l'échelle de la timonerie ne bloque plus la coursive avant : son poteau ne descend plus dans le couloir (on passe à côté vers les deux cabines ; on monte en sautant sur l'échelle, puis en avançant dans le puits) ;
 * le tapis de la timonerie laisse voir la trappe ;
@@ -182,7 +184,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.7.12.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.7.13.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation

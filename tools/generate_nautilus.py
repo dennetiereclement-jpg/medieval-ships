@@ -936,7 +936,7 @@ def prop_shroud(bone):
     for zz in (zb0 + 0.3, (zb0 + zb1) / 2):
         rr = 0.75 + (0.32 - 0.75) * (zz - zb0) / (zb1 - zb0)
         ring(bone, "tail_boss_ring_%d" % int(-zz * 10), v3(0, y, zz), v3(0, 0, 1), rr + 0.04, 0.12, "brass", n=16, width=0.12)
-    for k in range(4):
+    for k in (0, 2):  # the two lobes, above and below
         a = k * math.pi / 2
         d = v3(math.sin(a), math.cos(a), 0)
         beam(bone, "fin_tie_%d" % k, v3(0, y, ns.PROP_Z - 0.38) + d * r, v3(0, y, ns.FIN_Z0 - 0.2) + d * (r + 0.6), 0.16, "plate_dark", width=0.22,
@@ -985,7 +985,7 @@ def tail(bone, root):
             ax = np.column_stack([d, wq, np.cross(d, wq)])
             add_cube(prop, "prop_blade_%d_%d" % (k, q), hub + d * ((r0 + r1) / 2), ax, (r1 - r0 + 0.04, ch, 0.12 - 0.015 * q), "brass")
     # fish-tail fin (vertical lobes) and the horizontal fins, as strips between the swept edges
-    def lobes(name, axis_dir, top):
+    def lobes(name, axis_dir, top, le_fn=None):
         span = abs(top)
         for k, f in enumerate(np.arange(0.25, span, 0.5)):
             le = ns.FIN_Z0 - max(0.0, f - 1.0) / (span - 1.0) * (ns.FIN_Z0 - ns.FIN_TIP_LE_Z)
@@ -994,10 +994,12 @@ def tail(bone, root):
         # the lobe as one smooth plate, thick at the root and thin at the tip, its strips following
         # the swept edges (no steps)
         normal = v3(1, 0, 0) if axis_dir[1] else v3(0, 1, 0)
-        fs = np.linspace(0.6, span, 12)
+        fs = np.linspace(0.6, span, 20)
 
         def edges(f):
             le = ns.FIN_Z0 - max(0.0, f - 1.0) / (span - 1.0) * (ns.FIN_Z0 - ns.FIN_TIP_LE_Z)
+            if le_fn is not None:
+                le = min(ns.FIN_Z0, le_fn(f))
             te = ns.FIN_NOTCH_Z - f / span * (ns.FIN_NOTCH_Z - ns.FIN_TIP_TE_Z)
             c = v3(0, y, 0) + axis_dir * math.copysign(f, top)
             return c + v3(0, 0, le), c + v3(0, 0, te)
@@ -1036,10 +1038,41 @@ def tail(bone, root):
         beam(bone, name + "_leading", root_le, tip_le, 0.34, "plate_dark", width=0.34)
         beam(bone, name + "_tip", tip_le, tip_te, 0.3, "plate_dark", width=0.3)
         beam(bone, name + "_trailing", notch, tip_te, 0.26, "plate_dark", width=0.26)
-    lobes("fin_top", v3(0, 1, 0), ns.FIN_TOP)
-    lobes("fin_bottom", v3(0, 1, 0), ns.FIN_BOTTOM)
-    lobes("fin_port", v3(1, 0, 0), ns.FIN_SPAN)
-    lobes("fin_starboard", v3(1, 0, 0), -ns.FIN_SPAN)
+    skeg_za = -31.0
+    skeg_ya = ns.hull_top(skeg_za) - y
+
+    def skeg_z(tip):  # the z of the skeg's leading edge at a height f above (below) the axis
+        return lambda f: skeg_za + (f - skeg_ya) / (tip - skeg_ya) * (ns.FIN_TIP_LE_Z - skeg_za)
+    lobes("fin_top", v3(0, 1, 0), ns.FIN_TOP, skeg_z(ns.FIN_TOP))
+    lobes("fin_bottom", v3(0, 1, 0), ns.FIN_BOTTOM, skeg_z(-ns.FIN_BOTTOM))
+    # only the two lobes of the fish tail, as in the reference sheet; they grow out of the hull: a skeg
+    # above and one below carry the line of the back and of the belly over the propeller ring to the
+    # leading edge of each lobe
+    cone_z0, cone_z1 = ns.STERN_Z + 2.0, ns.TAIL_CONE_Z
+    def body(z):  # radius of the hull / tail cone at z
+        if z >= ns.STERN_Z + 2.0:
+            return ns.hull_top(z) - y
+        t = min(1.0, max(0.0, (z - cone_z0) / (cone_z1 - cone_z0)))
+        return 1.6 + (0.5 - 1.6) * t
+    ring_r = ns.PROP_R + 0.3
+    for sgn, tip in ((1, ns.FIN_TOP), (-1, -ns.FIN_BOTTOM)):
+        za = -31.0
+        ya = body(za)
+        def le(z):
+            return ya + (tip - ya) * (z - za) / (ns.FIN_TIP_LE_Z - za)
+        zs_ = list(np.linspace(za, ns.PROP_Z + 0.4, 26)) + [ns.PROP_Z, ns.PROP_Z - 0.4, ns.FIN_Z0 + 0.05]
+        for k in range(len(zs_) - 1):
+            z0_, z1_ = zs_[k], zs_[k + 1]
+            over_ring = z0_ <= ns.PROP_Z + 0.4 + 1e-6 and z0_ >= ns.PROP_Z + 0.4 - 1e-6 or z0_ < ns.PROP_Z + 0.39
+            lo0 = ring_r + 0.15 if over_ring else body(z0_) - 0.1
+            lo1 = ring_r + 0.15 if over_ring else body(z1_) - 0.1
+            a0, a1 = v3(0, y + sgn * lo0, z0_), v3(0, y + sgn * le(z0_), z0_)
+            b0, b1 = v3(0, y + sgn * lo1, z1_), v3(0, y + sgn * le(z1_), z1_)
+            panel(bone, "skeg_%d_%d" % (sgn > 0, k), a0, a1, b0, b1, 0.26, "hull_light", v3(1, 0, 0), overlap=1.03)
+            beam(bone, "skeg_edge_%d_%d" % (sgn > 0, k), a1, b1, 0.3, "plate_dark", width=0.32, up=v3(1, 0, 0), extend=0.04)
+            for sd in (1, -1):
+                beam(bone, "skeg_strap_%d_%d_%d" % (sgn > 0, k, sd > 0), (a0 + a1) / 2 + v3(sd * 0.14, 0, 0), (b0 + b1) / 2 + v3(sd * 0.14, 0, 0),
+                     0.03, "seam", width=0.14, up=v3(sd, 0, 0))
 
 
 # ---------------------------------------------------------------- surfaces of the grid
