@@ -929,6 +929,18 @@ def prop_shroud(bone):
               "plate_dark", v3(math.sin((a0 + a1) / 2), math.cos((a0 + a1) / 2), 0), overlap=1.04)
     for z in (ns.PROP_Z + 0.38, ns.PROP_Z - 0.38):
         ring(bone, "prop_shroud_rim_%d" % (z > ns.PROP_Z), v3(0, y, z), v3(0, 0, 1), r, 0.1, "brass", n=n, width=0.1)
+    # the tail boss behind the propeller, on which the fins stand, and tie rods from the ring to the fins
+    zb0, zb1 = ns.PROP_Z - 0.55, ns.FIN_NOTCH_Z - 0.4
+    nf.tube(bone, "tail_boss", v3(0, y, zb0), v3(0, y, zb1), 0.75, 0.32, "plate_dark", n=16)
+    nf.ellipsoid(bone, "tail_boss_cap", v3(0, y, zb1), (0.32, 0.32, 0.5), EYE, "brass", nlat=3, nlon=12, lat0=-90.0, lat1=90.0)
+    for zz in (zb0 + 0.3, (zb0 + zb1) / 2):
+        rr = 0.75 + (0.32 - 0.75) * (zz - zb0) / (zb1 - zb0)
+        ring(bone, "tail_boss_ring_%d" % int(-zz * 10), v3(0, y, zz), v3(0, 0, 1), rr + 0.04, 0.12, "brass", n=16, width=0.12)
+    for k in range(4):
+        a = k * math.pi / 2
+        d = v3(math.sin(a), math.cos(a), 0)
+        beam(bone, "fin_tie_%d" % k, v3(0, y, ns.PROP_Z - 0.38) + d * r, v3(0, y, ns.FIN_Z0 - 0.2) + d * (r + 0.6), 0.16, "plate_dark", width=0.22,
+             up=v3(0, 0, 1))
     for k in range(4):
         a = math.pi / 4 + k * math.pi / 2
         d = v3(math.sin(a), math.cos(a), 0)
@@ -1002,7 +1014,7 @@ def tail(bone, root):
                     def pt(le, te, t, c, h):
                         return le + (te - le) * c + normal * (sgn * t * h)
                     panel(bone, "%s_%d_%d_%d" % (name, k, sgn > 0, i), pt(a_le, a_te, ta, cs[i], half[i]), pt(a_le, a_te, ta, cs[i + 1], half[i + 1]),
-                          pt(b_le, b_te, tb, cs[i], half[i]), pt(b_le, b_te, tb, cs[i + 1], half[i + 1]), 0.04, "plate_dark", normal * sgn,
+                          pt(b_le, b_te, tb, cs[i], half[i]), pt(b_le, b_te, tb, cs[i + 1], half[i + 1]), 0.04, "hull_light", normal * sgn,
                           overlap=1.04)
         # brass ribs fanning out over both faces of the lobe
         for c_ in (0.3, 0.55, 0.8):
@@ -1021,9 +1033,9 @@ def tail(bone, root):
         tip_te = v3(0, y, ns.FIN_TIP_TE_Z) + axis_dir * top
         root_le = v3(0, y, ns.FIN_Z0) + axis_dir * math.copysign(1.0, top)
         notch = v3(0, y, ns.FIN_NOTCH_Z)
-        beam(bone, name + "_leading", root_le, tip_le, 0.34, "steel", width=0.34)
-        beam(bone, name + "_tip", tip_le, tip_te, 0.3, "steel", width=0.3)
-        beam(bone, name + "_trailing", notch, tip_te, 0.26, "steel", width=0.26)
+        beam(bone, name + "_leading", root_le, tip_le, 0.34, "plate_dark", width=0.34)
+        beam(bone, name + "_tip", tip_le, tip_te, 0.3, "plate_dark", width=0.3)
+        beam(bone, name + "_trailing", notch, tip_te, 0.26, "plate_dark", width=0.26)
     lobes("fin_top", v3(0, 1, 0), ns.FIN_TOP)
     lobes("fin_bottom", v3(0, 1, 0), ns.FIN_BOTTOM)
     lobes("fin_port", v3(1, 0, 0), ns.FIN_SPAN)

@@ -76,6 +76,8 @@ Pour tous :
 La version 1.7.12 :
 * l'échelle de la timonerie ne bloque plus la coursive avant : son poteau ne descend plus dans le couloir (on passe à côté vers les deux cabines ; on monte en sautant sur l'échelle, puis en avançant dans le puits) ;
 * le tapis de la timonerie laisse voir la trappe ;
+* vue par les vitres et les hublots en plongée : le bleu clair de la mer que voit un nageur (le brouillard n'est plus presque noir, l'eau derrière la vitre est bleue et lumineuse) ;
+* arrière plus fidèle : queue de poisson plus large en cuivre bordée de bronze, fuseau de queue qui porte les ailerons derrière l'hélice, tirants depuis l'anneau de l'hélice.
 * moins de lag : les pièces fixes du modèle ne sont plus recalculées à chaque image, les tranches des plaques fines ne sont plus dessinées, et de loin (au-delà de 48 blocs) l'intérieur et les meubles ne sont plus dessinés, ni les petits détails extérieurs au-delà de 80 blocs.
 
 La version 1.7.11 : derrière la timonerie, la pente en diagonale de la planche (carénage riveté du toit jusqu'au pont, arête à pointes, main courante, manche à air ; on peut y monter) ; sur le pont, garde-corps de laiton le long des bords, bittes d'amarrage et manches à air. Textures de la coque refaites : cuivre martelé plus riche avec patine et reflets, dessous bien plus sombre (bronze foncé, joints sombres), vitres plus profondes ; pointes en bronze, arche plus épaisse et rivetée, joints rivetés sur les ailerons, croix de laiton dans la vitre de la grande baie.

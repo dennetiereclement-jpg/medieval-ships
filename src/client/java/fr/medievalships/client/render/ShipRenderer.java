@@ -52,8 +52,8 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 	 */
 	private static final int MURK_LAYERS = 8;
 	private static final float MURK_STEP = 1.5f;
-	private static final int MURK_COLOR = 0x2A5A80;
-	private static final int MURK_ALPHA = 44;
+	private static final int MURK_COLOR = 0x1C3CC8; // the clear blue of the sea seen by a swimmer
+	private static final int MURK_ALPHA = 34;
 	/** The plain white texel of the Nautilus texture (region "murk" of tools/nautilus_texture.py). */
 	private static final float MURK_U = 420f / 512f, MURK_V = 100f / 512f;
 	/** A painting is drawn this far in front of the centre of its frame's canvas. */
@@ -218,7 +218,7 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 			}
 			// the murky sea behind the glass, seen from the rooms under water
 			if (state.murk && !visual.textures().isEmpty()) {
-				submitMurk(matrices, queue, visual.textures().get(0), light);
+				submitMurk(matrices, queue, visual.textures().get(0), LightmapTextureManager.MAX_LIGHT_COORDINATE);
 			}
 			// vanilla paintings in their gilded frames
 			if (decorDrawn) {
