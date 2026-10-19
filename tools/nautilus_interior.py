@@ -124,7 +124,7 @@ ROOMS = {
     # double bottom: crawlway between the ballast tanks
     "crawlway":      (-1.5, 1.5, B0, B1, -12.0, 12.0),
     # on the casing
-    "wheelhouse":    (-2.0, 2.0, ns.CASING_TOP_Y, ns.TOWER_TOP_Y - 0.5, ns.TOWER_Z[0] + 0.5, ns.TOWER_Z[1] - 0.5),
+    "wheelhouse":    (-2.5, 2.5, ns.CASING_TOP_Y, ns.TOWER_TOP_Y - 0.5, ns.TOWER_Z[0], ns.TOWER_Z[1]),
 }
 
 # doors: index -> (name, box). Doors are 2 blocks wide (two leaves), 2 high, as thick as the wall; hatches
@@ -198,8 +198,10 @@ def build():
     g.set(OUT, *BOAT_RECESS)
     # rooms (inside the pressure hull only; what is not a room stays solid: tanks, machinery, walls)
     for name, box in ROOMS.items():
-        on_top = name == "wheelhouse"
-        g.set(DRY, *box, where=None if on_top else inner)
+        if name == "wheelhouse":  # rounded plan
+            g.set(DRY, *box, where=np.vectorize(ns.wheelhouse_inside)(g.X, g.Z))
+            continue
+        g.set(DRY, *box, where=inner)
     # great salon bay windows: round alcoves through the side walls down to the glass in the hull
     wz, wy, wr = ns.SALON_WINDOW
     disc = (g.Z - wz) ** 2 + (g.Y - wy) ** 2 < (wr - 0.25) ** 2

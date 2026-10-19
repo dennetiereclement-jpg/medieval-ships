@@ -39,6 +39,31 @@ CASING_TOP_Y = 9.0
 CASING_Z = (-24.0, 27.0)
 TOWER_Z = (15.0, 22.5)   # wheelhouse
 TOWER_HALF_WIDTH = 2.5
+# the wheelhouse inside: a rounded plan (superellipse: half width, half length, exponent) under the rounder
+# outer shell, centred on the middle of TOWER_Z
+WHEELHOUSE_PLAN = (2.25, 3.55, 4.5)
+TOWER_SHELL_N = 3.0
+
+
+def wheelhouse_inside(x, z, inset=0.0):
+    a, b, n = WHEELHOUSE_PLAN
+    zc = (TOWER_Z[0] + TOWER_Z[1]) / 2
+    return (abs(x) / (a - inset)) ** n + (abs(z - zc) / (b - inset)) ** n <= 1.0
+
+
+def wheelhouse_wall_x(z):
+    """Half width of the rounded wheelhouse inside at z (0 beyond its ends)."""
+    a, b, n = WHEELHOUSE_PLAN
+    zc = (TOWER_Z[0] + TOWER_Z[1]) / 2
+    t = abs(z - zc) / b
+    return a * max(0.0, 1 - t ** n) ** (1 / n) if t < 1 else 0.0
+
+
+def wheelhouse_wall_z(x):
+    """Distance from the middle of the wheelhouse to its rounded front (or back) wall at x."""
+    a, b, n = WHEELHOUSE_PLAN
+    t = abs(x) / a
+    return b * max(0.0, 1 - t ** n) ** (1 / n) if t < 1 else 0.0
 TOWER_TOP_Y = 12.5
 LAMP_CAGE_Z = (15.9, 18.1)  # the projector lantern, a small round housing on the wheelhouse roof
 LAMP_CAGE_HALF_WIDTH = 1.1

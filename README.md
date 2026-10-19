@@ -73,6 +73,11 @@ Pour tous :
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
 
+La version 1.7.10 :
+* timonerie arrondie, dedans et dehors, comme sur la planche : plan arrondi (les collisions le suivent), paroi lambrissée courbe avec plinthe et rambarde de laiton, nervures de bois, fenêtres octogonales, pupitres à instruments de chaque côté de la barre, lanternes, tapis ; coque extérieure plus ronde, lampes aux angles avant ;
+* avant : lame sous la proue jusqu'à l'éperon, bordée de laiton, avec ses pointes ; lampes de chaque côté de la proue ;
+* arrière : l'hélice dans un anneau de protection sur quatre bras.
+
 La version 1.7.9 : une rangée de fenêtres-meurtrières à cadre de laiton le long des deux épaules de la plate-forme, sous le bord du pont, et un joint riveté qui les suit, comme sur la planche.
 
 La version 1.7.8 :
@@ -168,7 +173,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.7.9.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.7.10.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation

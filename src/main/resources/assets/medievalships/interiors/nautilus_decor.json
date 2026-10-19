@@ -1790,6 +1790,24 @@
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_198"
+  },
+  {
+   "block": "farmhouse_decorations:chained_kerosene_lantern",
+   "x": -1.296,
+   "y": 10.9,
+   "z": 21.3,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_199"
+  },
+  {
+   "block": "farmhouse_decorations:chained_kerosene_lantern",
+   "x": 1.296,
+   "y": 10.9,
+   "z": 21.3,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_200"
   }
  ],
  "seats": [

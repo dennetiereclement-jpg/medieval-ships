@@ -542,6 +542,35 @@ def telegraph(bone, name, p, normal):
     beam(bone, "lit_%s_handle" % name, p + v3(0, 1.2, 0) + n * 0.08, p + v3(0.15, 1.42, 0) + n * 0.1, 0.04, "steel")
 
 
+def helm_console(bone, name, p, facing, w=0.6):
+    """A control desk of the wheelhouse: a panelled wooden body, a sloping brass-edged top with three
+    gauges and a row of small levers."""
+    R = ry(yaw_of(facing))
+    p = v3(*p)
+    P = lambda x, y, z: p + R @ v3(x, y, z)
+    box(bone, name + "_body", P(0, 0.42, -0.04), R, (w, 0.84, 0.4), "organ_wood")
+    for k in (-1, 1):
+        box(bone, "%s_panel%d" % (name, k > 0), P(k * w / 4, 0.4, 0.17), R, (w / 2 - 0.08, 0.6, 0.02), "wall_lux")
+    top = R @ rx(-0.45)
+    box(bone, name + "_top", P(0, 0.95, 0.02), top, (w + 0.04, 0.05, 0.5), "organ_wood")
+    box(bone, name + "_edge", P(0, 0.9, 0.27), R, (w + 0.06, 0.04, 0.04), "brass")
+    for k in range(3):
+        add_cube(bone, "lit_%s_gauge%d" % (name, k), P(-w / 3 + k * w / 3, 1.0, 0.0), top, (0.15, 0.02, 0.15),
+                 {"all": "brass", "+2": "gauge"}, stretch=True)
+    for k in range(4):
+        beam(bone, "lit_%s_lever%d" % (name, k), P(-w / 2 + 0.12 + k * (w - 0.24) / 3, 0.92, 0.18), P(-w / 2 + 0.12 + k * (w - 0.24) / 3, 1.08, 0.24),
+             0.025, "brass")
+        box(bone, "%s_knob%d" % (name, k), P(-w / 2 + 0.12 + k * (w - 0.24) / 3, 1.09, 0.245), R, (0.04, 0.04, 0.04), "coral_red")
+
+
+def timber(bone, name, a, b, w=0.16):
+    """A wooden frame rib on a wall, brass caps at its ends."""
+    a, b = v3(*a), v3(*b)
+    beam(bone, "lit_" + name, a, b, w, "organ_wood", width=w)
+    for k, q in enumerate((a, b)):
+        box(bone, "%s_cap%d" % (name, k), q, EYE, (w + 0.05, 0.08, w + 0.05), "brass")
+
+
 def lever(bone, name, p, tilt=0.4):
     p = v3(*p)
     box(bone, name + "_base", p + v3(0, 0.08, 0), EYE, (0.2, 0.16, 0.3), "steel")

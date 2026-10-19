@@ -232,17 +232,19 @@ def windows(bone, lights):
     yc, r = (wy0 + wy1) / 2, (wy1 - wy0) / 2 + 0.05
     half = max((ns.TOWER_FRONT_WINDOWS_X[0][1] - ns.TOWER_FRONT_WINDOWS_X[0][0]) / 2, (wy1 - wy0) / 2) + 0.06
     for k, (x0, x1) in enumerate(ns.TOWER_FRONT_WINDOWS_X):
-        for z, tag, nz in ((ns.TOWER_Z[1] + 0.16, "out", 1), (ns.TOWER_Z[1] - 0.56, "in", -1)):
+        zin = (ns.TOWER_Z[0] + ns.TOWER_Z[1]) / 2 + ns.wheelhouse_wall_z((x0 + x1) / 2) - 0.04
+        for z, tag, nz in ((ns.TOWER_Z[1] + 0.16, "out", 1), (zin, "in", -1)):
             c = v3((x0 + x1) / 2, yc, z)
-            ring(bone, "tower_window_%d_%s" % (k, tag), c, v3(0, 0, 1), r, 0.12, "brass", n=24, width=0.14)
+            ring(bone, "tower_window_%d_%s" % (k, tag), c, v3(0, 0, 1), r, 0.12, "brass", n=8, width=0.16)
             round_bezel(bone, "lit_tower_bezel_%d_%s" % (k, tag), c - v3(0, 0, nz * 0.05), v3(0, 0, nz), r - 0.02, half,
-                        "wall_engine" if tag == "in" else "hull_light")
+                        "wall_engine" if tag == "in" else "hull_light", n=8)
     for side in SIDES:
-        for x, tag, nx in ((side * (ns.TOWER_HALF_WIDTH + 0.16), "out", side), (side * (ns.TOWER_HALF_WIDTH - 0.56), "in", -side)):
+        xin = ns.wheelhouse_wall_x(sum(ns.TOWER_SIDE_WINDOW_Z) / 2) - 0.04
+        for x, tag, nx in ((side * (ns.TOWER_HALF_WIDTH + 0.16), "out", side), (side * xin, "in", -side)):
             c = v3(x, yc, sum(ns.TOWER_SIDE_WINDOW_Z) / 2)
-            ring(bone, "tower_window_side_%d_%s" % (side > 0, tag), c, v3(1, 0, 0), r, 0.12, "brass", n=24, width=0.14)
+            ring(bone, "tower_window_side_%d_%s" % (side > 0, tag), c, v3(1, 0, 0), r, 0.12, "brass", n=8, width=0.16)
             round_bezel(bone, "lit_tower_bezel_side_%d_%s" % (side > 0, tag), c - v3(nx * 0.05, 0, 0), v3(nx, 0, 0), r - 0.02, half,
-                        "wall_engine" if tag == "in" else "hull_light")
+                        "wall_engine" if tag == "in" else "hull_light", n=8)
 
 
 def ram(bone):
@@ -302,7 +304,8 @@ def crests(bone):
         spike(bone, "bow_ridge_spike_%d" % k, v3(0, ns.hull_top(z) - 0.05, z), v3(0, 1, 0.45), 0.55 - 0.03 * k, 0.24)
     # and a row of spikes under the bow, along its keel line, as in the reference sheet
     for k, z in enumerate(np.arange(ns.BOW_Z - 1.0, 22.0, -1.3)):
-        spike(bone, "bow_keel_spike_%d" % k, v3(0, ns.hull_bottom(z) + 0.05, z), v3(0, -1, 0.5), 0.6 - 0.015 * k, 0.26)
+        foot = bow_blade_foot(z) if z >= 26.0 else ns.hull_bottom(z)
+        spike(bone, "bow_keel_spike_%d" % k, v3(0, foot + 0.05, z), v3(0, -1, 0.5), 0.6 - 0.015 * k, 0.26)
     # aft crest: spikes along the casing
     za, zb = ns.AFT_CREST
     for k, z in enumerate(np.linspace(za, zb, 11)):
@@ -592,7 +595,7 @@ def tower_shell(bone):
     """The wheelhouse as one rounded shell (corners and roof rounded), its four windows left open."""
     a, b = ns.TOWER_HALF_WIDTH + 0.08, (ns.TOWER_Z[1] - ns.TOWER_Z[0]) / 2 + 0.08
     zc = (ns.TOWER_Z[0] + ns.TOWER_Z[1]) / 2
-    plan = superellipse(a, b, 4.0, 64, zc)
+    plan = superellipse(a, b, ns.TOWER_SHELL_N, 64, zc)
     wy0, wy1 = ns.TOWER_WINDOWS_Y
     levels = [ns.CASING_TOP_Y, wy0, wy1, ns.TOWER_TOP_Y]
     sections = [[v3(x, yy, z) for x, z in plan] for yy in levels]
@@ -625,6 +628,34 @@ def tower_shell(bone):
             (x0, z0), (x1, z1) = plan[k], plan[(k + 1) % len(plan)]
             beam(bone, "tower_band_%s_%d" % (tag, k), v3(x0 * 1.02, yy, zc + (z0 - zc) * 1.02), v3(x1 * 1.02, yy, zc + (z1 - zc) * 1.02),
                  0.14, "brass", width=0.1)
+
+
+def wheelhouse_lining(bone):
+    """The inside of the wheelhouse, rounded as in panel 6: a smooth wall of dark panelling following its
+    plan, with the four windows left open (their octagonal frames are set on it, see windows())."""
+    a, b, n = ns.WHEELHOUSE_PLAN
+    zc = (ns.TOWER_Z[0] + ns.TOWER_Z[1]) / 2
+    plan = superellipse(a + 0.02, b + 0.02, n, 48, zc)
+    wy0, wy1 = ns.TOWER_WINDOWS_Y
+    levels = [ns.CASING_TOP_Y, wy0, wy1, ns.TOWER_TOP_Y - 0.5]
+    sections = [[v3(x, yy, z) for x, z in plan] for yy in levels]
+
+    def window(i, j, mid):
+        if i != 1:
+            return False
+        front = mid[2] > zc + b * 0.8 and any(x0 - 0.05 < mid[0] < x1 + 0.05 for x0, x1 in ns.TOWER_FRONT_WINDOWS_X)
+        side = abs(mid[0]) > a * 0.8 and ns.TOWER_SIDE_WINDOW_Z[0] - 0.05 < mid[2] < ns.TOWER_SIDE_WINDOW_Z[1] + 0.05
+        return front or side
+    loft(bone, "lit_wheelhouse_lining", sections, "wall_wood", lambda p: v3(0, p[1], zc), closed=True, skip=window)
+    # a skirting board and a brass rail round it
+    for yy, region, w in ((ns.CASING_TOP_Y + 0.12, "organ_wood", 0.24), (wy0 - 0.12, "brass", 0.06)):
+        for k in range(len(plan)):
+            (x0, z0), (x1, z1) = plan[k], plan[(k + 1) % len(plan)]
+            mid = v3((x0 + x1) / 2, yy, (z0 + z1) / 2)
+            if region == "brass" and window(1, k, v3(mid[0], (wy0 + wy1) / 2, mid[2])):
+                continue
+            beam(bone, "lit_wheelhouse_%s_%d" % ("skirt" if region != "brass" else "rail", k), v3(x0 * 0.985, yy, zc + (z0 - zc) * 0.985),
+                 v3(x1 * 0.985, yy, zc + (z1 - zc) * 0.985), w, region, width=0.06)
 
 
 def cage_hood(bone):
@@ -767,11 +798,63 @@ def hull_details(bone, lights):
             for k, (dz, dv, sz, sv) in enumerate(((0, 0.24, 1.06, 0.08), (0, -0.24, 1.06, 0.08), (0.49, 0, 0.08, 0.4), (-0.49, 0, 0.08, 0.4),
                                                   (0, 0, 0.05, 0.4))):
                 add_cube(bone, "lowlight_%s_%d_f%d" % (sn, int(z * 10), k), p_ + u_ * dz + w_ * dv + n_ * 0.03, R, (sz, sv, 0.07), "brass")
+        # a lamp on each front corner of the wheelhouse, and on each side of the bow (front view of the sheet)
+        for k, lp in enumerate((v3(side * 2.15, ns.TOWER_TOP_Y - 0.45, ns.TOWER_Z[1] - 0.35),
+                                on_hull(ns.BOW_Z - 7.0, ns.AXIS_Y + 1.2, side, 0.45)[0])):
+            nf.ellipsoid(lights, "glow_front_lamp_%s%d" % (sn, k), lp, (0.26, 0.26, 0.26), EYE, "glow", nlat=3, nlon=10)
+            ring(bone, "front_lamp_cage_%s%d" % (sn, k), lp, v3(0, 0, 1), 0.3, 0.05, "brass", n=12, width=0.05)
+            ring(bone, "front_lamp_cage_h_%s%d" % (sn, k), lp, v3(0, 1, 0), 0.3, 0.05, "brass", n=12, width=0.05)
+            back = lp - v3(side * 0.4, 0, 0) if k == 1 else lp - v3(side * 0.3, 0, 0.1)
+            beam(bone, "front_lamp_bracket_%s%d" % (sn, k), lp - v3(side * 0.26, 0, 0), back, 0.08, "brass")
         # navigation light on the wheelhouse side, in its brass box
         zl = ns.TOWER_Z[0] + 1.2
         pl = v3(side * (ns.TOWER_HALF_WIDTH + 0.12), ns.TOWER_TOP_Y - 0.9, zl)
         add_cube(bone, "navlight_box_%s" % sn, pl, EYE, (0.2, 0.42, 0.42), "brass")
         add_cube(lights, "glow_navlight_%s" % sn, pl + v3(side * 0.11, 0, 0), EYE, (0.04, 0.3, 0.3), "coral_red" if side > 0 else "green_leather")
+
+
+def bow_blade_foot(z):
+    """Foot of the cutwater under the bow at z (it deepens towards the bow, then rises to the ram)."""
+    if z <= ns.BOW_Z:
+        return ns.hull_bottom(max(z, 26.0)) - 0.9 * smoothstep((z - 26.0) / (ns.BOW_Z - 26.0))
+    t = min(1.0, (z - ns.BOW_Z) / 3.0)
+    return bow_blade_foot(ns.BOW_Z) * (1 - t) + (ns.AXIS_Y - 0.45) * t
+
+
+def bow_blade(bone):
+    """The cutwater under the bow (front view of the sheet): a deep blade from under the hull to the
+    ram, a brass edge along its foot."""
+    zs = np.linspace(26.0, ns.BOW_Z + 3.0, 16)
+    foot = bow_blade_foot
+
+    def head(z):
+        return min(ns.AXIS_Y - 0.2, ns.hull_bottom(z) + 0.6) if z <= ns.BOW_Z else ns.AXIS_Y - 0.25
+    for k in range(len(zs) - 1):
+        za, zb = zs[k], zs[k + 1]
+        panel(bone, "bow_blade_%d" % k, v3(0, head(za), za), v3(0, foot(za), za), v3(0, head(zb), zb), v3(0, foot(zb), zb), 0.22, "plate_dark",
+              v3(1, 0, 0), overlap=1.03)
+        beam(bone, "bow_blade_edge_%d" % k, v3(0, foot(za), za), v3(0, foot(zb), zb), 0.14, "brass", width=0.26, up=v3(1, 0, 0), extend=0.03)
+    return foot
+
+
+def prop_shroud(bone):
+    """A ring round the propeller on four struts from the tail cone (rear view of the sheet)."""
+    y = ns.AXIS_Y
+    r = ns.PROP_R + 0.3
+    n = 36
+    for k in range(n):
+        a0, a1 = 2 * math.pi * k / n, 2 * math.pi * (k + 1) / n
+        def C(z, a):
+            return v3(math.sin(a) * r, y + math.cos(a) * r, z)
+        panel(bone, "prop_shroud_%d" % k, C(ns.PROP_Z + 0.35, a0), C(ns.PROP_Z + 0.35, a1), C(ns.PROP_Z - 0.35, a0), C(ns.PROP_Z - 0.35, a1), 0.12,
+              "plate_dark", v3(math.sin((a0 + a1) / 2), math.cos((a0 + a1) / 2), 0), overlap=1.04)
+    for z in (ns.PROP_Z + 0.38, ns.PROP_Z - 0.38):
+        ring(bone, "prop_shroud_rim_%d" % (z > ns.PROP_Z), v3(0, y, z), v3(0, 0, 1), r, 0.1, "brass", n=n, width=0.1)
+    for k in range(4):
+        a = math.pi / 4 + k * math.pi / 2
+        d = v3(math.sin(a), math.cos(a), 0)
+        beam(bone, "prop_strut_%d" % k, v3(0, y, ns.TAIL_CONE_Z + 0.4) + d * 0.6, v3(0, y, ns.PROP_Z + 0.3) + d * (r - 0.05), 0.14, "steel",
+             width=0.2, up=v3(0, 0, 1))
 
 
 def tail(bone, root):
@@ -933,6 +1016,9 @@ def surfaces(rooms_bone, outside_bone, g):
             mat_index[g.sel(*[b + d for b, d in zip(box, (-0.01, 0.01, -0.01, 0.01, -0.01, 0.01))])] = mats.index(ROOM_MATERIALS[name])
     wz, wy, wr = ns.SALON_WINDOW
     alcove = (np.abs(g.X) > 3.4) & ((g.Z - wz) ** 2 + (g.Y - wy) ** 2 < (wr + 0.15) ** 2)
+    # the walls of the wheelhouse (its plan is rounded): lined by wheelhouse_lining, the grid's steps not drawn
+    wheel_walls = (np.abs(g.X) < 2.6) & (g.Y > ns.CASING_TOP_Y) & (g.Y < ns.TOWER_TOP_Y) & (g.Z > ns.TOWER_Z[0] - 0.1) & \
+        (g.Z < ns.TOWER_Z[1] + 0.1)
     # the tunnels of the portholes through the hull: lined by porthole_sleeves, their square sides not drawn
     tunnel = np.zeros_like(alcove)
     dry = k == ni.DRY
@@ -961,6 +1047,8 @@ def surfaces(rooms_bone, outside_bone, g):
             inner = solid & nb_open & ~alcove  # the bay windows' alcoves: lined by bay_sleeves instead
             if a != 0:
                 inner &= ~nb_tunnel
+            if a != 1:
+                inner &= ~wheel_walls  # lined by wheelhouse_lining instead
             outer = solid & nb_out & ~body
             slot = 1 if (a == 1 and s > 0) else 2 if a == 1 else 0
             others = [b for b in range(3) if b != a]
@@ -1238,9 +1326,12 @@ def build(g):
     casing_fairing(outside)
     tower_shell(outside)
     cage_hood(outside)
+    wheelhouse_lining(rooms)
     tail(outside, root)
     hull_seams(outside)
     hull_details(outside, lights)
+    bow_blade(outside)
+    prop_shroud(outside)
     m = surfaces(rooms, outside, g)
     ladders(fittings)
     fallbacks(root)

@@ -467,12 +467,31 @@ def wheelhouse_and_cage():
     custom("telegraph", name="telegraph", p=(1.0, y, 21.4), normal=(0, 0, -1))
     lever_switch("floodlight", "lever_projector", 0.9, y, 20.2)
     lever_switch("lights", "lever_lights", 1.5, y, 19.6, tilt=-0.4)
-    custom("instrument_panel", name="helm_panel_port", center=(2.0, y + 1.9, 16.8), normal=(-1, 0, 0), w=1.4, h=0.9)
-    custom("instrument_panel", name="helm_panel_stbd", center=(-2.0, y + 1.9, 16.8), normal=(1, 0, 0), w=1.4, h=0.9)
-    custom("instrument_panel", name="helm_panel_fore_port", center=(2.0, y + 1.9, 20.8), normal=(-1, 0, 0), w=1.2, h=0.8)
-    custom("instrument_panel", name="helm_panel_fore_stbd", center=(-2.0, y + 1.9, 20.8), normal=(1, 0, 0), w=1.2, h=0.8)
+    wx = ni.ns.wheelhouse_wall_x
+    custom("instrument_panel", name="helm_panel_port", center=(wx(16.8) - 0.04, y + 1.9, 16.8), normal=(-1, 0, 0), w=1.2, h=0.9)
+    custom("instrument_panel", name="helm_panel_stbd", center=(-wx(16.8) + 0.04, y + 1.9, 16.8), normal=(1, 0, 0), w=1.2, h=0.9)
+    custom("instrument_panel", name="helm_panel_fore_port", center=(wx(20.8) - 0.04, y + 1.9, 20.8), normal=(-1, 0, 0), w=1.0, h=0.8)
+    custom("instrument_panel", name="helm_panel_fore_stbd", center=(-wx(20.8) + 0.04, y + 1.9, 20.8), normal=(1, 0, 0), w=1.0, h=0.8)
     custom("speaking_tube", name="speaking_tube", p=(-1.7, y + 1.4, 16.1), top=(-1.7, y + 2.9, 16.1))
     block(FD + "chained_kerosene_lantern", 0.0, ni.ns.TOWER_TOP_Y - 1.5, 17.0, "stern", solid=False)
+    # as in panel 6: control desks on each side of the wheel, lanterns hung by the front windows, the
+    # wooden frame ribs of the walls, a rug
+    for x in (-1.62, 1.62):
+        custom("helm_console", solid=(x - 0.32, x + 0.32, y, y + 1.0, 21.4, 22.0), name="helm_console_%d" % (x > 0), p=(x, y, 21.75),
+               facing="stern", w=0.6)
+        block(FD + "chained_kerosene_lantern", x * 0.8, ni.ns.TOWER_TOP_Y - 1.6, 21.3, "stern", solid=False)
+    top = ni.ns.TOWER_TOP_Y - 0.5
+    zc = (ni.ns.TOWER_Z[0] + ni.ns.TOWER_Z[1]) / 2
+    for sx in (-1, 1):
+        for z in (16.0, 17.45, 20.05, 21.3):
+            x = sx * (wx(z) - 0.07)
+            custom("timber", name="wheelhouse_rib_%d_%d" % (sx > 0, int(z * 10)), a=(x, y, z), b=(x, top, z))
+    for x in (-0.9, 0.9):
+        z = zc - ni.ns.wheelhouse_wall_z(x) + 0.07
+        custom("timber", name="wheelhouse_rib_aft_%d" % (x > 0), a=(x, y, z), b=(x, top, z))
+    z = zc + ni.ns.wheelhouse_wall_z(0.0) - 0.07
+    custom("timber", name="wheelhouse_rib_fore", a=(0.0, y, z), b=(0.0, top, z))  # between the two front windows
+    custom("rug", p=(0, y, 18.6), w=2.6, l=3.2)
     custom("projector", name="projector", lens_center=(0, ni.ns.LENS_Y, ni.ns.LAMP_CAGE_Z[1] + 0.02), r=0.5, length=1.3, compact=True)
 
 
