@@ -269,6 +269,11 @@ def _rbeam(bone, name, p0, p1, th, region, up=None, extend=0.0, **kw):
     return a, b
 
 
+def gg_frame(d, up):
+    """Axes of a beam along d (as beam() builds them): x along d, y towards up, z across."""
+    return frame_from(np.asarray(d, dtype=float), np.asarray(up, dtype=float))
+
+
 def _octo(bone, name, c, R, size, region):
     """Octagonal block (a box and the same box turned 45 degrees about its own y axis)."""
     add_cube(bone, name, c, R, size, region)
@@ -350,10 +355,10 @@ def build():
             beam(hull, "wale_%s%d" % (sname, i), qa, qb, 0.09, "dark_wood", width=0.09, up=norm(v3(side, 1, 0)),
                  extend=0.06)
     # keel
-    for i in range(len(STATIONS) - 1):
-        za, zb = STATIONS[i], STATIONS[i + 1]
+    for i in range(0, len(STATIONS) - 1, 2):
+        za, zb = STATIONS[i], STATIONS[min(i + 2, len(STATIONS) - 1)]
         beam(hull, "keel_%d" % i, (0, hp.keel_y(za) - 0.05, za), (0, hp.keel_y(zb) - 0.05, zb), 0.22,
-             "dark_wood", width=0.3, extend=0.06)
+             "dark_wood", width=0.3, extend=0.08)
 
     # ---- stem (bow) and stern posts, curving upwards, round and tapering
     def post(bone, name, sign, top_y, reach, region="hull_light"):
@@ -517,6 +522,13 @@ def build():
             p0, p1 = arc(ts[j], z, half - 0.05, -0.07), arc(ts[j + 1], z, half - 0.05, -0.07)
             beam(stern, "canopy_hoop_%d_%d" % (h, j), p0, p1, 0.07, "dark_wood", width=0.09, extend=0.03)
     _rbeam(stern, "canopy_ridge", arc(0, zbc - 0.06, hb, 0.035), arc(0, zfc + 0.06, hf, 0.035), 0.06, "gold")
+    for z, half, tag in ((zfc + 0.02, hf, "f"), (zbc - 0.02, hb, "b")):
+        for j in range(narc):
+            p0, p1 = arc(ts[j], z, half, 0.03), arc(ts[j + 1], z, half, 0.03)
+            beam(stern, "canopy_edge_%s%d" % (tag, j), p0, p1, 0.06, "gold", width=0.07, extend=0.02)
+        top = arc(0, z, half, 0.06)
+        _octo(stern, "canopy_finial_%s" % tag, top + v3(0, 0.06, 0), np.eye(3), (0.13, 0.12, 0.13), "gold")
+        _octo(stern, "canopy_finial_knob_%s" % tag, top + v3(0, 0.17, 0), ry(math.pi / 8), (0.08, 0.1, 0.08), "gold")
     for side in (1, -1):
         eave_f, eave_b = arc(side, zfc, hf), arc(side, zbc, hb)
         # valance hanging along the eave
@@ -528,9 +540,13 @@ def build():
                  {"all": "valance", "+1": None, "-1": None, "+2": None, "-2": None}, stretch=True,
                  v_dir=v3(0, -1, 0))
         # gold tassels at the corners
+        beam(stern, "canopy_eave_%s" % ("p" if side > 0 else "s"), eave_b + v3(0, 0.02, 0), eave_f + v3(0, 0.02, 0), 0.07,
+             "gold", width=0.07, extend=0.06)
         for z, half in ((zfc, hf), (zbc, hb)):
-            beam(stern, "tassel_%d_%d" % (side > 0, z > zf), v3(side * half, roof_y - 0.42, z), v3(side * half, roof_y - 0.72, z),
-                 0.06, "gold")
+            beam(stern, "tassel_%d_%d" % (side > 0, z > zf), v3(side * half, roof_y - 0.42, z), v3(side * half, roof_y - 0.66, z),
+                 0.05, "gold")
+            _octo(stern, "tassel_knob_%d_%d" % (side > 0, z > zf), v3(side * half, roof_y - 0.7, z), np.eye(3), (0.1, 0.1, 0.1),
+                  "gold")
     add_cube(stern, "valance_front", v3(0, roof_y - 0.32, zfc), np.eye(3), (2 * wf + 0.9, 0.45, 0.03),
              {"all": None, "+3": "valance", "-3": "valance"}, stretch=True, v_dir=v3(0, -1, 0))
     # railing (barriere) at the front of the stern deck, gap in the middle: round hand rail, turned balusters
@@ -574,7 +590,9 @@ def build():
         beam(rb, "rudder_blade_" + sname, blade_top, blade_bot, 0.08, "hull_mid", width=0.62, up=v3(1, 0, 0))
         # rounded tip of the blade
         d = norm(blade_bot - blade_top)
-        beam(rb, "rudder_blade_tip_" + sname, blade_bot, blade_bot + d * 0.16, 0.08, "hull_mid", width=0.4, up=v3(1, 0, 0))
+        ax_ = gg_frame(d, v3(1, 0, 0))
+        add_cube(rb, "rudder_blade_tip_" + sname, blade_bot, ax_ @ ry(math.pi / 4), (0.62 / math.sqrt(2), 0.08, 0.62 / math.sqrt(2)),
+                 "hull_mid")
         # tiller bar towards the helmsman
         tip = v3(side * 0.35, hp.RAISED_DECK_Y + 0.85, -7.65)
         _rbeam(rb, "tiller_" + sname, pivot + v3(0, 0.1, 0), tip, 0.1, "dark_wood")
@@ -658,11 +676,14 @@ def build():
             ob = Bone("oar_%s%d" % (sname, i + 1), origin=pivot, parent=group)
             dvec = v3(side * math.cos(oar_dir_down), -math.sin(oar_dir_down), 0)
             _rbeam(ob, "oar_shaft_%s%d" % (sname, i + 1), pivot - dvec * 1.3, pivot + dvec * 3.1, 0.16, "oar")
-            beam(ob, "oar_blade_%s%d" % (sname, i + 1), pivot + dvec * 2.8, pivot + dvec * 4.15, 0.08, "oar",
+            ax_ = gg_frame(dvec, v3(0, 0, 1))
+            add_cube(ob, "oar_blade_neck_%s%d" % (sname, i + 1), pivot + dvec * 3.0, ax_ @ ry(math.pi / 4),
+                     (0.36, 0.07, 0.36), "oar")
+            beam(ob, "oar_blade_%s%d" % (sname, i + 1), pivot + dvec * 3.0, pivot + dvec * 4.05, 0.08, "oar",
                  width=0.5, up=v3(0, 0, 1))
-            beam(ob, "oar_blade_tip_%s%d" % (sname, i + 1), pivot + dvec * 4.15, pivot + dvec * 4.3, 0.08, "oar",
-                 width=0.34, up=v3(0, 0, 1))
-            _octo(ob, "oarlock_%s%d" % (sname, i + 1), pivot, np.eye(3), (0.2, 0.16, 0.2), "iron")
+            add_cube(ob, "oar_blade_tip_%s%d" % (sname, i + 1), pivot + dvec * 4.05, ax_ @ ry(math.pi / 4),
+                     (0.5 / math.sqrt(2), 0.08, 0.5 / math.sqrt(2)), "oar")
+            add_cube(ob, "oarlock_%s%d" % (sname, i + 1), pivot, ry(math.pi / 4), (0.2, 0.16, 0.2), "iron")
 
     # ---- stern streamer (long red pennant)
     s_root = stern_top + v3(0, 0.55, 0.1)
