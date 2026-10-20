@@ -53,10 +53,53 @@ EYE = np.eye(3)
 SIDES = ((1, "p"), (-1, "s"))
 
 FORE_END, AFT_END = es.FORE_SCALE - 0.05, -es.AFT_SCALE + 0.05
-STATIONS = [AFT_END, -12.4, -11.8, -11.0, -10.0, -8.6, -7.0, -5.0, -3.0, -1.0, 1.0, 3.0, 5.0, 7.0, 8.8, 10.2, 11.2, 12.0,
-            12.6, FORE_END]
+# hull stations, close together towards the fine ends
+STATIONS = [AFT_END, -12.55, -12.3, -11.95, -11.5, -10.95, -10.3, -9.55, -8.7, -7.75, -6.7, -5.6, -4.45, -3.25, -2.05, -0.85,
+            0.35, 1.55, 2.75, 3.95, 5.15, 6.3, 7.4, 8.45, 9.4, 10.25, 11.0, 11.6, 12.1, 12.5, 12.75, FORE_END]
 UPPER = [0.25, 0.55, 0.8, 1.0]
-STRAKES = ["hull_navy"] * 4 + ["hull_navy", "hull_teal", "ornament", "hull_teal"]
+SPAN_REGIONS = ["hull_navy"] * 4 + ["hull_navy", "hull_teal", "ornament", "hull_teal"]
+# each span of the section is cut into this many strakes: a round bilge flowing into the sides
+SECTION_SUB = [2, 2, 2, 1, 1, 1, 1, 1]
+STRAKES = [reg for reg, n in zip(SPAN_REGIONS, SECTION_SUB) for _ in range(n)]
+STRAKE_SPAN = [k for k, n in enumerate(SECTION_SUB) for _ in range(n)]
+
+
+def _cr(p0, p1, p2, p3, t):
+    """Catmull-Rom point between p1 and p2."""
+    return 0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (-p0 + 3 * p1 - 3 * p2 + p3) * t ** 3)
+
+
+def _smooth(points, subs):
+    """Smooth curve through the control points, span k cut into subs[k] pieces."""
+    P = [np.asarray(p, dtype=float) for p in points]
+    out = []
+    for k in range(len(P) - 1):
+        p0, p1, p2, p3 = P[max(k - 1, 0)], P[k], P[k + 1], P[min(k + 2, len(P) - 1)]
+        for j in range(subs[k]):
+            out.append(_cr(p0, p1, p2, p3, j / subs[k]))
+    out.append(P[-1])
+    return out
+
+
+def _rbeam(bone, name, p0, p1, th, region, up=None, extend=0.0, **kw):
+    """Round-looking spar: a square beam and the same beam turned 45 degrees about its axis (8 sides)."""
+    p0, p1 = v3(*p0), v3(*p1)
+    d = norm(p1 - p0)
+    u0 = v3(0, 1, 0) if up is None else norm(np.asarray(up, dtype=float))
+    if abs(np.dot(d, u0)) > 0.98:
+        u0 = v3(1, 0, 0)
+    w = norm(u0 - np.dot(u0, d) * d)
+    u1 = norm(w + np.cross(d, w))
+    beam(bone, name, p0, p1, th, region, up=w, extend=extend, **kw)
+    reg = {"all": region, "+1": None, "-1": None} if isinstance(region, str) else dict(region, **{"+1": None, "-1": None})
+    beam(bone, name + "_r", p0, p1, th, reg, up=u1, extend=extend, **kw)
+
+
+def _octo(bone, name, c, R, size, region):
+    """Octagonal block: a box and the same box turned 45 degrees about its own y axis."""
+    add_cube(bone, name, c, R, size, region)
+    reg = {"all": region, "+2": None, "-2": None} if isinstance(region, str) else dict(region, **{"+2": None, "-2": None})
+    add_cube(bone, name + "_r", c, R @ ry(math.pi / 4), size, reg)
 
 
 def hw(z):
@@ -93,6 +136,7 @@ def section(z, side):
     for f in UPPER:
         y = upper_y(z, f)
         pts.append((outer_x(z, y), y))
+    pts = _smooth(pts, SECTION_SUB)
     return [v3(side * max(x, 0.05), y, z) for x, y in pts]
 
 
@@ -171,15 +215,18 @@ def build():
             A, B = section(za, side), section(zb, side)
             for k, reg in enumerate(STRAKES):
                 mid = (A[k] + A[k + 1] + B[k] + B[k + 1]) / 4
-                outward = norm(v3(side, -0.7 if k < 4 else 0.0, 0) + v3(0, 0, 0.35 * np.sign(mid[2])))
+                outward = norm(v3(mid[0], mid[1] - 0.8, 0.35 * np.sign(mid[2]) * abs(mid[0])))
                 board(hull, "hull_%s%d_%d" % (sn, i, k), A[k], A[k + 1], B[k], B[k + 1], 0.1, reg, outward,
-                      inner="hull_light" if k >= 6 else None)
+                      inner="hull_light" if STRAKE_SPAN[k] >= 6 else None)
+            # gold gunwale with a rounded outer edge
             pa, pb = v3(side * outer_x(za, sheer(za)), sheer(za) + 0.04, za), v3(side * outer_x(zb, sheer(zb)), sheer(zb) + 0.04, zb)
-            beam(hull, "gunwale_%s%d" % (sn, i), pa, pb, 0.1, "gold", width=0.22, extend=0.04)
+            beam(hull, "gunwale_%s%d" % (sn, i), pa, pb, 0.09, "gold", width=0.2, extend=0.04)
+            o = v3(side * 0.09, -0.03, 0)
+            beam(hull, "gunwale_bead_%s%d" % (sn, i), pa + o, pb + o, 0.1, "gold", width=0.1, up=norm(v3(side, 1, 0)), extend=0.04)
             for j, f in enumerate((0.55, 0.8, 0.25)):
                 ya, yb = upper_y(za, f), upper_y(zb, f)
                 pa, pb = v3(side * (outer_x(za, ya) + 0.03), ya, za), v3(side * (outer_x(zb, yb) + 0.03), yb, zb)
-                beam(hull, "moulding_%s%d_%d" % (sn, i, j), pa, pb, 0.06, "gold", width=0.05, extend=0.04)
+                beam(hull, "moulding_%s%d_%d" % (sn, i, j), pa, pb, 0.06, "gold", width=0.06, up=norm(v3(side, 1, 0)), extend=0.04)
         for k, z in enumerate((-9.0, -5.5, -2.0, 1.5, 5.0, 8.4)):
             y = upper_y(z, 0.675)
             p, u, v, n = gn.side_frame(z, y, side)
@@ -207,14 +254,14 @@ def build():
     ctrl = [v3(0, es.keel_y(FORE_END) - 0.05, FORE_END - 0.3), v3(0, 0.7, FORE_END + 0.2), v3(0, 1.9, 13.9), v3(0, 2.9, 14.9),
             v3(0, 3.7, 15.8), v3(0, py - 0.25, pz - 0.35), v3(0, py, pz), v3(0, py + 0.5, pz - 0.05), v3(0, py + 0.45, pz - 0.5),
             v3(0, py + 0.1, pz - 0.45)]
-    pts = curve(ctrl, 4)
+    pts = curve(ctrl, 6)
     stem_web(bow, "prow_web", pts, 12.6, 3.7)
     for j in range(len(pts) - 1):
         t = j / (len(pts) - 1)
         th = 0.5 * (1 - t) + 0.16 * t
         reg = "hull_teal" if t < 0.18 else ("gold_relief" if t < 0.8 else "gold")
-        beam(bow, "prow_%d" % j, pts[j], pts[j + 1], th, reg, width=th * 0.85, extend=0.05)
-        if 0.15 < t < 0.6 and j % 2 == 0:
+        _rbeam(bow, "prow_%d" % j, pts[j], pts[j + 1], th * 0.93, reg, up=v3(1, 0, 0), extend=0.05)
+        if 0.15 < t < 0.6 and j % 3 == 0:
             # gold fins on both sides of the stem
             for side in (1, -1):
                 q = pts[j] + v3(side * 0.12, 0, 0)
@@ -228,22 +275,25 @@ def build():
     hanging_lantern(lanterns, "lantern_prow", v3(0, py - 0.12, pz + 0.12), drop=0.6, s=1.25)
     # bowsprit for the foresail tack, along the top of the stem
     sprit_a, sprit_b = v3(0, sheer(11.5) + 0.2, 11.0), v3(0, 3.45, 15.3)
-    beam(bow, "bowsprit", sprit_a, sprit_b, 0.18, "mast")
+    _rbeam(bow, "bowsprit", sprit_a, sprit_b, 0.18, "mast")
 
     # ---- stern: rises and curls inwards, with its own lantern
     sy, sz = es.STERN_TIP
     ctrl = [v3(0, es.keel_y(AFT_END) - 0.05, AFT_END + 0.25), v3(0, 0.8, AFT_END - 0.3), v3(0, 2.2, -13.6), v3(0, 3.6, -14.15),
             v3(0, sy, sz), v3(0, sy + 0.4, sz + 0.35), v3(0, sy + 0.2, sz + 0.75), v3(0, sy - 0.15, sz + 0.6)]
-    pts = curve(ctrl, 4)
+    pts = curve(ctrl, 6)
     stem_web(stern, "stern_web", pts, -12.4, 3.5, th=0.28)
     for j in range(len(pts) - 1):
         t = j / (len(pts) - 1)
         th = 0.4 * (1 - t) + 0.13 * t
         reg = "hull_teal" if t < 0.25 else ("gold_relief" if t < 0.85 else "gold")
-        beam(stern, "stern_post_%d" % j, pts[j], pts[j + 1], th, reg, width=th * 0.85, extend=0.05)
+        _rbeam(stern, "stern_post_%d" % j, pts[j], pts[j + 1], th * 0.93, reg, up=v3(1, 0, 0), extend=0.05)
     hanging_lantern(lanterns, "lantern_stern", v3(0, sy - 0.1, sz - 0.05), drop=0.5, s=1.1)
     rudder = Bone("rudder", origin=(0, 0.4, AFT_END + 0.2), parent=root)
     add_cube(rudder, "rudder_blade", (0, -0.9, AFT_END - 0.25), EYE, (0.14, 1.6, 0.8), {"all": "hull_navy", "+1": "hull_teal"})
+    # rounded trailing edge and foot of the blade
+    _rbeam(rudder, "rudder_edge", (0, -0.12, AFT_END - 0.65), (0, -1.62, AFT_END - 0.65), 0.14, "hull_navy")
+    _rbeam(rudder, "rudder_foot", (0, -1.7, AFT_END + 0.1), (0, -1.7, AFT_END - 0.6), 0.14, "gold")
 
     # ---- deck, benches with cushions, a few chests and coils
     # the planking runs right into the stem and the sternpost (no hollow left at the ends)
@@ -256,19 +306,32 @@ def build():
                  {"all": "deck", "-2": "dark_wood"})
     for k, (x, z) in enumerate(((1.9, -5.5), (-1.9, -5.5), (1.9, -2.0), (-1.9, -2.0), (1.75, 4.6), (-1.75, 4.6))):
         s = 1 if x > 0 else -1
-        add_cube(deck, "bench_%d" % k, (x + s * 0.12, main_y + 0.22, z), EYE, (0.55, 0.44, 1.0), {"all": "gold_relief", "+2": "cushion"})
-        add_cube(deck, "bench_back_%d" % k, (x + s * 0.45, main_y + 0.65, z), EYE, (0.1, 0.5, 1.0), "gold_relief")
-    add_cube(deck, "bow_bench", (0, main_y + 0.22, 8.4), EYE, (1.0, 0.44, 0.55), {"all": "gold_relief", "+2": "cushion"})
-    add_cube(deck, "chest", (0.0, main_y + 0.25, -7.4), EYE, (0.9, 0.5, 0.6), {"all": "hull_teal", "+2": "gold_relief"})
+        add_cube(deck, "bench_%d" % k, (x + s * 0.12, main_y + 0.2, z), EYE, (0.55, 0.4, 1.0), {"all": "gold_relief", "+2": "cushion"})
+        # a soft round cushion, the back with a rolled top
+        _rbeam(deck, "bench_cushion_%d" % k, (x + s * 0.08, main_y + 0.44, z - 0.46), (x + s * 0.08, main_y + 0.44, z + 0.46), 0.16,
+               {"all": "cushion", "+1": "gold", "-1": "gold"})
+        add_cube(deck, "bench_back_%d" % k, (x + s * 0.45, main_y + 0.62, z), EYE, (0.1, 0.44, 1.0), "gold_relief")
+        _rbeam(deck, "bench_back_roll_%d" % k, (x + s * 0.45, main_y + 0.86, z - 0.52), (x + s * 0.45, main_y + 0.86, z + 0.52), 0.13,
+               "gold")
+    add_cube(deck, "bow_bench", (0, main_y + 0.2, 8.4), EYE, (1.0, 0.4, 0.55), {"all": "gold_relief", "+2": "cushion"})
+    _rbeam(deck, "bow_bench_cushion", (-0.46, main_y + 0.44, 8.4), (0.46, main_y + 0.44, 8.4), 0.16,
+           {"all": "cushion", "+1": "gold", "-1": "gold"})
+    add_cube(deck, "chest", (0.0, main_y + 0.22, -7.4), EYE, (0.9, 0.44, 0.6), {"all": "hull_teal", "+2": "gold_relief"})
+    _rbeam(deck, "chest_lid", (-0.45, main_y + 0.44, -7.4), (0.45, main_y + 0.44, -7.4), 0.42,
+           {"all": "hull_teal", "+1": "gold_relief", "-1": "gold_relief"})
     add_cube(deck, "chest_band", (0.0, main_y + 0.3, -7.4), EYE, (0.94, 0.08, 0.64), {"all": "gold", "+2": None, "-2": None})
+    for x in (-0.3, 0.3):
+        _rbeam(deck, "chest_lid_band_%d" % (x > 0), (x - 0.03, main_y + 0.44, -7.4), (x + 0.03, main_y + 0.44, -7.4), 0.45, "gold")
     sd.rope_coil(gg, deck, "coil_0", (-1.0, main_y, 9.6), r=0.26, rope="rope")
     sd.rope_coil(gg, deck, "coil_1", (1.0, main_y, -9.0), r=0.26, rope="rope")
 
     # ---- helm: carved wheel on a gold pedestal
     hub = v3(0, main_y + 1.15, es.HELM_Z)
-    add_cube(deck, "helm_pedestal", (0, main_y + 0.55, es.HELM_Z + 0.1), EYE, (0.26, 1.1, 0.26), "gold_relief")
+    _rbeam(deck, "helm_pedestal", (0, main_y, es.HELM_Z + 0.1), (0, main_y + 1.1, es.HELM_Z + 0.1), 0.26, "gold_relief")
+    _octo(deck, "helm_pedestal_foot", (0, main_y + 0.06, es.HELM_Z + 0.1), EYE, (0.42, 0.12, 0.42), "gold")
+    _octo(deck, "helm_pedestal_head", (0, main_y + 0.9, es.HELM_Z + 0.1), EYE, (0.34, 0.1, 0.34), "gold")
     wheel = Bone("helm_wheel", origin=tuple(hub), parent=deck)
-    add_cube(wheel, "helm_hub", hub, EYE, (0.18, 0.18, 0.18), "gold")
+    _octo(wheel, "helm_hub", hub, rx(math.pi / 2), (0.2, 0.16, 0.2), "gold")
     for k in range(8):
         a = 2 * math.pi * k / 8
         d = v3(math.cos(a), math.sin(a), 0)
@@ -280,16 +343,17 @@ def build():
     # ---- mast, boom, the three triangular sails, the pennant
     mz = es.MAST_Z
     mast = Bone("mast", origin=(0, main_y, mz), parent=root)
-    beam(mast, "mast_lower", (0, main_y - 0.2, mz), (0, 11.0, mz), 0.34, "mast")
-    beam(mast, "mast_upper", (0, 10.6, mz), (0, es.MAST_TOP, mz), 0.24, "mast")
+    _rbeam(mast, "mast_lower", (0, main_y - 0.2, mz), (0, 11.0, mz), 0.34, "mast")
+    _rbeam(mast, "mast_upper", (0, 10.6, mz), (0, es.MAST_TOP, mz), 0.24, "mast")
     for k, y in enumerate((3.0, 6.5, 10.8, 15.0)):
-        add_cube(mast, "mast_band_%d" % k, (0, y, mz), EYE, (0.4, 0.14, 0.4), "gold")
-    add_cube(mast, "mast_partners", (0, main_y + 0.1, mz), EYE, (0.7, 0.2, 0.7), "gold_relief")
-    add_cube(mast, "mast_finial", (0, es.MAST_TOP + 0.15, mz), EYE, (0.26, 0.3, 0.26), "gold")
-    add_cube(mast, "mast_finial_top", (0, es.MAST_TOP + 0.4, mz), ry(math.pi / 4), (0.16, 0.24, 0.16), "gold")
+        bw = 0.4 if y < 11 else 0.3
+        _octo(mast, "mast_band_%d" % k, (0, y, mz), EYE, (bw, 0.14, bw), "gold")
+    _octo(mast, "mast_partners", (0, main_y + 0.1, mz), EYE, (0.7, 0.2, 0.7), "gold_relief")
+    _octo(mast, "mast_finial", (0, es.MAST_TOP + 0.15, mz), EYE, (0.26, 0.3, 0.26), "gold")
+    _octo(mast, "mast_finial_top", (0, es.MAST_TOP + 0.4, mz), ry(math.pi / 8), (0.16, 0.24, 0.16), "gold")
     boom_a, boom_b = v3(0, es.BOOM_Y, mz - 0.15), v3(0, es.BOOM_Y + 0.15, es.BOOM_END_Z)
-    beam(mast, "boom", boom_a, boom_b, 0.16, "mast")
-    beam(mast, "boom_roll", boom_a + v3(0, 0.15, -0.6), boom_b + v3(0, 0.15, 0.6), 0.16, "cloth_roll")
+    _rbeam(mast, "boom", boom_a, boom_b, 0.16, "mast")
+    _rbeam(mast, "boom_roll", boom_a + v3(0, 0.15, -0.6), boom_b + v3(0, 0.15, 0.6), 0.16, "cloth_roll")
 
     tris = {}
     sails = []
@@ -326,8 +390,12 @@ def build():
     # ---- lantern posts on the gunwale (lanterns hang from gold swan-neck arms)
     for k, (x, z) in enumerate(((1, -7.4), (-1, -7.4), (1, 6.4), (-1, 6.4))):
         base = v3(x * outer_x(z, sheer(z)) * 0.97, sheer(z) + 0.05, z)
-        beam(lanterns, "lantern_post_%d" % k, base, base + v3(0, 1.3, 0), 0.08, "gold")
-        beam(lanterns, "lantern_arm_%d" % k, base + v3(0, 1.3, 0), base + v3(x * 0.4, 1.45, 0), 0.06, "gold")
+        _rbeam(lanterns, "lantern_post_%d" % k, base, base + v3(0, 1.2, 0), 0.08, "gold")
+        # swan-neck arm curving up and out
+        neck = curve([base + v3(0, 1.15, 0), base + v3(0, 1.38, 0), base + v3(x * 0.2, 1.5, 0), base + v3(x * 0.42, 1.44, 0)], 2)
+        for j in range(len(neck) - 1):
+            beam(lanterns, "lantern_arm_%d_%d" % (k, j), neck[j], neck[j + 1], 0.06, "gold", extend=0.02)
+        _octo(lanterns, "lantern_post_foot_%d" % k, base + v3(0, 0.05, 0), EYE, (0.16, 0.1, 0.16), "gold")
         hanging_lantern(lanterns, "lantern_%d" % k, base + v3(x * 0.42, 1.42, 0), drop=0.25, s=0.85)
 
     # ---- rigging (few, fine ropes)
