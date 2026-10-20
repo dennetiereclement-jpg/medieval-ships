@@ -73,6 +73,8 @@ Pour tous :
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
 
+La version 1.7.20 : voiles du galion et du grand vaisseau gonflées en courbe lisse (sans damier ni marches), drapeaux du galion qui ondulent, grands fanaux de poupe à huit pans, gouvernail du galion affiné ; hélice du dirigeable à pales vrillées, lanternes ouvragées, emblème d'engrenage ailé à la proue, sacs de lest ronds ; galère rouge : écailles continues sur le cou et la queue du dragon, rayures de voile droites, boucliers ronds.
+
 La version 1.7.19 : le joueur qui tient la barre se tient debout à la roue (au lieu d'être assis), et quitter un siège fait descendre juste à côté de ce siège au lieu de téléporter à la barre.
 
 La version 1.7.18 : le grand vaisseau de guerre en détail : peintures et dorures plus fines, sculptures en relief (acanthes, volutes, Renommées ailées et statues à la poupe), poupe sans bords dentelés, canons ronds sur de vrais affûts à roues, mantelets ouverts rouges, cabestan, caillebotis, beffroi et sa cloche, habitacle, hunes rondes à rambarde dorée, nouveau lion couronné en figure de proue, rideaux dans la grande cabine, voiles à bandes de ris.
@@ -196,7 +198,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.7.19.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.7.20.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
