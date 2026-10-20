@@ -12,7 +12,11 @@ import random
 
 from PIL import Image
 
-from galley_texture import _fill, _jitter, _planks, _rgb, paint_lamp_glass
+from galley_texture import (_jitter, _mix, _ramp, _rgb, _scale, fine_wood, paint_lamp_glass, painted_planks, polished_metal,
+                            woven)
+
+ELF_GOLD = [(0.0, (120, 84, 28)), (0.25, (179, 138, 48)), (0.5, (217, 173, 69)), (0.75, (246, 215, 122)),
+            (0.92, (255, 240, 184)), (1.0, (255, 250, 226))]
 
 SIZE = 512
 
@@ -47,24 +51,42 @@ GOLD = _rgb("d9ad45")
 GOLD_HI = _rgb("f6d77a")
 
 
-def _tri_inside(tri, x, y):
-    (ax, ay), (bx, by), (cx, cy) = tri
-
-    def side(x1, y1, x2, y2):
-        return (x - x2) * (y1 - y2) - (x1 - x2) * (y - y2)
-    d1, d2, d3 = side(ax, ay, bx, by), side(bx, by, cx, cy), side(cx, cy, ax, ay)
-    return not ((d1 < 0 or d2 < 0 or d3 < 0) and (d1 > 0 or d2 > 0 or d3 > 0))
-
-
-def _edge_dist(tri, x, y):
-    d = 1e9
+def _curved_outline(tri, bulge):
+    """Outline of a sail cut with a convex roach: the luff (first edge, on the mast or the stay)
+    stays straight, the foot and the leech bow outwards by `bulge` pixels in their middle."""
+    cx = sum(p[0] for p in tri) / 3
+    cy = sum(p[1] for p in tri) / 3
+    poly = []
     for i in range(3):
         (x1, y1), (x2, y2) = tri[i], tri[(i + 1) % 3]
+        nx, ny = y2 - y1, -(x2 - x1)
+        ln = math.hypot(nx, ny)
+        nx, ny = nx / ln, ny / ln
+        if nx * ((x1 + x2) / 2 - cx) + ny * ((y1 + y2) / 2 - cy) < 0:
+            nx, ny = -nx, -ny
+        for j in range(32):
+            t = j / 32
+            b = 0.0 if i == 0 else bulge * math.sin(math.pi * t)
+            poly.append((x1 + (x2 - x1) * t + nx * b, y1 + (y2 - y1) * t + ny * b))
+    return poly
+
+
+def _poly_inside(poly, x, y):
+    c = False
+    for i in range(len(poly)):
+        (x1, y1), (x2, y2) = poly[i], poly[i - 1]
+        if (y1 > y) != (y2 > y) and x < (x2 - x1) * (y - y1) / (y2 - y1) + x1:
+            c = not c
+    return c
+
+
+def _poly_dist(poly, x, y):
+    d = 1e9
+    for i in range(len(poly)):
+        (x1, y1), (x2, y2) = poly[i - 1], poly[i]
         ex, ey = x2 - x1, y2 - y1
-        L2 = ex * ex + ey * ey
-        t = max(0.0, min(1.0, ((x - x1) * ex + (y - y1) * ey) / L2))
-        px, py = x1 + ex * t, y1 + ey * t
-        d = min(d, math.hypot(x - px, y - py))
+        t = max(0.0, min(1.0, ((x - x1) * ex + (y - y1) * ey) / max(1e-9, ex * ex + ey * ey)))
+        d = min(d, math.hypot(x - x1 - ex * t, y - y1 - ey * t))
     return d
 
 
@@ -117,14 +139,16 @@ def _paint_sail(px, region, tri_unit, symbol, rng):
     angs = sorted(math.atan2(p[1] - head[1], p[0] - head[0]) for p in others)
     a0, seam_step = angs[0], (angs[1] - angs[0]) / 9
     small = [(cx + size * dx, cy + size * dy) for dx, dy in ((-0.2, -0.17), (0.17, -0.2), (0.22, 0.14), (-0.12, 0.2), (0.02, -0.3))]
+    poly = _curved_outline(tri, size * 0.03)
     for y in range(h):
         for x in range(w):
-            if not _tri_inside(tri, x + 0.5, y + 0.5):
+            if not _poly_inside(poly, x + 0.5, y + 0.5):
                 px[u + x, v + y] = (0, 0, 0, 0)
                 continue
-            d = _edge_dist(tri, x + 0.5, y + 0.5)
-            k = 1.0 - 0.05 * ((x * 7 + y * 3) % 11 == 0)
-            c = tuple(int(q * k) for q in CREAM)
+            d = _poly_dist(poly, x + 0.5, y + 0.5)
+            # soft light in the belly, shade towards the edges
+            k = 1.0 - 0.07 * max(0.0, 1.0 - d / (size * 0.12)) - 0.03 * (math.hypot(x - cx, y - cy) / size)
+            c = _scale(CREAM, k)
             hx, hy = head
             ang = math.atan2(y + 0.5 - hy, x + 0.5 - hx)
             if abs(((ang - a0) / seam_step) - round((ang - a0) / seam_step)) * seam_step * math.hypot(x - hx, y - hy) < 0.6:
@@ -164,42 +188,51 @@ def make_texture(path, tris):
     """tris: name -> triangle of the sail in [0,1] region coordinates (from the generator)."""
     rng = random.Random(1954)
     img = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
-    _planks(img, REGIONS["hull_teal"], _rgb("2c8290"), _rgb("17525c"), 4, rng)
-    _planks(img, REGIONS["hull_navy"], _rgb("1d3f63"), _rgb("10243c"), 4, rng)
-    _planks(img, REGIONS["deck"], _rgb("caa060"), _rgb("8a6634"), 4, rng)
-    _planks(img, REGIONS["mast"], _rgb("d8c4a0"), _rgb("a48c66"), 8, rng, joints=False)
-    _planks(img, REGIONS["dark_wood"], _rgb("6a4a2a"), _rgb("3e2a14"), 4, rng)
-    _planks(img, REGIONS["hull_light"], _rgb("d2b88a"), _rgb("9a8058"), 4, rng)
-    _fill(img, REGIONS["silver"], _rgb("c9d3dc"), rng, 8)
+    # lacquered planks: smooth paint with a soft sheen, fine seams
+    painted_planks(img, REGIONS["hull_teal"], _rgb("2c8290"), _rgb("17525c"), 4, rng, joints=True)
+    painted_planks(img, REGIONS["hull_navy"], _rgb("1d3f63"), _rgb("10243c"), 4, rng, joints=True)
+    fine_wood(img, REGIONS["deck"], _rgb("caa060"), _rgb("9a7440"), 4, rng, knots=0.08, grain=0.08)
+    fine_wood(img, REGIONS["mast"], _rgb("d8c4a0"), _rgb("b8a27c"), 8, rng, joints=False, knots=0.1, grain=0.08, shade=0.06)
+    fine_wood(img, REGIONS["dark_wood"], _rgb("6a4a2a"), _rgb("3e2a14"), 4, rng)
+    fine_wood(img, REGIONS["hull_light"], _rgb("d2b88a"), _rgb("9a8058"), 4, rng, knots=0.06, grain=0.08)
+    polished_metal(img, REGIONS["silver"], [(0.0, _rgb("7d8894")), (0.5, _rgb("c9d3dc")), (1.0, _rgb("f4f8fc"))], rng)
     px = img.load()
 
     def reg(name):
         return REGIONS[name]
 
-    # gold, and gold carved in relief (leaves and scrolls)
-    u, v, w, h = reg("gold")
-    for y in range(h):
-        for x in range(w):
-            # polished gold: soft rounded highlights, never a regular pattern
-            t = 0.55 * math.sin(x * 0.4 + math.sin(y * 0.28) * 1.6) + 0.45 * math.cos(y * 0.33 + x * 0.1)
-            c = (_rgb("fff0b8") if t > 0.7 else GOLD_HI if t > 0.25 else GOLD if t > -0.4 else _rgb("b38a30"))
-            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+    # polished gold, and gold carved in relief: a running vine of leaves on a recessed ground
+    polished_metal(img, reg("gold"), ELF_GOLD, rng, fx=0.4, fy=0.28, swirl=1.6)
     u, v, w, h = reg("gold_relief")
+    leaves = []
+    for k in range(4):
+        x0 = k * 8 + 4
+        up = 1 if k % 2 == 0 else -1
+        for row in (8, 24):
+            yv = row + 3 * math.sin((x0 + 2) * 2 * math.pi / 16)
+            leaves.append((x0 + 2.5, yv - up * 4.0, up * 0.9))
     for y in range(h):
         for x in range(w):
-            # carved leaves: lit tops, shaded hollows, a dark line where two leaves meet
-            s = math.sin(x * 0.55) * math.cos(y * 0.4) + 0.5 * math.sin((x + y) * 0.3)
-            if abs(s + 0.15) < 0.09:
-                c = _rgb("7a5a1c")
-            elif s > 0.85:
-                c = _rgb("fff0b8")
-            elif s > 0.35:
-                c = GOLD_HI
-            elif s > -0.5:
-                c = GOLD
-            else:
-                c = _rgb("a07a28")
-            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+            c = _ramp(ELF_GOLD, 0.22)   # recessed ground
+            for row in (8, 24):
+                ys = row + 3 * math.sin(x * 2 * math.pi / 16)
+                dy = y + 0.5 - ys
+                if abs(dy) < 1.1:   # the stem, lit on its upper side
+                    c = _ramp(ELF_GOLD, 0.8 if dy < 0 else 0.5)
+            for lx, ly, ang in leaves:
+                for oy in (-32, 0, 32):
+                    dx, dy = x + 0.5 - lx, y + 0.5 - (ly + oy)
+                    ca, sa = math.cos(ang), math.sin(ang)
+                    a_, b_ = dx * ca + dy * sa, -dx * sa + dy * ca
+                    r = (a_ / 4.6) ** 2 + (b_ / 2.2) ** 2
+                    if r < 1:
+                        t = 0.55 + 0.4 * (-b_ / 2.2) - 0.25 * r
+                        if abs(b_) < 0.4 and abs(a_) < 3.6:
+                            t = 0.38   # midrib
+                        c = _ramp(ELF_GOLD, t)
+                    elif r < 1.35:
+                        c = _ramp(ELF_GOLD, 0.08)   # carved outline
+            px[u + x, v + y] = _jitter(c, rng, 2) + (255,)
     # night-blue bottom: a scatter of tiny silver stars in the paint
     u, v, w, h = reg("hull_navy")
     for _ in range(w * h // 70):
@@ -212,22 +245,65 @@ def make_texture(path, tris):
         if y % 16 == 0:
             for x in range(w):
                 px[u + x, v + y] = _jitter(_rgb("d9ad45"), rng, 6) + (255,)
-    # filigree band: turquoise with gold scrolls and a gold line along both edges
+    # filigree band (mapped over the whole height of its strake, continuous along the hull, one
+    # pattern every 2 blocks): a running gold scroll in relief, each wave curling into a spiral, small
+    # leaves in the hollows, a turquoise bead between the scrolls, gilded beads along both edges
     u, v, w, h = reg("ornament")
+    field = [[None] * w for _ in range(h)]
+
+    def stamp(xx, yy, rad, t):
+        for y2 in range(int(yy - rad - 2), int(yy + rad + 3)):
+            for x2 in range(int(xx - rad - 2), int(xx + rad + 3)):
+                if not 0 <= y2 < h:
+                    continue
+                xw = x2 % w
+                d = math.hypot(x2 + 0.5 - xx, y2 + 0.5 - yy)
+                if d <= rad + 0.8:
+                    old = field[y2][xw]
+                    if d <= rad:
+                        val = t + 0.3 * (yy - (y2 + 0.5)) / max(rad, 0.5)   # lit from above
+                    else:
+                        val = 0.12   # carved outline
+                    if old is None or (d <= rad and old < val):
+                        field[y2][xw] = val
+    mid = h / 2
+
+    def wave(xx):
+        return mid + 6.0 * math.sin(2 * math.pi * xx / 32)
+    for k in range(-1, w // 32 + 1):
+        x0 = k * 32
+        for i in range(161):
+            xx = x0 + 32 * i / 160
+            stamp(xx, wave(xx), 1.35, 0.62)
+        # a spiral tendril curls into each hollow of the wave (above the troughs, below the crests)
+        for xc, sgn in ((8, -1), (24, 1)):
+            cx, cy = x0 + xc, mid + sgn * 2.2
+            ax_, ay_ = x0 + xc + 6.5, wave(x0 + xc + 6.5)
+            a0 = math.atan2(ay_ - cy, ax_ - cx)
+            r0 = math.hypot(ax_ - cx, ay_ - cy)
+            turn = -sgn   # towards the free edge of the band first
+            for i in range(140):
+                t = i / 139 * 1.5 * 2 * math.pi
+                r = r0 * (1 - 0.78 * t / (1.5 * 2 * math.pi))
+                stamp(cx + r * math.cos(a0 + turn * t), cy + r * math.sin(a0 + turn * t), 1.15 - 0.45 * i / 139, 0.62)
+            # a small leaf on the other side of the wave, pointing at the edge
+            lx = x0 + xc - 6.0
+            for i in range(12):
+                f = i / 11
+                stamp(lx - 2.5 * f, wave(lx) - sgn * (1.5 + 7.5 * f), 1.7 * math.sin(math.pi * (0.15 + 0.85 * f)), 0.72)
     for y in range(h):
         for x in range(w):
-            c = _rgb("2c8290")
-            if y in (0, 1, h - 2, h - 1):
-                c = GOLD
+            if y in (0, h - 1):
+                c = _ramp(ELF_GOLD, 0.35)
+            elif y in (1, h - 2):
+                c = _ramp(ELF_GOLD, 0.85 if x % 3 else 0.55)
+            elif field[y][x] is not None:
+                c = _ramp(ELF_GOLD, max(0.0, min(1.0, field[y][x])))
             else:
-                yy = (y - h / 2) / (h / 2 - 2)
-                wave = math.sin(x * 2 * math.pi / 32) * 0.55
-                curl = math.hypot((x % 32) - 16, (y - h / 2) - wave * 8)
-                if abs(yy - wave) < 0.13 or (6 < curl < 8.2 and (x % 32) > 12):
-                    c = GOLD
-                elif (x % 32 == 0 and abs(yy) < 0.3):
+                c = _scale(_rgb("2c8290"), 1.0 + 0.04 * math.sin(y * 0.4))
+                if math.hypot((x % 32) + 0.5 - 0.0, y + 0.5 - mid) < 2.0 or math.hypot((x % 32) - 31.5, y + 0.5 - mid) < 2.0:
                     c = _rgb("6fd6e3")
-            px[u + x, v + y] = _jitter(c, rng, 5) + (255,)
+            px[u + x, v + y] = _jitter(c, rng, 2) + (255,)
     # faceted turquoise gem
     u, v, w, h = reg("gem")
     for y in range(h):
@@ -266,13 +342,15 @@ def make_texture(path, tris):
             if y in (0, h - 1):
                 c = BLUE
             px[u + x, v + y] = c + (255,)
+    # cushion: blue velvet with a soft sheen and gold piping, buttoned
     u, v, w, h = reg("cushion")
+    woven(img, reg("cushion"), _rgb("3266b2"), rng, k_weave=0.02, folds=(16, 0.08))
     for y in range(h):
         for x in range(w):
-            c = _rgb("2b5fa8") if (x // 4 + y // 4) % 2 else _rgb("3a72c0")
             if y in (0, h - 1) or x in (0, w - 1):
-                c = GOLD
-            px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
+                px[u + x, v + y] = _ramp(ELF_GOLD, 0.7 if (x + y) % 2 else 0.5) + (255,)
+            elif (x % 8, y % 8) in ((4, 4), (0, 0)):
+                px[u + x, v + y] = _ramp(ELF_GOLD, 0.85) + (255,)
     # carved gold arabesque (transparent around it): two spirals joined by an S, with leaves
     u, v, w, h = reg("swirl")
     for y in range(h):

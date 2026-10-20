@@ -153,6 +153,36 @@ def curve(points, n=6):
     return out
 
 
+def _leaf(bone, name, root, d, normal, length, region, th=0.04):
+    """Carved leaf lying flat (normal), springing from root along d: a broad diamond body and a
+    narrower diamond tip make a pointed leaf, a thin midrib runs along it."""
+    d = norm(d)
+    n = norm(normal - np.dot(normal, d) * d)
+    w_ = np.cross(n, d)
+    R = np.column_stack([d, w_, n]) @ rz(math.pi / 4)
+    s1 = length * 0.55 / math.sqrt(2)
+    add_cube(bone, name, root + d * length * 0.36, R, (s1, s1, th), region)
+    s2 = length * 0.32 / math.sqrt(2)
+    add_cube(bone, name + "_tip", root + d * length * 0.74, R, (s2, s2, th * 0.9), region)
+    beam(bone, name + "_rib", root, root + d * length * 0.86, th * 1.5, "gold", width=0.035, up=n)
+
+
+def _volute(bone, name, centre, side, r0, turns=1.5, back=v3(0, 0, -1), n=18, th=0.07):
+    """Flat gold spiral (a carved curl) on the side of a post: it starts tangent to `back` at the
+    outer radius and winds inwards, the stroke thinning towards the eye."""
+    b = norm(back - np.dot(back, v3(1, 0, 0)) * v3(1, 0, 0))
+    o = norm(np.cross(v3(1, 0, 0), b))
+    pts = []
+    for k in range(n + 1):
+        t = k / n * turns * 2 * math.pi
+        r = r0 * (1 - 0.8 * t / (turns * 2 * math.pi))
+        pts.append(centre + (b * math.sin(t) + o * math.cos(t)) * r)
+    for k in range(n):
+        beam(bone, "%s_%d" % (name, k), pts[k], pts[k + 1], th * (1 - 0.45 * k / n), "gold", width=0.05,
+             up=v3(side, 0, 0), extend=0.025)
+    _octo(bone, name + "_eye", pts[-1], rz(math.pi / 2), (0.1, 0.05, 0.1), "gold")
+
+
 def hanging_lantern(parent, name, hook, drop=0.7, s=1.0):
     """Lantern on a short chain, its own bone so that it sways (lantern_sway)."""
     b = Bone(name, origin=tuple(hook), parent=parent)
@@ -216,8 +246,15 @@ def build():
             for k, reg in enumerate(STRAKES):
                 mid = (A[k] + A[k + 1] + B[k] + B[k + 1]) / 4
                 outward = norm(v3(mid[0], mid[1] - 0.8, 0.35 * np.sign(mid[2]) * abs(mid[0])))
-                board(hull, "hull_%s%d_%d" % (sn, i, k), A[k], A[k + 1], B[k], B[k + 1], 0.1, reg, outward,
-                      inner="hull_light" if STRAKE_SPAN[k] >= 6 else None)
+                cube = board(hull, "hull_%s%d_%d" % (sn, i, k), A[k], A[k + 1], B[k], B[k + 1], 0.1, reg, outward,
+                             inner="hull_light" if STRAKE_SPAN[k] >= 6 else None)
+                if reg == "ornament":
+                    # the filigree runs on unbroken along the hull: each board maps the whole height of
+                    # the band and the part of its length under it (one pattern every 2 blocks)
+                    u0 = (za % 2.0) / 8.0
+                    spec = cube.faces["north"]
+                    spec["sub"] = (u0, 0.0, u0 + (zb - za) / 8.0, 1.0)
+                    spec["u_dir"], spec["v_dir"] = v3(0, 0, 1), v3(0, -1, 0)
             # gold gunwale with a rounded outer edge
             pa, pb = v3(side * outer_x(za, sheer(za)), sheer(za) + 0.04, za), v3(side * outer_x(zb, sheer(zb)), sheer(zb) + 0.04, zb)
             beam(hull, "gunwale_%s%d" % (sn, i), pa, pb, 0.09, "gold", width=0.2, extend=0.04)
@@ -231,7 +268,10 @@ def build():
             y = upper_y(z, 0.675)
             p, u, v, n = gn.side_frame(z, y, side)
             axes = np.column_stack([u, v, n])
-            add_cube(hull, "gem_setting_%s%d" % (sn, k), p + n * 0.03, axes, (0.42, 0.42, 0.05), "gold_relief")
+            # round gold setting (an octagon standing out of the hull) with a beaded rim
+            _octo(hull, "gem_setting_%s%d" % (sn, k), p + n * 0.03, axes @ rx(math.pi / 2), (0.46, 0.05, 0.46), "gold")
+            _octo(hull, "gem_setting_rim_%s%d" % (sn, k), p + n * 0.05, axes @ rx(math.pi / 2) @ ry(math.pi / 8), (0.36, 0.04, 0.36),
+                  "gold_relief")
             add_cube(hull, "glow_gem_%s%d" % (sn, k), p + n * 0.07, axes @ rz(math.pi / 4), (0.22, 0.22, 0.06), "gem", stretch=True)
         # large carved gold arabesques along the upper hull, between the gems
         for k, z in enumerate((-7.25, -3.75, -0.25, 3.25, 6.7)):
@@ -259,19 +299,25 @@ def build():
     for j in range(len(pts) - 1):
         t = j / (len(pts) - 1)
         th = 0.5 * (1 - t) + 0.16 * t
-        reg = "hull_teal" if t < 0.18 else ("gold_relief" if t < 0.8 else "gold")
+        reg = "hull_teal" if t < 0.18 else ("gold_relief" if t < 0.32 else "gold")
         _rbeam(bow, "prow_%d" % j, pts[j], pts[j + 1], th * 0.93, reg, up=v3(1, 0, 0), extend=0.05)
-        if 0.15 < t < 0.6 and j % 3 == 0:
-            # gold fins on both sides of the stem
+        if 0.15 < t < 0.62 and j % 4 == 0:
+            # sprays of carved gold leaves on both sides of the stem, sweeping back along it
+            d = norm(pts[j + 1] - pts[j])
+            back = -d
+            perp = norm(np.cross(v3(1, 0, 0), d))
             for side in (1, -1):
-                q = pts[j] + v3(side * 0.12, 0, 0)
-                add_cube(bow, "prow_fin_%d_%d" % (j, side > 0), q + v3(side * 0.05, 0.1, -0.25), ry(side * 0.2) @ rx(0.6),
-                         (0.04, 0.5, 0.6), "gold_relief")
+                q = pts[j] + v3(side * (th * 0.45 + 0.03), 0, 0)
+                for m, (spread, ln) in enumerate(((0.55, 0.62), (-0.35, 0.5))):
+                    leaf_dir = norm(back * math.cos(spread) + perp * math.sin(spread))
+                    _leaf(bow, "prow_leaf_%d_%d_%d" % (j, side > 0, m), q, leaf_dir, v3(side, 0, 0), ln, "gold")
     for side in (1, -1):
         c = v3(side * 0.24, 2.7, 14.75)
-        add_cube(bow, "prow_gem_setting_%d" % (side > 0), c, ry(side * 0.25), (0.08, 0.7, 0.7), "gold")
+        _octo(bow, "prow_gem_setting_%d" % (side > 0), c, ry(side * 0.25) @ rz(math.pi / 2), (0.74, 0.08, 0.74), "gold")
         add_cube(bow, "glow_prow_gem_%d" % (side > 0), c + v3(side * 0.05, 0, 0), ry(side * 0.25) @ rx(math.pi / 4), (0.06, 0.38, 0.38),
                  "gem", stretch=True)
+    for side in (1, -1):
+        _volute(bow, "prow_curl_%d" % (side > 0), v3(side * 0.2, 3.25, 15.05), side, 0.42, turns=1.6, back=v3(0, -0.4, -1.0))
     hanging_lantern(lanterns, "lantern_prow", v3(0, py - 0.12, pz + 0.12), drop=0.6, s=1.25)
     # bowsprit for the foresail tack, along the top of the stem
     sprit_a, sprit_b = v3(0, sheer(11.5) + 0.2, 11.0), v3(0, 3.45, 15.3)
@@ -286,14 +332,32 @@ def build():
     for j in range(len(pts) - 1):
         t = j / (len(pts) - 1)
         th = 0.4 * (1 - t) + 0.13 * t
-        reg = "hull_teal" if t < 0.25 else ("gold_relief" if t < 0.85 else "gold")
+        reg = "hull_teal" if t < 0.25 else ("gold_relief" if t < 0.4 else "gold")
         _rbeam(stern, "stern_post_%d" % j, pts[j], pts[j + 1], th * 0.93, reg, up=v3(1, 0, 0), extend=0.05)
+    for side in (1, -1):
+        _volute(stern, "stern_curl_%d" % (side > 0), v3(side * 0.17, 3.1, -13.9), side, 0.36, turns=1.5, back=v3(0, -0.4, 1.0))
+        q = v3(side * 0.16, 2.3, -13.55)
+        for m, dd in enumerate((v3(0, 0.5, 1.0), v3(0, -0.3, 1.0))):
+            _leaf(stern, "stern_leaf_%d_%d" % (side > 0, m), q + v3(0, 0.3 * m, 0), norm(dd), v3(side, 0, 0), 0.5 - 0.08 * m, "gold")
     hanging_lantern(lanterns, "lantern_stern", v3(0, sy - 0.1, sz - 0.05), drop=0.5, s=1.1)
     rudder = Bone("rudder", origin=(0, 0.4, AFT_END + 0.2), parent=root)
-    add_cube(rudder, "rudder_blade", (0, -0.9, AFT_END - 0.25), EYE, (0.14, 1.6, 0.8), {"all": "hull_navy", "+1": "hull_teal"})
-    # rounded trailing edge and foot of the blade
-    _rbeam(rudder, "rudder_edge", (0, -0.12, AFT_END - 0.65), (0, -1.62, AFT_END - 0.65), 0.14, "hull_navy")
-    _rbeam(rudder, "rudder_foot", (0, -1.7, AFT_END + 0.1), (0, -1.7, AFT_END - 0.6), 0.14, "gold")
+    # a fin-shaped blade: narrow at the stock, its trailing edge swelling out in a smooth curve and
+    # rounding into the foot, a gold edging along the curve
+    z_lead = AFT_END + 0.15
+    prev = None
+    nsl = 7
+    for k in range(nsl):
+        f0, f1 = k / nsl, (k + 1) / nsl
+        fm = (f0 + f1) / 2
+        y0, y1 = -0.1 - 1.6 * f0, -0.1 - 1.6 * f1
+        chord = 0.45 + 0.42 * math.sin(math.pi * min(1.0, fm * 1.15)) ** 0.8
+        add_cube(rudder, "rudder_blade_%d" % k, (0, (y0 + y1) / 2, z_lead - chord / 2), EYE, (0.14, y0 - y1 + 0.01, chord),
+                 {"all": "hull_navy", "+1": "hull_teal", "-1": "hull_teal"})
+        p = v3(0, (y0 + y1) / 2, z_lead - chord)
+        if prev is not None:
+            _rbeam(rudder, "rudder_edge_%d" % k, prev, p, 0.15, "gold", extend=0.04)
+        prev = p
+    _rbeam(rudder, "rudder_foot", (0, -1.7, z_lead - 0.05), prev + v3(0, -0.05, 0.05), 0.15, "gold", extend=0.04)
 
     # ---- deck, benches with cushions, a few chests and coils
     # the planking runs right into the stem and the sternpost (no hollow left at the ends)
