@@ -68,7 +68,8 @@ def _panel(px, region, base, seam, rng, weave=0.035):
     u, v, w, h = region
     for y in range(h):
         for x in range(w):
-            k = 1.0 - weave * ((x + 2 * y) % 3 == 0) - 0.05 * abs(y / h - 0.5)
+            # the cloth bulges between the seams: lighter in the middle of the gore, darker at its edges
+            k = 1.0 - weave * ((x + 2 * y) % 3 == 0) - 0.14 * (2 * abs((y + 0.5) / h - 0.5)) ** 2
             c = _shade(base, k)
             if y in (0, h - 1):
                 c = seam
@@ -77,8 +78,56 @@ def _panel(px, region, base, seam, rng, weave=0.035):
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
-def make_texture(path, fin_tri):
-    """fin_tri: triangle of the fins in [0, 1] region coordinates (from the generator)."""
+def _fin_shape(fin_tri, fin_curve, w, h):
+    """(inside, edge distance in pixels) of a fin texture pixel. fin_curve = (C, A, B, curves) from the
+    generator: tip, roots and the hollowed edges (start, edge vector, inward normal, sag) in 3D; the
+    region maps C + (A - C) u + Vp v (Vp: part of B - C normal to the luff)."""
+    def dot(a, b):
+        return sum(x * y for x, y in zip(a, b))
+
+    def sub(a, b):
+        return [x - y for x, y in zip(a, b)]
+    C, A, B, curves = fin_curve
+    U = sub(A, C)
+    L = math.sqrt(dot(U, U))
+    Un = [x / L for x in U]
+    BC = sub(B, C)
+    Vp = [b - dot(BC, Un) * u for b, u in zip(BC, Un)]
+    px_per_block = w / L
+
+    def point(x, y):
+        u, v = x / w, y / h
+        return [c + uu * u + vv * v for c, uu, vv in zip(C, U, Vp)]
+    AB = sub(B, A)
+    ab2 = dot(AB, AB)
+    # inward normal of the root edge, in the fin plane
+    mid = [(a + b) / 2 for a, b in zip(A, B)]
+    to_c = sub(C, mid)
+    root_in = [c - dot(to_c, AB) / ab2 * e for c, e in zip(to_c, AB)]
+    rl = math.sqrt(dot(root_in, root_in))
+    root_in = [x / rl for x in root_in]
+
+    def shape(x, y):
+        X = point(x, y)
+        dmin = dot(sub(X, A), root_in)
+        if dmin < 0:
+            return False, 0.0
+        for E0, e, inward, sag in curves:
+            e2 = dot(e, e)
+            t = dot(sub(X, E0), e) / e2
+            sig = dot(sub(X, E0), inward)
+            tt = max(0.0, min(1.0, t))
+            d = sig - sag * math.sin(math.pi * tt)
+            if d < 0:
+                return False, 0.0
+            dmin = min(dmin, d)
+        return True, dmin * px_per_block
+    return shape
+
+
+def make_texture(path, fin_tri, fin_curve=None):
+    """fin_tri: triangle of the fins in [0, 1] region coordinates (from the generator); fin_curve: its
+    curved edges (see _fin_shape)."""
     rng = random.Random(1852)
     img = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
     px = img.load()
@@ -174,15 +223,21 @@ def make_texture(path, fin_tri):
             t = max(0.0, min(1.0, ((x - x1) * ex + (y - y1) * ey) / L2))
             d = min(d, math.hypot(x - x1 - ex * t, y - y1 - ey * t))
         return d
+    shape = _fin_shape(fin_tri, fin_curve, w, h) if fin_curve is not None else None
     for y in range(h):
         for x in range(w):
-            if not inside(x + 0.5, y + 0.5):
+            if shape is not None:
+                ok, d = shape(x + 0.5, y + 0.5)
+            else:
+                ok = inside(x + 0.5, y + 0.5)
+                d = edge_dist(x + 0.5, y + 0.5) if ok else 0.0
+            if not ok:
                 px[u + x, v + y] = (0, 0, 0, 0)
                 continue
-            d = edge_dist(x + 0.5, y + 0.5)
-            c = _shade(_rgb("efdcae"), 1.0 - 0.04 * ((x * 3 + y) % 7 == 0))
-            if (x + y) % 12 == 0:
-                c = _shade(c, 0.9)
+            # canvas: fine weave, a soft shade between the seams that run parallel to the root
+            c = _shade(_rgb("efdcae"), 1.0 - 0.04 * ((x * 3 + y) % 7 == 0) - 0.05 * (0.5 - 0.5 * math.cos(2 * math.pi * y / 12)))
+            if y % 12 == 0:
+                c = _shade(c, 0.86)
             if d < 1.6:
                 c = _rgb("6e4a2a")
             elif d < 3.0:
