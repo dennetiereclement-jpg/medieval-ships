@@ -191,6 +191,37 @@ def gun(bone, tag, z, s):
     _rbeam(bone, tag + "_trunnion", v3(-0.36, y - 0.05, z - s * 0.2), v3(0.36, y - 0.05, z - s * 0.2), 0.14, "gunmetal")
 
 
+def window_frame(bone, name, c, n, w, h, region="brass"):
+    """Frame round a window decal centred at c on a wall of outward normal n: two jambs, a sill
+    standing out under it and an arched hood moulding over it (a half ring of short bars)."""
+    c, n = v3(*c), norm(v3(*n))
+    t = norm(np.cross(v3(0, 1, 0), n))
+    up = v3(0, 1, 0)
+    o = c + n * 0.03
+    for k, sg in enumerate((1, -1)):
+        _rbeam(bone, "%s_jamb_%d" % (name, k), o + t * sg * (w / 2 + 0.03) - up * (h / 2), o + t * sg * (w / 2 + 0.03) + up * (h / 2),
+               0.07, region, up=n)
+    beam(bone, name + "_sill", o + n * 0.03 - up * (h / 2 + 0.04) - t * (w / 2 + 0.12), o + n * 0.03 - up * (h / 2 + 0.04) + t * (w / 2 + 0.12),
+         0.07, region, width=0.14, up=up)
+    na = 6
+    r = w / 2 + 0.05
+    base = o + up * (h / 2 + 0.02)
+    for k in range(na):
+        a0, a1 = math.pi * k / na, math.pi * (k + 1) / na
+        p0 = base + t * (r * math.cos(a0)) + up * (r * 0.55 * math.sin(a0))
+        p1 = base + t * (r * math.cos(a1)) + up * (r * 0.55 * math.sin(a1))
+        beam(bone, "%s_hood_%d" % (name, k), p0, p1, 0.07, region, width=0.08, up=n, extend=0.02)
+    _octo(bone, name + "_keystone", base + up * (r * 0.55 + 0.02), np.column_stack([t, up, n]) @ rx(math.pi / 2),
+          (0.1, 0.06, 0.1), region)
+
+
+def _octo(bone, name, c, R, size, region):
+    """Octagonal block: a box and the same box turned 45 degrees about its own y axis."""
+    add_cube(bone, name, c, R, size, region)
+    reg = {"all": region, "+2": None, "-2": None} if isinstance(region, str) else dict(region, **{"+2": None, "-2": None})
+    add_cube(bone, name + "_r", c, R @ ry(math.pi / 4), size, reg)
+
+
 def lamp(bone, name, c, s=1.0):
     """Ship's lantern: lit glass (drawn full bright) in a thin iron frame, base plate, domed cap,
     brass finial and carrying ring."""
@@ -320,6 +351,7 @@ def build():
                 continue
             add_cube(house, "glow_house_window_%s%d" % (sn, k), (side * (hh + 0.01), main_y + 1.35, z), EYE, (0.04, 0.6, 0.55),
                      "window", stretch=True)
+            window_frame(house, "house_window_frame_%s%d" % (sn, k), (side * (hh + 0.01), main_y + 1.35, z), (side, 0, 0), 0.55, 0.6)
         add_cube(house, "house_gauge_" + sn, (side * (hh + 0.02), main_y + 1.9, (z0 + z1) / 2 + 0.6), EYE, (0.04, 0.3, 0.3),
                  "gauge", stretch=True)
         _rbeam(house, "house_pipe_" + sn, (side * (hh + 0.12), main_y + 0.3, z0 + 0.3), (side * (hh + 0.12), main_y + 0.3, z1 - 0.3),
@@ -329,6 +361,7 @@ def build():
     add_cube(house, "house_front", (0, main_y + hgt / 2, z1 - 0.08), EYE, (2 * hh - 0.52, hgt, 0.16), "house")
     for k, x in enumerate((-1.7, -0.85, 0.0, 0.85, 1.7)):
         add_cube(house, "glow_bridge_window_%d" % k, (x, main_y + 1.55, z1 + 0.01), EYE, (0.62, 0.75, 0.04), "window", stretch=True)
+        window_frame(house, "bridge_window_frame_%d" % k, (x, main_y + 1.55, z1 + 0.01), (0, 0, 1), 0.62, 0.75)
     # rounded corners: a round column at each corner of the deckhouse, inside its walls
     for k, (sx, sz) in enumerate(((1, 1), (1, -1), (-1, 1), (-1, -1))):
         cz = z1 - 0.26 if sz > 0 else z0 + 0.26
@@ -362,8 +395,8 @@ def build():
         n = max(2, int(np.linalg.norm(b - a) / 0.9))
         for j in range(n):
             p = a + (b - a) * (j / n)
-            beam(house, "roof_post_%d_%d" % (k, j), p, p + v3(0, 0.55, 0), 0.05, "iron")
-        beam(house, "roof_rail_%d" % k, a + v3(0, 0.55, 0), b + v3(0, 0.55, 0), 0.06, "brass", extend=0.03)
+            _rbeam(house, "roof_post_%d_%d" % (k, j), p, p + v3(0, 0.55, 0), 0.05, "iron")
+        _rbeam(house, "roof_rail_%d" % k, a + v3(0, 0.55, 0), b + v3(0, 0.55, 0), 0.07, "brass", extend=0.03)
         c = a + v3(0, 0.55, 0)
         lamp(lanterns, "roof_lamp_%d" % k, c + v3(0, 0.22, 0))
     for k, z in enumerate((-3.9, -0.3, 2.6)):
@@ -415,6 +448,11 @@ def build():
                 d = v3(0, math.cos(a), math.sin(a))
                 beam(wheel, "spoke_%s_%s_%d" % (sn, ring, k), v3(x, wy, wz) + d * 0.3, v3(x, wy, wz) + d * (R - 0.05), 0.14, "wood",
                      width=0.12, up=v3(1, 0, 0))
+                # a diagonal iron brace across the bay, from the inner ring to the rim
+                a2 = 2 * math.pi * (k + 1.5) / 10
+                q0 = v3(x - o * 0.02, wy + 1.15 * math.cos(a), wz + 1.15 * math.sin(a))
+                q1 = v3(x - o * 0.02, wy + (R - 0.08) * math.cos(a2), wz + (R - 0.08) * math.sin(a2))
+                beam(wheel, "brace_%s_%s_%d" % (sn, ring, k), q0, q1, 0.06, "iron", width=0.06, up=v3(1, 0, 0))
         for k in range(10):
             a = 2 * math.pi * (k + 0.5) / 10
             d = v3(0, math.cos(a), math.sin(a))
@@ -463,6 +501,15 @@ def build():
             q0 = v3(x1 + o * 0.05, wy + (rr + 0.06) * math.cos(a0), wz + (rr + 0.06) * math.sin(a0))
             q1 = v3(x1 + o * 0.05, wy + (rr + 0.06) * math.cos(a1), wz + (rr + 0.06) * math.sin(a1))
             beam(box, "box_arch_roll_%s%d" % (sn, k), q0, q1, 0.17, "brass", width=0.17, up=norm(v3(o, 0, 0) + nrm), extend=0.03)
+        # a riveted iron strap along the middle of the curved cover
+        xs = (o * (outer_x(wz, 2.0) - 0.05) + bx) / 2
+        for k in range(na):
+            a0 = math.radians(-78 + 156 * k / na)
+            a1 = math.radians(-78 + 156 * (k + 1) / na)
+            p0 = v3(xs, wy + (rr + 0.07) * math.cos(a0), wz + (rr + 0.07) * math.sin(a0))
+            p1 = v3(xs, wy + (rr + 0.07) * math.cos(a1), wz + (rr + 0.07) * math.sin(a1))
+            beam(box, "box_strap_%s%d" % (sn, k), p0, p1, 0.05, "rivet_band", width=0.26,
+                 up=norm(v3(0, p0[1] + p1[1] - 2 * wy, p0[2] + p1[2] - 2 * wz)), extend=0.02)
         # gilded sunburst crest on top of the arch, as on the wheel boxes of real paddle steamers
         cc = v3(bx + o * 0.06, wy + rr + 0.02, wz)
         for k in range(11):
@@ -497,11 +544,16 @@ def build():
             x = side * (outer_x(z, ps.PLATING_TOP) - 0.12)
             p = v3(x, ps.PLATING_TOP, z)
             pts.append(p)
-            beam(rail, "post_%s%d" % (sn, k), p, p + v3(0, post_top - ps.PLATING_TOP + 0.05, 0), 0.08, "iron")
+            _rbeam(rail, "post_%s%d" % (sn, k), p, p + v3(0, post_top - ps.PLATING_TOP + 0.05, 0), 0.08, "iron")
+            if k % 2 == 0:
+                _octo(rail, "post_knob_%s%d" % (sn, k), p + v3(0, post_top - ps.PLATING_TOP + 0.1, 0), EYE, (0.13, 0.1, 0.13), "brass")
         for j, y in enumerate((ps.PLATING_TOP + 0.4, post_top)):
             for k in range(len(pts) - 1):
                 a, b = pts[k] + v3(0, y - ps.PLATING_TOP, 0), pts[k + 1] + v3(0, y - ps.PLATING_TOP, 0)
-                beam(rail, "bar_%s%d_%d" % (sn, j, k), a, b, 0.07 if j == 0 else 0.09, "iron" if j == 0 else "brass", extend=0.03)
+                if j == 0:
+                    beam(rail, "bar_%s%d_%d" % (sn, j, k), a, b, 0.07, "iron", extend=0.03)
+                else:
+                    _rbeam(rail, "bar_%s%d_%d" % (sn, j, k), a, b, 0.09, "brass", extend=0.03)
         for k, z in enumerate((-8.6, -5.2, -1.9, 4.6, 7.4)):
             x = side * (outer_x(z, ps.PLATING_TOP) - 0.12)
             base = v3(x, post_top + 0.05, z)
@@ -511,9 +563,12 @@ def build():
     for zz, tag in ((ps.DECK_MAX_Z + 0.2, "bow"), (ps.DECK_MIN_Z - 0.3, "stern")):
         w = outer_x(zz, ps.PLATING_TOP) - 0.15
         for j, y in enumerate((ps.PLATING_TOP + 0.4, post_top)):
-            beam(rail, "end_bar_%s_%d" % (tag, j), (-w, y, zz), (w, y, zz), 0.08, "brass" if j else "iron")
+            if j:
+                _rbeam(rail, "end_bar_%s_%d" % (tag, j), (-w, y, zz), (w, y, zz), 0.09, "brass")
+            else:
+                beam(rail, "end_bar_%s_%d" % (tag, j), (-w, y, zz), (w, y, zz), 0.08, "iron")
         for k, x in enumerate(np.linspace(-w, w, 5)):
-            beam(rail, "end_post_%s_%d" % (tag, k), (x, ps.PLATING_TOP, zz), (x, post_top + 0.05, zz), 0.08, "iron")
+            _rbeam(rail, "end_post_%s_%d" % (tag, k), (x, ps.PLATING_TOP, zz), (x, post_top + 0.05, zz), 0.08, "iron")
 
     # ---- guns fore and aft
     gun(guns, "gun_fore", ps.GUN_FORE_Z, 1)
