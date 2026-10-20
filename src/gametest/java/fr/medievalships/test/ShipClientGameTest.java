@@ -447,6 +447,25 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		l = now.toLocal(p[0], p[1], p[2]);
 		check(g.inCarryVolume(l[0], l[1], l[2]) && Math.abs(l[1] - GalleonLayout.QUARTERDECK_Y) < 0.15,
 				"galleon dismount: the pilot steps off onto the quarterdeck (local %.2f %.2f %.2f)", l[0], l[1], l[2]);
+		// a passenger leaving his seat steps off beside that seat, not at the helm
+		boolean sat = server.computeOnServer(s -> {
+			ShipEntity ship = ship(s.getOverworld(), Ships.GALLEON);
+			Entity crew = ship.passengerInSeat(3);
+			if (crew != null) {
+				crew.discard();
+			}
+			return ship.seat(s.getPlayerManager().getPlayerList().get(0), 3);
+		});
+		context.waitTicks(10);
+		server.runCommand("ride @p dismount");
+		context.waitTicks(10);
+		p = playerPos(context);
+		now = shipPose(sp, Ships.GALLEON);
+		l = now.toLocal(p[0], p[1], p[2]);
+		double[] spot = g.seats().get(3).dismountLocal();
+		double off = Math.hypot(l[0] - spot[0], l[2] - spot[2]);
+		check(sat && off < 0.6, "galleon dismount: a passenger steps off beside his seat (local %.2f %.2f %.2f, %.2f from its spot)",
+				l[0], l[1], l[2], off);
 		// sails are still set for a few seconds after stopping: look at them from outside
 		server.runCommand("gamemode spectator @a");
 		lookLocal(server, now, 24, 13, 20, 0, 10, 1);

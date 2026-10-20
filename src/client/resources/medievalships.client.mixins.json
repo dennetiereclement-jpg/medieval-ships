@@ -3,6 +3,6 @@
   "minVersion": "0.8",
   "package": "fr.medievalships.client.mixin",
   "compatibilityLevel": "JAVA_21",
-  "client": ["CameraMixin", "ClientPlayerEntityMixin", "FluidRendererMixin", "FogRendererMixin", "WaterFogModifierMixin", "GameRendererMixin", "MinecraftClientMixin"],
+  "client": ["BipedEntityRendererMixin", "CameraMixin", "ClientPlayerEntityMixin", "FluidRendererMixin", "FogRendererMixin", "WaterFogModifierMixin", "GameRendererMixin", "MinecraftClientMixin"],
   "injectors": { "defaultRequire": 1 }
 }

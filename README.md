@@ -73,6 +73,8 @@ Pour tous :
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
 
+La version 1.7.19 : le joueur qui tient la barre se tient debout à la roue (au lieu d'être assis), et quitter un siège fait descendre juste à côté de ce siège au lieu de téléporter à la barre.
+
 La version 1.7.18 : le grand vaisseau de guerre en détail : peintures et dorures plus fines, sculptures en relief (acanthes, volutes, Renommées ailées et statues à la poupe), poupe sans bords dentelés, canons ronds sur de vrais affûts à roues, mantelets ouverts rouges, cabestan, caillebotis, beffroi et sa cloche, habitacle, hunes rondes à rambarde dorée, nouveau lion couronné en figure de proue, rideaux dans la grande cabine, voiles à bandes de ris.
 
 La version 1.7.17 : le galion en détail : textures plus fines (veinage, dorure sculptée, vitraux en losanges, pont en long), 10 canons de bronze sur affûts, cabestan rond, chaloupe, tonneaux cerclés, roue de barre ronde et habitacle, hunes rondes, caps de mouton et cadènes, ancres neuves, grande chambre avec rideaux de velours, banquette et fauteuils. Le dirigeable meublé : tapis, bancs capitonnés, caisses et lanternes sur le pont, poste de pilotage avec manomètres, transmetteur d'ordres et tabouret, salle des machines avec foyer rougeoyant, pistons, bielles et tuyaux de vapeur, coque doublée de cuivre rivetée avec hublots et volutes dorées.
@@ -194,7 +196,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.7.18.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.7.19.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation

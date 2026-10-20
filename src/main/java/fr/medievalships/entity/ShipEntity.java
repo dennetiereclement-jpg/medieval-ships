@@ -93,7 +93,11 @@ public abstract class ShipEntity extends Entity {
 	private Gait gait = Gait.NORMAL;
 	/** Per-ship maximum speed in blocks/s, NaN = use the gaits from the config. */
 	private double speedLimit = Double.NaN;
+	/** A player at the helm stands: feet on the deck instead of sitting on the seat (player vehicle attachment 0.6 - seat height 0.28). */
+	private static final double HELM_STAND_LIFT = 0.32;
 	private final Map<Integer, Integer> seatByEntity = new HashMap<>();
+	/** The last seat of each entity, kept after it leaves so it steps off beside that seat (not at the helm). */
+	private final Map<Integer, Integer> lastSeatByEntity = new HashMap<>();
 	private int pendingSeat = -1;
 	private int stoppedTicks;
 	private boolean lastJump;
@@ -1051,6 +1055,7 @@ public abstract class ShipEntity extends Entity {
 			}
 		}
 		seatByEntity.put(passenger.getId(), seat);
+		lastSeatByEntity.put(passenger.getId(), seat);
 		seatsDirty = true;
 		syncSeats();
 	}
@@ -1099,6 +1104,7 @@ public abstract class ShipEntity extends Entity {
 			String[] kv = part.split(":");
 			try {
 				clientSeats.put(Integer.parseInt(kv[0]), Integer.parseInt(kv[1]));
+				lastSeatByEntity.put(Integer.parseInt(kv[0]), Integer.parseInt(kv[1]));
 			} catch (RuntimeException ignored) {
 				// malformed entry: ignore
 			}
@@ -1116,13 +1122,29 @@ public abstract class ShipEntity extends Entity {
 			parseSeats();
 		}
 		int s = seatOf(passenger);
+		if (s < 0) {
+			// already off its seat (dismounting): the seat it has just left
+			s = lastSeatByEntity.getOrDefault(passenger.getId(), ShipGeometry.PILOT_SEAT);
+		}
 		return s >= 0 && s < geometry().seats().size() ? geometry().seats().get(s) : geometry().seats().get(ShipGeometry.PILOT_SEAT);
+	}
+
+	/** Does this passenger stand (a player at the helm) rather than sit? */
+	public boolean standsAtHelm(Entity passenger) {
+		if (!(passenger instanceof PlayerEntity)) {
+			return false;
+		}
+		if (getEntityWorld().isClient()) {
+			parseSeats();
+		}
+		return seatOf(passenger) == ShipGeometry.PILOT_SEAT;
 	}
 
 	@Override
 	protected Vec3d getPassengerAttachmentPos(Entity passenger, EntityDimensions dimensions, float scaleFactor) {
 		ShipGeometry.Seat seat = seatFor(passenger);
-		double[] d = pose().dirToWorld(seat.x(), seat.y(), seat.z());
+		double lift = standsAtHelm(passenger) ? HELM_STAND_LIFT : 0.0;
+		double[] d = pose().dirToWorld(seat.x(), seat.y() + lift, seat.z());
 		return new Vec3d(d[0], d[1], d[2]);
 	}
 
