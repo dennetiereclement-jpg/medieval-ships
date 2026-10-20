@@ -95,9 +95,9 @@ def _rbeam(bone, name, p0, p1, th, region, up=None, extend=0.0, **kw):
         u0 = v3(1, 0, 0)
     w = norm(u0 - np.dot(u0, d) * d)
     u1 = norm(w + np.cross(d, w))
-    beam(bone, name, p0, p1, th, region, up=w, extend=extend, **kw)
+    c0 = beam(bone, name, p0, p1, th, region, up=w, extend=extend, **kw)
     reg = {"all": region, "+1": None, "-1": None} if isinstance(region, str) else dict(region, **{"+1": None, "-1": None})
-    beam(bone, name + "_r", p0, p1, th, reg, up=u1, extend=extend, **kw)
+    return c0, beam(bone, name + "_r", p0, p1, th, reg, up=u1, extend=extend, **kw)
 
 
 def _octo(bone, name, c, R, size, region):
@@ -120,14 +120,44 @@ def _cbox(bone, name, c, R, size, region, ch):
                  (d, d, sz), region)
 
 
-def _post(bone, name, ctrl, widths, region_of, sub=3, extend=0.1, squash=0.85):
+def _post(bone, name, ctrl, widths, region_of, sub=3, extend=0.1, squash=0.85, back=None):
     """Round carved post (stem, neck, tail) along a smooth curve through the control points,
-    tapering with the given widths."""
+    tapering with the given widths. The carved part ("dragon") is skinned with the long
+    "dragon_neck" strip of scales, mapped continuously along the curve: the scales run on from one
+    segment to the next instead of each segment showing a random patch of the texture. Faces
+    turned towards back(c, d) show the dark back of the strip, the others its sides and the
+    pale belly."""
     pts = _smooth(ctrl, [sub] * (len(ctrl) - 1))
     ws = np.interp(np.linspace(0, len(ctrl) - 1, len(pts)), range(len(ctrl)), widths)
+    carved = [j for j in range(len(pts) - 1) if region_of(j // sub) == "dragon"]
+    arc = [0.0]
+    for j in range(len(pts) - 1):
+        arc.append(arc[-1] + float(np.linalg.norm(pts[j + 1] - pts[j])))
+    s0 = arc[carved[0]] - extend if carved else 0.0
+    total = (arc[carved[-1] + 1] + extend - s0) if carved else 1.0
     for j in range(len(pts) - 1):
         w = (ws[j] + ws[j + 1]) / 2 * (1 + squash) / 2
-        _rbeam(bone, "%s_%d" % (name, j), pts[j], pts[j + 1], w, region_of(j // sub), up=v3(1, 0, 0), extend=extend)
+        reg = region_of(j // sub)
+        if reg != "dragon":
+            _rbeam(bone, "%s_%d" % (name, j), pts[j], pts[j + 1], w, reg, up=v3(1, 0, 0), extend=extend)
+            continue
+        cubes = _rbeam(bone, "%s_%d" % (name, j), pts[j], pts[j + 1], w, "dragon_neck", up=v3(1, 0, 0), extend=extend)
+        d = norm(pts[j + 1] - pts[j])
+        t0 = (arc[j] - extend - s0) / total
+        t1 = (arc[j + 1] + extend - s0) / total
+        bk = back((pts[j] + pts[j + 1]) / 2, d) if back else v3(0, 1, 0)
+        band = min(0.34, w * 16 / 32)
+        for cube in cubes:
+            for sem, bbface in (("+2", "up"), ("-2", "down"), ("+3", "north"), ("-3", "south")):
+                spec = cube.faces.get(bbface)
+                if not spec:
+                    continue
+                k = int(sem[1]) - 1
+                n = cube.axes[:, k] * (1 if sem[0] == "+" else -1)
+                f = float(np.dot(n, bk))
+                vc = 0.17 if f > 0.38 else (0.83 if f < -0.38 else 0.5)
+                spec["sub"] = (max(0.0, t0), vc - band / 2, min(1.0, t1), vc + band / 2)
+                spec["u_dir"] = d
     return pts
 
 
@@ -190,7 +220,9 @@ def dragon_tail(bone, tag, s):
              P(4.5, END + 0.6), P(5.5, END + 0.25), P(6.2, END - 0.25), P(6.5, END - 0.85), P(6.3, END - 1.4),
              P(5.8, END - 1.75), P(5.25, END - 1.8)]
     widths = [0.5, 0.56, 0.6, 0.56, 0.5, 0.44, 0.38, 0.32, 0.27, 0.23, 0.2]
-    _post(bone, tag + "_seg", curve, widths, lambda j: "hull_dark" if j < 2 else "dragon", sub=3, extend=0.08)
+    centre = P(4.9, END - 0.6)
+    _post(bone, tag + "_seg", curve, widths, lambda j: "hull_dark" if j < 2 else "dragon", sub=3, extend=0.08,
+          back=lambda c, d: norm(c - centre))
     _rbeam(bone, tag + "_collar", P(1.6, END + 0.5), P(2.0, END + 0.6), 0.64, "gold", up=v3(1, 0, 0))
     # gold rings along the tail
     for j in (3, 5, 7):
@@ -199,7 +231,6 @@ def dragon_tail(bone, tag, s):
         d = norm(b - a)
         _rbeam(bone, "%s_ring_%d" % (tag, j), c - d * 0.06, c + d * 0.06, widths[j] * 0.93 + 0.1, "gold", up=v3(1, 0, 0))
     # dorsal crest on the outside of the curve (pointing away from the curl centre)
-    centre = P(4.9, END - 0.6)
     for j in range(2, len(curve) - 2):
         a, b = curve[j], curve[j + 1]
         c = (a + b) / 2
@@ -229,7 +260,10 @@ def dragon(bone, tag, s):
     curve = [P(ms.keel_y(END) - 0.05, END - 0.25), P(0.7, END + 0.3), P(2.0, END + 0.62), P(3.3, END + 0.78),
              P(4.6, END + 0.74), P(5.8, END + 0.52), P(6.8, END + 0.25), P(7.5, END + 0.2)]
     widths = [0.5, 0.58, 0.66, 0.76, 0.82, 0.84, 0.8, 0.74]
-    _post(bone, tag + "_neck", curve, widths, lambda j: "hull_dark" if j < 2 else "dragon", sub=3, extend=0.1)
+    def back(c, d):
+        p = v3(0, -d[2], d[1])
+        return -p if p[2] * s > 0 else p
+    _post(bone, tag + "_neck", curve, widths, lambda j: "hull_dark" if j < 2 else "dragon", sub=3, extend=0.1, back=back)
     # gold band where the hull planking ends and the carving begins, belly scales
     _rbeam(bone, tag + "_collar", P(1.6, END + 0.5), P(2.0, END + 0.6), 0.64, "gold", up=v3(1, 0, 0))
     for j, (a, b) in enumerate(zip(curve[2:-1], curve[3:])):
@@ -320,7 +354,9 @@ def dragon(bone, tag, s):
     # short gold barbels under the chin
     for x in (0.1, -0.1):
         b0 = jaw_c + d * 0.5 * K + Rj @ v3(x, -0.09, 0) * K
-        hbeam("%s_barbel_%d" % (tag, x > 0), b0, b0 + v3(x * 0.4, -0.28, 0) * K, 0.035, "gold")
+        b1 = b0 + v3(x * 0.2, -0.13, -s * 0.04) * K
+        hbeam("%s_barbel_%d" % (tag, x > 0), b0, b1, 0.035, "gold")
+        hbeam("%s_barbel_tip_%d" % (tag, x > 0), b1, b1 + v3(x * 0.1, -0.03, -s * 0.12) * K, 0.03, "gold")
 
 
 def build():
@@ -405,7 +441,7 @@ def build():
             y = sheer(z) - 0.2
             p, u, v, nrm = gn.side_frame(z, y, side)
             add_cube(shields, "shield_%s%d" % (sn, k), p + nrm * 0.05, np.column_stack([u, v, nrm]), (1.22, 1.22, 0.05),
-                     {"all": None, "+3": "shield", "-3": "dark_wood"}, stretch=True, u_dir=u * side, v_dir=v3(0, -1, 0))
+                     {"all": None, "+3": "shield", "-3": "shield_back"}, stretch=True, u_dir=u * side, v_dir=v3(0, -1, 0))
             # gilded boss in the middle of the shield
             Rb = np.column_stack([u, nrm, np.cross(u, nrm)])
             _octo(shields, "shield_boss_%s%d" % (sn, k), p + nrm * 0.11, Rb, (0.26, 0.08, 0.26), "gold")
@@ -454,8 +490,8 @@ def build():
     _rbeam(br, "yard_roll", (-yh * 0.95, ms.YARD_Y - 0.18, mz + 0.34), (yh * 0.95, ms.YARD_Y - 0.18, mz + 0.34), 0.2, "cloth_roll")
     sail_bone = Bone("sail", origin=(0, ms.YARD_Y, mz + 0.34), parent=br)
     sail_h = 8.0
-    gn.sail(sail_bone, "sail", v3(0, ms.YARD_Y - 0.1, mz + 0.36), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), yh - 0.2, yh,
-            sail_h, 1.55, "sail", nx=9, ny=9, round_=0.75, overlap=0.03, foot=0.07)
+    gn.sail(sail_bone, "sail", v3(0, ms.YARD_Y - 0.1, mz + 0.36), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), yh - 0.1, yh - 0.1,
+            sail_h, 1.55, "sail", nx=1, ny=14, round_=0.0, overlap=0.03, foot=0.0)
     br.rot = ry(BRACE)
     fb = Bone("flag", origin=(0, ms.MAST_TOP + 0.85, mz), parent=mast)
     _rbeam(mast, "flagpole", (0, ms.MAST_TOP, mz), (0, ms.MAST_TOP + 1.1, mz), 0.08, "dark_wood")

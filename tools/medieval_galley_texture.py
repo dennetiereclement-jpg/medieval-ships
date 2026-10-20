@@ -41,6 +41,8 @@ REGIONS = {
     "hull_light":  (128, 64, 64, 32),
     "red_paint":   (192, 64, 64, 16),
     "sail":        (0, 128, 128, 128),
+    "dragon_neck": (128, 128, 128, 32),
+    "shield_back": (0, 96, 32, 32),
 }
 
 
@@ -73,6 +75,26 @@ def _scales(px, region, base, edge, light, rng, sw=8, sh=5):
                     c = _mix(light, base, min(1.0, 0.15 + dy / (sh * 0.8)))
                     c = _scale(c, 1.0 - 0.1 * abs(dx) / R)
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+
+
+def _neck_scales(img, region, rng):
+    """Long strip of scales for the dragon neck and tail, mapped continuously along them: u runs
+    along the neck (each scale's free edge points down the neck, towards the hull), v round it:
+    dark back with the crest (top), red sides, a paler, warmer belly (bottom)."""
+    u, v, w, h = region
+    tmp = Image.new("RGBA", (h, w))
+    _scales(tmp.load(), (0, 0, h, w), _rgb("b02219"), _rgb("5a0f0a"), _rgb("de5238"), rng, sw=8, sh=6)
+    src = tmp.load()
+    px = img.load()
+    for x in range(w):
+        for y in range(h):
+            c = src[y, w - 1 - x][:3]
+            f = (y + 0.5) / h
+            if f < 0.34:
+                c = _scale(c, 0.72 + 0.28 * f / 0.34)
+            elif f > 0.66:
+                c = _mix(c, _rgb("e0874a"), 0.35 * (f - 0.66) / 0.34)
+            px[u + x, v + y] = c + (255,)
 
 
 def make_texture(path):
@@ -138,8 +160,9 @@ def make_texture(path):
                 c = _rgb("fffbe6")
             px[u + x, v + y] = c + (255,)
     # dragon skin: overlapping rounded scales, darker for the crest and the jaw
-    _scales(px, reg("dragon"), _rgb("b8261d"), _rgb("5e100b"), _rgb("e85a40"), rng)
+    _scales(px, reg("dragon"), _rgb("b8261d"), _rgb("74140e"), _rgb("d84e38"), rng)
     _scales(px, reg("dragon_dark"), _rgb("861812"), _rgb("3e0806"), _rgb("b8302a"), rng)
+    _neck_scales(img, reg("dragon_neck"), rng)
     twisted_rope(img, reg("rope"), _rgb("5a4630"), _rgb("22180e"), rng)
     # furled canvas: stripes, folds of the rolled cloth, lashings
     u, v, w, h = reg("cloth_roll")
@@ -183,6 +206,24 @@ def make_texture(path):
                 else:
                     c = _rgb("b3221c")
                 c = _scale(c, 1.0 - 0.08 * ((x % 6) == 0) + 0.05 * (-dy / (w / 2)))  # planks under the paint, light from above
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+    # back of the shield: round, bare planks with a dark rim and the hand grip across (the
+    # corners are transparent, so the shields hung on the gunwale look round from the deck too)
+    u, v, w, h = reg("shield_back")
+    for y in range(h):
+        for x in range(w):
+            dx, dy = x - w / 2 + 0.5, y - h / 2 + 0.5
+            r = (dx * dx + dy * dy) ** 0.5
+            if r > w / 2 - 0.3:
+                px[u + x, v + y] = (0, 0, 0, 0)
+                continue
+            c = _scale(_rgb("6a4424"), 1.0 - 0.1 * ((x % 6) == 0) + 0.04 * math.sin(y * 0.7 + x // 6))
+            if r > w / 2 - 2.2:
+                c = _rgb("3a2410")
+            elif abs(dy) < 1.6 and abs(dx) < 9:
+                c = _rgb("4a2e14") if abs(dy) > 0.8 else _rgb("5e3c1c")
+            elif r < 3.2:
+                c = _ramp(GOLD_STOPS, 0.35)
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
     # flag: red with a white cross, a soft fold
     u, v, w, h = reg("flag")
