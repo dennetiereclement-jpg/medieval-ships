@@ -259,6 +259,151 @@ def lion_figurehead(bone, base, s, gold="gold", relief="carving", dark="iron", r
         cube("crown_point_%d" % k, H + v3(math.cos(a) * 0.26, 0.6, math.sin(a) * 0.24 - 0.04) * s, EYE, (0.1, 0.16, 0.1), gold)
 
 
+# ---------------------------------------------------------------- galleon-only smoothing helpers
+# (used by build() only: the helpers above, imported by the other generators, are left as they were)
+
+# more hull stations where the original ones are far apart: smoother waterlines and sheer
+HULL_STATIONS = []
+for _a, _b in zip(STATIONS[:-1], STATIONS[1:]):
+    HULL_STATIONS.append(_a)
+    if _b - _a >= 1.15:
+        HULL_STATIONS.append(round((_a + _b) / 2, 3))
+HULL_STATIONS.append(STATIONS[-1])
+
+TUMBLE = 0.045          # tumblehome of the castle sides (inboard lean above the sheer)
+TR_CURVE = 0.22         # the transom curves forward towards its corners (plan view)
+TR_COUNTER = 0.38       # the counter under the stern balcony tucks forward (rounded tuck)
+
+
+def _catmull(p0, p1, p2, p3, t):
+    t2, t3 = t * t, t * t * t
+    return 0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 + (-p0 + 3 * p1 - 3 * p2 + p3) * t3)
+
+
+def hull_section_2d(z):
+    """(x, y) points of the outer hull cross-section (one side), keel to sheer: the bottom is a smooth
+    spline through the collision section (no facet at the turn of the bilge), the topsides as before."""
+    w, yk, ys = hw(z), gs.keel_y(z), gs.sheer_y(z)
+    ctrl = [np.array((0.08, yk))] + [np.array((max(0.08, fx * w), fy * yk)) for fx, fy in gs.BOTTOM_SECTION[1:]]
+    ctrl.append(np.array((max(0.08, w), 0.45)))
+    top = [np.array((max(0.08, 0.995 * w), 1.25)), np.array((max(0.08, 0.985 * w), ys - 0.45)), np.array((max(0.08, 0.98 * w), ys))]
+    ext = [np.array((2 * 0.08 - ctrl[1][0], ctrl[1][1]))] + ctrl + [top[0]]
+    pts = []
+    for i in range(len(ctrl) - 1):
+        for t in (0.0, 0.5):
+            p = _catmull(ext[i], ext[i + 1], ext[i + 2], ext[i + 3], t)
+            pts.append(np.array((min(max(0.08, p[0]), max(0.08, w)), p[1])))
+    pts.append(ctrl[-1])
+    a = ctrl[-1]
+    for b, n in ((top[0], 2), (top[1], 2), (top[2], 1)):
+        for k in range(1, n + 1):
+            pts.append(a + (b - a) * k / n)
+        a = b
+    return pts
+
+
+N_UNDERWATER = 8   # strakes of hull_section_2d below the waterline point
+
+
+def castle_x(z, y):
+    """Outer surface of the hull side, with the tumblehome of the castles above the sheer."""
+    ys = gs.sheer_y(z)
+    if y <= ys:
+        return outer_x(z, y)
+    return 0.98 * hw(z) - TUMBLE * (y - ys) ** 1.4
+
+
+def transom_z(x, y):
+    """Outer face of the rounded transom: curved in plan, the counter under the balcony tucked forward."""
+    f = min(1.0, abs(x) / hw(-gs.HALF_LENGTH))
+    z = -gs.HALF_LENGTH + TR_CURVE * f * f
+    if y < gs.MAIN_DECK_Y:
+        z += TR_COUNTER * (min(1.0, (gs.MAIN_DECK_Y - y) / 1.8)) ** 1.6
+    return z
+
+
+def aft_z(z, x, y):
+    """Station z, moved onto the curved transom for the aftmost station."""
+    return transom_z(x, y) if z <= -gs.HALF_LENGTH + 1e-6 else z
+
+
+def stern_half(y):
+    """Half width of the transom at height y (where the hull side meets it)."""
+    zt = -gs.HALF_LENGTH
+    if y >= gs.sheer_y(zt):
+        return castle_x(zt, y)
+    pts = hull_section_2d(zt)
+    for a, b in zip(pts[:-1], pts[1:]):
+        if a[1] <= y <= b[1] and b[1] > a[1]:
+            return a[0] + (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1])
+    return pts[0][0]
+
+
+def castle_frame(z, y, side):
+    """Point on the (tumblehome) hull side, with u along +z, v up the surface and n outward."""
+    d = 0.05
+    P = lambda zz, yy: v3(side * castle_x(zz, yy), yy, zz)  # noqa: E731
+    p = P(z, y)
+    u = norm(P(z + d, y) - P(z - d, y))
+    vv = P(z, y + d) - P(z, y - d)
+    v = norm(vv - np.dot(vv, u) * u)
+    n = np.cross(u, v)
+    if np.dot(n, v3(side, 0, 0)) < 0:
+        u, n = -u, -n
+    return p, u, v, n
+
+
+def frame_decal(bone, name, frame, w, h, region, out=0.01, th=0.04, glow=False, u_dir=None):
+    p, u, v, n = frame
+    c = p + n * (out + th / 2)
+    faces = {"all": region}
+    return add_cube(bone, ("glow_" if glow else "") + name, c, np.column_stack([u, v, n]), (w, h, th), faces, stretch=True,
+                    u_dir=u_dir, v_dir=v3(0, -1, 0))
+
+
+def _perp(d):
+    d = norm(d)
+    a = np.cross(d, v3(0, 1, 0))
+    if np.linalg.norm(a) < 1e-3:
+        a = np.cross(d, v3(1, 0, 0))
+    a = norm(a)
+    return a, norm(np.cross(a, d))
+
+
+def round_bar(bone, name, p0, p1, d, region, extend=0.0, **kw):
+    """Bar seen as round: a square beam and the same beam turned 45 degrees about its axis (8-sided outline)."""
+    p0, p1 = v3(*p0), v3(*p1)
+    a, b = _perp(p1 - p0)
+    beam(bone, name, p0, p1, d, region, width=d, up=b, extend=extend, **kw)
+    beam(bone, name + "_r", p0, p1, d * 0.94, region, width=d * 0.94, up=norm(a + b), extend=extend - 0.012, **kw)
+
+
+def cap_rail(bone, name, p0, p1, th, width, region, extend=0.0, **kw):
+    """Moulded cap: a wide lower band and a narrower, taller crown (rounded profile instead of a square bar)."""
+    p0, p1 = v3(*p0), v3(*p1)
+    dn = v3(0, th * 0.27, 0)
+    beam(bone, name, p0 - dn, p1 - dn, th * 0.5, region, width=width, extend=extend, **kw)
+    beam(bone, name + "_crown", p0, p1, th, region, width=width * 0.6, extend=extend - 0.012, **kw)
+
+
+def wale_bar(bone, name, p0, p1, th, width, region, extend=0.0):
+    """Wale with a rounded section: a tall core and a wider, thinner bead along its middle."""
+    beam(bone, name, p0, p1, th, region, width=width * 0.62, extend=extend)
+    beam(bone, name + "_bead", p0, p1, th * 0.58, region, width=width, extend=extend - 0.012)
+
+
+def polyline(points, closed=False):
+    pts = list(points)
+    if closed:
+        pts.append(pts[0])
+    return list(zip(pts[:-1], pts[1:]))
+
+
+def bezier(p0, c, p1, n):
+    p0, c, p1 = v3(*p0), v3(*c), v3(*p1)
+    return [(1 - t) ** 2 * p0 + 2 * (1 - t) * t * c + t * t * p1 for t in np.linspace(0, 1, n + 1)]
+
+
 # ---------------------------------------------------------------- the galleon
 def build():
     root = Bone("galleon")
@@ -275,152 +420,320 @@ def build():
     main_y, fc_y, qd_y = gs.MAIN_DECK_Y, gs.FORECASTLE_Y, gs.QUARTERDECK_Y
 
     # ---- hull planking (tilted boards between stations: smooth, rounded hull)
+    def hull_pts(z, side):
+        return [v3(side * x, y, aft_z(z, x, y)) for x, y in hull_section_2d(z)]
+
     for side, sn in SIDES:
-        for i in range(len(STATIONS) - 1):
-            za, zb = STATIONS[i], STATIONS[i + 1]
-            A, B = section(za, side), section(zb, side)
-            for k, reg in enumerate(STRAKES):
+        for i in range(len(HULL_STATIONS) - 1):
+            za, zb = HULL_STATIONS[i], HULL_STATIONS[i + 1]
+            A, B = hull_pts(za, side), hull_pts(zb, side)
+            for k in range(len(A) - 1):
+                reg = "hull_dark" if k < 4 else ("hull_mid" if k < N_UNDERWATER else "wood_honey")
                 mid = (A[k] + A[k + 1] + B[k] + B[k + 1]) / 4
-                outward = norm(v3(side, -0.7 if k < 3 else 0.0, 0) + v3(0, 0, 0.35 * np.sign(mid[2])))
+                t = (A[k + 1] + B[k + 1]) - (A[k] + B[k])
+                outward = norm(v3(side * t[1], -side * t[0], 0) + v3(0, 0, 0.3 * np.sign(mid[2])))
                 board(hull, "hull_%s%d_%d" % (sn, i, k), A[k], A[k + 1], B[k], B[k + 1], 0.12, reg,
-                      outward, inner="hull_light" if k >= 4 else None)
-            # sheer rail (cap) where there is no castle
-            if gs.BULKHEAD_Z - 0.01 <= za and zb <= gs.FORECASTLE_START + 0.01:
+                      outward, inner="hull_light" if k >= N_UNDERWATER else None)
+            # sheer rail (moulded cap) where there is no castle
+            if gs.BULKHEAD_Z + 3.2 * 0.85 <= za and zb <= gs.FORECASTLE_START - 2.4 * 0.85:
                 pa = v3(side * 0.98 * hw(za), gs.sheer_y(za) + 0.07, za)
                 pb = v3(side * 0.98 * hw(zb), gs.sheer_y(zb) + 0.07, zb)
-                beam(hull, "rail_%s%d" % (sn, i), pa, pb, 0.14, "rail", width=0.3, extend=0.06)
+                cap_rail(hull, "rail_%s%d" % (sn, i), pa, pb, 0.16, 0.3, "rail", extend=0.05)
                 # gold moulding along the hull under the rail
                 pa2 = v3(side * (0.99 * hw(za) + 0.02), gs.sheer_y(za) - 0.25, za)
                 pb2 = v3(side * (0.99 * hw(zb) + 0.02), gs.sheer_y(zb) - 0.25, zb)
-                beam(hull, "moulding_%s%d" % (sn, i), pa2, pb2, 0.08, "wood_trim", width=0.1, extend=0.05)
-            # main wale (thick dark band at the waterline)
-            pa = v3(side * (hw(za) + 0.04), 0.85, za)
-            pb = v3(side * (hw(zb) + 0.04), 0.85, zb)
+                beam(hull, "moulding_%s%d" % (sn, i), pa2, pb2, 0.08, "wood_trim", width=0.1, extend=0.04)
+            # main wale (thick dark band at the waterline), rounded
             if hw(za) > 0.6 and hw(zb) > 0.6:
-                beam(hull, "wale_%s%d" % (sn, i), pa, pb, 0.16, "wale", width=0.18, extend=0.05)
+                pa = v3(side * (hw(za) + 0.04), 0.85, aft_z(za, hw(za), 0.85))
+                pb = v3(side * (hw(zb) + 0.04), 0.85, zb)
+                wale_bar(hull, "wale_%s%d" % (sn, i), pa, pb, 0.17, 0.2, "wale", extend=0.04 if za > -17 else 0.0)
                 # upper wale under the gun ports
-                pa2 = v3(side * (outer_x(za, 1.25) + 0.04), 1.25, za)
+                pa2 = v3(side * (outer_x(za, 1.25) + 0.04), 1.25, aft_z(za, hw(za), 1.25))
                 pb2 = v3(side * (outer_x(zb, 1.25) + 0.04), 1.25, zb)
-                beam(hull, "wale_up_%s%d" % (sn, i), pa2, pb2, 0.12, "wale", width=0.14, extend=0.05)
+                beam(hull, "wale_up_%s%d" % (sn, i), pa2, pb2, 0.12, "wale", width=0.14, extend=0.04 if za > -17 else 0.0)
     # keel
-    for i in range(len(STATIONS) - 1):
-        za, zb = STATIONS[i], STATIONS[i + 1]
+    for i in range(len(HULL_STATIONS) - 1):
+        za, zb = HULL_STATIONS[i], HULL_STATIONS[i + 1]
         beam(hull, "keel_%d" % i, (0, gs.keel_y(za) - 0.06, za), (0, gs.keel_y(zb) - 0.06, zb), 0.25,
              "dark_wood", width=0.35, extend=0.06)
+    # sternpost: closes the rounded tuck of the counter down to the keel, in front of the rudder
+    ys_ = np.linspace(gs.keel_y(-gs.HALF_LENGTH) - 0.12, main_y - 0.1, 6)
+    zb_ = -gs.HALF_LENGTH - 0.06
+    sp = [(v3(0, y, (transom_z(0, y) + 0.1 + zb_) / 2), transom_z(0, y) + 0.1 - zb_) for y in ys_]
+    for k in range(len(sp) - 1):
+        (a, da), (b, db) = sp[k], sp[k + 1]
+        beam(hull, "sternpost_%d" % k, a, b, (da + db) / 2, "dark_wood", width=0.3, up=v3(0, 0, 1), extend=0.04)
 
-    # ---- transom (flat stern) with the balcony door, gallery windows and carvings
+    # ---- rounded transom (curved in plan, counter tucked under the balcony) with the balcony door,
+    # gallery windows and carvings
     zt = -gs.HALF_LENGTH
-    bands = np.linspace(gs.keel_y(zt), gs.QD_RAIL_Y, 14)
-    for k in range(len(bands) - 1):
-        y0, y1 = bands[k], bands[k + 1]
+
+    def tp(x, y, out=0.0):
+        return v3(x, y, transom_z(x, y) - out)
+
+    def tframe(x, y):
+        """Point on the transom, axes (u ~ +x, v up, w ~ +z inboard): the outer face of a cube is its -3 face."""
+        d = 0.04
+        u = norm(tp(x + d, y) - tp(x - d, y))
+        vv = tp(x, y + d) - tp(x, y - d)
+        v = norm(vv - np.dot(vv, u) * u)
+        return tp(x, y), np.column_stack([u, v, np.cross(u, v)])
+
+    def tcube(bone, name, x, y, size, region, out=0.0, **kw):
+        p, R = tframe(x, y)
+        return add_cube(bone, name, p - R[:, 2] * (out + size[2] / 2), R, size, region, **kw)
+
+    rows = [gs.keel_y(zt), -0.45, -0.1, 0.25, 0.6, main_y, 1.4, 1.8, 2.2, 2.6, gs.DOOR_TOP, 3.5, 4.05, gs.QD_RAIL_Y]
+    for k in range(len(rows) - 1):
+        y0, y1 = rows[k], rows[k + 1]
         ym = (y0 + y1) / 2
-        if ym < 0:
-            w = max(0.2, max(abs(p[0]) for p in section(zt, 1) if p[1] <= ym + 0.3))
-            w = min(w, hw(zt))
+        reg = "hull_dark" if ym < -0.1 else ("hull_mid" if ym < main_y else "wood_honey")
+        door = main_y - 1e-6 <= y0 and y1 <= gs.DOOR_TOP + 1e-6
+        if door:
+            cells = []
+            for side in (1, -1):
+                for j in range(4):
+                    cells.append((lambda y, f=j / 4, s=side: s * (gs.DOOR_HALF + f * (stern_half(y) - gs.DOOR_HALF)),
+                                  lambda y, f=(j + 1) / 4, s=side: s * (gs.DOOR_HALF + f * (stern_half(y) - gs.DOOR_HALF))))
         else:
-            w = outer_x(zt, min(ym, gs.sheer_y(zt))) if ym < gs.sheer_y(zt) else 0.98 * hw(zt)
-        reg = "hull_dark" if ym < 0.5 else ("wood_honey" if ym < gs.sheer_y(zt) else "wood_honey")
-        if main_y < ym < gs.DOOR_TOP:
-            for side, sn in SIDES:
-                x0, x1 = gs.DOOR_HALF, w
-                add_cube(castle_aft, "transom_%d_%s" % (k, sn), (side * (x0 + x1) / 2, ym, zt + 0.1), EYE,
-                         (x1 - x0, y1 - y0 + 0.02, 0.2), reg)
-        else:
-            add_cube(castle_aft, "transom_%d" % k, (0, ym, zt + 0.1), EYE, (2 * w, y1 - y0 + 0.02, 0.2), reg)
+            fs = np.linspace(-1, 1, 9)
+            cells = [(lambda y, f=fs[j]: f * stern_half(y), lambda y, f=fs[j + 1]: f * stern_half(y)) for j in range(8)]
+        for j, (xa, xb) in enumerate(cells):
+            board(castle_aft, "transom_%d_%d" % (k, j), tp(xa(y0), y0), tp(xa(y1), y1), tp(xb(y0), y0), tp(xb(y1), y1), 0.2, reg,
+                  v3(0, 0, -1), overlap=1.03, inner="hull_light" if ym > main_y else None)
+    # quarter pieces: rounded gilded mouldings on the corners where the sides meet the transom
+    for side, sn in SIDES:
+        cy = [0.45, 1.2, 2.0, 2.8, 3.5, 4.1, gs.QD_RAIL_Y + 0.02]
+        for j, (ya, yb) in enumerate(polyline(cy)):
+            pa = tp(side * stern_half(ya), ya, 0.02)
+            pb = tp(side * stern_half(yb), yb, 0.02)
+            round_bar(castle_aft, "transom_quarter_%s%d" % (sn, j), pa, pb, 0.17, "gold", extend=0.03)
     # door frame (gold) and lintel carving
-    add_cube(castle_aft, "transom_door_lintel", (0, gs.DOOR_TOP + 0.1, zt - 0.02), EYE, (2 * gs.DOOR_HALF + 0.3, 0.2, 0.1), "gold")
+    tcube(castle_aft, "transom_door_lintel", 0, gs.DOOR_TOP + 0.1, (2 * gs.DOOR_HALF + 0.3, 0.2, 0.1), "gold", out=-0.03)
+    tcube(castle_aft, "transom_door_arch", 0, gs.DOOR_TOP + 0.3, (2 * gs.DOOR_HALF - 0.1, 0.16, 0.08), "carving", out=-0.02,
+          stretch=True)
     for side, sn in SIDES:
-        add_cube(castle_aft, "transom_door_jamb_" + sn, (side * (gs.DOOR_HALF + 0.07), (main_y + gs.DOOR_TOP) / 2, zt - 0.02),
-                 EYE, (0.14, gs.DOOR_TOP - main_y, 0.1), "gold")
-        # gallery windows (lit) each side of the door
+        tcube(castle_aft, "transom_door_jamb_" + sn, side * (gs.DOOR_HALF + 0.07), (main_y + gs.DOOR_TOP) / 2,
+              (0.14, gs.DOOR_TOP - main_y, 0.1), "gold", out=-0.03)
+        # gallery windows (lit) each side of the door, with arched gilded heads
         for j, x in enumerate((1.3, 1.95)):
-            add_cube(castle_aft, "glow_transom_window_%s%d" % (sn, j), (side * x, 2.05, zt - 0.03), EYE, (0.5, 1.0, 0.06),
-                     "glow_window", stretch=True)
-            add_cube(cabin, "transom_window_in_%s%d" % (sn, j), (side * x, 2.05, gs.TRANSOM_Z + 0.02), EYE, (0.5, 1.0, 0.03),
+            tcube(castle_aft, "glow_transom_window_%s%d" % (sn, j), side * x, 2.05, (0.5, 1.0, 0.06), "glow_window", out=-0.02,
+                  stretch=True)
+            tcube(castle_aft, "transom_window_head_%s%d" % (sn, j), side * x, 2.62, (0.6, 0.12, 0.08), "gold", out=-0.02)
+            tcube(castle_aft, "transom_window_sill_%s%d" % (sn, j), side * x, 1.5, (0.6, 0.1, 0.1), "wood_trim", out=-0.03)
+            p, R = tframe(side * x, 2.05)
+            add_cube(cabin, "transom_window_in_%s%d" % (sn, j), p + R[:, 2] * 0.215, R, (0.5, 1.0, 0.03),
                      {"all": None, "+3": "window_in"}, stretch=True)
+        for j, x in enumerate((1.0, 1.62, 2.22)):
+            tcube(castle_aft, "transom_mullion_%s%d" % (sn, j), side * x, 2.05, (0.1, 1.15, 0.08), "pilaster", out=-0.02, stretch=True)
         # upper windows of the poop house level
-        add_cube(castle_aft, "transom_upper_window_" + sn, (side * 1.2, 4.05, zt - 0.03), EYE, (0.55, 0.6, 0.06),
-                 "window", stretch=True)
-    arms = v3(0, 3.98, zt - 0.06)
-    add_cube(castle_aft, "arms_frame", arms + v3(0, 0, 0.02), EYE, (1.55, 1.12, 0.08), "gold")
-    add_cube(castle_aft, "arms_emblem", arms - v3(0, 0, 0.03), EYE, (1.35, 0.92, 0.04),
+        tcube(castle_aft, "transom_upper_window_" + sn, side * 1.25, 4.05, (0.55, 0.6, 0.06), "window", out=-0.02, stretch=True)
+    arms = tp(0, 3.98)
+    add_cube(castle_aft, "arms_frame", arms + v3(0, 0, -0.02), EYE, (1.55, 1.12, 0.08), "gold")
+    add_cube(castle_aft, "arms_emblem", arms - v3(0, 0, 0.07), EYE, (1.35, 0.92, 0.04),
              {"all": None, "-3": "flag"}, stretch=True, u_dir=v3(1, 0, 0), v_dir=v3(0, -1, 0))
-    add_cube(castle_aft, "arms_crown", arms + v3(0, 0.68, -0.02), EYE, (0.6, 0.26, 0.1), "carving", stretch=True)
+    add_cube(castle_aft, "arms_crown", arms + v3(0, 0.68, -0.06), EYE, (0.6, 0.26, 0.1), "carving", stretch=True)
     for side, sn in SIDES:
-        add_cube(castle_aft, "arms_supporter_" + sn, arms + v3(side * 0.95, -0.05, -0.02), EYE, (0.22, 0.95, 0.14), "pilaster", stretch=True)
-    add_cube(castle_aft, "transom_cornice", (0, gs.QD_RAIL_Y + 0.08, zt + 0.05), EYE, (2 * 0.98 * hw(zt) + 0.2, 0.16, 0.4), "gold")
-    add_cube(castle_aft, "transom_carving", (0, 3.25, zt - 0.04), EYE, (2 * 0.98 * hw(zt), 0.22, 0.08), "carving", stretch=True)
-    add_cube(castle_aft, "transom_carving_low", (0, 0.65, zt - 0.04), EYE, (2 * hw(zt) - 0.2, 0.18, 0.08), "carving", stretch=True)
+        tcube(castle_aft, "arms_supporter_" + sn, side * 0.95, 3.93, (0.22, 0.95, 0.14), "pilaster", out=-0.02, stretch=True)
+    # curved cornice on top, carved friezes following the curve
+    for tag, y, th, wd, out, reg, fn in (("transom_cornice", gs.QD_RAIL_Y + 0.08, 0.18, 0.4, -0.12, "gold", cap_rail),
+                                         ("transom_carving", 3.25, 0.22, 0.08, 0.02, "carving", None),
+                                         ("transom_carving_low", 0.6, 0.2, 0.08, 0.02, "carving", None),
+                                         ("transom_moulding", 1.32, 0.09, 0.1, 0.03, "wood_trim", None)):
+        hw_ = stern_half(y) + (0.1 if fn else -0.02)
+        xs_ = np.linspace(-hw_, hw_, 9)
+        for j, (xa, xb) in enumerate(polyline(xs_)):
+            if tag == "transom_moulding" and max(abs(xa), abs(xb)) < gs.DOOR_HALF + 0.15:
+                continue
+            pa, pb = tp(xa, y, out), tp(xb, y, out)
+            if fn:
+                fn(castle_aft, "%s_%d" % (tag, j), pa, pb, th, wd, reg, extend=0.02)
+            else:
+                beam(castle_aft, "%s_%d" % (tag, j), pa, pb, th, reg, width=wd, extend=0.01, stretch=reg == "carving")
 
     # ---- stern balcony (gallery), walkable through the door
     bb, bh = gs.BALCONY_BACK, gs.BALCONY_HALF
     add_cube(castle_aft, "balcony_floor", (0, main_y - gs.BALCONY_FLOOR / 2, (bb + zt) / 2), EYE,
              (2 * bh, gs.BALCONY_FLOOR, zt - bb), {"all": "dark_wood", "+2": "deck"})
+    # carved fascia under the floor edge, with gilded drops
+    add_cube(castle_aft, "balcony_fascia", (0, main_y - gs.BALCONY_FLOOR - 0.08, bb + 0.05), EYE, (2 * bh - 0.1, 0.16, 0.08),
+             "carving", stretch=True)
+    for j, x in enumerate(np.linspace(-bh + 0.2, bh - 0.2, 6)):
+        add_cube(castle_aft, "balcony_drop_%d" % j, (x, main_y - gs.BALCONY_FLOOR - 0.24, bb + 0.06), EYE, (0.1, 0.18, 0.1), "gold")
     rail_top = main_y + gs.BALCONY_RAIL
-    beam(castle_aft, "balcony_rail_back", (-bh, rail_top - 0.05, bb + 0.06), (bh, rail_top - 0.05, bb + 0.06), 0.1, "gold",
-         width=0.14, extend=0.05)
+    cap_rail(castle_aft, "balcony_rail_back", (-bh + 0.02, rail_top - 0.06, bb + 0.06), (bh - 0.02, rail_top - 0.06, bb + 0.06), 0.13,
+             0.16, "gold", extend=0.04)
     for side, sn in SIDES:
-        beam(castle_aft, "balcony_rail_" + sn, (side * (bh - 0.06), rail_top - 0.05, bb), (side * (bh - 0.06), rail_top - 0.05, zt),
-             0.1, "gold", width=0.14)
-    for j, x in enumerate(np.linspace(-bh + 0.06, bh - 0.06, 9)):
-        beam(castle_aft, "balcony_baluster_%d" % j, (x, main_y, bb + 0.06), (x, rail_top - 0.1, bb + 0.06), 0.09, "hull_light")
+        cap_rail(castle_aft, "balcony_rail_" + sn, (side * (bh - 0.06), rail_top - 0.06, bb + 0.02), (side * (bh - 0.06), rail_top - 0.06, transom_z(bh, rail_top) + 0.05),
+                 0.13, 0.16, "gold")
+        # floor filler up to the curved transom (over the transom collision box)
+        for j, (xa, xb) in enumerate(((0.0, 0.8), (0.8, 1.4), (1.4, 1.9), (1.9, bh))):
+            z1 = transom_z(xb, main_y) + 0.06
+            add_cube(castle_aft, "balcony_floor_fill_%s%d" % (sn, j), (side * (xa + xb) / 2, main_y - 0.06, (zt + z1) / 2), EYE,
+                     (xb - xa, 0.12, z1 - zt), {"all": "dark_wood", "+2": "deck"})
+        # corner posts with finials
+        c = v3(side * (bh - 0.07), 0, bb + 0.07)
+        round_bar(castle_aft, "balcony_post_" + sn, c + v3(0, main_y, 0), c + v3(0, rail_top + 0.02, 0), 0.15, "dark_wood")
+        add_cube(castle_aft, "balcony_finial_" + sn, c + v3(0, rail_top + 0.12, 0), ry(math.pi / 4), (0.14, 0.14, 0.14), "gold")
+        add_cube(castle_aft, "balcony_finial_top_" + sn, c + v3(0, rail_top + 0.24, 0), EYE, (0.07, 0.1, 0.07), "gold")
+    for j, x in enumerate(np.linspace(-bh + 0.3, bh - 0.3, 8)):
+        round_bar(castle_aft, "balcony_baluster_%d" % j, (x, main_y, bb + 0.06), (x, rail_top - 0.12, bb + 0.06), 0.08, "hull_light")
+        add_cube(castle_aft, "balcony_baluster_bulb_%d" % j, (x, main_y + 0.3, bb + 0.06), ry(math.pi / 4), (0.12, 0.16, 0.12), "hull_light")
     for side, sn in SIDES:
         for j, z in enumerate((bb + 0.4, (bb + zt) / 2 + 0.1)):
-            beam(castle_aft, "balcony_baluster_%s%d" % (sn, j), (side * (bh - 0.06), main_y, z),
-                 (side * (bh - 0.06), rail_top - 0.1, z), 0.09, "hull_light")
-        # brackets under the floor
-        beam(castle_aft, "balcony_bracket_" + sn, (side * (bh - 0.3), -0.3, zt), (side * (bh - 0.3), main_y - 0.25, bb + 0.2),
-             0.14, "dark_wood")
+            round_bar(castle_aft, "balcony_baluster_%s%d" % (sn, j), (side * (bh - 0.06), main_y, z),
+                      (side * (bh - 0.06), rail_top - 0.12, z), 0.08, "hull_light")
+        # curved brackets (knees) under the floor, from the counter
+        for j, x in enumerate((bh - 0.3, 0.95)):
+            x = side * x
+            pts = [v3(x, -0.35, transom_z(x, -0.35) - 0.02), v3(x, 0.25, bb + 0.75), v3(x, main_y - 0.3, bb + 0.18)]
+            for q, (pa, pb) in enumerate(polyline(pts)):
+                beam(castle_aft, "balcony_bracket_%s%d_%d" % (sn, j, q), pa, pb, 0.14, "dark_wood", width=0.12, extend=0.05)
 
-    # ---- castle bulwarks (above the sheer), red with gold caps and panels
+    # ---- castle bulwarks (above the sheer), leaning inboard (tumblehome), with moulded caps
+    def cpt(z, y, side, dx=0.0):
+        x = castle_x(z, y) + dx
+        return v3(side * x, y, aft_z(z, x, y))
+
     def bulwark(bone, tag, z0, z1, top_y):
-        zs = [z for z in STATIONS if z0 < z < z1]
-        zs = [z0] + zs + [z1]
+        zs = [z0] + [z for z in HULL_STATIONS if z0 < z < z1] + [z1]
         for side, sn in SIDES:
             for i in range(len(zs) - 1):
                 za, zb = zs[i], zs[i + 1]
-                xa, xb = side * 0.98 * hw(za), side * 0.98 * hw(zb)
-                a0, a1 = v3(xa, gs.sheer_y(za) - 0.05, za), v3(xa, top_y, za)
-                b0, b1 = v3(xb, gs.sheer_y(zb) - 0.05, zb), v3(xb, top_y, zb)
-                board(bone, "%s_wall_%s%d" % (tag, sn, i), a0, a1, b0, b1, 0.12, "wood_honey", v3(side, 0, 0),
-                      inner="hull_light")
-                beam(bone, "%s_cap_%s%d" % (tag, sn, i), (xa, top_y + 0.07, za), (xb, top_y + 0.07, zb), 0.14, "wood_trim",
-                     width=0.3, extend=0.06)
-                beam(bone, "%s_band_%s%d" % (tag, sn, i), (xa + side * 0.07, top_y - 0.35, za), (xb + side * 0.07, top_y - 0.35, zb),
-                     0.08, "wood_trim", width=0.08, extend=0.04)
+                for r in range(2):
+                    def yy(z, rr):
+                        y0 = gs.sheer_y(z) - 0.05
+                        return y0 + (top_y - y0) * rr / 2
+                    board(bone, "%s_wall_%s%d_%d" % (tag, sn, i, r), cpt(za, yy(za, r), side), cpt(za, yy(za, r + 1), side),
+                          cpt(zb, yy(zb, r), side), cpt(zb, yy(zb, r + 1), side), 0.12, "wood_honey", v3(side, 0, 0),
+                          inner="hull_light")
+                cap_rail(bone, "%s_cap_%s%d" % (tag, sn, i), cpt(za, top_y, side, -0.04) + v3(0, 0.08, 0),
+                         cpt(zb, top_y, side, -0.04) + v3(0, 0.08, 0), 0.17, 0.32, "wood_trim", extend=0.05)
+                wale_bar(bone, "%s_band_%s%d" % (tag, sn, i), cpt(za, top_y - 0.35, side, 0.03), cpt(zb, top_y - 0.35, side, 0.03),
+                         0.09, 0.08, "wood_trim", extend=0.03)
+
+    def sweep(bone, tag, zc, dirn, top_y, length=1.5, n=6):
+        """Where the raised castle side meets the waist: the bulwark top, its cap and the moulding band run down
+        to the waist rail in one long ogee (S) curve instead of a square step."""
+        zs = [zc + dirn * length * k / n for k in range(n + 1)]
+
+        def top(z):
+            t = min(1.0, abs(z - zc) / length)
+            ys = gs.sheer_y(z)
+            return ys + 0.07 + (top_y - ys - 0.07) * ogee(t)
+
+        def ogee(t):
+            t = min(1.0, max(0.0, t))
+            return 1.0 - t * t * t * (t * (6 * t - 15) + 10)   # smootherstep: flat at both ends
+
+        def band(z):
+            t = min(1.0, abs(z - zc) / length)
+            return (gs.sheer_y(z) - 0.25) + (top_y - 0.35 - gs.sheer_y(z) + 0.25) * ogee(t)
+        for side, sn in SIDES:
+            for i in range(n):
+                za, zb = zs[i], zs[i + 1]
+                ya, yb = top(za), top(zb)
+                if i < n - 1:
+                    board(bone, "%s_sweep_%s%d" % (tag, sn, i), cpt(za, gs.sheer_y(za) - 0.05, side), cpt(za, ya, side),
+                          cpt(zb, gs.sheer_y(zb) - 0.05, side), cpt(zb, yb, side), 0.12, "wood_honey", v3(side, 0, 0),
+                          inner="hull_light")
+                cap_rail(bone, "%s_sweep_cap_%s%d" % (tag, sn, i), cpt(za, ya, side, -0.04) + v3(0, 0.08, 0),
+                         cpt(zb, yb, side, -0.04) + v3(0, 0.08, 0), 0.17, 0.32 - 0.02 * i / n, "wood_trim", extend=0.05)
+                # the moulding band of the castle curves down into the waist moulding
+                wale_bar(bone, "%s_sweep_band_%s%d" % (tag, sn, i), cpt(za, band(za), side, 0.03), cpt(zb, band(zb), side, 0.03),
+                         0.09, 0.08, "wood_trim", extend=0.03)
+            # carved scrolls (drifts) at both ends of the curve
+            add_cube(bone, "%s_scroll_%s" % (tag, sn), cpt(zc, top_y - 0.12, side, 0.04) + v3(0, 0, dirn * 0.1), rx(math.pi / 4),
+                     (0.14, 0.2, 0.2), "gold")
+            ze = zc + dirn * length * 0.82
+            ye = top(ze)
+            add_cube(bone, "%s_scroll_end_%s" % (tag, sn), cpt(ze, ye - 0.14, side, 0.05), rx(math.pi / 4), (0.12, 0.15, 0.15), "gold")
+            add_cube(bone, "%s_scroll_end_b_%s" % (tag, sn), cpt(ze, ye - 0.14, side, 0.09), EYE, (0.06, 0.08, 0.08), "carving")
 
     bulwark(castle_aft, "qd", -gs.HALF_LENGTH, gs.BULKHEAD_Z, gs.QD_RAIL_Y)
     bulwark(castle_fore, "fc", gs.FORECASTLE_START, 17.9, gs.FC_RAIL_Y)
+    sweep(castle_aft, "qd", gs.BULKHEAD_Z, 1, gs.QD_RAIL_Y, length=3.2, n=10)
+    sweep(castle_fore, "fc", gs.FORECASTLE_START, -1, gs.FC_RAIL_Y, length=2.4, n=8)
     # stern castle side decoration: painted panels and lit cabin windows
     for side, sn in SIDES:
+        u_hint = v3(0, 0, -side)
         for j, z in enumerate((-16.0, -14.4, -12.8, -11.2, -9.6)):
-            decal(castle_aft, "qd_window_%s%d" % (sn, j), z, gs.QD_RAIL_Y - 0.5, side, 0.55, 0.5, "glow_window", glow=True)
-            decal(castle_aft, "qd_post_%s%d" % (sn, j), z + 0.8, gs.QD_RAIL_Y - 0.5, side, 0.12, 0.9, "dark_wood", out=0.02)
+            if j > 1:
+                frame_decal(castle_aft, "qd_window_%s%d" % (sn, j), castle_frame(z, gs.QD_RAIL_Y - 0.5, side), 0.55, 0.5,
+                            "glow_window", glow=True, u_dir=u_hint)
+            if j > 0:
+                frame_decal(castle_aft, "qd_post_%s%d" % (sn, j), castle_frame(z + 0.8, gs.QD_RAIL_Y - 0.5, side), 0.12, 0.9,
+                            "dark_wood", out=0.02, u_dir=u_hint)
         for j, z in enumerate((-15.4, -13.0, -10.6)):
-            decal(cabin, "cabin_window_%s%d" % (sn, j), z, 2.2, side, 0.6, 0.75, "glow_window", glow=True)
+            if j > 0:
+                decal(cabin, "cabin_window_%s%d" % (sn, j), z, 2.2, side, 0.6, 0.75, "glow_window", glow=True)
             inner_decal(cabin, "cabin_window_in_%s%d" % (sn, j), z, 2.2, side, 0.6, 0.75, "window_in")
         for j, z in enumerate((11.6, 13.4, 15.2)):
-            decal(castle_fore, "fc_window_%s%d" % (sn, j), z, gs.FC_RAIL_Y - 0.5, side, 0.5, 0.45, "glow_window", glow=True)
-        # quarter gallery: a closed balcony with lit windows on each stern corner
-        qz0, qz1 = -16.95, -14.25
-        qx = 0.98 * hw(-15.6)
-        gal = v3(side * (qx + 0.22), 2.55, (qz0 + qz1) / 2)
-        add_cube(castle_aft, "quarter_gallery_" + sn, gal, EYE, (0.5, 1.9, qz1 - qz0), {"all": "wood_honey", "+2": "dark_wood"})
-        for j, z in enumerate((qz0 + 0.65, qz1 - 0.65)):
-            add_cube(castle_aft, "glow_quarter_window_%s%d" % (sn, j), (side * (qx + 0.48), 2.6, z), EYE, (0.04, 1.05, 0.62),
-                     "arch_window", stretch=True)
-        add_cube(castle_aft, "quarter_gallery_cornice_" + sn, gal + v3(side * 0.03, 1.0, 0), EYE, (0.6, 0.14, qz1 - qz0 + 0.12), "wood_trim")
-        add_cube(castle_aft, "quarter_gallery_sill_" + sn, gal + v3(side * 0.03, -0.98, 0), EYE, (0.6, 0.12, qz1 - qz0 + 0.12), "wood_trim")
-        board(castle_aft, "quarter_gallery_roof_" + sn, v3(side * (qx + 0.55), 3.55, qz0 - 0.05), v3(side * (qx - 0.05), 4.05, qz0 - 0.05),
-              v3(side * (qx + 0.55), 3.55, qz1 + 0.05), v3(side * (qx - 0.05), 4.05, qz1 + 0.05), 0.1, "roof", v3(side, 1, 0), overlap=1.0)
-        beam(castle_aft, "quarter_gallery_bracket_" + sn, (side * (qx - 0.05), 0.8, (qz0 + qz1) / 2), (side * (qx + 0.4), 1.6, (qz0 + qz1) / 2),
-             0.2, "carving", width=0.5)
+            frame_decal(castle_fore, "fc_window_%s%d" % (sn, j), castle_frame(z, gs.FC_RAIL_Y - 0.5, side), 0.5, 0.45,
+                        "glow_window", glow=True, u_dir=u_hint)
+
+        # quarter gallery: a bow-fronted closed balcony on each stern corner, domed roof, carved corbel and pendant
+        qz0, qz1, D, ng = -16.95, -14.25, 0.62, 6
+        ts = np.linspace(0, 1, ng + 1)
+
+        def gp(t, y, d):
+            z = qz0 + (qz1 - qz0) * t
+            return v3(side * (castle_x(z, y) + d * math.sin(math.pi * t) ** 0.75), y, z)
+
+        def ring(bone, tag, y0, d0, y1, d1, reg, th=0.1):
+            for i in range(ng):
+                a0, a1, b0, b1 = gp(ts[i], y0, d0), gp(ts[i], y1, d1), gp(ts[i + 1], y0, d0), gp(ts[i + 1], y1, d1)
+                mid = (a0 + a1 + b0 + b1) / 4
+                outward = mid - gp(0.5, (y0 + y1) / 2, 0) + v3(0, (y1 - y0) * 0.0, 0)
+                if d1 < d0 and y1 > y0:
+                    outward = outward + v3(0, 0.6, 0)
+                if d1 < d0 and y1 < y0:
+                    outward = outward - v3(0, 0.6, 0)
+                board(bone, "%s_%s%d" % (tag, sn, i), a0, a1, b0, b1, th, reg, outward, overlap=1.03)
+
+        for r, (y0, y1, reg) in enumerate(((1.75, 2.0, "wood_trim"), (2.0, 3.2, "wood_honey"), (3.2, 3.45, "red_paint"))):
+            ring(castle_aft, "quarter_gallery_%d" % r, y0, D, y1, D, reg)
+        for r, (y0, d0, y1, d1) in enumerate(((3.47, D + 0.04, 3.72, 0.52), (3.72, 0.52, 3.92, 0.36), (3.92, 0.36, 4.06, 0.18),
+                                              (4.06, 0.18, 4.12, 0.0))):
+            ring(castle_aft, "quarter_gallery_dome_%d" % r, y0, d0, y1, d1, "roof", th=0.08)
+        for r, (y0, d0, y1, d1, reg) in enumerate(((1.74, D, 1.46, 0.72 * D, "carving"), (1.46, 0.72 * D, 1.2, 0.42 * D, "wood_trim"),
+                                                   (1.2, 0.42 * D, 1.0, 0.12 * D, "wood_trim"))):
+            ring(castle_aft, "quarter_gallery_corbel_%d" % r, y0, d0, y1, d1, reg, th=0.08)
+        for i in range(ng):
+            cap_rail(castle_aft, "quarter_gallery_cornice_%s%d" % (sn, i), gp(ts[i], 3.48, D + 0.03), gp(ts[i + 1], 3.48, D + 0.03),
+                     0.12, 0.16, "gold", extend=0.03)
+            beam(castle_aft, "quarter_gallery_sill_%s%d" % (sn, i), gp(ts[i], 1.76, D + 0.03), gp(ts[i + 1], 1.76, D + 0.03),
+                 0.1, "wood_trim", width=0.12, extend=0.03)
+            if 1 <= i <= ng - 2:
+                a, b = gp(ts[i], 2.62, D), gp(ts[i + 1], 2.62, D)
+                u = norm(b - a)
+                n_ = norm(np.cross(u, v3(0, 1, 0)))
+                if np.dot(n_, v3(side, 0, 0)) < 0:
+                    u, n_ = -u, -n_
+                frame_decal(castle_aft, "quarter_window_%s%d" % (sn, i), ((a + b) / 2, u, v3(0, 1, 0), n_),
+                            np.linalg.norm(b - a) * 0.72, 0.95, "arch_window", out=0.005, th=0.04, glow=True)
+        for i in range(1, ng):
+            a, b = gp(ts[i] - 0.02, 2.6, D), gp(ts[i] + 0.02, 2.6, D)
+            u = norm(b - a)
+            n_ = norm(np.cross(u, v3(0, 1, 0)))
+            if np.dot(n_, v3(side, 0, 0)) < 0:
+                u, n_ = -u, -n_
+            c = (a + b) / 2 + n_ * 0.02
+            add_cube(castle_aft, "quarter_gallery_pilaster_%s%d" % (sn, i), c, np.column_stack([u, v3(0, 1, 0), n_]),
+                     (0.08, 1.2, 0.05), "pilaster", stretch=True)
+        top_c = gp(0.5, 4.1, 0.1)
+        add_cube(castle_aft, "quarter_gallery_finial_" + sn, top_c + v3(0, 0.08, 0), ry(math.pi / 4), (0.14, 0.14, 0.14), "gold")
+        add_cube(castle_aft, "quarter_gallery_finial_top_" + sn, top_c + v3(0, 0.2, 0), EYE, (0.06, 0.12, 0.06), "gold")
+        low_c = gp(0.5, 1.0, 0.1)
+        round_bar(castle_aft, "quarter_gallery_pendant_" + sn, low_c + v3(0, 0.02, 0), low_c - v3(0, 0.3, 0), 0.1, "gold")
+        add_cube(castle_aft, "quarter_gallery_pendant_ball_" + sn, low_c - v3(0, 0.34, 0), ry(math.pi / 4), (0.13, 0.13, 0.13), "gold")
         # chain-wales (channels) carrying the deadeyes of the shrouds, with their chains
-        for tag, z0, z1, ys in (("main", -1.0, 2.8, None), ("fore", 11.0, 13.4, None), ("mizzen", -13.6, -11.6, None)):
+        for tag, z0, z1 in (("main", -1.0, 2.8), ("fore", 11.0, 13.4), ("mizzen", -13.6, -11.6)):
             zm = (z0 + z1) / 2
             y = gs.rail_y(zm) - 0.22
-            beam(hull, "channel_%s_%s" % (tag, sn), (side * (0.98 * hw(z0) + 0.16), y, z0), (side * (0.98 * hw(z1) + 0.16), y, z1),
-                 0.1, "dark_wood", width=0.36, up=v3(0, 0, 1) if False else v3(0, 1, 0))
+            beam(hull, "channel_%s_%s" % (tag, sn), (side * (castle_x(z0, y) + 0.16), y, z0), (side * (castle_x(z1, y) + 0.16), y, z1),
+                 0.1, "dark_wood", width=0.36)
 
     # ---- decks
     def deck_span(bone, z0, z1, n, y, tag, under="dark_wood"):
@@ -431,9 +744,9 @@ def build():
             add_cube(bone, "deck_%s%d" % (tag, j), (0, y - 0.075, (za + zb) / 2), EYE, (2 * w, 0.15, zb - za + 0.02),
                      {"all": "deck", "-2": under})
 
-    deck_span(deck, gs.TRANSOM_Z, gs.FORECASTLE_START, 14, main_y, "main")
+    deck_span(deck, -17.28, gs.FORECASTLE_START, 14, main_y, "main")
     deck_span(castle_fore, gs.FORECASTLE_START, gs.DECK_MAX_Z, 4, fc_y, "fore")
-    deck_span(castle_aft, gs.TRANSOM_Z, gs.BULKHEAD_Z, 6, qd_y, "quarter")
+    deck_span(castle_aft, -17.26, gs.BULKHEAD_Z, 6, qd_y, "quarter")
     # forecastle front wall (with a carved door) and quarterdeck bulkhead (real door to the cabin)
     wf = gs.inner_half_width(gs.FORECASTLE_START) + 0.12
     add_cube(castle_fore, "fc_front", (0, (main_y + fc_y) / 2, gs.FORECASTLE_START), EYE, (2 * wf, fc_y - main_y, 0.16),
@@ -575,58 +888,161 @@ def build():
             add_cube(guns, "gunport_inner_%s%d" % (tag, k + 1), pi_, np.column_stack([u, v, v3(side, 0, 0)]),
                      (0.5, 0.48, 0.02), "gunport", stretch=True)
 
-    # ---- poop house with its red roof
-    pf, pb, ph = gs.POOP_FRONT, gs.POOP_BACK, gs.POOP_HALF
-    wall_h = gs.POOP_WALL_TOP - qd_y
-    for side, sn in SIDES:
-        add_cube(poop, "poop_wall_" + sn, (side * (ph - 0.08), qd_y + wall_h / 2, (pf + pb) / 2), EYE, (0.16, wall_h, pf - pb),
-                 {"all": "wood_honey", "+1": "wood_honey"})
-        for j, z in enumerate((pb + 0.7, pf - 0.7)):
-            add_cube(poop, "glow_poop_window_%s%d" % (sn, j), (side * (ph + 0.01), qd_y + 1.45, z), EYE, (0.04, 1.1, 0.62),
-                     "arch_window", stretch=True)
-        add_cube(poop, "poop_pilaster_" + sn, (side * (ph + 0.02), qd_y + wall_h / 2, (pf + pb) / 2), EYE, (0.08, wall_h, 0.24),
-                 "pilaster", stretch=True)
-        add_cube(poop, "poop_base_" + sn, (side * (ph + 0.02), qd_y + 0.12, (pf + pb) / 2), EYE, (0.1, 0.24, pf - pb), "dark_wood")
-        add_cube(poop, "poop_corner_" + sn, (side * (ph - 0.05), qd_y + wall_h / 2, pf - 0.05), EYE, (0.22, wall_h, 0.22), "dark_wood")
-        add_cube(poop, "poop_corner_back_" + sn, (side * (ph - 0.05), qd_y + wall_h / 2, pb + 0.05), EYE, (0.22, wall_h, 0.22), "dark_wood")
-        add_cube(poop, "poop_beam_" + sn, (side * (ph + 0.03), qd_y + 2.0, (pf + pb) / 2), EYE, (0.08, 0.16, pf - pb), "dark_wood")
-    add_cube(poop, "poop_front", (0, qd_y + wall_h / 2, pf - 0.08), EYE, (2 * ph, wall_h, 0.16), {"all": "wood_honey", "-3": "hull_light"})
-    add_cube(poop, "poop_back", (0, qd_y + wall_h / 2, pb + 0.08), EYE, (2 * ph, wall_h, 0.16), "wood_honey")
+    # ---- poop house: the upper tier of the stern castle, its sides continuing the tumblehome of the hull,
+    # rounded front corners, a curved back, a red frieze under the cornice and a cambered roof deck with a balustrade
+    pf, pb = gs.POOP_FRONT, gs.POOP_BACK
+    top_w = gs.POOP_WALL_TOP
+    R = 0.42
+    zbk = pb + 0.15     # the back wall curves forward towards its corners
+
+    def p_cx(y):
+        return castle_x(pf - R, y) - R
+
+    def p_back_z(x, y):
+        xb = castle_x(zbk, y)
+        return pb + (zbk - pb) * min(1.0, (x / xb) ** 2)
+
+    def perimeter(y, n_front=4, n_arc=4, n_side=4, n_back=8):
+        """Outline of the poop house at height y, closed loop (front centre -> port side -> back -> starboard)."""
+        pts = []
+        cx = p_cx(y)
+        for side in (1, -1):
+            half = []
+            for k in range(n_front):
+                half.append(v3(side * cx * k / n_front, y, pf))
+            for k in range(n_arc + 1):
+                a = math.pi / 2 * k / n_arc
+                half.append(v3(side * (cx + R * math.sin(a)), y, pf - R + R * math.cos(a)))
+            for k in range(1, n_side + 1):
+                z = pf - R + (zbk - (pf - R)) * k / n_side
+                half.append(v3(side * castle_x(z, y), y, z))
+            for k in range(1, n_back // 2 + 1):
+                x = castle_x(zbk, y) * (1 - k / (n_back // 2))
+                half.append(v3(side * x, y, p_back_z(x, y)))
+            pts.append(half)
+        port, stbd = pts
+        return port + list(reversed(stbd[1:-1]))
+
+    def offset(pts, d):
+        c = sum(pts) / len(pts)
+        out = []
+        for i, p in enumerate(pts):
+            t = pts[(i + 1) % len(pts)] - pts[i - 1]
+            n_ = norm(v3(t[2], 0, -t[0]))
+            if np.dot(n_, p - c) < 0:
+                n_ = -n_
+            out.append(p + n_ * d)
+        return out
+
+    def wall_ring(tag, y0, y1, reg, inner="hull_light", th=0.14, skip_front=False, d=0.0):
+        A, B = offset(perimeter(y0), d), offset(perimeter(y1), d)
+        c = sum(A) / len(A)
+        for i in range(len(A)):
+            j = (i + 1) % len(A)
+            if skip_front and abs(A[i][2] - pf) < 1e-6 and abs(A[j][2] - pf) < 1e-6:
+                continue
+            mid = (A[i] + A[j]) / 2
+            board(poop, "%s_%d" % (tag, i), A[i], B[i], A[j], B[j], th, reg, v3(mid[0] - c[0], 0, mid[2] - c[2]),
+                  overlap=1.03, inner=inner)
+
+    # walls: the front and back from the quarterdeck, the sides above the castle bulwark cap
+    wall_ring("poop_wall_hi", 5.4, top_w, "wood_honey")
+    wall_ring("poop_wall_mid", 4.55, 5.4, "wood_honey")
+    wall_ring("poop_frieze", top_w - 0.3, top_w - 0.04, "red_paint", inner=None, th=0.04, d=0.03)
+    # below the bulwark cap: front wall (to the bulwarks) and the back wall
+    wl = castle_x(pf, 4.0) - 0.12
+    add_cube(poop, "poop_front", (0, (qd_y + 4.56) / 2, pf - 0.08), EYE, (2 * wl, 4.56 - qd_y, 0.16),
+             {"all": "wood_honey", "-3": "hull_light"})
+    xs_b = np.linspace(-1, 1, 7)
+    for j in range(6):
+        P = lambda f, y: v3(f * (castle_x(zbk, y) - 0.12), y, p_back_z(f * (castle_x(zbk, y) - 0.12), y))  # noqa: E731
+        board(poop, "poop_back_%d" % j, P(xs_b[j], qd_y), P(xs_b[j], 4.56), P(xs_b[j + 1], qd_y), P(xs_b[j + 1], 4.56), 0.14,
+              "wood_honey", v3(0, 0, -1), overlap=1.03)
+    # door with an arched gilded head, windows and pilasters on the front
     add_cube(poop, "poop_door", (0, qd_y + 0.95, pf + 0.01), EYE, (0.9, 1.8, 0.04), "door", stretch=True)
+    arc = [v3(0.5 * math.cos(a), qd_y + 1.85 + 0.42 * math.sin(a), pf + 0.04) for a in np.linspace(0, math.pi, 7)]
+    for j, (a, b) in enumerate(polyline(arc)):
+        beam(poop, "poop_door_arch_%d" % j, a, b, 0.09, "gold", width=0.06, extend=0.03)
+    add_cube(poop, "poop_door_tympanum", (0, qd_y + 2.0, pf + 0.015), EYE, (0.62, 0.26, 0.03), "carving", stretch=True)
     for side, sn in SIDES:
         add_cube(poop, "glow_poop_front_window_" + sn, (side * 1.7, qd_y + 1.45, pf + 0.01), EYE, (0.62, 1.1, 0.04), "arch_window",
                  stretch=True)
-        add_cube(poop, "poop_front_pilaster_" + sn, (side * 0.75, qd_y + wall_h / 2, pf + 0.02), EYE, (0.24, wall_h, 0.06),
-                 "pilaster", stretch=True)
-    add_cube(poop, "poop_cornice", (0, gs.POOP_WALL_TOP + 0.06, (pf + pb) / 2), EYE, (2 * ph + 0.2, 0.14, pf - pb + 0.2), "wood_trim")
-    # roof: two tile slopes meeting at the ridge, with overhang, plus gables
-    eave_y, ridge_y = gs.POOP_WALL_TOP + 0.1, gs.POOP_RIDGE
+        add_cube(poop, "poop_front_window_sill_" + sn, (side * 1.7, qd_y + 0.86, pf + 0.04), EYE, (0.74, 0.08, 0.1), "wood_trim")
+        add_cube(poop, "poop_front_pilaster_" + sn, (side * 0.75, (qd_y + top_w) / 2 - 0.15, pf + 0.02), EYE,
+                 (0.2, top_w - qd_y - 0.3, 0.06), "pilaster", stretch=True)
+        add_cube(poop, "poop_front_pilaster_out_" + sn, (side * (p_cx(5.4) - 0.12), (4.56 + top_w) / 2 - 0.15, pf + 0.02), EYE,
+                 (0.16, top_w - 4.56 - 0.3, 0.05), "pilaster", stretch=True)
+        # side windows (lit, arched) on the tumblehome
+        u_hint = v3(0, 0, -side)
+        for j, z in enumerate((-16.15, -15.05)):
+            frame_decal(poop, "poop_window_%s%d" % (sn, j), castle_frame(z, 5.35, side), 0.5, 0.82, "arch_window", glow=True,
+                        u_dir=u_hint)
+        frame_decal(poop, "poop_pilaster_" + sn, castle_frame(-15.6, 5.3, side), 0.14, 1.3, "pilaster", out=0.012, u_dir=u_hint)
+        # back windows
+        xw = side * 1.05
+        p_ = v3(xw, 5.3, p_back_z(xw, 5.3))
+        u = norm(v3(1, 0, (p_back_z(xw + 0.02, 5.3) - p_back_z(xw - 0.02, 5.3)) / 0.04))
+        Rw = np.column_stack([u, v3(0, 1, 0), np.cross(u, v3(0, 1, 0))])
+        add_cube(poop, "glow_poop_back_window_" + sn, p_ - Rw[:, 2] * 0.02, Rw, (0.5, 0.85, 0.04), "arch_window", stretch=True)
+    # cornice following the outline
+    corn = offset(perimeter(top_w + 0.06), 0.07)
+    for j, (a, b) in enumerate(polyline(corn, closed=True)):
+        cap_rail(poop, "poop_cornice_%d" % j, a, b, 0.16, 0.22, "wood_trim", extend=0.04)
+
+    # cambered roof deck
+    roof_base, camber = top_w + 0.14, 0.26
+
+    def roof_half(z):
+        x = castle_x(z, top_w) + 0.06
+        dz = z - (pf - R)
+        if dz > 0:
+            x = min(x, p_cx(top_w) + math.sqrt(max(0.0, (R + 0.06) ** 2 - dz * dz)))
+        return x
+
+    def roof_y(x, z):
+        f = min(1.0, abs(x) / roof_half(z))
+        return roof_base + camber * (1 - f * f)
+
+    rz = [pb - 0.06, pb + 0.5, -16.0, -15.4, -14.9, pf - R, pf - R / 2, pf + 0.02]
+    rs = np.linspace(-1, 1, 9)
+
+    def RP(s, i):
+        z = rz[i]
+        if i == 0:
+            z = p_back_z(s * castle_x(zbk, top_w), top_w) - 0.06
+        x = s * roof_half(z)
+        return v3(x, roof_y(x, z) + 0.0, z)
+    for i in range(len(rz) - 1):
+        for j in range(len(rs) - 1):
+            board(poop, "roof_%d_%d" % (i, j), RP(rs[j], i), RP(rs[j + 1], i), RP(rs[j], i + 1), RP(rs[j + 1], i + 1), 0.12, "deck",
+                  v3(0, 1, 0), overlap=1.03)
+    # balustrade round the roof deck (round balusters, moulded gilded rail following the camber)
+    path = offset(perimeter(top_w, n_front=6, n_arc=3, n_side=6, n_back=10), -0.12)
+    rail_h = 0.5
+
+    def on_roof(p, dy=0.0):
+        return v3(p[0], roof_y(p[0], p[2]) + dy, p[2])
+    for j, p in enumerate(path):
+        round_bar(poop, "poop_baluster_%d" % j, on_roof(p, -0.02), on_roof(p, rail_h - 0.06), 0.08, "hull_light")
+    for j, (a, b) in enumerate(polyline(path, closed=True)):
+        cap_rail(poop, "poop_rail_%d" % j, on_roof(a, rail_h), on_roof(b, rail_h), 0.1, 0.13, "gold", extend=0.03)
+    corners = []
     for side, sn in SIDES:
-        eave_f, eave_b = v3(side * (ph + 0.8), eave_y - 0.4, pf + 0.6), v3(side * (ph + 0.8), eave_y - 0.4, pb - 0.6)
-        ridge_f, ridge_b = v3(0, ridge_y, pf + 0.6), v3(0, ridge_y, pb - 0.6)
-        board(poop, "roof_" + sn, eave_b, ridge_b, eave_f, ridge_f, 0.14, "roof", v3(side * 0.5, 1, 0), overlap=1.0)
-    add_cube(poop, "roof_ridge", (0, ridge_y + 0.05, (pf + pb) / 2), EYE, (0.24, 0.2, pf - pb + 1.3), "roof")
-    for side, sn in SIDES:
-        for k, zz in enumerate((pf + 0.45, pb - 0.45)):
-            corner = v3(side * (ph + 0.6), eave_y - 0.55, zz)
-            beam(lanterns, "roof_lantern_arm_%s%d" % (sn, k), corner + v3(-side * 0.5, 0.25, 0), corner + v3(0, 0.25, 0), 0.08, "iron")
-            add_cube(lanterns, "roof_lantern_%s%d" % (sn, k), corner, EYE, (0.36, 0.5, 0.36), {"all": "lantern", "+2": "iron", "-2": "iron"},
-                     stretch=True)
-            add_cube(lanterns, "glow_roof_lantern_%s%d" % (sn, k), corner, EYE, (0.24, 0.36, 0.24), "glow", stretch=True)
-    for k, zz in enumerate((pf + 0.35, pb - 0.35)):
-        add_cube(poop, "roof_finial_%d" % k, (0, ridge_y + 0.3, zz), EYE, (0.2, 0.3, 0.2), "gold")
-        add_cube(poop, "roof_finial_ball_%d" % k, (0, ridge_y + 0.55, zz), EYE, (0.14, 0.14, 0.14), "gold")
-    for zz, tag in ((pf, "front"), (pb, "back")):
-        for k in range(5):
-            f0, f1 = k / 5.0, (k + 1) / 5.0
-            y0 = eave_y + (ridge_y - eave_y) * f0
-            y1 = eave_y + (ridge_y - eave_y) * f1
-            half = ph * (1 - (f0 + f1) / 2)
-            add_cube(poop, "gable_%s_%d" % (tag, k), (0, (y0 + y1) / 2, zz + (0.08 if tag == "back" else -0.08)), EYE,
-                     (2 * half, y1 - y0 + 0.01, 0.14), "wood_honey")
+        a45 = v3(side * (p_cx(top_w) + R * 0.707), 0, pf - R + R * 0.707)
+        bk = v3(side * castle_x(zbk, top_w), 0, zbk)
+        for k, target in enumerate((a45, bk)):
+            corners.append((sn, k, min(path, key=lambda q: (q[0] - target[0]) ** 2 + (q[2] - target[2]) ** 2)))
+    for sn, k, p in corners:
+        c = on_roof(p)
+        round_bar(poop, "poop_corner_post_%s%d" % (sn, k), c - v3(0, 0.02, 0), c + v3(0, rail_h + 0.12, 0), 0.15, "dark_wood")
+        lc = c + v3(0, rail_h + 0.42, 0)
+        add_cube(lanterns, "roof_lantern_%s%d" % (sn, k), lc, EYE, (0.32, 0.44, 0.32), {"all": "lantern", "+2": "iron", "-2": "iron"},
+                 stretch=True)
+        add_cube(lanterns, "glow_roof_lantern_%s%d" % (sn, k), lc, EYE, (0.22, 0.32, 0.22), "glow", stretch=True)
+    roof_top = roof_base + camber
     # stern lanterns: two on the transom corners, a big one on the poop roof
     for k, (x, y, z, s) in enumerate(((2.15, gs.QD_RAIL_Y + 0.2, -17.25, 1.0), (-2.15, gs.QD_RAIL_Y + 0.2, -17.25, 1.0),
-                                      (0, ridge_y + 0.15, pb - 0.2, 1.35))):
+                                      (0, roof_top - 0.02, pb + 0.75, 1.1))):
         beam(lanterns, "stern_lantern_pole_%d" % k, (x, y, z), (x, y + 0.6 * s, z), 0.1, "iron")
         add_cube(lanterns, "stern_lantern_%d" % k, (x, y + 0.95 * s, z), EYE, (0.5 * s, 0.7 * s, 0.5 * s),
                  {"all": "lantern", "+2": "gold", "-2": "gold"}, stretch=True)
@@ -655,10 +1071,19 @@ def build():
     # ---- rudder (bone "rudder" turns with "steer"), hinged on the transom
     rpivot = v3(0, 0.0, -gs.HALF_LENGTH - 0.12)
     rudder = Bone("rudder", origin=rpivot, parent=root)
-    add_cube(rudder, "rudder_blade", (0, -0.55, -gs.HALF_LENGTH - 0.55), EYE, (0.18, 2.1, 0.85), {"all": "hull_dark", "+2": "end_grain"})
-    add_cube(rudder, "rudder_stock", (0, 0.2, -gs.HALF_LENGTH - 0.16), EYE, (0.22, 0.9, 0.22), "dark_wood")
+    zf_r = -gs.HALF_LENGTH - 0.13
+    bands = [0.5, 0.0, -0.5, -1.05, -1.6]
+
+    def r_back(y):
+        return zf_r - 0.42 - 0.52 * ((0.5 - y) / 2.1) ** 0.8
+    for k in range(len(bands) - 1):
+        y0, y1 = bands[k], bands[k + 1]
+        board(rudder, "rudder_blade_%d" % k, v3(0.09, y0, zf_r), v3(0.09, y0, r_back(y0)), v3(0.09, y1, zf_r), v3(0.09, y1, r_back(y1)),
+              0.18, "hull_dark", v3(1, 0, 0), overlap=1.0)
+    round_bar(rudder, "rudder_stock", (0, -0.25, -gs.HALF_LENGTH - 0.16), (0, 0.65, -gs.HALF_LENGTH - 0.16), 0.22, "dark_wood")
     for k, y in enumerate((-1.1, -0.4, 0.3)):
         add_cube(rudder, "rudder_pintle_%d" % k, (0, y, -gs.HALF_LENGTH - 0.15), EYE, (0.3, 0.1, 0.3), "iron")
+        add_cube(rudder, "rudder_strap_%d" % k, (0, y, (zf_r + r_back(y)) / 2 + 0.05), EYE, (0.22, 0.07, abs(r_back(y) - zf_r) * 0.7), "iron")
 
     # ---- bow: stem post, beakhead, figurehead, bowsprit, anchors
     stem_pts = []
@@ -670,14 +1095,36 @@ def build():
     for j in range(len(stem_pts) - 1):
         beam(bow, "stem_%d" % j, stem_pts[j], stem_pts[j + 1], 0.4, "dark_wood", width=0.5, extend=0.1)
     beak_z0, beak_z1 = 17.6, 20.0
-    beam(bow, "beakhead", (0, 2.2, beak_z0), (0, 2.6, beak_z1), 0.3, "wood_honey", width=0.9)
-    beam(bow, "beakhead_rail", (0, 2.6, beak_z0), (0, 3.1, beak_z1 - 0.2), 0.12, "gold", width=0.95)
+    # knee of the head: a curved cutwater growing out of the stem under the beakhead
+    knee = bezier((0, 0.35, 17.62), (0, 1.25, 19.45), (0, 2.42, 20.05), 6)
+    for j, (a, b) in enumerate(polyline(knee)):
+        beam(bow, "beak_knee_%d" % j, a, b, 0.62 - 0.05 * j, "dark_wood", width=0.34 - 0.02 * j, extend=0.06, up=v3(0, 0, 1))
+    # beakhead platform (grating), tapering forward
+    plat = [v3(0, 2.38, beak_z0), v3(0, 2.46, 18.4), v3(0, 2.54, 19.2), v3(0, 2.6, beak_z1)]
+    for j, (a, b) in enumerate(polyline(plat)):
+        beam(bow, "beakhead_%d" % j, a, b, 0.16, {"all": "wood_honey", "+2": "grating"}, width=1.0 - 0.17 * j, extend=0.03)
     for side, sn in SIDES:
-        beam(bow, "beak_rail_" + sn, (side * 0.5, 3.6, 17.3), (side * 0.1, 2.75, beak_z1), 0.1, "gold")
+        # head rails sweeping from the bow down and forward to the figurehead, with their timbers
+        z0 = 16.5
+        up_rail = bezier((side * (hw(z0) + 0.04), 3.75, z0), (side * 0.85, 2.7, 18.3), (side * 0.16, 3.05, 19.85), 6)
+        low_rail = bezier((side * (hw(z0 + 0.1) + 0.04), 3.1, z0 + 0.1), (side * 0.75, 2.3, 18.2), (side * 0.22, 2.68, 19.55), 5)
+        for j, (a, b) in enumerate(polyline(up_rail)):
+            round_bar(bow, "head_rail_%s%d" % (sn, j), a, b, 0.11, "gold", extend=0.03)
+        for j, (a, b) in enumerate(polyline(low_rail)):
+            round_bar(bow, "head_rail_low_%s%d" % (sn, j), a, b, 0.09, "wood_trim", extend=0.03)
+        for j in (2, 3, 4):
+            p = up_rail[j]
+            round_bar(bow, "head_timber_%s%d" % (sn, j), v3(p[0] * 0.8, 2.45, p[2]), p, 0.07, "wood_trim")
+        # cheek knees: curved mouldings along the bow, rising into the knee of the head
+        for k, (y0, reg) in enumerate(((2.05, "gold"), (1.55, "wood_trim"))):
+            pts = [v3(side * (outer_x(z, y0) + 0.05), y0 + 0.3 * ((z - 15.2) / 2.5) ** 2, z) for z in (15.2, 16.0, 16.7, 17.25)]
+            pts.append(v3(side * 0.2, y0 + 0.42, 17.75))
+            for j, (a, b) in enumerate(polyline(pts)):
+                round_bar(bow, "cheek_%s%d_%d" % (sn, k, j), a, b, 0.11, reg, extend=0.03)
     lion = Bone("figurehead", origin=(0, 2.6, beak_z1), parent=bow)
     lion_figurehead(lion, (0, 2.75, beak_z1 + 0.2), 0.55)
     sprit_a, sprit_b = v3(0, 3.9, 16.4), v3(0, 6.9, 24.6)
-    beam(bow, "bowsprit", sprit_a, sprit_b, 0.4, "mast")
+    round_bar(bow, "bowsprit", sprit_a, sprit_b, 0.4, "mast")
     beam(bow, "bowsprit_cap", sprit_b - norm(sprit_b - sprit_a) * 0.15, sprit_b + norm(sprit_b - sprit_a) * 0.1, 0.48, "dark_wood")
     jib_boom = sprit_b + norm(sprit_b - sprit_a) * 0.05
     beam(bow, "bowsprit_staff", jib_boom, jib_boom + v3(0, 0.9, 0), 0.08, "dark_wood")
@@ -693,8 +1140,8 @@ def build():
     # ---- masts, tops, yards
     def mast(name, z, foot, top, lower_top, thick):
         mb = Bone(name, origin=(0, foot, z), parent=root)
-        beam(mb, name + "_lower", (0, foot - 0.2, z), (0, lower_top + 0.6, z), thick, "mast")
-        beam(mb, name + "_upper", (0, lower_top - 0.4, z), (0, top, z), thick * 0.62, "mast")
+        round_bar(mb, name + "_lower", (0, foot - 0.2, z), (0, lower_top + 0.6, z), thick, "mast")
+        round_bar(mb, name + "_upper", (0, lower_top - 0.4, z), (0, top, z), thick * 0.62, "mast")
         add_cube(mb, name + "_partners", (0, foot + 0.12, z), EYE, (thick + 0.35, 0.24, thick + 0.35), "dark_wood")
         add_cube(mb, name + "_cap", (0, top - 0.08, z), EYE, (thick * 0.62 + 0.15, 0.22, thick * 0.62 + 0.15), "gold")
         # fighting top (round platform) at the head of the lower mast
@@ -715,12 +1162,12 @@ def build():
     m_main = mast("mainmast", gs.MAIN_MAST_Z, main_y, gs.MAIN_MAST_TOP, 15.2, 0.62)
     m_fore = mast("foremast", gs.FORE_MAST_Z, fc_y, gs.FORE_MAST_TOP, 13.0, 0.52)
     m_mizzen = Bone("mizzen", origin=(0, main_y, gs.MIZZEN_Z), parent=root)
-    beam(m_mizzen, "mizzen_mast", (0, main_y, gs.MIZZEN_Z), (0, gs.MIZZEN_TOP, gs.MIZZEN_Z), 0.42, "mast")
+    round_bar(m_mizzen, "mizzen_mast", (0, main_y, gs.MIZZEN_Z), (0, gs.MIZZEN_TOP, gs.MIZZEN_Z), 0.42, "mast")
     add_cube(m_mizzen, "mizzen_partners", (0, qd_y + 0.12, gs.MIZZEN_Z), EYE, (0.8, 0.24, 0.8), "dark_wood")
     add_cube(m_mizzen, "mizzen_cap", (0, gs.MIZZEN_TOP - 0.08, gs.MIZZEN_Z), EYE, (0.55, 0.22, 0.55), "gold")
 
     def yard(mb, name, z, y, half):
-        beam(mb, name, (-half, y, z + 0.38), (half, y, z + 0.38), 0.22, "mast", extend=0.1)
+        round_bar(mb, name, (-half, y, z + 0.38), (half, y, z + 0.38), 0.22, "mast", extend=0.1)
         add_cube(mb, name + "_sling", (0, y, z + 0.3), EYE, (0.4, 0.34, 0.34), "rope")
         # furled canvas bundle along the yard (seen when the sail is struck)
         beam(mb, name + "_roll", (-half * 0.92, y - 0.2, z + 0.42), (half * 0.92, y - 0.2, z + 0.42), 0.24, "cloth_roll")
@@ -746,7 +1193,7 @@ def build():
 
     # mizzen lateen yard and sail
     lat_fore, lat_aft = v3(0.32, 8.0, -8.0), v3(0.32, 16.6, -17.4)
-    beam(m_mizzen, "lateen_yard", lat_fore - norm(lat_aft - lat_fore) * 0.3, lat_aft, 0.2, "mast")
+    round_bar(m_mizzen, "lateen_yard", lat_fore - norm(lat_aft - lat_fore) * 0.3, lat_aft, 0.2, "mast")
     beam(m_mizzen, "lateen_roll", lat_fore + v3(0.05, -0.2, 0) + norm(lat_aft - lat_fore) * 0.8,
          lat_aft + v3(0.05, -0.2, 0) - norm(lat_aft - lat_fore) * 0.4, 0.24, "cloth_roll")
     lat_sail = Bone("sail_mizzen", origin=tuple((lat_fore + lat_aft) / 2), parent=m_mizzen)
@@ -769,7 +1216,7 @@ def build():
              jib_clew(st2, mid_sprit, v3(0.05, 5.0, 16.2)), 0.5, v3(1, 0, 0), "jib", nx=4, ny=6)
     sails_info.append((jib, True))
     sprit_yard = sprit_a + (sprit_b - sprit_a) * 0.72
-    beam(bow, "spritsail_yard", sprit_yard + v3(-2.3, -0.25, 0), sprit_yard + v3(2.3, -0.25, 0), 0.16, "mast", extend=0.08)
+    round_bar(bow, "spritsail_yard", sprit_yard + v3(-2.3, -0.25, 0), sprit_yard + v3(2.3, -0.25, 0), 0.16, "mast", extend=0.08)
     beam(bow, "spritsail_roll", sprit_yard + v3(-1.9, -0.45, 0.05), sprit_yard + v3(1.9, -0.45, 0.05), 0.22, "cloth_roll")
     sprit_sail = Bone("sail_sprit", origin=tuple(sprit_yard + v3(0, -0.3, 0)), parent=bow)
     sail(sprit_sail, "spritsail", sprit_yard + v3(0, -0.36, 0.12), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), 2.1, 2.4, 2.3, 0.8,
@@ -797,7 +1244,7 @@ def build():
             fb = flag(mb, name, v3(0, top + 1.2, z), 4.2, 0.55, region="pennant")
         else:
             flag(mb, name, v3(0, top + 1.2, z), 1.9, 1.15)
-    staff_base = v3(0, gs.POOP_RIDGE + 0.1, gs.POOP_BACK - 0.6)
+    staff_base = v3(0, roof_top - 0.05, gs.POOP_BACK + 0.25)
     beam(castle_aft, "ensign_staff", staff_base, staff_base + v3(0, 3.2, -0.6), 0.12, "dark_wood")
     flag(castle_aft, "stern", staff_base + v3(0, 3.1, -0.65), 2.7, 1.7)
 
