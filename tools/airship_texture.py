@@ -38,6 +38,24 @@ REGIONS = {
     "prop":        (0, 64, 64, 16),
     "balloon_in":  (176, 32, 16, 16),
     "fin":         (0, 96, 96, 96),
+    # gondola fittings
+    "copper_plate": (128, 64, 64, 32),
+    "leather":     (192, 64, 32, 16),
+    "leather_dark": (192, 80, 16, 16),
+    "rope_dark":   (208, 80, 16, 16),
+    "fire":        (224, 64, 32, 32),
+    "crate":       (128, 96, 32, 32),
+    "rug":         (160, 96, 32, 64),
+    "rug_edge":    (192, 96, 16, 16),
+    "grate":       (208, 96, 16, 16),
+    "coal":        (224, 96, 16, 16),
+    "burlap":      (240, 96, 16, 16),
+    "barrel":      (192, 112, 32, 32),
+    "glass":       (224, 112, 16, 16),
+    "gauge":       (128, 128, 32, 32),
+    "porthole":    (128, 160, 32, 32),
+    "telegraph":   (160, 160, 32, 32),
+    "boiler_door": (192, 160, 32, 32),
 }
 
 CREAM = _rgb("e9d6ad")
@@ -53,13 +71,79 @@ def _shade(c, k):
 
 
 def _metal(px, region, shades, rng):
-    """Polished metal with soft rounded reflections."""
+    """Polished metal: a soft broad highlight across the region (round parts catch it on one facet),
+    fine brushing streaks along it and a few darker spots of wear."""
     u, v, w, h = region
     for y in range(h):
         for x in range(w):
-            t = 0.55 * math.sin(x * 0.42 + math.sin(y * 0.3) * 1.5) + 0.45 * math.cos(y * 0.36 + x * 0.12)
-            i = 0 if t > 0.65 else 1 if t > 0.2 else 2 if t > -0.35 else 3 if t > -0.75 else 4
-            px[u + x, v + y] = _jitter(_rgb(shades[i]), rng, 3) + (255,)
+            t = 0.8 * math.cos(2 * math.pi * (x + 0.5) / w - 0.9) + 0.1 * math.sin(2 * math.pi * y / h * 2 + 1.3)
+            t += 0.12 * math.sin(y * 2.7 + x * 0.15) + rng.uniform(-0.06, 0.06)
+            i = 0 if t > 0.72 else 1 if t > 0.25 else 2 if t > -0.25 else 3 if t > -0.7 else 4
+            c = _rgb(shades[i])
+            if rng.random() < 0.04:
+                c = _shade(c, 0.88)
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+
+
+def _wood(px, region, base, dark, plank_h, rng, joints=True, nails=None, grain=0.16):
+    """Planks with wood grain: each plank has its own tone, wavy darker grain lines along it, a dark
+    seam under it, butt joints and (optionally) a pair of nail heads at each joint."""
+    u, v, w, h = region
+    rows = h // plank_h
+    for r in range(rows):
+        tone = _jitter(base, rng, 9)
+        joint = rng.randint(5, w - 6)
+        phase = rng.uniform(0, 6.3)
+        freq = rng.uniform(0.18, 0.35)
+        for y in range(plank_h):
+            for x in range(w):
+                if y == plank_h - 1:
+                    c = dark
+                elif joints and x == joint:
+                    c = dark
+                else:
+                    g = math.sin(x * freq + phase + 2.2 * math.sin(x * 0.07 + r)) + 0.6 * math.sin(y * 2.1 + phase)
+                    k = 1.0 - grain * (g > 1.05) + 0.05 * (g < -1.2)
+                    c = _shade(tone, k)
+                    if nails and joints and x in (joint - 2, joint + 2) and y == plank_h // 2 - 1:
+                        c = _rgb(nails)
+                px[u + x, v + r * plank_h + y] = _jitter(c, rng, 4) + (255,)
+
+
+def _rivet_plates(px, region, base, edge, rivet, rng, pw=16, ph=16, tarnish=None):
+    """Riveted metal plates (lapped, a row of rivets along each seam, a soft tarnish)."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            xx, yy = (x + (ph // 2 if (y // ph) % 2 else 0)) % pw, y % ph
+            k = 1.0 + 0.1 * math.cos(math.pi * (yy + 0.5) / ph) - 0.06 * (xx / pw)
+            c = _shade(base, k)
+            if tarnish and (math.sin(x * 0.7 + y * 0.3) + math.sin(y * 0.9 - x * 0.2)) > 1.75:
+                c = _rgb(tarnish)
+            if yy == ph - 1 or xx == 0:
+                c = edge
+            elif (yy == 2 and xx % 4 == 2) or (xx == 2 and yy % 4 == 2):
+                c = rivet
+            elif (yy == 3 and xx % 4 == 2) or (xx == 3 and yy % 4 == 2):
+                c = _shade(edge, 1.3)
+            px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
+
+
+def _round_face(px, region, paint, clear=True):
+    """Paint a round face: paint(rr, ang, x, y) -> colour or None for each pixel inside the circle
+    (rr in [0, 1] from the centre, ang in radians from the top, clockwise); transparent outside."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            dx, dy = (x + 0.5) / w * 2 - 1, (y + 0.5) / h * 2 - 1
+            rr = math.hypot(dx, dy)
+            if rr > 1.0:
+                if clear:
+                    px[u + x, v + y] = (0, 0, 0, 0)
+                continue
+            c = paint(rr, math.atan2(dx, -dy), x, y)
+            if c is not None:
+                px[u + x, v + y] = tuple(c[:3]) + (255,)
 
 
 def _panel(px, region, base, seam, rng, weave=0.035):
@@ -69,7 +153,8 @@ def _panel(px, region, base, seam, rng, weave=0.035):
     for y in range(h):
         for x in range(w):
             # the cloth bulges between the seams: lighter in the middle of the gore, darker at its edges
-            k = 1.0 - weave * ((x + 2 * y) % 3 == 0) - 0.14 * (2 * abs((y + 0.5) / h - 0.5)) ** 2
+            k = 1.0 - weave * ((x + 2 * y) % 3 == 0) - 0.14 * (2 * abs((y + 0.5) / h - 0.5)) ** 2 \
+                - 0.05 * (2 * abs((x + 0.5) / w - 0.5)) ** 3 + 0.025 * math.sin((x + y * 0.6) * 0.45)
             c = _shade(base, k)
             if y in (0, h - 1):
                 c = seam
@@ -181,14 +266,193 @@ def make_texture(path, fin_tri, fin_curve=None):
         for x in range(w):
             d = abs(x - w / 2 + 0.5) + abs(y - h / 2 + 0.5)
             px[u + x, v + y] = (_rgb("fff1a8") if d < 5 else _rgb("ffc94a")) + (255,)
-    # wood
-    _planks(img, reg("hull"), _rgb("6a4527"), _rgb("2e1d10"), 4, rng)
-    _planks(img, reg("hull_light"), _rgb("7a5232"), _rgb("4a301a"), 4, rng)
-    _planks(img, reg("deck"), _rgb("8a6644"), _rgb("4e3820"), 4, rng)
-    _planks(img, reg("dark_wood"), _rgb("4a301a"), _rgb("281809"), 4, rng)
-    _planks(img, reg("wood"), _rgb("b38a58"), _rgb("7a5a34"), 8, rng, joints=False)
-    _fill(img, reg("end_grain"), _rgb("8c5e30"), rng, 10)
-    _planks(img, reg("prop"), _rgb("8e6038"), _rgb("5a3a1e"), 8, rng, joints=False)
+    # wood: grained planks, nail heads at the butt joints
+    _wood(px, reg("hull"), _rgb("6a4527"), _rgb("2e1d10"), 4, rng)
+    _wood(px, reg("hull_light"), _rgb("7a5232"), _rgb("4a301a"), 4, rng)
+    _wood(px, reg("deck"), _rgb("8a6644"), _rgb("4e3820"), 4, rng, nails="3e3026")
+    _wood(px, reg("dark_wood"), _rgb("4a301a"), _rgb("281809"), 4, rng)
+    _wood(px, reg("wood"), _rgb("b38a58"), _rgb("7a5a34"), 8, rng, joints=False, grain=0.1)
+    # end grain: growth rings
+    u, v, w, h = reg("end_grain")
+    for y in range(h):
+        for x in range(w):
+            d = math.hypot(x - w / 2 + 0.5, y - h / 2 + 0.5)
+            c = _shade(_rgb("8c5e30"), 0.86 if int(d * 0.9 + 0.3 * math.sin(x + y)) % 3 == 0 else 1.0)
+            px[u + x, v + y] = _jitter(c, rng, 5) + (255,)
+    _wood(px, reg("prop"), _rgb("8e6038"), _rgb("5a3a1e"), 8, rng, joints=False, grain=0.12)
+    # copper sheathing of the gondola bottom: lapped riveted plates, darkened, a touch of verdigris
+    _rivet_plates(px, reg("copper_plate"), _rgb("965a36"), _rgb("5a3018"), _rgb("c48858"), rng, tarnish="7e6446")
+    # buttoned (chesterfield) leather: diamond tufts with a brass button at each crossing
+    u, v, w, h = reg("leather")
+    for y in range(h):
+        for x in range(w):
+            a, b = (x + y) % 8, (x - y) % 8
+            k = 1.0 + 0.1 * math.sin(math.pi * a / 8) * math.sin(math.pi * b / 8) - 0.06
+            c = _shade(_rgb("7a2e1e"), k)
+            if a == 0 or b == 0:
+                c = _rgb("4e1a10")
+            if x % 8 == 4 and y % 8 == 0:
+                c = _rgb("d8b25a")
+            px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
+    _fill(img, reg("leather_dark"), _rgb("4e1a10"), rng, 5)
+    u, v, w, h = reg("rope_dark")
+    for y in range(h):
+        for x in range(w):
+            c = ROPE_DARK if (x + y) % 4 < 2 else _shade(ROPE_DARK, 0.75)
+            px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
+    # fire in the firebox: glowing coals behind the dark grate bars
+    u, v, w, h = reg("fire")
+    for y in range(h):
+        for x in range(w):
+            if x % 6 in (0, 1) or y in (0, h - 1):
+                c = _rgb("2a1a12") if x % 6 == 0 else _rgb("4a2a18")
+            else:
+                f = (y / h) + 0.25 * math.sin(x * 0.9 + y * 0.4) + rng.uniform(-0.15, 0.15)
+                c = _rgb("fff1a8") if f > 0.85 else _rgb("ffc94a") if f > 0.55 else _rgb("f08a2a") if f > 0.3 else _rgb("b8401a")
+            px[u + x, v + y] = c + (255,)
+    # crate: a frame of darker boards round lighter planks, a diagonal brace, nail heads
+    u, v, w, h = reg("crate")
+    for y in range(h):
+        for x in range(w):
+            if x < 4 or x >= w - 4 or y < 4 or y >= h - 4:
+                c = _rgb("6e4a28")
+                if (x in (1, w - 2) or y in (1, h - 2)) and (x + y) % 6 == 0:
+                    c = _rgb("2a2420")
+            elif abs((x - 4) - (y - 4)) < 3:
+                c = _rgb("7e5630")
+            else:
+                c = _shade(_rgb("a88352"), 0.86 if y % 6 == 5 else 1.0 - 0.06 * ((x * 3 + y // 6) % 5 == 0))
+            px[u + x, v + y] = _jitter(c, rng, 5) + (255,)
+    # runner rug: deep red with a gold and blue border and a repeating medallion
+    u, v, w, h = reg("rug")
+    for y in range(h):
+        for x in range(w):
+            ex = min(x, w - 1 - x)
+            if ex == 0:
+                c = _rgb("3a1410")
+            elif ex < 3:
+                c = _rgb("c9a04a")
+            elif ex < 5:
+                c = _rgb("2f4060") if (y // 2) % 2 else _rgb("c9a04a")
+            elif ex == 5:
+                c = _rgb("c9a04a")
+            else:
+                cx, cy = x - w / 2 + 0.5, (y % 32) - 15.5
+                d = abs(cx) + abs(cy) * 0.6
+                c = _rgb("8a2a22")
+                if 7 < d < 9:
+                    c = _rgb("d9b45a")
+                elif d < 3:
+                    c = _rgb("2f4060")
+                elif (x + y) % 4 == 0 and d > 9:
+                    c = _rgb("7a221c")
+            px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
+    _fill(img, reg("rug_edge"), _rgb("c9a04a"), rng, 8)
+    # iron grating: square holes between bars
+    u, v, w, h = reg("grate")
+    for y in range(h):
+        for x in range(w):
+            c = _rgb("1a1612") if (x % 4 in (1, 2) and y % 4 in (1, 2)) else _rgb("5a3e24")
+            px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
+    # coal
+    u, v, w, h = reg("coal")
+    for y in range(h):
+        for x in range(w):
+            c = _rgb("1c1c20") if rng.random() < 0.7 else _rgb("3a3c44") if rng.random() < 0.6 else _rgb("0c0c0e")
+            px[u + x, v + y] = c + (255,)
+    # burlap (sandbags, sacks): coarse weave
+    u, v, w, h = reg("burlap")
+    for y in range(h):
+        for x in range(w):
+            c = _shade(_rgb("9c8256"), 0.9 if (x % 2) ^ (y % 2) else 1.04)
+            if y % 5 == 4 and x % 3 == 0:
+                c = _rgb("8a7048")
+            px[u + x, v + y] = _jitter(c, rng, 6) + (255,)
+    # barrel: vertical staves with dark seams
+    u, v, w, h = reg("barrel")
+    for y in range(h):
+        for x in range(w):
+            c = _shade(_rgb("8c5e34"), 1.0 - 0.07 * ((x // 4) % 3) + 0.05 * math.sin(y * 0.4 + x))
+            if x % 4 == 3:
+                c = _rgb("4a301a")
+            px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
+    # water glass: a glass tube half full of water
+    u, v, w, h = reg("glass")
+    for y in range(h):
+        for x in range(w):
+            c = _rgb("cfe4ec") if y < h * 0.45 else _rgb("4f7f9a")
+            if x in (2, 3):
+                c = _shade(c, 1.15)
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+
+    def bezel(rr, inner=0.8):
+        if rr > 0.93:
+            return _rgb("684716")
+        if rr > inner + 0.05:
+            return _rgb("f6dc93") if rr < (0.93 + inner) / 2 else _rgb("bf8f34")
+        if rr > inner:
+            return _rgb("906523")
+        return None
+
+    def gauge(rr, ang, x, y):
+        b = bezel(rr)
+        if b:
+            return b
+        c = _rgb("efe6cf")
+        if rr > 0.62 and (ang % (math.pi / 6)) < 0.12 and abs(ang) < 2.4:
+            c = _rgb("2a2420")
+        if rr > 0.62 and ang > 1.6 and ang < 2.4:
+            c = _rgb("b03020")     # red sector: high pressure
+        # needle at about 2 o'clock
+        na = 0.9
+        if rr < 0.68 and abs(math.sin(ang - na)) * rr < 0.045 and math.cos(ang - na) > 0:
+            c = _rgb("1a1a1a")
+        if rr < 0.1:
+            c = _rgb("bf8f34")
+        return c
+    _round_face(px, reg("gauge"), gauge)
+
+    def porthole(rr, ang, x, y):
+        b = bezel(rr, 0.72)
+        if b:
+            # four bolt heads on the rim
+            if 0.78 < rr < 0.9 and abs(math.sin(2 * ang)) > 0.97:
+                return _rgb("fbe7a1")
+            return b
+        c = _rgb("2c4a5e") if rr > 0.3 else _rgb("3d6680")
+        if 0.2 < rr < 0.55 and -2.3 < ang < -1.2:
+            c = _rgb("a8d0e0")    # reflection
+        return c
+    _round_face(px, reg("porthole"), porthole)
+
+    def telegraph(rr, ang, x, y):
+        b = bezel(rr, 0.84)
+        if b:
+            return b
+        sector = int((ang + math.pi) / (math.pi / 4)) % 8
+        c = _rgb("efe6cf") if sector % 2 else _rgb("d8c8a0")
+        if rr < 0.2:
+            c = _rgb("bf8f34")
+        elif abs(math.sin(ang * 4)) < 0.06:
+            c = _rgb("2a2420")
+        if rr < 0.8 and abs(math.sin(ang - 0.0)) * rr < 0.05 and math.cos(ang) > 0:
+            c = _rgb("b03020")
+        return c
+    _round_face(px, reg("telegraph"), telegraph)
+    # firebox door: riveted iron with a brass latch bar and air vents
+    u, v, w, h = reg("boiler_door")
+    for y in range(h):
+        for x in range(w):
+            c = _jitter(_rgb("3e4045"), rng, 5)
+            if x in (0, w - 1) or y in (0, h - 1):
+                c = _rgb("1e2023")
+            elif (x in (2, w - 3) or y in (2, h - 3)) and (x + y) % 5 == 0:
+                c = _rgb("8d9399")
+            elif 13 <= y <= 15 and 4 <= x <= w - 5:
+                c = _rgb("c99a3e")
+            elif 20 <= y <= 25 and x % 5 == 2 and 6 <= x <= w - 7:
+                c = _rgb("120c0a")
+            px[u + x, v + y] = c + (255,)
     # boiler: riveted iron plates with a brass band
     u, v, w, h = reg("boiler")
     for y in range(h):

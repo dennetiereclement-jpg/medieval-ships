@@ -24,6 +24,16 @@ main ropes are real geometry. Round parts (ropes, hoops, rails, pillar, boiler, 
 are regular prisms made of a few turned boxes (prism/tube/disc); the fins have hollowed curved
 edges (the texture follows the curves); the gondola sections follow a smooth curve.
 
+On board (visual only, the walkway down the middle stays clear): inner frames with curved knees and
+a shelf under the gunwale, a runner rug, a hatch grating, benches with buttoned leather cushions,
+turned legs and padded backrests, a turned helm pedestal with a gear housing, a gauge column, an
+engine telegraph and the pilot's stool, crates, a barrel, sacks, a rope coil, lanterns on the
+pillar; at the boiler a glowing firebox with its door open, gauges, a water glass, twin cylinders
+with piston and connecting rods, copper steam pipes and a valve, whistle, safety valve, coal
+scuttle and shovel. Outside: a copper-sheathed bottom, brass-rimmed portholes, gilded scrolls and
+beading, hanging sandbags, crow's feet spreading each suspension line over the hoop and the net.
+Round instrument faces (gauges, portholes, telegraph) are painted discs in front of a brass rim.
+
 Bones used by the mod (keep their names when editing in Blockbench):
   propeller (propeller: three turns per loop, played with the signed speed)
   fin_top, helm_wheel (steer)   fin_port, fin_starboard (elevator: 0 = descending, 1 = level, 2 = climbing)
@@ -159,7 +169,7 @@ FORE_END, AFT_END = asp.FORE_SCALE - 0.02, -asp.AFT_SCALE + 0.02
 _ST = [AFT_END, -7.2, -6.8, -6.2, -5.4, -4.4, -3.2, -1.8, -0.6, 0.6, 1.8, 3.2, 4.4, 5.4, 6.2, 6.8, 7.2, FORE_END]
 STATIONS = _ST
 UPPER = [0.0, 0.35, 0.7, 1.0]
-STRAKES = ["hull"] * 4 + ["hull", "hull", "hull_light"]
+STRAKES = ["copper_plate"] * 3 + ["hull", "hull", "hull", "hull_light"]   # copper-sheathed bottom
 SUB = 2   # each strake of the section is split in two along a smooth curve (rounder bilge)
 
 
@@ -228,6 +238,401 @@ def dome(bone, name, c, axis, r, h, region, steps=3):
         t0, t1 = k / steps, (k + 1) / steps
         rr = r * math.sqrt(max(0.0, 1 - t0 * t0))
         disc(bone, "%s_%d" % (name, k), c + axis * (h * (t0 + t1) / 2), axis, rr, h / steps + 0.01, region)
+
+
+def face_frame(normal, up=(0, 1, 0)):
+    """Axes (right, up, normal) of a flat part facing along normal."""
+    n = norm(v3(*normal))
+    up = v3(*up)
+    if abs(np.dot(up, n)) > 0.95:
+        up = v3(0, 0, 1)
+    u = norm(up - np.dot(up, n) * n)
+    return np.column_stack([np.cross(u, n), u, n])
+
+
+def dial(bone, name, c, normal, r, face="gauge", rim="brass", depth=0.06, sides=12):
+    """Round instrument (gauge, porthole...): a brass rim (thin regular prism) with a painted round
+    face just in front of it (the region is drawn whole, transparent outside the circle)."""
+    n = norm(v3(*normal))
+    c = v3(*c)
+    disc(bone, name + "_rim", c, n, r, depth, rim, sides=sides)
+    add_cube(bone, name, c + n * (depth / 2 + 0.03), face_frame(n), (1.9 * r, 1.9 * r, 0.012), {"all": None, "+3": face, "-3": face},
+             stretch=True)
+
+
+def handwheel(bone, name, c, axis, r, region="brass", spokes=2):
+    """Small valve handwheel: a ring of bars and crossed spokes."""
+    axis = norm(v3(*axis))
+    c = v3(*c)
+    ring(bone, name + "_rim", c, axis, r, 0.035, region, n=8)
+    e1 = norm(np.cross(axis, v3(0, 1, 0) if abs(axis[1]) < 0.9 else v3(1, 0, 0)))
+    e2 = np.cross(axis, e1)
+    for k in range(spokes):
+        a = math.pi * k / spokes
+        d = e1 * math.cos(a) + e2 * math.sin(a)
+        beam(bone, "%s_spoke_%d" % (name, k), c - d * r, c + d * r, 0.025, region)
+    disc(bone, name + "_hub", c, axis, 0.035, 0.05, "gold", sides=8)
+
+
+def hull_pt(z, y, side, out=0.0):
+    """Point on the outside of the gondola planking (out: distance along the outward normal)."""
+    e = 0.05
+    dw = (outer_x(z + e, y) - outer_x(z - e, y)) / (2 * e)
+    n = norm(v3(side, 0, -dw))
+    return v3(side * outer_x(z, y), y, z) + n * out, n
+
+
+def hull_curve(bone, name, pts2, side, th, wd, region, out=0.03):
+    """Flat moulding (gilded scroll...) laid on the planking along (z, y) points."""
+    P3 = [hull_pt(z, y, side, out + th / 2) for z, y in pts2]
+    for k in range(len(P3) - 1):
+        (p0, n0), (p1, n1) = P3[k], P3[k + 1]
+        beam(bone, "%s_%d" % (name, k), p0, p1, th, region, width=wd, up=norm(n0 + n1), extend=wd * 0.45)
+
+
+def scroll_pts(zc, yc, r0, turns, direction, tail, m=14, a0=math.pi / 2):
+    """A spiral curling inwards from radius r0 around (zc, yc), starting at angle a0, preceded by a
+    sweeping tail [(z, y), ...] ending at the start of the spiral; direction = +1 / -1 sense of turn."""
+    spiral = []
+    for j in range(m + 1):
+        t = j / m
+        a = a0 + direction * 2 * math.pi * turns * t
+        r = r0 * (1 - 0.78 * t)
+        spiral.append((zc + math.cos(a) * r, yc + math.sin(a) * r))
+    return list(tail) + spiral
+
+
+def turned_leg(bone, name, p0, p1, d, region="dark_wood"):
+    """Turned wooden leg: a hexagonal bar with a small bulb near the top and a round foot."""
+    p0, p1 = v3(*p0), v3(*p1)
+    tube(bone, name, p0, p1, d, region)
+    u = norm(p1 - p0)
+    L = np.linalg.norm(p1 - p0)
+    tube(bone, name + "_bulb", p0 + u * (L * 0.62), p0 + u * (L * 0.78), d * 1.5, region, sides=8)
+    tube(bone, name + "_foot", p0, p0 + u * 0.05, d * 1.4, "brass", sides=8)
+
+
+def bench(deck, name, c, along, inward, length, back=True):
+    """Bench seat at c (top of the plank at c.y + 0.46) with a buttoned leather cushion, turned legs
+    and, against the hull, a curved backrest with a padded leather back."""
+    along, inward = norm(v3(*along)), norm(v3(*inward))
+    up = v3(0, 1, 0)
+    axes = np.column_stack([inward, up, along])
+    c = v3(*c)
+    seat_y = c[1] + 0.42
+    add_cube(deck, name, v3(c[0], seat_y, c[2]), axes, (0.46, 0.08, length), {"all": "dark_wood", "+2": "wood"})
+    for e in (1, -1):
+        tube(deck, "%s_edge_%d" % (name, e > 0), v3(c[0], seat_y, c[2]) + inward * e * 0.23 - along * length / 2,
+             v3(c[0], seat_y, c[2]) + inward * e * 0.23 + along * length / 2, 0.08, "wood")
+    cy = seat_y + 0.04 + 0.04
+    add_cube(deck, name + "_cushion", v3(c[0], cy, c[2]), axes, (0.38, 0.08, length - 0.12), "leather")
+    add_cube(deck, name + "_cushion_top", v3(c[0], cy + 0.045, c[2]), axes, (0.3, 0.02, length - 0.2), "leather")
+    for e in (1, -1):
+        tube(deck, "%s_piping_%d" % (name, e > 0), v3(c[0], cy + 0.035, c[2]) + inward * e * 0.17 - along * (length / 2 - 0.08),
+             v3(c[0], cy + 0.035, c[2]) + inward * e * 0.17 + along * (length / 2 - 0.08), 0.04, "leather_dark", sides=4)
+    legs = []
+    for ea in (1, -1):
+        for ei in (1, -1):
+            p = v3(c[0], c[1], c[2]) + along * ea * (length / 2 - 0.16) + inward * ei * 0.15
+            turned_leg(deck, "%s_leg_%d%d" % (name, ea > 0, ei > 0), p, p + up * 0.38, 0.07)
+            legs.append(p)
+    for ei in (1, -1):
+        p = v3(c[0], c[1] + 0.12, c[2]) + inward * ei * 0.15
+        tube(deck, "%s_stretcher_%d" % (name, ei > 0), p - along * (length / 2 - 0.16), p + along * (length / 2 - 0.16), 0.045,
+             "dark_wood", sides=4)
+    if not back:
+        return
+    # backrest: two curved posts sweeping back from the outer edge, a round top rail and a leather pad
+    out = -inward
+    for ea in (1, -1):
+        b0 = v3(c[0], seat_y, c[2]) + out * 0.2 + along * ea * (length / 2 - 0.1)
+        pts = bezier(b0, b0 + up * 0.3 + out * 0.02, b0 + up * 0.55 + out * 0.09, 3)
+        polyline(deck, "%s_back_post_%d" % (name, ea > 0), pts, 0.07, "dark_wood")
+    t0 = v3(c[0], seat_y + 0.55, c[2]) + out * 0.29
+    tube(deck, name + "_back_rail", t0 - along * (length / 2 - 0.02), t0 + along * (length / 2 - 0.02), 0.09, "dark_wood")
+    for ea in (1, -1):
+        disc(deck, "%s_back_knob_%d" % (name, ea > 0), t0 + along * ea * (length / 2 + 0.02), along, 0.06, 0.05, "brass", sides=8)
+    a0 = v3(c[0], seat_y + 0.12, c[2]) + out * 0.22
+    a1 = v3(c[0], seat_y + 0.48, c[2]) + out * 0.27
+    board(deck, name + "_back_pad", a0 - along * (length / 2 - 0.16), a1 - along * (length / 2 - 0.16),
+          a0 + along * (length / 2 - 0.16), a1 + along * (length / 2 - 0.16), 0.06, "leather", inward, overlap=1.0)
+
+
+def benches(deck, main_y):
+    for z in asp.BENCH_Z:
+        for side, sn in SIDES:
+            bench(deck, "bench_%s%d" % (sn, asp.BENCH_Z.index(z)), (side * 1.05, main_y, z), (0, 0, 1), (-side, 0, 0), 1.3)
+    bench(deck, "bow_bench", (0, main_y, asp.BOW_SEAT_Z), (1, 0, 0), (0, 0, -1), 1.4, back=False)
+
+
+def helm(deck, main_y):
+    """Steering post: a turned pedestal with a brass gear housing, the wheel (bone helm_wheel), an
+    instrument column with two gauges to starboard and an engine telegraph to port, the pilot's stool."""
+    hz = asp.HELM_Z
+    up = v3(0, 1, 0)
+    disc(deck, "helm_base", (0, main_y + 0.03, hz), up, 0.27, 0.06, "brass")
+    disc(deck, "helm_plinth", (0, main_y + 0.12, hz), up, 0.2, 0.12, "dark_wood")
+    tube(deck, "helm_pedestal", (0, main_y + 0.16, hz), (0, main_y + 1.0, hz), 0.22, "dark_wood", sides=8)
+    for k, (y, d) in enumerate(((0.32, 0.3), (0.62, 0.28), (0.9, 0.3))):
+        tube(deck, "helm_pedestal_ring_%d" % k, (0, main_y + y - 0.03, hz), (0, main_y + y + 0.03, hz), d, "brass", sides=8)
+    hc = v3(0, main_y + 1.12, hz - 0.2)
+    # gear housing on top of the pedestal, carrying the wheel shaft
+    tube(deck, "helm_housing", (0, hc[1], hz + 0.16), (0, hc[1], hz - 0.1), 0.34, "brass", sides=12)
+    disc(deck, "helm_housing_cap", (0, hc[1], hz + 0.17), (0, 0, 1), 0.12, 0.04, "gold", sides=8)
+    tube(deck, "helm_housing_foot", (0, main_y + 0.98, hz), (0, hc[1] - 0.1, hz), 0.18, "brass", sides=8)
+    tube(deck, "helm_shaft", (0, hc[1], hz - 0.1), hc + v3(0, 0, 0.02), 0.07, "iron", sides=8)
+    wheel = Bone("helm_wheel", origin=tuple(hc), parent=deck)
+    ring(wheel, "helm_rim", hc, (0, 0, 1), 0.42, 0.07, "brass", n=16, round_=True)
+    ring(wheel, "helm_rim_in", hc + v3(0, 0, 0.005), (0, 0, 1), 0.36, 0.045, "wood", n=16, phase=math.pi / 16)
+    for k in range(5):
+        a = math.pi * k / 5
+        d = v3(math.cos(a), math.sin(a), 0)
+        tube(wheel, "helm_spoke_%d" % k, hc - d * 0.42, hc + d * 0.42, 0.05, "wood")
+        for e in (1, -1):
+            tube(wheel, "helm_handle_%d_%d" % (k, e > 0), hc + d * e * 0.45, hc + d * e * 0.6, 0.055, "wood")
+            disc(wheel, "helm_knob_%d_%d" % (k, e > 0), hc + d * e * 0.62, d, 0.045, 0.05, "wood", sides=8)
+    disc(wheel, "helm_hub", hc, (0, 0, 1), 0.11, 0.12, "brass")
+    disc(wheel, "helm_hub_cap", hc - v3(0, 0, 0.07), (0, 0, 1), 0.06, 0.04, "gold", sides=8)
+    # instrument column (starboard): two gauges facing the pilot
+    ix, iz = -0.66, hz + 0.05
+    disc(deck, "gauge_column_base", (ix, main_y + 0.03, iz), up, 0.16, 0.06, "brass", sides=8)
+    tube(deck, "gauge_column", (ix, main_y, iz), (ix, main_y + 1.05, iz), 0.1, "brass", sides=8)
+    tube(deck, "gauge_column_arm", (ix, main_y + 1.05, iz), (ix + 0.12, main_y + 1.05, iz), 0.07, "brass", sides=4)
+    for k, (dx, y, r) in enumerate(((0.0, 1.2, 0.1), (0.0, 0.9, 0.08))):
+        dial(deck, "gauge_helm_%d" % k, (ix + dx, main_y + y, iz - 0.02), (0, 0, -1), r, depth=0.04)
+    tube(deck, "speaking_tube", (ix, main_y + 1.36, iz), (ix, main_y + 1.48, iz - 0.05), 0.06, "copper", sides=6)
+    tube(deck, "speaking_tube_mouth", (ix, main_y + 1.48, iz - 0.05), (ix, main_y + 1.52, iz - 0.16), 0.13, "brass", sides=8)
+    # engine order telegraph (port): a round dial head on a column, with a lever
+    tx, tz = 0.66, hz + 0.05
+    disc(deck, "telegraph_base", (tx, main_y + 0.03, tz), up, 0.18, 0.06, "brass", sides=8)
+    tube(deck, "telegraph_column", (tx, main_y, tz), (tx, main_y + 0.95, tz), 0.14, "brass", sides=8)
+    tube(deck, "telegraph_collar", (tx, main_y + 0.5, tz), (tx, main_y + 0.56, tz), 0.2, "gold", sides=8)
+    th = v3(tx, main_y + 1.12, tz)
+    tube(deck, "telegraph_head", th + v3(0, 0, 0.06), th - v3(0, 0, 0.06), 0.34, "brass", sides=12)
+    for e in (1, -1):
+        add_cube(deck, "telegraph_face_%d" % (e > 0), th + v3(0, 0, e * 0.09), EYE, (0.3, 0.3, 0.01),
+                 {"all": None, "+3": "telegraph", "-3": "telegraph"}, stretch=True)
+    lever_top = th + v3(-0.05, 0.3, -0.12)
+    tube(deck, "telegraph_lever", th - v3(0, 0, 0.1), lever_top, 0.04, "iron", sides=4)
+    disc(deck, "telegraph_grip", lever_top, (0, 1, 0), 0.04, 0.1, "wood", sides=8)
+    disc(deck, "telegraph_cap", th + v3(0, 0.22, 0), (0, 1, 0), 0.06, 0.04, "gold", sides=8)
+    # pilot's stool: a round leather seat on a brass post
+    sz = asp.PILOT_Z
+    disc(deck, "stool_base", (0, main_y + 0.025, sz), up, 0.24, 0.05, "brass")
+    tube(deck, "stool_post", (0, main_y, sz), (0, main_y + 0.6, sz), 0.1, "brass", sides=8)
+    for k in range(3):
+        a = 2 * math.pi * k / 3 + 0.4
+        d = v3(math.cos(a), 0, math.sin(a))
+        tube(deck, "stool_leg_%d" % k, v3(0, main_y + 0.3, sz) + d * 0.04, v3(0, main_y + 0.03, sz) + d * 0.22, 0.05, "brass", sides=4)
+    disc(deck, "stool_seat", (0, main_y + 0.63, sz), up, 0.24, 0.07, "dark_wood")
+    disc(deck, "stool_cushion", (0, main_y + 0.69, sz), up, 0.22, 0.06, "leather")
+    disc(deck, "stool_cushion_top", (0, main_y + 0.73, sz), up, 0.15, 0.03, "leather")
+
+
+def engine_room(engine, ec, main_y):
+    """Boiler front (firebox with a glowing grate and an open door, gauges, water glass), twin
+    cylinders on top with copper steam pipes, piston and connecting rods to the gear and the flywheel,
+    a whistle, a coal scuttle and a shovel."""
+    ez0, ez1 = asp.ENGINE_Z
+    fz = ez1 - 0.04 + 0.02     # front face of the boiler end
+    # firebox: an iron frame with a brass rim around the glowing grate, the door swung open
+    fy = ec[1] - 0.27
+    add_cube(engine, "firebox_plate", v3(0, fy, fz + 0.02), EYE, (0.6, 0.4, 0.05), "iron")
+    for k, (a, b) in enumerate((((-0.3, -0.2), (0.3, -0.2)), ((0.3, 0.2), (-0.3, 0.2)), ((-0.3, -0.2), (-0.3, 0.2)), ((0.3, -0.2), (0.3, 0.2)))):
+        beam(engine, "firebox_rim_%d" % k, v3(a[0], fy + a[1], fz + 0.055), v3(b[0], fy + b[1], fz + 0.055), 0.05, "brass",
+             width=0.04, up=v3(0, 0, 1), extend=0.025)
+    add_cube(engine, "glow_firebox", v3(0, fy + 0.01, fz + 0.048), EYE, (0.44, 0.26, 0.012), {"all": None, "+3": "fire", "-3": "fire"},
+             stretch=True)
+    hinge = v3(0.25, fy + 0.01, fz + 0.07)
+    tube(engine, "firebox_hinge", hinge - v3(0, 0.14, 0), hinge + v3(0, 0.14, 0), 0.04, "brass", sides=4)
+    op = math.radians(115)
+    dd = v3(-math.cos(op), 0, math.sin(op))
+    dax = np.column_stack([dd, v3(0, 1, 0), np.cross(dd, v3(0, 1, 0))])
+    add_cube(engine, "firebox_door", hinge + dd * 0.23, dax, (0.44, 0.27, 0.035), {"all": "iron", "+3": "boiler_door", "-3": "boiler_door"},
+             stretch=True)
+    disc(engine, "firebox_door_handle", hinge + dd * 0.4 + np.cross(dd, v3(0, 1, 0)) * 0.035, np.cross(dd, v3(0, 1, 0)), 0.035, 0.05,
+         "brass", sides=8)
+    # ash pan with its slotted damper
+    add_cube(engine, "ashpan", v3(0, main_y + 0.17, fz + 0.03), EYE, (0.5, 0.1, 0.07), {"all": "iron", "+3": "grate", "-3": "grate"},
+             stretch=True)
+    # gauges and water glass
+    for k, x in enumerate((-0.24, 0.24)):
+        dial(engine, "gauge_boiler_%d" % k, (x, ec[1] + 0.27, fz + 0.03), (0, 0, 1), 0.12)
+        polyline(engine, "gauge_pipe_%d" % k, [v3(x, ec[1] + 0.39, fz + 0.03), v3(x, ec[1] + 0.5, fz + 0.0), v3(x * 0.6, ec[1] + 0.56, fz - 0.12)],
+                 0.035, "copper", sides=4)
+    gx = 0.0
+    for k, y in enumerate((ec[1] - 0.02, ec[1] + 0.13)):
+        disc(engine, "water_glass_fitting_%d" % k, (gx, y, fz + 0.04), (0, 1, 0), 0.045, 0.05, "brass", sides=8)
+    add_cube(engine, "water_glass", v3(gx, ec[1] + 0.055, fz + 0.04), EYE, (0.05, 0.12, 0.05), "glass", stretch=True)
+    # twin cylinders on the boiler, with piston rods, crossheads and connecting rods
+    cz = ez0 + 0.6
+    for side, sn in SIDES:
+        x = side * 0.42
+        top_y = ec[1] + math.sqrt(0.7 ** 2 - x ** 2) - 0.08
+        tube(engine, "cylinder_" + sn, v3(x, top_y, cz), v3(x, top_y + 0.55, cz), 0.3, "copper", sides=8)
+        for k, y in enumerate((top_y + 0.02, top_y + 0.56)):
+            disc(engine, "cylinder_cap_%s%d" % (sn, k), v3(x, y, cz), (0, 1, 0), 0.19, 0.05, "brass", sides=8)
+        for k in range(4):
+            a = math.pi / 4 + math.pi / 2 * k
+            add_cube(engine, "cylinder_bolt_%s%d" % (sn, k), v3(x + math.cos(a) * 0.16, top_y + 0.59, cz + math.sin(a) * 0.16), EYE,
+                     (0.035, 0.03, 0.035), "gold")
+        rod_top = v3(x, top_y + 0.85, cz)
+        tube(engine, "piston_rod_" + sn, v3(x, top_y + 0.58, cz), rod_top, 0.05, "iron", sides=4)
+        add_cube(engine, "crosshead_" + sn, rod_top, EYE, (0.1, 0.08, 0.1), "brass")
+        # guide bars on either side of the crosshead
+        for e in (1, -1):
+            tube(engine, "guide_%s%d" % (sn, e > 0), v3(x, top_y + 0.58, cz + e * 0.07), v3(x, top_y + 0.95, cz + e * 0.07), 0.03,
+                 "iron", sides=4)
+        crank = v3(0.84, ec[1] + 0.5, ec[2] + 0.22) if side > 0 else v3(-0.78, ec[1] + 0.42, ec[2] + 0.5)
+        tube(engine, "conrod_" + sn, rod_top, crank, 0.06, "iron", sides=6)
+        disc(engine, "crank_pin_" + sn, crank, (1, 0, 0), 0.05, 0.1, "brass", sides=8)
+    # steam pipes from the dome to the cylinders, with a stop valve
+    dt = ec + v3(0, 1.02, 0.2)
+    tube(engine, "steam_riser", dt - v3(0, 0.06, 0), dt + v3(0, 0.22, 0), 0.1, "copper", sides=6)
+    handwheel(engine, "steam_valve", dt + v3(0, 0.27, 0), (0, 1, 0), 0.1)
+    for side, sn in SIDES:
+        x = side * 0.42
+        top_y = ec[1] + math.sqrt(0.7 ** 2 - x ** 2) - 0.08
+        pts = catmull([dt + v3(0, 0.14, 0), v3(side * 0.22, dt[1] + 0.14, dt[2] - 0.05), v3(x, top_y + 0.42, cz + 0.2),
+                       v3(x, top_y + 0.42, cz + 0.13)], 2)
+        polyline(engine, "steam_pipe_" + sn, pts, 0.08, "copper", sides=6, extend=0.03)
+    # whistle and safety valve on the boiler top, forward of the dome
+    wb = v3(-0.22, ec[1] + 0.66, ez1 - 0.2)
+    tube(engine, "whistle_pipe", wb, wb + v3(0, 0.36, 0), 0.05, "brass", sides=4)
+    tube(engine, "whistle_bell", wb + v3(0, 0.36, 0), wb + v3(0, 0.56, 0), 0.11, "brass", sides=8)
+    disc(engine, "whistle_cap", wb + v3(0, 0.58, 0), (0, 1, 0), 0.07, 0.04, "gold", sides=8)
+    beam(engine, "whistle_cord", wb + v3(0, 0.3, 0), wb + v3(0.15, 0.32, 0.25), 0.015, "rope")
+    sv = v3(0.22, ec[1] + 0.66, ez1 - 0.2)
+    tube(engine, "safety_valve", sv, sv + v3(0, 0.2, 0), 0.09, "brass", sides=8)
+    beam(engine, "safety_valve_lever", sv + v3(0, 0.2, 0), sv + v3(0, 0.24, 0.3), 0.03, "iron")
+    disc(engine, "safety_valve_weight", sv + v3(0, 0.2, 0.3), (0, 1, 0), 0.05, 0.08, "iron", sides=8)
+    # coal scuttle and shovel by the firebox
+    sc = v3(-0.86, main_y, ez1 + 0.32)
+    tube(engine, "coal_scuttle", sc, sc + v3(0, 0.3, 0), 0.34, "copper", sides=8)
+    tube(engine, "coal_scuttle_rim", sc + v3(0, 0.27, 0), sc + v3(0, 0.31, 0), 0.38, "brass", sides=8)
+    disc(engine, "coal_heap", sc + v3(0, 0.3, 0), (0, 1, 0), 0.15, 0.06, "coal", sides=8)
+    add_cube(engine, "coal_lump", sc + v3(0.04, 0.35, -0.03), ry(0.5) @ rx(0.4), (0.09, 0.07, 0.08), "coal")
+    polyline(engine, "coal_scuttle_handle", bezier(sc + v3(-0.17, 0.3, 0), sc + v3(0, 0.62, 0), sc + v3(0.17, 0.3, 0), 4), 0.03, "brass",
+             sides=4)
+    s0, s1 = v3(0.86, main_y + 0.04, ez1 + 0.42), v3(0.62, main_y + 0.98, ez1 + 0.18)
+    tube(engine, "shovel_shaft", s0 + norm(s1 - s0) * 0.2, s1, 0.05, "wood", sides=6)
+    beam(engine, "shovel_grip", s1, s1 + v3(0.08, 0, -0.08), 0.04, "dark_wood", extend=0.04)
+    ds = norm(s1 - s0)
+    sax = np.column_stack([np.cross(ds, v3(0.7, 0, 0.7)), ds, v3(0.7, 0, 0.7)])
+    add_cube(engine, "shovel_blade", s0 + ds * 0.1, sax, (0.2, 0.24, 0.02), "iron")
+
+
+def outfit(gondola, deck, engine, lanterns, ropes, main_y):
+    """Details of the gondola: inner frames and shelf, a runner rug, a hatch grating, crates and a barrel,
+    hanging lanterns on the pillar, portholes, gilded scrolls and a gold beading on the hull, sandbags."""
+    # ---- inner frames (ribs with a curved knee onto the deck) and a shelf plank under the gunwale
+    for z in (-4.4, -3.0, -1.8, -0.2, 2.1, 4.2, 5.0):
+        for side, sn in SIDES:
+            top = sheer(z) - 0.2
+            pts = []
+            for y in (top, top * 0.6 + 0.08, 0.32):
+                pts.append(v3(side * (outer_x(z, y) - 0.15), y, z))
+            xin = outer_x(z, 0.2) - 0.15
+            pts += [v3(side * (xin - 0.04), 0.13, z), v3(side * (xin - 0.22), main_y + 0.04, z)]
+            for k in range(len(pts) - 1):
+                beam(gondola, "frame_%s%d_%d" % (sn, int(z * 10 + 100), k), pts[k], pts[k + 1], 0.08, "dark_wood", width=0.1,
+                     up=v3(0, 0, 1), extend=0.035)
+    for side, sn in SIDES:
+        zz = [z for z in STATIONS if -6.4 <= z <= 6.4]
+        for i in range(len(zz) - 1):
+            pa = v3(side * (outer_x(zz[i], sheer(zz[i]) - 0.12) - 0.15), sheer(zz[i]) - 0.12, zz[i])
+            pb = v3(side * (outer_x(zz[i + 1], sheer(zz[i + 1]) - 0.12) - 0.15), sheer(zz[i + 1]) - 0.12, zz[i + 1])
+            beam(gondola, "shelf_%s%d" % (sn, i), pa, pb, 0.1, "dark_wood", width=0.08, extend=0.04)
+    # ---- runner rug down the middle of the deck (in tiles, so the pattern repeats), gold end bars
+    for k, (za, zb, nt) in enumerate(((-3.2, -1.55, 2), (-0.65, 3.85, 4))):
+        for t in range(nt):
+            z0 = za + (zb - za) * t / nt
+            z1 = za + (zb - za) * (t + 1) / nt
+            add_cube(deck, "rug_%d_%d" % (k, t), (0, main_y + 0.012, (z0 + z1) / 2), EYE, (0.72, 0.024, z1 - z0 + 0.002),
+                     {"all": "rug_edge", "+2": "rug"}, stretch=True)
+        for e, zz in enumerate((za, zb)):
+            tube(deck, "rug_bar_%d_%d" % (k, e), (-0.38, main_y + 0.025, zz), (0.38, main_y + 0.025, zz), 0.04, "gold", sides=4)
+    # ---- hatch grating before the bow seat
+    gz = 4.62
+    add_cube(deck, "hatch_grating", (0, main_y + 0.012, gz), EYE, (0.7, 0.024, 0.62), {"all": "dark_wood", "+2": "grate"}, stretch=True)
+    for k, (a, b) in enumerate((((-0.38, -0.34), (0.38, -0.34)), ((-0.38, 0.34), (0.38, 0.34)), ((-0.38, -0.34), (-0.38, 0.34)),
+                                ((0.38, -0.34), (0.38, 0.34)))):
+        beam(deck, "hatch_coaming_%d" % k, (a[0], main_y + 0.03, gz + a[1]), (b[0], main_y + 0.03, gz + b[1]), 0.06, "wood", width=0.07,
+             extend=0.035)
+    for e in (1, -1):
+        ring(deck, "hatch_ring_%d" % (e > 0), v3(e * 0.2, main_y + 0.03, gz), (0, 1, 0), 0.05, 0.02, "brass", n=6)
+    # ---- crates and a barrel between the pillar and the helm, against the sides
+    cz = -2.35
+    for k, (x, y, s, a) in enumerate(((1.12, 0.0, 0.5, 0.12), (1.1, 0.5, 0.36, -0.2))):
+        c = v3(x, main_y + y + s / 2, cz + (0.05 if k else 0.0))
+        R = ry(a)
+        add_cube(deck, "crate_%d" % k, c, R, (s, s, s), "crate", stretch=True)
+        for e in (1, -1):
+            for f in (1, -1):
+                # iron corner straps along the vertical edges
+                add_cube(deck, "crate_strap_%d_%d%d" % (k, e > 0, f > 0), c + R @ v3(e * s / 2, 0, f * s / 2), R, (0.04, s + 0.01, 0.04),
+                         "iron")
+    bc = v3(-1.12, main_y, cz)
+    for j, (y0, y1, d) in enumerate(((0.0, 0.12, 0.44), (0.12, 0.5, 0.5), (0.5, 0.62, 0.44))):
+        tube(deck, "barrel_%d" % j, bc + v3(0, y0, 0), bc + v3(0, y1, 0), d, "barrel", sides=12, phase=0.13)
+    for j, y in enumerate((0.12, 0.5)):
+        tube(deck, "barrel_hoop_%d" % j, bc + v3(0, y - 0.025, 0), bc + v3(0, y + 0.025, 0), 0.53, "iron", sides=12, phase=0.13)
+    disc(deck, "barrel_lid", bc + v3(0, 0.62, 0), (0, 1, 0), 0.19, 0.02, "end_grain", phase=0.13)
+    disc(deck, "barrel_bung", bc + v3(0.06, 0.64, 0.05), (0, 1, 0), 0.03, 0.03, "brass", sides=8)
+    # sacks of ballast sand and a coil of rope by the bow bench
+    for k, (x, z, a) in enumerate(((0.55, 5.95, 0.3), (-0.55, 5.95, -0.4))):
+        sc = v3(x, main_y + 0.13, z)
+        add_cube(deck, "sack_%d" % k, sc, ry(a), (0.3, 0.22, 0.24), "burlap")
+        add_cube(deck, "sack_top_%d" % k, sc + v3(0, 0.13, 0), ry(a + 0.3), (0.2, 0.06, 0.16), "burlap")
+        add_cube(deck, "sack_neck_%d" % k, sc + v3(0, 0.19, 0), ry(a), (0.07, 0.08, 0.07), "rope")
+    rc = v3(-1.2, main_y, -0.62)
+    for j in range(3):
+        ring(deck, "rope_coil_%d" % j, rc + v3(0, 0.04 + 0.06 * j, 0), (0, 1, 0), 0.22 - 0.035 * j, 0.07, "rope", n=8, phase=0.3 * j)
+    # ---- lanterns hanging from the pillar on curled brass brackets
+    pz = asp.PILLAR_Z
+    for side, sn in SIDES:
+        b0 = v3(side * 0.26, 2.25, pz)
+        pts = bezier(b0, b0 + v3(side * 0.25, 0.32, 0), b0 + v3(side * 0.42, 0.1, 0), 4)
+        polyline(lanterns, "pillar_lantern_bracket_" + sn, pts, 0.05, "brass", sides=4)
+        disc(lanterns, "pillar_lantern_scroll_" + sn, b0 + v3(side * 0.1, -0.1, 0), (0, 0, 1), 0.07, 0.03, "brass", sides=8)
+        tube(lanterns, "pillar_lantern_hook_" + sn, pts[-1], pts[-1] - v3(0, 0.08, 0), 0.03, "iron", sides=4)
+        add_cube(lanterns, "pillar_lantern_" + sn, pts[-1] - v3(0, 0.3, 0), EYE, (0.22, 0.32, 0.22),
+                 {"all": "lantern", "+2": "brass", "-2": "brass"}, stretch=True)
+    # ---- hull: portholes with brass rims under the deck line, gilded scrolls, gold beading, sandbags
+    for side, sn in SIDES:
+        for k, z in enumerate((-3.3, -0.6, 1.0, 3.3)):
+            p, n = hull_pt(z, 0.06, side, 0.0)
+            dial(gondola, "porthole_%s%d" % (sn, k), p, n, 0.17, face="porthole", depth=0.08)
+        # gold beading just under the gunwale, following the sheer
+        zz = [z for z in STATIONS if -6.6 <= z <= 6.6]
+        pts = [(z, sheer(z) - 0.1) for z in zz]
+        hull_curve(gondola, "beading_" + sn, pts, side, 0.035, 0.05, "gold", out=0.01)
+        # gilded scrolls at the bow and the stern, on the upper strake
+        for e, zc in ((1, 5.15), (-1, -5.25)):
+            yb = upper_y(zc, 0.62)
+            yc = (yb + sheer(zc) - 0.1) / 2 + 0.02
+            r0 = (sheer(zc) - 0.1 - yb) * 0.42
+            tail = [(zc - e * 2.1, upper_y(zc - e * 2.1, 0.8)), (zc - e * 1.4, upper_y(zc - e * 1.4, 0.83)),
+                    (zc - e * 0.8, yc - r0 * 0.4), (zc - e * 0.3, yc + r0 * 1.0)]
+            pts = scroll_pts(zc, yc, r0, 1.15, -e, tail, m=12)
+            hull_curve(gondola, "scroll_%s%d" % (sn, e > 0), pts, side, 0.045, 0.09, "gold")
+            # a smaller counter-curl and a leaf on the tail
+            S = tail[2]
+            lc = (S[0] - e * 0.3, S[1] - r0 * 0.35)
+            leaf = scroll_pts(lc[0], lc[1], math.hypot(S[0] - lc[0], S[1] - lc[1]), 0.85, -e, [], m=8,
+                              a0=math.atan2(S[1] - lc[1], S[0] - lc[0]))
+            hull_curve(gondola, "scroll_leaf_%s%d" % (sn, e > 0), leaf, side, 0.035, 0.055, "gold")
+            p, n = hull_pt(zc, yc, side, 0.05)
+            disc(gondola, "scroll_boss_%s%d" % (sn, e > 0), p, n, 0.06, 0.05, "brass", sides=8)
+        # sandbags hanging over the side on short lines
+        for k, z in enumerate((-3.0, 0.4, 3.9)):
+            g, n = hull_pt(z, sheer(z) + 0.08, side, 0.0)
+            bag, _ = hull_pt(z, sheer(z) - 0.42, side, 0.16)
+            tube(gondola, "sandbag_line_%s%d" % (sn, k), g, bag + v3(0, 0.12, 0), 0.04, "rope", sides=4)
+            R = np.column_stack([np.cross(v3(0, 1, 0), n), v3(0, 1, 0), n])
+            add_cube(gondola, "sandbag_%s%d" % (sn, k), bag - v3(0, 0.05, 0), R, (0.24, 0.26, 0.16), "burlap")
+            add_cube(gondola, "sandbag_b_%s%d" % (sn, k), bag - v3(0, 0.07, 0), R, (0.18, 0.3, 0.2), "burlap")
+            add_cube(gondola, "sandbag_tie_%s%d" % (sn, k), bag + v3(0, 0.1, 0), R, (0.06, 0.06, 0.06), "rope")
 
 
 def build():
@@ -308,8 +713,10 @@ def build():
         for k, az in enumerate(BAND_AZ):
             p = P(z, az, 0.24)
             R = rz(-math.radians(az))
-            add_cube(balloon, "clasp_%d_%d" % (h, k), p, R, (0.3, 0.16, 0.4), "gold")
-            add_cube(balloon, "clasp_%d_%d_b" % (h, k), p - R[:, 1] * 0.02, R, (0.38, 0.1, 0.32), "gold")
+            # a strap clamped round the hoop, with a round domed boss
+            add_cube(balloon, "clasp_%d_%d" % (h, k), p - R[:, 1] * 0.02, R, (0.36, 0.1, 0.42), "gold")
+            disc(balloon, "clasp_%d_%d_boss" % (h, k), p + R[:, 1] * 0.06, R[:, 1], 0.14, 0.08, "brass", sides=8)
+            disc(balloon, "clasp_%d_%d_cap" % (h, k), p + R[:, 1] * 0.11, R[:, 1], 0.07, 0.04, "gold", sides=4, phase=math.pi / 4)
 
     # ---------------------------------------------------------------- tail: curved lattice cone, shaft, propeller
     rear = zs(-asp.BALLOON_REAR_T)
@@ -471,21 +878,7 @@ def build():
         w = min(asp.inner_half_width(za), asp.inner_half_width(zb)) + 0.1
         add_cube(deck, "deck_%d" % j, (0, main_y - 0.06, (za + zb) / 2), EYE, (2 * w, 0.12, zb - za + 0.02),
                  {"all": "deck", "-2": "dark_wood"})
-    for k, z in enumerate(asp.BENCH_Z):
-        for side, sn in SIDES:
-            x = side * 1.05
-            add_cube(deck, "bench_%s%d" % (sn, k), (x, main_y + 0.42, z), EYE, (0.46, 0.08, 1.3), {"all": "dark_wood", "+2": "wood"})
-            for e in (1, -1):
-                tube(deck, "bench_edge_%s%d_%d" % (sn, k, e > 0), (x + e * 0.23, main_y + 0.42, z - 0.65), (x + e * 0.23, main_y + 0.42, z + 0.65),
-                     0.08, "wood")
-            for dz in (-0.5, 0.5):
-                add_cube(deck, "bench_leg_%s%d_%d" % (sn, k, dz > 0), (x, main_y + 0.19, z + dz), EYE, (0.4, 0.38, 0.08), "dark_wood")
-    add_cube(deck, "bow_bench", (0, main_y + 0.42, asp.BOW_SEAT_Z), EYE, (1.4, 0.08, 0.46), {"all": "dark_wood", "+2": "wood"})
-    for e in (1, -1):
-        tube(deck, "bow_bench_edge_%d" % (e > 0), (-0.7, main_y + 0.42, asp.BOW_SEAT_Z + e * 0.23), (0.7, main_y + 0.42, asp.BOW_SEAT_Z + e * 0.23),
-             0.08, "wood")
-    for dx in (-0.5, 0.5):
-        add_cube(deck, "bow_bench_leg_%d" % (dx > 0), (dx, main_y + 0.19, asp.BOW_SEAT_Z), EYE, (0.08, 0.38, 0.4), "dark_wood")
+    benches(deck, main_y)
     # central round post up to the balloon, brass collars and a round brass plate with struts under the balloon
     bottom = BY - BR
     pz = asp.PILLAR_Z
@@ -495,20 +888,8 @@ def build():
     disc(deck, "pillar_plate", (0, bottom - 0.05, pz), (0, 1, 0), 0.75, 0.14, "brass")
     for k, (dx, dz) in enumerate(((1, 1), (1, -1), (-1, 1), (-1, -1))):
         tube(deck, "pillar_strut_%d" % k, (0, bottom - 1.3, pz), (dx * 0.6, bottom - 0.1, pz + dz * 0.6), 0.09, "brass")
-    # helm: a small wheel on a round pedestal (bone helm_wheel turns with "steer")
-    hz = asp.HELM_Z
-    tube(deck, "helm_pedestal", (0, main_y, hz), (0, main_y + 0.9, hz), 0.28, "dark_wood")
-    disc(deck, "helm_pedestal_cap", (0, main_y + 0.92, hz), (0, 1, 0), 0.2, 0.08, "brass")
-    hc = v3(0, main_y + 1.12, hz - 0.2)
-    wheel = Bone("helm_wheel", origin=tuple(hc), parent=deck)
-    ring(wheel, "helm_rim", hc, (0, 0, 1), 0.42, 0.07, "brass", n=16, round_=True)
-    for k in range(5):
-        a = math.pi * k / 5
-        d = v3(math.cos(a), math.sin(a), 0)
-        tube(wheel, "helm_spoke_%d" % k, hc - d * 0.55, hc + d * 0.55, 0.05, "wood")
-        for e in (1, -1):
-            disc(wheel, "helm_handle_%d_%d" % (k, e > 0), hc + d * e * 0.55, d, 0.04, 0.08, "wood", sides=8)
-    disc(wheel, "helm_hub", hc, (0, 0, 1), 0.08, 0.12, "brass")
+    # helm: a small wheel on a turned pedestal (bone helm_wheel turns with "steer"), instruments
+    helm(deck, main_y)
 
     # ---------------------------------------------------------------- engine at the stern: a round riveted boiler
     ez0, ez1 = asp.ENGINE_Z
@@ -521,8 +902,7 @@ def build():
     tube(engine, "boiler_dome", ec + v3(0, 0.55, 0.2), ec + v3(0, 0.86, 0.2), 0.6, "brass", sides=12)
     dome(engine, "boiler_dome_top", ec + v3(0, 0.86, 0.2), (0, 1, 0), 0.32, 0.16, "brass", steps=2)
     tube(engine, "boiler_saddle", v3(0, main_y + 0.02, ec[2]), v3(0, main_y + 0.16, ec[2]), 1.0, "dark_wood")
-    add_cube(engine, "firebox_door", v3(0, ec[1] - 0.25, ez1 + 0.06), EYE, (0.46, 0.42, 0.04), "iron")
-    add_cube(engine, "glow_firebox", v3(0, ec[1] - 0.28, ez1 + 0.085), EYE, (0.3, 0.12, 0.02), "glow")
+    engine_room(engine, ec, main_y)
     # gear wheels on the port side, meshed
     for k, (dz, dy, r) in enumerate(((0.0, 0.15, 0.62), (0.75, 0.75, 0.32))):
         gc = v3(0.74, main_y + 0.75 + dy, ec[2] + dz)
@@ -533,12 +913,12 @@ def build():
             d = v3(0, math.cos(a), math.sin(a))
             add_cube(engine, "gear_tooth_%d_%d" % (k, t), gc + d * (r + 0.06), rx(-a), (0.1, 0.12, 0.1), "brass")
     # flywheel on the starboard side: a spoked wheel with a round gold rim on a brass bearing
-    fc = v3(-0.82, main_y + 0.85, ec[2] - 0.1)
-    ring(engine, "flywheel_rim", fc, (1, 0, 0), 0.6, 0.14, "gold", n=16, round_=True)
+    fc = v3(-0.72, main_y + 0.9, ec[2] + 0.32)
+    ring(engine, "flywheel_rim", fc, (1, 0, 0), 0.4, 0.11, "gold", n=16, round_=True)
     for t in range(3):
         a = math.pi * t / 3
         d = v3(0, math.cos(a), math.sin(a))
-        tube(engine, "flywheel_spoke_%d" % t, fc - d * 0.58, fc + d * 0.58, 0.07, "iron")
+        tube(engine, "flywheel_spoke_%d" % t, fc - d * 0.39, fc + d * 0.39, 0.06, "iron")
     disc(engine, "flywheel_bearing", fc + v3(0.08, 0, 0), (1, 0, 0), 0.13, 0.2, "brass")
     # curved round exhaust pipe: up from the boiler, bending back in a smooth arc, flared mouth facing aft
     ctrl = [v3(0, main_y + 1.3, ez0 + 0.45), v3(0, 3.0, ez0 + 0.45), v3(0, 3.9, ez0 + 0.4), v3(0, 4.45, ez0 + 0.15),
@@ -563,16 +943,25 @@ def build():
             zr = max(-asp.HALF_LENGTH + 1.0, min(asp.HALF_LENGTH - 1.0, z))
             rail = v3(side * hw(zr), sheer(zr) + 0.12, zr)
             dl = norm(top - rail)
-            # braided line from the hoop down to a short chain of big gold links made fast to the rail
-            tube(ropes, "line_%s%d" % (sn, k), top, rail + dl * 1.12, 0.22, "rope", extend=0.04)
+            # braided line from a crow's foot under the hoop down to a short chain of big gold links made
+            # fast to the rail; the crow's foot spreads the load over the hoop and the net with three legs
+            g = top - dl * 1.25
+            tube(ropes, "line_%s%d" % (sn, k), g, rail + dl * 1.12, 0.22, "rope", extend=0.04)
+            ring(ropes, "line_thimble_%s%d" % (sn, k), g, dl, 0.15, 0.07, "gold", n=8)
+            tube(ropes, "line_seizing_%s%d" % (sn, k), g - dl * 0.08, g - dl * 0.3, 0.27, "rope_dark", sides=8)
+            az = side * 150
+            for j, (dz, da, out) in enumerate(((0.0, 0.0, 0.2), (0.75, side * 5, 0.16), (-0.75, -side * 5, 0.16))):
+                q = P(z + dz, az + da, out)
+                tube(ropes, "line_leg_%s%d_%d" % (sn, k, j), g + dl * 0.05, q, 0.1, "rope", extend=0.03)
+                nq = norm(q - v3(0, BY, q[2]))
+                disc(ropes, "line_toggle_%s%d_%d" % (sn, k, j), q + nq * 0.02, nq, 0.1 if j else 0.15, 0.06, "gold", sides=8)
             ring(ropes, "line_ring_%s%d" % (sn, k), rail + dl * 1.5, dl, 0.19, 0.08, "gold", n=8)
             p1 = norm(np.cross(dl, v3(0, 0, 1)))
             p2 = np.cross(dl, p1)
             for c in range(3):
-                ring(ropes, "line_link_%s%d_%d" % (sn, k, c), rail + dl * (0.22 + 0.33 * c), p1 if c % 2 else p2, 0.17, 0.07,
-                     "gold", n=6)
+                ring(ropes, "line_link_%s%d_%d" % (sn, k, c), rail + dl * (0.22 + 0.33 * c), p1 if c % 2 else p2, 0.16, 0.055,
+                     "gold", n=8)
             disc(ropes, "line_clamp_%s%d" % (sn, k), rail, (0, 1, 0), 0.12, 0.14, "brass", sides=8)
-            add_cube(ropes, "line_clasp_%s%d" % (sn, k), top, rz(-math.radians(side * 150)), (0.28, 0.14, 0.3), "gold")
 
     # ---------------------------------------------------------------- lanterns, anchor
     for side, sn in SIDES:
@@ -600,6 +989,7 @@ def build():
     for s in (1, -1):
         polyline(engine, "anchor_arm_%d" % (s > 0), bezier(crown, crown + v3(0, 0.0, s * 0.3), crown + v3(0, 0.32, s * 0.36), 3), 0.09, "iron")
     ring(engine, "anchor_ring", top - v3(0, 1.05, 0), (1, 0, 0), 0.07, 0.04, "gold", n=6)
+    outfit(gondola, deck, engine, lanterns, ropes, main_y)
     return root, fin_tri, fin_curve
 
 
