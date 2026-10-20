@@ -73,6 +73,8 @@ Pour tous :
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
 
+La version 1.7.18 : le grand vaisseau de guerre en détail : peintures et dorures plus fines, sculptures en relief (acanthes, volutes, Renommées ailées et statues à la poupe), poupe sans bords dentelés, canons ronds sur de vrais affûts à roues, mantelets ouverts rouges, cabestan, caillebotis, beffroi et sa cloche, habitacle, hunes rondes à rambarde dorée, nouveau lion couronné en figure de proue, rideaux dans la grande cabine, voiles à bandes de ris.
+
 La version 1.7.17 : le galion en détail : textures plus fines (veinage, dorure sculptée, vitraux en losanges, pont en long), 10 canons de bronze sur affûts, cabestan rond, chaloupe, tonneaux cerclés, roue de barre ronde et habitacle, hunes rondes, caps de mouton et cadènes, ancres neuves, grande chambre avec rideaux de velours, banquette et fauteuils. Le dirigeable meublé : tapis, bancs capitonnés, caisses et lanternes sur le pont, poste de pilotage avec manomètres, transmetteur d'ordres et tabouret, salle des machines avec foyer rougeoyant, pistons, bielles et tuyaux de vapeur, coque doublée de cuivre rivetée avec hublots et volutes dorées.
 
 La version 1.7.16 : tous les véhicules sont lissés et arrondis. Galion et grand vaisseau de guerre : coques plus fluides (plus de couples et de virures, bouchain arrondi, rentrée), poupes et galeries bombées, et les changements de niveau du pont (gaillards, dunette) se font en longues courbes en S au lieu de marches carrées ; la maisonnette du galion devient un étage de château à toit-pont bombé ; proues retravaillées, mâts et vergues ronds. Dirigeable : ballon plus lisse au nez arrondi, ailerons courbes, nacelle ronde, cordages, rambardes, chaudière et tuyaux ronds. Petits bateaux : coques arrondies, poteaux, mâts, cheminées et tourelles ronds, textures plus fines, voiles aux bords courbes avec bandes de ris, sculptures (dragon, volutes elfiques, dais doré de la galère). Nautilus : toit de la timonerie arrondi sans arête, pied évasé dans le pont.
@@ -192,7 +194,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.7.17.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.7.18.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
