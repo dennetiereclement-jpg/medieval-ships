@@ -279,6 +279,58 @@ def chain(bone, name, pts, d, region, round_=True, extend=0.03, up=v3(0, 1, 0), 
     return out
 
 
+# ---- smooth square sails (warship only; the shared gn.sail is left as it is)
+SAIL_RAMP = 0.3   # fraction of the height below the head over which the cloth takes its full sideways curve
+
+
+def _sail_rows(ny):
+    """Row boundaries (0 = head, 1 = foot): closer together under the yard, where the cloth turns most."""
+    return [(j / ny) ** 1.35 for j in range(ny + 1)]
+
+
+def smooth_sail_point(origin, U, V, N, half_top, half_bottom, height, depth, fx, fy, across=0.3, foot=0.05):
+    """Billowed square sail as a translational surface: belly(fy) + ramp(fy) * across(fx). Below the
+    ramp the belly is the sum of a curve down the sail and a curve across it, so every cell of the grid
+    is a plane quad (its neighbours share its edges exactly: no steps, no cracks, no checkerboard)."""
+    half = half_top + (half_bottom - half_top) * fy
+    down = depth * (1 - across) * math.sin(math.pi * min(1.0, fy * 0.72))
+    ramp = smoothstep(fy / SAIL_RAMP)
+    side = depth * across * math.cos(math.pi * fx / 2) * ramp
+    drop = fy * height * (1.0 - foot * fy * fy * (1.0 - fx * fx))
+    return origin + U * (fx * half) + V * drop + N * (down + side)
+
+
+def smooth_sail(bone, name, origin, U, V, N, half_top, half_bottom, height, depth, region, nx=8, ny=12,
+                across=0.3, foot=0.05, th=0.04):
+    """Square sail made of nx x ny plane cells; each cell is a rectangle laid along its column (whose
+    sides follow the leeches), mapping its own part of the texture region; the columns are the cloths
+    of the sail (two per column, see warship_texture._sail_canvas)."""
+    U, V, N = norm(U), norm(V), norm(N)
+    rows = _sail_rows(ny)
+    P = lambda a, b: smooth_sail_point(origin, U, V, N, half_top, half_bottom, height, depth, a, b, across, foot)  # noqa: E731
+    out = []
+    for i in range(nx):
+        fx0, fx1 = -1 + 2 * i / nx, -1 + 2 * (i + 1) / nx
+        for j in range(ny):
+            fy0, fy1 = rows[j], rows[j + 1]
+            p00, p10, p01, p11 = P(fx0, fy0), P(fx1, fy0), P(fx0, fy1), P(fx1, fy1)
+            c = (p00 + p10 + p01 + p11) / 4
+            vd = (p01 - p00) + (p11 - p10)
+            v = norm(vd)
+            ud = (p10 - p00) + (p11 - p01)
+            u = norm(ud - np.dot(ud, v) * v)
+            n = np.cross(u, v)
+            if np.dot(n, N) < 0:
+                u, n = -u, -n
+            L = abs(np.dot(ud, u)) / 2
+            H = np.dot(vd, v) / 2
+            cube = add_cube(bone, "%s_%d_%d" % (name, i, j), c, np.column_stack([u, v, n]), (L + 0.012, H + 0.012, th),
+                            {"all": None, "+3": region, "-3": region}, stretch=True, u_dir=U, v_dir=V)
+            gn.set_sub(cube, ((fx0 + 1) / 2, fy0, (fx1 + 1) / 2, fy1))
+            out.append(cube)
+    return out
+
+
 def gun_barrel(bone, tag, breech, muzzle, d, full=True):
     """Cast gun: breech reinforce, a ring, the tapering chase, the muzzle swell (with its bore) and,
     for the guns on deck, the base ring, the cascabel and the trunnions."""
@@ -1385,8 +1437,8 @@ def build():
         br = Bone("brace_" + name, origin=(0, y_top, z), parent=mb)
         yard(br, name + "_yard", z, y_top, half_top + 0.4)
         sb = Bone("sail_" + name, origin=(0, y_top, z + 0.56), parent=br)
-        gn.sail(sb, name, v3(0, y_top - 0.14, z + 0.58), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), half_top, half_bottom,
-                height, depth * 2.4, "course" if "course" in name else "topsail", nx=8, ny=10, round_=0.6, overlap=0.03, foot=0.09)
+        smooth_sail(sb, name, v3(0, y_top - 0.14, z + 0.58), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), half_top, half_bottom,
+                    height, depth * 2.1, "course" if "course" in name else "topsail", nx=8, ny=12, across=0.4, foot=0.06)
         br.rot = ry(gn.BRACE)
         sails_info.append((sb, False))
 
@@ -1428,8 +1480,8 @@ def build():
     beam(bow, "spritsail_yard", sprit_yard + v3(-3.6, -0.3, 0), sprit_yard + v3(3.6, -0.3, 0), 0.2, "mast", extend=0.1)
     beam(bow, "spritsail_roll", sprit_yard + v3(-3.2, -0.52, 0.06), sprit_yard + v3(3.2, -0.52, 0.06), 0.26, "cloth_roll")
     sprit_sail = Bone("sail_sprit", origin=tuple(sprit_yard + v3(0, -0.36, 0)), parent=bow)
-    gn.sail(sprit_sail, "spritsail", sprit_yard + v3(0, -0.42, 0.14), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), 3.2, 3.7, 3.0, 1.0,
-            "topsail", nx=5, ny=5, round_=0.7, foot=0.08)
+    smooth_sail(sprit_sail, "spritsail", sprit_yard + v3(0, -0.42, 0.14), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), 3.2, 3.7, 3.0,
+                0.9, "topsail", nx=8, ny=6, across=0.35, foot=0.06)
     sails_info.append((sprit_sail, False))
 
     # ---- flags (texture #1)

@@ -176,14 +176,15 @@ def _sail_canvas(px, region, rng):
     points, a soft shaded belly, a weathered foot, corner patches and the bolt rope."""
     _, u, v, w, h = region
     base = (244, 237, 221)
-    cloth_tone = [1.0 - 0.03 * rng.random() for _ in range(w // 12 + 2)]
+    pw = w // 16   # cloth width: two cloths per column of the sail's cells (generate_warship.smooth_sail, nx=8)
+    cloth_tone = [1.0 - 0.03 * rng.random() for _ in range(w // pw + 2)]
     blot = [(rng.uniform(0, w), rng.uniform(0, h), rng.uniform(8, 22)) for _ in range(6)]
     bands = (0.11, 0.21, 0.31)
     for y in range(h):
         fy = y / h
         for x in range(w):
             fx = x / w
-            k = cloth_tone[x // 12] * (1.0 - 0.07 * abs(fy - 0.45)) - 0.04 * max(0.0, fy - 0.78)
+            k = cloth_tone[x // pw] * (1.0 - 0.07 * abs(fy - 0.45)) - 0.04 * max(0.0, fy - 0.78)
             k -= 0.08 * (2 * abs(fx - 0.5)) ** 2 + 0.05 * max(0.0, 0.1 - fy) / 0.1
             if (x * 7 + y * 3) % 17 == 0:
                 k -= 0.025
@@ -194,11 +195,11 @@ def _sail_canvas(px, region, rng):
             c = [int(b * k) for b in base]
             c[2] = int(c[2] * (1.0 - 0.035 * fy))
             c = tuple(c)
-            if x % 12 == 11:
+            if x % pw == pw - 1:
                 c = _scale(c, 0.86)
-            elif x % 12 == 10:
+            elif x % pw == pw - 2:
                 c = _scale(c, 1.03)
-            elif x % 12 == 0 and y % 3 == 1:
+            elif x % pw == 0 and y % 3 == 1:
                 c = _scale(c, 0.93)
             for band in bands:
                 yb = int(h * band)
