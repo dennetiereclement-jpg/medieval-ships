@@ -73,6 +73,8 @@ Pour tous :
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
 
+La version 1.7.15 : la salle des machines est plus fournie : conduites de vapeur et d'air (cuivre, laiton, fer) le long de la paroi tribord au-dessus du moteur, qui descendent vers un panneau de vannes à volants ; tableaux de manomètres et bobines de Ruhmkorff le long de la passerelle ; membrures de bois cerclées de laiton sur les parois.
+
 La version 1.7.14 : en plongée, l'hélice laisse un sillage de bulles quand le Nautilus avance, et de l'air s'échappe en bulles du pont quand il plonge ; la mer vue par les vitres est un peu plus transparente (on distingue mieux le fond et les poissons au loin).
 
 La version 1.7.13 : la queue comme sur la planche : deux nageoires seulement, au-dessus et au-dessous de l'hélice, qui naissent de la coque (leur bord d'attaque prolonge la ligne du dos et du ventre par-dessus l'anneau de l'hélice jusqu'aux pointes de la queue de poisson) ; les ailerons latéraux sont retirés.
@@ -186,7 +188,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.7.14.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.7.15.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation

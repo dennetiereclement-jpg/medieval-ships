@@ -457,6 +457,22 @@ def engine_room():
     custom("railing", name="catwalk_rail", points=[(0.75, m, -12.6), (0.75, m, -27.9)], h=1.0)
     for z in (-15.0, -19.0, -24.0, -28.0):
         block(FD + "chained_kerosene_lantern", -1.6, ni.M1 - 1.0, z, "stern", solid=False)
+    # the steam and air mains along the starboard wall over the engine, dropping to their valves
+    for k, (y, r, reg) in enumerate(((1.0, 0.13, "copper"), (1.6, 0.11, "brass"), (2.2, 0.09, "iron"))):
+        custom("pipe_run", name="engine_main_%d" % k, a=(-4.8 + 0.1 * k, m + y, -29.0), b=(-4.8 + 0.1 * k, m + y, -20.2), r=r, region=reg)
+    for k, z in enumerate((-22.0, -26.5)):
+        custom("pipe_run", name="engine_drop_%d" % k, a=(-4.7, m + 1.0, z), b=(-4.7, l + 1.9, z), r=0.1, flanges=False)
+    custom("valve_panel", name="engine_valves", p=(-4.95, l + 1.45, -23.25), normal=(1, 0, 0),
+           wheels=[(-0.25, "coral_red", "coral_red"), (0.25, "brass", "green_leather")], w=1.0)
+    # gauge boards and Ruhmkorff coils along the catwalk
+    for k, z in enumerate((-18.0, -23.0)):
+        custom("instrument_panel", name="catwalk_board_%d" % k, center=(4.95, m + 1.6, z), normal=(-1, 0, 0), w=1.8, h=1.1)
+    for k, z in enumerate((-13.6, -27.6)):
+        custom("ruhmkorff_lamp", name="engine_coil_%d" % k, p=(4.95, m + 2.3, z), normal=(-1, 0, 0))
+    # frame ribs of the hull between the gear
+    for k, z in enumerate((-20.0, -29.6)):
+        for side in (-1, 1):
+            custom("timber", name="engine_rib_%d_%d" % (k, side > 0), a=(side * 4.95, l + 0.1, z), b=(side * 4.95, ni.M1 - 0.2, z))
 
 
 def wheelhouse_and_cage():
