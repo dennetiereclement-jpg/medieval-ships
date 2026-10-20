@@ -312,6 +312,52 @@ def turned_leg(bone, name, p0, p1, d, region="dark_wood"):
     tube(bone, name + "_foot", p0, p0 + u * 0.05, d * 1.4, "brass", sides=8)
 
 
+def lantern(bone, name, c, w, h, bail=True):
+    """Ship's lantern centred on c: glowing glass between four brass corner posts, a stepped brass
+    foot, a stepped octagonal roof with a gold finial and, when hung, a bail ring on top."""
+    c = v3(*c)
+    up = v3(0, 1, 0)
+    add_cube(bone, name, c, EYE, (w * 0.86, h, w * 0.86), {"all": "lantern", "+2": None, "-2": None}, stretch=True)
+    for k, (ex, ez) in enumerate(((1, 1), (1, -1), (-1, 1), (-1, -1))):
+        q = c + v3(ex * w * 0.44, 0, ez * w * 0.44)
+        tube(bone, "%s_post_%d" % (name, k), q - up * (h / 2 + 0.01), q + up * (h / 2 + 0.01), 0.04, "brass", sides=4)
+    yb, yt = c[1] - h / 2, c[1] + h / 2
+    disc(bone, name + "_foot", v3(c[0], yb - 0.025, c[2]), up, w * 0.6, 0.05, "brass", sides=8, phase=math.pi / 8)
+    disc(bone, name + "_foot_b", v3(c[0], yb - 0.07, c[2]), up, w * 0.36, 0.05, "gold", sides=8, phase=math.pi / 8)
+    for k, (dy, r, t) in enumerate(((0.025, 0.66, 0.05), (0.075, 0.5, 0.05), (0.12, 0.34, 0.05))):
+        disc(bone, "%s_roof_%d" % (name, k), v3(c[0], yt + dy, c[2]), up, w * r, t, "brass", sides=8, phase=math.pi / 8)
+    disc(bone, name + "_finial", v3(c[0], yt + 0.17, c[2]), up, max(0.035, w * 0.14), 0.07, "gold", sides=8)
+    if bail:
+        ring(bone, name + "_bail", v3(c[0], yt + 0.25, c[2]), (1, 0, 0), 0.06, 0.025, "brass", n=6)
+
+
+def blade_width(r):
+    """Width of a propeller blade at radius r: narrow at the shank, widest at 1.7, round tip."""
+    if r < 1.7:
+        t = (1.7 - r) / 0.75
+        return 0.22 + 0.5 * math.sqrt(max(0.0, 1 - t * t))
+    t = (r - 1.7) / (asp.PROP_R - 1.7 + 0.02)
+    return 0.72 * math.sqrt(max(0.0, 1 - t * t)) + 0.04
+
+
+def blade_sweep(r):
+    return 0.22 * ((r - 0.95) / (asp.PROP_R - 0.95)) ** 2
+
+
+def blade_axes(d, side, r):
+    """Frame (along, chord, normal) of a blade at radius r: swept back and twisted (34 to 14 degrees)."""
+    pitch = math.radians(34 - 20 * (r - 0.95) / (asp.PROP_R - 0.95))
+    dr = 0.01
+    along = norm(d * 2 * dr + side * (blade_sweep(r + dr) - blade_sweep(r - dr)))
+    sd = norm(side - np.dot(side, along) * along)
+    w = sd * math.cos(pitch) + v3(0, 0, 1) * math.sin(pitch)
+    return np.column_stack([along, w, np.cross(along, w)])
+
+
+def blade_point(hub, d, side, r):
+    return hub + d * r + side * blade_sweep(r), blade_axes(d, side, r)
+
+
 def bench(deck, name, c, along, inward, length, back=True):
     """Bench seat at c (top of the plank at c.y + 0.46) with a buttoned leather cushion, turned legs
     and, against the hull, a curved backrest with a padded leather back."""
@@ -596,8 +642,7 @@ def outfit(gondola, deck, engine, lanterns, ropes, main_y):
         polyline(lanterns, "pillar_lantern_bracket_" + sn, pts, 0.05, "brass", sides=4)
         disc(lanterns, "pillar_lantern_scroll_" + sn, b0 + v3(side * 0.1, -0.1, 0), (0, 0, 1), 0.07, 0.03, "brass", sides=8)
         tube(lanterns, "pillar_lantern_hook_" + sn, pts[-1], pts[-1] - v3(0, 0.08, 0), 0.03, "iron", sides=4)
-        add_cube(lanterns, "pillar_lantern_" + sn, pts[-1] - v3(0, 0.3, 0), EYE, (0.22, 0.32, 0.22),
-                 {"all": "lantern", "+2": "brass", "-2": "brass"}, stretch=True)
+        lantern(lanterns, "pillar_lantern_" + sn, pts[-1] - v3(0, 0.38, 0), 0.22, 0.28, bail=False)
     # ---- hull: portholes with brass rims under the deck line, gilded scrolls, gold beading, sandbags
     for side, sn in SIDES:
         for k, z in enumerate((-3.3, -0.6, 1.0, 3.3)):
@@ -624,15 +669,50 @@ def outfit(gondola, deck, engine, lanterns, ropes, main_y):
             hull_curve(gondola, "scroll_leaf_%s%d" % (sn, e > 0), leaf, side, 0.035, 0.055, "gold")
             p, n = hull_pt(zc, yc, side, 0.05)
             disc(gondola, "scroll_boss_%s%d" % (sn, e > 0), p, n, 0.06, 0.05, "brass", sides=8)
-        # sandbags hanging over the side on short lines
+        # sandbags hanging over the side on short lines: round sacks tied at the neck
         for k, z in enumerate((-3.0, 0.4, 3.9)):
             g, n = hull_pt(z, sheer(z) + 0.08, side, 0.0)
-            bag, _ = hull_pt(z, sheer(z) - 0.42, side, 0.16)
-            tube(gondola, "sandbag_line_%s%d" % (sn, k), g, bag + v3(0, 0.12, 0), 0.04, "rope", sides=4)
-            R = np.column_stack([np.cross(v3(0, 1, 0), n), v3(0, 1, 0), n])
-            add_cube(gondola, "sandbag_%s%d" % (sn, k), bag - v3(0, 0.05, 0), R, (0.24, 0.26, 0.16), "burlap")
-            add_cube(gondola, "sandbag_b_%s%d" % (sn, k), bag - v3(0, 0.07, 0), R, (0.18, 0.3, 0.2), "burlap")
-            add_cube(gondola, "sandbag_tie_%s%d" % (sn, k), bag + v3(0, 0.1, 0), R, (0.06, 0.06, 0.06), "rope")
+            bag, _ = hull_pt(z, sheer(z) - 0.42, side, 0.17)
+            tube(gondola, "sandbag_line_%s%d" % (sn, k), g, bag + v3(0, 0.15, 0), 0.04, "rope", sides=4)
+            tube(gondola, "sandbag_%s%d" % (sn, k), bag - v3(0, 0.2, 0), bag + v3(0, 0.02, 0), 0.27, "burlap", sides=8, phase=0.2)
+            tube(gondola, "sandbag_b_%s%d" % (sn, k), bag - v3(0, 0.25, 0), bag - v3(0, 0.19, 0), 0.2, "burlap", sides=8, phase=0.2)
+            tube(gondola, "sandbag_top_%s%d" % (sn, k), bag + v3(0, 0.02, 0), bag + v3(0, 0.08, 0), 0.19, "burlap", sides=8, phase=0.2)
+            tube(gondola, "sandbag_tie_%s%d" % (sn, k), bag + v3(0, 0.08, 0), bag + v3(0, 0.13, 0), 0.08, "rope", sides=6)
+            tube(gondola, "sandbag_tuft_%s%d" % (sn, k), bag + v3(0, 0.13, 0), bag + v3(0, 0.17, 0), 0.12, "burlap", sides=6)
+        # brass chain plates on the planking under each suspension line, bolted twice
+        for k, s_ in enumerate(HOOP_S[1:]):
+            z = max(-asp.HALF_LENGTH + 1.0, min(asp.HALF_LENGTH - 1.0, zs(s_)))
+            hull_curve(gondola, "chainplate_%s%d" % (sn, k), [(z, sheer(z) + 0.02), (z, sheer(z) - 0.32), (z, sheer(z) - 0.62)], side, 0.03,
+                       0.11, "brass", out=0.035)
+            for j, dy in enumerate((0.2, 0.5)):
+                p, nn = hull_pt(z, sheer(z) - dy, side, 0.07)
+                disc(gondola, "chainplate_bolt_%s%d_%d" % (sn, k, j), p, nn, 0.04, 0.03, "gold", sides=8)
+            p, nn = hull_pt(z, sheer(z) - 0.66, side, 0.06)
+            disc(gondola, "chainplate_end_%s%d" % (sn, k), p, nn, 0.08, 0.04, "brass", sides=8)
+        # winged gear emblem on the bow, either side of the stem
+        ez, ey = 6.95, 1.75
+        p, nn = hull_pt(ez, ey, side, 0.05)
+        disc(gondola, "emblem_gear_" + sn, p, nn, 0.22, 0.05, "brass", sides=12)
+        R = face_frame(nn)
+        for t in range(10):
+            a = 2 * math.pi * t / 10
+            q = p + (R[:, 0] * math.cos(a) + R[:, 1] * math.sin(a)) * 0.24
+            add_cube(gondola, "emblem_tooth_%s%d" % (sn, t), q, R @ rz(a), (0.08, 0.07, 0.05), "brass")
+        disc(gondola, "emblem_ring_" + sn, p + nn * 0.02, nn, 0.13, 0.04, "gold", sides=8)
+        disc(gondola, "emblem_boss_" + sn, p + nn * 0.045, nn, 0.06, 0.04, "brass", sides=8)
+        # the wing: five gilded feathers fanning aft over the bow planking, longest in the middle
+        for f, (ang, ln) in enumerate(((0.55, 0.75), (0.28, 1.0), (0.0, 1.15), (-0.27, 1.0), (-0.52, 0.72))):
+            pts = []
+            for j in range(5):
+                t = j / 4
+                L = 0.22 + ln * t
+                aa = ang * (1 + 0.35 * t)
+                pts.append((ez - L * math.cos(aa), ey + L * math.sin(aa) + 0.12 * t * t))
+            for j in range(len(pts) - 1):
+                (za_, ya_), (zb_, yb_) = pts[j], pts[j + 1]
+                (pa, na), (pb, nb) = hull_pt(za_, ya_, side, 0.045), hull_pt(zb_, yb_, side, 0.045)
+                wd = 0.13 * (1 - 0.55 * (j / 3)) if j else 0.1
+                beam(gondola, "emblem_feather_%s%d_%d" % (sn, f, j), pa, pb, 0.03, "gold", width=wd, up=norm(na + nb), extend=wd * 0.4)
 
 
 def build():
@@ -758,26 +838,37 @@ def build():
     # pointed round spinner
     for j, (z0, z1, dd) in enumerate(((-0.28, -0.44, 0.5), (-0.44, -0.58, 0.36), (-0.58, -0.7, 0.2))):
         tube(prop, "prop_spinner_%d" % j, hub + v3(0, 0, z0), hub + v3(0, 0, z1), dd, "gold", sides=8)
-    pitch = math.radians(20)
     for k in range(asp.PROP_BLADES):
         a = 2 * math.pi * k / asp.PROP_BLADES
         d = v3(math.sin(a), math.cos(a), 0)
         side = np.cross(v3(0, 0, 1), d)
-        # pitch: the blade is turned about its own length
-        w = side * math.cos(pitch) + v3(0, 0, 1) * math.sin(pitch)
-        n = np.cross(d, w)
-        axes = np.column_stack([d, w, n])
-        # a wooden paddle: round shank from a brass sleeve, then an oval blade with a rounded tip
+        # a wooden paddle: round shank from a brass sleeve, then a swept oval blade, twisted (steeper at
+        # the root), with a rounded tip, dark edge strips hiding the steps and a brass-sheathed tip
+        axes0 = blade_axes(d, side, 0.95)
         tube(prop, "prop_shank_%d" % k, hub + d * 0.3, hub + d * 1.05, 0.2, "prop")
-        add_cube(prop, "prop_sleeve_%d" % k, hub + d * 0.5, axes, (0.3, 0.32, 0.22), "brass")
-        rs = [0.95, 1.15, 1.35, 1.55, 1.75, 1.95, 2.12, 2.26, 2.36, asp.PROP_R]
+        add_cube(prop, "prop_sleeve_%d" % k, hub + d * 0.5, axes0, (0.3, 0.32, 0.22), "brass")
+        tube(prop, "prop_sleeve_ring_%d" % k, hub + d * 0.64, hub + d * 0.7, 0.26, "gold", sides=8)
+        rs = [0.95 + (asp.PROP_R - 0.95) * (j / 14) ** 0.9 for j in range(15)]
+        edges = ([], [])
         for j in range(len(rs) - 1):
             r_a, r_b = rs[j], rs[j + 1]
             rm = (r_a + r_b) / 2
-            t = (rm - 1.65) / 0.78
-            wd = 0.24 + 0.46 * math.sqrt(max(0.0, 1 - t * t)) if rm < 1.65 else 0.7 * math.sqrt(max(0.0, 1 - t * t)) + 0.06
-            add_cube(prop, "prop_blade_%d_%d" % (k, j), hub + d * rm, axes, (r_b - r_a + 0.02, wd, 0.1 - 0.004 * (j % 2)), "prop")
-        add_cube(prop, "prop_blade_bolt_%d" % k, hub + d * 1.05 + n * 0.06, axes, (0.1, 0.1, 0.04), "brass")
+            wd = blade_width(rm)
+            c, ax = blade_point(hub, d, side, rm)
+            reg = "brass" if rm > asp.PROP_R - 0.2 else "prop"
+            add_cube(prop, "prop_blade_%d_%d" % (k, j), c, ax, (r_b - r_a + 0.03, wd, 0.09 - 0.03 * (rm - 0.95) / 1.45 - 0.003 * (j % 2)), reg)
+        for j in range(13):
+            r = 0.98 + (asp.PROP_R - 0.03 - 0.98) * j / 12
+            c, ax = blade_point(hub, d, side, r)
+            for e in (0, 1):
+                edges[e].append(c + ax[:, 1] * (1 if e else -1) * blade_width(r) / 2)
+        for e in (0, 1):
+            pts = edges[e]
+            for j in range(len(pts) - 1):
+                c, ax = blade_point(hub, d, side, 0.98 + (asp.PROP_R - 1.01) * (j + 0.5) / 12)
+                beam(prop, "prop_edge_%d_%d_%d" % (k, e, j), pts[j], pts[j + 1], 0.05, "dark_wood" if j < 10 else "brass",
+                     width=0.1 - 0.02 * (j / 12), up=ax[:, 2], extend=0.03)
+        add_cube(prop, "prop_blade_bolt_%d" % k, hub + d * 1.05 + axes0[:, 2] * 0.06, axes0, (0.1, 0.1, 0.04), "brass")
     ring(prop, "prop_hub_ring", hub + v3(0, 0, 0.05), (0, 0, 1), 0.44, 0.09, "gold", n=14, round_=True)
 
     # ---------------------------------------------------------------- fins (swept, with curved edges)
@@ -969,13 +1060,14 @@ def build():
         base = v3(side * (hw(z) - 0.05), sheer(z) + 0.1, z)
         polyline(lanterns, "stern_lantern_bracket_" + sn, bezier(base, base + v3(side * 0.05, 0.4, -0.05), base + v3(side * 0.32, 0.38, -0.1), 3),
                  0.06, "brass")
-        add_cube(lanterns, "stern_lantern_" + sn, base + v3(side * 0.32, 0.05, -0.1), EYE, (0.28, 0.4, 0.28),
-                 {"all": "lantern", "+2": "brass", "-2": "brass"}, stretch=True)
+        tube(lanterns, "stern_lantern_hook_" + sn, base + v3(side * 0.32, 0.38, -0.1), base + v3(side * 0.32, 0.31, -0.1), 0.03, "iron",
+             sides=4)
+        lantern(lanterns, "stern_lantern_" + sn, base + v3(side * 0.32, 0.0, -0.1), 0.26, 0.32, bail=False)
     bz_ = asp.HALF_LENGTH - 0.6
     bb = v3(0, sheer(bz_) + 0.1, bz_)
     tube(lanterns, "bow_lantern_post", bb, bb + v3(0, 0.45, 0), 0.07, "brass")
-    add_cube(lanterns, "bow_lantern", bb + v3(0, 0.68, 0), EYE, (0.26, 0.38, 0.26), {"all": "lantern", "+2": "brass", "-2": "brass"},
-             stretch=True)
+    tube(lanterns, "bow_lantern_collar", bb + v3(0, 0.06, 0), bb + v3(0, 0.12, 0), 0.12, "gold", sides=8)
+    lantern(lanterns, "bow_lantern", bb + v3(0, 0.66, 0), 0.26, 0.34)
     # anchor hanging on a chain at the starboard quarter, clear of the ground under the keel
     az = -asp.HALF_LENGTH + 1.4
     ax_ = -(hw(az) + 0.22)
