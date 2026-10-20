@@ -211,9 +211,13 @@ def dragon_tail(bone, tag, s):
     a, b = curve[-2], curve[-1]
     d = norm(b - a)
     tip = b + d * 0.75
-    beam(bone, tag + "_tip_a", b, tip, 0.12, "gold", width=0.55)
-    beam(bone, tag + "_tip_b", b + d * 0.2, b + d * 0.5, 0.14, "gold", width=0.8)
-    beam(bone, tag + "_tip_c", tip - d * 0.1, tip + d * 0.25, 0.1, "gold", width=0.22)
+    # (a heart-shaped leaf: two lobes and a pointed diamond, with a raised midrib)
+    ax_ = gg.frame_from(d, v3(1, 0, 0))   # x along the tail, y across the ship: the leaf lies in the plane of the curl
+    side_ = ax_[:, 2]
+    for k, sg in enumerate((1, -1)):
+        add_cube(bone, "%s_tip_lobe_%d" % (tag, k), b + d * 0.3 + side_ * sg * 0.17, ax_ @ ry(math.pi / 4), (0.36, 0.1, 0.36), "gold")
+    add_cube(bone, tag + "_tip_a", b + d * 0.5, ax_ @ ry(math.pi / 4), (0.5, 0.11, 0.5), "gold")
+    beam(bone, tag + "_tip_c", b, tip + d * 0.08, 0.16, "gold", width=0.08, up=v3(1, 0, 0))
 
 
 def dragon(bone, tag, s):
@@ -287,6 +291,10 @@ def dragon(bone, tag, s):
     hcube(tag + "_tongue", jaw_c + Rj @ v3(0, 0.08, 0.05) * K, Rj, (0.16, 0.04, 0.8), "red_paint")
     for k, (x, t) in enumerate(((0.17, 0.42), (-0.17, 0.42), (0.18, 0.2), (-0.18, 0.2), (0.18, -0.02), (-0.18, -0.02))):
         hcube("%s_fang_low_%d" % (tag, k), jaw_c + Rj @ v3(x, 0.12, t) * K, Rj, (0.06, 0.12, 0.06), "ivory")
+    for x in (1, -1):
+        hcbox("%s_cheek_%d" % (tag, x > 0), at(0.15, -0.06, x * 0.3), R, (0.12, 0.3, 0.42), "dragon", 0.04)
+        hbeam("%s_eye_ridge_%d" % (tag, x > 0), at(0.58, 0.27, x * 0.29), at(0.1, 0.3, x * 0.32), 0.08, "dragon_dark", extend=0.02)
+        hcube("%s_nostril_rim_%d" % (tag, x > 0), at(1.17, 0.07, x * 0.16), R @ rz(math.pi / 4), (0.1, 0.1, 0.12), "dragon_dark")
     # eyes: gold with a slit pupil, glowing at night
     for x in (0.335, -0.335):
         hcube("glow_%s_eye_%d" % (tag, x > 0), at(0.36, 0.17, x), R, (0.03, 0.17, 0.2), {"all": "eye"}, stretch=True)
@@ -402,6 +410,14 @@ def build():
             Rb = np.column_stack([u, nrm, np.cross(u, nrm)])
             _octo(shields, "shield_boss_%s%d" % (sn, k), p + nrm * 0.11, Rb, (0.26, 0.08, 0.26), "gold")
             _octo(shields, "shield_boss_top_%s%d" % (sn, k), p + nrm * 0.16, Rb, (0.14, 0.04, 0.14), "gold")
+            # raised gilded rim round the edge of the shield
+            nr = 10
+            rr = 0.56
+            for j in range(nr):
+                a0, a1 = 2 * math.pi * j / nr, 2 * math.pi * (j + 1) / nr
+                q0 = p + nrm * 0.1 + (u * math.cos(a0) + v * math.sin(a0)) * rr
+                q1 = p + nrm * 0.1 + (u * math.cos(a1) + v * math.sin(a1)) * rr
+                beam(shields, "shield_rim_%s%d_%d" % (sn, k, j), q0, q1, 0.07, "gold", width=0.05, up=nrm, extend=0.03)
 
     # ---- oars: 12 per side, each its own bone pivoting at its oar port under the shields
     down = math.radians(21)
@@ -414,9 +430,14 @@ def build():
             ob = Bone("oar_%s%d" % (sname, i + 1), origin=tuple(pivot), parent=group)
             d = v3(side * math.cos(down), -math.sin(down), 0)
             _rbeam(ob, "oar_shaft_%s%d" % (sname, i + 1), pivot - d * 1.25, pivot + d * 3.3, 0.12, "oar")
-            beam(ob, "oar_blade_%s%d" % (sname, i + 1), pivot + d * 3.0, pivot + d * 4.05, 0.06, "oar", width=0.42, up=v3(0, 0, 1))
-            beam(ob, "oar_blade_tip_%s%d" % (sname, i + 1), pivot + d * 4.05, pivot + d * 4.18, 0.06, "oar", width=0.28, up=v3(0, 0, 1))
-            add_cube(ob, "oar_port_%s%d" % (sname, i + 1), pivot, EYE, (0.06, 0.24, 0.24), "dark_wood")
+            # leaf-shaped blade: a neck tapering out of the loom, a pointed rounded tip
+            ax_ = gg.frame_from(d, v3(0, 0, 1))
+            add_cube(ob, "oar_blade_neck_%s%d" % (sname, i + 1), pivot + d * 3.1, ax_ @ ry(math.pi / 4), (0.3, 0.05, 0.3), "oar")
+            beam(ob, "oar_blade_%s%d" % (sname, i + 1), pivot + d * 3.1, pivot + d * 4.0, 0.06, "oar", width=0.42, up=v3(0, 0, 1))
+            add_cube(ob, "oar_blade_tip_%s%d" % (sname, i + 1), pivot + d * 4.0, ax_ @ ry(math.pi / 4), (0.42 / math.sqrt(2), 0.06,
+                     0.42 / math.sqrt(2)), "oar")
+            # round oar port
+            _octo(ob, "oar_port_%s%d" % (sname, i + 1), pivot, rz(math.pi / 2), (0.24, 0.06, 0.24), "dark_wood")
 
     # ---- mast, yard and the striped square sail (braced), mast head flag
     mz = ms.MAST_Z
