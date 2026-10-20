@@ -405,6 +405,99 @@ def bezier(p0, c, p1, n):
     return [(1 - t) ** 2 * p0 + 2 * (1 - t) * t * c + t * t * p1 for t in np.linspace(0, 1, n + 1)]
 
 
+# ---------------------------------------------------------------- galleon-only sails (third pass)
+def g_sail(bone, name, origin, U, V, N, half_top, half_bottom, height, depth, region, nx, ny, triangle=False,
+           th=0.035, round_=0.0, overlap=0.02, foot=0.0, keep=None, ease=1.0):
+    """Smoother sail than sail(): a fine grid of cells (the shading changes by small steps instead of a
+    checkerboard), each cell fitted to its four corners on the surface by least squares so that neighbours
+    meet with almost no step. keep(s0, t0, s1, t1) drops cells (fully transparent ones of a triangle).
+    ease > 1 packs the rows towards the head, where the cloth bends the most."""
+    U, V, N = norm(U), norm(V), norm(N)
+    rows = [(j / ny) ** ease for j in range(ny + 1)]
+    for i in range(nx):
+        for j in range(ny):
+            s0, s1 = i / nx, (i + 1) / nx
+            t0, t1 = rows[j], rows[j + 1]
+            if keep is not None and not keep(s0, t0, s1, t1):
+                continue
+            P = lambda a, b: sail_surface(origin, U, V, N, half_top, half_bottom, height, depth, 2 * a - 1, b, triangle,  # noqa: E731
+                                          round_, foot)
+            a0, a1, b0, b1 = P(s0, t1), P(s0, t0), P(s1, t1), P(s1, t0)
+            c = (a0 + a1 + b0 + b1) / 4
+            u = ((b0 + b1) - (a0 + a1)) / 2
+            L = np.linalg.norm(u)
+            u = u / L
+            vp = ((a0 - a1) + (b0 - b1)) / 2   # downwards
+            H = np.linalg.norm(vp)
+            v = norm(vp - np.dot(vp, u) * u)
+            # normal of the best plane through the four corners (the diagonals' cross product)
+            n = norm(np.cross(b1 - a0, a1 - b0))
+            if np.dot(n, N) < 0:
+                n = -n
+            v = norm(v - np.dot(v, n) * n)
+            u = np.cross(v, n)
+            if np.dot(u, (b0 + b1) - (a0 + a1)) < 0:
+                u = -u
+                v = np.cross(n, u)
+            axes = np.column_stack([u, v, n])
+            if np.linalg.det(axes) < 0:
+                axes[:, 1] = -axes[:, 1]
+            cube = add_cube(bone, "%s_%d_%d" % (name, i, j), c, axes, (L + overlap, H + overlap, th),
+                            {"all": None, "+3": region, "-3": region}, stretch=True, u_dir=U, v_dir=V)
+            set_sub(cube, (s0, t0, s1, t1))
+
+
+def g_great_lantern(bone, name, foot, s, metal="gold"):
+    """Great stern lantern: eight-sided lit glass between moulded rings and corner posts, a bell under it,
+    a ribbed dome with a finial on top. foot = bottom of the bell. Its glass plates are named glow_* (lit, and
+    left alone by lanterns.convert)."""
+    foot = v3(*foot)
+    up = v3(0, 1, 0)
+    r, gh = 0.26 * s, 0.56 * s
+    y0 = foot[1]
+    turned(bone, name + "_bell", foot, foot + up * 0.26 * s, [(0, 0.1 * s), (0.25, 0.22 * s), (0.6, 0.4 * s), (1, 0)], metal)
+    disc(bone, name + "_sill", foot + up * 0.3 * s, up, r + 0.05 * s, 0.08 * s, metal, n=3)
+    gc = foot + up * (0.34 * s + gh / 2)
+    for k in range(4):
+        t = math.pi / 4 * k
+        a2 = v3(math.cos(t), 0, math.sin(t))
+        b2 = np.cross(a2, up)
+        add_cube(bone, "glow_%s_glass_%d" % (name, k), gc, np.column_stack([a2, up, b2]),
+                 (2 * r, gh * (1 - 0.02 * k), 2 * r * math.tan(math.pi / 8)),
+                 {"all": "lantern", "+2": metal, "-2": metal}, stretch=True)
+    rc = r / math.cos(math.pi / 8)
+    for k in range(8):
+        t = math.pi / 8 + math.pi / 4 * k
+        p = gc + v3(math.cos(t), 0, math.sin(t)) * rc
+        add_cube(bone, "%s_post_%d" % (name, k), p, np.column_stack([v3(math.cos(t), 0, math.sin(t)), up,
+                 v3(-math.sin(t), 0, math.cos(t))]), (0.05 * s, gh + 0.02, 0.05 * s), metal)
+    top = gc + up * (gh / 2)
+    disc(bone, name + "_cornice", top + up * 0.04 * s, up, r + 0.07 * s, 0.08 * s, metal, n=3)
+    turned(bone, name + "_dome", top + up * 0.08 * s, top + up * 0.44 * s,
+           [(0, 0.5 * s), (0.3, 0.42 * s), (0.6, 0.28 * s), (0.85, 0.12 * s), (1, 0)], metal)
+    disc(bone, name + "_knob", top + up * 0.5 * s, up, 0.07 * s, 0.1 * s, "gold")
+    beam(bone, name + "_finial", top + up * 0.54 * s, top + up * 0.72 * s, 0.035 * s, "gold")
+    return y0
+
+
+def g_tri_sail(bone, name, head, tack, clew, depth, N, region, nx, ny, round_=0.0, ease=1.0):
+    """Triangular sail with g_sail: the cells wholly outside the triangle are left out."""
+    U = tack - head
+    L = np.linalg.norm(U)
+    U = U / L
+    Vp = clew - head - np.dot(clew - head, U) * U
+    H = np.linalg.norm(Vp)
+    V = Vp / H
+    uc = np.dot(clew - head, U) / L
+
+    def keep(s0, t0, s1, t1):
+        # the triangle is widest at the top of the cell
+        return s1 > uc * t0 + 0.01 and s0 < 1 - (1 - uc) * t0 - 0.01
+    g_sail(bone, name, head + U * (L / 2), U, V, N, L / 2, L / 2, H, depth, region, nx, ny, triangle=True, round_=round_,
+           keep=keep, ease=ease)
+    return [(0.0, 0.0), (1.0, 0.0), (uc, 1.0)]
+
+
 # ---------------------------------------------------------------- galleon-only fittings (second pass)
 def disc(bone, name, c, axis, r, th, region, n=2, phase=0.0):
     """Round disc (wheel, deadeye, cap, drum...) seen as a pixel circle: n=2 two crossed plates (rounded square),
@@ -1325,11 +1418,13 @@ def build():
     # stern lanterns: two on the transom corners, a big one on the poop roof
     for k, (x, y, z, s) in enumerate(((2.15, gs.QD_RAIL_Y + 0.2, -17.25, 1.0), (-2.15, gs.QD_RAIL_Y + 0.2, -17.25, 1.0),
                                       (0, roof_top - 0.02, pb + 0.75, 1.1))):
-        beam(lanterns, "stern_lantern_pole_%d" % k, (x, y, z), (x, y + 0.6 * s, z), 0.1, "iron")
-        add_cube(lanterns, "stern_lantern_%d" % k, (x, y + 0.95 * s, z), EYE, (0.5 * s, 0.7 * s, 0.5 * s),
-                 {"all": "lantern", "+2": "gold", "-2": "gold"}, stretch=True)
-        add_cube(lanterns, "glow_stern_lantern_%d" % k, (x, y + 0.95 * s, z), EYE, (0.34 * s, 0.52 * s, 0.34 * s), "glow", stretch=True)
-        add_cube(lanterns, "stern_lantern_cap_%d" % k, (x, y + 1.38 * s, z), EYE, (0.3 * s, 0.18 * s, 0.3 * s), "gold")
+        round_bar(lanterns, "stern_lantern_pole_%d" % k, (x, y, z), (x, y + 0.5 * s, z), 0.09, "iron")
+        if k < 2:
+            # scrolled iron stay from the transom corner up to the lantern
+            sc = bezier((x * 0.94, y - 0.75, z + 0.12), (x * 1.06, y - 0.2, z - 0.1), (x, y + 0.45 * s, z), 4)
+            for j, (a, b) in enumerate(polyline(sc)):
+                round_bar(lanterns, "stern_lantern_stay_%d_%d" % (k, j), a, b, 0.06, "iron", extend=0.02)
+        g_great_lantern(lanterns, "stern_lantern_%d" % k, (x, y + 0.48 * s, z), s * 1.15)
     # bow lantern
     add_cube(lanterns, "bow_lantern", (0, gs.FC_RAIL_Y + 0.55, 17.3), EYE, (0.4, 0.55, 0.4), {"all": "lantern", "+2": "iron"}, stretch=True)
     add_cube(lanterns, "glow_bow_lantern", (0, gs.FC_RAIL_Y + 0.55, 17.3), EYE, (0.26, 0.4, 0.26), "glow", stretch=True)
@@ -1374,18 +1469,39 @@ def build():
     rpivot = v3(0, 0.0, -gs.HALF_LENGTH - 0.12)
     rudder = Bone("rudder", origin=rpivot, parent=root)
     zf_r = -gs.HALF_LENGTH - 0.13
-    bands = [0.5, 0.0, -0.5, -1.05, -1.6]
+    y_top, y_bot = 0.6, -1.6
 
     def r_back(y):
-        return zf_r - 0.42 - 0.52 * ((0.5 - y) / 2.1) ** 0.8
+        # the blade widens downwards in a smooth curve, its heel rounded off
+        t = (y_top - y) / (y_top - y_bot)
+        return zf_r - 0.4 - 0.56 * t ** 0.8 + 0.12 * max(0.0, t - 0.86) / 0.14
+
+    bands = list(np.linspace(y_top, y_bot, 8))
+    main_w = 0.3   # the thick main piece behind the stock; the blade thins aft of it
     for k in range(len(bands) - 1):
         y0, y1 = bands[k], bands[k + 1]
-        board(rudder, "rudder_blade_%d" % k, v3(0.09, y0, zf_r), v3(0.09, y0, r_back(y0)), v3(0.09, y1, zf_r), v3(0.09, y1, r_back(y1)),
-              0.18, "hull_dark", v3(1, 0, 0), overlap=1.0)
-    round_bar(rudder, "rudder_stock", (0, -0.25, -gs.HALF_LENGTH - 0.16), (0, 0.65, -gs.HALF_LENGTH - 0.16), 0.22, "dark_wood")
-    for k, y in enumerate((-1.1, -0.4, 0.3)):
-        add_cube(rudder, "rudder_pintle_%d" % k, (0, y, -gs.HALF_LENGTH - 0.15), EYE, (0.3, 0.1, 0.3), "iron")
-        add_cube(rudder, "rudder_strap_%d" % k, (0, y, (zf_r + r_back(y)) / 2 + 0.05), EYE, (0.22, 0.07, abs(r_back(y) - zf_r) * 0.7), "iron")
+        board(rudder, "rudder_blade_%d" % k, v3(0.075, y0, zf_r - main_w + 0.02), v3(0.075, y0, r_back(y0)),
+              v3(0.075, y1, zf_r - main_w + 0.02), v3(0.075, y1, r_back(y1)), 0.15, "hull_dark", v3(1, 0, 0), overlap=1.0)
+        board(rudder, "rudder_main_%d" % k, v3(0.12, y0, zf_r), v3(0.12, y0, zf_r - main_w), v3(0.12, y1, zf_r),
+              v3(0.12, y1, zf_r - main_w), 0.24, "dark_wood", v3(1, 0, 0), overlap=1.0)
+    # rounded back edge and heel
+    edge = [v3(0, y, r_back(y) + 0.03) for y in bands]
+    for j, (a, b) in enumerate(polyline(edge)):
+        round_bar(rudder, "rudder_edge_%d" % j, a, b, 0.17, "hull_dark", extend=0.03)
+    round_bar(rudder, "rudder_heel", (0, y_bot + 0.03, zf_r - 0.05), (0, y_bot + 0.03, r_back(y_bot) + 0.06), 0.17, "hull_dark")
+    round_bar(rudder, "rudder_stock", (0, -0.25, -gs.HALF_LENGTH - 0.16), (0, 0.75, -gs.HALF_LENGTH - 0.16), 0.24, "dark_wood")
+    disc(rudder, "rudder_head", (0, 0.78, -gs.HALF_LENGTH - 0.16), (0, 1, 0), 0.15, 0.08, "gold", n=3)
+    for k, y in enumerate((-1.15, -0.45, 0.25)):
+        disc(rudder, "rudder_pintle_%d" % k, (0, y, -gs.HALF_LENGTH - 0.15), (0, 1, 0), 0.16, 0.1, "iron", n=3)
+        for side in (1, -1):
+            # iron straps over both faces: across the main piece, then along the thinner blade
+            add_cube(rudder, "rudder_strap_%d_%d" % (k, side > 0), (side * 0.135, y, zf_r - main_w / 2 - 0.02), EYE,
+                     (0.03, 0.09, main_w + 0.06), "iron")
+            zb = r_back(y) + 0.25
+            add_cube(rudder, "rudder_strap_tail_%d_%d" % (k, side > 0), (side * 0.09, y, (zf_r - main_w + zb) / 2), EYE,
+                     (0.03, 0.08, abs(zb - zf_r + main_w) + 0.04), "iron")
+            disc(rudder, "rudder_bolt_%d_%d" % (k, side > 0), (side * 0.16, y, zf_r - main_w + 0.06), (side, 0, 0), 0.035, 0.03,
+                 "iron")
 
     # ---- bow: stem post, beakhead, figurehead, bowsprit, anchors
     stem_pts = []
@@ -1509,8 +1625,9 @@ def build():
         br = Bone("brace_" + name, origin=(0, y_top, z), parent=mb)
         yard(br, name + "_yard", z, y_top, half_top + 0.35)
         sb = Bone("sail_" + name, origin=(0, y_top, z + 0.42), parent=br)
-        sail(sb, name, v3(0, y_top - 0.12, z + 0.45), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), half_top, half_bottom,
-             height, depth * 2.1, region, nx=7, ny=10, round_=0.8, overlap=0.03, foot=0.09)
+        fine = height > 7.5
+        g_sail(sb, name, v3(0, y_top - 0.12, z + 0.45), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), half_top, half_bottom,
+               height, depth * 2.1, region, nx=12 if fine else 10, ny=15 if fine else 12, round_=0.8, foot=0.09, ease=1.15)
         br.rot = ry(BRACE)
         sails_info.append((sb, False))
         return sb
@@ -1526,8 +1643,8 @@ def build():
     beam(m_mizzen, "lateen_roll", lat_fore + v3(0.05, -0.2, 0) + norm(lat_aft - lat_fore) * 0.8,
          lat_aft + v3(0.05, -0.2, 0) - norm(lat_aft - lat_fore) * 0.4, 0.24, "cloth_roll")
     lat_sail = Bone("sail_mizzen", origin=tuple((lat_fore + lat_aft) / 2), parent=m_mizzen)
-    lateen_tri = tri_sail(lat_sail, "mizzen_lateen", lat_aft + v3(0.08, -0.12, 0.05), lat_fore + v3(0.08, -0.12, 0),
-                          v3(0.4, 8.0, -16.4), 0.85, v3(1, 0, 0), "lateen", ny=8)
+    lateen_tri = g_tri_sail(lat_sail, "mizzen_lateen", lat_aft + v3(0.08, -0.12, 0.05), lat_fore + v3(0.08, -0.12, 0),
+                            v3(0.4, 8.0, -16.4), 0.85, v3(1, 0, 0), "lateen", nx=8, ny=12, round_=0.45)
     sails_info.append((lat_sail, True))
 
     # jibs on the stays to the bowsprit
@@ -1536,33 +1653,44 @@ def build():
     fore_head = v3(0, gs.FORE_MAST_TOP - 0.5, gs.FORE_MAST_Z)
     stay_top = sprit_b + (fore_head - sprit_b) * 0.62
     outer_clew = jib_clew(stay_top, sprit_b, v3(0.05, 6.6, 19.2))
-    jib_tri = tri_sail(jib, "jib_outer", stay_top + v3(0.0, -0.05, -0.06), sprit_b + v3(0, 0.05, -0.12),
-                       outer_clew, 0.6, v3(1, 0, 0), "jib", nx=4, ny=6)
+    jib_tri = g_tri_sail(jib, "jib_outer", stay_top + v3(0.0, -0.05, -0.06), sprit_b + v3(0, 0.05, -0.12),
+                         outer_clew, 0.6, v3(1, 0, 0), "jib", nx=7, ny=9, round_=0.45)
     fore_low = v3(0, 13.0, gs.FORE_MAST_Z)
     mid_sprit = sprit_a + (sprit_b - sprit_a) * 0.55
     st2 = mid_sprit + (fore_low - mid_sprit) * 0.62
-    tri_sail(jib, "jib_inner", st2 + v3(0.0, -0.05, -0.06), mid_sprit + v3(0, 0.05, -0.1),
-             jib_clew(st2, mid_sprit, v3(0.05, 5.0, 16.2)), 0.5, v3(1, 0, 0), "jib", nx=4, ny=6)
+    g_tri_sail(jib, "jib_inner", st2 + v3(0.0, -0.05, -0.06), mid_sprit + v3(0, 0.05, -0.1),
+               jib_clew(st2, mid_sprit, v3(0.05, 5.0, 16.2)), 0.5, v3(1, 0, 0), "jib", nx=7, ny=9, round_=0.45)
     sails_info.append((jib, True))
     sprit_yard = sprit_a + (sprit_b - sprit_a) * 0.72
     round_bar(bow, "spritsail_yard", sprit_yard + v3(-2.3, -0.25, 0), sprit_yard + v3(2.3, -0.25, 0), 0.16, "mast", extend=0.08)
     beam(bow, "spritsail_roll", sprit_yard + v3(-1.9, -0.45, 0.05), sprit_yard + v3(1.9, -0.45, 0.05), 0.22, "cloth_roll")
     sprit_sail = Bone("sail_sprit", origin=tuple(sprit_yard + v3(0, -0.3, 0)), parent=bow)
-    sail(sprit_sail, "spritsail", sprit_yard + v3(0, -0.36, 0.12), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), 2.1, 2.4, 2.3, 0.8,
-         "topsail", nx=4, ny=5, round_=0.7, foot=0.08)
+    g_sail(sprit_sail, "spritsail", sprit_yard + v3(0, -0.36, 0.12), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), 2.1, 2.4, 2.3, 0.8,
+           "topsail", nx=7, ny=7, round_=0.7, foot=0.08)
     sails_info.append((sprit_sail, False))
 
     # ---- flags (texture #1): masthead flags, main pennant, stern ensign
-    def flag(parent, name, root_pt, w, h, region="flag"):
+    def flag(parent, name, root_pt, w, h, region="flag", n=3):
+        """Flag in two bones (the animation swings the root half and the fly), each half made of n strips
+        that follow a soft wave, so the cloth ripples instead of standing as a flat board."""
         fb = Bone("flag_" + name, origin=tuple(root_pt), parent=parent)
-        c1 = add_cube(fb, "flag_%s_a" % name, root_pt + v3(0, -h / 2, -w / 4), EYE, (0.03, h, w / 2),
-                      {"all": None, "+1": region, "-1": region}, stretch=True, u_dir=v3(0, 0, -1), v_dir=v3(0, -1, 0))
         tip_root = root_pt + v3(0, 0, -w / 2)
         ft = Bone("flag_%s_tip" % name, origin=tuple(tip_root), parent=fb)
-        c2 = add_cube(ft, "flag_%s_b" % name, tip_root + v3(0, -h / 2, -w / 4), EYE, (0.03, h, w / 2),
-                      {"all": None, "+1": region, "-1": region}, stretch=True, u_dir=v3(0, 0, -1), v_dir=v3(0, -1, 0))
-        set_sub(c1, (0, 0, 0.5, 1), faces=("west", "east"))
-        set_sub(c2, (0.5, 0, 1, 1), faces=("west", "east"))
+        amp = min(0.16, 0.07 * w)
+
+        def P(s):
+            # zero at the staff and at the hinge of the two halves
+            return root_pt + v3(amp * math.sin(2 * math.pi * s) * (0.35 + s), 0, -w * s)
+        for half, bone in enumerate((fb, ft)):
+            for k in range(n):
+                s0, s1 = (half + k / n) / 2, (half + (k + 1) / n) / 2
+                a, b = P(s0), P(s1)
+                d = norm(b - a)
+                axes = np.column_stack([np.cross(v3(0, 1, 0), d), v3(0, 1, 0), d])
+                c = add_cube(bone, "flag_%s_%s%d" % (name, "ab"[half], k), (a + b) / 2 + v3(0, -h / 2, 0), axes,
+                             (0.03, h, np.linalg.norm(b - a) + 0.015), {"all": None, "+1": region, "-1": region},
+                             stretch=True, u_dir=v3(0, 0, -1), v_dir=v3(0, -1, 0))
+                set_sub(c, (s0, 0, s1, 1), faces=("west", "east"))
         return fb
 
     for mb, name, z, top in ((m_main, "main", gs.MAIN_MAST_Z, gs.MAIN_MAST_TOP), (m_fore, "fore", gs.FORE_MAST_Z, gs.FORE_MAST_TOP),
