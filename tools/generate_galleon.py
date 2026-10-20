@@ -16,7 +16,7 @@ come from tools/galleon_shape.py, identical to the Java collision code.
 
 Bones used by the mod (keep their names when editing in Blockbench):
   sail_* (wind, furl)  jib  helm_wheel, rudder (steer)  flag_*, flag_*_tip, pennant_* (flag_wave)
-  gunport_<l|r><n> (lid, closed/open later), cannon_<l|r><n> (empty: future cannons)
+  gunport_<l|r><n> (lid, closed/open later), cannon_<l|r><n> (the gun on its carriage, for a future combat system)
 """
 import base64
 import math
@@ -47,6 +47,7 @@ gg.new_uuid = new_uuid  # bones and cubes created through the galley helpers get
 v3, norm, Bone, add_cube, beam, board = gg.v3, gg.norm, gg.Bone, gg.add_cube, gg.beam, gg.board
 rx, ry, rz = gg.rx, gg.ry, gg.rz
 EYE = np.eye(3)
+DECK_AXES = np.column_stack([np.array([0.0, 0, 1]), np.array([0.0, 1, 0]), np.array([-1.0, 0, 0])])
 SIDES = ((1, "p"), (-1, "s"))
 BRACE = math.radians(22)  # square yards braced round (port arms aft)
 
@@ -404,6 +405,237 @@ def bezier(p0, c, p1, n):
     return [(1 - t) ** 2 * p0 + 2 * (1 - t) * t * c + t * t * p1 for t in np.linspace(0, 1, n + 1)]
 
 
+# ---------------------------------------------------------------- galleon-only fittings (second pass)
+def disc(bone, name, c, axis, r, th, region, n=2, phase=0.0):
+    """Round disc (wheel, deadeye, cap, drum...) seen as a pixel circle: n=2 two crossed plates (rounded square),
+    n=3 four plates turned by 45 degrees whose union is a regular octagon. Each plate is a little thinner than the
+    previous one so that their faces never share a plane."""
+    c, d = v3(*c), norm(v3(*axis))
+    a, b = _perp(d)
+    plates = [(0.0, 1.0, 0.62), (math.pi / 2, 1.0, 0.62)] if n < 3 else \
+        [(math.pi / 4 * k, 1.0, math.tan(math.pi / 8)) for k in range(4)]
+    for k, (t, fa, fb) in enumerate(plates):
+        t += phase
+        a2 = a * math.cos(t) + b * math.sin(t)
+        b2 = np.cross(a2, d)
+        add_cube(bone, name if k == 0 else "%s_%d" % (name, k), c, np.column_stack([a2, d, b2]),
+                 (2 * r * fa, th * (1 - 0.03 * k), 2 * r * fb), region)
+
+
+def turned(bone, name, p0, p1, profile, region):
+    """Turned piece (post, leg, baluster, barrel, gun): profile = [(t0, d0), (t1, d1), ...] gives the diameter of
+    each length of round bar between t (0 at p0, 1 at p1)."""
+    p0, p1 = v3(*p0), v3(*p1)
+    for k in range(len(profile) - 1):
+        (ta, da), (tb, _) = profile[k], profile[k + 1]
+        a, b = p0 + (p1 - p0) * ta, p0 + (p1 - p0) * tb
+        disc(bone, "%s_%d" % (name, k), (a + b) / 2, b - a, da / 2, np.linalg.norm(b - a), region)
+
+
+def g_barrel(bone, name, p, axis=(0, 1, 0), h=0.75, r=0.27, wood="hull_mid"):
+    """Barrel with a real bulge: three round staves sections, iron hoops, end-grain heads."""
+    p, d = v3(*p), norm(v3(*axis))
+    q = lambda t: p + d * (h * t)  # noqa: E731
+    turned(bone, name, q(0.02), q(0.98), [(0, 1.7 * r), (0.22, 1.95 * r), (0.78, 1.7 * r), (1, 0)], wood)
+    for k, t in enumerate((0.12, 0.3, 0.7, 0.88)):
+        disc(bone, "%s_hoop_%d" % (name, k), q(t), d, (0.89 if t in (0.12, 0.88) else 1.0) * r, 0.05, "iron")
+    for k, t in enumerate((0.0, 0.985)):
+        disc(bone, "%s_head_%d" % (name, k), q(t + 0.0075), d, 0.78 * r, 0.015, "end_grain")
+
+
+def g_crate(bone, name, p, s=0.6, yaw=0.0, wood="dark_wood", batten="hull_light"):
+    """Crate: plank box, corner battens with rounded edges, two rope lashings."""
+    p = v3(*p)
+    R = ry(yaw)
+    add_cube(bone, name, p + v3(0, s / 2, 0), R, (s, s, s), wood)
+    for i, (dx, dz) in enumerate(((1, 1), (1, -1), (-1, 1), (-1, -1))):
+        c = p + R @ v3(dx * (s / 2 - 0.02), s / 2, dz * (s / 2 - 0.02))
+        add_cube(bone, "%s_batten_%d" % (name, i), c, R @ ry(math.pi / 4), (0.07, s + 0.02, 0.07), batten)
+    for i, t in enumerate((-0.25, 0.25)):
+        add_cube(bone, "%s_lash_%d" % (name, i), p + R @ v3(t * s, s / 2, 0), R, (0.04, s + 0.03, s + 0.03), "rope")
+
+
+def g_bench(bone, name, p, length, along, width=0.42, h=0.44):
+    """Bench: plank seat with a rounded front edge, turned legs, a stretcher."""
+    p, al = v3(*p), norm(v3(*along))
+    ac = np.cross(v3(0, 1, 0), al)
+    R = np.column_stack([al, v3(0, 1, 0), np.cross(al, v3(0, 1, 0))])
+    add_cube(bone, name + "_seat", p + v3(0, h - 0.04, 0), R, (length, 0.08, width), {"all": "hull_light", "+2": "rail"})
+    for s in (1, -1):
+        round_bar(bone, name + "_edge_%d" % (s > 0), p + v3(0, h - 0.045, 0) + ac * s * width / 2 - al * length / 2,
+                  p + v3(0, h - 0.045, 0) + ac * s * width / 2 + al * length / 2, 0.07, "hull_light")
+    for k, t in enumerate((-0.38, 0.38)):
+        b = p + al * (t * length)
+        turned(bone, "%s_leg_%d" % (name, k), b, b + v3(0, h - 0.08, 0), [(0, 0.11), (0.15, 0.08), (0.5, 0.11), (0.7, 0.08), (1, 0)],
+               "dark_wood")
+    round_bar(bone, name + "_stretcher", p + v3(0, 0.14, 0) - al * length * 0.38, p + v3(0, 0.14, 0) + al * length * 0.38, 0.06,
+              "dark_wood")
+
+
+def g_hatch(bone, name, cx, cz, w, l, y):
+    """Hatch: raised coaming with rounded top edges and corner posts, a slightly cambered grating inside."""
+    hc = 0.2
+    for k, (a, b) in enumerate(polyline([v3(-w / 2, 0, -l / 2), v3(w / 2, 0, -l / 2), v3(w / 2, 0, l / 2), v3(-w / 2, 0, l / 2)],
+                                        closed=True)):
+        a, b = a + v3(cx, y, cz), b + v3(cx, y, cz)
+        beam(bone, "%s_coaming_%d" % (name, k), a + v3(0, hc / 2, 0), b + v3(0, hc / 2, 0), hc, "dark_wood", width=0.12)
+        round_bar(bone, "%s_coaming_top_%d" % (name, k), a + v3(0, hc, 0), b + v3(0, hc, 0), 0.1, "rail", extend=-0.03)
+        add_cube(bone, "%s_corner_%d" % (name, k), a + v3(0, hc / 2 + 0.01, 0), ry(math.pi / 4), (0.15, hc + 0.02, 0.15), "dark_wood")
+    for s in (-1, 1):
+        board(bone, "%s_grating_%d" % (name, s > 0), v3(cx, y + hc + 0.02, cz - l / 2 + 0.06), v3(cx + s * (w / 2 - 0.06), y + hc - 0.04, cz - l / 2 + 0.06),
+              v3(cx, y + hc + 0.02, cz + l / 2 - 0.06), v3(cx + s * (w / 2 - 0.06), y + hc - 0.04, cz + l / 2 - 0.06), 0.05,
+              "grating", v3(0, 1, 0), overlap=1.0, inner="dark_wood")
+
+
+def g_capstan(bone, name, p, bars=6):
+    """Capstan: round base with its pawl ring, a waisted drum with whelps, a drumhead with its bar holes."""
+    p = v3(*p)
+    up = v3(0, 1, 0)
+    disc(bone, name + "_base", p + v3(0, 0.05, 0), up, 0.52, 0.1, "dark_wood", n=3)
+    disc(bone, name + "_pawl_ring", p + v3(0, 0.13, 0), up, 0.42, 0.06, "iron", n=3)
+    turned(bone, name + "_drum", p + v3(0, 0.12, 0), p + v3(0, 0.82, 0), [(0, 0.5), (0.3, 0.44), (0.7, 0.5), (1, 0)], "hull_mid")
+    for k in range(8):
+        a = 2 * math.pi * (k + 0.5) / 8
+        o = v3(math.cos(a), 0, math.sin(a))
+        beam(bone, "%s_whelp_%d" % (name, k), p + o * 0.29 + v3(0, 0.16, 0), p + o * 0.25 + v3(0, 0.78, 0), 0.08, "dark_wood",
+             width=0.07, up=o)
+    disc(bone, name + "_head", p + v3(0, 0.93, 0), up, 0.4, 0.22, "dark_wood", n=3)
+    disc(bone, name + "_cap", p + v3(0, 1.07, 0), up, 0.22, 0.06, "gold", n=3)
+    # the bars are unshipped when not heaving (the deck stays clear): only their square holes in the drumhead show
+    for k in range(bars):
+        a = 2 * math.pi * k / bars
+        o = v3(math.cos(a), 0, math.sin(a))
+        beam(bone, "%s_bar_hole_%d" % (name, k), p + o * 0.37 + v3(0, 0.93, 0), p + o * 0.43 + v3(0, 0.93, 0), 0.08, "iron")
+
+
+def g_cannon(bone, name, side, z, base_y, deck_y, outer):
+    """Bronze gun run out through its port, on a red truck carriage (cheeks, axletrees, four trucks, quoin),
+    with its breeching rope. outer(z, y) = outer surface of the hull side."""
+    y = base_y
+    xo = outer(z, y)
+    X = lambda d, yy=y: v3(side * (xo - d), yy, z)  # noqa: E731   (d = inboard distance from the outer planking)
+    n_in, ax = v3(-side, 0, 0), v3(0, 0, 1)
+    turned(bone, name + "_barrel", X(-0.14), X(1.28),
+           [(0, 0.26), (0.06, 0.2), (0.45, 0.24), (0.52, 0.27), (0.75, 0.31), (0.97, 0.33), (1, 0)], "bronze")
+    round_bar(bone, name + "_cascabel", X(1.28), X(1.42), 0.1, "bronze")
+    disc(bone, name + "_button", X(1.44), n_in, 0.07, 0.07, "bronze")
+    round_bar(bone, name + "_trunnions", X(0.78) - ax * 0.24, X(0.78) + ax * 0.24, 0.09, "bronze")
+    yc = (deck_y + y) / 2
+    for s in (-1, 1):
+        zz = ax * s * 0.19
+        beam(bone, "%s_cheek_f_%d" % (name, s > 0), X(0.42, yc + 0.04) + zz, X(0.95, yc + 0.04) + zz, y - deck_y - 0.04, "red_paint",
+             width=0.08)
+        beam(bone, "%s_cheek_b_%d" % (name, s > 0), X(0.95, yc - 0.06) + zz, X(1.32, yc - 0.06) + zz, y - deck_y - 0.26, "red_paint",
+             width=0.08)
+        for k, d in enumerate((0.55, 1.2)):
+            disc(bone, "%s_truck_%d%d" % (name, s > 0, k), X(d, deck_y + 0.12) + ax * s * 0.27, ax, 0.12, 0.06, "dark_wood")
+    for k, d in enumerate((0.55, 1.2)):
+        round_bar(bone, "%s_axle_%d" % (name, k), X(d, deck_y + 0.12) - ax * 0.3, X(d, deck_y + 0.12) + ax * 0.3, 0.07, "dark_wood")
+    beam(bone, name + "_bed", X(0.95, deck_y + 0.2), X(1.32, deck_y + 0.2), 0.06, "dark_wood", width=0.3)
+    beam(bone, name + "_quoin", X(1.1, y - 0.2), X(1.32, y - 0.24), 0.07, "hull_light", width=0.2)
+    for s in (-1, 1):
+        beam(bone, "%s_breeching_%d" % (name, s > 0), X(1.42), X(0.15, y + 0.05) + ax * s * 0.55, 0.045, "rope")
+
+
+def g_boat(bone, name, c, length=3.4, beam_=1.35, depth=0.55):
+    """Ship's boat stowed on chocks: clinker strakes (white with a red sheer strake), rounded stem, small transom,
+    gunwales, thwarts, a pair of oars."""
+    c = v3(*c)
+    ts = np.linspace(-1, 1, 9)
+
+    def half(t):
+        return 0.5 * beam_ * max(0.0, 1 - abs(t) ** (2.2 if t > 0 else 3.0)) ** 0.6 + (0.18 if t < 0 else 0.0) * (abs(t) ** 4)
+
+    def sheer(t):
+        return depth + 0.14 * t * t
+
+    def sec(t, s):
+        b = half(t)
+        pts = [(0.04, 0.0), (0.55 * b, 0.06), (0.88 * b, 0.22), (b, sheer(t))]
+        return [c + v3(s * max(0.04, x), yy, t * length / 2) for x, yy in pts]
+    for s in (1, -1):
+        for i in range(len(ts) - 1):
+            A, B = sec(ts[i], s), sec(ts[i + 1], s)
+            for k in range(3):
+                board(bone, "%s_strake_%d%d%d" % (name, s > 0, i, k), A[k], A[k + 1], B[k], B[k + 1], 0.04, "boat", v3(s, -0.3, 0),
+                      inner="hull_light")
+            beam(bone, "%s_gunwale_%d%d" % (name, s > 0, i), A[3] + v3(0, 0.02, 0), B[3] + v3(0, 0.02, 0), 0.06, "rail", width=0.07,
+                 extend=0.02)
+    beam(bone, name + "_keel", c + v3(0, -0.03, -length / 2), c + v3(0, -0.03, length / 2), 0.07, "dark_wood", width=0.08)
+    stem = bezier(c + v3(0, 0, length / 2 - 0.1), c + v3(0, 0.05, length / 2 + 0.12), c + v3(0, sheer(1) + 0.08, length / 2 + 0.1), 3)
+    for j, (a, b) in enumerate(polyline(stem)):
+        beam(bone, "%s_stem_%d" % (name, j), a, b, 0.08, "dark_wood", width=0.08, extend=0.03)
+    zt = -length / 2
+    add_cube(bone, name + "_transom", c + v3(0, sheer(-1) / 2 + 0.02, zt), EYE, (2 * half(-1) + 0.06, sheer(-1) - 0.02, 0.05), "boat")
+    for k, t in enumerate((-0.55, 0.0, 0.5)):
+        w = 2 * half(t) * 0.92
+        add_cube(bone, "%s_thwart_%d" % (name, k), c + v3(0, depth - 0.12, t * length / 2), EYE, (w, 0.05, 0.22), "hull_light")
+    add_cube(bone, name + "_floor", c + v3(0, 0.08, 0), EYE, (0.5, 0.03, length * 0.8), "deck")
+    for s in (1, -1):
+        round_bar(bone, "%s_oar_%d" % (name, s > 0), c + v3(s * 0.22, depth - 0.06, -length * 0.42), c + v3(s * 0.22, depth - 0.06, length * 0.36),
+                  0.06, "hull_light")
+        add_cube(bone, "%s_oar_blade_%d" % (name, s > 0), c + v3(s * 0.22, depth - 0.06, length * 0.36), EYE, (0.14, 0.03, 0.4), "hull_light")
+
+
+def g_fife_rail(bone, name, x, z, y, half, pins=3):
+    """Pin rail round a mast foot: turned posts, a moulded rail, round belaying pins with coiled falls."""
+    corners = [v3(x + sx * half, 0, z + sz * half) for sx, sz in ((1, 1), (1, -1), (-1, -1), (-1, 1))]
+    top = y + 0.85
+    for k, cpt_ in enumerate(corners):
+        turned(bone, "%s_post_%d" % (name, k), cpt_ + v3(0, y, 0), cpt_ + v3(0, top + 0.12, 0),
+               [(0, 0.16), (0.1, 0.12), (0.45, 0.15), (0.6, 0.12), (0.92, 0.16), (1, 0)], "dark_wood")
+    for k, (a, b) in enumerate(polyline(corners, closed=True)):
+        cap_rail(bone, "%s_rail_%d" % (name, k), a + v3(0, top, 0), b + v3(0, top, 0), 0.1, 0.16, "rail", extend=0.06)
+        for j in range(pins):
+            q = a + (b - a) * (j + 1) / (pins + 1) + v3(0, top, 0)
+            round_bar(bone, "%s_pin_%d%d" % (name, k, j), q - v3(0, 0.16, 0), q + v3(0, 0.13, 0), 0.04, "hull_light")
+            if j == 1:
+                o = norm(v3(q[0] - x, 0, q[2] - z))
+                disc(bone, "%s_fall_%d" % (name, k), q + o * 0.06 - v3(0, 0.28, 0), o, 0.11, 0.05, "rope")
+
+
+def g_pin_rail(bone, name, side, z0, z1, y, inner_x, pins=6):
+    """Pin rail on the inside of the bulwark: a rounded rail on brackets, round belaying pins with coils."""
+    a, b = v3(side * (inner_x(z0) - 0.1), y, z0), v3(side * (inner_x(z1) - 0.1), y, z1)
+    cap_rail(bone, name, a, b, 0.09, 0.16, "rail", extend=0.04)
+    for k, t in enumerate((0.1, 0.9)):
+        q = a + (b - a) * t
+        beam(bone, "%s_bracket_%d" % (name, k), q + v3(side * 0.06, -0.05, 0), q + v3(side * 0.06, -0.3, 0), 0.05, "dark_wood", width=0.08)
+    for j in range(pins):
+        q = a + (b - a) * (j + 0.5) / pins
+        round_bar(bone, "%s_pin_%d" % (name, j), q - v3(0, 0.15, 0), q + v3(0, 0.12, 0), 0.04, "hull_light")
+        if j % 2 == 0:
+            disc(bone, "%s_coil_%d" % (name, j), q - v3(side * 0.07, 0.3, 0), v3(side, 0, 0), 0.11, 0.05, "rope")
+
+
+def g_bitts(bone, name, x, z, y, h=0.85):
+    """Pair of bitts: two stout posts with rounded heads and a cross piece, a turn of cable round them."""
+    for s in (1, -1):
+        p = v3(s * x, y, z)
+        round_bar(bone, "%s_post_%d" % (name, s > 0), p, p + v3(0, h, 0), 0.24, "dark_wood")
+        disc(bone, "%s_head_%d" % (name, s > 0), p + v3(0, h + 0.03, 0), v3(0, 1, 0), 0.13, 0.06, "dark_wood")
+    round_bar(bone, name + "_cross", v3(-x - 0.18, y + h * 0.62, z - 0.12), v3(x + 0.18, y + h * 0.62, z - 0.12), 0.16, "hull_mid")
+    round_bar(bone, name + "_cable", v3(-x, y + h * 0.35, z - 0.13), v3(x, y + h * 0.35, z - 0.13), 0.12, "rope")
+
+
+def g_anchor(bone, name, top, bottom, flat):
+    """Anchor hanging at the bow: ring, wooden stock with iron bands, round shank, curved arms with palms."""
+    top, bottom, flat = v3(*top), v3(*bottom), norm(v3(*flat))
+    d = norm(bottom - top)
+    round_bar(bone, name + "_shank", top, bottom, 0.12, "iron")
+    disc(bone, name + "_ring", top - d * 0.12, flat, 0.12, 0.04, "iron")
+    st = np.cross(d, flat)
+    round_bar(bone, name + "_stock", top + d * 0.12 - st * 0.5, top + d * 0.12 + st * 0.5, 0.11, "dark_wood")
+    for s in (1, -1):
+        pts = [bottom, bottom + flat * s * 0.32 - d * 0.04, bottom + flat * s * 0.5 - d * 0.32]
+        for j, (a, b) in enumerate(polyline(pts)):
+            round_bar(bone, "%s_arm_%d%d" % (name, s > 0, j), a, b, 0.11, "iron", extend=0.03)
+        tip = pts[-1]
+        e = norm(flat * s + d * 1.6)
+        add_cube(bone, "%s_palm_%d" % (name, s > 0), tip + d * 0.08 - flat * s * 0.04, np.column_stack([st, e, np.cross(st, e)]),
+                 (0.22, 0.2, 0.04), "iron")
+
+
 # ---------------------------------------------------------------- the galleon
 def build():
     root = Bone("galleon")
@@ -734,6 +966,12 @@ def build():
             y = gs.rail_y(zm) - 0.22
             beam(hull, "channel_%s_%s" % (tag, sn), (side * (castle_x(z0, y) + 0.16), y, z0), (side * (castle_x(z1, y) + 0.16), y, z1),
                  0.1, "dark_wood", width=0.36)
+            # rounded outer edge (moulding) and two supporting knees under the channel
+            round_bar(hull, "channel_edge_%s_%s" % (tag, sn), (side * (castle_x(z0, y) + 0.33), y + 0.01, z0),
+                      (side * (castle_x(z1, y) + 0.33), y + 0.01, z1), 0.12, "wood_trim", extend=0.02)
+            for j, zk in enumerate((z0 + 0.35, z1 - 0.35)):
+                beam(hull, "channel_knee_%s_%s%d" % (tag, sn, j), (side * (castle_x(zk, y - 0.45) + 0.03), y - 0.45, zk),
+                     (side * (castle_x(zk, y) + 0.28), y - 0.04, zk), 0.08, "dark_wood", width=0.1)
 
     # ---- decks
     def deck_span(bone, z0, z1, n, y, tag, under="dark_wood"):
@@ -741,8 +979,11 @@ def build():
             za = z0 + (z1 - z0) * j / n
             zb = z0 + (z1 - z0) * (j + 1) / n
             w = max(gs.inner_half_width(za), gs.inner_half_width(zb)) + 0.1
-            add_cube(bone, "deck_%s%d" % (tag, j), (0, y - 0.075, (za + zb) / 2), EYE, (2 * w, 0.15, zb - za + 0.02),
-                     {"all": "deck", "-2": under})
+            # turned a quarter round: the planks of the texture run fore and aft
+            # (two halves, so that the planks keep their real width)
+            for h_, s_ in ((0, 1), (1, -1)):
+                add_cube(bone, "deck_%s%d%s" % (tag, j, "_b" if h_ else ""), (s_ * w / 2, y - 0.075, (za + zb) / 2), DECK_AXES,
+                         (zb - za + 0.02, 0.15, w), {"all": "deck", "-2": under})
 
     deck_span(deck, -17.28, gs.FORECASTLE_START, 14, main_y, "main")
     deck_span(castle_fore, gs.FORECASTLE_START, gs.DECK_MAX_Z, 4, fc_y, "fore")
@@ -773,23 +1014,51 @@ def build():
              (2 * gs.DOOR_HALF, slab_bottom - gs.DOOR_TOP, bz1 - bz0), "wood_honey")
     add_cube(cabin, "bulkhead_door_arch", (0, gs.DOOR_TOP + 0.06, bz1 + 0.03), EYE, (2 * gs.DOOR_HALF + 0.3, 0.12, 0.1), "gold")
     # slab edge (front of the quarterdeck)
-    add_cube(castle_aft, "quarterdeck_edge", (0, qd_y - 0.15, bz1 + 0.02), EYE, (2 * bw, 0.3, 0.06), "carving", stretch=True)
+    for j in range(4):
+        x0_ = -bw + 2 * bw * j / 4
+        add_cube(castle_aft, "quarterdeck_edge_%d" % j, (x0_ + bw / 4, qd_y - 0.15, bz1 + 0.02), EYE, (bw / 2, 0.3, 0.06),
+                 {"all": "carving", "+2": "wood_trim", "-2": "wood_trim"}, stretch=True)
 
     # ---- great cabin interior: chairs (seats), lanterns, chest, table against the side
     for side, sn in SIDES:
+        # armchairs (seats): turned legs, velvet cushion, carved back with a gilt crest rail
         x, z = side * 2.2, -13.0
         add_cube(cabin, "chair_seat_" + sn, (x, main_y + 0.42, z), EYE, (0.55, 0.08, 0.55), "hull_light")
-        add_cube(cabin, "chair_back_" + sn, (x + side * 0.24, main_y + 0.8, z), EYE, (0.08, 0.75, 0.55), "wood_honey")
+        add_cube(cabin, "chair_cushion_" + sn, (x, main_y + 0.49, z), EYE, (0.48, 0.07, 0.48), "velvet")
+        add_cube(cabin, "chair_back_" + sn, (x + side * 0.24, main_y + 0.82, z), EYE, (0.07, 0.66, 0.46), {"all": "wood_honey", "-1" if side > 0 else "+1": "velvet"})
+        round_bar(cabin, "chair_crest_" + sn, (x + side * 0.24, main_y + 1.17, z - 0.3), (x + side * 0.24, main_y + 1.17, z + 0.3), 0.08, "gold")
         for dx in (-0.22, 0.22):
             for dz in (-0.22, 0.22):
-                add_cube(cabin, "chair_leg_%s%d%d" % (sn, int(dx > 0), int(dz > 0)), (x + dx, main_y + 0.19, z + dz), EYE,
-                         (0.07, 0.38, 0.07), "dark_wood")
+                top_y = main_y + (1.12 if dx * side > 0 else 0.4)
+                turned(cabin, "chair_leg_%s%d%d" % (sn, int(dx > 0), int(dz > 0)), (x + dx, main_y, z + dz), (x + dx, top_y, z + dz),
+                       [(0, 0.07), (0.15, 0.09), (0.35, 0.06), (1, 0)] if top_y < main_y + 0.5 else [(0, 0.07), (0.1, 0.09), (0.2, 0.06), (1, 0)],
+                       "dark_wood")
+        for j, zw in enumerate((-15.4, -13.0, -10.6)):
+            # velvet curtains drawn either side of the cabin windows, a gilt pelmet over them
+            for s_ in (-1, 1):
+                inner_decal(cabin, "cabin_curtain_%s%d%d" % (sn, j, s_ > 0), zw + s_ * 0.42, 2.12, side, 0.22, 1.0, "curtain", wall=0.15,
+                            th=0.05)
+            inner_decal(cabin, "cabin_pelmet_%s%d" % (sn, j), zw, 2.68, side, 1.12, 0.14, "carving", wall=0.15, th=0.07)
+        # cushioned locker seat under the stern windows
+        x0, x1 = 0.95, 2.05
+        zs = transom_z(x1, main_y + 0.5) + 0.2
+        add_cube(cabin, "stern_seat_" + sn, (side * (x0 + x1) / 2, main_y + 0.22, zs + 0.22), EYE, (x1 - x0, 0.44, 0.42),
+                 {"all": "wood_honey", "+3": "panel"}, stretch=True)
+        add_cube(cabin, "stern_seat_cushion_" + sn, (side * (x0 + x1) / 2, main_y + 0.49, zs + 0.21), EYE, (x1 - x0 - 0.04, 0.1, 0.4), "velvet")
+        round_bar(cabin, "stern_seat_edge_" + sn, (side * x0, main_y + 0.43, zs + 0.43), (side * x1, main_y + 0.43, zs + 0.43), 0.06, "gold")
         add_cube(lanterns, "cabin_lantern_" + sn, (side * 1.6, 2.5, bz0 - 0.18), EYE, (0.3, 0.42, 0.3),
                  {"all": "lantern", "+2": "iron", "-2": "iron"}, stretch=True)
         add_cube(lanterns, "glow_cabin_lantern_" + sn, (side * 1.6, 2.5, bz0 - 0.18), EYE, (0.2, 0.3, 0.2), "glow", stretch=True)
     add_cube(cabin, "cabin_chest", (2.6, main_y + 0.3, -16.3), EYE, (0.9, 0.6, 0.55), {"all": "dark_wood", "+2": "iron"})
-    add_cube(cabin, "cabin_ceiling_beam", (0, slab_bottom - 0.1, -12.0), EYE, (2 * 3.7, 0.2, 0.25), "dark_wood")
-    add_cube(cabin, "cabin_ceiling_beam2", (0, slab_bottom - 0.1, -15.0), EYE, (2 * 3.1, 0.2, 0.25), "dark_wood")
+    # deck beams under the quarterdeck: moulded (rounded lower edge), with hanging knees against the sides
+    for j, zb in enumerate((-9.6, -10.85, -12.0, -13.6, -15.0, -16.3)):
+        hwb = gs.inner_half_width(zb) - 0.02
+        beam(cabin, "cabin_ceiling_beam_%d" % j, (-hwb, slab_bottom - 0.08, zb), (hwb, slab_bottom - 0.08, zb), 0.16, "dark_wood", width=0.24)
+        round_bar(cabin, "cabin_ceiling_bead_%d" % j, (-hwb, slab_bottom - 0.17, zb), (hwb, slab_bottom - 0.17, zb), 0.1, "dark_wood",
+                  extend=-0.05)
+        for side in (1, -1):
+            beam(cabin, "cabin_knee_%d%d" % (j, side > 0), (side * (hwb - 0.42), slab_bottom - 0.14, zb), (side * (hwb - 0.04), slab_bottom - 0.62, zb),
+                 0.1, "dark_wood", width=0.14)
     # furnishing: carpet, chart table and dining table by the two chairs, bunk, bookshelf,
     # weapon rack, globe, paintings between the windows, lanterns hanging from the beams
     sd.rug(gg, cabin, "cabin_rug", (0, main_y, -13.8), 1.9, 4.6)
@@ -827,16 +1096,16 @@ def build():
                      EYE, (gs.FC_STAIR_X1 - gs.FC_STAIR_X0, top - main_y, d), {"all": "dark_wood", "+2": "deck"})
     for side, sn in SIDES:
         # stair hand rails (inner side)
-        beam(deck, "qd_handrail_" + sn, (side * gs.STAIR_X0, main_y + 0.9, gs.QD_STAIR_START), (side * gs.STAIR_X0, qd_y + 0.9, gs.BULKHEAD_Z),
+        round_bar(deck, "qd_handrail_" + sn, (side * gs.STAIR_X0, main_y + 0.9, gs.QD_STAIR_START), (side * gs.STAIR_X0, qd_y + 0.9, gs.BULKHEAD_Z),
              0.08, "rail")
-        beam(deck, "fc_handrail_" + sn, (side * gs.FC_STAIR_X0, main_y + 0.9, gs.FC_STAIR_START),
+        round_bar(deck, "fc_handrail_" + sn, (side * gs.FC_STAIR_X0, main_y + 0.9, gs.FC_STAIR_START),
              (side * gs.FC_STAIR_X0, fc_y + 0.9, gs.FORECASTLE_START), 0.08, "rail")
 
     def guard_rail(bone, tag, half, y, z):
-        beam(bone, tag + "_top", (-half, y + gs.RAIL_HEIGHT - 0.05, z), (half, y + gs.RAIL_HEIGHT - 0.05, z), 0.1, "gold",
-             width=gs.RAIL_THICK, extend=0.05)
+        cap_rail(bone, tag + "_top", (-half, y + gs.RAIL_HEIGHT - 0.05, z), (half, y + gs.RAIL_HEIGHT - 0.05, z), 0.1, gs.RAIL_THICK + 0.04,
+                 "gold", extend=0.05)
         for j, x in enumerate(np.linspace(-half, half, 7)):
-            beam(bone, "%s_baluster_%d" % (tag, j), (x, y, z), (x, y + gs.RAIL_HEIGHT - 0.1, z), 0.1, "hull_light")
+            round_bar(bone, "%s_baluster_%d" % (tag, j), (x, y, z), (x, y + gs.RAIL_HEIGHT - 0.1, z), 0.1, "hull_light")
 
     guard_rail(castle_aft, "qd_rail", gs.STAIR_X0 - 0.1, qd_y, gs.BULKHEAD_Z - gs.RAIL_THICK / 2)
     guard_rail(castle_fore, "fc_rail", gs.FC_STAIR_X0 - 0.1, fc_y, gs.FORECASTLE_START + gs.RAIL_THICK / 2)
@@ -844,29 +1113,39 @@ def build():
     # ---- main deck life: benches (seats), hatches, capstan-less coils, barrels
     for k, z in enumerate(gs.BENCH_Z):
         for side, sn in SIDES:
-            x = side * 3.1
-            add_cube(deck, "bench_%s%d" % (sn, k), (x, main_y + 0.42, z), EYE, (0.5, 0.1, 1.0), {"all": "hull_light", "+2": "rail"})
-            for dz in (-0.38, 0.38):
-                add_cube(deck, "bench_leg_%s%d_%d" % (sn, k, int(dz > 0)), (x, main_y + 0.19, z + dz), EYE, (0.12, 0.38, 0.12),
-                         "dark_wood")
-    add_cube(deck, "hatch_main", (0, main_y + 0.04, -1.5), EYE, (1.6, 0.08, 1.6), {"all": "dark_wood", "+2": "grating"})
-    add_cube(deck, "hatch_fore", (0, main_y + 0.04, 6.0), EYE, (1.3, 0.08, 1.3), {"all": "dark_wood", "+2": "grating"})
-    add_cube(deck, "hatch_aft", (0, main_y + 0.04, -5.0), EYE, (1.3, 0.08, 1.3), {"all": "dark_wood", "+2": "grating"})
-    # deck details: pin rails at the mast feet, barrels, crates, coils, bucket, the ship's bell
-    sd.fife_rail(gg, deck, "fife_main", 0.0, gs.MAIN_MAST_Z, main_y, half=0.95)
-    sd.fife_rail(gg, castle_fore, "fife_fore", 0.0, gs.FORE_MAST_Z, fc_y, half=0.75)
-    sd.barrel(gg, deck, "barrel_w0", (3.45, main_y, -3.0))
-    sd.lying_barrel(gg, deck, "barrel_w1", (-3.3, main_y, -2.9), yaw=0.3)
-    sd.crate(gg, deck, "crate_w0", (-3.25, main_y, 5.5), s=0.6, yaw=0.15)
-    sd.crate(gg, deck, "crate_w1", (-3.2, main_y + 0.6, 5.45), s=0.45, yaw=-0.2)
+            g_bench(deck, "bench_%s%d" % (sn, k), (side * 3.1, main_y, z), 1.0, (0, 0, 1), width=0.5)
+    # benches under the other seats: quarterdeck (inboard of the mizzen shrouds) and forecastle
+    for side, sn in SIDES:
+        g_bench(castle_aft, "qd_bench_" + sn, (side * 2.75, qd_y, -11.4), 1.0, (0, 0, 1))
+        g_bench(castle_fore, "fc_bench_" + sn, (side * 2.25, fc_y, 11.6), 1.0, (0, 0, 1))
+    g_bench(castle_fore, "fc_bench_bow", (0, fc_y, 15.45), 1.1, (1, 0, 0))
+    g_hatch(deck, "hatch_main", 0, -1.5, 1.6, 1.6, main_y)
+    g_hatch(deck, "hatch_fore", 0, 6.0, 1.3, 1.3, main_y)
+    g_hatch(deck, "hatch_aft", 0, -5.0, 1.3, 1.3, main_y)
+    g_capstan(deck, "capstan", (0, main_y, -3.3))
+    # the ship's boat stowed on chocks over the fore hatch
+    for k, z in enumerate((5.0, 7.0)):
+        add_cube(deck, "boat_chock_%d" % k, (0, main_y + 0.15, z), EYE, (1.0, 0.3, 0.16), "dark_wood")
+    g_boat(deck, "boat", (0, main_y + 0.3, 6.0))
+    # deck details: pin rails at the mast feet and along the bulwarks, bitts, barrels, crates, coils, bucket, the bell
+    g_fife_rail(deck, "fife_main", 0.0, gs.MAIN_MAST_Z, main_y, 0.95)
+    g_fife_rail(castle_fore, "fife_fore", 0.0, gs.FORE_MAST_Z, fc_y, 0.75, pins=2)
+    for side, sn in SIDES:
+        g_pin_rail(deck, "pin_rail_main_" + sn, side, -0.9, 2.5, gs.sheer_y(0.8) - 0.22, gs.inner_half_width)
+        g_pin_rail(castle_fore, "pin_rail_fore_" + sn, side, 11.2, 13.2, gs.FC_RAIL_Y - 0.25, gs.inner_half_width, pins=4)
+    g_bitts(deck, "bitts", 1.0, gs.FORECASTLE_START - 0.35, main_y)
+    g_barrel(deck, "barrel_w0", (3.25, main_y, 1.25))
+    g_barrel(deck, "barrel_w1", (3.55, main_y, 1.75), h=0.6, r=0.22)
+    g_barrel(deck, "barrel_w2", (2.95, main_y + 0.27, 1.75), axis=(-0.2, 0, 1), h=0.7, r=0.25)
+    g_crate(deck, "crate_w0", (-3.25, main_y, 1.35), s=0.6, yaw=0.15)
+    g_crate(deck, "crate_w1", (-3.2, main_y + 0.6, 1.3), s=0.45, yaw=-0.2)
     sd.rope_coil(gg, deck, "coil_main", (1.5, main_y, 3.1))
     sd.rope_coil(gg, deck, "coil_main2", (-1.5, main_y, 0.1))
     sd.rope_coil(gg, castle_fore, "coil_fore", (1.2, fc_y, 14.6), r=0.28)
     sd.bucket(gg, deck, "bucket", (1.2, main_y, -0.2))
     sd.bell(gg, castle_fore, "bell", (0.0, fc_y, 11.0))
-    for j, (x, z) in enumerate(((-3.3, 9.3), (3.3, 9.6))):
-        add_cube(deck, "barrel_%d" % j, (x * 0.85, main_y + 0.35, z - 0.9), ry(0.5 * j), (0.5, 0.7, 0.5),
-                 {"all": "hull_mid", "+2": "end_grain", "-2": "end_grain"})
+    for j, x in enumerate((-0.95, 0.95)):
+        g_barrel(deck, "barrel_%d" % j, (x, main_y, 9.35), h=0.7, r=0.25)
 
     # ---- gun ports: frame, lid (bone: can open later), empty cannon bones for a future combat system
     for side, sn in SIDES:
@@ -882,7 +1161,10 @@ def build():
             centre = hinge + lid_dir * 0.29
             axes = np.column_stack([u, np.cross(n, u) * 0 + norm(-lid_dir), norm(np.cross(u, -lid_dir))])
             add_cube(lid, "gunport_lid_%s%d" % (tag, k + 1), centre, axes, (0.6, 0.56, 0.08), "hull_mid")
-            Bone("cannon_%s%d" % (tag, k + 1), origin=p - n * 0.6 + v3(0, -0.1, 0), parent=guns)
+            cb = Bone("cannon_%s%d" % (tag, k + 1), origin=p - n * 0.6 + v3(0, -0.1, 0), parent=guns)
+            # the gun itself, run out (none at the port by the quarterdeck stairs: their first steps stand there)
+            if z > gs.QD_STAIR_START + 0.4:
+                g_cannon(cb, "cannon_%s%d" % (tag, k + 1), side, z, gs.GUNPORT_Y - 0.05, main_y, outer_x)
             # inner side of the bulwark
             pi_ = v3(side * (outer_x(z, gs.GUNPORT_Y) - 0.13), gs.GUNPORT_Y, z)
             add_cube(guns, "gunport_inner_%s%d" % (tag, k + 1), pi_, np.column_stack([u, v, v3(side, 0, 0)]),
@@ -1054,19 +1336,39 @@ def build():
 
     # ---- helm: wheel on a pedestal (bone helm_wheel turns with "steer")
     hub = v3(0, qd_y + 1.05, gs.HELM_Z)
-    add_cube(castle_aft, "helm_pedestal", (0, qd_y + 0.5, gs.HELM_Z + 0.12), EYE, (0.3, 1.0, 0.3), "dark_wood")
-    add_cube(castle_aft, "helm_pedestal_base", (0, qd_y + 0.08, gs.HELM_Z + 0.12), EYE, (0.55, 0.16, 0.55), "gold")
+    hz = gs.HELM_Z + 0.14
+    disc(castle_aft, "helm_pedestal_base", (0, qd_y + 0.06, hz), (0, 1, 0), 0.3, 0.12, "gold", n=3)
+    turned(castle_aft, "helm_pedestal", (0, qd_y + 0.1, hz), (0, hub[1] + 0.1, hz),
+           [(0, 0.34), (0.12, 0.24), (0.3, 0.3), (0.42, 0.22), (0.85, 0.26), (0.95, 0.3), (1, 0)], "dark_wood")
+    round_bar(castle_aft, "helm_axle", (0, hub[1], hz + 0.1), (0, hub[1], gs.HELM_Z - 0.12), 0.09, "iron")
     wheel = Bone("helm_wheel", origin=hub, parent=castle_aft)
     radius = 0.62
-    add_cube(wheel, "helm_hub", hub, EYE, (0.2, 0.2, 0.22), "gold")
+    zax = v3(0, 0, 1)
+    disc(wheel, "helm_hub", hub, zax, 0.13, 0.22, "gold", n=3)
+    disc(wheel, "helm_hub_boss", hub - zax * 0.13, zax, 0.07, 0.06, "gold")
     for k in range(8):
         a = 2 * math.pi * k / 8
         dvec = v3(math.cos(a), math.sin(a), 0)
-        beam(wheel, "helm_spoke_%d" % k, hub, hub + dvec * (radius + 0.22), 0.07, "hull_light", up=v3(0, 0, 1))
-        a2 = 2 * math.pi * (k + 1) / 8
-        p0 = hub + dvec * radius
+        round_bar(wheel, "helm_spoke_%d" % k, hub + dvec * 0.1, hub + dvec * radius, 0.065, "hull_light")
+        turned(wheel, "helm_handle_%d" % k, hub + dvec * (radius + 0.04), hub + dvec * (radius + 0.3),
+               [(0, 0.06), (0.25, 0.09), (0.55, 0.065), (0.85, 0.08), (1, 0)], "hull_light")
+    for k in range(16):
+        a, a2 = 2 * math.pi * k / 16, 2 * math.pi * (k + 1) / 16
+        p0 = hub + v3(math.cos(a), math.sin(a), 0) * radius
         p1 = hub + v3(math.cos(a2), math.sin(a2), 0) * radius
-        beam(wheel, "helm_rim_%d" % k, p0, p1, 0.08, "dark_wood", width=0.1, up=v3(0, 0, 1), extend=0.04)
+        beam(wheel, "helm_rim_%d" % k, p0, p1, 0.09, "dark_wood", width=0.1, up=v3(0, 0, 1), extend=0.02)
+        q0 = hub + v3(math.cos(a), math.sin(a), 0) * (radius - 0.09)
+        q1 = hub + v3(math.cos(a2), math.sin(a2), 0) * (radius - 0.09)
+        beam(wheel, "helm_ring_%d" % k, q0, q1, 0.035, "gold", width=0.05, up=v3(0, 0, 1), extend=0.01)
+    # binnacle beside the wheel: an eight-sided cabinet, the compass under a brass hood, two little lamps
+    bn = v3(1.05, qd_y, gs.HELM_Z + 0.35)
+    disc(castle_aft, "binnacle_foot", bn + v3(0, 0.05, 0), (0, 1, 0), 0.27, 0.1, "dark_wood")
+    disc(castle_aft, "binnacle", bn + v3(0, 0.5, 0), (0, 1, 0), 0.22, 0.8, "wood_honey")
+    disc(castle_aft, "binnacle_top", bn + v3(0, 0.92, 0), (0, 1, 0), 0.25, 0.06, "gold")
+    disc(castle_aft, "binnacle_card", bn + v3(0, 0.96, 0), (0, 1, 0), 0.17, 0.02, {"all": "gold", "+2": "compass"})
+    for s in (1, -1):
+        add_cube(castle_aft, "glow_binnacle_lamp_%d" % (s > 0), bn + v3(s * 0.25, 0.8, 0), EYE, (0.08, 0.12, 0.08), "glow", stretch=True)
+        add_cube(castle_aft, "binnacle_lamp_cap_%d" % (s > 0), bn + v3(s * 0.25, 0.88, 0), EYE, (0.1, 0.04, 0.1), "iron")
 
     # ---- rudder (bone "rudder" turns with "steer"), hinged on the transom
     rpivot = v3(0, 0.0, -gs.HALF_LENGTH - 0.12)
@@ -1131,40 +1433,67 @@ def build():
     for side, sn in SIDES:
         z = 14.6
         x = side * (hw(z) + 0.15)
-        beam(bow, "anchor_shank_" + sn, (x, 3.3, z), (x, 1.6, z - 0.1), 0.14, "iron")
-        beam(bow, "anchor_stock_" + sn, (x, 3.15, z - 0.45), (x, 3.15, z + 0.45), 0.1, "dark_wood")
-        beam(bow, "anchor_arm_a_" + sn, (x, 1.6, z - 0.1), (x, 2.05, z - 0.6), 0.12, "iron")
-        beam(bow, "anchor_arm_b_" + sn, (x, 1.6, z - 0.1), (x, 2.05, z + 0.4), 0.12, "iron")
-        add_cube(bow, "hawse_" + sn, side_frame(16.0, 2.5, side)[0] + v3(side * 0.03, 0, 0), EYE, (0.06, 0.25, 0.25), "iron")
+        g_anchor(bow, "anchor_" + sn, (x, 3.3, z), (x, 1.6, z - 0.1), (0, 0, 1))
+        disc(bow, "hawse_" + sn, side_frame(16.0, 2.5, side)[0] + v3(side * 0.03, 0, 0), (side, 0, 0), 0.14, 0.06, "iron")
 
     # ---- masts, tops, yards
     def mast(name, z, foot, top, lower_top, thick):
         mb = Bone(name, origin=(0, foot, z), parent=root)
         round_bar(mb, name + "_lower", (0, foot - 0.2, z), (0, lower_top + 0.6, z), thick, "mast")
         round_bar(mb, name + "_upper", (0, lower_top - 0.4, z), (0, top, z), thick * 0.62, "mast")
-        add_cube(mb, name + "_partners", (0, foot + 0.12, z), EYE, (thick + 0.35, 0.24, thick + 0.35), "dark_wood")
-        add_cube(mb, name + "_cap", (0, top - 0.08, z), EYE, (thick * 0.62 + 0.15, 0.22, thick * 0.62 + 0.15), "gold")
-        # fighting top (round platform) at the head of the lower mast
+        disc(mb, name + "_partners", (0, foot + 0.1, z), (0, 1, 0), (thick + 0.35) / 2, 0.2, "dark_wood", n=3)
+        disc(mb, name + "_coat", (0, foot + 0.24, z), (0, 1, 0), thick / 2 + 0.07, 0.1, "gold", n=3)
+        disc(mb, name + "_cap", (0, top - 0.08, z), (0, 1, 0), (thick * 0.62 + 0.15) / 2, 0.22, "gold", n=3)
+        # wooldings: rope bands round the lower mast
+        for k, y in enumerate(np.linspace(foot + 1.6, lower_top - 1.2, 4)):
+            round_bar(mb, "%s_woolding_%d" % (name, k), (0, y - 0.07, z), (0, y + 0.07, z), thick * 1.1, "rope")
+        # round fighting top: trestle and cross trees, a platform of radial boards, a painted rim with a gilt cap,
+        # and the futtock shrouds under it
         r = 0.95 + thick
-        for k in range(8):
-            a = 2 * math.pi * (k + 0.5) / 8
-            c = v3(math.cos(a) * r * 0.62, lower_top, z + math.sin(a) * r * 0.62)
-            add_cube(mb, "%s_top_%d" % (name, k), c, ry(-a), (r * 0.8, 0.12, r * 0.75), {"all": "dark_wood", "+2": "deck"})
-        for k in range(8):
-            a = 2 * math.pi * k / 8
-            a2 = 2 * math.pi * (k + 1) / 8
+        for s in (1, -1):
+            beam(mb, "%s_trestle_%d" % (name, s > 0), (s * thick * 0.6, lower_top - 0.2, z - r * 0.9),
+                 (s * thick * 0.6, lower_top - 0.2, z + r * 0.9), 0.16, "dark_wood", width=0.14)
+            beam(mb, "%s_crosstree_%d" % (name, s > 0), (-r * 0.9, lower_top - 0.13, z + s * r * 0.35),
+                 (r * 0.9, lower_top - 0.13, z + s * r * 0.35), 0.1, "dark_wood", width=0.12)
+        n_ = 12
+        ri = thick * 0.6
+        for k in range(n_):
+            a, a2 = 2 * math.pi * k / n_, 2 * math.pi * (k + 1) / n_
+            P = lambda rr, aa: v3(math.cos(aa) * rr, lower_top, z + math.sin(aa) * rr)  # noqa: E731
+            board(mb, "%s_top_%d" % (name, k), P(ri, a), P(r, a), P(ri, a2), P(r, a2), 0.1, "deck", v3(0, 1, 0), overlap=1.02,
+                  inner="dark_wood")
+        n_ = 16
+        for k in range(n_):
+            a, a2 = 2 * math.pi * k / n_, 2 * math.pi * (k + 1) / n_
             p0 = v3(math.cos(a) * r, lower_top + 0.3, z + math.sin(a) * r)
             p1 = v3(math.cos(a2) * r, lower_top + 0.3, z + math.sin(a2) * r)
-            board(mb, "%s_top_rim_%d" % (name, k), p0 - v3(0, 0.35, 0), p0, p1 - v3(0, 0.35, 0), p1, 0.06, "dark_wood",
-                  v3(math.cos(a), 0, math.sin(a)), overlap=1.12)
+            o = v3(math.cos((a + a2) / 2), 0, math.sin((a + a2) / 2))
+            board(mb, "%s_top_rim_%d" % (name, k), p0 - v3(0, 0.4, 0), p0, p1 - v3(0, 0.4, 0), p1, 0.06, "red_paint", o,
+                  overlap=1.06, inner="dark_wood")
+            beam(mb, "%s_top_cap_%d" % (name, k), p0 + v3(0, 0.03, 0) - o * 0.01, p1 + v3(0, 0.03, 0) - o * 0.01, 0.07, "gold",
+                 width=0.12, extend=0.03)
+            if k % 2 == 0:
+                beam(mb, "%s_top_band_%d" % (name, k), p0 - v3(0, 0.33, 0) + o * 0.035, p1 - v3(0, 0.33, 0) + o * 0.035, 0.05, "gold",
+                     width=0.02, extend=0.0)
+        for k in range(4):
+            a = 2 * math.pi * (k + 0.5) / 4
+            o = v3(math.cos(a), 0, math.sin(a))
+            beam(mb, "%s_futtock_%d" % (name, k), o * (r * 0.92) + v3(0, lower_top - 0.05, z), o * (thick * 0.55) + v3(0, lower_top - 1.6, z),
+                 0.045, "rope")
         return mb
 
     m_main = mast("mainmast", gs.MAIN_MAST_Z, main_y, gs.MAIN_MAST_TOP, 15.2, 0.62)
     m_fore = mast("foremast", gs.FORE_MAST_Z, fc_y, gs.FORE_MAST_TOP, 13.0, 0.52)
     m_mizzen = Bone("mizzen", origin=(0, main_y, gs.MIZZEN_Z), parent=root)
     round_bar(m_mizzen, "mizzen_mast", (0, main_y, gs.MIZZEN_Z), (0, gs.MIZZEN_TOP, gs.MIZZEN_Z), 0.42, "mast")
-    add_cube(m_mizzen, "mizzen_partners", (0, qd_y + 0.12, gs.MIZZEN_Z), EYE, (0.8, 0.24, 0.8), "dark_wood")
-    add_cube(m_mizzen, "mizzen_cap", (0, gs.MIZZEN_TOP - 0.08, gs.MIZZEN_Z), EYE, (0.55, 0.22, 0.55), "gold")
+    disc(m_mizzen, "mizzen_partners", (0, qd_y + 0.1, gs.MIZZEN_Z), (0, 1, 0), 0.4, 0.2, "dark_wood", n=3)
+    disc(m_mizzen, "mizzen_coat", (0, qd_y + 0.24, gs.MIZZEN_Z), (0, 1, 0), 0.28, 0.1, "gold", n=3)
+    disc(m_mizzen, "mizzen_cap", (0, gs.MIZZEN_TOP - 0.08, gs.MIZZEN_Z), (0, 1, 0), 0.28, 0.22, "gold", n=3)
+    # gilt collars where the mizzen passes through the great cabin
+    disc(m_mizzen, "mizzen_cabin_foot", (0, main_y + 0.06, gs.MIZZEN_Z), (0, 1, 0), 0.32, 0.12, "gold", n=3)
+    disc(m_mizzen, "mizzen_cabin_head", (0, qd_y - gs.QUARTERDECK_SLAB - 0.06, gs.MIZZEN_Z), (0, 1, 0), 0.32, 0.12, "gold", n=3)
+    for k, y in enumerate((5.6, 8.0, 10.4)):
+        round_bar(m_mizzen, "mizzen_woolding_%d" % k, (0, y - 0.06, gs.MIZZEN_Z), (0, y + 0.06, gs.MIZZEN_Z), 0.47, "rope")
 
     def yard(mb, name, z, y, half):
         round_bar(mb, name, (-half, y, z + 0.38), (half, y, z + 0.38), 0.22, "mast", extend=0.1)
@@ -1256,13 +1585,20 @@ def build():
         y = gs.rail_y(z) if y is None else y
         return v3(side * (0.98 * hw(z) + 0.12), y - 0.1, z)
 
+    CHANNEL_ZM = {"main": 0.9, "fore": 12.2, "mizzen": -12.6}
+
+    def shroud_foot(z, side, tag):
+        """Upper deadeye of a lower shroud, standing on the outer edge of its channel."""
+        ych = gs.rail_y(CHANNEL_ZM[tag]) - 0.22
+        return v3(side * (castle_x(z, ych) + 0.3), ych + 0.5, z)
+
     for side, sn in SIDES:
         for k, z in enumerate((-0.6, 0.4, 1.4, 2.4)):
-            rig.append(("main_shroud_%s%d" % (sn, k), v3(side * 0.9, 15.15, gs.MAIN_MAST_Z), deadeye(z, side)))
+            rig.append(("main_shroud_%s%d" % (sn, k), v3(side * 0.9, 15.15, gs.MAIN_MAST_Z), shroud_foot(z, side, "main")))
         for k, z in enumerate((11.4, 12.2, 13.0)):
-            rig.append(("fore_shroud_%s%d" % (sn, k), v3(side * 0.8, 12.95, gs.FORE_MAST_Z), deadeye(z, side)))
+            rig.append(("fore_shroud_%s%d" % (sn, k), v3(side * 0.8, 12.95, gs.FORE_MAST_Z), shroud_foot(z, side, "fore")))
         for k, z in enumerate((-12.0, -13.2)):
-            rig.append(("mizzen_shroud_%s%d" % (sn, k), v3(side * 0.2, 13.0, gs.MIZZEN_Z), deadeye(z, side)))
+            rig.append(("mizzen_shroud_%s%d" % (sn, k), v3(side * 0.2, 13.0, gs.MIZZEN_Z), shroud_foot(z, side, "mizzen")))
         for k in range(2):
             rig.append(("main_topshroud_%s%d" % (sn, k), v3(side * 0.25, gs.MAIN_MAST_TOP - 1.2, gs.MAIN_MAST_Z),
                         v3(side * 1.4, 15.4, gs.MAIN_MAST_Z + (k - 0.5) * 0.9)))
@@ -1290,14 +1626,24 @@ def build():
     for name, a, b in rig:
         beam(ropes, "rope_" + name, a, b, rope, "rope")
         if "shroud" in name and "top" not in name:
-            add_cube(ropes, "deadeye_" + name, b, EYE, (0.14, 0.2, 0.2), "dark_wood")
-            beam(ropes, "chain_" + name, b, b + v3(0, -0.9, 0), 0.05, "iron")
+            # pair of round deadeyes set up with a lanyard, the lower one held by a chain plate bolted to the hull
+            side = 1 if b[0] > 0 else -1
+            ax = v3(side, 0, 0)
+            low = b - v3(0, 0.36, 0)
+            disc(ropes, "deadeye_" + name, b, ax, 0.11, 0.08, "dark_wood")
+            disc(ropes, "deadeye_low_" + name, low, ax, 0.11, 0.08, "dark_wood")
+            for j, dz in enumerate((-0.045, 0.045)):
+                beam(ropes, "lanyard_%s_%d" % (name, j), b + v3(0, -0.06, dz), low + v3(0, 0.06, -dz), 0.03, "rope")
+            yb = low[1] - 1.0
+            pb = v3(side * (castle_x(b[2], yb) + 0.04), yb, b[2])
+            beam(ropes, "chain_" + name, low - v3(0, 0.08, 0), pb, 0.05, "iron", up=ax)
+            disc(ropes, "chain_bolt_" + name, pb, ax, 0.05, 0.05, "iron")
     # ratlines across the main and fore shrouds
     for side, sn in SIDES:
         for mast_tag, top_y, z_top, z0, z1, foot_y in (("main", 15.15, gs.MAIN_MAST_Z, -0.6, 2.4, None),
                                                       ("fore", 12.95, gs.FORE_MAST_Z, 11.4, 13.0, None)):
             top_pt = v3(side * 0.9, top_y, z_top)
-            fa, fb_ = deadeye(z0, side), deadeye(z1, side)
+            fa, fb_ = shroud_foot(z0, side, mast_tag), shroud_foot(z1, side, mast_tag)
             for k in range(1, 9):
                 t = k / 9.5
                 pa = fa + (top_pt - fa) * t

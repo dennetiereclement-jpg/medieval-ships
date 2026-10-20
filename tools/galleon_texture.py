@@ -61,6 +61,12 @@ REGIONS = {
     "bedding": (0, 160, 384, 32, 16),
     "painting": (0, 192, 384, 32, 32),
     "arch_window_in": (0, 224, 384, 16, 24),
+    # deck fittings, helm, cabin (free band under the interior regions)
+    "bronze": (0, 0, 416, 32, 16),
+    "compass": (0, 32, 416, 16, 16),
+    "velvet": (0, 48, 416, 32, 16),
+    "curtain": (0, 80, 416, 32, 32),
+    "boat": (0, 112, 416, 64, 32),
     "course":      (0, 0, 128, 256, 192),
     "topsail":     (0, 256, 128, 160, 128),
     "lateen":      (0, 256, 256, 160, 128),
@@ -225,6 +231,304 @@ def _patch_corners(px, region, tri, rng):
                 px[u + x, v + y] = (186, 160, 112, a)
 
 
+# ---------------------------------------------------------------- finer materials (second pass)
+def _mix(a, b, t):
+    return tuple(int(round(x + (y - x) * t)) for x, y in zip(a, b))
+
+
+def _scale(c, k):
+    return tuple(max(0, min(255, int(round(x * k)))) for x in c)
+
+
+def _streaks(rng, w):
+    """Smooth 1D brightness profile along a plank row: long soft waves and a few dark grain streaks."""
+    f1, f2 = rng.uniform(0.05, 0.12), rng.uniform(0.18, 0.35)
+    p1, p2 = rng.uniform(0, 6.3), rng.uniform(0, 6.3)
+    prof = [0.045 * math.sin(x * f1 + p1) + 0.025 * math.sin(x * f2 + p2) for x in range(w)]
+    for _ in range(max(1, w // 18)):
+        x0, n = rng.randrange(w), rng.randint(3, 11)
+        d = rng.uniform(0.06, 0.12)
+        for k in range(n):
+            prof[(x0 + k) % w] -= d * math.sin(math.pi * (k + 0.5) / n)
+    return prof
+
+
+def _wood(px, region, base, dark, rng, plank_h=4, joints=True, nails=False, knots=0.25, caulk=None, light=0.09):
+    """Fine wood planking: per plank tone, smooth grain streaks along the plank, a rounded edge highlight,
+    a dark seam (caulking), staggered butt joints with their nails, a few knots."""
+    u, v, w, h = region
+    base, dark = _rgb(base), _rgb(dark)
+    caulk = _rgb(caulk) if caulk else dark
+    for r in range(h // plank_h):
+        k = rng.uniform(0.93, 1.07)
+        hue = rng.uniform(-6, 6)
+        tone = tuple(max(0, min(255, int(c))) for c in (base[0] * k + hue, base[1] * k, base[2] * k - hue * 0.5))
+        joint = rng.randint(8, w - 8) if joints else None
+        profs = [_streaks(rng, w) for _ in range(plank_h)]
+        knot = rng.randrange(w) if rng.random() < knots else None
+        for y in range(plank_h):
+            yy = r * plank_h + y
+            for x in range(w):
+                if y == plank_h - 1:
+                    c = caulk
+                elif joint is not None and x == joint:
+                    c = _mix(caulk, tone, 0.45)
+                else:
+                    kk = 1.0 + profs[y][x]
+                    if y == 0:
+                        kk += light          # rounded upper edge catches the light
+                    elif y == plank_h - 2:
+                        kk -= 0.05           # and the lower edge falls into shade
+                    if joint is not None and abs(x - joint) <= 2:
+                        kk -= 0.03 * (3 - abs(x - joint)) / 3
+                    c = _scale(tone, kk)
+                    if knot is not None and plank_h > 3:
+                        d = ((x - knot) / 2.2) ** 2 + (y - (plank_h - 1) / 2 + 0.5) ** 2
+                        if d < 0.6:
+                            c = _scale(dark, 1.05)
+                        elif d < 1.8:
+                            c = _scale(tone, 0.8)
+                    if nails and joint is not None and abs(x - joint) == 2 and y == 1:
+                        c = _mix(_rgb("2a2622"), tone, 0.5)
+                px[u + x, v + yy] = _jitter(c, rng, 2) + (255,)
+
+
+def _moulding(px, region, base, rng, profile):
+    """Moulded trim: the brightness follows a row profile (repeated), grain streaks along the length."""
+    u, v, w, h = region
+    base = _rgb(base)
+    profs = [_streaks(rng, w) for _ in range(h)]
+    for y in range(h):
+        k0 = profile[y % len(profile)]
+        for x in range(w):
+            px[u + x, v + y] = _jitter(_scale(base, k0 + profs[y][x] * 0.7), rng, 2) + (255,)
+
+
+def _mast_wood(px, region, base, rng):
+    """Spar timber: long grain streaks along the length (u), no cross bands."""
+    u, v, w, h = region
+    base = _rgb(base)
+    profs = [_streaks(rng, w) for _ in range(h)]
+    for y in range(h):
+        for x in range(w):
+            k = 1.0 + profs[y][x] * 1.2 + 0.03 * math.sin(y * 1.3)
+            px[u + x, v + y] = _jitter(_scale(base, k), rng, 2) + (255,)
+
+
+def _gold_rich(px, region, rng):
+    """Gilded carving: bands of mouldings (a bright bead line, a row of carved beads, a shadowed cove),
+    with soft burnished highlights."""
+    u, v, w, h = region
+    hi, br, mid, lo, deep = _rgb("fff0b8"), _rgb("f2cf6a"), _rgb("d9a93e"), _rgb("a87a24"), _rgb("6e4a14")
+    for y in range(h):
+        for x in range(w):
+            ry_ = y % 8
+            sheen = 0.5 + 0.5 * math.sin(x * 0.21 + y * 0.09 + math.sin(y * 0.5) * 0.8)
+            if ry_ == 0:
+                c = _mix(br, hi, sheen)
+            elif ry_ == 1:
+                c = _mix(mid, br, sheen)
+            elif ry_ in (2, 3, 4):
+                bx = (x + (2 if (y // 8) % 2 else 0)) % 4      # carved beads
+                d = (bx - 1.5) ** 2 + (ry_ - 3) ** 2
+                c = hi if d < 0.6 else (br if d < 1.6 else (lo if bx == 3 else mid))
+                c = _mix(c, mid, 0.15 * (1 - sheen))
+            elif ry_ == 5:
+                c = _mix(lo, mid, sheen)
+            elif ry_ == 6:
+                c = deep
+            else:
+                c = _mix(mid, br, sheen * 0.6)
+            px[u + x, v + y] = _jitter(c, rng, 2) + (255,)
+
+
+def _carving_rich(px, region, rng):
+    """Gilded scrollwork on a dark red ground: a running S-scroll with curls and bead borders."""
+    u, v, w, h = region
+    ground = _rgb("4e1810")
+    for y in range(h):
+        for x in range(w):
+            c = _scale(ground, 1.0 + 0.08 * math.sin(x * 0.7) * math.sin(y * 0.9))
+            if y < 2 or y >= h - 2:
+                c = _rgb("f6dc8a") if (x + y) % 2 == 0 else _rgb("b98a2c")
+            else:
+                ph = 2 * math.pi * x / 16
+                yc = h / 2 - 0.5 + 3.6 * math.sin(ph)
+                d = abs(y - yc)
+                cx = round((x - 4) / 8) * 8 + 4
+                cy = h / 2 - 0.5 - 3.0 * math.sin(2 * math.pi * cx / 16)
+                ring = math.hypot(x - cx, (y - cy) * 1.2)
+                if d < 1.3:
+                    c = _mix(_rgb("e2b34c"), _rgb("fff0b0"), 0.5 + 0.5 * math.cos(ph))
+                elif d < 1.9:
+                    c = _rgb("8a5e1c")
+                elif 1.4 < ring < 2.5 and d > 2.2:
+                    c = _rgb("e8c35a") if y < cy else _rgb("a87a24")
+                elif ring <= 0.9 and d > 2.2:
+                    c = _rgb("fff0b0")
+            px[u + x, v + y] = _jitter(c, rng, 2) + (255,)
+
+
+def _leaded_window(px, region, rng, lit):
+    """Window: bevelled frame, wooden cross mullion, diamond leaded panes with a reflection (or a warm glow)."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            edge = min(x, y, w - 1 - x, h - 1 - y)
+            if edge < 3:
+                ramp = [_rgb("7a5426"), _rgb("5a3a1c"), _rgb("3e2812")] if lit else [_rgb("f2d27a"), _rgb("c9a043"), _rgb("8a6a24")]
+                c = ramp[edge]
+                c = _scale(c, 1.12) if (x < 3 or y < 3) and x + y < w else _scale(c, 0.85)
+            elif abs(x - (w - 1) / 2) < 1.0 or abs(y - (h - 1) / 2) < 1.0:
+                c = _rgb("6a4520") if lit else _rgb("4a3018")
+            elif (x + y) % 6 == 0 or (x - y) % 6 == 0:
+                c = _rgb("3a2a1a") if lit else _rgb("2a2622")
+            elif lit:
+                d = math.hypot(x - w / 2, y - h * 0.55) / (w * 0.6)
+                c = _mix(_rgb("fff0b0"), _rgb("e0901f"), min(1.0, d * 1.2))
+            else:
+                c = _mix(_rgb("8fb4cf"), _rgb("2c4660"), min(1.0, (x + y) / (w + h) * 1.4))
+                if 0.25 < (x - y + h) / (w + h) < 0.33:
+                    c = _mix(c, _rgb("e8f4fa"), 0.6)   # diagonal reflection
+            px[u + x, v + y] = _jitter(c, rng, 2) + (255,)
+
+
+def _red_paint(px, region, rng):
+    """Red painted planks: deep crimson with a soft sheen, dark seams, a little wear showing the wood."""
+    u, v, w, h = region
+    base = _rgb("9c1f1b")
+    for r in range(h // 4):
+        k = rng.uniform(0.95, 1.05)
+        prof = _streaks(rng, w)
+        for y in range(4):
+            for x in range(w):
+                if y == 3:
+                    c = _rgb("3e0c0a")
+                else:
+                    c = _scale(base, k * (1.0 + prof[x] * 0.5 + (0.1 if y == 0 else (-0.06 if y == 2 else 0.0))))
+                    if rng.random() < 0.01:
+                        c = _rgb("6a4020")
+                px[u + x, v + r * 4 + y] = _jitter(c, rng, 2) + (255,)
+
+
+def _grating_rich(px, region, rng):
+    """Hatch grating: raised lattice of light battens (lit on top, shaded below) over dark holes."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            gx, gy = x % 5, y % 5
+            if gx < 2 and gy < 2:
+                c = _rgb("c48f4f") if gx == 0 and gy == 0 else _rgb("a8763e")
+            elif gy < 2:
+                c = _rgb("9a6a36") if gy == 0 else _rgb("7e5428")
+            elif gx < 2:
+                c = _rgb("94653a") if gx == 0 else _rgb("74502a")
+            else:
+                c = _rgb("140d07") if gy == 2 else _rgb("22170d")
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+
+
+def _door_rich(px, region, rng):
+    """Plank door: vertical planks with grain, gilt frame, iron strap hinges with nails, ring handle."""
+    u, v, w, h = region
+    tones = [_scale(_rgb("6a4420"), rng.uniform(0.92, 1.06)) for _ in range(8)]
+    profs = [_streaks(rng, h) for _ in range(w)]
+    for y in range(h):
+        for x in range(w):
+            if x < 2 or x >= w - 2 or y < 2:
+                c = _rgb("e2bd5c") if (x == 0 or y == 0) else _rgb("a87a24")
+            elif (x - 2) % 5 == 4:
+                c = _rgb("2e1c0c")
+            else:
+                c = _scale(tones[(x - 2) // 5], 1.0 + profs[x][y])
+                if y in (7, 8, 22, 23) and x < w - 6:
+                    c = _rgb("3c3c40") if y in (7, 22) else _rgb("26262a")
+                    if x % 4 == 1 and y in (7, 22):
+                        c = _rgb("6a6a70")
+                rr = (x - (w - 8)) ** 2 + (y - 15.5) ** 2
+                if 1.5 < rr < 4.5:
+                    c = _rgb("d4aa45")
+            px[u + x, v + y] = _jitter(c, rng, 2) + (255,)
+
+
+def _iron_rich(px, region, rng):
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            c = _scale(_rgb("3c3b3a"), 1.0 + 0.08 * math.sin(x * 0.9 + y * 0.4) * math.cos(y * 0.7 - x * 0.2))
+            if rng.random() < 0.06:
+                c = _scale(c, 0.8)
+            if y == 0:
+                c = _scale(c, 1.25)
+            px[u + x, v + y] = _jitter(c, rng, 2) + (255,)
+
+
+def _rope_rich(px, region, rng):
+    """Tarred laid rope: diagonal strands, each lit on one side."""
+    u, v, w, h = region
+    cols = [_rgb("74604a"), _rgb("5a4834"), _rgb("44362a"), _rgb("2e241a"), _rgb("2e241a")]
+    for y in range(h):
+        for x in range(w):
+            px[u + x, v + y] = _jitter(cols[(x + 2 * y) % 5], rng, 2) + (255,)
+
+
+def _bronze(px, region, rng):
+    """Cast bronze of the guns: brown-gold metal, a burnished highlight band, dark green patina spots."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            t = y / (h - 1)
+            c = _scale(_rgb("a27a3a"), 0.75 + 0.5 * math.exp(-((t - 0.3) / 0.18) ** 2) - 0.15 * t)
+            if rng.random() < 0.03:
+                c = _mix(c, _rgb("4a6a4a"), 0.3)
+            px[u + x, v + y] = _jitter(c, rng, 2) + (255,)
+
+
+def _compass(px, region, rng):
+    """Compass card under glass: white card, black and red points, brass ring."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            dx, dy = x - (w - 1) / 2, y - (h - 1) / 2
+            r, a = math.hypot(dx, dy), math.atan2(dy, dx)
+            if r > w / 2 - 1.5:
+                c = _rgb("d4aa45") if r < w / 2 + 0.5 else _rgb("8a6a24")
+            else:
+                c = _rgb("efe9d8")
+                if r < (w / 2 - 2) * (1 - 0.85 * abs(math.sin(2 * a))) ** 2 + 0.8:
+                    c = _rgb("b3221c") if abs(a + math.pi / 2) < 0.4 else _rgb("2a2622")
+                elif r < 1.0:
+                    c = _rgb("d4aa45")
+            px[u + x, v + y] = _jitter(c, rng, 2) + (255,)
+
+
+def _velvet(px, region, rng):
+    """Red velvet cushion: soft folds, gold piping on the edges, buttons."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            if y == 0 or y == h - 1:
+                c = _rgb("e2bd5c")
+            else:
+                c = _scale(_rgb("8e1a22"), 1.0 + 0.12 * math.sin(x * 0.8) * math.sin(y * 0.6) - 0.08 * abs(y - h / 2) / (h / 2))
+                if x % 8 == 4 and y == h // 2:
+                    c = _rgb("d4aa45")
+            px[u + x, v + y] = _jitter(c, rng, 2) + (255,)
+
+
+def _curtain(px, region, rng):
+    """Draped curtain: vertical folds of crimson cloth, a gold fringe at the foot and a tie-back."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            c = _scale(_rgb("9a1c22"), 0.82 + 0.25 * (0.5 + 0.5 * math.sin(x * 2 * math.pi / 6 + 0.3 * math.sin(y * 0.2))))
+            if y < 2 or abs(y - h * 0.62) < 1.2:
+                c = _rgb("d4aa45")
+            elif y >= h - 3:
+                c = _rgb("e2bd5c") if (x + y) % 2 else _rgb("a87a24")
+            px[u + x, v + y] = _jitter(c, rng, 2) + (255,)
+
+
 def make_textures(path, flag_path, lateen_tri, jib_tri):
     rng = random.Random(1588)
     img = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
@@ -233,94 +537,105 @@ def make_textures(path, flag_path, lateen_tri, jib_tri):
     def reg(name):
         return REGIONS[name][1:]
 
-    _planks(img, reg("hull_dark"), _rgb("5a3a1e"), _rgb("2f1d0e"), 4, rng)
-    _planks(img, reg("hull_mid"), _rgb("8f5f2e"), _rgb("553719"), 4, rng)
+    # fine planking: grain streaks, rounded edges, caulked seams, butt joints with nails, knots
+    _wood(px, reg("hull_dark"), "5a3a1e", "2f1d0e", rng, nails=True)
+    _wood(px, reg("hull_mid"), "8f5f2e", "553719", rng, nails=True)
     # natural golden wood of the reference (hull, castles) and its lighter trim beams
-    _planks(img, reg("wood_honey"), _rgb("c58f4a"), _rgb("7f5426"), 4, rng)
-    _planks(img, reg("wood_trim"), _rgb("e0b56a"), _rgb("a07a3a"), 8, rng, joints=False)
-    _planks(img, reg("hull_light"), _rgb("b07a3c"), _rgb("6e4a22"), 4, rng)
-    _planks(img, reg("red_paint"), _rgb("8f1f1b"), _rgb("561110"), 4, rng)
-    _planks(img, reg("wale"), _rgb("2e221a"), _rgb("17110c"), 4, rng, joints=False)
-    _planks(img, reg("dark_wood"), _rgb("4e321a"), _rgb("2b1a0c"), 4, rng)
-    _planks(img, reg("deck"), _rgb("a87542"), _rgb("5c3c1e"), 4, rng)
-    _planks(img, reg("rail"), _rgb("9a6a36"), _rgb("5e3f1d"), 8, rng, joints=False)
-    _planks(img, reg("mast"), _rgb("7a4f27"), _rgb("4a2e15"), 8, rng, joints=False, vertical=True)
-    _planks(img, reg("blue_paint"), _rgb("27407a"), _rgb("17264a"), 4, rng, joints=False)
-    _fill(img, reg("iron"), _rgb("3b3b3f"), rng, 8)
+    _wood(px, reg("wood_honey"), "c58f4a", "7f5426", rng, nails=True, caulk="5e3b1a")
+    _moulding(px, reg("wood_trim"), "e0b56a", rng, (1.14, 1.06, 1.0, 0.96, 0.9, 0.72, 0.95, 0.8))
+    _wood(px, reg("hull_light"), "b07a3c", "6e4a22", rng)
+    _red_paint(px, reg("red_paint"), rng)
+    _moulding(px, reg("wale"), "2e221a", rng, (1.25, 1.12, 1.0, 0.85))
+    _wood(px, reg("dark_wood"), "4e321a", "2b1a0c", rng, knots=0.15)
+    _wood(px, reg("deck"), "a87542", "5c3c1e", rng, nails=True, caulk="5e4228", knots=0.2, light=0.06)
+    # treenails: pairs of pegs across every plank at the deck beams
+    u, v, w, h = reg("deck")
+    for y in range(0, h, 4):
+        for x in range((y // 4) * 5 % 16, w, 16):
+            for yy in (y, y + 2):
+                r, g, b, a = px[u + x, v + yy]
+                px[u + x, v + yy] = (int(r * 0.78), int(g * 0.76), int(b * 0.74), 255)
+    _moulding(px, reg("rail"), "9a6a36", rng, (1.18, 1.1, 1.02, 1.0, 0.97, 0.92, 0.85, 0.72))
+    _mast_wood(px, reg("mast"), "7a4f27", rng)
+    _wood(px, reg("blue_paint"), "27407a", "17264a", rng, joints=False, knots=0.0)
+    _iron_rich(px, reg("iron"), rng)
     _fill(img, reg("end_grain"), _rgb("8c5e30"), rng, 10)
+    u, v, w, h = reg("end_grain")   # growth rings
+    for y in range(h):
+        for x in range(w):
+            r_ = math.hypot(x - w / 2 + 0.5, y - h / 2 + 0.5)
+            if int(r_ * 1.1) % 3 == 0:
+                c = px[u + x, v + y]
+                px[u + x, v + y] = (int(c[0] * 0.8), int(c[1] * 0.78), int(c[2] * 0.76), 255)
 
-    # gold: carved trim with highlights
-    _gold(px, reg("gold"), rng)
-    u, v, w, h = reg("carving")
-    for y in range(h):
+    # gold: carved mouldings with burnished highlights; scrollwork friezes
+    _gold_rich(px, reg("gold"), rng)
+    _carving_rich(px, reg("carving"), rng)
+    _rope_rich(px, reg("rope"), rng)
+    _bronze(px, reg("bronze"), rng)
+    _compass(px, reg("compass"), rng)
+    _velvet(px, reg("velvet"), rng)
+    _curtain(px, reg("curtain"), rng)
+    # ship's boat: white-painted strakes with a red sheer strake
+    _wood(px, reg("boat"), "d9cfb8", "8a7a62", rng, joints=False, knots=0.0)
+    u, v, w, h = reg("boat")
+    for y in range(h - 8, h):
         for x in range(w):
-            scroll = ((x - 8 * (y // 8)) % 16) < 3 or y in (0, h - 1)
-            c = _rgb("f0cf6f") if scroll else _rgb("b88a2e")
-            px[u + x, v + y] = _jitter(c, rng, 6) + (255,)
-    # rope
-    u, v, w, h = reg("rope")
-    for y in range(h):
-        for x in range(w):
-            px[u + x, v + y] = (_rgb("4a3a2a") if (x + y) % 3 else _rgb("2a2018")) + (255,)
+            c = px[u + x, v + y]
+            px[u + x, v + y] = (min(255, int(c[0] * 0.75)), int(c[1] * 0.2), int(c[2] * 0.2), 255)
     # roof tiles (red, overlapping rows)
     u, v, w, h = reg("roof")
     for y in range(h):
         for x in range(w):
             row = y // 6
             off = 4 if row % 2 else 0
-            edge = y % 6 == 5 or (x + off) % 8 == 0
-            c = _rgb("7e1a14") if edge else _rgb("b8352a")
-            if not edge and y % 6 == 0:
-                c = _rgb("d0523f")
-            px[u + x, v + y] = _jitter(c, rng, 7) + (255,)
-    # windows: leaded glass in a gold frame; glowing variant (lit cabin)
-    for name, glass, glass2 in (("window", "37506b", "4f7092"), ("glow_window", "f0a63c", "ffd98a")):
-        u, v, w, h = reg(name)
-        for y in range(h):
-            for x in range(w):
-                if x < 3 or x >= w - 3 or y < 3 or y >= h - 3:
-                    c = _rgb("5a3a1c") if name == "glow_window" else _rgb("c9a043")
-                elif (x + y) % 6 == 0 or (x - y) % 6 == 0:
-                    c = _rgb("2c2018")  # diamond lattice
-                else:
-                    d = abs(x - w / 2) + abs(y - h / 2)
-                    c = _rgb(glass2) if d < w * 0.35 else _rgb(glass)
-                px[u + x, v + y] = c + (255,)
-    # door: planks, iron bands, frame
-    u, v, w, h = reg("door")
-    for y in range(h):
-        for x in range(w):
-            if x < 2 or x >= w - 2 or y < 2:
-                c = _rgb("c9a043")
-            elif y in (8, 9, 22, 23):
-                c = _rgb("3b3b3f")
-            else:
-                c = _rgb("5a3a1c") if (x // 5) % 2 else _rgb("4a2e15")
-            px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
-    # grating (hatches)
-    u, v, w, h = reg("grating")
-    for y in range(h):
-        for x in range(w):
-            c = _rgb("1a120a") if (x % 6 > 1 and y % 6 > 1) else _rgb("8a5e30")
-            px[u + x, v + y] = c + (255,)
-    # painted panel: red field, gold frame, blue medallion
+            # rounded tiles: lit on their crown, shaded at their sides and under the next row
+            tx = ((x + off) % 8) / 8.0
+            ty = (y % 6) / 6.0
+            k = 0.82 + 0.3 * math.sin(math.pi * tx) - 0.18 * ty
+            c = _scale(_rgb("b8352a"), k)
+            if y % 6 == 5 or (x + off) % 8 == 0:
+                c = _rgb("6a140f")
+            elif y % 6 == 0:
+                c = _mix(c, _rgb("e2735a"), 0.4)
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+    # windows: leaded diamond panes in a bevelled gilt frame; glowing variant (lit cabin)
+    _leaded_window(px, reg("window"), rng, lit=False)
+    _leaded_window(px, reg("glow_window"), rng, lit=True)
+    _door_rich(px, reg("door"), rng)
+    _grating_rich(px, reg("grating"), rng)
+    # painted panel: red field, bevelled gold frame, blue medallion with a gilt ring and a fleuron
     u, v, w, h = reg("panel")
     for y in range(h):
         for x in range(w):
             fx, fy = x % 32, y
-            if fx < 2 or fx > 29 or fy < 2 or fy > h - 3:
-                c = _rgb("d4aa45")
-            elif (fx - 15.5) ** 2 + (fy - 15.5) ** 2 < 40:
-                c = _rgb("27407a") if (fx - 15.5) ** 2 + (fy - 15.5) ** 2 < 28 else _rgb("d4aa45")
+            edge = min(fx, fy, 31 - fx, h - 1 - fy)
+            r2 = (fx - 15.5) ** 2 + (fy - 15.5) ** 2
+            if edge < 3:
+                c = [_rgb("f2d27a"), _rgb("d4aa45"), _rgb("8a6a24")][edge]
+                if fx > fy and 31 - fx > h - 1 - fy:
+                    c = _scale(c, 0.9)
+            elif r2 < 46:
+                if r2 < 26:
+                    c = _rgb("27407a") if r2 > 4 and not (abs(fx - 15.5) < 0.6 or abs(fy - 15.5) < 0.6) else _rgb("e8c35a")
+                elif r2 < 34:
+                    c = _rgb("f2d27a")
+                else:
+                    c = _rgb("a87a24")
             else:
-                c = _rgb("8f1f1b")
-            px[u + x, v + y] = _jitter(c, rng, 5) + (255,)
-    # rolled (furled) canvas on the yards
+                c = _scale(_rgb("8f1f1b"), 1.0 + 0.06 * math.sin(fx * 0.5 + fy * 0.3) - (0.12 if edge == 3 else 0.0))
+                if edge == 5 and (fx + fy) % 2 == 0:
+                    c = _rgb("c9a043")      # gilt fillet inside the frame
+            px[u + x, v + y] = _jitter(c, rng, 2) + (255,)
+    # rolled (furled) canvas on the yards: soft spiral folds with gaskets
     u, v, w, h = reg("cloth_roll")
     for y in range(h):
         for x in range(w):
-            c = _rgb("d9cdb2") if (x + y // 2) % 5 else _rgb("b8a888")
-            px[u + x, v + y] = c + (255,)
+            k = 0.86 + 0.16 * math.sin(2 * math.pi * (x + y * 0.6) / 7.0) - 0.1 * abs(y - h / 2) / (h / 2)
+            c = _scale(_rgb("e2d6bb"), k)
+            if x % 21 in (0, 1):
+                c = _rgb("6a5640")      # gasket
+            px[u + x, v + y] = _jitter(c, rng, 2) + (255,)
     # lantern frame and glow
     u, v, w, h = reg("lantern")
     paint_lamp_glass(px, u, v, w, h)
@@ -329,12 +644,20 @@ def make_textures(path, flag_path, lateen_tri, jib_tri):
         for x in range(w):
             d = abs(x - w / 2 + 0.5) + abs(y - h / 2 + 0.5)
             px[u + x, v + y] = (_rgb("fff1a8") if d < 5 else _rgb("ffc94a")) + (255,)
-    # gun port: dark opening with a thick frame
+    # gun port: bevelled frame, red-painted lining, dark opening (darker towards the top)
     u, v, w, h = reg("gunport")
     for y in range(h):
         for x in range(w):
-            frame = x < 2 or x >= w - 2 or y < 2 or y >= h - 2
-            px[u + x, v + y] = (_rgb("5e3f1d") if frame else _rgb("120c08")) + (255,)
+            edge = min(x, y, w - 1 - x, h - 1 - y)
+            if edge < 2:
+                c = _rgb("7a5226") if edge == 0 else _rgb("5e3f1d")
+                if y > x and h - 1 - y < w - 1 - x:
+                    c = _scale(c, 0.8)
+            elif edge == 2:
+                c = _rgb("8f1f1b") if y > 2 else _rgb("5a1210")
+            else:
+                c = _mix(_rgb("060403"), _rgb("1e140c"), y / h)
+            px[u + x, v + y] = c + (255,)
 
     # painted frieze: gold borders, red lozenges on blue
     u, v, w, h = reg("frieze")
@@ -366,8 +689,16 @@ def make_textures(path, flag_path, lateen_tri, jib_tri):
     u, v, w, h = reg("pilaster")
     for y in range(h):
         for x in range(w):
-            c = _rgb("f0cf6f") if x in (1, w - 2) or y % 8 == 0 else _rgb("b88a2e")
-            px[u + x, v + y] = _jitter(c, rng, 5) + (255,)
+            # fluted shaft (lit flutes, dark grooves), volute capital on top, moulded base
+            if y < 4 or y >= h - 4:
+                yy = y if y < 4 else h - 1 - y
+                c = [_rgb("fff0b8"), _rgb("e2b34c"), _rgb("a87a24"), _rgb("f2cf6a")][yy]
+                if y < 4 and (x in (0, w - 1)) and yy in (1, 2):
+                    c = _rgb("fff0b8")     # volutes
+            else:
+                c = [_rgb("8a6a24"), _rgb("f2cf6a"), _rgb("d4aa45"), _rgb("7a5a1c"), _rgb("f2cf6a"), _rgb("d4aa45"),
+                     _rgb("7a5a1c"), _rgb("6e4a14")][x % 8]
+            px[u + x, v + y] = _jitter(c, rng, 2) + (255,)
     u, v, w, h = reg("arch_window")
     for y in range(h):
         for x in range(w):
@@ -376,11 +707,14 @@ def make_textures(path, flag_path, lateen_tri, jib_tri):
                 continue
             frame = x < 2 or x >= w - 2 or y >= h - 2 or (y < w / 2 and r > w / 2 - 2)
             if frame:
-                c = _rgb("d4aa45")
-            elif (x - 2) % 6 == 5 or y % 6 == 5:
-                c = _rgb("2c2a26")
+                c = _rgb("f2d27a") if (x < 2 and x == 0) or (y < w / 2 and r > w / 2 - 1) else _rgb("b98a2c")
+            elif abs(x - (w - 1) / 2) < 0.6 or y == w // 2:
+                c = _rgb("5a3a1c")       # mullion and transom
+            elif (x + y) % 4 == 0 or (x - y) % 4 == 0:
+                c = _rgb("3a2a1a")       # diamond leading
             else:
-                c = _rgb("ffe9a3") if (x + y) % 7 < 2 else _rgb("f2c25a")
+                d = math.hypot(x + 0.5 - w / 2, y - h * 0.6) / h
+                c = _mix(_rgb("fff0b0"), _rgb("e8962a"), min(1.0, d * 2.0))
             px[u + x, v + y] = c + (255,)
 
     # sails: courses carry a red cross, topsails plain, triangles with transparent outside
