@@ -6,3 +6,4 @@ run/
 .idea/
 __pycache__/
 livraison/
+.claude/worktrees/

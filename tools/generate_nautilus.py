@@ -613,8 +613,14 @@ def tower_shell(bone):
     loft(bone, "tower_wall", sections, "hull_light", centre, closed=True, skip=window)
     # the roof, gently domed
     roof = []
-    for k, (sc, dyr) in enumerate(((1.0, 0.0), (0.96, 0.25), (0.86, 0.5), (0.68, 0.72), (0.42, 0.86), (0.04, 0.92))):
+    # (a quarter superellipse: it leaves the wall vertically, no edge at the eave)
+    for t in np.linspace(0, math.pi / 2, 10):
+        sc, dyr = 0.04 + 0.96 * math.cos(t) ** 0.7, 0.92 * math.sin(t) ** 1.4
         roof.append([v3(x * sc, ns.TOWER_TOP_Y + dyr, zc + (z - zc) * sc) for x, z in plan])
+    # a fillet flaring the foot of the wall into the casing deck
+    foot = [[v3(x * f, ns.CASING_TOP_Y + dy, zc + (z - zc) * f) for x, z in plan]
+            for f, dy in ((1.1, -0.05), (1.045, 0.08), (1.015, 0.22), (1.0, 0.4))]
+    loft(bone, "tower_foot", foot, "hull_light", lambda p: v3(0, p[1], zc), closed=True)
     loft(bone, "tower_roof", roof, "hull_light", lambda p: v3(0, ns.TOWER_TOP_Y - 2.0, zc), closed=True)
     # riveted vertical straps between the windows
     for k in range(0, len(plan), 8):
@@ -747,7 +753,7 @@ def cage_hood(bone):
     def lens_hole(i, j, mid):
         return mid[2] > zc + r * 0.6 and abs(mid[0]) < 0.62 and abs(mid[1] - lens_a) < 0.62
     loft(bone, "lantern_drum", sections, "hull_light", lambda p: v3(0, p[1], zc), closed=True, skip=lens_hole)
-    cap = [ring_pts(y1 + 0.45 * math.sin(t), r * math.cos(t) + 0.02) for t in np.linspace(0, math.pi / 2 - 0.08, 5)]
+    cap = [ring_pts(y1 + 0.45 * math.sin(t) ** 1.3, r * math.cos(t) ** 0.7 + 0.02) for t in np.linspace(0, math.pi / 2 - 0.05, 8)]
     loft(bone, "lantern_cap", cap, "hull_light", lambda p: v3(0, y1 - 1.0, zc), closed=True)
     for yy, tag in ((y0 + 0.05, "foot"), (y1, "eave"), ((y0 + y1) / 2 - 0.55, "mid")):
         ring(bone, "lantern_band_%s" % tag, v3(0, yy, zc), v3(0, 1, 0), r + 0.04, 0.12, "brass", n=n, width=0.1)
