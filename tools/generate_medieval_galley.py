@@ -56,13 +56,79 @@ SIDES = ((1, "p"), (-1, "s"))
 BRACE = math.radians(42)
 
 END = 13.0  # the planking closes into the stem and stern posts here
-STATIONS = [-END, -12.6, -12.0, -11.2, -10.2, -9.0, -7.5, -5.8, -4.0, -2.0, 0.0, 2.0, 4.0, 5.8, 7.5, 9.0, 10.2,
-            11.2, 12.0, 12.6, END]
+# hull stations, closer together towards the ends where the crescent lines curve fast
+STATIONS = [round(END * (0.4 * s + 0.6 * math.sin(math.pi / 2 * s)), 4) for s in np.linspace(-1, 1, 33)]
 # planking above the turn of the bilge, as fractions of the height between y=0.3 and the
 # sheer: the strakes sweep up with the crescent sheer
 UPPER = [0.0, 0.3, 0.55, 0.78, 1.0]
-STRAKES = ["hull_dark", "hull_dark", "hull_dark", "hull_dark",   # bottom (keel -> turn of the bilge)
-           "hull_dark", "hull_red", "wale", "hull_red"]
+SPAN_REGIONS = ["hull_dark", "hull_dark", "hull_dark", "hull_dark",   # bottom (keel -> turn of the bilge)
+                "hull_dark", "hull_red", "wale", "hull_red"]
+# each span of the section is cut into this many strakes: the bottom rounds smoothly into the sides
+SECTION_SUB = [2, 2, 2, 2, 1, 1, 1, 1]
+STRAKES = [reg for reg, n in zip(SPAN_REGIONS, SECTION_SUB) for _ in range(n)]
+STRAKE_SPAN = [k for k, n in enumerate(SECTION_SUB) for _ in range(n)]
+
+
+def _cr(p0, p1, p2, p3, t):
+    """Catmull-Rom point between p1 and p2."""
+    return 0.5 * ((2 * p1) + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (-p0 + 3 * p1 - 3 * p2 + p3) * t ** 3)
+
+
+def _smooth(points, subs):
+    """Smooth curve through the control points, span k cut into subs[k] pieces."""
+    P = [np.asarray(p, dtype=float) for p in points]
+    out = []
+    for k in range(len(P) - 1):
+        p0, p1, p2, p3 = P[max(k - 1, 0)], P[k], P[k + 1], P[min(k + 2, len(P) - 1)]
+        for j in range(subs[k]):
+            out.append(_cr(p0, p1, p2, p3, j / subs[k]))
+    out.append(P[-1])
+    return out
+
+
+def _rbeam(bone, name, p0, p1, th, region, up=None, extend=0.0, **kw):
+    """Round-looking spar: a square beam and the same beam turned 45 degrees about its axis (8 sides)."""
+    p0, p1 = v3(*p0), v3(*p1)
+    d = norm(p1 - p0)
+    u0 = v3(0, 1, 0) if up is None else norm(np.asarray(up, dtype=float))
+    if abs(np.dot(d, u0)) > 0.98:
+        u0 = v3(1, 0, 0)
+    w = norm(u0 - np.dot(u0, d) * d)
+    u1 = norm(w + np.cross(d, w))
+    beam(bone, name, p0, p1, th, region, up=w, extend=extend, **kw)
+    reg = {"all": region, "+1": None, "-1": None} if isinstance(region, str) else dict(region, **{"+1": None, "-1": None})
+    beam(bone, name + "_r", p0, p1, th, reg, up=u1, extend=extend, **kw)
+
+
+def _octo(bone, name, c, R, size, region):
+    """Octagonal block: a box and the same box turned 45 degrees about its own y axis."""
+    add_cube(bone, name, c, R, size, region)
+    reg = {"all": region, "+2": None, "-2": None} if isinstance(region, str) else dict(region, **{"+2": None, "-2": None})
+    add_cube(bone, name + "_r", c, R @ ry(math.pi / 4), size, reg)
+
+
+def _cbox(bone, name, c, R, size, region, ch):
+    """Box with its four long edges (along its local z) chamfered by ch: two crossed boxes and four
+    diamonds along the edges."""
+    sx, sy, sz = size
+    c = v3(*c)
+    add_cube(bone, name, c, R, (sx, sy - 2 * ch, sz), region)
+    add_cube(bone, name + "_x", c, R, (sx - 2 * ch, sy, sz), region)
+    d = ch * math.sqrt(2)
+    for k, (a, b) in enumerate(((1, 1), (1, -1), (-1, 1), (-1, -1))):
+        add_cube(bone, "%s_e%d" % (name, k), c + R @ v3(a * (sx / 2 - ch), b * (sy / 2 - ch), 0), R @ rz(math.pi / 4),
+                 (d, d, sz), region)
+
+
+def _post(bone, name, ctrl, widths, region_of, sub=3, extend=0.1, squash=0.85):
+    """Round carved post (stem, neck, tail) along a smooth curve through the control points,
+    tapering with the given widths."""
+    pts = _smooth(ctrl, [sub] * (len(ctrl) - 1))
+    ws = np.interp(np.linspace(0, len(ctrl) - 1, len(pts)), range(len(ctrl)), widths)
+    for j in range(len(pts) - 1):
+        w = (ws[j] + ws[j + 1]) / 2 * (1 + squash) / 2
+        _rbeam(bone, "%s_%d" % (name, j), pts[j], pts[j + 1], w, region_of(j // sub), up=v3(1, 0, 0), extend=extend)
+    return pts
 
 
 def hw(z):
@@ -111,6 +177,7 @@ def section(z, side):
     for f in UPPER:
         y = upper_y(z, f)
         pts.append((outer_x(z, y), y))
+    pts = _smooth(pts, SECTION_SUB)
     return [v3(side * max(x, 0.06), y, end_z(z, y)) for x, y in pts]
 
 
@@ -123,16 +190,14 @@ def dragon_tail(bone, tag, s):
              P(4.5, END + 0.6), P(5.5, END + 0.25), P(6.2, END - 0.25), P(6.5, END - 0.85), P(6.3, END - 1.4),
              P(5.8, END - 1.75), P(5.25, END - 1.8)]
     widths = [0.5, 0.56, 0.6, 0.56, 0.5, 0.44, 0.38, 0.32, 0.27, 0.23, 0.2]
-    for j in range(len(curve) - 1):
-        reg = "hull_dark" if j < 2 else "dragon"
-        beam(bone, "%s_seg_%d" % (tag, j), curve[j], curve[j + 1], widths[j], reg, width=widths[j] * 0.85, extend=0.1)
-    beam(bone, tag + "_collar", P(1.6, END + 0.5), P(2.0, END + 0.6), 0.62, "gold", width=0.58)
+    _post(bone, tag + "_seg", curve, widths, lambda j: "hull_dark" if j < 2 else "dragon", sub=3, extend=0.08)
+    _rbeam(bone, tag + "_collar", P(1.6, END + 0.5), P(2.0, END + 0.6), 0.64, "gold", up=v3(1, 0, 0))
     # gold rings along the tail
     for j in (3, 5, 7):
         a, b = curve[j], curve[j + 1]
         c = (a + b) / 2
         d = norm(b - a)
-        beam(bone, "%s_ring_%d" % (tag, j), c - d * 0.06, c + d * 0.06, widths[j] + 0.1, "gold", width=widths[j] * 0.85 + 0.1)
+        _rbeam(bone, "%s_ring_%d" % (tag, j), c - d * 0.06, c + d * 0.06, widths[j] * 0.93 + 0.1, "gold", up=v3(1, 0, 0))
     # dorsal crest on the outside of the curve (pointing away from the curl centre)
     centre = P(4.9, END - 0.6)
     for j in range(2, len(curve) - 2):
@@ -160,11 +225,9 @@ def dragon(bone, tag, s):
     curve = [P(ms.keel_y(END) - 0.05, END - 0.25), P(0.7, END + 0.3), P(2.0, END + 0.62), P(3.3, END + 0.78),
              P(4.6, END + 0.74), P(5.8, END + 0.52), P(6.8, END + 0.25), P(7.5, END + 0.2)]
     widths = [0.5, 0.58, 0.66, 0.76, 0.82, 0.84, 0.8, 0.74]
-    for j in range(len(curve) - 1):
-        reg = "hull_dark" if j < 2 else "dragon"
-        beam(bone, "%s_neck_%d" % (tag, j), curve[j], curve[j + 1], widths[j], reg, width=widths[j] * 0.85, extend=0.12)
+    _post(bone, tag + "_neck", curve, widths, lambda j: "hull_dark" if j < 2 else "dragon", sub=3, extend=0.1)
     # gold band where the hull planking ends and the carving begins, belly scales
-    beam(bone, tag + "_collar", P(1.6, END + 0.5), P(2.0, END + 0.6), 0.62, "gold", width=0.58)
+    _rbeam(bone, tag + "_collar", P(1.6, END + 0.5), P(2.0, END + 0.6), 0.64, "gold", up=v3(1, 0, 0))
     for j, (a, b) in enumerate(zip(curve[2:-1], curve[3:])):
         c = (a + b) / 2 + v3(0, 0, s * 0.27)
         beam(bone, "%s_belly_%d" % (tag, j), c - (b - a) * 0.35, c + (b - a) * 0.35, 0.12, "gold", width=0.4)
@@ -190,6 +253,9 @@ def dragon(bone, tag, s):
     def hcube(name, c, R_, size, reg, **kw):
         return add_cube(head, name, c, R_, tuple(q * K for q in size), reg, **kw)
 
+    def hcbox(name, c, R_, size, reg, ch):
+        return _cbox(head, name, c, R_, tuple(q * K for q in size), reg, ch * K)
+
     def hbeam(name, p0, p1, th, reg, **kw):
         if "width" in kw:
             kw["width"] = kw["width"] * K
@@ -197,13 +263,13 @@ def dragon(bone, tag, s):
     out = v3(0, 0, s)
     R = ry(0 if s > 0 else math.pi)
     # skull and brow
-    hcube(tag + "_skull", at(0.18, 0.05), R, (0.66, 0.5, 0.72), "dragon")
+    hcbox(tag + "_skull", at(0.18, 0.05), R, (0.66, 0.5, 0.72), "dragon", 0.1)
     hcube(tag + "_skull_back", at(-0.15, 0.0), R, (0.56, 0.42, 0.3), "dragon_dark")
     for x in (0.23, -0.23):
         hcube("%s_brow_%d" % (tag, x > 0), at(0.36, 0.33, x), R @ rz(-x * 0.9), (0.24, 0.12, 0.44), "dragon_dark")
     # upper snout, tapering, with a ridge, nostrils and fangs
-    hcube(tag + "_snout", at(0.72, 0.0), R @ rx(0.06), (0.52, 0.3, 0.6), "dragon")
-    hcube(tag + "_snout_tip", at(1.1, -0.02), R @ rx(0.1), (0.44, 0.26, 0.26), "dragon")
+    hcbox(tag + "_snout", at(0.72, 0.0), R @ rx(0.06), (0.52, 0.3, 0.6), "dragon", 0.07)
+    hcbox(tag + "_snout_tip", at(1.1, -0.02), R @ rx(0.1), (0.44, 0.26, 0.26), "dragon", 0.07)
     hcube(tag + "_snout_ridge", at(0.8, 0.18), R @ rx(0.12), (0.18, 0.08, 0.62), "dragon_dark")
     for x in (0.12, -0.12):
         hcube("%s_nostril_%d" % (tag, x > 0), at(1.2, 0.08, x), R, (0.09, 0.06, 0.06), "dragon_dark")
@@ -216,7 +282,7 @@ def dragon(bone, tag, s):
     d = norm(out * math.cos(a) + v3(0, -math.sin(a), 0))
     Rj = R @ rx(a)
     jaw_c = hinge + d * 0.55 * K
-    hcube(tag + "_jaw", jaw_c, Rj, (0.44, 0.13, 1.05), "dragon_dark")
+    hcbox(tag + "_jaw", jaw_c, Rj, (0.44, 0.13, 1.05), "dragon_dark", 0.04)
     hcube(tag + "_jaw_chin", jaw_c + d * 0.45 * K + Rj @ v3(0, -0.04, 0) * K, Rj, (0.38, 0.15, 0.16), "dragon")
     hcube(tag + "_tongue", jaw_c + Rj @ v3(0, 0.08, 0.05) * K, Rj, (0.16, 0.04, 0.8), "red_paint")
     for k, (x, t) in enumerate(((0.17, 0.42), (-0.17, 0.42), (0.18, 0.2), (-0.18, 0.2), (0.18, -0.02), (-0.18, -0.02))):
@@ -267,19 +333,23 @@ def build():
             A, B = section(za, side), section(zb, side)
             for k, reg in enumerate(STRAKES):
                 mid = (A[k] + A[k + 1] + B[k] + B[k + 1]) / 4
-                outward = norm(v3(side, -0.7 if k < 4 else 0.0, 0) + v3(0, 0, 0.35 * np.sign(mid[2])))
+                outward = norm(v3(mid[0], mid[1] - 0.7, 0.35 * np.sign(mid[2]) * abs(mid[0])))
                 board(hull, "hull_%s%d_%d" % (sn, i, k), A[k], A[k + 1], B[k], B[k + 1], 0.1, reg, outward,
-                      inner="hull_light" if k >= 6 else None)
-            # gunwale (red cap), blue trim under it, gold mouldings between the strakes
+                      inner="hull_light" if STRAKE_SPAN[k] >= 6 else None)
+            # gunwale (red cap with a rounded outer edge), blue trim under it, gold mouldings between the strakes
             pa = v3(side * hw(za), sheer(za) + 0.05, end_z(za, sheer(za)))
             pb = v3(side * hw(zb), sheer(zb) + 0.05, end_z(zb, sheer(zb)))
-            beam(hull, "gunwale_%s%d" % (sn, i), pa, pb, 0.12, "red_paint", width=0.24, extend=0.04)
+            beam(hull, "gunwale_%s%d" % (sn, i), pa, pb, 0.1, "red_paint", width=0.22, extend=0.04)
+            o = v3(side * 0.1, -0.035, 0)
+            beam(hull, "gunwale_bead_%s%d" % (sn, i), pa + o, pb + o, 0.11, "red_paint", width=0.11,
+                 up=norm(v3(side, 1, 0)), extend=0.04)
             for j, (f, reg, th) in enumerate(((0.9, "blue_trim", 0.13), (0.78, "gold", 0.05), (0.55, "gold", 0.05),
                                               (0.3, "blue_trim", 0.09))):
                 ya, yb = upper_y(za, f), upper_y(zb, f)
                 pa = v3(side * (outer_x(za, ya) + 0.03), ya, end_z(za, ya))
                 pb = v3(side * (outer_x(zb, yb) + 0.03), yb, end_z(zb, yb))
-                beam(hull, "band_%s%d_%d" % (sn, i, j), pa, pb, th, reg, width=0.05, extend=0.04)
+                beam(hull, "band_%s%d_%d" % (sn, i, j), pa, pb, th, reg, width=0.05 if reg == "gold" else 0.07,
+                     up=v3(0, 1, 0) if reg == "gold" else norm(v3(side * 0.5, 1, 0)), extend=0.04)
     for i in range(len(STATIONS) - 1):
         za, zb = STATIONS[i], STATIONS[i + 1]
         beam(hull, "keel_%d" % i, (0, ms.keel_y(za) - 0.05, za), (0, ms.keel_y(zb) - 0.05, zb), 0.2, "hull_dark",
@@ -303,18 +373,23 @@ def build():
         if abs(zb_ - ms.MAST_Z) < 0.7:
             continue
         w = ms.inner_half_width(zb_) - 0.02
-        add_cube(deck, "bench_%d" % k, (0, main_y + 0.4, zb_), EYE, (2 * w, 0.09, 0.36), {"all": "dark_wood", "+2": "hull_light"})
-        for x in (0.0,):
-            add_cube(deck, "bench_leg_%d" % k, (x, main_y + 0.18, zb_), EYE, (0.16, 0.36, 0.16), "dark_wood")
+        add_cube(deck, "bench_%d" % k, (0, main_y + 0.4, zb_), EYE, (2 * w, 0.09, 0.3), {"all": "dark_wood", "+2": "hull_light"})
+        for s_ in (1, -1):
+            beam(deck, "bench_edge_%d_%d" % (k, s_ > 0), (-w + 0.04, main_y + 0.4, zb_ + s_ * 0.15), (w - 0.04, main_y + 0.4, zb_ + s_ * 0.15),
+                 0.09, "dark_wood", width=0.09, up=norm(v3(0, 1, s_)))
+        _rbeam(deck, "bench_leg_%d" % k, (0, main_y, zb_), (0, main_y + 0.36, zb_), 0.16, "dark_wood")
     # centre walkway (gangway) and the stern platform of the helmsman
     add_cube(deck, "gangway", (0, main_y + 0.03, 0), EYE, (0.7, 0.06, 2 * ms.DECK_MAX_Z - 1.0), {"all": "dark_wood", "+2": "deck"})
     for k, (x, z) in enumerate(((0.9, -10.0), (-0.95, 9.8), (0.95, 9.6))):
         sd.barrel(gg, deck, "barrel_%d" % k, (x, main_y, z), h=0.6, r=0.22, wood="dark_wood", ends="end_grain")
     sd.rope_coil(gg, deck, "coil_0", (-0.8, main_y, -9.6), r=0.28)
     sd.rope_coil(gg, deck, "coil_1", (0.0, main_y, 10.4), r=0.26)
-    add_cube(deck, "chest", (0.0, main_y + 0.2, -9.3), EYE, (0.8, 0.4, 0.5), {"all": "red_paint", "+2": "gold"})
-    add_cube(deck, "helm_stool", (0, main_y + 0.22, ms.PILOT_Z), EYE, (0.5, 0.1, 0.45), "dark_wood")
-    add_cube(deck, "helm_stool_leg", (0, main_y + 0.09, ms.PILOT_Z), EYE, (0.16, 0.18, 0.16), "dark_wood")
+    add_cube(deck, "chest", (0.0, main_y + 0.18, -9.3), EYE, (0.8, 0.36, 0.5), {"all": "red_paint", "+2": "gold"})
+    _rbeam(deck, "chest_lid", (-0.4, main_y + 0.38, -9.3), (0.4, main_y + 0.38, -9.3), 0.34, {"all": "red_paint", "+2": "gold"})
+    for x in (-0.25, 0.25):
+        _rbeam(deck, "chest_band_%d" % (x > 0), (x - 0.03, main_y + 0.38, -9.3), (x + 0.03, main_y + 0.38, -9.3), 0.37, "gold")
+    _octo(deck, "helm_stool", (0, main_y + 0.22, ms.PILOT_Z), EYE, (0.48, 0.1, 0.48), "dark_wood")
+    _rbeam(deck, "helm_stool_leg", (0, main_y, ms.PILOT_Z), (0, main_y + 0.17, ms.PILOT_Z), 0.16, "dark_wood")
 
     # ---- round shields along the sides, hung on the gunwale
     for side, sn in SIDES:
@@ -323,6 +398,10 @@ def build():
             p, u, v, nrm = gn.side_frame(z, y, side)
             add_cube(shields, "shield_%s%d" % (sn, k), p + nrm * 0.05, np.column_stack([u, v, nrm]), (1.22, 1.22, 0.05),
                      {"all": None, "+3": "shield", "-3": "dark_wood"}, stretch=True, u_dir=u * side, v_dir=v3(0, -1, 0))
+            # gilded boss in the middle of the shield
+            Rb = np.column_stack([u, nrm, np.cross(u, nrm)])
+            _octo(shields, "shield_boss_%s%d" % (sn, k), p + nrm * 0.11, Rb, (0.26, 0.08, 0.26), "gold")
+            _octo(shields, "shield_boss_top_%s%d" % (sn, k), p + nrm * 0.16, Rb, (0.14, 0.04, 0.14), "gold")
 
     # ---- oars: 12 per side, each its own bone pivoting at its oar port under the shields
     down = math.radians(21)
@@ -334,30 +413,32 @@ def build():
             pivot = v3(side * (outer_x(z, y) + 0.02), y, z)
             ob = Bone("oar_%s%d" % (sname, i + 1), origin=tuple(pivot), parent=group)
             d = v3(side * math.cos(down), -math.sin(down), 0)
-            beam(ob, "oar_shaft_%s%d" % (sname, i + 1), pivot - d * 1.25, pivot + d * 3.3, 0.12, "oar")
+            _rbeam(ob, "oar_shaft_%s%d" % (sname, i + 1), pivot - d * 1.25, pivot + d * 3.3, 0.12, "oar")
             beam(ob, "oar_blade_%s%d" % (sname, i + 1), pivot + d * 3.0, pivot + d * 4.05, 0.06, "oar", width=0.42, up=v3(0, 0, 1))
+            beam(ob, "oar_blade_tip_%s%d" % (sname, i + 1), pivot + d * 4.05, pivot + d * 4.18, 0.06, "oar", width=0.28, up=v3(0, 0, 1))
             add_cube(ob, "oar_port_%s%d" % (sname, i + 1), pivot, EYE, (0.06, 0.24, 0.24), "dark_wood")
 
     # ---- mast, yard and the striped square sail (braced), mast head flag
     mz = ms.MAST_Z
     mast = Bone("mast", origin=(0, main_y, mz), parent=root)
-    beam(mast, "mast", (0, main_y - 0.2, mz), (0, ms.MAST_TOP, mz), 0.34, "mast")
-    add_cube(mast, "mast_partners", (0, main_y + 0.1, mz), EYE, (0.7, 0.2, 0.7), "dark_wood")
-    add_cube(mast, "mast_cap", (0, ms.MAST_TOP - 0.1, mz), EYE, (0.44, 0.22, 0.44), "gold")
-    add_cube(mast, "mast_block", (0, ms.YARD_Y + 0.5, mz + 0.1), EYE, (0.4, 0.4, 0.42), "dark_wood")
+    _rbeam(mast, "mast", (0, main_y - 0.2, mz), (0, ms.MAST_TOP, mz), 0.34, "mast")
+    _octo(mast, "mast_partners", (0, main_y + 0.1, mz), EYE, (0.7, 0.2, 0.7), "dark_wood")
+    _octo(mast, "mast_cap", (0, ms.MAST_TOP - 0.1, mz), EYE, (0.44, 0.22, 0.44), "gold")
+    _octo(mast, "mast_block", (0, ms.YARD_Y + 0.5, mz + 0.1), EYE, (0.4, 0.4, 0.42), "dark_wood")
     br = Bone("brace_yard", origin=(0, ms.YARD_Y, mz), parent=mast)
     yh = ms.YARD_HALF
-    beam(br, "yard", (-yh, ms.YARD_Y, mz + 0.3), (yh, ms.YARD_Y, mz + 0.3), 0.2, "mast", extend=0.08)
+    _rbeam(br, "yard", (-yh, ms.YARD_Y, mz + 0.3), (yh, ms.YARD_Y, mz + 0.3), 0.2, "mast", extend=0.08)
     for x in (-yh - 0.08, yh + 0.08):
-        add_cube(br, "yard_tip_%d" % (x > 0), (x, ms.YARD_Y, mz + 0.3), EYE, (0.14, 0.24, 0.24), "gold")
-    beam(br, "yard_roll", (-yh * 0.95, ms.YARD_Y - 0.18, mz + 0.34), (yh * 0.95, ms.YARD_Y - 0.18, mz + 0.34), 0.2, "cloth_roll")
+        _octo(br, "yard_tip_%d" % (x > 0), (x, ms.YARD_Y, mz + 0.3), rz(math.pi / 2), (0.24, 0.14, 0.24), "gold")
+    _rbeam(br, "yard_roll", (-yh * 0.95, ms.YARD_Y - 0.18, mz + 0.34), (yh * 0.95, ms.YARD_Y - 0.18, mz + 0.34), 0.2, "cloth_roll")
     sail_bone = Bone("sail", origin=(0, ms.YARD_Y, mz + 0.34), parent=br)
     sail_h = 8.0
     gn.sail(sail_bone, "sail", v3(0, ms.YARD_Y - 0.1, mz + 0.36), v3(1, 0, 0), v3(0, -1, 0), v3(0, 0, 1), yh - 0.2, yh,
             sail_h, 1.55, "sail", nx=9, ny=9, round_=0.75, overlap=0.03, foot=0.07)
     br.rot = ry(BRACE)
     fb = Bone("flag", origin=(0, ms.MAST_TOP + 0.85, mz), parent=mast)
-    beam(mast, "flagpole", (0, ms.MAST_TOP, mz), (0, ms.MAST_TOP + 1.1, mz), 0.08, "dark_wood")
+    _rbeam(mast, "flagpole", (0, ms.MAST_TOP, mz), (0, ms.MAST_TOP + 1.1, mz), 0.08, "dark_wood")
+    _octo(mast, "flagpole_knob", (0, ms.MAST_TOP + 1.14, mz), EYE, (0.13, 0.1, 0.13), "gold")
     root_pt = v3(0, ms.MAST_TOP + 0.95, mz)
     w, h = 1.7, 0.85
     c1 = add_cube(fb, "flag_a", root_pt + v3(0, -h / 2, -w / 4), EYE, (0.03, h, w / 2), {"all": None, "+1": "flag", "-1": "flag"},
@@ -375,15 +456,18 @@ def build():
     rb = Bone("rudder", origin=tuple(pivot), parent=root)
     blade_top = pivot + v3(-0.15, -1.9, -1.1)
     blade_bot = pivot + v3(-0.2, -2.9, -1.7)
-    beam(rb, "rudder_shaft", pivot + v3(0, 0.45, 0.3), blade_top, 0.16, "oar", extend=0.05)
+    _rbeam(rb, "rudder_shaft", pivot + v3(0, 0.45, 0.3), blade_top, 0.16, "oar", extend=0.05)
     beam(rb, "rudder_blade", blade_top, blade_bot, 0.08, "hull_red", width=0.55, up=v3(1, 0, 0))
-    beam(rb, "rudder_tiller", pivot + v3(0, 0.35, 0.2), v3(-0.25, main_y + 0.85, ms.PILOT_Z + 0.25), 0.08, "dark_wood")
-    add_cube(stern, "rudder_boss", pivot + v3(0.06, 0, 0), EYE, (0.2, 0.34, 0.34), "dark_wood")
+    dd = norm(blade_bot - blade_top)
+    beam(rb, "rudder_blade_tip", blade_bot, blade_bot + dd * 0.14, 0.08, "hull_red", width=0.36, up=v3(1, 0, 0))
+    _rbeam(rb, "rudder_tiller", pivot + v3(0, 0.35, 0.2), v3(-0.25, main_y + 0.85, ms.PILOT_Z + 0.25), 0.08, "dark_wood")
+    _octo(stern, "rudder_boss", pivot + v3(0.06, 0, 0), rz(math.pi / 2), (0.34, 0.2, 0.34), "dark_wood")
 
     # ---- lantern posts on the gunwale, near both ends
     for k, (x, z) in enumerate(((1, -8.6), (-1, -8.6), (1, 8.6), (-1, 8.6))):
         base = v3(x * (hw(z) - 0.02), sheer(z) + 0.05, z)
-        beam(lanterns, "lantern_post_%d" % k, base, base + v3(0, 0.9, 0), 0.1, "red_paint")
+        _rbeam(lanterns, "lantern_post_%d" % k, base, base + v3(0, 0.9, 0), 0.1, "red_paint")
+        _octo(lanterns, "lantern_post_knob_%d" % k, base + v3(0, 0.93, 0), EYE, (0.14, 0.08, 0.14), "gold")
         beam(lanterns, "lantern_arm_%d" % k, base + v3(0, 0.85, 0), base + v3(x * 0.25, 0.85, 0), 0.06, "iron")
         add_cube(lanterns, "lantern_%d" % k, base + v3(x * 0.25, 0.62, 0), EYE, (0.26, 0.36, 0.26),
                  {"all": "lantern", "+2": "iron", "-2": "iron"}, stretch=True)
