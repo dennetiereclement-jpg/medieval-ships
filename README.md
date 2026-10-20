@@ -73,6 +73,8 @@ Pour tous :
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
 
+La version 1.7.16 : tous les véhicules sont lissés et arrondis. Galion et grand vaisseau de guerre : coques plus fluides (plus de couples et de virures, bouchain arrondi, rentrée), poupes et galeries bombées, et les changements de niveau du pont (gaillards, dunette) se font en longues courbes en S au lieu de marches carrées ; la maisonnette du galion devient un étage de château à toit-pont bombé ; proues retravaillées, mâts et vergues ronds. Dirigeable : ballon plus lisse au nez arrondi, ailerons courbes, nacelle ronde, cordages, rambardes, chaudière et tuyaux ronds. Petits bateaux : coques arrondies, poteaux, mâts, cheminées et tourelles ronds, textures plus fines, voiles aux bords courbes avec bandes de ris, sculptures (dragon, volutes elfiques, dais doré de la galère). Nautilus : toit de la timonerie arrondi sans arête, pied évasé dans le pont.
+
 La version 1.7.15 : la salle des machines est plus fournie : conduites de vapeur et d'air (cuivre, laiton, fer) le long de la paroi tribord au-dessus du moteur, qui descendent vers un panneau de vannes à volants ; tableaux de manomètres et bobines de Ruhmkorff le long de la passerelle ; membrures de bois cerclées de laiton sur les parois.
 
 La version 1.7.14 : en plongée, l'hélice laisse un sillage de bulles quand le Nautilus avance, et de l'air s'échappe en bulles du pont quand il plonge ; la mer vue par les vitres est un peu plus transparente (on distingue mieux le fond et les poissons au loin).
@@ -188,7 +190,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.7.15.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.7.16.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
