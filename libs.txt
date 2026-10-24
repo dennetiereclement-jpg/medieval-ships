@@ -1,0 +1,6 @@
+total 7844
+drwxr-xr-x  2 runner runner    4096 Oct 24 16:09 .
+drwxr-xr-x 14 runner runner    4096 Oct 24 16:10 ..
+-rw-r--r--  1 runner runner 3342279 Oct 24 16:09 farmers-delight-refabricated.jar
+-rw-r--r--  1 runner runner 1956398 Oct 24 16:09 farmhouse-decorations.jar
+-rw-r--r--  1 runner runner 2721419 Oct 24 16:09 furnish-furniture.jar
