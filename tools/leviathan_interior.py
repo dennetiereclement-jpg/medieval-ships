@@ -153,9 +153,15 @@ STAIRS = (
 )
 COMPANION_HOLE = (1.5, 3.0, 1.5, 4.5)       # opening in the main deck over the companion stair (x0, x1, z0, z1)
 ENGINE_LANDING = (-11.5, -9.5)              # landing at the lower deck level inside the engine room (z)
-BOILER = (0.0, -14.2, 1.2, EO, -1.0)        # x, z, radius (of its cells; the model is a little thinner), bottom, top
+BOILER = (0.0, -14.2, 1.25, EO, -1.5)        # x, z, radius (of its cells; the model is a little thinner), bottom, top
 CHIMNEY_R = 0.45
+CATWALK_Y = LO + 0.5                        # the catwalk along the engine room's starboard wall (walked at this height)
+CATWALK = (-INF, -2.5, -16.5, ENGINE_LANDING[0])   # its floor (x0, x1, z0, z1), a railing on its inner edge
+ENGINE_BLOCK = (-0.9, 0.9, EO, EO + 1.6, -16.5, -15.55)   # the piston engine aft of the boiler
 HELM_BOX = (-0.5, 0.5, CASTLE, CASTLE + 1.0, -11.0, -10.5)
+
+
+FACES = ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))
 
 
 def stair_steps(st):
@@ -216,9 +222,14 @@ def build():
         g.k[g.sel(-INF, INF, y, y + 1.0, z0 - 0.01, z1) & (np.abs(X) <= hx_rail)] = FURNITURE
     hx_c = _vec(ls.hull_x, Z, np.minimum(Y, ls.POOP_Y + 1.0))
     wide = (hx_c > 0.5) & (np.abs(X) <= hx_c - ls.SHELL)
-    # ---- rooms
+    # ---- rooms: inside the hull with a solid cell between them and the outside across every face (also
+    # across the transom, at the stem and under the curve of the bilge), so no room opens on the air (two
+    # cells meeting only at an edge or a corner leave no gap a player could pass)
+    enclosed = inner.copy()
+    for o in FACES:
+        enclosed &= np.roll(body, o, axis=(0, 1, 2))
     for name, box in ROOMS.items():
-        g.set(DRY, *box, where=inner)
+        g.set(DRY, *box, where=enclosed)
     # bulkheads in front of the castles are walls (the rooms stop there), the rails on the castle edges
     for zc, y0, y1 in ((ls.QUARTERDECK_Z - 0.25, M0, CASTLE), (ls.FORECASTLE_Z + 0.25, M0, CASTLE), (ls.POOP_Z - 0.25, CASTLE, POOP)):
         g.set(SOLID, -INF, INF, y0, y1, zc - 0.25, zc + 0.25, where=inner)
@@ -261,8 +272,13 @@ def build():
     # the engine room landing's rail (not over the stair)
     ez0, ez1 = ENGINE_LANDING
     st = [s for s in STAIRS if s[0] == "engine"][0]
-    g.set(FURNITURE, -INF, st[1], LO, LO + 1.0, ez0, ez0 + 0.5, where=inner)
+    cx0, cx1, cz0, cz1 = CATWALK
+    g.set(FURNITURE, cx1, st[1], LO, LO + 1.0, ez0, ez0 + 0.5, where=inner)
     g.set(FURNITURE, st[2], INF, LO, LO + 1.0, ez0, ez0 + 0.5, where=inner)
+    # the catwalk along the starboard wall, a step above the landing, its railing (one can walk under it)
+    g.set(SOLID, cx0, cx1, CATWALK_Y - SLAB, CATWALK_Y, cz0, cz1, where=inner)
+    g.set(FURNITURE, cx1, cx1 + 0.5, CATWALK_Y, CATWALK_Y + 1.0, cz0, cz1, where=inner)
+    g.set(FURNITURE, *ENGINE_BLOCK, where=inner)
     # the helm
     g.set(FURNITURE, *HELM_BOX)
     # ---- doors (after everything: they cut through walls, decks and rails)
@@ -325,6 +341,22 @@ def walkable_report(g, start=(0.0, M0 + 0.01, 4.0)):
     return reached, len(seen)
 
 
+def leaks(g):
+    """Cells of the rooms (dry or ladder) that touch the outside air across a face: none, but the companion
+    opening in the main deck and the tower's ladder shaft."""
+    k = g.k
+    room = (k == DRY) | (k == LADDER)
+    out = k == OUT
+    touch = np.zeros_like(room)
+    for o in FACES:
+        touch |= np.roll(out, o, axis=(0, 1, 2))
+    hole = COMPANION_HOLE
+    allowed = g.sel(hole[0] - 0.5, hole[1] + 0.5, M0 - SLAB - 0.5, M0, hole[2] - 0.5, hole[3] + 0.5)
+    allowed |= g.sel(-ls.SHAFT_X - 0.5, ls.SHAFT_X + 0.5, M0, Y1, ls.SHAFT_Z[0] - 0.5, ls.SHAFT_Z[1] + 0.5)   # the tower's ladder
+    bad = room & touch & ~allowed
+    return [(float(g.xs[i]), float(g.ys[j]), float(g.zs[l])) for i, j, l in zip(*np.nonzero(bad))]
+
+
 GRID_PATH = "src/main/resources/assets/medievalships/interiors/sky_leviathan.grid"
 
 if __name__ == "__main__":
@@ -333,6 +365,8 @@ if __name__ == "__main__":
     g = build()
     counts = {int(k): int((g.k == k).sum()) for k in np.unique(g.k)}
     print("grid", g.nx, g.ny, g.nz, "cells", counts)
+    lk = leaks(g)
+    print("room cells open on the outside:", len(lk), lk[:10])
     reached, total = walkable_report(g)
     print("standing places reached from the main deck (doors open):", total)
     for name, n in reached.items():

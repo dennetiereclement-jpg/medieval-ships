@@ -23,8 +23,8 @@ import fr.medievalships.entity.ShipEntity;
 import fr.medievalships.entity.ShipTracker;
 
 /**
- * In-game checks of the Sky Leviathan (about 45 s of game time): placed in the air over open ground,
- * hovers, the reference views, walking on the main deck, flown from the helm (climb, forward), the
+ * In-game checks of the Sky Leviathan (about 50 s of game time): placed in the air over open ground,
+ * hovers, the reference views, the furnished rooms, walking on the main deck, flown from the helm (climb, forward), the
  * pilot steps off onto the quarterdeck, the captain's door, the ladder of the tower up through the
  * balloon to the observation deck, the item. Called once from {@link ShipClientGameTest}.
  */
@@ -127,6 +127,22 @@ public final class LeviathanGameTest {
 			shot.accept(id + "_" + names[k]);
 		}
 
+		// the rooms, furnished with the decoration mods (their stand-ins when a mod is missing), from the
+		// viewpoints of the reference sheet's interior views
+		String[] rooms = {"9_salle_commune", "10_cabine_capitaine", "11_bureau_capitaine", "12_salle_cartes", "13_cale", "14_coursive",
+				"15_salle_machines", "16_pont_principal", "17_salle_machines_arriere"};
+		double[][] cams = { // eye x, y, z, target x, y, z
+				{2.7, -1.38, 4.3, -1.6, -2.5, 8.8}, {-1.2, 1.62, -14.6, 2.2, 0.5, -17.8}, {0.6, 1.62, -8.6, -1.6, 0.6, -12.0},
+				{0.0, 4.62, -15.8, 0.0, 3.6, -19.5}, {0.3, -3.88, 5.9, -0.3, -4.8, -2.0}, {0.0, -1.38, 0.3, 0.0, -1.9, -9.0},
+				{0.1, -1.38, -10.9, 0.0, -3.4, -14.2}, {3.6, 1.62, 4.5, 0.0, 3.0, -11.0},
+				{-1.95, -3.4, -13.6, 0.2, -4.3, -16.2}}; // beside the boiler, aft to the piston engine and its flywheel
+		for (int k = 0; k < rooms.length; k++) {
+			double[] c = cams[k];
+			lookLocal(server, hover, c[0], c[1], c[2], c[3], c[4], c[5]);
+			context.waitTicks(k == 0 ? 20 : rooms[k].startsWith("15") ? 40 : 10);
+			shot.accept(id + "_" + rooms[k]);
+		}
+
 		// walking on the main deck
 		server.runCommand("gamemode survival @a");
 		server.runCommand("effect give @a minecraft:resistance infinite 4 true");
@@ -139,6 +155,8 @@ public final class LeviathanGameTest {
 		l = local(context, server);
 		check.accept(g.inCarryVolume(l[0], l[1], l[2]) && Math.abs(l[1]) < 0.08,
 				String.format(Locale.ROOT, "%s walks on the main deck (local %.2f %.2f %.2f)", id, l[0], l[1], l[2]));
+		lookLocal(server, pose(server), l[0], l[1] + 1.62, l[2], 0.0, 2.0, 9.0);   // turned towards the bow, over the deck
+		context.waitTicks(10);
 		shot.accept(id + "_6_pont");
 
 		// the captain's door, then into the captain's quarters
@@ -149,6 +167,8 @@ public final class LeviathanGameTest {
 		context.waitTicks(10);
 		l = local(context, server);
 		check.accept(l[2] < -8.3 && Math.abs(l[1]) < 0.08, String.format(Locale.ROOT, "%s walks into the captain's quarters (local z %.2f y %.2f)", id, l[2], l[1]));
+		lookLocal(server, pose(server), l[0], l[1] + 1.62, l[2], -2.6, 0.6, -11.2);   // the captain's desk, not the bedroom door
+		context.waitTicks(10);
 		shot.accept(id + "_7_cabine");
 
 		// flown from the helm: climb, forward, then the pilot steps off onto the quarterdeck
@@ -196,6 +216,8 @@ public final class LeviathanGameTest {
 		log.accept(String.format(Locale.ROOT, "%s after the ladder: local %.2f %.2f %.2f", id, l[0], l[1], l[2]));
 		check.accept(Math.abs(l[1] - LeviathanLayout.TOP_DECK_Y) < 0.1 && g.inCarryVolume(l[0], l[1], l[2]),
 				String.format(Locale.ROOT, "%s climbs the tower's ladder onto the observation deck (local y %.2f)", id, l[1]));
+		lookLocal(server, pose(server), l[0], l[1] + 1.62, l[2], 0.0, LeviathanLayout.TOP_DECK_Y, -10.0);   // along the deck, aft
+		context.waitTicks(10);
 		shot.accept(id + "_8_pont_superieur");
 
 		// the item

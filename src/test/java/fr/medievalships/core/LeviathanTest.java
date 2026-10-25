@@ -169,19 +169,25 @@ class LeviathanTest {
 		area("poop deck", -1.8, 1.8, LeviathanLayout.POOP_Y, -18.7, -15.9);
 		area("observation deck", -3.5, 3.5, LeviathanLayout.TOP_DECK_Y, -10.0, -3.4);
 		area("observation deck (fore)", -3.5, 3.5, LeviathanLayout.TOP_DECK_Y, 0.4, 3.4);
-		area("captain's office", 1.6, 2.4, m, -12.0, -8.6);
-		area("captain's bedroom", -2.5, -1.0, m, -18.4, -13.6);
-		area("chart room", -1.0, 1.0, c, -18.8, -16.0);
+		area("captain's office (aisle between the doors)", -0.8, 0.8, m, -12.0, -9.2);
+		area("captain's office (by the chart table)", 1.6, 1.8, m, -11.4, -9.6);
+		area("captain's bedroom", -1.0, 0.4, m, -18.2, -13.6);
+		area("chart room (by the door)", -1.0, 1.0, c, -16.4, -16.0);
+		area("chart room (beside the table)", 1.6, 1.8, c, -18.4, -16.2);
+		assertFalse(fits(0, c, -17.6), "the chart table is solid");
 		area("bosun's store", -0.8, 0.8, m, 10.0, 12.4);
-		area("common room", -2.2, -2.2, lo, 1.6, 8.6);
-		area("common room (aisle)", -0.6, 0.6, lo, 1.6, 5.4);
+		area("common room (starboard of the table)", -2.4, -2.2, lo, 3.0, 8.6);
+		area("common room (port of the table)", 2.2, 2.4, lo, 5.2, 8.6);
+		area("common room (aisle)", -0.6, 0.6, lo, 1.6, 4.9);
 		area("common room (foot of the companion)", 2.0, 2.4, lo, 1.4, 1.6);
-		area("coursive", -0.4, 0.4, lo, -8.6, 0.0);
-		area("crew room", -3.0, -2.0, lo, -8.0, -0.5);
-		area("storeroom", 2.0, 3.0, lo, -8.0, -0.5);
+		area("coursive", -0.15, 0.15, lo, -8.6, 0.0);
+		area("crew room", -2.1, -1.9, lo, -8.0, -0.5);
+		area("storeroom", 2.2, 2.4, lo, -6.5, -1.5);
 		area("hold", -1.0, 1.0, ho, -8.5, 6.0);
-		area("engine room (landing)", -2.4, 0.6, lo, -10.6, -9.8);
-		area("engine room (floor)", -1.9, -1.7, -5.0, -15.0, -12.6);
+		area("engine room (landing)", -1.8, 0.6, lo, -10.6, -9.8);
+		area("engine room (floor)", -1.9, -1.7, -5.0, -14.6, -12.6);
+		area("engine room (in front of the boiler)", -1.6, 0.6, -5.0, -12.65, -12.65);
+		area("engine room (catwalk)", -3.0, -3.0, lo + 0.5, -14.9, -11.8);
 		assertFalse(fits(0, -5.0, -14.2), "the boiler is solid");
 		assertFalse(fits(0, lo, 7.75), "the common room's table is solid");
 		// outside: not carried, nothing to stand on
@@ -226,6 +232,47 @@ class LeviathanTest {
 		return y;
 	}
 
+	/** No room opens on the outside air: every dry or ladder cell is walled off from the outside across its six
+	 * faces (across the transom, at the stem, under the curve of the bilge), but the companion opening in the
+	 * main deck and the tower's ladder shaft, which open on the main deck. */
+	@Test
+	void noWayOut() {
+		int[][] faces = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
+		int leaks = 0;
+		String first = null;
+		for (int i = 0; i < GRID.nx; i++) {
+			for (int j = 0; j < GRID.ny; j++) {
+				for (int k = 0; k < GRID.nz; k++) {
+					byte kind = GRID.kind(i, j, k);
+					if (kind != InteriorGrid.DRY && kind != InteriorGrid.LADDER) {
+						continue;
+					}
+					double x = GRID.x0 + (i + 0.5) * GRID.cell, y = GRID.y0 + (j + 0.5) * GRID.cell, z = GRID.z0 + (k + 0.5) * GRID.cell;
+					boolean companion = x > 1.0 && x < 3.5 && y > -1.0 && y < 0.0 && z > 1.0 && z < 5.0;
+					boolean shaft = Math.abs(x) < 1.5 && y > 0.0 && z > -3.0 && z < 0.5;
+					if (companion || shaft) {
+						continue;
+					}
+					for (int[] f : faces) {
+						if (GRID.kind(i + f[0], j + f[1], k + f[2]) == InteriorGrid.OUT) {
+							leaks++;
+							if (first == null) {
+								first = x + ", " + y + ", " + z;
+							}
+						}
+					}
+				}
+			}
+		}
+		assertEquals(0, leaks, "room cells open on the outside, first at " + first);
+		// the spots where one could walk out before: the transom behind the captain's bedroom and the chart
+		// room, the stem in the bosun's store, the bilge of the hold
+		assertFalse(fits(0, 0, -19.6), "the transom closes the captain's bedroom");
+		assertFalse(fits(0, 3, -19.6), "the transom closes the chart room");
+		assertFalse(fits(0, 0, 16.6), "the stem closes the bosun's store");
+		assertFalse(fits(2.6, -5.5, 2.5), "the bilge closes the hold");
+	}
+
 	@Test
 	void stairsAndLadders() {
 		walk("quarterdeck stair (port)", 3.25, 0.0, -4.0, -0.5, 7, LeviathanLayout.QUARTERDECK_Y);
@@ -234,6 +281,12 @@ class LeviathanTest {
 		walk("poop stair", 2.75, 3.0, -12.0, -0.5, 6, LeviathanLayout.POOP_Y);
 		walk("companion down to the common room", 2.25, 0.0, 5.0, -0.5, 6, LeviathanLayout.LOWER_DECK_Y);
 		walk("engine room stair", 1.75, -3.0, -11.0, -0.5, 5, -5.0);
+		// from the engine room's door across the landing (clear of its crates) and up onto the catwalk
+		for (double x = 0.0; x >= -3.25 - 1e-9; x -= 0.25) {
+			assertEquals(LeviathanLayout.LOWER_DECK_Y, floorUnder(x, LeviathanLayout.LOWER_DECK_Y, -10.0), 1e-9, "landing floor at x " + x);
+			assertTrue(fits(x, LeviathanLayout.LOWER_DECK_Y, -10.0), "across the landing at x " + x);
+		}
+		walk("onto the catwalk", -3.25, LeviathanLayout.LOWER_DECK_Y, -10.0, -0.5, 6, LeviathanLayout.LOWER_DECK_Y + 0.5);
 		// the ladder of the tower, from the main deck up through the balloon to the observation deck
 		for (double y = 0.25; y < LeviathanLayout.TOP_DECK_Y - 0.5; y += 0.5) {
 			assertTrue(GRID.ladderAt(0, y, -1.5), "tower ladder at " + y);
@@ -274,7 +327,11 @@ class LeviathanTest {
 			assertTrue(kinds[InteriorGrid.DOOR + d] > 0, "door " + d);
 		}
 		assertNotNull(G.decor());
-		assertTrue(G.decor().seats().size() >= 8);
+		assertTrue(G.decor().seats().size() >= 20, "seats " + G.decor().seats().size());
+		assertTrue(G.decor().blocks().size() >= 150, "furniture of the decoration mods " + G.decor().blocks().size());
+		for (String mod : new String[] {"farmhouse_decorations:", "furnish:", "farmersdelight:", "landsoficaria:", "mebahelcreaturesdwarven:"}) {
+			assertTrue(G.decor().blocks().stream().anyMatch(b -> b.block().startsWith(mod)), "uses " + mod);
+		}
 	}
 
 	// ------------------------------------------------------------------ flight
