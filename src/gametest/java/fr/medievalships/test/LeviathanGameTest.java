@@ -97,6 +97,44 @@ public final class LeviathanGameTest {
 		});
 	}
 
+	/**
+	 * Diagnostic line: the airship as the server and as this client see it (position, yaw, speeds), and the player as the
+	 * client simulates him, in the frame of both hulls (feet, on ground, climbing, spectator, camera).
+	 */
+	private static void diag(ClientGameTestContext context, TestServerContext server, Consumer<String> log, String tag) {
+		double[] sv = server.computeOnServer(srv -> {
+			ShipEntity s = ship(srv.getOverworld());
+			ServerPlayerEntity p = srv.getPlayerManager().getPlayerList().get(0);
+			return s == null ? null : new double[] {s.getX(), s.getY(), s.getZ(), s.getYaw(), s.physics().speed, s.syncedVerticalSpeed(),
+					p.getX(), p.getY(), p.getZ()};
+		});
+		Object[] cl = context.computeOnClient((MinecraftClient c) -> {
+			ShipEntity s = null;
+			for (ShipEntity e : ShipTracker.ships(c.world)) {
+				if (!e.isRemoved() && e.shipType() == TYPE) {
+					s = e;
+				}
+			}
+			var p = c.player;
+			return new Object[] {s == null ? null : s.pose(), p.getX(), p.getY(), p.getZ(), p.isOnGround(), p.isClimbing(), p.isSpectator(),
+					c.getCameraEntity() == p, p.hasVehicle(), p.horizontalCollision, p.getVelocity().y};
+		});
+		if (sv == null || cl[0] == null) {
+			log.accept(TYPE.id() + " diag " + tag + ": no ship");
+			return;
+		}
+		ShipPose sp = new ShipPose(sv[0], sv[1], sv[2], sv[3]), cp = (ShipPose) cl[0];
+		double px = (Double) cl[1], py = (Double) cl[2], pz = (Double) cl[3];
+		double[] ls = sp.toLocal(px, py, pz), lc = cp.toLocal(px, py, pz), lsv = sp.toLocal(sv[6], sv[7], sv[8]);
+		double[] lag = sp.toLocal(cp.x(), cp.y(), cp.z());
+		log.accept(String.format(Locale.ROOT,
+				"%s diag %s: speed %.2f vy %.2f, client hull lags (local %.2f %.2f %.2f, yaw %.2f); player local %.2f %.2f %.2f (server hull) "
+						+ "%.2f %.2f %.2f (client hull), server copy %.2f %.2f %.2f; ground %s climbing %s spectator %s camera %s riding %s "
+						+ "hcoll %s vy %.3f",
+				TYPE.id(), tag, sv[4], sv[5], lag[0], lag[1], lag[2], ShipPose.wrapDegrees(cp.yaw() - sp.yaw()), ls[0], ls[1], ls[2], lc[0],
+				lc[1], lc[2], lsv[0], lsv[1], lsv[2], cl[4], cl[5], cl[6], cl[7], cl[8], cl[9], (Double) cl[10]));
+	}
+
 	private static void setDoor(TestServerContext server, int door, boolean open) {
 		server.computeOnServer(srv -> {
 			ShipEntity s = ship(srv.getOverworld());
@@ -256,8 +294,12 @@ public final class LeviathanGameTest {
 		check.accept(a4 != null && Math.abs(a4[1]) > 0.3 && a4[2] > 0.3, String.format(Locale.ROOT,
 				"%s turning and climbing: rudder and elevator fins over (helm %.2f, climb %.2f)", id, a4 == null ? 0f : a4[1], a4 == null ? 0f : a4[2]));
 		check.accept(collisions(server) == 0, id + " flight: inside nothing");
+		diag(context, server, log, "before dismount");
 		server.runCommand("ride @p dismount");
-		context.waitTicks(10);
+		for (int i = 0; i < 10; i++) {
+			context.waitTicks(1);
+			diag(context, server, log, "dismount +" + (i + 1));
+		}
 		l = local(context, server);
 		check.accept(g.inCarryVolume(l[0], l[1], l[2]) && Math.abs(l[1] - LeviathanLayout.QUARTERDECK_Y) < 0.15,
 				String.format(Locale.ROOT, "%s the pilot steps off onto the quarterdeck (local %.2f %.2f %.2f)", id, l[0], l[1], l[2]));
@@ -276,13 +318,18 @@ public final class LeviathanGameTest {
 		// the ladder of the tower, up through the balloon to the observation deck
 		setDoor(server, LeviathanLayout.TOWER_DOOR, true);
 		setDoor(server, LeviathanLayout.TOP_HATCH, true);
+		diag(context, server, log, "before the tower");
 		tpLocal(server, pose(server), 0, 0.05, -1.5, 180, -30);
-		context.waitTicks(10);
+		for (int i = 0; i < 10; i++) {
+			context.waitTicks(1);
+			diag(context, server, log, "tower +" + (i + 1));
+		}
 		context.getInput().holdKey(o -> o.jumpKey);
 		context.getInput().holdKey(o -> o.forwardKey);
 		double top = -99;
 		for (int i = 0; i < 30 && top < LeviathanLayout.TOP_DECK_Y - 0.1; i++) {
 			context.waitTicks(10);
+			diag(context, server, log, "ladder " + i);
 			top = local(context, server)[1];
 		}
 		context.waitTicks(20);
