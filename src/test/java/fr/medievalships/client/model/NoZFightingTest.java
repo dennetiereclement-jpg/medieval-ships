@@ -23,7 +23,7 @@ import com.google.gson.JsonParser;
  * The generators separate them on export ({@code tools/zfight.py}); this checks the models as the mod reads them.
  */
 class NoZFightingTest {
-	private static final String[] MODELS = {"galley", "galleon", "warship", "medieval_galley", "steam_paddleboat", "elven_sailboat", "steampunk_airship", "sky_leviathan"};
+	private static final String[] MODELS = {"galley", "galleon", "warship", "medieval_galley", "steam_paddleboat", "elven_sailboat", "steampunk_airship", "old_corsair", "sky_leviathan"};
 	private static final float TOL = 0.005f;
 
 	private record Face(float[] p, float[] n, float d) {
