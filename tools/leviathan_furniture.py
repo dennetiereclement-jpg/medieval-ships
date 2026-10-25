@@ -98,6 +98,35 @@ def barrel(bone, name, p, r=0.36, h=0.95, lid=True):
         disc(bone, "lit_%s_lid" % name, p + up * (h * 0.95 - 0.02), up, r * 0.86, 0.04, "in_barrel_lid", sides=10)
 
 
+def cask(bone, name, p, facing=(0, 0, -1), r=0.34, l=0.85, tap=True):
+    """A cask lying on its wooden cradle, its lid (and its brass tap) turned towards `facing` (horizontal):
+    p is the centre of the cradle on the floor."""
+    p = v3(*p)
+    n = norm(v3(facing[0], 0, facing[2]))
+    up = v3(0, 1, 0)
+    side = np.cross(up, n)
+    yc = 0.16 + r
+    c = p + up * yc
+    # the cradle: two saddles across the cask, two rails along it
+    R = np.column_stack([side, up, n])
+    for e in (-1, 1):
+        box(bone, "lit_%s_saddle%d" % (name, e > 0), p + n * (e * l * 0.3) + up * 0.12, (2 * r * 0.95, 0.24, 0.12), "in_beam", R=R)
+        box(bone, "lit_%s_rail%d" % (name, e > 0), p + side * (e * r * 0.7) + up * 0.04, (0.1, 0.08, l * 0.85), "in_beam", R=R)
+    # the staves (bulging in the middle), the hoops, the two heads
+    base = c - n * (l / 2)
+    for k, (a, b, rr) in enumerate(((0.0, 0.3, 0.9), (0.3, 0.7, 1.0), (0.7, 1.0, 0.9))):
+        prism(bone, "lit_%s_staves%d" % (name, k), base + n * (l * (a + b) / 2), n, up, l * (b - a), r * rr, 10, "in_staves", phase=0.1 * k)
+    for k, (t, rr) in enumerate(((0.1, 0.93), (0.34, 1.02), (0.66, 1.02), (0.9, 0.93))):
+        prism(bone, "lit_%s_hoop%d" % (name, k), base + n * (l * t), n, up, 0.06, r * rr + 0.025, 10, "in_iron", phase=0.05)
+    disc(bone, "lit_%s_lid" % name, base + n * (l + 0.01), n, r * 0.86, 0.04, "in_barrel_lid", sides=10)
+    disc(bone, "lit_%s_back" % name, base - n * 0.01, n, r * 0.86, 0.04, "in_barrel_lid", sides=10)
+    if tap:
+        t0 = base + n * (l + 0.03) - up * (r * 0.45)
+        tube(bone, "lit_%s_tap" % name, t0, t0 + n * 0.12, 0.06, "in_brass")
+        box(bone, "lit_%s_tap_spout" % name, t0 + n * 0.12 - up * 0.04, (0.05, 0.1, 0.05), "in_brass", R=R)
+        box(bone, "lit_%s_tap_key" % name, t0 + n * 0.09 + up * 0.05, (0.12, 0.03, 0.03), "in_brass", R=R)
+
+
 def rope_coil(bone, name, p, r=0.32, turns=3, th=0.09):
     """A coil of rope lying on the deck."""
     p = v3(*p)
@@ -123,10 +152,11 @@ def coal_heap(bone, name, p, r=0.6):
 
 
 # ---------------------------------------------------------------- bedding, cloth, rugs
-def bed_blanket(bone, name, x, y, z, yaw_deg):
+def bed_blanket(bone, name, x, y, z, yaw_deg, xc=0.0, half=15.4):
     """The dark red blanket laid over the mods' double bed (farmhouse_decorations:double_bed, placed at
     (x, y, z) with InteriorDecor yaw `yaw_deg`): it covers the bed's own sheets from the foot to the
-    pillows and hangs over its sides (bed model: x -15..15 px, top of the sheets 7.75 px, z 1.75..20.5)."""
+    pillows and hangs over its sides (bed model: x -15..15 px, top of the sheets 7.75 px, z 1.75..20.5).
+    The single bed: xc=8, half=8.9 (its model: x 0..16 px, the same height and length)."""
     a = math.radians(yaw_deg)
     c, s = math.cos(a), math.sin(a)
 
@@ -135,18 +165,19 @@ def bed_blanket(bone, name, x, y, z, yaw_deg):
         return v3(x + qx * c + qz * s, y + py_, z - qx * s + qz * c)
     R = np.column_stack([v3(c, 0, -s), v3(0, 1, 0), v3(s, 0, c)])
     z0, z1 = 1.4 / 16, 21.0 / 16
-    xm = 0.0
-    top = P(xm / 16 + 0.0, 0.0, (z0 + z1) / 2)
-    box(bone, "lit_%s_top" % name, top + v3(0, 8.0 / 16, 0), (31.0 / 16, 0.05, z1 - z0), {"all": "in_blanket", "+2": "in_blanket"}, R=R,
+    xm = xc / 16
+    wt = (2 * half + 0.2) / 16
+    top = P(xm, 0.0, (z0 + z1) / 2)
+    box(bone, "lit_%s_top" % name, top + v3(0, 8.0 / 16, 0), (wt, 0.05, z1 - z0), {"all": "in_blanket", "+2": "in_blanket"}, R=R,
         stretch=True)
     for e in (-1, 1):
-        side = P(e * 15.4 / 16, 0.0, (z0 + z1) / 2)
+        side = P(xm + e * half / 16, 0.0, (z0 + z1) / 2)
         box(bone, "lit_%s_side%d" % (name, e > 0), side + v3(0, 6.6 / 16, 0), (0.05, 2.9 / 16, z1 - z0), "in_blanket", R=R, stretch=True)
-    foot = P(0.0, 0.0, z0 - 0.02)
-    box(bone, "lit_%s_foot" % name, foot + v3(0, 6.6 / 16, 0), (31.0 / 16, 2.9 / 16, 0.05), "in_blanket", R=R, stretch=True)
+    foot = P(xm, 0.0, z0 - 0.02)
+    box(bone, "lit_%s_foot" % name, foot + v3(0, 6.6 / 16, 0), (wt, 2.9 / 16, 0.05), "in_blanket", R=R, stretch=True)
     # the folded-back sheet at the head of the blanket
-    fold = P(0.0, 0.0, z1 + 0.06)
-    box(bone, "lit_%s_fold" % name, fold + v3(0, 8.1 / 16, 0), (30.0 / 16, 0.06, 0.16), "in_bedding", R=R)
+    fold = P(xm, 0.0, z1 + 0.06)
+    box(bone, "lit_%s_fold" % name, fold + v3(0, 8.1 / 16, 0), (wt - 1.0 / 16, 0.06, 0.16), "in_bedding", R=R)
 
 
 def rug(bone, name, p, w, l, region="in_rug", yaw=0.0):
@@ -469,11 +500,15 @@ def boiler_front(bone, c, r, h, root=None, Bone=None):
     c = v3(*c)
     up = v3(0, 1, 0)
     fz = v3(0, 0, 1)
-    # round hatch with a spoked emblem
+    # round hatch with a spoked emblem, on a riveted collar reaching back into the curved barrel (no gap
+    # at its sides, where the barrel turns away from it)
     hc = c + up * 1.95 + fz * (r * 1.0 + 0.04)
-    disc(bone, "lit_boiler_hatch", hc, fz, 0.62, 0.08, "in_rivets", sides=12)
-    ring(bone, "lit_boiler_hatch_rim", hc + fz * 0.05, fz, 0.62, 0.09, "in_gold", n=12)
-    ring(bone, "lit_boiler_hatch_rim_in", hc + fz * 0.07, fz, 0.32, 0.06, "in_gold", n=10)
+    zb = math.sqrt(max(0.0, r * r - 0.68 * 0.68)) - 0.03
+    zf = r * 1.0 + 0.04
+    disc(bone, "lit_boiler_hatch_collar", c + up * 1.95 + fz * ((zb + zf) / 2), fz, 0.68, zf - zb, "in_rivets", sides=20, phase=0.025)
+    disc(bone, "lit_boiler_hatch", hc, fz, 0.62, 0.08, "in_rivets", sides=20)
+    ring(bone, "lit_boiler_hatch_rim", hc + fz * 0.05, fz, 0.62, 0.09, "in_gold", n=20)
+    ring(bone, "lit_boiler_hatch_rim_in", hc + fz * 0.07, fz, 0.32, 0.06, "in_gold", n=14)
     for k in range(8):
         a = 2 * math.pi * k / 8
         d = v3(math.cos(a), math.sin(a), 0)

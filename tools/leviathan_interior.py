@@ -161,6 +161,9 @@ ENGINE_BLOCK = (-0.9, 0.9, EO, EO + 1.6, -16.5, -15.55)   # the piston engine af
 HELM_BOX = (-0.5, 0.5, CASTLE, CASTLE + 1.0, -11.0, -10.5)
 
 
+FACES = ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))
+
+
 def stair_steps(st):
     """(x0, x1, z0, z1, top) of each step of a stair."""
     name, x0, x1, zs, d, y0, n = st
@@ -219,9 +222,14 @@ def build():
         g.k[g.sel(-INF, INF, y, y + 1.0, z0 - 0.01, z1) & (np.abs(X) <= hx_rail)] = FURNITURE
     hx_c = _vec(ls.hull_x, Z, np.minimum(Y, ls.POOP_Y + 1.0))
     wide = (hx_c > 0.5) & (np.abs(X) <= hx_c - ls.SHELL)
-    # ---- rooms
+    # ---- rooms: inside the hull with a solid cell between them and the outside across every face (also
+    # across the transom, at the stem and under the curve of the bilge), so no room opens on the air (two
+    # cells meeting only at an edge or a corner leave no gap a player could pass)
+    enclosed = inner.copy()
+    for o in FACES:
+        enclosed &= np.roll(body, o, axis=(0, 1, 2))
     for name, box in ROOMS.items():
-        g.set(DRY, *box, where=inner)
+        g.set(DRY, *box, where=enclosed)
     # bulkheads in front of the castles are walls (the rooms stop there), the rails on the castle edges
     for zc, y0, y1 in ((ls.QUARTERDECK_Z - 0.25, M0, CASTLE), (ls.FORECASTLE_Z + 0.25, M0, CASTLE), (ls.POOP_Z - 0.25, CASTLE, POOP)):
         g.set(SOLID, -INF, INF, y0, y1, zc - 0.25, zc + 0.25, where=inner)
@@ -333,6 +341,22 @@ def walkable_report(g, start=(0.0, M0 + 0.01, 4.0)):
     return reached, len(seen)
 
 
+def leaks(g):
+    """Cells of the rooms (dry or ladder) that touch the outside air across a face: none, but the companion
+    opening in the main deck and the tower's ladder shaft."""
+    k = g.k
+    room = (k == DRY) | (k == LADDER)
+    out = k == OUT
+    touch = np.zeros_like(room)
+    for o in FACES:
+        touch |= np.roll(out, o, axis=(0, 1, 2))
+    hole = COMPANION_HOLE
+    allowed = g.sel(hole[0] - 0.5, hole[1] + 0.5, M0 - SLAB - 0.5, M0, hole[2] - 0.5, hole[3] + 0.5)
+    allowed |= g.sel(-ls.SHAFT_X - 0.5, ls.SHAFT_X + 0.5, M0, Y1, ls.SHAFT_Z[0] - 0.5, ls.SHAFT_Z[1] + 0.5)   # the tower's ladder
+    bad = room & touch & ~allowed
+    return [(float(g.xs[i]), float(g.ys[j]), float(g.zs[l])) for i, j, l in zip(*np.nonzero(bad))]
+
+
 GRID_PATH = "src/main/resources/assets/medievalships/interiors/sky_leviathan.grid"
 
 if __name__ == "__main__":
@@ -341,6 +365,8 @@ if __name__ == "__main__":
     g = build()
     counts = {int(k): int((g.k == k).sum()) for k in np.unique(g.k)}
     print("grid", g.nx, g.ny, g.nz, "cells", counts)
+    lk = leaks(g)
+    print("room cells open on the outside:", len(lk), lk[:10])
     reached, total = walkable_report(g)
     print("standing places reached from the main deck (doors open):", total)
     for name, n in reached.items():

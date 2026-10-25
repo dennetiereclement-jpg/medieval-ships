@@ -232,6 +232,47 @@ class LeviathanTest {
 		return y;
 	}
 
+	/** No room opens on the outside air: every dry or ladder cell is walled off from the outside across its six
+	 * faces (across the transom, at the stem, under the curve of the bilge), but the companion opening in the
+	 * main deck and the tower's ladder shaft, which open on the main deck. */
+	@Test
+	void noWayOut() {
+		int[][] faces = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1}, {0, 0, -1}};
+		int leaks = 0;
+		String first = null;
+		for (int i = 0; i < GRID.nx; i++) {
+			for (int j = 0; j < GRID.ny; j++) {
+				for (int k = 0; k < GRID.nz; k++) {
+					byte kind = GRID.kind(i, j, k);
+					if (kind != InteriorGrid.DRY && kind != InteriorGrid.LADDER) {
+						continue;
+					}
+					double x = GRID.x0 + (i + 0.5) * GRID.cell, y = GRID.y0 + (j + 0.5) * GRID.cell, z = GRID.z0 + (k + 0.5) * GRID.cell;
+					boolean companion = x > 1.0 && x < 3.5 && y > -1.0 && y < 0.0 && z > 1.0 && z < 5.0;
+					boolean shaft = Math.abs(x) < 1.5 && y > 0.0 && z > -3.0 && z < 0.5;
+					if (companion || shaft) {
+						continue;
+					}
+					for (int[] f : faces) {
+						if (GRID.kind(i + f[0], j + f[1], k + f[2]) == InteriorGrid.OUT) {
+							leaks++;
+							if (first == null) {
+								first = x + ", " + y + ", " + z;
+							}
+						}
+					}
+				}
+			}
+		}
+		assertEquals(0, leaks, "room cells open on the outside, first at " + first);
+		// the spots where one could walk out before: the transom behind the captain's bedroom and the chart
+		// room, the stem in the bosun's store, the bilge of the hold
+		assertFalse(fits(0, 0, -19.6), "the transom closes the captain's bedroom");
+		assertFalse(fits(0, 3, -19.6), "the transom closes the chart room");
+		assertFalse(fits(0, 0, 16.6), "the stem closes the bosun's store");
+		assertFalse(fits(2.6, -5.5, 2.5), "the bilge closes the hold");
+	}
+
 	@Test
 	void stairsAndLadders() {
 		walk("quarterdeck stair (port)", 3.25, 0.0, -4.0, -0.5, 7, LeviathanLayout.QUARTERDECK_Y);
@@ -240,6 +281,12 @@ class LeviathanTest {
 		walk("poop stair", 2.75, 3.0, -12.0, -0.5, 6, LeviathanLayout.POOP_Y);
 		walk("companion down to the common room", 2.25, 0.0, 5.0, -0.5, 6, LeviathanLayout.LOWER_DECK_Y);
 		walk("engine room stair", 1.75, -3.0, -11.0, -0.5, 5, -5.0);
+		// from the engine room's door across the landing (clear of its crates) and up onto the catwalk
+		for (double x = 0.0; x >= -3.25 - 1e-9; x -= 0.25) {
+			assertEquals(LeviathanLayout.LOWER_DECK_Y, floorUnder(x, LeviathanLayout.LOWER_DECK_Y, -10.0), 1e-9, "landing floor at x " + x);
+			assertTrue(fits(x, LeviathanLayout.LOWER_DECK_Y, -10.0), "across the landing at x " + x);
+		}
+		walk("onto the catwalk", -3.25, LeviathanLayout.LOWER_DECK_Y, -10.0, -0.5, 6, LeviathanLayout.LOWER_DECK_Y + 0.5);
 		// the ladder of the tower, from the main deck up through the balloon to the observation deck
 		for (double y = 0.25; y < LeviathanLayout.TOP_DECK_Y - 0.5; y += 0.5) {
 			assertTrue(GRID.ladderAt(0, y, -1.5), "tower ladder at " + y);

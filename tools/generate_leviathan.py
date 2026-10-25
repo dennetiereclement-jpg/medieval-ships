@@ -1293,6 +1293,7 @@ FURNITURE_BUILDERS = {
     "knee": _named(lf.knee),
     "sea_chest": _named(lf.sea_chest),
     "barrel": _named(lf.barrel),
+    "cask": _named(lf.cask),
     "rope_coil": _named(lf.rope_coil),
     "sack": _named(lf.sack),
     "coal_heap": _named(lf.coal_heap),
