@@ -1269,7 +1269,7 @@ public final class Ships {
 		return c;
 	}
 
-	/** The Old Corsair: a patched-up three-master with rooms (see {@link CorsairLayout}). */
+	/** The Old Corsair: a patched-up brig (two masts) with rooms (see {@link CorsairLayout}). */
 	public static final ShipType OLD_CORSAIR = CorsairLayout.type();
 
 	public static final List<ShipType> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT, STEAMPUNK_AIRSHIP, NAUTILUS,

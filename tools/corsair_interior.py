@@ -11,9 +11,9 @@ the boundaries of these cells, so what is drawn is what collides.
 Layout (docs/CORSAIR_PLAN.md):
   main deck (4.5): open from the cabin bulkhead to the bow; the captain's cabin (4.0) under the
     quarterdeck (7.0) at the stern, a stair on each side up to the quarterdeck, the companionway down to the
-    common room on the port side of the main mast
-  lower deck (1.0): coursive along the centre line with the crew quarters on each side, the common
-    room (main mast through it), the kitchen forward (fore mast through it)
+    common room on the port side, between the two masts
+  lower deck (1.0): coursive along the centre line with the crew quarters on each side (the main mast,
+    stepped on the main deck, stays above it), the common room (fore mast through it), the kitchen forward
   hold (-2.0): under the whole lower deck, reached by the stair at the aft end of the coursive
 """
 import math
@@ -59,8 +59,9 @@ DOORS = {
     4: ("crew_stbd", (-1.5, -1.0, L, L + 2.0, -7.5, -6.5)),
 }
 CABIN_DOOR = 0
-# masts through the decks (1 x 1 block columns): main and fore stepped on the keel, the mizzen on the main deck
-MASTS = [(cs.MAIN_MAST_Z, H - S), (cs.FORE_MAST_Z, H - S), (cs.MIZZEN_Z, M)]
+# the two masts (1 x 1 block columns, (z, foot)): the fore mast stepped on the keel (through the common
+# room and the hold), the main mast on the main deck
+MASTS = [(cs.FORE_MAST_Z, H - S), (cs.MAIN_MAST_Z, M)]
 
 
 class Grid:

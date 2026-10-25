@@ -13,12 +13,13 @@ Outputs:
   src/main/resources/assets/medievalships/interiors/old_corsair_decor.json   (furniture of the mods, seats)
 
 Reference: the Minecraft sheet of "Le Vieux Corsaire" (side, front, back, top, perspective and detail
-views, six interior views; docs/CORSAIR_PLAN.md). An old, patched up three-master: a long black hull
-with two weathered cream bands that rise to the bow, brown upper works with open balustrades and
-stout posts, a stern castle with lit windows and galleries, a bowsprit with its jib-boom and lanterns,
-red-brown blocky sails with beige patches (three square sails on the fore and main masts, a spanker
-and a topsail on the mizzen, three jibs and a staysail), rope ladders up to every top, black pirate
-flags with a skull. Inside, two decks under the main deck (lower deck and hold) and the captain's
+views, six interior views; docs/CORSAIR_PLAN.md). An old, patched up brig (two masts, as on the side
+and perspective views): a long black hull with two weathered cream bands that rise to the bow, brown
+upper works with open balustrades and stout posts, a stern castle with lit windows and galleries, a
+bowsprit with its jib-boom and lanterns, red-brown blocky sails with beige patches (course, topsail and
+topgallant on the fore mast, lanterns hanging under the fore course; a bare main yard, a topsail, a
+topgallant and a great gaff spanker on the main mast; two jibs, a staysail between the masts), rope
+ladders up to every top, black pirate flags with a skull at the gaff peak and on the stern. Inside, two decks under the main deck (lower deck and hold) and the captain's
 cabin under the quarterdeck; their walls, floors and ceilings are drawn on the boundaries of the
 interior grid (tools/corsair_interior.py): what is drawn is what collides.
 
@@ -67,7 +68,7 @@ M, L, H, Q, C = cs.MAIN_DECK_Y, cs.LOWER_FLOOR_Y, cs.HOLD_FLOOR_Y, cs.QUARTERDEC
 CF = cs.CABIN_FRONT_Z
 TZ = cs.TRANSOM_Z
 BOW_Z = cs.FORE_SCALE - 0.02   # where the planking closes on the stem
-BRACE = math.radians(6)        # square yards barely braced round (port arms aft): square on the reference
+BRACE = math.radians(36)       # square yards braced round (port arms aft): the sails show their faces on the side view
 
 
 # ---------------------------------------------------------------- hull geometry
@@ -492,30 +493,45 @@ def lantern(parent, name, p, hang=True, drop=0.35, s=1.0):
 
 
 # ---------------------------------------------------------------- masts, yards, sails
+# A brig, as on the side and perspective views of the reference (docs/CORSAIR_PLAN.md): the fore mast
+# carries a course (with its lanterns), a topsail and a topgallant; the main mast, a little taller, a
+# bare main yard (the course furled on it), a topsail, a topgallant and the great gaff spanker whose
+# boom reaches the stern. Heights measured on the side view: y = 5.6 + (497 - y_px) / 15.5.
 MASTS = {
     # name: (z, lower top y, topmast crosstrees y, masthead y, lower mast diameter)
-    "fore": (cs.FORE_MAST_Z, 16.4, 24.6, cs.FORE_MAST_TOP, 0.72),
-    "main": (cs.MAIN_MAST_Z, 17.4, 26.2, cs.MAIN_MAST_TOP, 0.8),
-    "mizzen": (cs.MIZZEN_Z, 16.8, 23.8, cs.MIZZEN_TOP, 0.64),
+    "fore": (cs.FORE_MAST_Z, 18.3, 27.3, cs.FORE_MAST_TOP, 0.92),
+    "main": (cs.MAIN_MAST_Z, 20.2, 28.8, cs.MAIN_MAST_TOP, 0.96),
 }
+# where each mast is stepped: on the keel (through the rooms) or on the main deck (tools/corsair_interior.py)
+MAST_FOOT = {name: next(foot for z, foot in ci.MASTS if abs(z - MASTS[name][0]) < 1e-6) for name in MASTS}
 # square sails: mast, name, yard y, foot y, half width at the head, at the foot, belly, texture region
 SQUARE_SAILS = [
-    ("fore", "fore_course", 16.0, 9.0, 7.2, 8.0, 1.25, "course"),
-    ("fore", "fore_topsail", 24.0, 16.9, 5.5, 6.9, 1.0, "topsail"),
-    ("fore", "fore_topgallant", 31.0, 24.5, 4.1, 5.2, 0.8, "topgallant"),
-    ("main", "main_course", 17.0, 9.6, 7.6, 8.4, 1.35, "course"),
-    ("main", "main_topsail", 25.6, 17.9, 5.8, 7.3, 1.05, "topsail"),
-    ("main", "main_topgallant", 32.2, 26.1, 4.3, 5.4, 0.85, "topgallant"),
-    ("mizzen", "mizzen_topsail", 23.4, 18.0, 4.4, 5.6, 0.85, "mizzen_top"),
-    ("mizzen", "mizzen_topgallant", 29.2, 24.2, 3.2, 4.2, 0.7, "topgallant"),
+    ("fore", "fore_course", 17.3, 8.4, 7.9, 8.5, 1.3, "course"),
+    ("fore", "fore_topsail", 25.4, 18.9, 6.1, 7.1, 1.05, "topsail"),
+    ("fore", "fore_topgallant", 33.0, 27.9, 4.6, 5.6, 0.85, "topgallant"),
+    ("main", "main_topsail", 27.3, 20.8, 5.7, 6.5, 1.05, "main_topsail"),
+    ("main", "main_topgallant", 33.1, 28.9, 4.1, 4.9, 0.8, "main_topgallant"),
 ]
-GAFF = (v3(0, 16.2, cs.MIZZEN_Z - 0.35), v3(0, 22.4, -15.2))     # throat, peak
-BOOM = (v3(0, 9.5, cs.MIZZEN_Z - 0.35), v3(0, 9.1, -24.6))       # gooseneck, end
+
+
+def yard_step(mast_name, name):
+    """(z of the mast that carries the yard, offset of the yard before it): the courses and the main yard
+    on the lower mast, the topsails on the topmast (stepped 0.45 before it), the topgallants on the
+    topgallant mast (0.75 before); the yard hangs just before its mast."""
+    z, d = MASTS[mast_name][0], MASTS[mast_name][4]
+    if "topsail" in name:
+        return z + 0.45, d * 0.66 / 2 + 0.17
+    if "topgallant" in name:
+        return z + 0.75, d * 0.66 * 0.62 / 2 + 0.17
+    return z, d / 2 + 0.17
+MAIN_YARD = (18.9, 8.2)          # the bare main yard (y, half span): its course is furled on it
+GAFF = (v3(0, 19.7, cs.MAIN_MAST_Z - 0.4), v3(0, 26.2, -16.5))    # throat, peak
+BOOM = (v3(0, 9.8, cs.MAIN_MAST_Z - 0.4), v3(0, 10.2, -22.5))     # gooseneck, end (beyond the stern balcony)
 
 
 def mast(root, fittings, name):
     z, top1, top2, head, d = MASTS[name]
-    foot = M if name == "mizzen" else H
+    foot = H if MAST_FOOT[name] < M else M
     mb = Bone("mast_" + name, origin=(0, M, z), parent=root)
     # below the main deck the mast is drawn with the rooms (lit by their lamps)
     if foot < M:
@@ -597,11 +613,11 @@ def patch_sail(bone, name, P, N, region, nx, ny, th=0.035, overlap=0.03, keep=No
             gn.set_sub(cube, (s0, t0, s1, t1))
 
 
-def square_sail(mb, sails_info, lights, name, z, y_top, y_foot, half_top, half_foot, belly, region, foot_yard=False):
+def square_sail(mb, sails_info, lights, name, z, y_top, y_foot, half_top, half_foot, belly, region, foot_yard=False, off=0.42):
     """Yard (braced round with its sail), the sail billowed forward, a lower yard on the courses (the
     blocky reference shows a spar along the foot)."""
     br = Bone("brace_" + name, origin=(0, y_top, z), parent=mb)
-    zz = z + 0.42
+    zz = z + off
     round_bar(br, name + "_yard", (-half_top - 0.5, y_top, zz), (half_top + 0.5, y_top, zz), 0.26, "mast", extend=0.05)
     add_cube(br, name + "_sling", (0, y_top, zz - 0.1), EYE, (0.42, 0.38, 0.38), "rope")
     for sx in (1, -1):
@@ -624,7 +640,7 @@ def square_sail(mb, sails_info, lights, name, z, y_top, y_foot, half_top, half_f
         fy = y_foot - 0.15
         round_bar(br, name + "_foot_yard", (-half_foot - 0.3, fy, zz + 0.25), (half_foot + 0.3, fy, zz + 0.25), 0.22, "mast")
         for k, x in enumerate((-half_foot - 0.1, -half_foot * 0.68, half_foot * 0.68, half_foot + 0.1)):
-            lantern(br, "lantern_%s_%d" % (name, k), (x, fy - 0.1, zz + 0.25), drop=0.3)
+            lantern(br, "lantern_%s_%d" % (name, k), (x, fy - 0.1, zz + 0.25), drop=0.45, s=1.6)
     br.rot = ry(BRACE)
     return br
 
@@ -641,42 +657,90 @@ def quad_sail(bone, name, throat, peak, tack, clew, belly, N, region):
     patch_sail(bone, name, P, N, region, cols, rows)
 
 
-def tri_sail(bone, name, head, tack, clew, belly, N, region):
-    clew = gn.jib_clew(head, tack, clew)
+def tri_sail(bone, name, head, tack, clew, belly, N, region, keep_clew=False):
+    """Triangular sail; the jibs share one triangle of their texture region (the clew is slid along the
+    luff, gn.jib_clew), keep_clew keeps the given clew (the staysail has its own region and triangle)."""
+    if not keep_clew:
+        clew = gn.jib_clew(head, tack, clew)
     cols, rows = ct.SAIL_CELLS[region]
-    return gn.g_tri_sail(bone, name, head, tack, clew, belly, N, region, cols, rows, round_=0.45)
+    return gn.g_tri_sail(bone, name, head, tack, clew, belly, N, region, cols, rows, round_=0.45), clew
+
+
+def bare_yard(mb, name, z, off, y, half):
+    """The main yard without its course (as on the reference): the course is furled on top of it, tied
+    with gaskets; braced round like the other yards."""
+    br = Bone("brace_" + name, origin=(0, y, z), parent=mb)
+    zz = z + off
+    round_bar(br, name + "_yard", (-half - 0.5, y, zz), (half + 0.5, y, zz), 0.3, "mast", extend=0.05)
+    add_cube(br, name + "_sling", (0, y, zz - 0.1), EYE, (0.44, 0.4, 0.4), "rope")
+    for sx in (1, -1):
+        add_cube(br, "%s_yardarm_%d" % (name, sx > 0), (sx * (half + 0.35), y, zz), EYE, (0.12, 0.38, 0.38), "iron")
+    round_bar(br, name + "_furled", (-half * 0.93, y + 0.27, zz + 0.04), (half * 0.93, y + 0.27, zz + 0.04), 0.36, "cloth_roll")
+    for k, x in enumerate(np.linspace(-half * 0.8, half * 0.8, 7)):
+        round_bar(br, "%s_gasket_%d" % (name, k), (x - 0.06, y + 0.25, zz + 0.04), (x + 0.06, y + 0.25, zz + 0.04), 0.44, "rope")
+    br.rot = ry(BRACE)
+    return br
+
+
+def stays(bowsprit):
+    """Ends of the stays (name -> (upper end, lower end)): the fore stays to the bowsprit, the cap and
+    the jib-boom end (the jibs are set on the topmast and topgallant stays), the main stays forward to
+    the fore mast; the main staysail's stay comes down steeply to the deck between the masts (as on
+    the side view)."""
+    sa, sb, cap = bowsprit
+    d = norm(sb - sa)
+    F, N_ = MASTS["fore"], MASTS["main"]
+    fz, mz = F[0], N_[0]
+    return {
+        "fore_stay": (v3(0, F[1] - 0.25, fz + 0.3), sa + d * 3.4 + v3(0, 0.25, 0)),
+        "fore_topmast_stay": (v3(0, F[2] - 0.2, fz + 0.6), cap + v3(0, 0.3, 0)),
+        "fore_tg_stay": (v3(0, F[3] - 1.3, fz + 0.9), sb + v3(0, 0.3, 0)),
+        "main_stay": (v3(0, N_[1] - 0.2, mz + 0.45), v3(0, M + 0.25, -1.9)),
+        "main_topmast_stay": (v3(0, N_[2] - 0.2, mz + 0.6), v3(0, F[1] + 0.45, fz - 0.35)),
+        "main_tg_stay": (v3(0, N_[3] - 1.3, mz + 0.9), v3(0, F[2] + 0.25, fz + 0.3)),
+    }
+
+
+def on(stay, t):
+    a, b = stay
+    return a + (b - a) * t
 
 
 def sails_and_spars(root, lights, masts, sails_info, bowsprit):
     sa, sb, cap = bowsprit
     for mast_name, name, yt, yf, ht, hf, bel, reg in SQUARE_SAILS:
         mb, mz = masts[mast_name]
-        z = MASTS[mast_name][0] + (0.0 if "course" in name else 0.45 if "topsail" in name else 0.75)
-        square_sail(mb, sails_info, lights, name, z, yt, yf, ht, hf, bel, reg, foot_yard=(name == "fore_course"))
-    # mizzen gaff and boom with the spanker
-    mzb = masts["mizzen"][0]
-    round_bar(mzb, "gaff", GAFF[0], GAFF[1] + norm(GAFF[1] - GAFF[0]) * 0.3, 0.26, "mast")
-    round_bar(mzb, "boom", BOOM[0], BOOM[1] + norm(BOOM[1] - BOOM[0]) * 0.2, 0.3, "mast")
+        z, off = yard_step(mast_name, name)
+        square_sail(mb, sails_info, lights, name, z, yt, yf, ht, hf, bel, reg, foot_yard=(name == "fore_course"), off=off)
+    mmb = masts["main"][0]
+    bare_yard(mmb, "main_yard", *yard_step("main", "main_yard"), *MAIN_YARD)
+    # main gaff and boom with the great spanker (its peak high, its clew over the stern)
+    round_bar(mmb, "gaff", GAFF[0], GAFF[1] + norm(GAFF[1] - GAFF[0]) * 0.3, 0.26, "mast")
+    round_bar(mmb, "boom", BOOM[0], BOOM[1] + norm(BOOM[1] - BOOM[0]) * 0.2, 0.32, "mast")
     for k, p in enumerate((GAFF[0], BOOM[0])):
-        add_cube(mzb, "gaff_jaws_%d" % k, p + v3(0, 0, 0.12), EYE, (0.5, 0.3, 0.3), "wood_dark")
-    sp = Bone("sail_spanker", origin=tuple(GAFF[0]), parent=mzb)
+        add_cube(mmb, "gaff_jaws_%d" % k, p + v3(0, 0, 0.12), EYE, (0.5, 0.3, 0.3), "wood_dark")
+    for k, t in enumerate(np.linspace(0.12, 0.92, 7)):
+        p = GAFF[0] + (GAFF[1] - GAFF[0]) * t
+        add_cube(mmb, "gaff_lacing_%d" % k, p - v3(0, 0.12, 0), gg.frame_from(norm(GAFF[1] - GAFF[0]), v3(0, 1, 0)), (0.12, 0.3, 0.3), "rope")
+    sp = Bone("sail_spanker", origin=tuple(GAFF[0]), parent=mmb)
     quad_sail(sp, "spanker", GAFF[0] + v3(0, -0.15, -0.15), GAFF[1] + v3(0, -0.15, 0.2), BOOM[0] + v3(0, 0.15, -0.15),
-              BOOM[1] + v3(0, 0.15, 1.0), 0.9, v3(-1, 0, 0), "spanker")
+              BOOM[1] + v3(0, 0.15, 2.8), 1.0, v3(-1, 0, 0), "spanker")
     sails_info.append((sp, True))
-    # jibs on the stays to the bowsprit and the jib-boom, a staysail between the fore and main masts
-    fz = cs.FORE_MAST_Z
+    # two jibs on the fore topmast and topgallant stays, flying high over the bowsprit (side view)
+    st_ = stays(bowsprit)
     jb = Bone("sail_jibs", origin=tuple(cap), parent=root)
-    jib_tri = tri_sail(jb, "jib_outer", v3(0, 30.4, fz + 1.0), sb + v3(0, 0.3, -0.25), v3(0, 11.6, 20.6), 0.8, v3(-1, 0, 0), "jib")
-    tri_sail(jb, "jib_middle", v3(0, 23.6, fz + 0.75), sa + norm(sb - sa) * 9.3 + v3(0, 0.36, 0), v3(0, 10.2, 18.6), 0.75, v3(-1, 0, 0), "jib")
-    tri_sail(jb, "fore_staysail", v3(0, 16.1, fz + 0.5), sa + norm(sb - sa) * 3.2 + v3(0, 0.3, 0), v3(0, 7.8, 15.2), 0.6, v3(-1, 0, 0),
-             "jib")
+    jib_tri, outer_clew = tri_sail(jb, "jib_outer", on(st_["fore_tg_stay"], 0.27), on(st_["fore_tg_stay"], 0.88),
+                                   v3(0, 13.4, 19.6), 0.9, v3(-1, 0, 0), "jib")
+    _, inner_clew = tri_sail(jb, "jib_inner", on(st_["fore_topmast_stay"], 0.25), on(st_["fore_topmast_stay"], 0.86),
+                             v3(0, 10.8, 16.8), 0.8, v3(-1, 0, 0), "jib")
     sails_info.append((jb, True))
-    st = Bone("sail_staysail", origin=(0, 16.5, cs.MAIN_MAST_Z + 1), parent=root)
-    mt, ff = v3(0, 17.2, cs.MAIN_MAST_Z + 0.5), v3(0, M + 1.2, fz - 0.6)
-    tri_sail(st, "main_staysail", mt + (ff - mt) * 0.08, mt + (ff - mt) * 0.86, v3(0, 9.2, cs.MAIN_MAST_Z + 1.0), 0.7, v3(-1, 0, 0),
-             "staysail")
+    # the main staysail: a narrow triangle on the main stay, close to the main mast
+    ms = st_["main_stay"]
+    st = Bone("sail_staysail", origin=tuple(on(ms, 0.12)), parent=root)
+    stay_tri, _ = tri_sail(st, "main_staysail", on(ms, 0.14), on(ms, 0.8), v3(0, 8.3, cs.MAIN_MAST_Z + 1.15), 0.6, v3(-1, 0, 0),
+                           "staysail", keep_clew=True)
     sails_info.append((st, True))
-    return jib_tri
+    return {"jib": jib_tri, "staysail": stay_tri, "jib_clews": (outer_clew, inner_clew)}
 
 
 # ---------------------------------------------------------------- rigging
@@ -685,11 +749,11 @@ def channel_point(z, side, out=0.48, dy=-0.3):
     return hp(z, y, side, out)
 
 
-def ladder(bone, name, tops, feet, step=0.45, region="rope_light", th=0.065):
+def ladder(bone, name, tops, feet, step=0.45, region="rope_light", th=0.08):
     """Shrouds from their feet up to a common top, with ratlines across them (the rope ladders of the
     reference): tops/feet are the ends of each shroud."""
     for k, (a, b) in enumerate(zip(tops, feet)):
-        beam(bone, "%s_shroud_%d" % (name, k), a, b, th + 0.01, region)
+        beam(bone, "%s_shroud_%d" % (name, k), a, b, th + 0.015, region)
     h = min(a[1] for a in tops) - max(b[1] for b in feet)
     n = int(h / step)
     for j in range(1, n):
@@ -699,15 +763,13 @@ def ladder(bone, name, tops, feet, step=0.45, region="rope_light", th=0.065):
         beam(bone, "%s_ratline_%d" % (name, j), pa, pb, th, region, extend=0.04)
 
 
-def rigging(bone, hull_bone, masts, bowsprit, jib_tri_unused=None):
+def rigging(bone, hull_bone, masts, bowsprit, sails):
     sa, sb, cap = bowsprit
     d = norm(sb - sa)
     for mname, (z, top1, top2, head, dm) in MASTS.items():
         for side, sn in SIDES:
             # the channel: a ledge on the hull side carrying the deadeyes of the lower shrouds
             za, zb = z - 2.9, z + 0.4
-            if mname == "mizzen":
-                za, zb = z - 2.5, z + 0.3
             y0 = cs.rail_y((za + zb) / 2) - 0.3
             pa, pb = hp(za, y0, side, 0.3), hp(zb, y0, side, 0.3)
             beam(hull_bone, "channel_%s_%s" % (mname, sn), pa, pb, 0.14, "wood_dark", width=0.6, extend=0.05)
@@ -719,7 +781,7 @@ def rigging(bone, hull_bone, masts, bowsprit, jib_tri_unused=None):
             for k, zz in enumerate(zf):
                 foot = channel_point(zz, side, 0.52, -0.05)
                 feet.append(foot + v3(0, 0.36, 0))
-                tops.append(v3(side * (0.45 + 0.08 * k), top1 - 0.15, z - 0.1 * k))
+                tops.append(v3(side * (dm / 2 + 0.05 + 0.08 * k), top1 - 0.15, z - 0.1 * k))
                 disc(bone, "deadeye_%s_%s%d" % (mname, sn, k), foot + v3(0, 0.36, 0), (side, 0, 0), 0.12, 0.08, "dark_wood")
                 disc(bone, "deadeye_low_%s_%s%d" % (mname, sn, k), foot, (side, 0, 0), 0.12, 0.08, "dark_wood")
                 beam(bone, "lanyard_%s_%s%d" % (mname, sn, k), foot + v3(0, 0.05, 0), foot + v3(0, 0.31, 0), 0.05, "rope")
@@ -730,65 +792,73 @@ def rigging(bone, hull_bone, masts, bowsprit, jib_tri_unused=None):
             for k in range(2):
                 beam(bone, "futtock_%s_%s%d" % (mname, sn, k), v3(side * s * 0.95, top1 + 0.05, z - 0.4 - 0.6 * k),
                      v3(side * dm * 0.5, top1 - 1.5, z - 0.1 * k), 0.05, "rope")
-            if top2 is not None:
-                # topmast shrouds (a smaller ladder from the rim of the top to the crosstrees)
-                t2 = [v3(side * 0.3, top2 - 0.1, z + 0.45) for _ in range(3)]
-                f2 = [v3(side * (s - 0.08), top1 + 0.32, z - 0.15 - 0.7 * k) for k in range(3)]
-                ladder(bone, "%s_top_%s" % (mname, sn), t2, f2, step=0.42, th=0.055)
-                # topgallant shrouds
-                beam(bone, "%s_tg_shroud_%s" % (mname, sn), v3(side * 0.15, head - 1.6, z + 0.75), v3(side * 0.95, top2 + 0.05, z + 0.45), 0.05,
-                     "rope")
-                # backstays from the topmast head down to the hull aft of the channel
-                beam(bone, "%s_backstay_%s" % (mname, sn), v3(side * 0.25, top2 + 0.5, z + 0.45), channel_point(za - 1.2, side, 0.4, 0.0), 0.06,
-                     "rope")
-                beam(bone, "%s_tg_backstay_%s" % (mname, sn), v3(side * 0.15, head - 1.2, z + 0.75), channel_point(za - 2.2, side, 0.4, 0.0),
-                     0.05, "rope")
-            else:
-                beam(bone, "%s_backstay_%s" % (mname, sn), v3(side * 0.2, head - 1.0, z + 0.4), hp(-19.5, Q + 0.9, side, 0.1), 0.06, "rope")
-    fz, mz, zz = cs.FORE_MAST_Z, cs.MAIN_MAST_Z, cs.MIZZEN_Z
-    ropes = [
-        ("fore_stay", v3(0, 16.2, fz + 0.3), sa + d * 3.4 + v3(0, 0.25, 0)),
-        ("fore_topmast_stay", v3(0, 24.3, fz + 0.6), cap + v3(0, 0.3, 0)),
-        ("fore_tg_stay", v3(0, 30.7, fz + 0.9), sb + v3(0, 0.3, 0)),
-        ("main_stay", v3(0, 17.2, mz + 0.4), v3(0, M + 0.7, fz - 0.45)),
-        ("main_topmast_stay", v3(0, 25.9, mz + 0.6), v3(0, 16.7, fz - 0.2)),
-        ("main_tg_stay", v3(0, 32.4, mz + 0.9), v3(0, 24.8, fz + 0.3)),
-        ("mizzen_stay", v3(0, 17.0, zz + 0.3), v3(0, M + 0.9, mz - 0.45)),
-        ("mizzen_topmast_stay", v3(0, 23.6, zz + 0.45), v3(0, 17.7, mz - 0.3)),
-        ("mizzen_tg_stay", v3(0, 29.4, zz + 0.75), v3(0, 26.0, mz + 0.4)),
+            # topmast shrouds (a smaller ladder from the rim of the top to the crosstrees)
+            r2 = dm * 0.33
+            t2 = [v3(side * (r2 + 0.04), top2 - 0.1, z + 0.45) for _ in range(3)]
+            f2 = [v3(side * (s - 0.08), top1 + 0.32, z - 0.15 - 0.7 * k) for k in range(3)]
+            ladder(bone, "%s_top_%s" % (mname, sn), t2, f2, step=0.42, th=0.055)
+            # topgallant shrouds
+            beam(bone, "%s_tg_shroud_%s" % (mname, sn), v3(side * 0.22, head - 1.6, z + 0.75), v3(side * 0.95, top2 + 0.05, z + 0.45), 0.05,
+                 "rope")
+            # the topmast backstays: long rope ladders from the crosstrees down to the rail well aft of the
+            # mast (the diagonal ladders of the side view), and the topgallant backstays
+            zb1 = za - (4.6 if mname == "fore" else 2.4)
+            ladder(bone, "%s_backstay_%s" % (mname, sn), [v3(side * (r2 + 0.04), top2 + 0.3, z + 0.4), v3(side * (r2 + 0.08), top2 + 0.1, z + 0.3)],
+                   [channel_point(zb1, side, 0.36, 0.0), channel_point(zb1 - 0.7, side, 0.36, 0.0)], step=0.5, th=0.06)
+            beam(bone, "%s_tg_backstay_%s" % (mname, sn), v3(side * 0.22, head - 1.2, z + 0.75), channel_point(zb1 - 1.6, side, 0.4, 0.0),
+                 0.05, "rope")
+    fz, mz = cs.FORE_MAST_Z, cs.MAIN_MAST_Z
+    ropes = [(name, a, b) for name, (a, b) in stays(bowsprit).items()]
+    peak = GAFF[1] + norm(GAFF[1] - GAFF[0]) * 0.25
+    ropes += [
         ("bobstay", cap - d * 0.6 + v3(0, -0.15, 0), v3(0, 0.9, BOW_Z + cs.rake(BOW_Z, 0.9) + 0.1)),
         ("martingale", cap + v3(0, -1.55, 0.15), sb + v3(0, 0.2, 0)),
         ("martingale_back", cap + v3(0, -1.55, 0.15), v3(0, 3.6, BOW_Z + cs.rake(BOW_Z, 3.6) + 0.1)),
-        ("peak_halyard", v3(0, 23.4, zz + 0.45), GAFF[1] + norm(GAFF[1] - GAFF[0]) * 0.1),
-        ("topping_lift", v3(0, 23.2, zz + 0.45), BOOM[1] + v3(0, 0.1, 0)),
+        # the gaff hoisted by its halyards from the main topmast; its vang down to the ensign staff
+        ("peak_halyard", v3(0, MASTS["main"][2] - 0.4, mz + 0.45), GAFF[0] + (GAFF[1] - GAFF[0]) * 0.72 + v3(0, 0.12, 0)),
+        ("throat_halyard", v3(0, MASTS["main"][1] + 1.6, mz + 0.45), GAFF[0] + (GAFF[1] - GAFF[0]) * 0.3 + v3(0, 0.12, 0)),
+        ("gaff_vang", peak, ENSIGN_TOP),
         ("spanker_sheet", BOOM[1] + v3(0, -0.1, 0.4), v3(0, Q + 1.0, TZ + 0.3)),
+        ("main_stay_ring", v3(0, M + 0.1, -1.9), v3(0, M + 0.25, -1.9)),
     ]
+    outer_clew, inner_clew = sails["jib_clews"]
     for side, sn in SIDES:
         ropes.append(("jib_guy_" + sn, sb + v3(0, 0.25, 0), hp(19.3, cs.rail_y(19.3), side, 0.2)))
         ropes.append(("bowsprit_shroud_" + sn, sa + d * 4.0, hp(20.4, 2.6, side, 0.05)))
-        ropes.append(("jib_sheet_" + sn, v3(0, 11.6, 20.6), hp(16.6, cs.rail_y(16.6), side, -0.1)))
-        # braces of the lower yards, and sheets of the courses down to the rail
-        for mname, y, half in (("fore", 16.0, 7.2), ("main", 17.0, 7.6)):
-            z = MASTS[mname][0]
-            arm = gn.braced((side * (half + 0.3), y, z + 0.42), z, BRACE)
-            ropes.append(("%s_brace_%s" % (mname, sn), arm, v3(side * 0.6, 16.5 if mname == "fore" else 17.0, (mz if mname == "fore" else zz) + 0.2)))
-            clew = gn.braced((side * (8.0 if mname == "fore" else 8.4), 9.0 if mname == "fore" else 9.6, z + 0.5), z, BRACE)
-            ropes.append(("%s_sheet_%s" % (mname, sn), clew, hp(z - 4.5, cs.rail_y(z - 4.5), side, -0.15)))
+        ropes.append(("jib_sheet_outer_" + sn, outer_clew, hp(14.6, cs.rail_y(14.6), side, -0.1)))
+        ropes.append(("jib_sheet_inner_" + sn, inner_clew, hp(12.6, cs.rail_y(12.6), side, -0.1)))
+        # braces: the fore yard's lead aft to the main mast, the main yard's to the quarterdeck rail
+        y, half = SQUARE_SAILS[0][2], SQUARE_SAILS[0][4]
+        fo = yard_step("fore", "fore_course")[1]
+        arm = gn.braced((side * (half + 0.3), y, fz + fo), fz, BRACE)
+        ropes.append(("fore_brace_" + sn, arm, v3(side * 0.6, MASTS["main"][1] - 2.0, mz + 0.2)))
+        arm = gn.braced((side * (MAIN_YARD[1] + 0.3), MAIN_YARD[0], mz + yard_step("main", "main_yard")[1]), mz, BRACE)
+        ropes.append(("main_brace_" + sn, arm, hp(-17.6, Q + 1.0, side, -0.25)))
+        # the lifts holding the foot spar (with its lanterns) under the fore yard arms, outside the leeches
+        top = gn.braced((side * (SQUARE_SAILS[0][4] + 0.4), SQUARE_SAILS[0][2] - 0.05, fz + fo), fz, BRACE)
+        foot = gn.braced((side * (SQUARE_SAILS[0][5] + 0.35), SQUARE_SAILS[0][3] - 0.1, fz + fo + 0.25), fz, BRACE)
+        ropes.append(("fore_foot_lift_" + sn, top, foot))
+        # sheets of the fore course from the ends of its foot spar down to the rail
+        clew = gn.braced((side * (SQUARE_SAILS[0][5] + 0.25), SQUARE_SAILS[0][3] - 0.15, fz + fo + 0.25), fz, BRACE)
+        ropes.append(("fore_sheet_" + sn, clew, hp(fz - 4.5, cs.rail_y(fz - 4.5), side, -0.15)))
     for name, a, b in ropes:
         beam(bone, "rope_" + name, a, b, 0.06, "rope")
 
 
 # ---------------------------------------------------------------- flags
-def flag(parent, name, root_pt, w, h, n=3):
+def flag(parent, name, root_pt, w, h, n=3, fly=(0, 0, -1)):
     """Flag in two bones (the animation swings the root half and the fly); each half in n strips
-    following a soft wave (as generate_galleon's flags). The fly points aft (-z)."""
+    following a soft wave (as generate_galleon's flags). The fly points along `fly` (horizontal; aft by
+    default)."""
     root_pt = v3(*root_pt)
+    fly = norm(v3(*fly))
+    side = np.cross(v3(0, 1, 0), fly)
     fb = Bone("flag_" + name, origin=tuple(root_pt), parent=parent)
-    ft = Bone("flag_%s_tip" % name, origin=tuple(root_pt + v3(0, 0, -w / 2)), parent=fb)
+    ft = Bone("flag_%s_tip" % name, origin=tuple(root_pt + fly * (w / 2)), parent=fb)
     amp = min(0.16, 0.07 * w)
 
     def P(s):
-        return root_pt + v3(amp * math.sin(2 * math.pi * s) * (0.35 + s), 0, -w * s)
+        return root_pt + side * (amp * math.sin(2 * math.pi * s) * (0.35 + s)) + fly * (w * s)
     for half, bone in enumerate((fb, ft)):
         for k in range(n):
             s0, s1 = (half + k / n) / 2, (half + (k + 1) / n) / 2
@@ -797,26 +867,28 @@ def flag(parent, name, root_pt, w, h, n=3):
             axes = np.column_stack([np.cross(v3(0, 1, 0), dd), v3(0, 1, 0), dd])
             c = add_cube(bone, "flag_%s_%s%d" % (name, "ab"[half], k), (a + b) / 2 + v3(0, -h / 2, 0), axes,
                          (0.03, h, np.linalg.norm(b - a) + 0.015), {"all": None, "+1": "flag", "-1": "flag"},
-                         stretch=True, u_dir=v3(0, 0, -1), v_dir=v3(0, -1, 0))
+                         stretch=True, u_dir=fly, v_dir=v3(0, -1, 0))
             gn.set_sub(c, (s0, 0, s1, 1), faces=("west", "east"))
     return fb
 
 
+ENSIGN_BASE = v3(-2.6, Q - 0.02, TZ - 0.6)    # the ensign staff on the starboard side of the stern balcony (back view)
+ENSIGN_TOP = ENSIGN_BASE + v3(0, 5.6, -0.25)    # its head: the flag flies above the end of the boom (side view)
+
+
 def flags(root, masts, castle_bone):
-    mzb = masts["mizzen"][0]
-    peak = GAFF[1] + norm(GAFF[1] - GAFF[0]) * 0.25
-    beam(mzb, "gaff_flagstaff", peak, peak + v3(0, 1.6, 0), 0.08, "wood_dark")
-    flag(mzb, "gaff", peak + v3(0, 1.55, 0), 2.2, 1.45)
-    # the ensign staff on the starboard quarter of the stern (back view)
-    base = v3(-3.0, Q + 0.05, TZ + 0.45)
-    round_bar(castle_bone, "ensign_staff", base, base + v3(0, 4.2, -0.2), 0.14, "wood_dark")
-    disc(castle_bone, "ensign_staff_knob", base + v3(0, 4.25, -0.2), (0, 1, 0), 0.1, 0.12, "bronze")
-    flag(castle_bone, "stern", base + v3(0, 4.1, -0.25), 2.4, 1.6)
-    # a small black pennant at the main masthead
+    """The two black pirate flags of the reference: at the peak of the spanker's gaff, on a short staff,
+    and on the ensign staff of the stern."""
     mb = masts["main"][0]
-    head = v3(0, cs.MAIN_MAST_TOP + 0.1, cs.MAIN_MAST_Z + 0.75)
-    beam(mb, "main_flagpole", head, head + v3(0, 1.0, 0), 0.08, "wood_dark")
-    flag(mb, "main", head + v3(0, 0.95, 0), 1.6, 1.0)
+    peak = GAFF[1] + norm(GAFF[1] - GAFF[0]) * 0.25
+    beam(mb, "gaff_flagstaff", peak, peak + v3(0, 2.0, 0), 0.08, "wood_dark")
+    disc(mb, "gaff_flagstaff_knob", peak + v3(0, 2.05, 0), (0, 1, 0), 0.08, 0.1, "bronze")
+    flag(mb, "gaff", peak + v3(0, 1.95, 0), 3.0, 1.9)
+    round_bar(castle_bone, "ensign_staff", ENSIGN_BASE, ENSIGN_TOP, 0.14, "wood_dark")
+    disc(castle_bone, "ensign_staff_knob", ENSIGN_TOP + v3(0, 0.05, 0), (0, 1, 0), 0.1, 0.12, "bronze")
+    # the wind from the port quarter blows it out aft and to starboard: seen beyond the clew of the
+    # spanker on the side view, and from astern (back view)
+    flag(castle_bone, "stern", ENSIGN_TOP + v3(0, -0.1, -0.03), 3.0, 1.9, fly=(-0.5, 0, -0.866))
 
 
 # ---------------------------------------------------------------- helm, rudder
@@ -878,10 +950,13 @@ def grating(bone, name, cx, cz, w, l, y):
 
 
 def deck_fittings(bone, detail):
-    grating(bone, "grating_fore", 0.0, 8.0, 2.0, 2.0, M)
-    grating(bone, "grating_main", 0.0, -0.8, 2.0, 2.0, M)
-    grating(bone, "grating_aft", 0.0, -10.3, 1.8, 1.6, M)
-    gn.g_capstan(bone, "capstan", (0, M, -4.6))
+    # hatches before the fore mast, between the masts and abaft the main mast; the capstan before it
+    grating(bone, "grating_fore", 0.0, 10.6, 2.0, 2.0, M)
+    grating(bone, "grating_main", 0.0, 0.8, 2.0, 2.0, M)
+    grating(bone, "grating_aft", 0.0, -10.6, 1.8, 1.6, M)
+    gn.g_capstan(bone, "capstan", (0, M, -4.4))
+    # the eye bolt of the main stay on the deck
+    disc(bone, "main_stay_eyebolt", (0, M + 0.04, -1.9), (0, 1, 0), 0.16, 0.08, "iron")
     # coaming and a light rail round the companion hatch (open: the stair goes down to the common room)
     x0, x1 = cs.COMPANION_X
     z0, z1 = cs.COMPANION_Z
@@ -892,7 +967,7 @@ def deck_fittings(bone, detail):
     beam(bone, "companion_rail_0", (x0, M + 0.95, z0), (x1, M + 0.95, z0), 0.09, "rail", extend=0.05)
     beam(bone, "companion_rail_1", (x0, M + 0.95, z0), (x0, M + 0.95, z1 - 0.1), 0.09, "rail", extend=0.05)
     # coils of rope by the masts, a bell at the fore mast
-    for k, (x, z) in enumerate(((1.4, cs.MAIN_MAST_Z - 1.4), (-1.3, cs.FORE_MAST_Z - 1.3), (1.2, cs.MIZZEN_Z + 1.3), (-1.2, -12.0))):
+    for k, (x, z) in enumerate(((1.4, cs.MAIN_MAST_Z - 1.4), (-1.3, cs.FORE_MAST_Z - 1.3), (1.2, cs.MAIN_MAST_Z + 1.5), (-1.2, -12.0))):
         sd.rope_coil(gg, detail, "coil_%d" % k, (x, M, z), r=0.34, rope="rope")
     sd.bell(gg, bone, "bell", (0.0, M, cs.FORE_MAST_Z + 1.6), metal="bronze", wood="wood_dark")
 
@@ -1048,7 +1123,7 @@ def surfaces(rooms_bone, g):
     k = g.k
     mast = np.zeros(k.shape, dtype=bool)
     for z, foot in ci.MASTS:
-        mast |= (np.abs(g.X) < 0.5) & (np.abs(g.Z - z) < 0.5)
+        mast |= (np.abs(g.X) < 0.5) & (np.abs(g.Z - z) < 0.5) & (g.Y > foot)
     solid = (k == ci.SOLID) & ~mast
     opened = (k == ci.DRY) | (k >= ci.DOOR) | (k == ci.FURNITURE) | (k == ci.LADDER)
     Cl = ci.CELL
@@ -1246,8 +1321,8 @@ def build(g):
     bowsprit = bow(bow_bone, lights)
     masts = {name: mast(root, fittings, name) for name in MASTS}
     sails_info = []
-    jib_tri = sails_and_spars(root, lights, masts, sails_info, bowsprit)
-    rigging(ropes, hull_bone, masts, bowsprit)
+    sails = sails_and_spars(root, lights, masts, sails_info, bowsprit)
+    rigging(ropes, hull_bone, masts, bowsprit, sails)
     flags(root, masts, castle_bone)
     helm(castle_bone)
     rudder(root)
@@ -1278,7 +1353,7 @@ def build(g):
         else:
             CUSTOM_BUILDERS[builder](furniture, **kw)
     fallbacks(root)
-    return root, n, m, sails_info, jib_tri
+    return root, n, m, sails_info, sails
 
 
 def build_animations(root, sails_info):
@@ -1304,7 +1379,7 @@ def build_animations(root, sails_info):
         (wheel, [rot_kf(0.0, (0, 0, -150)), rot_kf(1.0, (0, 0, 0)), rot_kf(2.0, (0, 0, 150))]),
         (rud, [rot_kf(0.0, (0, -28, 0)), rot_kf(1.0, (0, 0, 0)), rot_kf(2.0, (0, 28, 0))])]))
     tracks = []
-    for k, name in enumerate(("gaff", "stern", "main")):
+    for k, name in enumerate(("gaff", "stern")):
         f, ft = find(root, "flag_" + name), find(root, "flag_%s_tip" % name)
         a = 10
         sh = 0.2 * k
@@ -1342,12 +1417,12 @@ def main():
     reached, total = ci.walkable_report(g)
     print("decor blocks:", len(cd.BLOCKS), "seats:", len(cd.SEATS), "standing places:", total,
           "unreachable rooms:", [k for k, v in reached.items() if not v])
-    root, n, m, sails_info, jib_tri = build(g)
+    root, n, m, sails_info, sails = build(g)
     anims = build_animations(root, sails_info)
     anims += doors(gg.find(root, "rooms"), g)
     tex_dir = os.path.join(ROOT, "src/main/resources/assets/medievalships/textures")
     tex_path = os.path.join(tex_dir, "entity/old_corsair.png")
-    ct.make_texture(tex_path, jib_tri)
+    ct.make_texture(tex_path, {"jib": sails["jib"], "staysail": sails["staysail"]})
     ct.make_item_icon(os.path.join(tex_dir, "item/old_corsair.png"))
     with open(tex_path, "rb") as f:
         png = f.read()
