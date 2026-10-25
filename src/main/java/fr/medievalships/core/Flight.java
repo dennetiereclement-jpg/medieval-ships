@@ -56,9 +56,10 @@ public final class Flight {
 		double fx = -Math.sin(r), fz = Math.cos(r);
 		double sx = fz, sz = -fx;
 		double top = Double.NEGATIVE_INFINITY;
-		// a very wide aircraft (the Sky Leviathan's balloon) samples its width at most 4 blocks apart, so a
-		// narrow tower or tree cannot slip between the centre line and the sides; narrower ones are unchanged
-		double lateral = halfWidth <= 8 ? Math.max(1.0, halfWidth) : halfWidth / Math.ceil(halfWidth / 4.0);
+		// a very wide aircraft (the Sky Leviathan's balloon) samples its width at most 1 block apart, so even a
+		// one block wide pillar or tree off the centre line is seen (the lateral offsets do not change while it
+		// flies straight); narrower ones are unchanged
+		double lateral = halfWidth <= 8 ? Math.max(1.0, halfWidth) : halfWidth / Math.ceil(halfWidth);
 		for (double d = -back; d <= ahead + 1e-6; d += 2.0) {
 			for (double s = -halfWidth; s <= halfWidth + 1e-6; s += lateral) {
 				top = Math.max(top, t.groundTop(pose.x() + fx * d + sx * s, pose.z() + fz * d + sz * s));

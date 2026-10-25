@@ -109,6 +109,7 @@ public final class NewVehiclesRoutesGameTest {
 		double startDist = bz - a.z();
 		double minDist = startDist, maxSpeed = 0;
 		boolean departed = false, docked = false;
+		int collisions = 0;
 		ShipPose p = a;
 		for (int s = 0; s < 45 && !docked; s++) {
 			context.waitTicks(20);
@@ -119,6 +120,7 @@ public final class NewVehiclesRoutesGameTest {
 			}
 			minDist = Math.min(minDist, Math.hypot(p.x() - a.x(), p.z() - bz));
 			maxSpeed = Math.max(maxSpeed, (Double) st[5]);
+			collisions = Math.max(collisions, collisions(server, type));
 			departed |= st[2] == Autopilot.Phase.SAILING && (Integer) st[3] == 1;
 			docked = st[2] == Autopilot.Phase.DOCKED && (Integer) st[3] == 1;
 			if (s % 5 == 0 || docked) {
@@ -131,7 +133,8 @@ public final class NewVehiclesRoutesGameTest {
 		double off = p == null ? 99 : Math.hypot(p.x() - a.x(), p.z() - bz);
 		check.accept(docked && off < type.defaults().get().aiStopRadius + 1.0 && Math.abs((Double) st[5]) < 0.8,
 				String.format(Locale.ROOT, "%s route: stops and moors at the quay (%.2f blocks off, %s)", id, off, describe(st)));
-		check.accept(collisions(server, type) == 0, id + " route: never inside the basin walls");
+		collisions = Math.max(collisions, collisions(server, type));
+		check.accept(collisions == 0, id + " route: never inside the basin walls, all along the voyage (" + collisions + ")");
 
 		// persistence: a door opened, the ship saved and read back
 		server.computeOnServer(srv -> {
@@ -158,7 +161,7 @@ public final class NewVehiclesRoutesGameTest {
 		double deck = g.hull().mainDeckY;
 		server.runCommand("ride @p dismount");
 		server.runCommand("gamemode spectator @a");
-		int x0 = 470, x1 = 530, z0 = -50, z1 = 140;
+		int x0 = 470, x1 = 530, z0 = -50, z1 = 170;
 		server.runCommand(String.format(Locale.ROOT, "forceload add %d %d %d %d", x0, z0, x1, z1));
 		server.runCommand("tp @p 560 -10 10 60 20");
 		context.waitTicks(30);
@@ -172,10 +175,12 @@ public final class NewVehiclesRoutesGameTest {
 			server.runCommand(String.format(Locale.ROOT, "forceload remove %d %d %d %d", x0, z0, x1, z1));
 			return;
 		}
-		// the air route: take-off stop where it is (2 s), a waypoint 35 blocks ahead and 6 higher, then a mooring
-		// stop 75 blocks ahead set at the height of a quay on the ground (20 s), back and forth
+		// the air route: take-off stop where it is (2 s), a waypoint 60 blocks ahead set 6 blocks above the altitude
+		// the ground clearance alone would give (so reaching it shows the waypoint's own height is flown), then a
+		// mooring stop 115 blocks ahead set at the height of a quay on the ground (20 s), back and forth
 		String route = "nv_ciel";
-		double wy = a.y() + deck + 6, wz = a.z() + 35, by = ground + 1, bz = a.z() + 75;
+		double clearanceDeck = ground + type.defaults().get().flight.aiClearance - g.lowestY() + deck;
+		double wy = clearanceDeck + 6, wz = a.z() + 60, by = ground + 1, bz = a.z() + 115;
 		server.runCommand("ship route delete " + route);
 		server.runCommand("ship route create " + route + " pingpong air");
 		server.runCommand(String.format(Locale.ROOT, "execute positioned %.2f %.2f %.2f rotated 0 0 run ship route addstop %s 2 Envol", a.x(),
@@ -194,7 +199,7 @@ public final class NewVehiclesRoutesGameTest {
 		boolean departed = false, docked = false;
 		int collisions = 0;
 		ShipPose p = a;
-		for (int s = 0; s < 50 && !docked; s++) {
+		for (int s = 0; s < 75 && !docked; s++) {
 			context.waitTicks(20);
 			st = state(server, type);
 			p = pose(server, type);
@@ -213,9 +218,10 @@ public final class NewVehiclesRoutesGameTest {
 			}
 		}
 		check.accept(departed, id + " route: takes off from its first stop after the wait");
-		check.accept(maxY - a.y() > 3, String.format(Locale.ROOT, "%s route: climbs towards the waypoint's altitude (%.2f -> %.2f, waypoint deck %.2f)",
-				id, a.y(), maxY, wy));
-		check.accept(startDist - minDist > 50, String.format(Locale.ROOT, "%s route: flies towards the stop (%.1f -> %.1f blocks)", id, startDist,
+		check.accept(maxY + deck >= wy - 1.5, String.format(Locale.ROOT,
+				"%s route: climbs to the waypoint's own altitude, above the clearance one (deck %.2f -> %.2f, waypoint deck %.2f, clearance deck %.2f)",
+				id, a.y() + deck, maxY + deck, wy, clearanceDeck));
+		check.accept(startDist - minDist > 90, String.format(Locale.ROOT, "%s route: flies towards the stop (%.1f -> %.1f blocks)", id, startDist,
 				minDist));
 		double off = p == null ? 99 : Math.hypot(p.x() - a.x(), p.z() - bz);
 		double keel = p == null ? Double.NaN : p.y() + g.lowestY();

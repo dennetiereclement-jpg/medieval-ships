@@ -323,11 +323,14 @@ class NewVehiclesNavigationTest {
 		ShipPose pose = new ShipPose(0, 100, 0, 0);
 		double half = LG.aiHalfWidth();
 		assertTrue(half >= LeviathanLayout.BALLOON_HW, "aiHalfWidth covers the balloon: " + half);
-		for (double x0 = Math.floor(-half) + 1; x0 + 4 <= Math.ceil(half); x0 += 1.0) {
-			double px = x0;
-			Flight.Terrain tower = (gx, gz) -> Math.floor(gx) >= px && Math.floor(gx) < px + 4 && Math.floor(gz) >= 20 && Math.floor(gz) < 24 ? 90 : 64;
-			double top = Flight.groundAlong(pose, 0, LG.aiBack(), 30, half, tower);
-			assertEquals(90, top, 1e-9, "a 4 block tower at x=" + px + ".." + (px + 4) + " is seen");
+		// towers 4, 2 and 1 block wide anywhere across the width (the lateral offsets stay the same in a straight flight)
+		for (int w : new int[] {4, 2, 1}) {
+			for (double x0 = Math.floor(-half) + 1; x0 + w <= Math.ceil(half); x0 += 1.0) {
+				double px = x0;
+				Flight.Terrain tower = (gx, gz) -> Math.floor(gx) >= px && Math.floor(gx) < px + w && Math.floor(gz) >= 20 && Math.floor(gz) < 22 ? 90 : 64;
+				double top = Flight.groundAlong(pose, 0, LG.aiBack(), 30, half, tower);
+				assertEquals(90, top, 1e-9, "a " + w + " block tower at x=" + px + ".." + (px + w) + " is seen");
+			}
 		}
 		// the probes cover the balloon top and sides, the spikes, the fins and the keel of the hanging ship
 		double front = -1e9, back = 1e9, low = 1e9, top = -1e9, side = 0;
