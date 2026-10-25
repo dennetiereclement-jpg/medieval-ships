@@ -255,6 +255,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			}
 			airship(context, sp);
 			nautilus(context, sp);
+			CorsairGameTest.run(context, sp.getServer(), sp.getClientWorld(), this::check, this::log, name -> shot(context, name));
 		}
 	}
 

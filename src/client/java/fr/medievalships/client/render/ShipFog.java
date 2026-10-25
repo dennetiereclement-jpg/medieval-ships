@@ -31,6 +31,12 @@ public final class ShipFog {
 		if (!fluid.isIn(FluidTags.WATER) || p.y > pos.getY() + fluid.getHeight(client.world, pos)) {
 			return false;
 		}
-		return ShipInteriors.dryAt(client.world, p.x, p.y, p.z);
+		if (!ShipInteriors.dryAt(client.world, p.x, p.y, p.z)) {
+			return false;
+		}
+		// only a submarine looks onto the sea through its glass: the hold of a ship with rooms (the Old
+		// Corsair) is below the waterline too, but closed
+		fr.medievalships.entity.ShipEntity vessel = ShipInteriors.vesselAt(client.world, p.x, p.y, p.z);
+		return vessel != null && vessel.geometry().submarine();
 	}
 }

@@ -1269,7 +1269,11 @@ public final class Ships {
 		return c;
 	}
 
-	public static final List<ShipType> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT, STEAMPUNK_AIRSHIP, NAUTILUS);
+	/** The Old Corsair: a patched-up three-master with rooms (see {@link CorsairLayout}). */
+	public static final ShipType OLD_CORSAIR = CorsairLayout.type();
+
+	public static final List<ShipType> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT, STEAMPUNK_AIRSHIP, NAUTILUS,
+			OLD_CORSAIR);
 
 	/**
 	 * Other names accepted by the commands (the ids used in saves and configs never change):

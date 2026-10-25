@@ -430,7 +430,9 @@ public abstract class ShipEntity extends Entity {
 		double[] c = geometry().interior().doorCenter(door);
 		double[] w = c == null ? new double[] {getX(), getY(), getZ()} : pose().toWorld(c[0], c[1], c[2]);
 		getEntityWorld().playSound(null, w[0], w[1], w[2],
-				open ? net.minecraft.sound.SoundEvents.BLOCK_IRON_TRAPDOOR_OPEN : net.minecraft.sound.SoundEvents.BLOCK_IRON_TRAPDOOR_CLOSE,
+				geometry().submarine()
+						? (open ? net.minecraft.sound.SoundEvents.BLOCK_IRON_TRAPDOOR_OPEN : net.minecraft.sound.SoundEvents.BLOCK_IRON_TRAPDOOR_CLOSE)
+						: (open ? net.minecraft.sound.SoundEvents.BLOCK_WOODEN_DOOR_OPEN : net.minecraft.sound.SoundEvents.BLOCK_WOODEN_DOOR_CLOSE),
 				getSoundCategory(), 1.0f, 0.8f);
 		return null;
 	}

@@ -88,8 +88,9 @@ public final class ShipModels {
 					new double[] {0, AirshipLayout.BALLOON_Y, AirshipLayout.PROP_Z},
 					new double[] {0, 4.85, AirshipLayout.ENGINE_Z0 - 1.0}));
 	public static final Visual NAUTILUS = new Visual(Ships.NAUTILUS, model("nautilus"), List.of(texture("nautilus")), 0.2f, 50, 24, true);
+	public static final Visual OLD_CORSAIR = new Visual(Ships.OLD_CORSAIR, model("old_corsair"), List.of(texture("old_corsair")), 0.5f, 34, 40, true);
 	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT,
-			STEAMPUNK_AIRSHIP, NAUTILUS);
+			STEAMPUNK_AIRSHIP, NAUTILUS, OLD_CORSAIR);
 
 	@Nullable
 	public static Visual of(ShipType type) {
