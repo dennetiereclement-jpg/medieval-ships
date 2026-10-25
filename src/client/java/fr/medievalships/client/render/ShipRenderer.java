@@ -22,7 +22,7 @@ import fr.medievalships.client.render.ShipModels.Visual;
 /**
  * Renders the Blockbench model of a ship type with its animations: rowing (speed dependent,
  * fading out when the ship stops), wind in the sails, sails furled at rest, rudder / steering
- * oars, flags and streamers, plus a light rocking on the waves. Animations a model does not
+ * oars, flags and streamers, swinging lanterns and slack ropes, plus a light rocking on the waves. Animations a model does not
  * have are skipped. All animation inputs come from synced entity state, so
  * every player sees the same thing.
  */
@@ -154,6 +154,7 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 					model.apply(pose, "flag_wave", age, 1f);
 					model.apply(pose, "streamer_wave", age, 1f);
 					model.apply(pose, "lantern_sway", age, 1f);
+					model.apply(pose, "rope_sway", age, 1f);
 					model.apply(pose, "propeller", wheel, 1f);
 					model.apply(pose, "engine", wheel, 1f);
 					model.apply(pose, "elevator", climb + 1f, 1f);

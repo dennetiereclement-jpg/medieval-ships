@@ -51,6 +51,8 @@ public final class CorsairLayout {
 	public static final double[] COMPANION_Z = {1.0, 4.5};
 	public static final double[] HOLD_STAIR_X = {-1.0, 1.0};
 	public static final double[] HOLD_STAIR_Z = {-17.0, -14.0};
+	/** The fire of the stone hearth in the kitchen (tools/corsair_decor.py kitchen(), generate_corsair.py f_hearth). */
+	public static final double[] HEARTH_FIRE = {0.0, LOWER_FLOOR_Y + 0.3, 13.17};
 	/** Doors of the interior grid. */
 	public static final int CABIN_DOOR = 0;
 	public static final int COMMON_DOOR = 1;
