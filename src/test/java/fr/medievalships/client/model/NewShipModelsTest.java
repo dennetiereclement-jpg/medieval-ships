@@ -44,7 +44,11 @@ class NewShipModelsTest {
 			new Expected("steampunk_airship",
 					new String[] {"propeller", "fin_top", "fin_port", "fin_starboard", "helm_wheel", "balloon", "net", "tail", "gondola", "engine",
 							"suspension"},
-					new String[] {"propeller", "steer", "elevator"}));
+					new String[] {"propeller", "steer", "elevator"}),
+			new Expected("sky_leviathan",
+					new String[] {"helm_wheel", "rudder", "fin_dorsal", "fin_lower", "fin_side_p", "fin_side_s", "fin_keel", "flag", "flag_tip",
+							"tower_gear_0", "engine_gear_0", "door_0_a", "door_1", "balloon", "hoops", "hull", "rooms", "furniture", "fittings"},
+					new String[] {"steer", "elevator", "flag_wave", "engine", "lantern_sway", "streamer_wave", "door_0", "door_1", "door_11"}));
 
 	private static BbModel load(String name) throws Exception {
 		try (Reader r = Files.newBufferedReader(Path.of("src/main/resources/assets/medievalships/models/entity/" + name + ".bbmodel"),

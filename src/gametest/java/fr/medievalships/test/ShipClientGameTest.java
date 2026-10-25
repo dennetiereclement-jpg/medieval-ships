@@ -255,6 +255,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			}
 			airship(context, sp);
 			nautilus(context, sp);
+			LeviathanGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 		}
 	}
 
