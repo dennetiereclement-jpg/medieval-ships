@@ -41,12 +41,14 @@ TRANSOM_Z = -21.0
 CABIN_FRONT_Z = -14.0      # bulkhead of the captain's cabin / front of the quarterdeck
 DECK_MAX_Z = 20.5
 
-# ---- masts (z, foot y, top y) and the bowsprit
-FORE_MAST_Z, FORE_MAST_TOP = 11.5, 33.5
-MAIN_MAST_Z, MAIN_MAST_TOP = 2.5, 34.6
-MIZZEN_Z, MIZZEN_TOP = -7.5, 30.0
+# ---- masts (z, top y) and the bowsprit: a brig, two masts as on the side and perspective views of
+# the reference (fore mast at 36 % of the length from the stem, main mast at 69 %, docs/CORSAIR_PLAN.md).
+# The fore mast is stepped on the keel (through the common room and the hold), the main mast on the main
+# deck (the coursive under it stays clear).
+FORE_MAST_Z, FORE_MAST_TOP = 6.5, 34.8
+MAIN_MAST_Z, MAIN_MAST_TOP = -7.5, 35.0
 BOWSPRIT_FOOT = (0.0, 5.8, 18.4)
-BOWSPRIT_TIP = (0.0, 10.4, 30.8)
+BOWSPRIT_TIP = (0.0, 10.9, 32.0)    # the jib-boom end (the reference's bowsprit is long: 53 blocks over all)
 
 # ---- helm and pilot (quarterdeck)
 HELM_Z = -15.3

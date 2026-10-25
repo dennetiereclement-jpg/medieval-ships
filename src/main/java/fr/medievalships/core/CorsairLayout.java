@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The Old Corsair ({@code old_corsair}): a patched-up three-master of 42 blocks (52 with the
- * bowsprit), 10 wide, 38 high from the keel to the main masthead. It sails like the galleon but has
+ * The Old Corsair ({@code old_corsair}): a patched-up brig (two masts, as on the reference) of 42
+ * blocks (53 with the bowsprit), 10 wide, 38 high from the keel to the main masthead. The fore mast
+ * carries three square sails, the main mast a bare main yard, a topsail, a topgallant and a great gaff
+ * spanker whose boom reaches the stern. It sails like the galleon but has
  * rooms: the captain's cabin under the quarterdeck, and two decks under the main deck (lower deck:
  * common room, kitchen, crew quarters and their coursive; the hold, below the waterline). The rooms,
  * the hull and the decks are described by its interior grid ({@code tools/corsair_interior.py}).
@@ -26,18 +28,20 @@ public final class CorsairLayout {
 	public static final double CABIN_FRONT_Z = -14.0;
 	public static final double TRANSOM_Z = -21.0;
 	public static final double DECK_MAX_Z = 20.5;
-	public static final double FORE_MAST_Z = 11.5;
-	public static final double FORE_MAST_TOP = 33.5;
-	public static final double MAIN_MAST_Z = 2.5;
-	public static final double MAIN_MAST_TOP = 34.6;
-	public static final double MIZZEN_Z = -7.5;
-	public static final double MIZZEN_TOP = 30.0;
-	public static final double[] BOWSPRIT_TIP = {0.0, 10.4, 30.8};
+	/** The fore mast, stepped on the keel (through the common room and the hold). */
+	public static final double FORE_MAST_Z = 6.5;
+	public static final double FORE_MAST_TOP = 34.8;
+	/** The main mast, stepped on the main deck (the coursive under it stays clear). */
+	public static final double MAIN_MAST_Z = -7.5;
+	public static final double MAIN_MAST_TOP = 35.0;
+	public static final double[] BOWSPRIT_TIP = {0.0, 10.9, 32.0};
 	/** End of the spanker boom, beyond the stern. */
-	public static final double BOOM_END_Z = -24.6;
-	public static final double BOOM_Y = 9.1;
-	/** Half span of the longest yard (main course). */
-	public static final double YARD_HALF = 8.4;
+	public static final double BOOM_END_Z = -22.7;
+	public static final double BOOM_Y = 10.2;
+	/** Half span of the longest yard (the foot spar of the fore course, with its lanterns). */
+	public static final double YARD_HALF = 8.8;
+	/** The square yards are braced round by this angle (port arms aft), as in the model. */
+	public static final double BRACE_DEG = 36.0;
 	public static final double HELM_Z = -15.3;
 	public static final double PILOT_Z = -16.1;
 	/** Stairs: main deck -> quarterdeck (both sides), main deck -> common room (port), lower deck -> hold. */
@@ -102,9 +106,8 @@ public final class CorsairLayout {
 		// the masts above the main deck (the grid holds them below it)
 		double m = MAIN_DECK_Y;
 		spec.masts = List.of(
-				new ShipGeometry.Mast(0, MAIN_MAST_Z, m, MAIN_MAST_TOP, 0.4),
-				new ShipGeometry.Mast(0, FORE_MAST_Z, m, FORE_MAST_TOP, 0.36),
-				new ShipGeometry.Mast(0, MIZZEN_Z, m, MIZZEN_TOP, 0.32));
+				new ShipGeometry.Mast(0, MAIN_MAST_Z, m, MAIN_MAST_TOP, 0.46),
+				new ShipGeometry.Mast(0, FORE_MAST_Z, m, FORE_MAST_TOP, 0.44));
 		List<ShipGeometry.LocalBox> solids = new ArrayList<>();
 		for (ShipGeometry.Mast mast : spec.masts) {
 			solids.add(new ShipGeometry.LocalBox(mast.x() - mast.half(), mast.bottom(), mast.z() - mast.half(), mast.x() + mast.half(), mast.top(),
@@ -118,12 +121,12 @@ public final class CorsairLayout {
 			probes.add(new double[] {0, 5.8 + (BOWSPRIT_TIP[1] - 5.8) * t, 22.0 + (BOWSPRIT_TIP[2] - 22.0) * t});
 		}
 		probes.add(new double[] {0, BOOM_Y, BOOM_END_Z});
-		probes.add(new double[] {0, BOOM_Y, -22.5});
-		for (double side : new double[] {1, -1}) {
-			probes.add(new double[] {side * YARD_HALF, 17.0, MAIN_MAST_Z});
-			probes.add(new double[] {side * (YARD_HALF - 0.4), 16.0, FORE_MAST_Z});
-			probes.add(new double[] {side * 5.6, 23.4, MIZZEN_Z});
-		}
+		// the ends of the braced yards: the fore yard and the foot spar of its course, the main yard, the topsail yards
+		yardArms(probes, 17.3, FORE_MAST_Z, 0.63, 8.4);
+		yardArms(probes, 8.25, FORE_MAST_Z, 0.88, YARD_HALF);
+		yardArms(probes, 18.9, MAIN_MAST_Z, 0.65, 8.7);
+		yardArms(probes, 25.4, FORE_MAST_Z + 0.45, 0.47, 6.6);
+		yardArms(probes, 27.3, MAIN_MAST_Z + 0.45, 0.49, 6.2);
 		spec.extraProbes = List.copyOf(probes);
 		spec.boundingRadius = BOWSPRIT_TIP[2] + 1.0;
 		spec.aiReach = BOWSPRIT_TIP[2];
@@ -136,6 +139,15 @@ public final class CorsairLayout {
 		spec.avoidZ = new double[] {};
 		spec.sternPost = false;
 		return new ShipType("old_corsair", "Vieux Corsaire", new ShipGeometry(hull, spec), CorsairLayout::config);
+	}
+
+	/** Both ends of a yard at height y, hung {@code off} before its mast at z, braced round by {@link #BRACE_DEG}. */
+	private static void yardArms(List<double[]> probes, double y, double mastZ, double off, double half) {
+		double c = Math.cos(Math.toRadians(BRACE_DEG));
+		double s = Math.sin(Math.toRadians(BRACE_DEG));
+		for (double side : new double[] {1, -1}) {
+			probes.add(new double[] {side * half * c + off * s, y, mastZ - side * half * s + off * c});
+		}
 	}
 
 	/** A big, heavy sailing ship: slow to gather way and to stop, long glide, wide turns, no oars to pivot. */

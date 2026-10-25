@@ -115,7 +115,7 @@ def coursive_and_crew():
 
 
 def deck():
-    """Main deck seats: two benches against the bulwarks by the mainmast."""
+    """Main deck seats: two benches against the bulwarks, amidships between the two masts."""
     for side in (1, -1):
         x = side * 3.75
         custom("bench", name="deck_bench_%d" % (side > 0), x=x, z0=-2.4, z1=-0.4, y=M)

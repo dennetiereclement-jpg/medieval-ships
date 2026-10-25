@@ -3,6 +3,7 @@ package fr.medievalships.core;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.Reader;
@@ -51,6 +52,8 @@ class CorsairTest {
 
 	@Test
 	void dimensionsAndRegistration() {
+		assertTrue(CorsairLayout.FORE_MAST_Z > 0 && CorsairLayout.MAIN_MAST_Z < 0, "fore mast forward, main mast aft of the middle");
+		assertTrue(CorsairLayout.MAIN_MAST_TOP >= CorsairLayout.FORE_MAST_TOP, "the main mast is the tallest");
 		assertEquals(T, Ships.byId("old_corsair"));
 		assertTrue(Ships.ALL.contains(T));
 		assertNotNull(GRID);
@@ -115,7 +118,8 @@ class CorsairTest {
 		room("coursive", -0.6, 0.6, L, -13.0, -2.0, true);
 		room("crew port", 2.0, 2.6, L, -8.6, -3.0, true);
 		room("crew starboard", -2.6, -2.0, L, -8.6, -3.0, true);
-		room("common room (aisle)", -0.5, 1.6, L, 5.3, 7.6, true);
+		room("common room (aisle)", -0.5, 1.6, L, 0.0, 4.2, true);
+		room("common room (beside the fore mast)", 0.9, 1.6, L, 4.6, 7.4, true);
 		room("kitchen", -1.4, 1.4, L, 9.0, 10.2, true);
 		room("hold", -1.8, 1.8, H, -12.0, 1.4, true);
 		// the hold lies below the waterline, and stays dry
@@ -127,10 +131,18 @@ class CorsairTest {
 		assertTrue(G.insideHull(0, -1.0, 0));
 		// the bulwarks keep the walkers aboard
 		assertFalse(fits(4.6, M, 0, CLOSED), "bulwark");
-		// the masts stop the walkers, on deck and through the rooms
-		assertFalse(fits(0, M, CorsairLayout.MAIN_MAST_Z, CLOSED));
-		assertFalse(fits(0, L, CorsairLayout.MAIN_MAST_Z, CLOSED));
-		assertFalse(fits(0, M, CorsairLayout.MIZZEN_Z, CLOSED));
+		// the two masts stop the walkers: the fore mast on deck and through the common room and the hold,
+		// the main mast on deck (stepped on the main deck: the coursive under it stays clear)
+		assertFalse(fits(0, M, CorsairLayout.FORE_MAST_Z, CLOSED), "fore mast on deck");
+		assertFalse(fits(0, L, CorsairLayout.FORE_MAST_Z, CLOSED), "fore mast through the common room");
+		assertFalse(fits(0, H, CorsairLayout.FORE_MAST_Z, CLOSED), "fore mast through the hold");
+		assertFalse(fits(0, M, CorsairLayout.MAIN_MAST_Z, CLOSED), "main mast on deck");
+		assertTrue(fits(0, L, CorsairLayout.MAIN_MAST_Z, CLOSED), "the coursive under the main mast");
+		// a brig: nothing else stands on the centre line of the main deck between the bow and the castle
+		for (double z = -13.0; z <= 17.0; z += 0.5) {
+			boolean mast = Math.abs(z - CorsairLayout.FORE_MAST_Z) < 0.9 || Math.abs(z - CorsairLayout.MAIN_MAST_Z) < 0.9;
+			assertTrue(mast || fits(0, M, z, CLOSED), "free main deck on the centre line at z " + z);
+		}
 	}
 
 	/** Walks a straight stair: every step at most 0.5 above the previous, ending at the given height. */
@@ -226,10 +238,15 @@ class CorsairTest {
 				StandardCharsets.UTF_8)) {
 			BbModel m = new BbModel(r);
 			for (String bone : new String[] {"hull", "sterncastle", "rooms", "furniture", "fittings", "detail", "helm_wheel", "rudder",
-					"sail_fore_course", "sail_main_topsail", "sail_spanker", "sail_jibs", "flag_gaff", "flag_stern", "flag_stern_tip",
-					"door_0_a", "door_1_a", "door_3", "lantern_jibboom"}) {
+					"mast_fore", "mast_main", "sail_fore_course", "sail_fore_topsail", "sail_fore_topgallant", "sail_main_topsail",
+					"sail_main_topgallant", "brace_main_yard", "sail_spanker", "sail_jibs", "sail_staysail", "flag_gaff", "flag_gaff_tip",
+					"flag_stern", "flag_stern_tip", "lantern_fore_course_0", "lantern_fore_course_3", "door_0_a", "door_1_a", "door_3",
+					"lantern_jibboom"}) {
 				assertNotNull(m.bonesByName.get(bone), "bone " + bone);
 			}
+			// two masts, as on the reference: no mizzen, no main course (its yard is bare)
+			assertEquals(2, m.bonesByName.keySet().stream().filter(b -> b.startsWith("mast_")).count(), "masts");
+			assertNull(m.bonesByName.get("sail_main_course"));
 			for (String anim : new String[] {"sail_wind", "sail_furl", "steer", "flag_wave", "lantern_sway", "door_0", "door_4"}) {
 				assertNotNull(m.animations.get(anim), "animation " + anim);
 			}

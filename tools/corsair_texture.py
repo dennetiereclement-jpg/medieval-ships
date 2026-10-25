@@ -70,7 +70,8 @@ REGIONS = {
     "jib":         (0, 288, 128, 128),
     "spanker":     (128, 288, 160, 144),
     "staysail":    (288, 288, 128, 96),
-    "mizzen_top":  (416, 288, 96, 80),
+    "main_topgallant": (416, 288, 96, 80),
+    "main_topsail": (0, 432, 176, 80),
 }
 
 # names used by the shared helpers (ship_details, generate_galleon): the same pixels
@@ -80,8 +81,8 @@ for _alias, _src in (("gold", "bronze"), ("hull_mid", "wood_mid"), ("hull_light"
     REGIONS[_alias] = REGIONS[_src]
 
 SAIL_CELLS = {  # (columns, rows) of cloth blocks drawn in each sail region
-    "course": (15, 8), "topsail": (12, 7), "topgallant": (9, 6), "jib": (10, 10), "spanker": (11, 12),
-    "staysail": (8, 6), "mizzen_top": (8, 5),
+    "course": (15, 8), "topsail": (12, 7), "topgallant": (9, 6), "jib": (10, 10), "spanker": (12, 13),
+    "staysail": (6, 9), "main_topgallant": (8, 5), "main_topsail": (11, 7),
 }
 
 
@@ -171,7 +172,9 @@ def _sail(px, region, cols, rows, rng, patches=3, tri=None):
     # patches: rectangles of whole blocks, away from the edges
     pcells = {}
     for _ in range(patches):
-        pw, ph = rng.randint(1, 2), rng.randint(1, 2)
+        # the large sails carry large patches (two or three cloths), as on the reference
+        pw = rng.randint(2, 3) if cols >= 12 else rng.randint(1, 2)
+        ph = 2 if rows >= 6 else rng.randint(1, 2)
         pc, pr = rng.randint(1, max(1, cols - pw - 1)), rng.randint(1, max(1, rows - ph - 1))
         col = rng.choice(patch)
         for rr in range(pr, pr + ph):
@@ -464,7 +467,8 @@ def _painting(px, region, rng):
             px[u + x, v + y] = _jitter(c, rng, 2) + (255,)
 
 
-def make_texture(path, jib_tri=None):
+def make_texture(path, tris=None):
+    """tris: the triangle (region fractions) of the jibs and of the staysail, as the model cuts them."""
     rng = random.Random(4207)
     img = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
     px = img.load()
@@ -519,14 +523,15 @@ def make_texture(path, jib_tri=None):
     for name, (cols, rows) in SAIL_CELLS.items():
         tri = None
         if name in ("jib", "staysail"):
-            tri = jib_tri or [(0.0, 0.0), (1.0, 0.0), (0.62, 1.0)]
+            tri = (tris or {}).get(name) or [(0.0, 0.0), (1.0, 0.0), (0.62, 1.0)]
         _sail(px, R[name], cols, rows, rng, patches=2 if tri else 3, tri=tri)
     img.save(path)
     return img
 
 
 def make_item_icon(path, model_png=None):
-    """16x16 icon: the black hull with its cream band, three red sails, a black flag."""
+    """16x16 icon: the black hull with its cream band, the two masts of the brig with their red square
+    sails, the spanker aft, a black flag at the gaff peak."""
     img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
     px = img.load()
     black, cream, wood = _rgb("1f1e24"), _rgb("d9d1bd"), _rgb("7a5130")
@@ -539,14 +544,29 @@ def make_item_icon(path, model_png=None):
         px[x, 10] = wood + (255,)
     for x in range(0, 3):
         px[x, 9 - x] = mast + (255,)  # bowsprit
-    for mx, top in ((4, 2), (8, 1), (12, 3)):
+    for x, y in ((3, 4), (3, 5), (3, 6), (2, 6)):
+        px[x, y] = red2 + (255,)      # a jib
+    for mx, top in ((6, 1), (11, 1)):
         for y in range(top, 10):
             px[mx, y] = mast + (255,)
-        for y in range(top + 1, 9):
-            for dx in (-2, -1, 0, 1, 2):
-                if mx + dx < 16 and not (dx == 0):
-                    px[mx + dx, y] = (red if (y + dx) % 3 else red2) + (255,)
-    px[8, 0] = (20, 20, 22, 255)
-    px[9, 0] = (20, 20, 22, 255)
-    px[9, 1] = (230, 230, 225, 255)
+    # fore mast: topgallant, topsail, course
+    for y, x0, x1 in ((2, 5, 7), (3, 5, 7), (4, 4, 8), (5, 4, 8), (6, 4, 8), (7, 4, 8), (8, 4, 8), (9, 4, 8)):
+        for x in range(x0, x1 + 1):
+            if x != 6:
+                px[x, y] = (red if (x + y) % 3 else red2) + (255,)
+    # main mast: topgallant, topsail, the bare main yard, the spanker abaft it
+    for y, x0, x1 in ((2, 10, 12), (3, 10, 12), (4, 10, 13), (5, 10, 13)):
+        for x in range(x0, x1 + 1):
+            if x != 11:
+                px[x, y] = (red if (x + y) % 3 else red2) + (255,)
+    for x in range(9, 14):
+        if x != 11:
+            px[x, 6] = wood + (255,)
+    for y, x1 in ((7, 13), (8, 14), (9, 14)):
+        for x in range(12, x1 + 1):
+            px[x, y] = (red2 if (x + y) % 3 else red) + (255,)
+    px[14, 1] = (20, 20, 22, 255)
+    px[15, 1] = (20, 20, 22, 255)
+    px[14, 2] = (20, 20, 22, 255)
+    px[15, 2] = (230, 230, 225, 255)
     img.save(path)

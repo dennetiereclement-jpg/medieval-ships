@@ -92,7 +92,7 @@ public final class CorsairGameTest {
 				{0.0, CorsairLayout.MAIN_DECK_Y, -5.5, 180},
 				{1.6, CorsairLayout.QUARTERDECK_Y, -15.0, 180},
 				{0.0, CorsairLayout.CABIN_FLOOR_Y, -16.0, 180},
-				{0.6, CorsairLayout.LOWER_FLOOR_Y, 6.5, 200},
+				{1.3, CorsairLayout.LOWER_FLOOR_Y, CorsairLayout.FORE_MAST_Z - 1.5, 200},
 				{0.0, CorsairLayout.LOWER_FLOOR_Y, -8.0, 180},
 				{0.0, CorsairLayout.HOLD_FLOOR_Y, -6.0, 0}};
 		String[] where = {"main deck", "quarterdeck", "captain's cabin", "common room", "coursive", "hold"};
