@@ -36,6 +36,15 @@ plongée. Ce sont de **véritables entités**, pas des constructions en blocs :
 | Maniement | un dirigeable, pas un avion : accélération et virages lents, inertie, montée et descente progressives, **vol stationnaire**, l'altitude se maintient seule, plafond réglable |
 | Particularités | se pose au-dessus du sol, de l'eau ou d'un toit (clic droit), ne traverse ni le relief ni les bâtiments ; pilote automatique en **3D** sur des itinéraires aériens (décollage, altitude de croisière au-dessus du relief, descente aux escales, cap à l'escale) ; fumée d'échappement, bruit d'hélice, de vent, de moteur et de bois |
 
+| | Le Vieux Corsaire |
+|---|---|
+| Objet / commande | *Le Vieux Corsaire*, `old_corsair` |
+| Taille | coque de 42 blocs (53 avec le beaupré), 10 de large, coque de 9 blocs (quille à la lisse), 38 de haut au grand mât |
+| Propulsion | brick à deux mâts : basse voile, hunier et perroquet carrés sur chaque mât (grand-voile ferlée), brigantine, 2 focs, voile d'étai ; voiles brique délavées et rapiécées |
+| Places assises | 23 (barre du gaillard d'arrière + bancs et chaises de la salle commune, chaise du bureau du capitaine, tabourets, bancs du pont) |
+| Maniement | lourd : lente accélération, forte inertie, larges virages ; voiles carguées à l'arrêt |
+| Particularités | vieux navire pirate rapiécé (bordages remplacés, tôles rivetées), pavillons noirs à tête de mort, lanternes ; **intérieur complet où l'on marche en naviguant** : pont principal, gaillard d'arrière, cabine du capitaine, salle commune, cuisine (foyer qui crépite et fume), coursive, postes d'équipage, cale sèche sous la flottaison ; 5 portes ; mobilier des mods de décoration du joueur ; voir [docs/CORSAIR_PLAN.md](docs/CORSAIR_PLAN.md) |
+
 | | Le Léviathan des Cieux |
 |---|---|
 | Objet / commande | *Le Léviathan des Cieux*, `sky_leviathan` |
@@ -80,6 +89,14 @@ Pour tous :
 * commandes `/ship` pour les administrateurs ;
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
+
+La version 1.8.0 ajoute deux nouveaux véhicules, reproduits d'après leurs planches de référence : **Le Vieux
+Corsaire** (`old_corsair`), un vieux brick pirate rapiécé aux voiles brique, dont on parcourt le pont, la
+cabine du capitaine, la salle commune, la cuisine, la coursive, les postes d'équipage et la cale pendant qu'il
+navigue, et **Le Léviathan des Cieux** (`sky_leviathan`), un immense dirigeable pirate steampunk (ballon, navire
+suspendu, salle des machines animée) ; tous deux meublés avec les mods de décoration du joueur, animés et
+compatibles avec le pilote automatique (itinéraires maritimes pour le corsaire, aériens en 3D pour le
+Léviathan).
 
 La version 1.7.20 : voiles du galion et du grand vaisseau gonflées en courbe lisse (sans damier ni marches), drapeaux du galion qui ondulent, grands fanaux de poupe à huit pans, gouvernail du galion affiné ; hélice du dirigeable à pales vrillées, lanternes ouvragées, emblème d'engrenage ailé à la proue, sacs de lest ronds ; galère rouge : écailles continues sur le cou et la queue du dragon, rayures de voile droites, boucliers ronds.
 
@@ -206,7 +223,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.7.20.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.8.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
@@ -304,6 +321,38 @@ blocs/s, accélération 0,35, virage maximal 6°/s), plus un bloc **`dive`** pro
 | `aiClearance` | 3 | pilote automatique : eau gardée sous la quille au-dessus du fond |
 | `aiCruiseDepth` | 24 | pilote automatique : profondeur de croisière des étapes sans profondeur indiquée |
 | `aiApproachDistance` | 40 | pilote automatique : distance d'une escale où il remonte à sa profondeur |
+
+## Le Vieux Corsaire (`old_corsair`)
+
+![Le Vieux Corsaire : planche de référence et captures en jeu](docs/comparaison_old_corsair.png)
+
+Vieux brick pirate d'un capitaine expérimenté : coque noire à bandes crème, rapiécée (bordages remplacés
+d'autres essences, tôles rivetées, plaque crème en travers des bandes), château arrière à galeries et fenêtres
+éclairées, deux mâts aux voiles carrées brique délavées et rapiécées de beige, brigantine, focs, beaupré à
+lanternes, pavillons noirs à tête de mort. Le guide complet (pose, pilotage, pièces, portes, sièges,
+itinéraires, réglages, mobilier pièce par pièce, rapport de test) est dans
+[docs/CORSAIR_PLAN.md](docs/CORSAIR_PLAN.md).
+
+* **Obtenir / poser** : objet *Le Vieux Corsaire* (créatif) ou `/ship give old_corsair` ; clic droit sur
+  l'eau : il est mis à l'eau seulement s'il y a assez d'eau profonde et de place pour toute la coque, la quille
+  (3,4 blocs sous la flottaison), le beaupré et le gui (≈ 55 × 10 blocs).
+* **Piloter** : clic droit sur la roue du gaillard d'arrière (le pilote se tient debout derrière la roue) ;
+  Z/S vitesse (S ralentit puis recule), Q/D barre, Espace / Ctrl allure supérieure / inférieure, Maj quitter.
+  Lourd : il met longtemps à prendre son erre et à s'arrêter, vire large, ralentit en virage.
+* **À bord** : clic droit sur la coque pour monter ; on marche sur le pont, le gaillard d'arrière et dans toutes
+  les pièces pendant la navigation (la cale reste sèche sous la flottaison) ; escaliers entre les niveaux ;
+  portes au clic droit (cabine du capitaine à deux battants, salle commune, cuisine, deux postes d'équipage) ;
+  23 places assises (Maj pour se lever, on se relève à côté du siège).
+* **Animations et effets** : voiles qui respirent au vent et se carguent à l'arrêt, cordages lâches (bras des
+  vergues, étais entre les mâts, garde de la corne, haubans du bout-dehors) qui se balancent, roue et safran qui suivent la barre,
+  deux pavillons noirs qui ondulent, lanternes qui se balancent, roulis et tangage légers avec gîte dans les
+  virages, écume à l'étrave et sillage ; sons de vieille coque qui grince, de gréement, de toile, de vague
+  d'étrave, et le feu de la cuisine qui crépite et fume.
+* **Pilote automatique** : itinéraires maritimes (`/ship route create <nom> [pingpong|loop|once]`,
+  `addpoint`, `addstop <nom> [secondes] [nom]`, `edit <nom> <n°> speed|wait|yaw`, `assign`) ; il quitte le
+  port, suit l'itinéraire en évitant côtes et rochers, anticipe les virages, ralentit, accoste, attend et repart.
+* **Réglages** : bloc `ships.old_corsair` de `config/medievalships.json` (vitesses 1,8 / 4,2 / 7 blocs/s,
+  marche arrière 0,9, accélération 0,28, virage maximal 7°/s, roulis 0,8).
 
 ## Le Léviathan des Cieux (`sky_leviathan`)
 

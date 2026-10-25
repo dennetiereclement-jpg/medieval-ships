@@ -117,9 +117,15 @@ public final class CorsairGameTest {
 			allAnims &= b;
 		}
 		check.check(allAnims, "%s: the model loaded in game has its animations (sails, helm, flags, lanterns, ropes)", id);
-		double[][] eyes = {{36, 5, 5}, {0, 8, 52}, {-3, 9, -48}, {0.05, 72, 4}, {30, 14, 40}};
-		double[][] targets = {{0, 14, 4}, {0, 14, 0}, {0, 13, -10}, {0, 0, 4}, {0, 13, 0}};
-		String[] names = {"1_cote", "2_avant", "3_arriere", "4_dessus", "5_perspective"};
+		// then close-ups for the reference's "details" panel: the bow lanterns, a patched sail, the patched hull
+		// (iron plates, cream plate across the bands), the stern castle with its lanterns and flag; and the main deck
+		// seen towards the quarterdeck as on the reference's "pont principal" view (beside the main mast)
+		double[][] eyes = {{36, 5, 5}, {0, 8, 52}, {-3, 9, -48}, {0.05, 72, 4}, {30, 14, 40},
+				{3.5, 8.5, 25.5}, {0.5, 6.5, -1.5}, {10.5, 2.2, -1.0}, {-7.5, 11.5, -29.5}, {-3.4, 6.2, -2.5}};
+		double[][] targets = {{0, 14, 4}, {0, 14, 0}, {0, 13, -10}, {0, 0, 4}, {0, 13, 0},
+				{0, 7.0, 20.5}, {0, 13.0, 6.5}, {5.0, 1.6, -1.0}, {-1.0, 9.0, -21.0}, {-0.5, 6.0, -14.0}};
+		String[] names = {"1_cote", "2_avant", "3_arriere", "4_dessus", "5_perspective",
+				"15_details_lanternes", "16_details_voile", "17_details_coque", "18_details_poupe", "19_pont_vers_la_poupe"};
 		for (int k = 0; k < eyes.length; k++) {
 			look(server, pose, eyes[k][0], eyes[k][1], eyes[k][2], targets[k][0], targets[k][1], targets[k][2]);
 			context.waitTicks(k == 0 ? 30 : 15);
