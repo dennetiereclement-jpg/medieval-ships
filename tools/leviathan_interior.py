@@ -153,8 +153,11 @@ STAIRS = (
 )
 COMPANION_HOLE = (1.5, 3.0, 1.5, 4.5)       # opening in the main deck over the companion stair (x0, x1, z0, z1)
 ENGINE_LANDING = (-11.5, -9.5)              # landing at the lower deck level inside the engine room (z)
-BOILER = (0.0, -14.2, 1.2, EO, -1.0)        # x, z, radius (of its cells; the model is a little thinner), bottom, top
+BOILER = (0.0, -14.2, 1.25, EO, -1.5)        # x, z, radius (of its cells; the model is a little thinner), bottom, top
 CHIMNEY_R = 0.45
+CATWALK_Y = LO + 0.5                        # the catwalk along the engine room's starboard wall (walked at this height)
+CATWALK = (-INF, -2.5, -16.5, ENGINE_LANDING[0])   # its floor (x0, x1, z0, z1), a railing on its inner edge
+ENGINE_BLOCK = (-0.9, 0.9, EO, EO + 1.6, -16.5, -15.55)   # the piston engine aft of the boiler
 HELM_BOX = (-0.5, 0.5, CASTLE, CASTLE + 1.0, -11.0, -10.5)
 
 
@@ -261,8 +264,13 @@ def build():
     # the engine room landing's rail (not over the stair)
     ez0, ez1 = ENGINE_LANDING
     st = [s for s in STAIRS if s[0] == "engine"][0]
-    g.set(FURNITURE, -INF, st[1], LO, LO + 1.0, ez0, ez0 + 0.5, where=inner)
+    cx0, cx1, cz0, cz1 = CATWALK
+    g.set(FURNITURE, cx1, st[1], LO, LO + 1.0, ez0, ez0 + 0.5, where=inner)
     g.set(FURNITURE, st[2], INF, LO, LO + 1.0, ez0, ez0 + 0.5, where=inner)
+    # the catwalk along the starboard wall, a step above the landing, its railing (one can walk under it)
+    g.set(SOLID, cx0, cx1, CATWALK_Y - SLAB, CATWALK_Y, cz0, cz1, where=inner)
+    g.set(FURNITURE, cx1, cx1 + 0.5, CATWALK_Y, CATWALK_Y + 1.0, cz0, cz1, where=inner)
+    g.set(FURNITURE, *ENGINE_BLOCK, where=inner)
     # the helm
     g.set(FURNITURE, *HELM_BOX)
     # ---- doors (after everything: they cut through walls, decks and rails)

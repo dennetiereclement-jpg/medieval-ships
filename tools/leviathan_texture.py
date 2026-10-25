@@ -13,7 +13,7 @@ import random
 
 from PIL import Image, ImageDraw
 
-from galley_texture import _jitter, _rgb, _mix, _scale, fine_wood, polished_metal, hammered_iron, woven, twisted_rope, \
+from galley_texture import _jitter, _rgb, _mix, _scale, _ramp, fine_wood, polished_metal, hammered_iron, woven, twisted_rope, \
     end_grain, paint_lamp_glass, GOLD_STOPS
 import leviathan_shape as ls
 
@@ -120,35 +120,41 @@ def _noise(w, h, cells, rng):
 
 
 def _plates(px, region, base, seam, light, rng, strip=8, wear=0.25):
-    """Aged turquoise strips along u: each strip its own tone, a dark seam under it, butt joints with
-    rivets, pale streaks of wear and darker rust stains (the reference's weathered copper-green)."""
+    """Aged turquoise plates in strips along u (the reference's weathered copper-green envelope): each
+    strip cut into plates of their own tone (jade, teal, olive, faded), a blue-green seam under each
+    strip, butt joints with rivets, pale streaks of wear and rust-brown stains."""
     u, v, w, h = region
     nz = _noise(w, h, 5, rng)
     nz2 = _noise(w, h, 11, rng)
+    palette = [base, _mix(base, (62, 104, 90), 0.55), _mix(base, (128, 158, 126), 0.45), _mix(base, (112, 108, 72), 0.5),
+               _scale(base, 0.86), _mix(base, (84, 128, 128), 0.5)]
     for r in range(h // strip):
-        tone = _jitter(base, rng, 7)
-        joint = rng.randint(6, w - 7)
-        for b in range(strip):
-            y = r * strip + b
-            for x in range(w):
-                if b == strip - 1:
-                    c = seam
-                elif x == joint or x == (joint + w // 2) % w:
-                    c = _mix(seam, tone, 0.35)
-                else:
-                    k = 1.0 + 0.1 * nz[y][x] + 0.05 * nz2[y][x]
-                    if b == 0:
-                        k += 0.07
-                    c = _scale(tone, k)
-                    t = nz2[y][x] * 0.5 + 0.5
-                    if t > 0.82:
-                        c = _mix(c, light, (t - 0.82) * 3.0 * wear * 2)
-                    elif t < 0.12:
-                        c = _mix(c, (78, 62, 44), (0.12 - t) * 4.0 * wear * 2)   # rust-brown stains
-                    if abs(x - joint) in (2,) and b in (2, strip - 3):
-                        c = _shade(seam, 1.1)
-                c = _jitter(c, rng, 3)
-                _put(px, u, v, x, y, c)
+        x = -rng.randint(0, 8)
+        while x < w:
+            ln = rng.randint(9, 20)
+            tone = _jitter(rng.choice(palette), rng, 5)
+            for dx in range(ln):
+                xx = x + dx
+                if xx < 0 or xx >= w:
+                    continue
+                for b in range(strip):
+                    y = r * strip + b
+                    if b == strip - 1:
+                        c = _scale(seam, 1.0 + 0.08 * nz[y][xx])
+                    elif dx == 0:
+                        c = _mix(seam, tone, 0.45)
+                    else:
+                        k = 1.0 + 0.07 * nz[y][xx] + 0.04 * nz2[y][xx] + (0.07 if b == 0 else -0.06 if b == strip - 2 else 0.0)
+                        c = _scale(tone, k)
+                        t = nz2[y][xx] * 0.5 + 0.5
+                        if t > 0.8:
+                            c = _mix(c, light, (t - 0.8) * 3.0 * wear * 2)
+                        elif t < 0.14:
+                            c = _mix(c, (92, 66, 40), (0.14 - t) * 4.0 * wear * 2.5)   # rust-brown stains
+                        if dx in (2, ln - 2) and b in (2, strip - 3):
+                            c = _scale(seam, 0.8)
+                    _put(px, u, v, xx, y, _jitter(c, rng, 3))
+            x += ln
 
 
 def _blocks(px, region, base, dark, rng, bw=8):
@@ -380,7 +386,8 @@ def _tile_room(img, px, rng):
     planked(REGIONS["wall_panel"], _rgb("4c2f1c"), top_band=_rgb("7a1f1c"), mid_band=_rgb("b08a3c"))
     planked(REGIONS["wall_engine"], _rgb("4e3523"), straps=True, pipe=True)
     fine_wood(img, REGIONS["floor"], _rgb("6b4b30"), _rgb("2f2014"), 4, rng, knots=0.2)
-    fine_wood(img, REGIONS["deck"], _rgb("7a5838"), _rgb("33241a"), 4, rng, knots=0.15)
+    _plank_field(px, REGIONS["deck"], _rgb("7c5434"), _rgb("3a2414"), rng, plank_w=4, along_u=True, repairs=0.14, lengths=(14, 32),
+                 tone_var=12, nail_p=0.8)
     # iron grating
     u, v, w, h = REGIONS["floor_iron"]
     for y in range(h):
@@ -452,18 +459,34 @@ def _tile_room(img, px, rng):
             _put(px, u, v, x, y, _jitter(c, rng, 3))
 
 
+def _iron_patches(px, region, rng, n):
+    """Repairs: riveted iron plates nailed over the planks."""
+    u, v, w, h = region
+    for _ in range(n):
+        pw, ph = rng.randint(5, 8), rng.randint(4, 6)
+        x0, y0 = rng.randint(1, w - pw - 1), rng.randint(1, h - ph - 1)
+        for y in range(y0, y0 + ph):
+            for x in range(x0, x0 + pw):
+                edge = x in (x0, x0 + pw - 1) or y in (y0, y0 + ph - 1)
+                c = (54, 52, 50) if not edge else (36, 34, 33)
+                if edge and (x + y) % 2 == 0:
+                    c = (92, 88, 82)
+                _put(px, u, v, x, y, _jitter(c, rng, 3))
+
+
 def make_texture(path):
     rng = random.Random(9)
     img = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
     px = img.load()
     # ---- balloon
-    _plates(px, REGIONS["plate"], _rgb("6b877a"), _rgb("33463f"), _rgb("9fb8a6"), rng, strip=12, wear=0.35)
-    _plates(px, REGIONS["plate_dark"], _rgb("566f63"), _rgb("27362f"), _rgb("8aa090"), rng, strip=12, wear=0.45)
-    fine_wood(img, REGIONS["wood_panel"], _rgb("6a4429"), _rgb("2c1a0e"), 4, rng, knots=0.2, grain=0.13)
-    _blocks(px, REGIONS["hoop"], _rgb("7c5434"), _rgb("2e1c10"), rng)
+    _plates(px, REGIONS["plate"], _rgb("62846c"), _rgb("2e5e66"), _rgb("a4bea6"), rng, strip=8, wear=0.35)
+    _plates(px, REGIONS["plate_dark"], _rgb("526e5a"), _rgb("264e54"), _rgb("8aa490"), rng, strip=8, wear=0.45)
+    _plank_field(px, REGIONS["wood_panel"], _rgb("7e5232"), _rgb("3a2412"), rng, plank_w=4, along_u=True, repairs=0.18, lengths=(8, 18),
+                 tone_var=14, nail_p=0.6)
+    _blocks(px, REGIONS["hoop"], _rgb("8a5a36"), _rgb("2e1c10"), rng)
     end_grain(img, REGIONS["hoop_end"], _rgb("8a6440"), _rgb("4a3020"), rng)
     _strap(px, REGIONS["strap"], _rgb("2c2a2a"), rng)
-    fine_wood(img, REGIONS["band"], _rgb("4e3320"), _rgb("22150b"), 8, rng, knots=0.0)
+    fine_wood(img, REGIONS["band"], _rgb("5a3a22"), _rgb("26170b"), 8, rng, knots=0.0)
     hammered_iron(img, REGIONS["plate_in"], _rgb("2a2622"), rng)
     u, v, w, h = REGIONS["emblem"]
     for y in range(h):
@@ -550,13 +573,17 @@ def make_texture(path):
     _fin(px, REGIONS["fin"], ls.FIN_ROOT_U, rng, holes=True)
     _fin(px, REGIONS["fin_keel"], ls.KEEL_FIN_ROOT_U, rng, holes=False)
     # ---- hull
-    fine_wood(img, REGIONS["hull"], _rgb("6a4a30"), _rgb("21160d"), 4, rng, knots=0.2, grain=0.12)
-    fine_wood(img, REGIONS["hull_low"], _rgb("54392a"), _rgb("191109"), 4, rng, knots=0.1, grain=0.1)
-    fine_wood(img, REGIONS["wale"], _rgb("2a1d14"), _rgb("110b07"), 4, rng, knots=0.0)
-    fine_wood(img, REGIONS["rail"], _rgb("4a301e"), _rgb("1e130a"), 4, rng, knots=0.0)
-    fine_wood(img, REGIONS["dark_wood"], _rgb("3e2818"), _rgb("1a1009"), 4, rng, knots=0.0)
-    fine_wood(img, REGIONS["wood"], _rgb("6e4c30"), _rgb("2e1e12"), 4, rng, knots=0.1)
-    fine_wood(img, REGIONS["transom"], _rgb("5e4230"), _rgb("1f140c"), 4, rng, knots=0.1)
+    _plank_field(px, REGIONS["hull"], _rgb("7a4e2e"), _rgb("2c1a0c"), rng, plank_w=4, along_u=True, repairs=0.2, lengths=(14, 34),
+                 tone_var=12, nail_p=0.7)
+    _plank_field(px, REGIONS["hull_low"], _rgb("5c3c24"), _rgb("22140a"), rng, plank_w=4, along_u=True, repairs=0.15, lengths=(14, 34),
+                 tone_var=10, nail_p=0.5)
+    _iron_patches(px, REGIONS["hull"], rng, 2)
+    _iron_patches(px, REGIONS["hull_low"], rng, 2)
+    fine_wood(img, REGIONS["wale"], _rgb("2e2016"), _rgb("120c07"), 4, rng, knots=0.0)
+    fine_wood(img, REGIONS["rail"], _rgb("583820"), _rgb("22140a"), 4, rng, knots=0.0)
+    fine_wood(img, REGIONS["dark_wood"], _rgb("462c18"), _rgb("1c1008"), 4, rng, knots=0.0)
+    fine_wood(img, REGIONS["wood"], _rgb("7a5232"), _rgb("2e1c0e"), 4, rng, knots=0.1)
+    _plank_field(px, REGIONS["transom"], _rgb("684226"), _rgb("26160a"), rng, plank_w=4, along_u=True, repairs=0.15, lengths=(12, 30))
     hammered_iron(img, REGIONS["gear_iron"], _rgb("3a3634"), rng)
     _door_leaf(px, REGIONS["door_leaf"], rng)
     u, v, w, h = REGIONS["hatch"]
@@ -571,6 +598,504 @@ def make_texture(path):
         for x in range(w):
             _put(px, u, v, x, y, _jitter(_scale(_rgb("6a4a2e"), 1.0 + 0.08 * math.sin(x * 0.9)), rng, 3))
     _tile_room(img, px, rng)
+    img.save(path)
+    return img
+
+
+# ================================================================ interior atlas (second texture)
+SIZE_IN = 512
+# sky_leviathan_interior.png: the rooms and their furniture, 16 px per block like the decoration mods
+REGIONS_IN = {
+    # room surfaces: walls span the room height (v from the ceiling down to the floor), 2 block tiles
+    "in_wall":        (0, 0, 32, 48),     # worn horizontal planks between a beam and a skirting board
+    "in_wall_panel":  (32, 0, 32, 48),    # the captain's panelling: dark wainscot, red fabric, gilt rail
+    "in_wall_engine": (64, 0, 32, 48),    # planks with riveted iron straps, soot towards the top
+    "in_wall_hold":   (96, 0, 32, 48),    # rough planks, patched, darker
+    "in_floor":       (128, 0, 32, 32),   # worn plank floor (planks along z)
+    "in_floor_hold":  (160, 0, 32, 32),   # rough hold floor
+    "in_floor_iron":  (192, 0, 32, 32),   # riveted iron plates of the engine room
+    "in_ceil":        (224, 0, 32, 32),   # ceiling planks between dark joists
+    "in_ceil_soot":   (256, 0, 32, 32),   # sooty ceiling of the engine room
+    "in_rug":         (288, 0, 64, 64),   # big red rug, gold borders, pattern
+    "in_runner":      (352, 0, 32, 64),   # red runner of the coursive, gold border, a medallion
+    "in_blanket":     (384, 0, 32, 32),   # dark red quilted blanket with a gold hem
+    "in_beam":        (416, 0, 32, 16),   # dark oak timber (posts and beams), grain along u
+    "in_beam_end":    (448, 0, 16, 16),
+    "in_plank":       (464, 0, 32, 16),   # lighter worn plank (furniture, shelves)
+    "in_chest":       (416, 16, 32, 16),  # chest planks (grain along u)
+    "in_chest_lid":   (448, 16, 32, 16),
+    "in_staves":      (480, 16, 32, 16),  # barrel staves (grain along v)
+    "in_barrel_lid":  (464, 32, 16, 16),
+    "in_iron":        (480, 32, 16, 16),  # blackened iron (bands, brackets, rails)
+    "in_rivets":      (496, 32, 16, 16),  # riveted iron plate
+    "in_brass":       (0, 48, 16, 16),
+    "in_gold":        (16, 48, 16, 16),   # gilded brass bands of the boiler
+    "in_copper":      (32, 48, 16, 16),
+    "in_boiler":      (0, 64, 64, 64),    # riveted dark iron plates of the boiler, warm sheen
+    "in_boiler_band": (64, 64, 64, 16),   # riveted gilded band
+    "in_brick":       (64, 80, 32, 16),   # fire bricks
+    "in_fire":        (96, 80, 16, 16),   # the firebox glow
+    "in_coal":        (112, 80, 16, 16),
+    "in_window":      (128, 64, 32, 48),  # leaded window seen from inside (daylight, blue diamonds)
+    "in_porthole":    (160, 64, 16, 16),  # round porthole glass from inside
+    "in_jars":        (176, 64, 64, 16),  # a row of jars and bottles on a shelf
+    "in_jars2":       (176, 80, 64, 16),
+    "in_books":       (240, 64, 64, 32),  # two shelves of leather spines
+    "in_chart":       (304, 64, 32, 32),  # sea chart
+    "in_map_wall":    (336, 64, 48, 32),  # a big map pinned on the wall
+    "in_gauge":       (384, 64, 16, 16),
+    "in_dial_red":    (400, 64, 16, 16),  # gauge with a red zone
+    "in_rope":        (416, 64, 16, 16),
+    "in_sack":        (432, 64, 16, 16),
+    "in_canvas":      (448, 64, 16, 16),
+    "in_bedding":     (464, 64, 16, 16),  # white linen
+    "in_red_cloth":   (480, 64, 16, 16),
+    "in_glass_green": (496, 64, 16, 16),
+    "in_grate":       (304, 96, 32, 32),  # catwalk grating (open holes)
+    "in_globe":       (336, 96, 64, 32),  # world map for the globe
+    "in_tools":       (400, 96, 48, 16),  # tools hung on a board
+    "in_lamp":        (448, 96, 16, 16),  # lantern glass (lit)
+    "in_glow":        (464, 96, 16, 16),
+    "in_paper":       (480, 96, 16, 16),
+    "in_candle":      (496, 96, 16, 16),
+    "in_steam":       (0, 128, 32, 32),   # (reserved)
+    "in_floor_capt":  (32, 128, 32, 32),  # darker polished planks (captain's quarters)
+    "in_wall_chart":  (64, 128, 32, 48),  # chart room walls: panelling with maps
+    "in_cushion":     (96, 128, 16, 16),  # red velvet cushion
+    "in_leather":     (112, 128, 16, 16),
+    "in_slate":       (128, 128, 16, 16),
+}
+
+
+def _wood_px(base, dark, rng, a, b, plank_w, seed_tone, grain_lines, knot=None):
+    """One pixel of a plank (a along the grain, b across it, inside a plank of width plank_w)."""
+    k = 1.0
+    for c0, amp, fr, ph, s in grain_lines:
+        yl = c0 + amp * math.sin(a * fr + ph)
+        if abs(b + 0.5 - yl) < 0.5:
+            k -= 0.09 * s
+    if knot is not None:
+        d = math.hypot((a + 0.5 - knot[0]) / 1.4, b + 0.5 - knot[1])
+        if d < 0.8:
+            k -= 0.32
+        elif d < 1.5:
+            k -= 0.1
+    if b == 0:
+        k += 0.08
+    elif b == plank_w - 2:
+        k -= 0.05
+    return _scale(seed_tone, k)
+
+
+def _plank_field(px, region, base, dark, rng, plank_w=4, along_u=True, repairs=0.12, nails=True, wear=None, tone_var=12,
+                 seam=None, lengths=(10, 26), patch_cols=None, nail_p=1.0):
+    """Worn planks: each board its own tone (some replaced by boards of another colour), butt joints at
+    random lengths with two nails each side, a dark caulked seam between the boards, the grain, knots, and
+    an optional wear function (x, y) -> lightening factor (paths worn pale)."""
+    u, v, w, h = region
+    L, W = (w, h) if along_u else (h, w)
+    seam = seam or dark
+    patch_cols = patch_cols or [_scale(base, 1.22), _scale(base, 0.78), _mix(base, (128, 112, 92), 0.35)]
+    rows = -(-W // plank_w)
+    for r in range(rows):
+        a = 0
+        while a < L:
+            ln = rng.randint(*lengths)
+            tone = _jitter(base, rng, tone_var)
+            if rng.random() < repairs:
+                tone = _jitter(rng.choice(patch_cols), rng, 5)
+            lines = [(rng.uniform(0.6, plank_w - 1.2), rng.uniform(0.2, 0.7), rng.uniform(0.1, 0.35), rng.uniform(0, 6.3), rng.uniform(0.5, 1.0))
+                     for _ in range(2)]
+            knot = (rng.uniform(2, max(3, ln - 2)), rng.uniform(1, plank_w - 1.5)) if rng.random() < 0.2 else None
+            nailed = nails and rng.random() < nail_p
+            for da in range(ln):
+                aa = a + da
+                if aa >= L:
+                    break
+                for b in range(plank_w):
+                    bb = r * plank_w + b
+                    if bb >= W:
+                        break
+                    if b == plank_w - 1:
+                        c = seam
+                    elif da == 0:
+                        c = _mix(seam, tone, 0.3)
+                    else:
+                        c = _wood_px(base, dark, rng, da, b, plank_w, tone, lines, knot)
+                        if nailed and (da in (1, ln - 2)) and b == plank_w // 2 - 1:
+                            c = (46, 40, 36)
+                    x, y = (aa, bb) if along_u else (bb, aa)
+                    if wear is not None and b != plank_w - 1:
+                        c = _mix(c, _scale(c, 1.25), wear(x, y))
+                    _put(px, u, v, x, y, _jitter(c, rng, 2))
+            a += ln
+
+
+def _rivet_plate(px, region, base, rng, pw=16, ph=16, seam=None, rivet=(90, 84, 78), soot=0.0, sheen=None):
+    u, v, w, h = region
+    seam = seam or _scale(base, 0.55)
+    nz = _noise(w, h, 6, rng)
+    for y in range(h):
+        for x in range(w):
+            k = 1.0 + 0.08 * nz[y][x]
+            if sheen:
+                k += sheen * math.sin(x / w * math.pi * 2 + 0.6)
+            c = _scale(base, k)
+            if x % pw == 0 or y % ph == 0:
+                c = seam
+            elif x % pw == pw - 1 or y % ph == ph - 1:
+                c = _scale(base, 1.12 * k)
+            elif (x % pw in (2, pw - 3) and y % 3 == 1) or (y % ph in (2, ph - 3) and x % 3 == 1):
+                c = rivet if (x + y) % 2 else _scale(rivet, 0.8)
+            if soot:
+                c = _mix(c, (20, 18, 16), soot * (1 - y / h) * (0.6 + 0.4 * nz[y][x]))
+            _put(px, u, v, x, y, _jitter(c, rng, 2))
+
+
+def _rug_big(px, region, rng, field="7a1814", border="a87a34", dark="3a0e0b", accent="561410"):
+    """A big red rug: a dark edge, a thin gold border, a band of small gold motifs, the deep red field with
+    a faint lozenge medallion and corner flowers."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            e = min(x, y, w - 1 - x, h - 1 - y)
+            fld = _scale(_rgb(field), 1.0 + 0.05 * math.sin(x * 0.7) * math.sin(y * 0.9))
+            if e < 1:
+                c = _rgb(dark)
+            elif e < 2:
+                c = _rgb(border)
+            elif e < 6:
+                c = _rgb(accent)
+                if e in (3, 4) and (x + y) % 4 == 0:
+                    c = _mix(_rgb(border), _rgb(accent), 0.25)
+            elif e < 7:
+                c = _rgb(border)
+            else:
+                c = fld
+                dx, dy = (x - w / 2 + 0.5) / (w / 2 - 7), (y - h / 2 + 0.5) / (h / 2 - 7)
+                d = abs(dx) + abs(dy)
+                if abs(d - 0.45) < 0.035:
+                    c = _mix(_rgb(border), fld, 0.35)
+                elif d < 0.16:
+                    c = _mix(_rgb(border), fld, 0.4)
+                elif d < 0.45 and (x + y) % 5 == 0:
+                    c = _mix(fld, _rgb(accent), 0.6)
+                for cx, cy in ((11, 11), (w - 12, 11), (11, h - 12), (w - 12, h - 12)):
+                    if abs(x - cx) + abs(y - cy) < 2:
+                        c = _mix(_rgb(border), fld, 0.3)
+            _put(px, u, v, x, y, _jitter(c, rng, 3))
+
+
+def _runner(px, region, rng):
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            e = min(x, w - 1 - x)
+            if e < 1:
+                c = _rgb("3e0f0c")
+            elif e < 3:
+                c = _rgb("c9973a") if (y % 4) else _rgb("9a6e28")
+            elif e < 4:
+                c = _rgb("3e0f0c")
+            else:
+                c = _scale(_rgb("8a1d18"), 1.0 + 0.05 * math.sin(y * 0.8))
+                if (y % 12) in (0, 1) and abs(x - w / 2 + 0.5) < 6:
+                    c = _rgb("6a1410")
+                dx, dy = abs(x - w / 2 + 0.5), abs(y - h / 2 + 0.5)
+                if dx / 7 + dy / 9 < 1.0 and dx / 7 + dy / 9 > 0.75:
+                    c = _rgb("c9973a")
+                if dx + dy < 2.5:
+                    c = _rgb("c9973a")
+            _put(px, u, v, x, y, _jitter(c, rng, 4))
+
+
+def _jars(px, region, rng, seed_cols):
+    """A shelf board with jars, bottles and crocks in front of a dark wall."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            c = _rgb("1e140c") if y < h - 3 else (_rgb("6a4a2c") if y == h - 3 else _rgb("4a301c"))
+            _put(px, u, v, x, y, _jitter(c, rng, 3))
+    x = 1
+    while x < w - 3:
+        kind = rng.random()
+        col = _rgb(rng.choice(seed_cols))
+        if kind < 0.35:      # bottle: narrow neck
+            bw, top = 3, rng.randint(1, 4)
+            for xx in range(x, x + bw):
+                for y in range(top + 4, h - 3):
+                    _put(px, u, v, xx, y, _scale(col, 1.25 if xx == x else 0.9))
+            for y in range(top, top + 4):
+                _put(px, u, v, x + 1, y, _scale(col, 0.8))
+            _put(px, u, v, x + 1, top, (70, 50, 30))
+        elif kind < 0.7:     # jar with a lid
+            bw, top = rng.randint(4, 5), rng.randint(5, 8)
+            for xx in range(x, x + bw):
+                for y in range(top, h - 3):
+                    c = _scale(col, 1.2 if xx == x + 1 else 0.85 if xx == x + bw - 1 else 1.0)
+                    if y == top:
+                        c = (150, 130, 100)
+                    _put(px, u, v, xx, y, c)
+        else:                # crock
+            bw, top = rng.randint(4, 6), rng.randint(6, 9)
+            col = _rgb(rng.choice(["8a6a4a", "a08060", "6a5040", "b09a78"]))
+            for xx in range(x, x + bw):
+                for y in range(top, h - 3):
+                    c = _scale(col, 1.15 if xx == x + 1 else 0.85 if xx == x + bw - 1 else 1.0)
+                    if y == top + 2:
+                        c = _scale(col, 0.7)
+                    _put(px, u, v, xx, y, c)
+        x += bw + rng.randint(0, 2)
+
+
+def make_interior_texture(path):
+    rng = random.Random(77)
+    img = Image.new("RGBA", (SIZE_IN, SIZE_IN), (0, 0, 0, 0))
+    px = img.load()
+    R = REGIONS_IN
+    oak, oak_dark = _rgb("7c4c26"), _rgb("3a2010")
+
+    # ---- walls: horizontal planks, a joist band at the top, a skirting board at the bottom
+    def wall(region, base, dark, top=None, bottom=None, repairs=0.14, straps=False, soot=0.0, panel=False):
+        u, v, w, h = region
+        _plank_field(px, region, base, dark, rng, plank_w=4, along_u=True, repairs=repairs, lengths=(20, 44), nail_p=0.35)
+        for y in range(h):
+            for x in range(w):
+                r, g, b, a = px[u + x, v + y]
+                c = (r, g, b)
+                if y < 4:   # the beam under the ceiling
+                    c = _scale(_rgb("3a2414"), 1.0 + (0.12 if y == 0 else -0.1 if y == 3 else 0.0) + 0.04 * math.sin(x * 0.7))
+                elif y >= h - 4:   # skirting board
+                    c = _scale(_rgb("3a2414"), 1.0 + (0.1 if y == h - 4 else 0.0))
+                if panel:
+                    if 4 <= y < 7:
+                        c = _scale(_rgb("6b1a16"), 1.0 + 0.05 * ((x + y) % 2))
+                    elif y == 7:
+                        c = _rgb("b88a3a")
+                    elif y >= h - 18 and y < h - 4:   # wainscot panels
+                        px_ = x % 16
+                        c = _scale(_rgb("4a2c18"), 1.0 + (0.12 if px_ in (1, 2) or y == h - 18 else -0.15 if px_ in (14, 15) or y == h - 5 else 0.0))
+                    elif y == h - 19:
+                        c = _rgb("b88a3a")
+                if straps and x in (14, 15, 16, 17) and 4 <= y < h - 4:
+                    c = _rgb("2a2826") if x in (15, 16) else _rgb("3a3633")
+                    if y % 6 == 2 and x in (15, 16):
+                        c = (110, 100, 88)
+                if soot:
+                    c = _mix(c, (24, 20, 16), soot * max(0.0, 1 - y / (h * 0.55)))
+                _put(px, u, v, x, y, c)
+    wall(R["in_wall"], oak, oak_dark)
+    wall(R["in_wall_panel"], _rgb("70421f"), oak_dark, panel=True, repairs=0.05)
+    wall(R["in_wall_engine"], _rgb("704626"), oak_dark, straps=True, soot=0.35)
+    wall(R["in_wall_hold"], _rgb("724a28"), oak_dark, repairs=0.25)
+    wall(R["in_wall_chart"], _rgb("70421f"), oak_dark, panel=True, repairs=0.05)
+
+    # ---- floors (planks along u = z), worn paler along the middle
+    def worn(w):
+        return lambda x, y: 0.35 * max(0.0, 1 - abs(y - 16) / 10.0) * (0.6 + 0.4 * math.sin(x * 0.3))
+    _plank_field(px, R["in_floor"], _rgb("64401f"), _rgb("3a2210"), rng, plank_w=4, along_u=True, repairs=0.15, lengths=(14, 30), nail_p=0.5)
+    _plank_field(px, R["in_floor_hold"], _rgb("5e3c20"), _rgb("341e0e"), rng, plank_w=4, along_u=True, repairs=0.25, lengths=(10, 24),
+                 nail_p=0.5)
+    _plank_field(px, R["in_floor_capt"], _rgb("583418"), _rgb("2e1a0a"), rng, plank_w=4, along_u=True, repairs=0.04, lengths=(18, 34),
+                 nail_p=0.3)
+    _rivet_plate(px, R["in_floor_iron"], _rgb("4a4440"), rng, pw=16, ph=16, sheen=0.05)
+    # ---- ceilings: planks along u with a dark joist every block
+    for name, base, soot in (("in_ceil", _rgb("4e301a"), 0.0), ("in_ceil_soot", _rgb("46301c"), 0.35)):
+        u, v, w, h = R[name]
+        _plank_field(px, R[name], base, oak_dark, rng, plank_w=4, along_u=True, repairs=0.1, lengths=(12, 30))
+        for y in range(h):
+            for x in range(w):
+                r, g, b, a = px[u + x, v + y]
+                c = (r, g, b)
+                if x % 16 in (0, 1, 2, 3):
+                    c = _scale(_rgb("2e1c0e"), 1.0 + (0.12 if x % 16 == 0 else -0.1 if x % 16 == 3 else 0.0))
+                if soot:
+                    c = _mix(c, (22, 18, 15), soot * (0.5 + 0.5 * math.sin(x * 0.2 + y * 0.13)))
+                _put(px, u, v, x, y, _jitter(c, rng, 2))
+
+    # ---- textiles
+    _rug_big(px, R["in_rug"], rng)
+    _runner(px, R["in_runner"], rng)
+    u, v, w, h = R["in_blanket"]
+    for y in range(h):
+        for x in range(w):
+            c = _scale(_rgb("7a1612"), 1.0 + 0.1 * math.sin(x * 0.9) * math.sin(y * 0.9) - (0.12 if (x % 8 == 0 or y % 8 == 0) else 0.0))
+            if y < 2 or y > h - 3 or x < 2 or x > w - 3:
+                c = _rgb("b8893a")
+            _put(px, u, v, x, y, _jitter(c, rng, 3))
+    for name, col, fold in (("in_red_cloth", "7a1a16", 0.06), ("in_cushion", "8e1e18", 0.1), ("in_bedding", "e6dccb", 0.04),
+                            ("in_canvas", "b8a27a", 0.05), ("in_sack", "a08458", 0.08), ("in_leather", "5a3420", 0.05),
+                            ("in_paper", "e0cfa0", 0.03), ("in_candle", "efe2c0", 0.02), ("in_slate", "3a3a3e", 0.04)):
+        u, v, w, h = R[name]
+        for y in range(h):
+            for x in range(w):
+                k = 1.0 + fold * math.sin(x * 0.8 + y * 0.4) + (0.04 if (x + y) % 2 else -0.02)
+                if name == "in_sack" and (x + 2 * y) % 5 == 0:
+                    k -= 0.12
+                _put(px, u, v, x, y, _jitter(_scale(_rgb(col), k), rng, 3))
+
+    # ---- wood for the furniture
+    fine_wood(img, R["in_beam"], _rgb("553218"), _rgb("2a170a"), 16, rng, joints=False, knots=0.4, grain=0.14)
+    end_grain(img, R["in_beam_end"], _rgb("6a4628"), _rgb("2e1c10"), rng)
+    fine_wood(img, R["in_plank"], _rgb("8a5a32"), _rgb("3a2210"), 4, rng, knots=0.15)
+    fine_wood(img, R["in_chest"], _rgb("74482a"), _rgb("2e180a"), 4, rng, knots=0.1)
+    fine_wood(img, R["in_chest_lid"], _rgb("603a1e"), _rgb("28160a"), 4, rng, knots=0.1)
+    fine_wood(img, R["in_staves"], _rgb("845630"), _rgb("3a2210"), 4, rng, vertical=True, knots=0.0)
+    end_grain(img, R["in_barrel_lid"], _rgb("7a5432"), _rgb("3a2414"), rng)
+    hammered_iron(img, R["in_iron"], _rgb("2c2a28"), rng)
+    _rivet_plate(px, R["in_rivets"], _rgb("3a3634"), rng, pw=8, ph=8)
+    polished_metal(img, R["in_brass"], [(0.0, (88, 60, 22)), (0.5, (168, 124, 50)), (1.0, (230, 192, 104))], rng)
+    polished_metal(img, R["in_gold"], GOLD_STOPS, rng)
+    polished_metal(img, R["in_copper"], [(0.0, (86, 40, 20)), (0.5, (164, 90, 48)), (1.0, (222, 146, 96))], rng)
+
+    # ---- the boiler: riveted plates with a warm sheen, gilded riveted bands, fire bricks, the glow
+    _rivet_plate(px, R["in_boiler"], _rgb("3c3430"), rng, pw=16, ph=16, rivet=(150, 116, 62), sheen=0.08)
+    u, v, w, h = R["in_boiler_band"]
+    for y in range(h):
+        for x in range(w):
+            t = 0.5 + 0.5 * math.sin(x * 0.25) * 0.4 + (0.3 if y < 4 else -0.25 if y > h - 5 else 0.0)
+            c = _ramp(GOLD_STOPS, max(0.0, min(1.0, t)))
+            if y in (0, h - 1):
+                c = (70, 48, 18)
+            if x % 6 == 3 and y in (h // 2 - 1, h // 2):
+                c = (90, 64, 26)
+            _put(px, u, v, x, y, _jitter(c, rng, 3))
+    u, v, w, h = R["in_brick"]
+    for y in range(h):
+        for x in range(w):
+            row = y // 4
+            off = 4 if row % 2 else 0
+            c = _jitter(_rgb("8a3a24"), rng, 10)
+            if y % 4 == 3 or (x + off) % 8 == 7:
+                c = _rgb("3a2a22")
+            _put(px, u, v, x, y, c)
+    u, v, w, h = R["in_fire"]
+    for y in range(h):
+        for x in range(w):
+            t = y / h
+            c = _mix((255, 240, 150), (230, 90, 20), 1 - t + 0.25 * math.sin(x * 1.4 + y * 0.6))
+            _put(px, u, v, x, y, _jitter(c, rng, 8))
+    u, v, w, h = R["in_coal"]
+    for y in range(h):
+        for x in range(w):
+            k = 1.0 + 0.4 * math.sin(x * 2.1 + y * 1.3) * math.sin(y * 1.7)
+            _put(px, u, v, x, y, _jitter(_scale((40, 36, 34), k), rng, 6))
+
+    # ---- windows from inside: wooden frame, leaded diamond panes of a blue sky
+    u, v, w, h = R["in_window"]
+    for y in range(h):
+        for x in range(w):
+            if x < 3 or x >= w - 3 or y < 3 or y >= h - 3:
+                c = _scale(_rgb("4a2e18"), 1.0 + (0.12 if x == 0 or y == 0 else 0.0))
+            elif (x + y) % 7 == 0 or (x - y) % 7 == 0:
+                c = _rgb("3a3430")
+            elif abs(x - w / 2 + 0.5) < 1.0:
+                c = _rgb("4a2e18")
+            else:
+                t = y / h
+                c = _mix(_rgb("8eaac4"), _rgb("4e6a8e"), t)
+                if (x * 3 + y) % 11 == 0:
+                    c = _scale(c, 1.12)
+            _put(px, u, v, x, y, _jitter(c, rng, 3))
+    _round(px, R["in_porthole"], lambda rr, dx, dy: (60, 44, 24) if rr > 0.86 else _mix(_rgb("c4dcec"), _rgb("6a8cb4"), (dy + 1) / 2)
+           if abs(dx) > 0.07 else (70, 60, 50))
+    _jars(px, R["in_jars"], rng, ["2e6a3a", "7a2a1e", "3a5a7a", "a07a2a", "4a7a5a", "8a5a2a", "5a3a6a"])
+    _jars(px, R["in_jars2"], rng, ["2e5a2e", "6a4a1e", "8a2a1e", "2a4a6a", "b08a3a", "4a6a2a"])
+    # books
+    u, v, w, h = R["in_books"]
+    cols = ["7a1f1c", "1f3a5a", "2f5a2a", "6a4a20", "3a2a4a", "8a6a2a", "5a1a1a", "2a4a4a", "9a7a4a"]
+    for y in range(h):
+        for x in range(w):
+            _put(px, u, v, x, y, _rgb("1a100a"))
+    for row in range(2):
+        x = 1
+        y0, y1 = row * 16 + 1, row * 16 + 14
+        while x < w - 2:
+            bw = rng.choice((2, 2, 3, 3, 4))
+            top = y0 + rng.randint(1, 4)
+            col = _rgb(rng.choice(cols))
+            lean = rng.random() < 0.08
+            for xx in range(x, min(w - 1, x + bw)):
+                for y in range(top + (1 if lean and xx > x else 0), y1):
+                    c = _scale(col, 1.18 if xx == x else 0.82 if xx == x + bw - 1 else 1.0)
+                    if y in (top + 2, y1 - 3) and bw > 2:
+                        c = _rgb("c8a24a")
+                    _put(px, u, v, xx, y, _jitter(c, rng, 3))
+            x += bw
+        for y in (y1, y1 + 1):
+            for x in range(w):
+                _put(px, u, v, x, y, _jitter(_rgb("5a3a20"), rng, 3))
+    # sea chart and the wall map
+    for name in ("in_chart", "in_map_wall"):
+        u, v, w, h = R[name]
+        cx, cy = w * 0.64, h * 0.56
+        for y in range(h):
+            for x in range(w):
+                c = _jitter(_rgb("c8ae7a"), rng, 6)
+                land = y < h * 0.3 + 4 * math.sin(x / 4.0) and x < w * 0.55 or (x - w * 0.2) ** 2 + (y - h * 0.8) ** 2 < (h * 0.12) ** 2
+                if land:
+                    c = _jitter(_rgb("a88a58"), rng, 6)
+                coast = abs(y - (h * 0.3 + 4 * math.sin(x / 4.0))) < 0.7 and x < w * 0.55
+                if coast:
+                    c = _rgb("6b4a2a")
+                ang = math.atan2(y - cy, x - cx)
+                if abs(math.sin(4 * ang)) < 0.05 and not land:
+                    c = _rgb("a88a5c")
+                if (x - cx) ** 2 + (y - cy) ** 2 < 5:
+                    c = _rgb("8b1e1e")
+                if abs(x - 0.45 * w - 0.3 * (y - h * 0.5)) < 0.5 and h * 0.4 < y < h * 0.75:
+                    c = _rgb("8b1e1e")   # a route in red
+                e = min(x, y, w - 1 - x, h - 1 - y)
+                if e == 0:
+                    c = _rgb("9a7a48")
+                _put(px, u, v, x, y, c)
+    _round(px, R["in_gauge"], lambda rr, dx, dy: (40, 30, 18) if rr > 0.85 else (34, 28, 24) if abs(dx + dy * 0.6) < 0.09 and dy < 0.2 and dx < 0.3
+           else (236, 226, 198) if rr < 0.8 or (int((math.atan2(dy, dx) + 4) * 5) % 2) else (60, 50, 40))
+    _round(px, R["in_dial_red"], lambda rr, dx, dy: (40, 30, 18) if rr > 0.85 else (34, 28, 24) if abs(dx - dy * 0.5) < 0.09 and dy < 0.2
+           else (176, 40, 30) if (rr > 0.55 and dx > 0.2 and dy < 0) else (236, 226, 198))
+    twisted_rope(img, R["in_rope"], _rgb("b4945e"), _rgb("6e5432"), rng)
+    u, v, w, h = R["in_glass_green"]
+    for y in range(h):
+        for x in range(w):
+            _put(px, u, v, x, y, _jitter(_scale(_rgb("2e5a32"), 1.0 + 0.25 * math.sin(x * 0.6)), rng, 4))
+    # grating: an iron lattice with open holes (cutout)
+    u, v, w, h = R["in_grate"]
+    for y in range(h):
+        for x in range(w):
+            if x % 4 == 0 or y % 8 == 0:
+                c = _scale(_rgb("3a3634"), 1.0 + (0.15 if y % 8 == 0 else 0.0))
+                _put(px, u, v, x, y, _jitter(c, rng, 3))
+            else:
+                _put(px, u, v, x, y, (0, 0, 0), 0)
+    # globe map: ocean with continents
+    u, v, w, h = R["in_globe"]
+    cont = [(rng.uniform(0, w), rng.uniform(h * 0.2, h * 0.8), rng.uniform(3, 8)) for _ in range(9)]
+    for y in range(h):
+        for x in range(w):
+            land = any(((x - cx) / r) ** 2 + ((y - cy) / (r * 0.7)) ** 2 < 1 for cx, cy, r in cont)
+            c = _rgb("c8b07a") if land else _rgb("5a7a8a")
+            if y % 8 == 0 or x % 8 == 0:
+                c = _scale(c, 0.85)
+            _put(px, u, v, x, y, _jitter(c, rng, 4))
+    # tools on a board
+    u, v, w, h = R["in_tools"]
+    for y in range(h):
+        for x in range(w):
+            _put(px, u, v, x, y, _jitter(_rgb("5a3a22"), rng, 4))
+    for k in range(7):
+        x0 = 3 + k * 6
+        for y in range(2, h - 2):
+            c = _rgb("6a6866") if k % 2 else _rgb("4a3020")
+            if y < 6 and k % 3 == 0:
+                c = _rgb("8a8884")
+            _put(px, u, v, x0, y, c)
+            if k % 2 == 0 and y < 5:
+                _put(px, u, v, x0 + 1, y, _rgb("8a8884"))
+    paint_lamp_glass(px, *R["in_lamp"])
+    u, v, w, h = R["in_glow"]
+    for y in range(h):
+        for x in range(w):
+            _put(px, u, v, x, y, _jitter((255, 210, 120), rng, 6))
     img.save(path)
     return img
 

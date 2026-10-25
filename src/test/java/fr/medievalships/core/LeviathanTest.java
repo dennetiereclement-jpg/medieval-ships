@@ -169,19 +169,25 @@ class LeviathanTest {
 		area("poop deck", -1.8, 1.8, LeviathanLayout.POOP_Y, -18.7, -15.9);
 		area("observation deck", -3.5, 3.5, LeviathanLayout.TOP_DECK_Y, -10.0, -3.4);
 		area("observation deck (fore)", -3.5, 3.5, LeviathanLayout.TOP_DECK_Y, 0.4, 3.4);
-		area("captain's office", 1.6, 2.4, m, -12.0, -8.6);
-		area("captain's bedroom", -2.5, -1.0, m, -18.4, -13.6);
-		area("chart room", -1.0, 1.0, c, -18.8, -16.0);
+		area("captain's office (aisle between the doors)", -0.8, 0.8, m, -12.0, -9.2);
+		area("captain's office (by the chart table)", 1.6, 1.8, m, -11.4, -9.6);
+		area("captain's bedroom", -1.0, 0.4, m, -18.2, -13.6);
+		area("chart room (by the door)", -1.0, 1.0, c, -16.4, -16.0);
+		area("chart room (beside the table)", 1.6, 1.8, c, -18.4, -16.2);
+		assertFalse(fits(0, c, -17.6), "the chart table is solid");
 		area("bosun's store", -0.8, 0.8, m, 10.0, 12.4);
-		area("common room", -2.2, -2.2, lo, 1.6, 8.6);
-		area("common room (aisle)", -0.6, 0.6, lo, 1.6, 5.4);
+		area("common room (starboard of the table)", -2.4, -2.2, lo, 3.0, 8.6);
+		area("common room (port of the table)", 2.2, 2.4, lo, 5.2, 8.6);
+		area("common room (aisle)", -0.6, 0.6, lo, 1.6, 4.9);
 		area("common room (foot of the companion)", 2.0, 2.4, lo, 1.4, 1.6);
-		area("coursive", -0.4, 0.4, lo, -8.6, 0.0);
-		area("crew room", -3.0, -2.0, lo, -8.0, -0.5);
-		area("storeroom", 2.0, 3.0, lo, -8.0, -0.5);
+		area("coursive", -0.15, 0.15, lo, -8.6, 0.0);
+		area("crew room", -2.1, -1.9, lo, -8.0, -0.5);
+		area("storeroom", 2.2, 2.4, lo, -6.5, -1.5);
 		area("hold", -1.0, 1.0, ho, -8.5, 6.0);
-		area("engine room (landing)", -2.4, 0.6, lo, -10.6, -9.8);
-		area("engine room (floor)", -1.9, -1.7, -5.0, -15.0, -12.6);
+		area("engine room (landing)", -1.8, 0.6, lo, -10.6, -9.8);
+		area("engine room (floor)", -1.9, -1.7, -5.0, -14.6, -12.6);
+		area("engine room (in front of the boiler)", -1.6, 0.6, -5.0, -12.65, -12.65);
+		area("engine room (catwalk)", -3.0, -3.0, lo + 0.5, -14.9, -11.8);
 		assertFalse(fits(0, -5.0, -14.2), "the boiler is solid");
 		assertFalse(fits(0, lo, 7.75), "the common room's table is solid");
 		// outside: not carried, nothing to stand on
@@ -274,7 +280,11 @@ class LeviathanTest {
 			assertTrue(kinds[InteriorGrid.DOOR + d] > 0, "door " + d);
 		}
 		assertNotNull(G.decor());
-		assertTrue(G.decor().seats().size() >= 8);
+		assertTrue(G.decor().seats().size() >= 20, "seats " + G.decor().seats().size());
+		assertTrue(G.decor().blocks().size() >= 150, "furniture of the decoration mods " + G.decor().blocks().size());
+		for (String mod : new String[] {"farmhouse_decorations:", "furnish:", "farmersdelight:", "landsoficaria:", "mebahelcreaturesdwarven:"}) {
+			assertTrue(G.decor().blocks().stream().anyMatch(b -> b.block().startsWith(mod)), "uses " + mod);
+		}
 	}
 
 	// ------------------------------------------------------------------ flight

@@ -51,6 +51,7 @@ import leviathan_interior as li  # noqa: E402
 import leviathan_texture as lt  # noqa: E402
 import leviathan_decor as ld  # noqa: E402
 import nautilus_furniture as nf  # noqa: E402
+import leviathan_furniture as lf  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _uuid_counter = [0]
@@ -67,6 +68,8 @@ REGIONS = dict(lt.REGIONS)
 REGIONS.update({"prop": lt.REGIONS["wood"], "hull_light": lt.REGIONS["wood"], "plank_light": lt.REGIONS["wood"],
                 "silver": lt.REGIONS["steel"]})
 gn.REGIONS = {k: (0,) + r for k, r in REGIONS.items()}
+gn.REGIONS.update({k: (1,) + r for k, r in lt.REGIONS_IN.items()})   # the rooms and their furniture: second texture
+gn.REGIONS["globe"] = (1,) + lt.REGIONS_IN["in_globe"]                 # the Nautilus's globe, with this texture's map
 gn.SIZE = lt.SIZE
 
 v3, norm, Bone, add_cube, beam = gg.v3, gg.norm, gg.Bone, gg.add_cube, gg.beam
@@ -388,7 +391,8 @@ def tail(bone):
 
 
 # ================================================================ fins
-def fin(root, frame, name, region, root_u, camber=0.25, holes=True):
+def fin(root, frame, name, region, root_u, camber=0.25, holes=True, keel=False):
+    """A bat-wing fin; keel=True: the ventral fin, its root kept under the hull's bottom (never up into the hold)."""
     o, c, s, n, lp, lq = frame
     o, c, s, n = v3(*o), v3(*c), v3(*s), v3(*n)
     origin = o + c * lp * root_u * 0.5
@@ -397,7 +401,10 @@ def fin(root, frame, name, region, root_u, camber=0.25, holes=True):
 
     def F(u, v):
         bend = camber * math.sin(math.pi * min(1.0, u)) * v ** 1.5
-        return o + c * u * lp + s * v * lq + n * bend
+        p = o + c * u * lp + s * v * lq + n * bend
+        if keel:
+            p = v3(p[0], min(p[1], ls.keel_y(p[2]) + 0.12), p[2])
+        return p
     nu, nv = 10, 10
     for i in range(nu):
         for j in range(nv):
@@ -426,7 +433,7 @@ def fins(root):
     out = {}
     for f in ls.FINS:
         out[f[0]] = fin(root, ls.fin_frame(f), f[0], "fin", ls.FIN_ROOT_U, camber=0.3 if f[0] != "fin_dorsal" else 0.15)
-    out["fin_keel"] = fin(root, ls.keel_fin_frame(), "fin_keel", "fin_keel", ls.KEEL_FIN_ROOT_U, camber=0.0, holes=False)
+    out["fin_keel"] = fin(root, ls.keel_fin_frame(), "fin_keel", "fin_keel", ls.KEEL_FIN_ROOT_U, camber=0.0, holes=False, keel=True)
     # the fins' roots on the hub: iron brackets
     for f in ls.FINS[1:]:
         o, c, s, n, lp, lq = ls.fin_frame(f)
@@ -1089,13 +1096,13 @@ def ship_lanterns(lanterns_root, hook):
 OPEN_KINDS = (li.DRY, li.LADDER)
 MAX_TILE = 4
 ROOM_MATERIALS = {
-    "captain_office": ("wall_panel", "floor", "ceil_wood"), "captain_bedroom": ("wall_panel", "floor", "ceil_wood"),
-    "chart_room": ("wall_panel", "floor", "ceil_wood"), "bosun_store": ("wall_wood", "floor", "ceil_wood"),
-    "common_room": ("wall_wood", "floor", "ceil_wood"), "coursive": ("wall_wood", "carpet", "ceil_wood"),
-    "crew_room": ("wall_wood", "floor", "ceil_wood"), "storeroom": ("wall_wood", "floor", "ceil_wood"),
-    "hold": ("wall_wood", "floor", "ceil_wood"), "engine_room": ("wall_engine", "floor_iron", "ceil_wood"),
+    "captain_office": ("in_wall_panel", "in_floor_capt", "in_ceil"), "captain_bedroom": ("in_wall_panel", "in_floor_capt", "in_ceil"),
+    "chart_room": ("in_wall_chart", "in_floor_capt", "in_ceil"), "bosun_store": ("in_wall_hold", "in_floor_hold", "in_ceil"),
+    "common_room": ("in_wall", "in_floor", "in_ceil"), "coursive": ("in_wall", "in_floor", "in_ceil"),
+    "crew_room": ("in_wall", "in_floor", "in_ceil"), "storeroom": ("in_wall", "in_floor", "in_ceil"),
+    "hold": ("in_wall_hold", "in_floor_hold", "in_ceil"), "engine_room": ("in_wall_engine", "in_floor_iron", "in_ceil_soot"),
 }
-SHAFT_MAT = ("wall_wood", "floor", "ceil_wood")
+SHAFT_MAT = ("in_wall", "in_floor", "in_ceil")
 
 
 def room_at(x, y, z):
@@ -1262,41 +1269,58 @@ def doors(root, g):
     return anims
 
 
-# ================================================================ furniture made for the airship
-def f_table(bone, name, p, length, width):
+# ================================================================ furniture made for the airship (tools/leviathan_furniture.py)
+def _named(fn):
+    return lambda bone_, **kw: fn(bone_, kw.pop("name"), **kw)
+
+
+def lantern_post(bone, name, p, arm=(0, 0, 1), h=2.1):
+    """A wooden post with an iron arm at its top, where a lantern of the mods hangs."""
     p = v3(*p)
-    box(bone, "lit_%s_top" % name, p + v3(0, 0.84, 0), (width, 0.12, length), {"all": "dark_wood", "+2": "wood"})
-    for ez in (1, -1):
-        c = p + v3(0, 0.0, ez * (length / 2 - 0.35))
-        box(bone, "lit_%s_trestle_%d" % (name, ez > 0), c + v3(0, 0.42, 0), (0.16, 0.78, 0.16), "dark_wood")
-        box(bone, "lit_%s_foot_%d" % (name, ez > 0), c + v3(0, 0.06, 0), (width * 0.85, 0.12, 0.2), "dark_wood")
-    box(bone, "lit_%s_stretcher" % name, p + v3(0, 0.3, 0), (0.12, 0.12, length - 0.7), "dark_wood")
-
-
-def f_bench(bone, name, p, length, along="z"):
-    p = v3(*p)
-    size = (0.42, 0.1, length) if along == "z" else (length, 0.1, 0.42)
-    box(bone, "lit_%s_seat" % name, p + v3(0, 0.42, 0), size, {"all": "dark_wood", "+2": "wood"})
-    for e in (1, -1):
-        off = v3(0, 0, e * (length / 2 - 0.2)) if along == "z" else v3(e * (length / 2 - 0.2), 0, 0)
-        box(bone, "lit_%s_leg_%d" % (name, e > 0), p + off + v3(0, 0.19, 0), (0.36, 0.38, 0.1) if along == "z" else (0.1, 0.38, 0.36), "dark_wood")
-
-
-def f_rug(bone, name, p, w, l):
-    p = v3(*p)
-    add_cube(bone, "lit_" + name, p + v3(0, 0.012, 0), EYE, (w, 0.02, l), {"all": None, "+2": "rug"}, stretch=True)
-
-
-def f_chart(bone, name, p, yaw=0.2):
-    add_cube(bone, "lit_" + name, v3(*p) + v3(0, 0.008, 0), ry(yaw), (0.8, 0.012, 0.6), {"all": None, "+2": "chart"}, stretch=True)
+    lf.timber(bone, name, p, p + v3(0, h, 0), w=0.2)
+    box(bone, "lit_%s_foot" % name, p + v3(0, 0.08, 0), (0.34, 0.16, 0.34), "in_iron")
+    a = v3(*arm)
+    tip = p + v3(0, h - 0.05, 0) + a * 0.42
+    beam(bone, "lit_%s_arm" % name, p + v3(0, h - 0.05, 0), tip, 0.06, "in_iron")
+    beam(bone, "lit_%s_brace" % name, p + v3(0, h - 0.35, 0), p + v3(0, h - 0.05, 0) + a * 0.25, 0.04, "in_iron")
+    box(bone, "lit_%s_cap" % name, p + v3(0, h + 0.03, 0), (0.26, 0.06, 0.26), "in_iron")
 
 
 FURNITURE_BUILDERS = {
-    "table": lambda b, **kw: f_table(b, kw.pop("name", "table"), **kw),
-    "bench": lambda b, **kw: f_bench(b, kw.pop("name", "bench"), **kw),
-    "rug": lambda b, **kw: f_rug(b, kw.pop("name", "rug"), **kw),
-    "chart_sheet": lambda b, **kw: f_chart(b, kw.pop("name", "chart"), **kw),
-    "hanging_lantern": lambda b, **kw: hanging_lantern(b, kw.pop("name"), kw["p"], drop=kw["drop"], sway=False),
+    "rug": _named(lf.rug),
+    "chart_sheet": _named(lf.chart_sheet),
+    "timber": _named(lf.timber),
+    "knee": _named(lf.knee),
+    "sea_chest": _named(lf.sea_chest),
+    "barrel": _named(lf.barrel),
+    "rope_coil": _named(lf.rope_coil),
+    "sack": _named(lf.sack),
+    "coal_heap": _named(lf.coal_heap),
+    "bed_blanket": _named(lf.bed_blanket),
+    "candle": _named(lf.candle),
+    "window_in": _named(lf.window_in),
+    "porthole_in": _named(lf.porthole_in),
+    "painting_frame": _named(lf.painting_frame),
+    "wall_map": _named(lf.wall_map),
+    "compass": _named(lf.compass),
+    "sextant": _named(lf.sextant),
+    "dividers": _named(lf.dividers),
+    "map_roll": _named(lf.map_roll),
+    "inkwell": _named(lf.inkwell),
+    "hourglass": _named(lf.hourglass),
+    "jar_shelf": _named(lf.jar_shelf),
+    "book_shelf": _named(lf.book_shelf),
+    "wall_bracket": _named(lf.wall_bracket),
+    "lever_bank": _named(lf.lever_bank),
+    "pressure_tank": _named(lf.pressure_tank),
+    "railing": _named(lf.railing),
+    "pipe": _named(lf.pipe),
+    "valve": _named(lf.valve),
+    "gauge": _named(lf.gauge),
+    "gauge_board": _named(lf.gauge_board),
+    "globe": _named(nf.globe),
+    "telescope": _named(nf.telescope),
+    "lantern_post": _named(lantern_post),
 }
 
 
@@ -1316,40 +1340,58 @@ def helm(root, bone):
 
 
 def boiler(root, bone):
-    """The engine room's boiler (reference panel 6): a tall riveted barrel with gilded bands, a dome, a
-    chimney up into the ceiling, gauges, a big valve wheel, a glowing firebox, pipes, a piston engine
-    with a gear (engine_* bones, turned by the engine)."""
+    """The engine room (reference panel 6): the big riveted boiler with its gilded ribs and bands, the round
+    hatch with its spoked emblem, two glowing fireboxes, gauges, the stack into the ceiling, the pipes from
+    its dome to the walls with their valves; aft of it the piston engine (bones engine_piston_<k>, its
+    flywheel engine_gear_0) and gear trains on the walls (engine_gear_1..4), all turned by the engine."""
     bx, bz, br, b0, b1 = li.BOILER
-    c0 = v3(bx, b0, bz)
-    br = br - 0.1
-    tube(bone, "lit_boiler_body", c0 + v3(0, 0.35, 0), c0 + v3(0, b1 - b0 - 0.6, 0), 2 * br - 0.1, "copper", sides=16)
-    tube(bone, "lit_boiler_base", c0, c0 + v3(0, 0.4, 0), 2 * br + 0.2, "iron", sides=12)
-    for k, y in enumerate(np.linspace(b0 + 0.7, b1 - 0.9, 4)):
-        tube(bone, "lit_boiler_band_%d" % k, v3(bx, y - 0.08, bz), v3(bx, y + 0.08, bz), 2 * br + 0.08, "gold", sides=16)
-    nf.ellipsoid(bone, "boiler_dome", (bx, b1 - 0.6, bz), (br - 0.08, 0.7, br - 0.08), EYE, "copper", nlat=3, nlon=14, lat0=0.0, lat1=80.0)
-    tube(bone, "lit_boiler_chimney", (bx, b1 - 0.2, bz), (bx, ls.MAIN_DECK_Y - 0.5, bz), 0.8, "iron", sides=8)
-    for k, y in enumerate((b1 + 0.2, b1 + 0.7)):
-        tube(bone, "lit_boiler_chimney_band_%d" % k, (bx, y - 0.06, bz), (bx, y + 0.06, bz), 0.92, "brass", sides=8)
-    # front (towards the bow): firebox, valve wheel, gauges
-    fz = bz + br + 0.02
-    add_cube(bone, "glow_boiler_fire", v3(bx, b0 + 0.75, fz), EYE, (0.7, 0.5, 0.04), {"all": None, "+3": "fire", "-3": "fire"}, stretch=True)
-    box(bone, "lit_boiler_firedoor_frame", (bx, b0 + 0.75, fz - 0.02), (0.9, 0.7, 0.08), "iron")
-    ship_wheel(bone, "lit_boiler_valve", (bx, b0 + 2.1, fz + 0.15), (0, 0, 1), r=0.42, region="brass")
-    for k, x in enumerate((-0.6, 0.6)):
-        ga.dial(bone, "lit_boiler_gauge_%d" % k, (bx + x, b0 + 3.0, fz - 0.05), (0, 0, 1), 0.2, depth=0.05)
-    # pipes from the dome out to the walls
+    r = br - 0.12
+    c = v3(bx, b0, bz)
+    top = lf.boiler(root, bone, Bone, c, r=r)
+    lf.boiler_front(bone, c, r, 3.0)
+    # the stack: up through the ceiling, banded
+    tube(bone, "lit_boiler_stack", top, v3(bx, ls.MAIN_DECK_Y - 0.4, bz), 2 * li.CHIMNEY_R - 0.06, "in_rivets", sides=8)
+    for k, y in enumerate((top[1] + 0.15, top[1] + 0.85, ls.MAIN_DECK_Y - 0.75)):
+        tube(bone, "lit_boiler_stack_band%d" % k, v3(bx, y - 0.06, bz), v3(bx, y + 0.06, bz), 2 * li.CHIMNEY_R + 0.06, "in_gold", sides=8)
+    # side drums high on the boiler, pipes from them and from the dome up to the walls
     for k, ex in enumerate((1, -1)):
-        pts = [v3(bx + ex * 0.6, b1 - 0.4, bz), v3(bx + ex * 1.5, b1 - 0.2, bz), v3(bx + ex * 2.2, b1 - 0.4, bz + 0.6)]
-        polyline(bone, "lit_boiler_pipe_%d" % k, pts, 0.22, "copper", sides=6)
-    # the engine aft of the boiler: two cylinders, pistons, a flywheel gear (bones engine_*)
-    ez = bz - br - 0.7
-    for k, ex in enumerate((0.55, -0.55)):
-        tube(bone, "lit_engine_cyl_%d" % k, (bx + ex, b0, ez), (bx + ex, b0 + 1.3, ez), 0.5, "brass", sides=8)
-        pb = Bone("engine_piston_%d" % k, origin=(bx + ex, b0 + 1.3, ez), parent=root)
-        tube(pb, "lit_engine_rod_%d" % k, (bx + ex, b0 + 1.3, ez), (bx + ex, b0 + 2.1, ez), 0.1, "steel", sides=4)
-        box(pb, "lit_engine_crosshead_%d" % k, (bx + ex, b0 + 2.15, ez), (0.2, 0.14, 0.2), "brass")
-    gb = Bone("engine_gear_0", origin=(bx, b0 + 2.6, ez - 0.2), parent=root)
-    gear(gb, "lit_engine_gear", (bx, b0 + 2.6, ez - 0.2), (0, 0, 1), 0.8, 0.16, teeth=12, region="brass", spokes=5)
+        d0 = v3(bx + ex * (r * 0.85), b0 + 2.55, bz)
+        tube(bone, "lit_boiler_drum%d" % k, d0, d0 + v3(ex * 0.75, 0, 0), 0.6, "in_boiler", sides=8)
+        tube(bone, "lit_boiler_drum_cap%d" % k, d0 + v3(ex * 0.72, 0, 0), d0 + v3(ex * 0.82, 0, 0), 0.68, "in_gold", sides=8)
+        wx = ex * 3.75
+        lf.pipe(bone, "boiler_pipe_up%d" % k, [v3(bx + ex * 0.45, top[1] - 0.15, bz + 0.25), v3(bx + ex * 1.4, top[1] + 0.55, bz + 0.6),
+                                                v3(wx - ex * 0.2, top[1] + 1.1, bz + 0.6), v3(wx - ex * 0.2, top[1] + 1.1, bz - 1.8)], d=0.24)
+        lf.pipe(bone, "boiler_pipe_drum%d" % k, [d0 + v3(ex * 0.82, 0, 0), v3(wx - ex * 0.15, b0 + 2.55, bz), v3(wx - ex * 0.15, b0 + 2.55, bz + 1.6)],
+                d=0.2, region="in_brass", flange="in_iron")
+        lf.valve(bone, "boiler_valve%d" % k, v3(bx + ex * 1.4, top[1] + 0.55, bz + 0.6), (0, 0, 1), r=0.2)
+    lf.valve(bone, "boiler_valve_front", v3(bx + 0.75, b0 + 1.05, bz + r + 0.2), (0, 0, 1), r=0.17)
+    # the piston engine aft of the boiler: two cylinders, rods and crossheads (moving), a flywheel (turning)
+    ez = bz - br - 0.42
+    box(bone, "lit_engine_bed", (bx, b0 + 0.15, ez), (1.8, 0.3, 0.85), {"all": "in_iron", "+2": "in_rivets"})
+    for k, ex in enumerate((0.5, -0.5)):
+        tube(bone, "lit_engine_cyl_%d" % k, (bx + ex, b0 + 0.3, ez), (bx + ex, b0 + 1.35, ez), 0.5, "in_brass", sides=8)
+        tube(bone, "lit_engine_cyl_cap_%d" % k, (bx + ex, b0 + 1.33, ez), (bx + ex, b0 + 1.45, ez), 0.58, "in_iron", sides=8)
+        pb = Bone("engine_piston_%d" % k, origin=(bx + ex, b0 + 1.45, ez), parent=root)
+        tube(pb, "lit_engine_rod_%d" % k, (bx + ex, b0 + 1.45, ez), (bx + ex, b0 + 2.15, ez), 0.1, "steel", sides=4)
+        box(pb, "lit_engine_crosshead_%d" % k, (bx + ex, b0 + 2.2, ez), (0.22, 0.14, 0.22), "in_brass")
+    gb = Bone("engine_gear_0", origin=(bx, b0 + 2.55, ez - 0.25), parent=root)
+    lf.gear(gb, "lit_engine_gear", (bx, b0 + 2.55, ez - 0.25), (0, 0, 1), 0.75, 0.16, teeth=14, region="in_brass", spokes=6)
+    tube(bone, "lit_engine_axle", (bx, b0 + 2.55, ez - 0.35), (bx, b0 + 2.55, ez + 0.3), 0.14, "in_iron", sides=6)
+    # gear trains on the walls (visible from the landing): a big wheel and its pinion on each side
+    GEAR_TRAINS.clear()
+    for k, (x, y, z, rr, nrm) in enumerate(((3.9, -1.55, -13.6, 0.75, (-1, 0, 0)), (3.9, -1.0, -12.35, 0.42, (-1, 0, 0)),
+                                             (-3.9, -1.25, -14.6, 0.7, (1, 0, 0)), (-3.9, -0.95, -13.4, 0.4, (1, 0, 0)))):
+        w = ld.wall_x(y, z, 1 if x > 0 else -1)
+        xx = w + nrm[0] * 0.14
+        name = "engine_gear_%d" % (k + 1)
+        gb = Bone(name, origin=(xx, y, z), parent=root)
+        lf.gear(gb, "lit_" + name, (xx, y, z), nrm, rr, 0.12, teeth=14 if rr > 0.5 else 9, region="in_brass" if k % 2 == 0 else "gear_iron",
+                spokes=6 if rr > 0.5 else 4, rim="in_brass" if k % 2 == 0 else "gear_iron")
+        tube(bone, "lit_%s_axle" % name, (w, y, z), (xx + nrm[0] * 0.1, y, z), 0.16, "in_iron", sides=6)
+        GEAR_TRAINS.append((name, -1 if k % 2 else 1, 14 if rr > 0.5 else 9))
+
+
+GEAR_TRAINS = []   # (bone, direction, teeth) of the wall gears, for the engine animation
 
 
 def fallbacks(root):
@@ -1357,8 +1399,10 @@ def fallbacks(root):
     for i, b in enumerate(ld.BLOCKS):
         x0, x1, y0, y1, z0, z1 = ld.footprint(b)
         bone = Bone("fallback_%d" % i, parent=root)
-        add_cube(bone, "lit_fallback_%d" % i, v3((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2), EYE,
-                 (max(0.04, x1 - x0), max(0.04, y1 - y0), max(0.04, z1 - z0)), ld.FALLBACK_REGION.get(b["block"], "dark_wood"))
+        pre = "glow" if b["block"] in ld.GLOWING_FALLBACK else "lit"
+        add_cube(bone, "%s_fallback_%d" % (pre, i), v3((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2), EYE,
+                 (max(0.04, x1 - x0), max(0.04, y1 - y0), max(0.04, z1 - z0)), ld.FALLBACK_REGION.get(b["block"], "in_plank"),
+                 stretch=True)
 
 
 # ================================================================ build
@@ -1406,17 +1450,6 @@ def build(g):
         kw = dict(kwargs)
         kw.setdefault("name", "%s_%d" % (builder, k))
         FURNITURE_BUILDERS[builder](furniture, **kw)
-    # lanterns on the ceilings of the rooms
-    for name, (x0, x1, y0, y1, z0, z1) in li.ROOMS.items():
-        if name in ("common_room", "captain_office", "captain_bedroom"):
-            continue
-        xs = [x for x in (-2.5, 0.0, 2.5)] if name == "hold" else [0.0]
-        zz0, zz1 = max(z0, -19.0), min(z1, 14.5)
-        zs = np.arange(zz0 + 2.0, zz1 - 0.5, 4.0) if zz1 - zz0 > 4 else [(zz0 + zz1) / 2]
-        xc = (max(x0, -3.0) + min(x1, 3.0)) / 2
-        for z in zs:
-            if g.at(xc, y1 - 0.25, z) in (li.DRY, li.LADDER):
-                hanging_lantern(lights, "room_%s_%d" % (name, int(z * 10)), v3(xc, y1, z), drop=0.2, sway=False)
     return root, m
 
 
@@ -1429,6 +1462,9 @@ def build_animations(root):
         b = find(root, "tower_gear_%d" % k)
         tracks.append((b, [rot_kf(t, (0, 0, a * (1 if k == 0 else -1))) for t, a in ((0.0, 0), (0.5, 45), (1.0, 90), (1.5, 135), (2.0, 180))]))
     tracks.append((find(root, "engine_gear_0"), spin))
+    for name, sgn, teeth in GEAR_TRAINS:
+        turn = sgn * 180.0 * (14.0 / teeth)
+        tracks.append((find(root, name), [rot_kf(t, (turn * t / 2.0, 0, 0)) for t in (0.0, 0.5, 1.0, 1.5, 2.0)]))
     for k in range(2):
         b = find(root, "engine_piston_%d" % k)
         tracks.append((b, [kf("position", 2.0 * i / 12, (0, 0.3 * 16 * math.sin(2 * math.pi * i / 6 + k * math.pi), 0)) for i in range(13)]))
@@ -1501,8 +1537,14 @@ def main():
     lt.make_item_icon(os.path.join(tex_dir, "item/sky_leviathan.png"))
     with open(tex_path, "rb") as f:
         png = f.read()
-    textures = [gn.texture_entry("sky_leviathan.png", lt.SIZE, png, "entity", "sky_leviathan.png")]
+    in_path = os.path.join(tex_dir, "entity/sky_leviathan_interior.png")
+    lt.make_interior_texture(in_path)
+    with open(in_path, "rb") as f:
+        png_in = f.read()
+    textures = [gn.texture_entry("sky_leviathan.png", lt.SIZE, png, "entity", "sky_leviathan.png"),
+                gn.texture_entry("sky_leviathan_interior.png", lt.SIZE_IN, png_in, "entity", "sky_leviathan.png")]
     textures[0]["id"] = "0"
+    textures[1]["id"] = "1"
     model = gn.export(root, anims, textures, [
         os.path.join(ROOT, "blockbench/sky_leviathan.bbmodel"),
         os.path.join(ROOT, "src/main/resources/assets/medievalships/models/entity/sky_leviathan.bbmodel"),

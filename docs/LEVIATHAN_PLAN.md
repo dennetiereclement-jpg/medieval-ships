@@ -62,7 +62,40 @@ Physique `Flight` du dirigeable steampunk, réglages d'un très grand vaisseau l
 accélération verticale de 0,45 (changements d'altitude progressifs), marge de 8 blocs au-dessus
 du relief pour le pilote automatique (itinéraires `air`), approche des escales à 48 blocs.
 
-## 4. Reste à faire (phase 2)
+## 4. Phase 2 : aménagement des pièces
 
-Décoration complète des pièces avec les meubles des mods, sons et vapeur de la salle des machines,
-cordages animés, vérification en jeu de la persistance après redémarrage.
+Tout est dans `tools/leviathan_decor.py` (placement, pièce par pièce, d'après les six vues intérieures
+de la planche), `tools/leviathan_furniture.py` (meubles faits pour le vaisseau, quand aucun mod n'a
+l'équivalent) et `tools/leviathan_texture.py` (seconde texture `sky_leviathan_interior.png` : lambris,
+planchers, plafonds, tôle rivetée et suie de la salle des machines, tapis, cartes, livres, bocaux…).
+Les blocs des mods sont dessinés par le vaisseau là où ils se trouvent (jamais posés dans le monde, aucun
+fichier des mods copié, seulement leurs identifiants) ; leur emprise est pleine dans la grille
+intérieure (sauf chaises, bancs et petits objets) ; si un mod manque, une boîte de même taille le
+remplace (os `fallback_<i>`, les lanternes restent lumineuses). 206 blocs de mods, 26 places assises
+(chacune avec son point pour se relever) ; portes, escaliers, échelles et coursive restent dégagés
+(vérifié par script et par `LeviathanTest`).
+
+Mods : Farmhouse Decorations (`farmhouse_decorations`), Furnish (`furnish`), Farmer's Delight
+(`farmersdelight`), Lands of Icaria (`landsoficaria`), Mebahel Dwarven Automatons
+(`mebahelcreaturesdwarven`).
+
+| Pièce | Meubles des mods réutilisés | Pièces faites pour le vaisseau |
+|---|---|---|
+| **Salle commune** | grande table de 8 `furnish:spruce_table`, 8 bancs `furnish:dark_oak_bench`, 4 `farmhouse_decorations:dining_chair` aux bouts ; sur la table `furnish:plate`, `farmersdelight:roast_chicken_block`, `farmersdelight:honey_glazed_ham_block`, `wine_bottle`, `red_wine_bottle`, `wine_glass`, `kerosene_lantern` ; bar : `liquor_cabinet`, `kitchen_wall_shelf`, tonneaux en perce `landsoficaria:tapped_cypress_barrel` sur `cypress_rack` ; `wall_shelf`, `dresser`, `pile_of_books` ; table de jeu `furnish:spruce_square_table` + `furnish:chess_board` + `spruce_stool` ; 3 `chained_kerosene_lantern` au-dessus de la table | tapis rouge, étagères de bocaux et bouteilles, hublots, coffre de marin, bougies, cadres des tableaux (vanilla `bust`, `burning_skull`, `sea`), potences de lanternes, membrures (poteaux, baux, courbes) |
+| **Cabine du capitaine** (bureau + chambre) | `farmhouse_decorations:desk` et fauteuil `furnish:dark_oak_chair`, 6 `tall_bookshelf`, table à cartes en `furnish:dark_oak_table`, `furnish:spruce_chair`, `cigar_box`, `furnish:book_pile`, `cuckoo_clock` ; chambre : `double_bed`, `night_stand`, `wardrobe`, `dresser`, `dining_chair`, `pile_of_books`, lanternes `kerosene_lantern` / `chained_kerosene_lantern` | couverture rouge du lit, cartes, encrier, compas, sextant, compas à pointes, cartes roulées, sablier, globe (Nautilus), coffres sous les tables et au pied du lit, fenêtres vues de l'intérieur (flancs et poupe), tapis, tableaux (`wanderer`, `skull_and_roses`, `sea`) |
+| **Salle des cartes** | table `furnish:dark_oak_table`, 2 `furnish:spruce_stool`, 4 `tall_bookshelf`, `farmersdelight:wooden_basket` de cartes roulées, lanternes | grande carte, instruments, longue-vue (Nautilus), cartes murales, fenêtres de poupe |
+| **Pont principal** | caisses `furnish:spruce_crate` / `dark_oak_crate`, table du navigateur `furnish:dark_oak_square_table`, 4 bancs `furnish:dark_oak_bench`, lanternes `chained_kerosene_lantern` | tonneaux, rouleaux de cordage, poteaux à lanterne, compas, sextant, carte roulée, coffre sur le château arrière |
+| **Magasin du maître d'équipage** | `spruce_crate`, `dark_oak_crate`, `farmersdelight:potato_crate`, `farmersdelight:rice_bag`, `workbench` + `tool_board`, lanternes | tonneaux, cordages, sacs, membrures |
+| **Coursive** | `night_stand` + `kerosene_lantern`, petite `spruce_crate`, lanternes sur potences et suspendues | long tapis rouge, potences, cadres (`wanderer`, `kebab`), membrures |
+| **Poste d'équipage** | 2 `single_bed`, `furnish:spruce_square_table`, 2 `spruce_stool`, `acoustic_guitar`, `red_wine_bottle`, lanternes | coffres de marin, hublots |
+| **Cambuse** | `farmersdelight:stove` + `cooking_pot`, `kitchen_counter` + `cutting_board` + `skillet`, `kitchen_wall_shelf`, `seasoning_rack`, `carrot_crate`, `cabbage_crate`, `onion_crate`, `rice_bag`, `tapped_cypress_barrel`, `wooden_basket`, tabouret | sac, hublots |
+| **Cale / stockage** | `workbench` + `tool_board` + `cutting_board` + lanterne, `cypress_rack` + `loaded_cypress_barrel` / `cypress_barrel`, caisses `furnish`, `potato_crate`, `carrot_crate`, `beetroot_crate`, `cabbage_crate`, `rice_bag`, `straw_bale`, coffre au trésor `mebahelcreaturesdwarven:dwemer_chest`, `landsoficaria:storage_vase` | tonneaux debout, étagères de bocaux, coffres, sac, lanternes sur potences, poteaux et baux |
+| **Salle des machines** | conduites et engrenages de bronze `mebahelcreaturesdwarven:dwemer_metal_pipe_gear`, `dwemer_metal_pipe`, `dwemer_metal_block` ; caisses `furnish`, établi `workbench` + `tool_board`, lanternes chaudes | **grande chaudière rivetée** (nervures dorées, trappe ronde à rayons, deux foyers rougeoyants, manomètres, ballons latéraux, cheminée cerclée), tuyauteries vers les murs avec vannes, collecteurs de vapeur sous le plafond, réservoirs sous pression, tableaux de manomètres, banc de leviers, tas de charbon, garde-corps du palier / de l'escalier / de la passerelle, **pistons et volant animés**, trains d'engrenages muraux animés |
+
+Prises de vue en jeu (`LeviathanGameTest`) : `9_salle_commune` à `16_pont_principal`, depuis les points de
+vue des vues intérieures de la planche.
+
+## 5. Reste à faire (phase 3)
+
+Sons et vapeur de la salle des machines, cordages animés, vérification en jeu de la persistance après
+redémarrage.

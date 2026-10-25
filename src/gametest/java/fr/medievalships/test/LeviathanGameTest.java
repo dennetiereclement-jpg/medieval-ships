@@ -23,8 +23,8 @@ import fr.medievalships.entity.ShipEntity;
 import fr.medievalships.entity.ShipTracker;
 
 /**
- * In-game checks of the Sky Leviathan (about 45 s of game time): placed in the air over open ground,
- * hovers, the reference views, walking on the main deck, flown from the helm (climb, forward), the
+ * In-game checks of the Sky Leviathan (about 50 s of game time): placed in the air over open ground,
+ * hovers, the reference views, the furnished rooms, walking on the main deck, flown from the helm (climb, forward), the
  * pilot steps off onto the quarterdeck, the captain's door, the ladder of the tower up through the
  * balloon to the observation deck, the item. Called once from {@link ShipClientGameTest}.
  */
@@ -125,6 +125,21 @@ public final class LeviathanGameTest {
 			lookLocal(server, hover, eyes[k][0], eyes[k][1], eyes[k][2], 0, k == 3 ? 0 : 13, -1);
 			context.waitTicks(k == 0 ? 30 : 15);
 			shot.accept(id + "_" + names[k]);
+		}
+
+		// the rooms, furnished with the decoration mods (their stand-ins when a mod is missing), from the
+		// viewpoints of the reference sheet's interior views
+		String[] rooms = {"9_salle_commune", "10_cabine_capitaine", "11_bureau_capitaine", "12_salle_cartes", "13_cale", "14_coursive",
+				"15_salle_machines", "16_pont_principal"};
+		double[][] cams = { // eye x, y, z, target x, y, z
+				{2.7, -1.38, 4.3, -1.6, -2.5, 8.8}, {-1.2, 1.62, -14.6, 2.2, 0.5, -17.8}, {0.6, 1.62, -8.6, -1.6, 0.6, -12.0},
+				{0.0, 4.62, -15.8, 0.0, 3.6, -19.5}, {0.3, -3.88, 5.9, -0.3, -4.8, -2.0}, {0.0, -1.38, 0.3, 0.0, -1.9, -9.0},
+				{0.1, -1.38, -10.9, 0.0, -3.4, -14.2}, {3.6, 1.62, 4.5, 0.0, 3.0, -11.0}};
+		for (int k = 0; k < rooms.length; k++) {
+			double[] c = cams[k];
+			lookLocal(server, hover, c[0], c[1], c[2], c[3], c[4], c[5]);
+			context.waitTicks(k == 0 ? 20 : 10);
+			shot.accept(id + "_" + rooms[k]);
 		}
 
 		// walking on the main deck
