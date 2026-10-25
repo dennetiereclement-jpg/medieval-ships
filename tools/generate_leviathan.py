@@ -32,8 +32,10 @@ is what collides. Room surfaces are named "lit*" (lit by the airship's own lamps
 
 Bones used by the mod (keep their names when editing in Blockbench):
   helm_wheel, rudder, fin_dorsal, fin_lower (steer)   fin_side_p, fin_side_s (elevator)
-  flag, flag_tip (flag_wave)   lantern_* (lantern_sway)   pennants_*, black_sail_* (streamer_wave)
-  tower_gear, engine_* (engine: played with the signed speed)   door_<k> (door k: 0 = closed, 1 = open)
+  flag, flag_tip (flag_wave)   lantern_* (lantern_sway)
+  pennants_*, black_sail_*, swag_*, fin_* (streamer_wave: banners, sails breathing, swags, fins fluttering)
+  tower_gear_*, engine_gear_*, engine_piston_*, engine_boiler (engine: played with the engine's phase, which
+  advances with the signed speed: still when parked)   door_<k> (door k: 0 = closed, 1 = open)
 """
 import math
 import os
@@ -558,11 +560,14 @@ def drape_az(f, top=True):
 SWAG_Z = (13.6, 6.3, -7.7, -16.6)
 
 
-def rigging(bone, pennants_root, lanterns_root):
+def rigging(bone, pennants_root, lanterns_root, swags_root):
     for side, sn in SIDES:
-        # the black cloth swags draped along the side, between their knots
+        # the black cloth swags draped along the side, between their knots; each one swings a little in the
+        # wind about the line of its two knots (bone swag_<side><k>, streamer_wave)
         for k in range(len(SWAG_Z) - 1):
             za, zb = SWAG_Z[k], SWAG_Z[k + 1]
+            pivot = (P(za, side * 94, 0.45) + P(zb, side * 94, 0.45)) / 2
+            bone_k = Bone("swag_%s%d" % (sn, k), origin=tuple(pivot), parent=swags_root)
             nu, nv = 10, 3
             for i in range(nu):
                 for j in range(nv):
@@ -574,9 +579,9 @@ def rigging(bone, pennants_root, lanterns_root):
                         bulge = 0.3 + 0.35 * math.sin(math.pi * f) * math.sin(math.pi * t) + 0.08 * math.sin(f * 9 * math.pi) * t
                         pt.append(P(z, side * az, bulge))
                     nrm = norm(pt[0] - v3(0, BY, pt[0][2]))
-                    quad(bone, "swag_%s%d_%d_%d" % (sn, k, i, j), pt[0], pt[1], pt[2], pt[3], 0.05, "cloth", nrm,
+                    quad(bone_k, "swag_%s%d_%d_%d" % (sn, k, i, j), pt[0], pt[1], pt[2], pt[3], 0.05, "cloth", nrm,
                          u_dir=v3(0, -1, 0), stretch=False)
-            # the chain along the top of the swag, the knot
+            # the chain along the top of the swag (static: the cloth swings under it by a few hundredths of a block)
             pts = [P(za + (zb - za) * f, side * (drape_az(f) - 2), 0.42) for f in np.linspace(0, 1, 7)]
             for i in range(len(pts) - 1):
                 chain(bone, "swag_chain_%s%d_%d" % (sn, k, i), pts[i], pts[i + 1], link=0.2, th=0.05)
@@ -991,8 +996,9 @@ def tower(bone, root, lights):
         gb = Bone("tower_gear_%d" % k, origin=(xf, gy, zc), parent=root)
         gear(gb, "tower_gear_%d" % k, (xf, gy, zc), (nx, 0, 0), gr, 0.22, teeth=14, region="brass", spokes=6, rim="brass")
         tube(bone, "tower_gear_axle_%d" % k, (nx * x, gy, zc), (xf + nx * 0.2, gy, zc), 0.3, "iron", sides=8)
-        gear(bone, "tower_pinion_%d" % k, (xf - nx * 0.05, gy + gr + 0.4, zc + 0.6), (nx, 0, 0), 0.45, 0.18, teeth=8, region="gear_iron",
-             spokes=4)
+        pc = (xf - nx * 0.05, gy + gr + 0.4, zc + 0.6)
+        pb = Bone("tower_pinion_%d" % k, origin=pc, parent=root)
+        gear(pb, "tower_pinion_%d" % k, pc, (nx, 0, 0), 0.45, 0.18, teeth=8, region="gear_iron", spokes=4)
     # pipes up the tower into the balloon (steam to the envelope)
     for k, ex in enumerate((1, -1)):
         pts = [v3(ex * (x + 0.3), 2.4, z0 + 0.4), v3(ex * (x + 0.3), 6.0, z0 + 0.4), v3(ex * (x + 0.15), 7.6, z0 + 0.2),
@@ -1055,7 +1061,7 @@ def suspension(bone, sails_root):
             sb = Bone("black_sail_%s%d" % (sn, k), origin=(xs, yt, (zf + za) / 2), parent=sails_root)
             tube(sb, "sail_yard_%s%d" % (sn, k), v3(xs, yt, zf + 0.3), v3(xs, yt, za - 0.3), 0.14, "dark_wood", sides=4)
             for e, zz in ((0, zf + 0.15), (1, za - 0.15)):
-                rope(sb, "sail_sling_%s%d_%d" % (sn, k, e), v3(xs, yt, zz), P(zz, side * 172, 0.1), d=0.06)
+                rope(bone, "sail_sling_%s%d_%d" % (sn, k, e), v3(xs, yt, zz), P(zz, side * 172, 0.1), d=0.06)
             h = yt - 2.6
             nu, nv = 4, 5
             for i in range(nu):
@@ -1067,9 +1073,9 @@ def suspension(bone, sails_root):
                                   zf + (za - zf) * u)
                     quad(sb, "black_sail_%s%d_%d_%d" % (sn, k, i, j), S(u0, v0), S(u1, v0), S(u0, v1), S(u1, v1), 0.03, "sail_black",
                          v3(side, 0, 0), sub=(u0, v0, u1, v1), u_dir=v3(0, 0, za - zf), v_dir=v3(0, -1, 0))
-            # sheets from the clews to the rail
+            # sheets from the clews to the rail (static: the sail breathes about its yard, its clews barely move)
             for e, zz in ((0, zf), (1, za)):
-                rope(sb, "sail_sheet_%s%d_%d" % (sn, k, e), v3(xs, h + 0.1, zz), v3(side * (ls.hull_x(zz, 1.0) - 0.2), 1.05, zz), d=0.05)
+                rope(bone, "sail_sheet_%s%d_%d" % (sn, k, e), v3(xs, h + 0.1, zz), v3(side * (ls.hull_x(zz, 1.0) - 0.2), 1.05, zz), d=0.05)
 
 
 def ship_lanterns(lanterns_root, hook):
@@ -1348,6 +1354,10 @@ def boiler(root, bone):
     bx, bz, br, b0, b1 = li.BOILER
     r = br - 0.12
     c = v3(bx, b0, bz)
+    # the boiler and the piston engine shake a little while the engine runs (bone engine_boiler, engine): the
+    # pipes to the walls and the wall gears stay still; all of it is a child of the fittings (not drawn from afar)
+    fitted = bone
+    bone = Bone("engine_boiler", origin=tuple(c), parent=fitted)
     top = lf.boiler(root, bone, Bone, c, r=r)
     lf.boiler_front(bone, c, r, 3.0)
     # the stack: up through the ceiling, banded
@@ -1360,11 +1370,11 @@ def boiler(root, bone):
         tube(bone, "lit_boiler_drum%d" % k, d0, d0 + v3(ex * 0.75, 0, 0), 0.6, "in_boiler", sides=8)
         tube(bone, "lit_boiler_drum_cap%d" % k, d0 + v3(ex * 0.72, 0, 0), d0 + v3(ex * 0.82, 0, 0), 0.68, "in_gold", sides=8)
         wx = ex * 3.75
-        lf.pipe(bone, "boiler_pipe_up%d" % k, [v3(bx + ex * 0.45, top[1] - 0.15, bz + 0.25), v3(bx + ex * 1.4, top[1] + 0.55, bz + 0.6),
+        lf.pipe(fitted, "boiler_pipe_up%d" % k, [v3(bx + ex * 0.45, top[1] - 0.15, bz + 0.25), v3(bx + ex * 1.4, top[1] + 0.55, bz + 0.6),
                                                 v3(wx - ex * 0.2, top[1] + 1.1, bz + 0.6), v3(wx - ex * 0.2, top[1] + 1.1, bz - 1.8)], d=0.24)
-        lf.pipe(bone, "boiler_pipe_drum%d" % k, [d0 + v3(ex * 0.82, 0, 0), v3(wx - ex * 0.15, b0 + 2.55, bz), v3(wx - ex * 0.15, b0 + 2.55, bz + 1.6)],
+        lf.pipe(fitted, "boiler_pipe_drum%d" % k, [d0 + v3(ex * 0.82, 0, 0), v3(wx - ex * 0.15, b0 + 2.55, bz), v3(wx - ex * 0.15, b0 + 2.55, bz + 1.6)],
                 d=0.2, region="in_brass", flange="in_iron")
-        lf.valve(bone, "boiler_valve%d" % k, v3(bx + ex * 1.4, top[1] + 0.55, bz + 0.6), (0, 0, 1), r=0.2)
+        lf.valve(fitted, "boiler_valve%d" % k, v3(bx + ex * 1.4, top[1] + 0.55, bz + 0.6), (0, 0, 1), r=0.2)
     lf.valve(bone, "boiler_valve_front", v3(bx + 0.75, b0 + 1.05, bz + r + 0.2), (0, 0, 1), r=0.17)
     # the piston engine aft of the boiler: two cylinders, rods and crossheads (moving), a flywheel (turning)
     ez = bz - br - 0.42
@@ -1372,10 +1382,10 @@ def boiler(root, bone):
     for k, ex in enumerate((0.5, -0.5)):
         tube(bone, "lit_engine_cyl_%d" % k, (bx + ex, b0 + 0.3, ez), (bx + ex, b0 + 1.35, ez), 0.5, "in_brass", sides=8)
         tube(bone, "lit_engine_cyl_cap_%d" % k, (bx + ex, b0 + 1.33, ez), (bx + ex, b0 + 1.45, ez), 0.58, "in_iron", sides=8)
-        pb = Bone("engine_piston_%d" % k, origin=(bx + ex, b0 + 1.45, ez), parent=root)
+        pb = Bone("engine_piston_%d" % k, origin=(bx + ex, b0 + 1.45, ez), parent=bone)
         tube(pb, "lit_engine_rod_%d" % k, (bx + ex, b0 + 1.45, ez), (bx + ex, b0 + 2.15, ez), 0.1, "steel", sides=4)
         box(pb, "lit_engine_crosshead_%d" % k, (bx + ex, b0 + 2.2, ez), (0.22, 0.14, 0.22), "in_brass")
-    gb = Bone("engine_gear_0", origin=(bx, b0 + 2.55, ez - 0.25), parent=root)
+    gb = Bone("engine_gear_0", origin=(bx, b0 + 2.55, ez - 0.25), parent=bone)
     lf.gear(gb, "lit_engine_gear", (bx, b0 + 2.55, ez - 0.25), (0, 0, 1), 0.75, 0.16, teeth=14, region="in_brass", spokes=6)
     tube(bone, "lit_engine_axle", (bx, b0 + 2.55, ez - 0.35), (bx, b0 + 2.55, ez + 0.3), 0.14, "in_iron", sides=6)
     # gear trains on the walls (visible from the landing): a big wheel and its pinion on each side
@@ -1385,11 +1395,11 @@ def boiler(root, bone):
         w = ld.wall_x(y, z, 1 if x > 0 else -1)
         xx = w + nrm[0] * 0.14
         name = "engine_gear_%d" % (k + 1)
-        gb = Bone(name, origin=(xx, y, z), parent=root)
-        lf.gear(gb, "lit_" + name, (xx, y, z), nrm, rr, 0.12, teeth=14 if rr > 0.5 else 9, region="in_brass" if k % 2 == 0 else "gear_iron",
+        gb = Bone(name, origin=(xx, y, z), parent=fitted)
+        lf.gear(gb, "lit_" + name, (xx, y, z), nrm, rr, 0.12, teeth=14 if rr > 0.5 else 7, region="in_brass" if k % 2 == 0 else "gear_iron",
                 spokes=6 if rr > 0.5 else 4, rim="in_brass" if k % 2 == 0 else "gear_iron")
-        tube(bone, "lit_%s_axle" % name, (w, y, z), (xx + nrm[0] * 0.1, y, z), 0.16, "in_iron", sides=6)
-        GEAR_TRAINS.append((name, -1 if k % 2 else 1, 14 if rr > 0.5 else 9))
+        tube(fitted, "lit_%s_axle" % name, (w, y, z), (xx + nrm[0] * 0.1, y, z), 0.16, "in_iron", sides=6)
+        GEAR_TRAINS.append((name, -1 if k % 2 else 1, 14 if rr > 0.5 else 7))   # 7-tooth pinions: a whole turn a loop
 
 
 GEAR_TRAINS = []   # (bone, direction, teeth) of the wall gears, for the engine animation
@@ -1417,6 +1427,7 @@ def build(g):
     top = Bone("top_deck", parent=root)
     rig = Bone("rigging", parent=root)
     pennants = Bone("pennants", parent=root)
+    swags = Bone("swags", parent=root)
     lanterns = Bone("lanterns", parent=root)
     hull_b = Bone("hull", parent=root)
     deck_b = Bone("decks", parent=root)
@@ -1433,7 +1444,7 @@ def build(g):
     tail(tail_b)
     fins(root)
     top_deck(top, root, g)
-    rigging(rig, pennants, lanterns)
+    rigging(rig, pennants, lanterns, swags)
     hull(hull_b, detail, lights)
     rudder(root)
     hook = beakhead(head, detail, lights)
@@ -1454,21 +1465,52 @@ def build(g):
     return root, m
 
 
+def _loop_keys(length, n, fn):
+    """n + 1 evenly spaced keyframe times over a loop and fn(t) at each, the last equal to the first."""
+    ts = [length * i / n for i in range(n + 1)]
+    return [(t, fn(t if i < n else 0.0)) for i, t in enumerate(ts)]
+
+
 def build_animations(root):
+    """The model's animations (driven by the mod, see ShipRenderer):
+    engine (time = the engine's phase, which only advances with the speed: stopped when parked) - the big gears of
+      the tower, the flywheel and the wall gears of the engine room, the two pistons (one stroke per turn of the
+      flywheel), the boiler and the engine shaking a little;
+    steer / elevator (hold, 0..2 = helm / climb from -1 to 1) - the helm wheel, the rudder, the dorsal and lower fins
+      (rudder fins), the side fins (elevator fins);
+    flag_wave, lantern_sway, streamer_wave (time = the game time) - the pirate flag; the hanging lanterns; the
+      banners and pennant strings, the black swags of the balloon, the black sails breathing in the wind and the
+      slight idle flutter of every tail fin."""
     kf, rot_kf, animation, find = gg.kf, gg.rot_kf, gg.animation, gg.find
     anims = []
-    spin = [rot_kf(t, (0, 0, a)) for t, a in ((0.0, 0), (0.5, 90), (1.0, 180), (1.5, 270), (2.0, 360))]
     tracks = []
     for k in range(2):
+        # the big gears on the sides of the tower turn about their axles (across the ship)
         b = find(root, "tower_gear_%d" % k)
-        tracks.append((b, [rot_kf(t, (0, 0, a * (1 if k == 0 else -1))) for t, a in ((0.0, 0), (0.5, 45), (1.0, 90), (1.5, 135), (2.0, 180))]))
+        tracks.append((b, [rot_kf(t, (a * (1 if k == 0 else -1), 0, 0)) for t, a in ((0.0, 0), (0.5, 45), (1.0, 90), (1.5, 135), (2.0, 180))]))
+        # and their pinions, four times faster the other way (two whole turns a loop: seamless)
+        tracks.append((find(root, "tower_pinion_%d" % k), [rot_kf(t, (-720.0 * t / 2.0 * (1 if k == 0 else -1), 0, 0))
+                                                         for t in (0.0, 0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0)]))
+    spin = [rot_kf(t, (0, 0, a)) for t, a in ((0.0, 0), (0.5, 90), (1.0, 180), (1.5, 270), (2.0, 360))]
     tracks.append((find(root, "engine_gear_0"), spin))
     for name, sgn, teeth in GEAR_TRAINS:
         turn = sgn * 180.0 * (14.0 / teeth)
         tracks.append((find(root, name), [rot_kf(t, (turn * t / 2.0, 0, 0)) for t in (0.0, 0.5, 1.0, 1.5, 2.0)]))
     for k in range(2):
+        # one stroke per turn of the flywheel, the two cranks half a turn apart
         b = find(root, "engine_piston_%d" % k)
-        tracks.append((b, [kf("position", 2.0 * i / 12, (0, 0.3 * 16 * math.sin(2 * math.pi * i / 6 + k * math.pi), 0)) for i in range(13)]))
+        tracks.append((b, [kf("position", t, (0, v, 0)) for t, v in
+                           _loop_keys(2.0, 16, lambda t, k=k: 0.3 * 16 * math.sin(math.pi * t + k * math.pi))]))
+    # the machine shakes: a few hundredths of a block, quick and irregular (40 shakes a turn)
+    amp = 0.012 * 16
+
+    def shake(t):
+        i = round(t / 0.05)
+        sg = -1 if i % 2 else 1
+        return (sg * amp * 0.5 * math.sin(2 * math.pi * 3 * t / 2.0 + 1.0),
+                sg * amp * (0.6 + 0.4 * math.sin(2 * math.pi * 5 * t / 2.0)),
+                -sg * amp * 0.4 * math.cos(2 * math.pi * 2 * t / 2.0))
+    tracks.append((find(root, "engine_boiler"), [kf("position", t, v) for t, v in _loop_keys(2.0, 40, shake)]))
     anims.append(animation("engine", 2.0, "loop", tracks))
     anims.append(animation("steer", 2.0, "hold", [
         (find(root, "helm_wheel"), [rot_kf(0.0, (0, 0, -150)), rot_kf(1.0, (0, 0, 0)), rot_kf(2.0, (0, 0, 150))]),
@@ -1489,13 +1531,36 @@ def build_animations(root):
         tracks.append((b, keys))
     anims.append(animation("lantern_sway", 4.0, "loop", tracks))
     tracks = []
+    w = 2 * math.pi / 3.0
     for k, b in enumerate(c for c in find(root, "pennants").children):
         sh = 0.7 * k
-        tracks.append((b, [rot_kf(t, (3 * math.sin(2 * math.pi * t / 3.0 + sh), 0, 2 * math.cos(2 * math.pi * t / 3.0 + sh)))
+        tracks.append((b, [rot_kf(t, (3 * math.sin(w * t + sh), 0, 2 * math.cos(w * t + sh)))
                            for t in (0.0, 0.75, 1.5, 2.25, 3.0)]))
+    # the black sails breathe (their belly fills and slackens: scaled across about the yard, the clews stay put)
+    # and swing a little
     for k, b in enumerate(c for c in find(root, "black_sails").children):
         sh = 1.1 * k
-        tracks.append((b, [rot_kf(t, (0, 0, 4 * math.sin(2 * math.pi * t / 3.0 + sh))) for t in (0.0, 0.75, 1.5, 2.25, 3.0)]))
+        keys = _loop_keys(3.0, 12, lambda t, sh=sh: (1.2 * math.sin(w * t + sh) + 0.5 * math.sin(2 * w * t + 2 * sh),
+                                                     1.0 + 0.22 * math.sin(w * t + sh + 0.8)))
+        tracks.append((b, [rot_kf(t, (0, 0, v[0])) for t, v in keys] + [kf("scale", t, (v[1], 1, 1)) for t, v in keys]))
+    # the swags of the balloon swing about their knots
+    for k, b in enumerate(c for c in find(root, "swags").children):
+        sh = 0.9 * k
+        tracks.append((b, [rot_kf(t, (0, 0, 0.9 * math.sin(w * t + sh))) for t, _ in _loop_keys(3.0, 8, lambda t: 0)]))
+    # the tail fins flutter a little in the wind (on top of steer / elevator)
+    for k, name in enumerate(f[0] for f in ls.FINS):
+        b = find(root, name)
+        sh = 1.3 * k
+        axis = 1 if name in ("fin_dorsal", "fin_lower") else 0 if name.startswith("fin_side") else 2
+
+        def flutter(t, sh=sh):
+            return 0.7 * math.sin(2 * w * t + sh) + 0.35 * math.sin(5 * w * t + 2 * sh)
+        keys = []
+        for t, v in _loop_keys(3.0, 30, flutter):
+            e = [0.0, 0.0, 0.0]
+            e[axis] = v
+            keys.append(rot_kf(t, tuple(e)))
+        tracks.append((b, keys))
     anims.append(animation("streamer_wave", 3.0, "loop", tracks))
     return anims
 
