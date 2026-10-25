@@ -20,9 +20,12 @@ import fr.medievalships.entity.ShipEntity;
 import fr.medievalships.entity.ShipTracker;
 
 /**
- * The Old Corsair in a real game (called from {@link ShipClientGameTest}): it floats on a basin, the
- * player stands on its main deck, in the captain's cabin, the common room and the hold (dry below the
- * waterline), a door opens, and the ship sails under the player's control. About 40 seconds.
+ * The Old Corsair in a real game (called from {@link ShipClientGameTest}): it floats on a basin, its sails
+ * furl at rest and are set again, the five exterior views of the reference sheet are photographed (no HUD,
+ * for docs/comparaison_old_corsair.png), the player stands on its main deck, in the captain's cabin, the
+ * common room, the kitchen, the coursive and the hold (dry below the waterline), a door opens, and the
+ * ship sails under the player's control: the wheel and the rudder turn, the sails stay set, the bow
+ * foams and the old hull creaks. About 50 seconds.
  */
 public final class CorsairGameTest {
 	/** Reports a check (PASS / FAIL line of the test report). */
@@ -49,8 +52,8 @@ public final class CorsairGameTest {
 		server.runCommand("gamemode spectator @a");
 		server.runCommand("tp @p 315 -30 -40 0 30");
 		context.waitTicks(30);
-		// a basin 30 wide, 90 long and 14 deep, walled with glass
-		int x0 = 300, x1 = 330, z0 = -45, z1 = 45, top = -46;
+		// a basin 50 wide, 90 long and 14 deep, walled with glass up to the water (the hull is seen over the walls)
+		int x0 = 290, x1 = 340, z0 = -45, z1 = 45, top = -50;
 		server.runCommand(String.format(Locale.ROOT, "forceload add %d %d %d %d", x0, z0, x1, z1));
 		context.waitTicks(30);
 		server.runCommand(String.format(Locale.ROOT, "fill %d -63 %d %d %d %d glass", x0, z0, x1, top, z0));
@@ -78,13 +81,51 @@ public final class CorsairGameTest {
 		log.log("%s at %.2f %.2f %.2f, water surface %.3f", id, pose.x(), pose.y(), pose.z(), surface);
 		check.check(Math.abs(pose.y() - (surface - type.hull().waterlineY)) < 0.25, "%s floats on the surface (y %.2f, water %.2f)", id,
 				pose.y(), surface);
-		double[][] eyes = {{40, 7, 30}, {0, 9, 55}, {-4, 10, -45}, {32, 12, 45}};
-		String[] names = {"1_cote", "2_avant", "3_arriere", "4_perspective"};
+		// the clean views for the comparison with the reference sheet: no HUD, no hand, no chat
+		context.runOnClient(mc -> mc.options.hudHidden = true);
+
+		// at rest the sails furl after 5 s (furlSailWhenStopped): the ship was spawned stopped
+		context.waitTicks(110);
+		float[] sails = sails(context, type);
+		log.log("%s at rest: sail set %s, sails open %.2f", id, sails[0], sails[1]);
+		check.check(sails[0] == 0 && sails[1] < 0.15f, "%s: the sails are furled when the ship is stopped (open %.2f)", id, sails[1]);
+		look(server, pose, 30, 14, 40, 0, 13, 0);
+		context.waitTicks(15);
+		shot.shot(id + "_0_voiles_ferlees");
+
+		// the five exterior views of the reference, sails set (they furl after 5 s stopped otherwise)
+		boolean furl = server.computeOnServer(srv -> {
+			var cfg = fr.medievalships.data.ConfigManager.ship(type);
+			boolean was = cfg.furlSailWhenStopped;
+			cfg.furlSailWhenStopped = false;
+			return was;
+		});
+		context.waitTicks(70);
+		sails = sails(context, type);
+		check.check(sails[0] == 1 && sails[1] > 0.9f, "%s: the sails are set again (open %.2f)", id, sails[1]);
+		boolean[] animations = context.computeOnClient(mc -> {
+			fr.medievalships.client.model.BbModel m = fr.medievalships.client.render.ShipModels.get(fr.medievalships.client.render.ShipModels.OLD_CORSAIR);
+			String[] names = {"sail_wind", "sail_furl", "steer", "flag_wave", "lantern_sway", "rope_sway"};
+			boolean[] ok = new boolean[names.length];
+			for (int i = 0; i < names.length; i++) {
+				ok[i] = m != null && m.animations.containsKey(names[i]);
+			}
+			return ok;
+		});
+		boolean allAnims = true;
+		for (boolean b : animations) {
+			allAnims &= b;
+		}
+		check.check(allAnims, "%s: the model loaded in game has its animations (sails, helm, flags, lanterns, ropes)", id);
+		double[][] eyes = {{36, 5, 5}, {0, 8, 52}, {-3, 9, -48}, {0.05, 72, 4}, {30, 14, 40}};
+		double[][] targets = {{0, 14, 4}, {0, 14, 0}, {0, 13, -10}, {0, 0, 4}, {0, 13, 0}};
+		String[] names = {"1_cote", "2_avant", "3_arriere", "4_dessus", "5_perspective"};
 		for (int k = 0; k < eyes.length; k++) {
-			look(server, pose, eyes[k][0], eyes[k][1], eyes[k][2], 0, 12, 0);
+			look(server, pose, eyes[k][0], eyes[k][1], eyes[k][2], targets[k][0], targets[k][1], targets[k][2]);
 			context.waitTicks(k == 0 ? 30 : 15);
 			shot.shot(id + "_" + names[k]);
 		}
+		server.runOnServer(srv -> fr.medievalships.data.ConfigManager.ship(type).furlSailWhenStopped = furl);
 
 		// walking aboard, a screenshot of each furnished room: main deck, quarterdeck, captain's cabin, common room,
 		// kitchen, coursive, hold (below the waterline)
@@ -111,7 +152,7 @@ public final class CorsairGameTest {
 			if (spots[k][1] < 0) {
 				check.check(c[4] == 0 && c[5] == 0, "%s: the %s is dry below the waterline (water %s/%s)", id, where[k], c[4], c[5]);
 			}
-			shot.shot(id + "_" + (5 + k) + "_" + where[k].replace(' ', '_').replace("'", ""));
+			shot.shot(id + "_" + (6 + k) + "_" + where[k].replace(' ', '_').replace("'", ""));
 		}
 		// a door of the lower deck
 		boolean opened = server.computeOnServer(srv -> {
@@ -135,16 +176,44 @@ public final class CorsairGameTest {
 		});
 		context.waitTicks(10);
 		ShipPose start = pose(server, type);
+		int sounds0 = context.computeOnClient(mc -> fr.medievalships.client.CorsairEffects.sounds);
 		context.getInput().holdKey(o -> o.forwardKey);
-		context.waitTicks(140);
+		context.waitTicks(110);
+		// a turn to port at the end: the wheel and the rudder follow the helm
+		context.getInput().holdKey(o -> o.leftKey);
+		context.waitTicks(50);
+		float[] helm = context.computeOnClient(mc -> {
+			ShipEntity s = clientShip(mc, type);
+			return s == null ? new float[] {0, 0, 0} : new float[] {s.helmVisual, s.sailOpen, s.syncedSpeed()};
+		});
+		log.log("%s at the helm: helm %.2f, sails open %.2f, speed %.2f", id, helm[0], helm[1], helm[2]);
+		check.check(Math.abs(helm[0]) > 0.3f, "%s: the wheel and the rudder turn with the helm (%.2f)", id, helm[0]);
+		check.check(helm[1] > 0.9f, "%s: the sails are set under way (open %.2f)", id, helm[1]);
+		context.runOnClient(mc -> mc.options.hudHidden = false);
+		context.waitTicks(2);
+		shot.shot(id + "_13_a_la_barre");
+		context.getInput().releaseKey(o -> o.leftKey);
 		context.getInput().releaseKey(o -> o.forwardKey);
 		ShipPose moved = pose(server, type);
 		double dist = Math.hypot(moved.x() - start.x(), moved.z() - start.z());
-		log.log("%s moved %.2f blocks in 7 s at the helm", id, dist);
+		log.log("%s moved %.2f blocks in 8 s at the helm", id, dist);
 		check.check(dist > 1.5 && dist < 30, "%s sails under the player's control (moved %.2f)", id, dist);
-		shot.shot(id + "_12_a_la_barre");
+		// under way, seen from outside: the foam at the bow, the sails set, the heel in the turn
 		server.runCommand("ride @p dismount");
 		server.runCommand("gamemode spectator @a");
+		context.runOnClient(mc -> mc.options.hudHidden = true);
+		look(server, pose(server, type), 20, 6, 30, 0, 6, 12);
+		context.waitTicks(12);
+		float speed = context.computeOnClient(mc -> {
+			ShipEntity s = clientShip(mc, type);
+			return s == null ? 0f : s.syncedSpeed();
+		});
+		int sounds = context.computeOnClient(mc -> fr.medievalships.client.CorsairEffects.sounds) - sounds0;
+		log.log("%s under way: speed %.2f, %d ship sounds (creaks, rigging, canvas, bow wave)", id, speed, sounds);
+		check.check(speed > 0.8f, "%s: still under way, foam at the bow (speed %.2f)", id, speed);
+		check.check(sounds > 0, "%s: the old ship creaks and the bow wave washes under way (%d sounds)", id, sounds);
+		shot.shot(id + "_14_sous_voiles");
+		context.runOnClient(mc -> mc.options.hudHidden = false);
 		server.runOnServer(srv -> {
 			ShipEntity s = ship(srv.getOverworld(), type);
 			if (s != null) {
@@ -161,6 +230,24 @@ public final class CorsairGameTest {
 			}
 		}
 		return null;
+	}
+
+	/** The ship as the client sees it. */
+	private static ShipEntity clientShip(MinecraftClient mc, ShipType type) {
+		for (ShipEntity s : ShipTracker.ships(mc.world)) {
+			if (!s.isRemoved() && s.shipType() == type) {
+				return s;
+			}
+		}
+		return null;
+	}
+
+	/** Sails of the ship on the client: {set (synced, 0/1), open fraction (animation)}. */
+	private static float[] sails(ClientGameTestContext context, ShipType type) {
+		return context.computeOnClient(mc -> {
+			ShipEntity s = clientShip(mc, type);
+			return s == null ? new float[] {-1, -1} : new float[] {s.sailSet() ? 1 : 0, s.sailOpen};
+		});
 	}
 
 	private static ShipPose pose(TestServerContext server, ShipType type) {

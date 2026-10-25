@@ -26,6 +26,7 @@ interior grid (tools/corsair_interior.py): what is drawn is what collides.
 Bones used by the mod (keep their names when editing in Blockbench):
   sail_* (sail_wind, sail_furl)  helm_wheel, rudder (steer)  flag_*, flag_*_tip (flag_wave)
   lantern_* (lantern_sway)       door_<k> (door k: 0 = closed, 1 = open)   rooms, furniture, fittings, detail
+  rope_slack_* (rope_sway: x axis along the rope, rotated about it)
 """
 import math
 import os
@@ -843,7 +844,44 @@ def rigging(bone, hull_bone, masts, bowsprit, sails):
         clew = gn.braced((side * (SQUARE_SAILS[0][5] + 0.25), SQUARE_SAILS[0][3] - 0.15, fz + fo + 0.25), fz, BRACE)
         ropes.append(("fore_sheet_" + sn, clew, hp(fz - 4.5, cs.rail_y(fz - 4.5), side, -0.15)))
     for name, a, b in ropes:
-        beam(bone, "rope_" + name, a, b, 0.06, "rope")
+        if name in SLACK:
+            slack_rope(bone, name, a, b, SLACK[name][0])
+        else:
+            beam(bone, "rope_" + name, a, b, 0.06, "rope")
+
+
+# Running rigging and the stays between the masts hang slack, as on the reference, and sway a little
+# about the line joining their two ends (animation rope_sway; the ends stay made fast):
+# rope -> (sag as a fraction of its length, swing amplitude in degrees)
+SLACK = {
+    "fore_brace_p": (0.035, 18), "fore_brace_s": (0.035, 18),
+    "main_brace_p": (0.035, 16), "main_brace_s": (0.035, 16),
+    "main_topmast_stay": (0.03, 14), "main_tg_stay": (0.03, 14),
+    "gaff_vang": (0.03, 15),
+    "jib_guy_p": (0.03, 15), "jib_guy_s": (0.03, 15),
+}
+SLACK_SEGMENTS = 8
+
+
+def slack_points(a, b, sag, n=SLACK_SEGMENTS):
+    """A rope hanging between a and b: a parabola dipping by sag * length below the chord."""
+    u = norm(b - a)
+    down = v3(0, -1, 0) - np.dot(v3(0, -1, 0), u) * u
+    down = norm(down) if np.linalg.norm(down) > 1e-6 else v3(1, 0, 0)
+    L_ = np.linalg.norm(b - a)
+    return [a + (b - a) * t + down * sag * L_ * 4 * t * (1 - t) for t in np.linspace(0, 1, n + 1)]
+
+
+def slack_rope(parent, name, a, b, sag, th=0.06, region="rope"):
+    """A slack rope in its own bone: the bone's x axis runs along the chord a -> b and its origin is on a,
+    so a rotation about x (added to the bone's Euler x angle, the innermost of the ZYX order) swings the
+    sagging rope about its two fixed ends."""
+    a, b = v3(*a), v3(*b)
+    sb = Bone("rope_slack_" + name, origin=tuple(a), rot=gg.frame_from(b - a, v3(0, 1, 0)), parent=parent)
+    pts = slack_points(a, b, sag)
+    for k in range(len(pts) - 1):
+        beam(sb, "rope_%s_%d" % (name, k), pts[k], pts[k + 1], th, region, extend=0.025)
+    return sb
 
 
 # ---------------------------------------------------------------- flags
@@ -1396,15 +1434,18 @@ def build_animations(root, sails_info):
     anims.append(animation("steer", 2.0, "hold", [
         (wheel, [rot_kf(0.0, (0, 0, -150)), rot_kf(1.0, (0, 0, 0)), rot_kf(2.0, (0, 0, 150))]),
         (rud, [rot_kf(0.0, (0, -28, 0)), rot_kf(1.0, (0, 0, 0)), rot_kf(2.0, (0, 28, 0))])]))
+    def loop_kfs(fn, period, n=8):
+        """Keyframes of a looping animation from 0 to its length included (equal values at both ends: the
+        mod's sampler holds the first and last values outside them, so a wrapped phase would jump)."""
+        return [rot_kf(round(period * i / n, 4), fn(period * i / n), "catmullrom") for i in range(n + 1)]
+
     tracks = []
     for k, name in enumerate(("gaff", "stern")):
         f, ft = find(root, "flag_" + name), find(root, "flag_%s_tip" % name)
-        a = 10
-        sh = 0.2 * k
-        for b, amp in ((f, a), (ft, -2 * a)):
-            kfs = [rot_kf(round((t + sh) % 1.2, 4), (0, amp * math.cos(2 * math.pi * t / 1.2), 0), "catmullrom") for t in (0.0, 0.3, 0.6, 0.9)]
-            kfs.sort(key=lambda q: q["time"])
-            tracks.append((b, kfs))
+        w, sh = 2 * math.pi / 1.2, 0.2 * k
+        # the wave runs from the hoist to the fly: the fly half lags the root half
+        tracks.append((f, loop_kfs(lambda t, sh=sh: (0, 10 * math.cos(w * (t - sh)), 0), 1.2)))
+        tracks.append((ft, loop_kfs(lambda t, sh=sh: (0, -18 * math.cos(w * (t - sh) - 1.75), 0), 1.2)))
     anims.append(animation("flag_wave", 1.2, "loop", tracks))
     tracks = []
 
@@ -1416,13 +1457,23 @@ def build_animations(root, sails_info):
             out += lanterns_of(c)
         return out
     for k, b in enumerate(lanterns_of(root)):
-        a = 5
-        ph = 0.35 * k
-        kfs = [rot_kf(round((ph + t) % 2.4, 4), (a * math.cos(2 * math.pi * t / 2.4), 0, a * 0.6 * math.sin(2 * math.pi * t / 2.4)),
-                      "catmullrom") for t in (0.0, 0.6, 1.2, 1.8)]
-        kfs.sort(key=lambda q: q["time"])
-        tracks.append((b, kfs))
+        a, w, ph = 5, 2 * math.pi / 2.4, 0.35 * k
+        tracks.append((b, loop_kfs(lambda t, ph=ph: (a * math.cos(w * (t - ph)), 0, a * 0.6 * math.sin(w * (t - ph))), 2.4)))
     anims.append(animation("lantern_sway", 2.4, "loop", tracks))
+    # the slack ropes swing slowly about their chord, each with its own phase
+    tracks = []
+    period = 4.8
+
+    def slack_of(b):
+        out = [b] if b.name.startswith("rope_slack_") else []
+        for c in b.children:
+            out += slack_of(c)
+        return out
+    for k, b in enumerate(slack_of(root)):
+        amp = SLACK[b.name[len("rope_slack_"):]][1]
+        ph = 0.61 * k
+        tracks.append((b, loop_kfs(lambda t, amp=amp, ph=ph: (amp * math.sin(2 * math.pi * (t - ph) / period), 0, 0), period)))
+    anims.append(animation("rope_sway", period, "loop", tracks))
     return anims
 
 

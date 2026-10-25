@@ -78,6 +78,7 @@ public final class ClientShipEvents {
 		}
 		for (ShipEntity ship : ShipTracker.ships(world)) {
 			if (!ship.isRemoved()) {
+				CorsairEffects.tick(world, ship, player);
 				wake(world, ship, player);
 				engine(world, ship, player);
 				airship(world, ship, player);

@@ -260,7 +260,7 @@ class CorsairTest {
 			// two masts, as on the reference: no mizzen, no main course (its yard is bare)
 			assertEquals(2, m.bonesByName.keySet().stream().filter(b -> b.startsWith("mast_")).count(), "masts");
 			assertNull(m.bonesByName.get("sail_main_course"));
-			for (String anim : new String[] {"sail_wind", "sail_furl", "steer", "flag_wave", "lantern_sway", "door_0", "door_4"}) {
+			for (String anim : new String[] {"sail_wind", "sail_furl", "steer", "flag_wave", "lantern_sway", "rope_sway", "door_0", "door_4"}) {
 				assertNotNull(m.animations.get(anim), "animation " + anim);
 			}
 			int[] n = {0};
@@ -270,5 +270,89 @@ class CorsairTest {
 				assertNotNull(m.bonesByName.get(b.fallback()), "stand-in of " + b.block());
 			}
 		}
+	}
+
+	private static BbModel load() throws Exception {
+		try (Reader r = Files.newBufferedReader(Path.of("src/main/resources/assets/medievalships/models/entity/old_corsair.bbmodel"),
+				StandardCharsets.UTF_8)) {
+			return new BbModel(r);
+		}
+	}
+
+	/** Every vertex of the model (ship-local blocks) with one animation applied at time t (none if null). */
+	private static float[] vertices(BbModel m, String anim, float t) {
+		BbModel.Pose pose = m.newPose();
+		if (anim != null) {
+			m.apply(pose, anim, t, 1f);
+		}
+		java.util.List<float[]> quads = new java.util.ArrayList<>();
+		m.render(pose, (p, uv, n, glow) -> quads.add(p.clone()));
+		float[] v = new float[quads.size() * 12];
+		for (int i = 0; i < quads.size(); i++) {
+			System.arraycopy(quads.get(i), 0, v, i * 12, 12);
+		}
+		return v;
+	}
+
+	/** Largest displacement between two poses, and the number of vertices moved by more than 1e-4. */
+	private static double[] moved(float[] a, float[] b) {
+		assertEquals(a.length, b.length);
+		double max = 0;
+		int n = 0;
+		for (int i = 0; i < a.length; i += 3) {
+			double d = Math.sqrt(Math.pow(a[i] - b[i], 2) + Math.pow(a[i + 1] - b[i + 1], 2) + Math.pow(a[i + 2] - b[i + 2], 2));
+			max = Math.max(max, d);
+			n += d > 1e-4 ? 1 : 0;
+		}
+		return new double[] {max, n};
+	}
+
+	/**
+	 * Phase 3 animations: the slack ropes (braces, stays between the masts, vang, jib guys) swing a little
+	 * about their fixed ends and nothing else moves with them; the looping animations join up when they
+	 * wrap (no jump of the flags or the lanterns every cycle); the helm turns the wheel and the rudder;
+	 * the sails furl.
+	 */
+	@Test
+	void animations() throws Exception {
+		BbModel m = load();
+		String[] slack = {"fore_brace_p", "fore_brace_s", "main_brace_p", "main_brace_s", "main_topmast_stay", "main_tg_stay", "gaff_vang",
+				"jib_guy_p", "jib_guy_s"};
+		for (String r : slack) {
+			assertNotNull(m.bonesByName.get("rope_slack_" + r), "slack rope " + r);
+		}
+		float[] rest = vertices(m, null, 0f);
+		for (float t : new float[] {0.6f, 1.2f, 2.4f, 3.6f}) {
+			double[] d = moved(rest, vertices(m, "rope_sway", t));
+			// 9 ropes of 8 segments: at most 9 * 8 * 6 faces * 4 corners vertices move, by a few inches at most
+			assertTrue(d[1] > 100 && d[1] <= slack.length * 8 * 24, "rope_sway at " + t + " moves " + d[1] + " vertices");
+			assertTrue(d[0] > 0.04 && d[0] < 0.3, "rope_sway at " + t + ": swing " + d[0]);
+		}
+		for (String anim : new String[] {"sail_wind", "flag_wave", "lantern_sway", "rope_sway"}) {
+			float len = m.animations.get(anim).length;
+			float[] start = vertices(m, anim, 0f);
+			assertTrue(moved(start, vertices(m, anim, len - 1e-3f))[0] < 0.02, anim + " jumps when it wraps");
+			assertTrue(moved(start, vertices(m, anim, 1e-3f))[0] < 0.02, anim + " jumps at its start");
+		}
+		assertTrue(moved(rest, vertices(m, "flag_wave", 0.6f))[0] > 0.3, "the flags wave");
+		assertTrue(moved(rest, vertices(m, "lantern_sway", 0.6f))[0] > 0.02, "the lanterns swing");
+		double wind = moved(rest, vertices(m, "sail_wind", 0.9f))[0];
+		assertTrue(wind > 0.08 && wind < 1.0, "the sails fill and slacken in the wind, a little: " + wind);
+		assertTrue(moved(vertices(m, "steer", 1f), vertices(m, "steer", 2f))[0] > 0.5, "the wheel and the rudder turn");
+		// half furled (fully furled, the fore-and-aft sails collapse to nothing and are not drawn)
+		assertTrue(moved(rest, vertices(m, "sail_furl", 0.5f))[0] > 2, "the sails furl");
+		assertTrue(vertices(m, "sail_furl", 1f).length < rest.length, "furled jibs, staysail and spanker are not drawn");
+	}
+
+	/** The fire of the kitchen hearth (sparks, smoke and crackle of CorsairEffects) is inside the hearth, by the kitchen floor. */
+	@Test
+	void hearthFire() {
+		double[] f = CorsairLayout.HEARTH_FIRE;
+		assertEquals(InteriorGrid.FURNITURE, GRID.kindAt(f[0], f[1], f[2]), "the fire is in the stone hearth");
+		boolean front = false;
+		for (double x = -1.0; x <= 1.0; x += 0.5) {
+			front |= fits(x, L + 0.02, f[2] - 1.6, CLOSED);
+		}
+		assertTrue(front, "one can stand in front of the hearth");
 	}
 }
