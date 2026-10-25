@@ -1,0 +1,547 @@
+lithium installed: false
+[solo] world loaded
+[solo] ship at 0.50 -58.11 0.50 yaw 0.0
+[solo] expected main deck top -57.661
+[solo] after drop: player y=-57.661 onGround=true
+PASS [solo] falling: player should stand on the deck (y=-57.661, deck=-57.661)
+[solo] after jumps: y=-57.661, lowest=-57.661
+PASS [solo] jumping: player must land back on the deck (y=-57.661 min=-57.661)
+[solo] after walking forward: local x=1.00 y=0.95 z=7.56
+PASS [solo] walking: player must still be aboard (local 1.00 0.95 7.56)
+PASS [solo] walking: player should have climbed onto the fore deck (z=7.56)
+[solo]   jump tick 0: local x=4.168 y=1.531 ground=false
+[solo]   jump tick 1: local x=3.883 y=1.864 ground=false
+[solo]   jump tick 2: local x=3.597 y=2.112 ground=false
+[solo]   jump tick 3: local x=3.312 y=2.277 ground=false
+[solo]   jump tick 4: local x=3.027 y=2.360 ground=false
+[solo]   jump tick 5: local x=2.742 y=2.363 ground=false
+[solo]   jump tick 6: local x=2.457 y=2.288 ground=false
+[solo]   jump tick 7: local x=2.173 y=2.136 ground=false
+[solo]   jump tick 8: local x=1.888 y=1.908 ground=false
+[solo]   jump tick 9: local x=1.604 y=1.606 ground=false
+[solo]   jump tick 10: local x=1.320 y=1.232 ground=false
+[solo]   jump tick 11: local x=1.036 y=0.788 ground=false
+[solo]   jump tick 12: local x=0.752 y=0.450 ground=true
+[solo]   jump tick 13: local x=0.366 y=0.450 ground=true
+[solo]   jump tick 14: local x=0.028 y=0.450 ground=true
+[solo]   jump tick 15: local x=-0.157 y=0.450 ground=true
+[solo]   jump tick 16: local x=-0.258 y=0.450 ground=true
+[solo]   jump tick 17: local x=-0.313 y=0.450 ground=true
+[solo]   jump tick 18: local x=-0.343 y=0.450 ground=true
+[solo]   jump tick 19: local x=-0.359 y=0.450 ground=true
+[solo] after jumping from the quay: local x=-0.37 y=0.45 z=0.00
+PASS [solo] quay: player should have landed on the deck (local -0.37 0.45 0.00)
+[solo] zombie at y=-57.661
+PASS [solo] mob: armor stand should stand on the deck
+[solo] swimming up under the hull: highest head y=-59.276, hull bottom=-59.226
+PASS [solo] under the hull: the swimmer must be stopped by the hull bottom
+[solo] ship moved 9.00 blocks under player control
+PASS [solo] steering: the ship should move forward (moved 9.00)
+[solo] zombie local after sailing: 0.80 0.45 3.00
+PASS [solo] carry: zombie should still be aboard
+[solo] galleon at 46.50 -56.61 -7.50 yaw 0.0
+PASS [solo] galleon: the galley is still there (both ships coexist)
+PASS [solo] galleon falling: player on the main deck (y=-55.611, deck=-55.611)
+PASS [solo] galleon jumping: back on the deck (y=-55.611 min=-55.611)
+[solo] galleon cabin: local 0.00 1.00 -12.08
+PASS [solo] galleon cabin: player walked into the cabin (local z=-12.08 y=1.00)
+[solo] galleon balcony: local 0.00 1.00 -17.88
+PASS [solo] galleon balcony: player on the balcony, held by the balustrade (local z=-17.88 y=1.00)
+[solo] galleon quarterdeck: local 2.75 3.60 -13.90
+PASS [solo] galleon stairs: player climbed onto the quarterdeck (local y=3.60 z=-13.90)
+[solo] galleon forecastle: local 2.25 3.00 13.16
+PASS [solo] galleon stairs: player climbed onto the forecastle (local y=3.00 z=13.16)
+[solo] galleon seats: 15 crew seated, pilot 1, passengers 16, refusals 17/17
+PASS [solo] galleon seats: 16 passengers seated (15 + 1)
+PASS [solo] galleon seats: a 17th passenger is refused
+[solo] galleon handling: 0.68 blocks in 2 s, 11.13 in 8 s, speed 2.77, 9.35 blocks coasting in 4 s while turning 9.2 deg
+PASS [solo] galleon handling: slow acceleration (0.68 in 2 s, 11.13 in 8 s)
+PASS [solo] galleon handling: inertia, keeps going without power (9.35)
+PASS [solo] galleon handling: turns, but slowly (9.2 deg in 4 s)
+PASS [solo] galleon carry: the 16 passengers are still seated (16)
+[solo] galleon deck mob local after sailing: 2.13 1.00 2.56
+PASS [solo] galleon carry: the mob standing on deck is carried
+PASS [solo] galleon dismount: the pilot steps off onto the quarterdeck (local 1.17 3.60 -10.42)
+PASS [solo] galleon dismount: a passenger steps off beside his seat (local 2.33 1.00 -1.56, 0.06 from its spot)
+[solo] no collisions, drop 0: local -1.47 1.00 2.18
+PASS [solo] safety net: without collisions the player is still caught by the main deck (local y=1.00)
+[solo] no collisions, drop 1: local -1.52 3.60 -12.57
+PASS [solo] safety net: without collisions the player is still caught by the quarterdeck (local y=3.60)
+PASS [solo] galleon item: /ship give galleon gives the item (1)
+PASS [solo] warship: the galley and the galleon are still there before the third ship is launched
+[solo] warship at -89.50 -57.01 -19.50 yaw 0.0
+PASS [solo] warship falling: player on the main deck (y=-52.511, deck=-52.511)
+PASS [solo] warship jumping: back on the deck (y=-52.511 min=-52.511)
+[solo] warship cabin: local 0.00 4.50 -13.88
+PASS [solo] warship cabin: player walked into the great cabin (local z=-13.88 y=4.50)
+[solo] warship poop deck: local 3.20 9.40 -21.91
+PASS [solo] warship stairs: player climbed to the quarterdeck then the poop deck (local y=9.40 z=-21.91)
+[solo] warship forecastle: local 2.60 6.80 22.43
+PASS [solo] warship stairs: player climbed onto the forecastle (local y=6.80 z=22.43)
+[solo] warship seats: 23 crew seated, pilot 1, passengers 24, refusals 1
+PASS [solo] warship seats: 24 passengers seated (23 + 1)
+PASS [solo] warship seats: a 25th passenger is refused
+[solo] warship handling: 0.43 blocks in 2 s, 10.94 in 10 s, 7.84 coasting in 4 s while turning 4.2 deg
+PASS [solo] warship handling: very slow acceleration (0.43 in 2 s, 10.94 in 10 s)
+PASS [solo] warship handling: strong inertia (7.84)
+PASS [solo] warship handling: wide, slow turns (4.2 deg in 4 s)
+PASS [solo] warship carry: the 24 passengers are still seated (24)
+[solo] warship deck mob local after sailing: 1.50 4.50 -2.00
+PASS [solo] warship carry: the mob standing on deck is carried
+PASS [solo] warship dismount: the pilot steps off onto the quarterdeck (local 1.40 7.10 -12.07)
+PASS [solo] warship safety net: without collisions the player is still caught by the main deck (local y=4.50)
+PASS [solo] warship safety net: without collisions the player is still caught by the poop deck (local y=9.40)
+PASS [solo] warship item: /ship give warship gives the item (1)
+[solo] medieval_galley at -41.50 -57.66 125.50 yaw 0.0
+PASS [solo] medieval_galley floats: water line at y=-58.11 (basin surface -58)
+PASS [solo] medieval_galley falling: player on the deck (y=-57.211, deck=-57.211)
+PASS [solo] medieval_galley jumping: back on the deck (y=-57.211 min=-57.211)
+PASS [solo] medieval_galley seats: 10 passengers seated (9 + pilot 1)
+PASS [solo] medieval_galley seats: one passenger too many is refused
+[solo] medieval_galley handling: 8.69 blocks in 4 s, 26.5 deg in 3 s
+PASS [solo] medieval_galley sailing: moves forward under command (8.69 blocks in 4 s)
+PASS [solo] medieval_galley sailing: turns under command (26.5 deg)
+PASS [solo] medieval_galley carry: the 10 passengers are still seated (10)
+PASS [solo] medieval_galley dismount: the pilot steps off onto the deck (local 0.00 0.45 -9.44)
+[solo] medieval_galley autopilot: 31.0 -> 1.2 blocks from the second point
+PASS [solo] medieval_galley autopilot: follows its route (31.0 -> 1.2 blocks)
+PASS [solo] medieval_galley item: /ship give medieval_galley gives the item (1)
+[solo] steam_paddleboat at -41.50 -57.31 125.50 yaw 0.0
+PASS [solo] steam_paddleboat floats: water line at y=-58.11 (basin surface -58)
+PASS [solo] steam_paddleboat falling: player on the deck (y=-54.911, deck=-54.911)
+PASS [solo] steam_paddleboat jumping: back on the deck (y=-54.911 min=-54.911)
+PASS [solo] steam_paddleboat seats: 8 passengers seated (7 + pilot 1)
+PASS [solo] steam_paddleboat seats: one passenger too many is refused
+[solo] steam_paddleboat handling: 3.95 blocks in 4 s, 16.3 deg in 3 s
+PASS [solo] steam_paddleboat sailing: moves forward under command (3.95 blocks in 4 s)
+PASS [solo] steam_paddleboat sailing: turns under command (16.3 deg)
+PASS [solo] steam_paddleboat carry: the 8 passengers are still seated (8)
+PASS [solo] steam_paddleboat dismount: the pilot steps off onto the deck (local 1.40 2.40 4.96)
+[solo] steam_paddleboat autopilot: 40.0 -> 0.6 blocks from the second point
+PASS [solo] steam_paddleboat autopilot: follows its route (40.0 -> 0.6 blocks)
+PASS [solo] steam_paddleboat item: /ship give steam_paddleboat gives the item (1)
+[solo] elven_sailboat at -41.50 -57.51 125.50 yaw 0.0
+PASS [solo] elven_sailboat floats: water line at y=-58.11 (basin surface -58)
+PASS [solo] elven_sailboat falling: player on the deck (y=-56.911, deck=-56.911)
+PASS [solo] elven_sailboat jumping: back on the deck (y=-56.911 min=-56.911)
+PASS [solo] elven_sailboat seats: 8 passengers seated (7 + pilot 1)
+PASS [solo] elven_sailboat seats: one passenger too many is refused
+[solo] elven_sailboat handling: 6.32 blocks in 4 s, 11.0 deg in 3 s
+PASS [solo] elven_sailboat sailing: moves forward under command (6.32 blocks in 4 s)
+PASS [solo] elven_sailboat sailing: turns under command (11.0 deg)
+PASS [solo] elven_sailboat carry: the 8 passengers are still seated (8)
+PASS [solo] elven_sailboat dismount: the pilot steps off onto the deck (local 0.70 0.60 -9.38)
+[solo] elven_sailboat autopilot: 33.5 -> 1.3 blocks from the second point
+PASS [solo] elven_sailboat autopilot: follows its route (33.5 -> 1.3 blocks)
+PASS [solo] elven_sailboat item: /ship give elven_sailboat gives the item (1)
+[solo] steampunk_airship at 100.50 -57.35 0.50, ground top -60
+PASS [solo] steampunk_airship placed in the air: keel -59.00 above the ground (-60)
+PASS [solo] steampunk_airship placed in the air: inside nothing
+PASS [solo] steampunk_airship hovers: no fall (y -57.350 -> -57.350 in 3 s)
+PASS [solo] steampunk_airship seats: 6 aboard (5 passengers + pilot 1)
+PASS [solo] steampunk_airship seats: one passenger too many is refused
+[solo] steampunk_airship climb: -57.35 -> -52.41, then -50.950, -50.950
+PASS [solo] steampunk_airship climbs under command (4.94 blocks in 4 s)
+PASS [solo] steampunk_airship holds its altitude (-50.950 -> -50.950)
+[solo] steampunk_airship flight: 6.81 blocks in 5 s, 13.9 deg in 3 s, altitude -50.950 -> -50.950
+PASS [solo] steampunk_airship flies forward under command (6.81 blocks in 5 s)
+PASS [solo] steampunk_airship turns under command (13.9 deg)
+PASS [solo] steampunk_airship level flight while moving (-50.950 -> -50.950)
+PASS [solo] steampunk_airship comes down under command (-50.95 -> -54.20)
+PASS [solo] steampunk_airship carry: the 6 aboard are still seated (6)
+PASS [solo] steampunk_airship dismount: the pilot steps off onto the deck of the gondola (local 0.90 0.00 -4.11)
+PASS [solo] steampunk_airship manual flight: never inside anything
+[solo] steampunk_airship autopilot: 2.9 blocks from the stop, deck at -42.16 (stop -42.20), keel over the wall -39.04 (wall top -44)
+PASS [solo] steampunk_airship autopilot: climbs over the wall (keel -39.04, wall top -44)
+PASS [solo] steampunk_airship autopilot: never inside the wall or the ground
+PASS [solo] steampunk_airship autopilot: reaches the stop in 3D (2.9 blocks away, deck -42.16 for -42.20)
+PASS [solo] steampunk_airship autopilot: turns to the stop's heading while waiting (87.1)
+PASS [solo] steampunk_airship item: right click on the ground places an airship (1 -> 2)
+PASS [solo] steampunk_airship item: /ship give steampunk_airship gives the item (1)
+PASS [solo] nautilus basin filled with water all along (143 / 143)
+[solo] nautilus at 215.50 -35.91 -19.50, water surface -36.111
+PASS [solo] nautilus floats on the surface (y -35.91, surfaced -35.91)
+PASS [solo] nautilus placed: inside nothing
+[solo] nautilus dining room: water 0.0/0.0 camera 0.0, local y 0.000
+PASS [solo] nautilus walks on the main level floor (local y 0.000)
+[solo] nautilus lower level (below the waterline): touching water client 0.0 server 0.0, submerged 0.0/0.0, camera 0.0, air 300/300, y -4.500
+PASS [solo] nautilus lower level is dry although below the waterline
+PASS [solo] nautilus lower level: no underwater view
+PASS [solo] nautilus lower level: the player keeps all his air (300/300)
+PASS [solo] nautilus lower level: standing on its floor (local y -4.500)
+[solo] nautilus spiral staircase: local -1.71 0.00 -8.08
+PASS [solo] nautilus climbs the spiral staircase to the main level (local y 0.00)
+[solo] nautilus ladder, hatch closed: local y 6.70 (hatch at 8.50)
+PASS [solo] nautilus climbs the ladder and stops under the closed hatch (local y 6.70)
+[solo] nautilus ladder, hatch open: local 1.50 9.00 -17.62
+PASS [solo] nautilus goes out through the open hatch onto the casing (local y 9.00)
+PASS [solo] nautilus the hatch is open
+PASS [solo] nautilus does not dive while someone stands in the open hatch (-35.94 -> -35.94)
+PASS [solo] nautilus the dive order shuts the open hatch
+[solo] nautilus dive: -35.94 -> -50.24, then -50.241 (depth 14.3)
+PASS [solo] nautilus dives under command (14.30 blocks)
+PASS [solo] nautilus holds its depth (-50.241 -> -50.241)
+PASS [solo] nautilus dived: inside nothing
+PASS [solo] nautilus the hatch does not open under water
+[solo] nautilus sailing submerged: 9.99 blocks, armor stand local 1.00 0.00 -4.00
+PASS [solo] nautilus sails submerged (9.99 blocks)
+PASS [solo] nautilus carries what stands in its rooms (armor stand local y 0.00 z -4.00)
+[solo] nautilus inside, submerged: touching water 0.0/0.0, submerged 0.0/0.0, camera 0.0, air 300/300, local y -0.000
+PASS [solo] nautilus submerged: the rooms are dry (no water, no underwater view)
+PASS [solo] nautilus submerged: the player keeps all his air (300/300)
+PASS [solo] nautilus submerged: standing on the main level floor (local y -0.000)
+PASS [solo] nautilus submerged: the sea seen through the glass is murky (sea fog and veils behind the windows)
+PASS [solo] nautilus submerged: walking in the salon (local 0.00 -0.00 -2.36)
+PASS [solo] nautilus salon: a click on the lever closes the shutters of the windows
+PASS [solo] nautilus salon: a click on the sofa seats the player (seat 20)
+PASS [solo] nautilus /ship nautilus lumieres off switches the lamps off
+PASS [solo] nautilus /ship nautilus volets on opens the shutters
+PASS [solo] nautilus airlock: the outer door stays shut while the airlock is dry
+[solo] nautilus airlock filled: level 1.00, touching water 1.0/1.0, submerged 1.0/1.0
+PASS [solo] nautilus airlock: filled with sea water, the player is under water (level 1.00)
+PASS [solo] nautilus airlock: the inner door stays shut while it is full
+PASS [solo] nautilus airlock: full, the outer door opens onto the sea
+[solo] nautilus swims out of the airlock: local -11.01 -6.10 27.00
+PASS [solo] nautilus swims out of the airlock through its tunnel into the sea (local x -11.01)
+PASS [solo] nautilus airlock: the pumps do not start while the outer door is open (level 1.00)
+[solo] nautilus airlock pumped out: level 0.00, touching water 0.0/0.0, submerged 0.0/0.0
+PASS [solo] nautilus airlock: pumped out, dry again (level 0.00)
+PASS [solo] nautilus airlock: empty, the inner door opens
+[solo] nautilus surfacing: depth 0.02
+PASS [solo] nautilus rises back to the surface (depth 0.02)
+PASS [solo] nautilus lifeboat: launched on the water (1 boat)
+PASS [solo] nautilus lifeboat: taken back into its recess
+[solo] nautilus /ship nautilus profondeur 10: depth 9.94
+PASS [solo] nautilus goes to the ordered depth (9.94)
+PASS [solo] nautilus ballasts emptied: back on the surface (depth 0.06)
+[solo] nautilus route t=0: phase DOCKED target 0 z 4.1 depth 0.06 speed 0.00 altErr 0.00 vy 0.00 ai true
+[solo] nautilus route t=100: phase SAILING target 2 z 5.7 depth 1.58 speed 1.01 altErr -7.47 vy -1.01 ai true
+[solo] nautilus route t=200: phase SAILING target 2 z 14.4 depth 7.07 speed 1.90 altErr -1.98 vy -1.05 ai true
+[solo] nautilus route: docked at the underwater stop true, depth 8.93, at z 19.4 (stop 22.0), collisions 0
+PASS [solo] nautilus autopilot: dives along the route and stops at 9 blocks under water (depth 8.93)
+PASS [solo] nautilus autopilot: never inside the basin
+PASS [solo] nautilus item: /ship give nautilus gives the item (1)
+PASS [solo] nautilus item: right click on the water places the Nautilus
+[solo] old_corsair at 315.50 -49.11 -11.50, water surface -49.111
+PASS [solo] old_corsair floats on the surface (y -49.11, water -49.11)
+[solo] old_corsair at rest: sail set 0.0, sails open 0.03
+PASS [solo] old_corsair: the sails are furled when the ship is stopped (open 0.03)
+PASS [solo] old_corsair: the sails are set again (open 0.97)
+PASS [solo] old_corsair: the model loaded in game has its animations (sails, helm, flags, lanterns, ropes)
+[solo] old_corsair main deck: local 0.00 4.500 -5.50, on ground 1.0, water 0.0/0.0, air 300
+PASS [solo] old_corsair: standing in the main deck (local y 4.500)
+[solo] old_corsair quarterdeck: local 1.60 7.000 -15.00, on ground 1.0, water 0.0/0.0, air 300
+PASS [solo] old_corsair: standing in the quarterdeck (local y 7.000)
+[solo] old_corsair captain's cabin: local 0.00 4.000 -16.00, on ground 1.0, water 0.0/0.0, air 300
+PASS [solo] old_corsair: standing in the captain's cabin (local y 4.000)
+[solo] old_corsair common room: local 1.30 1.000 5.00, on ground 1.0, water 0.0/0.0, air 300
+PASS [solo] old_corsair: standing in the common room (local y 1.000)
+[solo] old_corsair kitchen: local 0.50 1.000 9.60, on ground 1.0, water 0.0/0.0, air 300
+PASS [solo] old_corsair: standing in the kitchen (local y 1.000)
+[solo] old_corsair coursive: local 0.00 1.000 -8.00, on ground 1.0, water 0.0/0.0, air 300
+PASS [solo] old_corsair: standing in the coursive (local y 1.000)
+[solo] old_corsair hold: local 0.00 -2.000 -6.00, on ground 1.0, water 0.0/0.0, air 300
+PASS [solo] old_corsair: standing in the hold (local y -2.000)
+PASS [solo] old_corsair: the hold is dry below the waterline (water 0.0/0.0)
+PASS [solo] old_corsair: the kitchen door opens
+[solo] old_corsair at the helm: helm -1.00, sails open 1.00, speed 2.14
+PASS [solo] old_corsair: the wheel and the rudder turn with the helm (-1.00)
+PASS [solo] old_corsair: the sails are set under way (open 1.00)
+[solo] old_corsair moved 9.17 blocks in 8 s at the helm
+PASS [solo] old_corsair sails under the player's control (moved 9.17)
+[solo] old_corsair under way: speed 2.06, 17 ship sounds (creaks, rigging, canvas, bow wave)
+PASS [solo] old_corsair: still under way, foam at the bow (speed 2.06)
+PASS [solo] old_corsair: the old ship creaks and the bow wave washes under way (17 sounds)
+[solo] sky_leviathan at 300.50 -36.35 0.50, ground -49, keel -48.00
+PASS [solo] sky_leviathan placed in the air above the ground (keel -48.00, ground -49)
+PASS [solo] sky_leviathan placed: inside nothing
+PASS [solo] sky_leviathan hovers (-36.346 -> -36.346)
+PASS [solo] sky_leviathan stands on the main deck (local y 0.000)
+PASS [solo] sky_leviathan walks on the main deck (local 0.00 0.00 0.30)
+PASS [solo] sky_leviathan walks into the captain's quarters (local z -11.99 y 0.00)
+PASS [solo] sky_leviathan the player takes the helm
+PASS [solo] sky_leviathan climbs slowly under command (3.17 blocks in 4 s)
+PASS [solo] sky_leviathan flies forward under command (2.37 blocks in 4 s)
+PASS [solo] sky_leviathan flight: inside nothing
+PASS [solo] sky_leviathan the pilot steps off onto the quarterdeck (local 1.30 3.00 -11.65)
+[solo] sky_leviathan after the ladder: local 0.00 28.00 -6.73
+PASS [solo] sky_leviathan climbs the tower's ladder onto the observation deck (local y 28.00)
+PASS [solo] sky_leviathan item: /ship give gives it (1)
+[solo] nautilus before the restart: at 215.50 -41.88 -19.50, depth 5.93
+PASS [solo-redemarrage] nautilus reloaded after the restart
+[solo-redemarrage] nautilus after the restart: at 215.50 -41.88 -19.50, state [true, true, false, 0.5, true, true, true, true, true, 6.0, 5.9712687]
+PASS [solo-redemarrage] nautilus restart: same place and depth (y -41.88, before -41.88)
+PASS [solo-redemarrage] nautilus restart: the doors open before are still open, the others shut
+PASS [solo-redemarrage] nautilus restart: airlock half full (0.50)
+PASS [solo-redemarrage] nautilus restart: shutters closed, projector on, lamps off
+PASS [solo-redemarrage] nautilus restart: the lifeboat is still on the water and known to the Nautilus
+PASS [solo-redemarrage] nautilus restart: ordered depth kept (6.0)
+PASS [solo-redemarrage] nautilus restart: the lifeboat is taken back aboard
+[dedie] world loaded
+[dedie] ship at 0.50 -58.11 0.50 yaw 0.0
+[dedie] expected main deck top -57.661
+[dedie] after drop: player y=-57.661 onGround=true
+PASS [dedie] falling: player should stand on the deck (y=-57.661, deck=-57.661)
+[dedie] after jumps: y=-57.661, lowest=-57.661
+PASS [dedie] jumping: player must land back on the deck (y=-57.661 min=-57.661)
+[dedie] after walking forward: local x=1.00 y=0.95 z=7.56
+PASS [dedie] walking: player must still be aboard (local 1.00 0.95 7.56)
+PASS [dedie] walking: player should have climbed onto the fore deck (z=7.56)
+[dedie]   jump tick 0: local x=4.168 y=1.531 ground=false
+[dedie]   jump tick 1: local x=3.883 y=1.864 ground=false
+[dedie]   jump tick 2: local x=3.597 y=2.112 ground=false
+[dedie]   jump tick 3: local x=3.312 y=2.277 ground=false
+[dedie]   jump tick 4: local x=3.027 y=2.360 ground=false
+[dedie]   jump tick 5: local x=2.742 y=2.363 ground=false
+[dedie]   jump tick 6: local x=2.457 y=2.288 ground=false
+[dedie]   jump tick 7: local x=2.173 y=2.136 ground=false
+[dedie]   jump tick 8: local x=1.888 y=1.908 ground=false
+[dedie]   jump tick 9: local x=1.604 y=1.606 ground=false
+[dedie]   jump tick 10: local x=1.320 y=1.232 ground=false
+[dedie]   jump tick 11: local x=1.036 y=0.788 ground=false
+[dedie]   jump tick 12: local x=0.752 y=0.450 ground=true
+[dedie]   jump tick 13: local x=0.366 y=0.450 ground=true
+[dedie]   jump tick 14: local x=0.028 y=0.450 ground=true
+[dedie]   jump tick 15: local x=-0.157 y=0.450 ground=true
+[dedie]   jump tick 16: local x=-0.258 y=0.450 ground=true
+[dedie]   jump tick 17: local x=-0.313 y=0.450 ground=true
+[dedie]   jump tick 18: local x=-0.343 y=0.450 ground=true
+[dedie]   jump tick 19: local x=-0.359 y=0.450 ground=true
+[dedie] after jumping from the quay: local x=-0.37 y=0.45 z=0.00
+PASS [dedie] quay: player should have landed on the deck (local -0.37 0.45 0.00)
+[dedie] zombie at y=-57.661
+PASS [dedie] mob: armor stand should stand on the deck
+[dedie] swimming up under the hull: highest head y=-59.276, hull bottom=-59.226
+PASS [dedie] under the hull: the swimmer must be stopped by the hull bottom
+[dedie] ship moved 9.00 blocks under player control
+PASS [dedie] steering: the ship should move forward (moved 9.00)
+[dedie] zombie local after sailing: 0.80 0.45 3.00
+PASS [dedie] carry: zombie should still be aboard
+[dedie] galleon at 46.50 -56.61 -7.50 yaw 0.0
+PASS [dedie] galleon: the galley is still there (both ships coexist)
+PASS [dedie] galleon falling: player on the main deck (y=-55.611, deck=-55.611)
+PASS [dedie] galleon jumping: back on the deck (y=-55.611 min=-55.611)
+[dedie] galleon cabin: local 0.00 1.00 -12.08
+PASS [dedie] galleon cabin: player walked into the cabin (local z=-12.08 y=1.00)
+[dedie] galleon balcony: local 0.00 1.00 -17.88
+PASS [dedie] galleon balcony: player on the balcony, held by the balustrade (local z=-17.88 y=1.00)
+[dedie] galleon quarterdeck: local 2.75 3.60 -13.90
+PASS [dedie] galleon stairs: player climbed onto the quarterdeck (local y=3.60 z=-13.90)
+[dedie] galleon forecastle: local 2.25 3.00 13.16
+PASS [dedie] galleon stairs: player climbed onto the forecastle (local y=3.00 z=13.16)
+[dedie] galleon seats: 15 crew seated, pilot 1, passengers 16, refusals 17/17
+PASS [dedie] galleon seats: 16 passengers seated (15 + 1)
+PASS [dedie] galleon seats: a 17th passenger is refused
+[dedie] galleon handling: 0.68 blocks in 2 s, 11.13 in 8 s, speed 2.77, 9.35 blocks coasting in 4 s while turning 9.2 deg
+PASS [dedie] galleon handling: slow acceleration (0.68 in 2 s, 11.13 in 8 s)
+PASS [dedie] galleon handling: inertia, keeps going without power (9.35)
+PASS [dedie] galleon handling: turns, but slowly (9.2 deg in 4 s)
+PASS [dedie] galleon carry: the 16 passengers are still seated (16)
+[dedie] galleon deck mob local after sailing: 2.13 1.00 2.56
+PASS [dedie] galleon carry: the mob standing on deck is carried
+PASS [dedie] galleon dismount: the pilot steps off onto the quarterdeck (local 1.17 3.60 -10.42)
+PASS [dedie] galleon dismount: a passenger steps off beside his seat (local 2.33 1.00 -1.56, 0.06 from its spot)
+[dedie] no collisions, drop 0: local -1.47 1.00 2.18
+PASS [dedie] safety net: without collisions the player is still caught by the main deck (local y=1.00)
+[dedie] no collisions, drop 1: local -1.52 3.60 -12.57
+PASS [dedie] safety net: without collisions the player is still caught by the quarterdeck (local y=3.60)
+PASS [dedie] galleon item: /ship give galleon gives the item (1)
+PASS [dedie] warship: the galley and the galleon are still there before the third ship is launched
+[dedie] warship at -89.50 -57.01 -19.50 yaw 0.0
+PASS [dedie] warship falling: player on the main deck (y=-52.511, deck=-52.511)
+PASS [dedie] warship jumping: back on the deck (y=-52.511 min=-52.511)
+[dedie] warship cabin: local 0.00 4.50 -13.88
+PASS [dedie] warship cabin: player walked into the great cabin (local z=-13.88 y=4.50)
+[dedie] warship poop deck: local 3.20 9.40 -21.91
+PASS [dedie] warship stairs: player climbed to the quarterdeck then the poop deck (local y=9.40 z=-21.91)
+[dedie] warship forecastle: local 2.60 6.80 22.43
+PASS [dedie] warship stairs: player climbed onto the forecastle (local y=6.80 z=22.43)
+[dedie] warship seats: 23 crew seated, pilot 1, passengers 24, refusals 1
+PASS [dedie] warship seats: 24 passengers seated (23 + 1)
+PASS [dedie] warship seats: a 25th passenger is refused
+[dedie] warship handling: 0.43 blocks in 2 s, 10.94 in 10 s, 7.84 coasting in 4 s while turning 4.2 deg
+PASS [dedie] warship handling: very slow acceleration (0.43 in 2 s, 10.94 in 10 s)
+PASS [dedie] warship handling: strong inertia (7.84)
+PASS [dedie] warship handling: wide, slow turns (4.2 deg in 4 s)
+PASS [dedie] warship carry: the 24 passengers are still seated (24)
+[dedie] warship deck mob local after sailing: 1.50 4.50 -2.00
+PASS [dedie] warship carry: the mob standing on deck is carried
+PASS [dedie] warship dismount: the pilot steps off onto the quarterdeck (local 1.40 7.10 -12.07)
+PASS [dedie] warship safety net: without collisions the player is still caught by the main deck (local y=4.50)
+PASS [dedie] warship safety net: without collisions the player is still caught by the poop deck (local y=9.40)
+PASS [dedie] warship item: /ship give warship gives the item (1)
+[dedie] medieval_galley at -41.50 -57.66 125.50 yaw 0.0
+PASS [dedie] medieval_galley floats: water line at y=-58.11 (basin surface -58)
+PASS [dedie] medieval_galley falling: player on the deck (y=-57.211, deck=-57.211)
+PASS [dedie] medieval_galley jumping: back on the deck (y=-57.211 min=-57.211)
+PASS [dedie] medieval_galley seats: 10 passengers seated (9 + pilot 1)
+PASS [dedie] medieval_galley seats: one passenger too many is refused
+[dedie] medieval_galley handling: 8.69 blocks in 4 s, 26.5 deg in 3 s
+PASS [dedie] medieval_galley sailing: moves forward under command (8.69 blocks in 4 s)
+PASS [dedie] medieval_galley sailing: turns under command (26.5 deg)
+PASS [dedie] medieval_galley carry: the 10 passengers are still seated (10)
+PASS [dedie] medieval_galley dismount: the pilot steps off onto the deck (local 0.00 0.45 -9.44)
+[dedie] medieval_galley autopilot: 31.0 -> 1.2 blocks from the second point
+PASS [dedie] medieval_galley autopilot: follows its route (31.0 -> 1.2 blocks)
+PASS [dedie] medieval_galley item: /ship give medieval_galley gives the item (1)
+[dedie] steam_paddleboat at -41.50 -57.31 125.50 yaw 0.0
+PASS [dedie] steam_paddleboat floats: water line at y=-58.11 (basin surface -58)
+PASS [dedie] steam_paddleboat falling: player on the deck (y=-54.911, deck=-54.911)
+PASS [dedie] steam_paddleboat jumping: back on the deck (y=-54.911 min=-54.911)
+PASS [dedie] steam_paddleboat seats: 8 passengers seated (7 + pilot 1)
+PASS [dedie] steam_paddleboat seats: one passenger too many is refused
+[dedie] steam_paddleboat handling: 3.95 blocks in 4 s, 16.3 deg in 3 s
+PASS [dedie] steam_paddleboat sailing: moves forward under command (3.95 blocks in 4 s)
+PASS [dedie] steam_paddleboat sailing: turns under command (16.3 deg)
+PASS [dedie] steam_paddleboat carry: the 8 passengers are still seated (8)
+PASS [dedie] steam_paddleboat dismount: the pilot steps off onto the deck (local 1.40 2.40 4.96)
+[dedie] steam_paddleboat autopilot: 40.0 -> 0.6 blocks from the second point
+PASS [dedie] steam_paddleboat autopilot: follows its route (40.0 -> 0.6 blocks)
+PASS [dedie] steam_paddleboat item: /ship give steam_paddleboat gives the item (1)
+[dedie] elven_sailboat at -41.50 -57.51 125.50 yaw 0.0
+PASS [dedie] elven_sailboat floats: water line at y=-58.11 (basin surface -58)
+PASS [dedie] elven_sailboat falling: player on the deck (y=-56.911, deck=-56.911)
+PASS [dedie] elven_sailboat jumping: back on the deck (y=-56.911 min=-56.911)
+PASS [dedie] elven_sailboat seats: 8 passengers seated (7 + pilot 1)
+PASS [dedie] elven_sailboat seats: one passenger too many is refused
+[dedie] elven_sailboat handling: 6.32 blocks in 4 s, 11.0 deg in 3 s
+PASS [dedie] elven_sailboat sailing: moves forward under command (6.32 blocks in 4 s)
+PASS [dedie] elven_sailboat sailing: turns under command (11.0 deg)
+PASS [dedie] elven_sailboat carry: the 8 passengers are still seated (8)
+PASS [dedie] elven_sailboat dismount: the pilot steps off onto the deck (local 0.70 0.60 -9.38)
+[dedie] elven_sailboat autopilot: 33.5 -> 1.3 blocks from the second point
+PASS [dedie] elven_sailboat autopilot: follows its route (33.5 -> 1.3 blocks)
+PASS [dedie] elven_sailboat item: /ship give elven_sailboat gives the item (1)
+[dedie] steampunk_airship at 100.50 -57.35 0.50, ground top -60
+PASS [dedie] steampunk_airship placed in the air: keel -59.00 above the ground (-60)
+PASS [dedie] steampunk_airship placed in the air: inside nothing
+PASS [dedie] steampunk_airship hovers: no fall (y -57.350 -> -57.350 in 3 s)
+PASS [dedie] steampunk_airship seats: 6 aboard (5 passengers + pilot 1)
+PASS [dedie] steampunk_airship seats: one passenger too many is refused
+[dedie] steampunk_airship climb: -57.35 -> -52.41, then -50.950, -50.950
+PASS [dedie] steampunk_airship climbs under command (4.94 blocks in 4 s)
+PASS [dedie] steampunk_airship holds its altitude (-50.950 -> -50.950)
+[dedie] steampunk_airship flight: 6.81 blocks in 5 s, 13.9 deg in 3 s, altitude -50.950 -> -50.950
+PASS [dedie] steampunk_airship flies forward under command (6.81 blocks in 5 s)
+PASS [dedie] steampunk_airship turns under command (13.9 deg)
+PASS [dedie] steampunk_airship level flight while moving (-50.950 -> -50.950)
+PASS [dedie] steampunk_airship comes down under command (-50.95 -> -54.20)
+PASS [dedie] steampunk_airship carry: the 6 aboard are still seated (6)
+PASS [dedie] steampunk_airship dismount: the pilot steps off onto the deck of the gondola (local 0.90 0.00 -4.11)
+PASS [dedie] steampunk_airship manual flight: never inside anything
+[dedie] steampunk_airship autopilot: 2.9 blocks from the stop, deck at -42.16 (stop -42.20), keel over the wall -39.04 (wall top -44)
+PASS [dedie] steampunk_airship autopilot: climbs over the wall (keel -39.04, wall top -44)
+PASS [dedie] steampunk_airship autopilot: never inside the wall or the ground
+PASS [dedie] steampunk_airship autopilot: reaches the stop in 3D (2.9 blocks away, deck -42.16 for -42.20)
+PASS [dedie] steampunk_airship autopilot: turns to the stop's heading while waiting (87.1)
+PASS [dedie] steampunk_airship item: right click on the ground places an airship (1 -> 2)
+PASS [dedie] steampunk_airship item: /ship give steampunk_airship gives the item (1)
+PASS [dedie] nautilus basin filled with water all along (143 / 143)
+[dedie] nautilus at 215.50 -35.91 -19.50, water surface -36.111
+PASS [dedie] nautilus floats on the surface (y -35.91, surfaced -35.91)
+PASS [dedie] nautilus placed: inside nothing
+[dedie] nautilus dining room: water 0.0/0.0 camera 0.0, local y 0.000
+PASS [dedie] nautilus walks on the main level floor (local y 0.000)
+[dedie] nautilus lower level (below the waterline): touching water client 0.0 server 0.0, submerged 0.0/0.0, camera 0.0, air 300/300, y -4.500
+PASS [dedie] nautilus lower level is dry although below the waterline
+PASS [dedie] nautilus lower level: no underwater view
+PASS [dedie] nautilus lower level: the player keeps all his air (300/300)
+PASS [dedie] nautilus lower level: standing on its floor (local y -4.500)
+[dedie] nautilus spiral staircase: local -1.71 0.00 -8.08
+PASS [dedie] nautilus climbs the spiral staircase to the main level (local y 0.00)
+[dedie] nautilus ladder, hatch closed: local y 6.70 (hatch at 8.50)
+PASS [dedie] nautilus climbs the ladder and stops under the closed hatch (local y 6.70)
+[dedie] nautilus ladder, hatch open: local 1.50 9.00 -17.62
+PASS [dedie] nautilus goes out through the open hatch onto the casing (local y 9.00)
+PASS [dedie] nautilus the hatch is open
+PASS [dedie] nautilus does not dive while someone stands in the open hatch (-35.94 -> -35.94)
+PASS [dedie] nautilus the dive order shuts the open hatch
+[dedie] nautilus dive: -35.94 -> -50.24, then -50.241 (depth 14.3)
+PASS [dedie] nautilus dives under command (14.30 blocks)
+PASS [dedie] nautilus holds its depth (-50.241 -> -50.241)
+PASS [dedie] nautilus dived: inside nothing
+PASS [dedie] nautilus the hatch does not open under water
+[dedie] nautilus sailing submerged: 9.99 blocks, armor stand local 1.00 0.00 -4.00
+PASS [dedie] nautilus sails submerged (9.99 blocks)
+PASS [dedie] nautilus carries what stands in its rooms (armor stand local y 0.00 z -4.00)
+[dedie] nautilus inside, submerged: touching water 0.0/0.0, submerged 0.0/0.0, camera 0.0, air 300/300, local y -0.000
+PASS [dedie] nautilus submerged: the rooms are dry (no water, no underwater view)
+PASS [dedie] nautilus submerged: the player keeps all his air (300/300)
+PASS [dedie] nautilus submerged: standing on the main level floor (local y -0.000)
+PASS [dedie] nautilus submerged: the sea seen through the glass is murky (sea fog and veils behind the windows)
+PASS [dedie] nautilus submerged: walking in the salon (local 0.00 -0.00 -2.36)
+PASS [dedie] nautilus salon: a click on the lever closes the shutters of the windows
+PASS [dedie] nautilus salon: a click on the sofa seats the player (seat 20)
+PASS [dedie] nautilus /ship nautilus lumieres off switches the lamps off
+PASS [dedie] nautilus /ship nautilus volets on opens the shutters
+PASS [dedie] nautilus airlock: the outer door stays shut while the airlock is dry
+[dedie] nautilus airlock filled: level 1.00, touching water 1.0/1.0, submerged 1.0/1.0
+PASS [dedie] nautilus airlock: filled with sea water, the player is under water (level 1.00)
+PASS [dedie] nautilus airlock: the inner door stays shut while it is full
+PASS [dedie] nautilus airlock: full, the outer door opens onto the sea
+[dedie] nautilus swims out of the airlock: local -11.01 -6.10 27.00
+PASS [dedie] nautilus swims out of the airlock through its tunnel into the sea (local x -11.01)
+PASS [dedie] nautilus airlock: the pumps do not start while the outer door is open (level 1.00)
+[dedie] nautilus airlock pumped out: level 0.00, touching water 0.0/0.0, submerged 0.0/0.0
+PASS [dedie] nautilus airlock: pumped out, dry again (level 0.00)
+PASS [dedie] nautilus airlock: empty, the inner door opens
+[dedie] nautilus surfacing: depth 0.02
+PASS [dedie] nautilus rises back to the surface (depth 0.02)
+PASS [dedie] nautilus lifeboat: launched on the water (1 boat)
+PASS [dedie] nautilus lifeboat: taken back into its recess
+[dedie] nautilus /ship nautilus profondeur 10: depth 9.94
+PASS [dedie] nautilus goes to the ordered depth (9.94)
+PASS [dedie] nautilus ballasts emptied: back on the surface (depth 0.06)
+[dedie] nautilus route t=0: phase DOCKED target 0 z 4.1 depth 0.06 speed 0.00 altErr 0.00 vy 0.00 ai true
+[dedie] nautilus route t=100: phase SAILING target 2 z 5.7 depth 1.58 speed 1.01 altErr -7.47 vy -1.01 ai true
+[dedie] nautilus route t=200: phase SAILING target 2 z 14.4 depth 7.07 speed 1.90 altErr -1.98 vy -1.05 ai true
+[dedie] nautilus route: docked at the underwater stop true, depth 8.93, at z 19.4 (stop 22.0), collisions 0
+PASS [dedie] nautilus autopilot: dives along the route and stops at 9 blocks under water (depth 8.93)
+PASS [dedie] nautilus autopilot: never inside the basin
+PASS [dedie] nautilus item: /ship give nautilus gives the item (1)
+PASS [dedie] nautilus item: right click on the water places the Nautilus
+[dedie] old_corsair at 315.50 -49.11 -11.50, water surface -49.111
+PASS [dedie] old_corsair floats on the surface (y -49.11, water -49.11)
+[dedie] old_corsair at rest: sail set 0.0, sails open 0.03
+PASS [dedie] old_corsair: the sails are furled when the ship is stopped (open 0.03)
+PASS [dedie] old_corsair: the sails are set again (open 0.97)
+PASS [dedie] old_corsair: the model loaded in game has its animations (sails, helm, flags, lanterns, ropes)
+[dedie] old_corsair main deck: local 0.00 4.500 -5.50, on ground 1.0, water 0.0/0.0, air 300
+PASS [dedie] old_corsair: standing in the main deck (local y 4.500)
+[dedie] old_corsair quarterdeck: local 1.60 7.000 -15.00, on ground 1.0, water 0.0/0.0, air 300
+PASS [dedie] old_corsair: standing in the quarterdeck (local y 7.000)
+[dedie] old_corsair captain's cabin: local 0.00 4.000 -16.00, on ground 1.0, water 0.0/0.0, air 300
+PASS [dedie] old_corsair: standing in the captain's cabin (local y 4.000)
+[dedie] old_corsair common room: local 1.30 1.000 5.00, on ground 1.0, water 0.0/0.0, air 300
+PASS [dedie] old_corsair: standing in the common room (local y 1.000)
+[dedie] old_corsair kitchen: local 0.50 1.000 9.60, on ground 1.0, water 0.0/0.0, air 300
+PASS [dedie] old_corsair: standing in the kitchen (local y 1.000)
+[dedie] old_corsair coursive: local 0.00 1.000 -8.00, on ground 1.0, water 0.0/0.0, air 300
+PASS [dedie] old_corsair: standing in the coursive (local y 1.000)
+[dedie] old_corsair hold: local 0.00 -2.000 -6.00, on ground 1.0, water 0.0/0.0, air 300
+PASS [dedie] old_corsair: standing in the hold (local y -2.000)
+PASS [dedie] old_corsair: the hold is dry below the waterline (water 0.0/0.0)
+PASS [dedie] old_corsair: the kitchen door opens
+[dedie] old_corsair at the helm: helm -1.00, sails open 1.00, speed 2.14
+PASS [dedie] old_corsair: the wheel and the rudder turn with the helm (-1.00)
+PASS [dedie] old_corsair: the sails are set under way (open 1.00)
+[dedie] old_corsair moved 9.17 blocks in 8 s at the helm
+PASS [dedie] old_corsair sails under the player's control (moved 9.17)
+[dedie] old_corsair under way: speed 2.06, 15 ship sounds (creaks, rigging, canvas, bow wave)
+PASS [dedie] old_corsair: still under way, foam at the bow (speed 2.06)
+PASS [dedie] old_corsair: the old ship creaks and the bow wave washes under way (15 sounds)
+[dedie] sky_leviathan at 300.50 -36.35 0.50, ground -49, keel -48.00
+PASS [dedie] sky_leviathan placed in the air above the ground (keel -48.00, ground -49)
+PASS [dedie] sky_leviathan placed: inside nothing
+PASS [dedie] sky_leviathan hovers (-36.346 -> -36.346)
+PASS [dedie] sky_leviathan stands on the main deck (local y 0.000)
+PASS [dedie] sky_leviathan walks on the main deck (local 0.00 0.00 0.30)
+PASS [dedie] sky_leviathan walks into the captain's quarters (local z -11.99 y 0.00)
+PASS [dedie] sky_leviathan the player takes the helm
+PASS [dedie] sky_leviathan climbs slowly under command (3.17 blocks in 4 s)
+PASS [dedie] sky_leviathan flies forward under command (2.37 blocks in 4 s)
+PASS [dedie] sky_leviathan flight: inside nothing
+PASS [dedie] sky_leviathan the pilot steps off onto the quarterdeck (local 1.30 3.00 -11.65)
+[dedie] sky_leviathan after the ladder: local 0.00 28.00 -6.73
+PASS [dedie] sky_leviathan climbs the tower's ladder onto the observation deck (local y 28.00)
+PASS [dedie] sky_leviathan item: /ship give gives it (1)
