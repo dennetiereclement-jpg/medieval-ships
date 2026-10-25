@@ -135,7 +135,7 @@ public final class LeviathanGameTest {
 				{2.7, -1.38, 4.3, -1.6, -2.5, 8.8}, {-1.2, 1.62, -14.6, 2.2, 0.5, -17.8}, {0.6, 1.62, -8.6, -1.6, 0.6, -12.0},
 				{0.0, 4.62, -15.8, 0.0, 3.6, -19.5}, {0.3, -3.88, 5.9, -0.3, -4.8, -2.0}, {0.0, -1.38, 0.3, 0.0, -1.9, -9.0},
 				{0.1, -1.38, -10.9, 0.0, -3.4, -14.2}, {3.6, 1.62, 4.5, 0.0, 3.0, -11.0},
-				{-3.0, -0.9, -12.3, 0.0, -4.3, -16.0}}; // from the catwalk, aft over the boiler to the piston engine and its flywheel
+				{-1.95, -3.4, -13.6, 0.2, -4.3, -16.2}}; // beside the boiler, aft to the piston engine and its flywheel
 		for (int k = 0; k < rooms.length; k++) {
 			double[] c = cams[k];
 			lookLocal(server, hover, c[0], c[1], c[2], c[3], c[4], c[5]);
