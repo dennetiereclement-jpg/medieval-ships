@@ -117,6 +117,10 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 			matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees((float) (Math.sin(t * 0.9) * 0.45 * rock)));
 			matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float) (Math.sin(t * 0.63) * 0.9 * rock) + heel));
 			matrices.translate(0, Math.sin(t * 1.1) * 0.03 * rock, 0);
+			if (visual.hover() > 0f) {
+				// floating in the air: a slow bob (two beats so it never looks mechanical); only the drawing moves
+				matrices.translate(0, (Math.sin(t * 0.9) * 0.8 + Math.sin(t * 0.37 + 1.3) * 0.2) * visual.hover(), 0);
+			}
 
 			float oarTime = state.oarTime, oarWeight = state.oarWeight, sail = state.sailOpen, wheel = state.wheelTime;
 			float helm = state.helm, age = state.age / 20f, climb = state.climb;

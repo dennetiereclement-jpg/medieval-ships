@@ -1,4 +1,4 @@
-# Le Léviathan des Cieux (`sky_leviathan`) — analyse et plan (phase 1)
+# Le Léviathan des Cieux (`sky_leviathan`) — plan, animations et guide du joueur
 
 Planche de référence : `scratchpad/ref/leviathan_ref.png` (vues de côté, avant, arrière, dessus,
 perspective, détails, six vues intérieures). Comparaisons rendu / référence : voir le rapport.
@@ -98,7 +98,167 @@ Mods : Farmhouse Decorations (`farmhouse_decorations`), Furnish (`furnish`), Far
 Prises de vue en jeu (`LeviathanGameTest`) : `9_salle_commune` à `16_pont_principal`, depuis les points de
 vue des vues intérieures de la planche.
 
-## 5. Reste à faire (phase 3)
+## 5. Phase 3 : animations et effets
 
-Sons et vapeur de la salle des machines, cordages animés, vérification en jeu de la persistance après
-redémarrage.
+Tout ce qui bouge est un **petit os animé** du modèle (`tools/generate_leviathan.py`, `build_animations`) ;
+le reste (ballon, coque, ponts, pièces, meubles, tour, suspentes) est dessiné depuis le cache statique du
+moteur de rendu (calculé une fois, recopié à chaque image) : moins de 15 % des faces sont animées
+(vérifié par `LeviathanAnimationTest`). Tout part de l'état synchronisé de l'entité : chaque joueur voit
+la même chose.
+
+| Élément | Mouvement | Piloté par | Os |
+|---|---|---|---|
+| Ailerons de gouvernail (dorsal, bas) | braquent de ±10° | la barre (`steer`) | `fin_dorsal`, `fin_lower` (+ roue `helm_wheel`, safran `rudder`) |
+| Ailerons de profondeur (latéraux) | braquent de ±8° | la montée / descente (`elevator`) | `fin_side_p`, `fin_side_s` |
+| Tous les ailerons de queue | léger frémissement (±1°) en permanence | le temps (`streamer_wave`) | `fin_*` |
+| Voiles noires | respirent (le creux se gonfle et se relâche de ±22 % autour de la vergue : les écoutes restent amarrées au bastingage) et se balancent un peu | le temps | `black_sail_*` |
+| Pavillon pirate | ondule (deux moitiés) | le temps (`flag_wave`) | `flag`, `flag_tip` |
+| Banderoles déchirées, guirlandes de fanions, draperies noires du ballon | se balancent légèrement (les draperies autour de leurs deux nœuds, ±1,1°) | le temps | `pennants_*`, `swag_*` |
+| Lanternes suspendues | se balancent | le temps (`lantern_sway`) | `lantern_*` |
+| Grands engrenages de la tour et leurs pignons, volant et trains d'engrenages de la salle des machines | tournent dans leur plan, engrenés (pignons plus rapides, en sens inverse), en avant ou en arrière, plus vite avec la vitesse ; boucle sans à-coup | la phase de la machine (`engine`) | `tower_gear_*`, `tower_pinion_*`, `engine_gear_*` |
+| Pistons | une course par tour de volant, manivelles décalées d'un demi-tour | la phase de la machine | `engine_piston_*` |
+| Chaudière et machine | vibrent (±0,012 bloc, rapide et irrégulier) | la phase de la machine | `engine_boiler` |
+| Tout le vaisseau | flotte : monte et descend lentement de ±0,07 bloc (deux battements, période ≈ 7 s) | le temps | dessin seulement (`ShipModels.Visual.hover`) |
+
+La **phase de la machine** n'avance qu'avec la vitesse (en arrière en marche arrière) : vaisseau garé,
+engrenages et pistons sont immobiles et la chaudière ne vibre plus.
+
+**Vapeur et sons** (`LeviathanEffects`, client seulement, à moins de 96 blocs du joueur, quelques particules
+par tick, sons vanilla). La machine **tourne** quand le vaisseau avance ou change d'altitude, ou quand
+quelqu'un (ou le pilote automatique) tient la barre ; garée, elle est froide.
+
+* Machine froide : seulement un filet de vapeur, de temps en temps, à la soupape de sûreté de la chaudière
+  (gardée chaude), et le craquement des membrures et des cordages dans le vent.
+* Machine en marche : bouffées de vapeur à la soupape du dôme de la chaudière, jets aux vannes de ses deux
+  conduites (avec leur sifflement), vapeur aux deux tuyaux de la tour qui entrent dans le ballon, vapeur et
+  un peu de fumée aux évents d'échappement des deux flancs au-dessus de la salle des machines (la planche ne
+  montre aucune cheminée extérieure : la chaudière s'échappe par ces évents) ; battement des pistons
+  (piston qui sort / qui rentre), cliquetis des engrenages, grondement du foyer ; tout est plus rapide et
+  plus fort avec la vitesse. Les sons de la salle des machines s'entendent à moins de 28 blocs.
+
+## 6. Guide du joueur
+
+### Obtenir et poser le vaisseau
+
+* Objet *Le Léviathan des Cieux* dans l'inventaire créatif (onglet *Navires médiévaux*), ou
+  `/ship give sky_leviathan [joueurs]` (administrateurs). Aucune apparition naturelle.
+* **Clic droit sur le sol, l'eau ou un toit** : le vaisseau apparaît au-dessus, en vol stationnaire,
+  seulement si **toute** sa place est libre (environ 67 blocs de long, 25 de large, 48 de haut :
+  ballon, ailerons, navire suspendu, aileron ventral, mât du pavillon) et sous le plafond `maxAltitude`.
+  Sinon un message l'indique et rien n'est posé. `/ship spawn sky_leviathan` le fait apparaître au-dessus
+  de votre position, proue dans votre direction.
+* Récupérer : accroupi + clic gauche sur le vaisseau (administrateurs) ; `/ship remove` le supprime.
+
+### Monter à bord, marcher, portes, échelles, sièges
+
+* **Clic droit sur la coque** : on est déposé sur le pont principal. On marche librement sur les ponts
+  ouverts (pont principal, gaillard d'avant, château arrière, dunette, pont d'observation au sommet du
+  ballon) **et dans toutes les pièces**, pendant le vol : on suit le vaisseau, on ne tombe pas, on ne
+  traverse ni les murs, ni les planchers, ni la coque.
+* **Portes et trappes** : clic droit pour ouvrir / fermer (portes animées, à un ou deux battants) :
+  tour (0), trappe du pont d'observation (1), cabine du capitaine (2), chambre (3), salle des cartes (4),
+  magasin avant (5), salle commune (6), poste d'équipage (7), cambuse (8), salle des machines (9),
+  trappe de la cale (11). L'état des portes est sauvegardé.
+* **Escaliers** entre les niveaux (marches de 0,5 bloc) ; **échelles** : dans la tour (du pont principal
+  jusqu'au pont d'observation, 28 blocs : sauter sur l'échelle puis avancer) et vers la cale.
+* **Sièges** : clic droit sur un banc, une chaise, un tabouret ou un fauteuil (26 places : salle commune,
+  pont, cabine, salle des cartes, poste d'équipage, cambuse, salle des machines…) ; Maj pour se lever (on
+  se relève à côté du siège).
+
+### Piloter
+
+**Prendre la barre** : clic droit sur la roue, sur le château arrière (le pilote se tient debout derrière
+la roue). Touches (ce sont celles de déplacement de Minecraft, changeables dans *Options → Commandes*) :
+
+| Action | Touche (AZERTY) |
+|---|---|
+| Avancer (prendre de la vitesse) | Z |
+| Ralentir, puis reculer | S |
+| Tourner à bâbord / tribord | Q / D |
+| **Monter** | Espace |
+| **Descendre** | Ctrl |
+| Quitter la barre | Maj |
+
+Relâchées, Espace et Ctrl laissent le vaisseau **garder son altitude** (il ne tombe pas). C'est un très
+grand vaisseau lourd : il met longtemps à prendre son erre et à s'arrêter, vire large, monte et descend
+progressivement, se stabilise seul. Il ne traverse ni le relief, ni les arbres, ni les bâtiments. La barre
+d'action affiche l'altitude, la montée / descente et la vitesse.
+
+### Pilote automatique (itinéraires aériens)
+
+Comme le dirigeable steampunk (détails dans [COMMANDES.md](COMMANDES.md), *Itinéraires aériens*) :
+
+```
+/ship route create <nom> [pingpong|loop|once] air      # itinéraire aérien
+/ship route addstop <nom> [secondes] [nom de l'escale] # placez-vous là où doit être le pont principal
+/ship route addpoint <nom>                             # point de passage en 3D
+/ship route edit <nom> <n°> altitude <y> | speed <blocs/s> | wait <secondes> | yaw <degrés>|here | clear
+/ship route assign <nom>                                # près du vaisseau : décolle et suit l'itinéraire
+/ship route depart | /ship ai enable | /ship ai disable | /ship route show <nom> | /ship info
+```
+
+Il décolle, monte à l'altitude de croisière (toujours au moins `aiClearance` = 8 blocs sous la quille
+au-dessus du relief, des arbres et des bâtiments), anticipe les virages, ralentit, descend à l'escale dans
+les `aiApproachDistance` = 48 derniers blocs, s'arrête, attend, se tourne vers le cap de l'escale et repart.
+Les itinéraires sont sauvegardés dans le monde.
+
+### Réglages (`config/medievalships.json`, bloc `ships.sky_leviathan`, `/ship reload`)
+
+| Clé | Défaut | Rôle |
+|---|---|---|
+| `slowSpeed` / `normalSpeed` / `fastSpeed` | 2 / 4.2 / 6.8 | allures (blocs/s) |
+| `reverseSpeed` | 1.2 | marche arrière |
+| `acceleration`, `braking`, `waterDrag` | 0.3, 0.6, 0.15 | blocs/s² ; perte de vitesse en roue libre (forte inertie) |
+| `maxTurnRate`, `minTurnFactor` | 6.5, 0.5 | rotation maximale (°/s), part disponible à l'arrêt (vire sur place lentement) |
+| `helmRate`, `helmReturnRate`, `turnResponse`, `turnSpeedLoss` | 0.8, 0.8, 0.5, 0.08 | barre, inertie de rotation, ralentissement en virage |
+| `waveRocking` | 0.5 | balancement visuel (0 = aucun) |
+| `aiWaypointRadius`, `aiStopRadius`, `aiLookahead`, `aiProbeDistance` | 16, 4, 36, 80 | pilote automatique : rayons, anticipation, portée de détection |
+| `aiDefaultWaitSeconds`, `aiStuckSeconds`, `aiTurnAroundSpeed` | 300, 12, 0.5 | attente par défaut aux escales, détection de blocage, vitesse en demi-tour |
+| `flight.climbSpeed` / `flight.descendSpeed` | 1.2 / 1.0 | montée et descente (blocs/s) |
+| `flight.verticalAcceleration` | 0.45 | changements d'altitude progressifs (blocs/s²) |
+| `flight.maxAltitude` | 300 | plafond : le haut du vaisseau ne le dépasse jamais |
+| `flight.aiClearance`, `flight.aiApproachDistance`, `flight.aiLandingClearance` | 8, 48, 2 | pilote automatique : hauteur au-dessus du relief, distance de descente vers une escale, hauteur gardée en descendant |
+| `flight.sway` | 0.6 | balancement visuel (0 = aucun) |
+
+### Mobilier et modèles
+
+* **Mobilier des mods de décoration** : voir le tableau de la section 4 (pièce par pièce). Ils sont
+  facultatifs : un mod absent est remplacé par une boîte de même taille. Aucun fichier des mods n'est copié.
+* **Modèles faits pour le vaisseau** (dans son modèle Blockbench `blockbench/sky_leviathan.bbmodel`,
+  générés par `tools/leviathan_furniture.py` et `tools/generate_leviathan.py`) : la grande chaudière rivetée
+  (nervures dorées, trappe à rayons, foyers rougeoyants, manomètres, ballons latéraux, cheminée), la machine
+  à pistons et son volant, les trains d'engrenages muraux, les conduites, vannes, réservoirs, tableaux de
+  manomètres et banc de leviers, la passerelle et ses garde-corps ; les tonneaux couchés sur berceau et
+  debout, les coffres de marin, étagères de bocaux et bouteilles, sacs, rouleaux de cordage ; les tapis
+  rouges, couvertures rouges des lits, cartes, instruments (compas, sextant, compas à pointes, sablier,
+  globe, longue-vue), potences et poteaux de lanternes, cadres des tableaux, hublots et fenêtres vus de
+  l'intérieur, membrures. Dehors : roue de barre, safran, cabestan, roue du pont d'observation, lanternes,
+  engrenages de la tour, ailerons, pavillon.
+
+### Captures
+
+* Comparaison planche / jeu (variante avec les mods de décoration) :
+  [comparaison_sky_leviathan.png](comparaison_sky_leviathan.png) — côté, avant, arrière, dessus,
+  perspective, ballon, ailerons, navire suspendu ; pont, salle commune, cabine du capitaine, cale, coursive,
+  salle des machines.
+* Prises de vue du test en jeu (`LeviathanGameTest`, branche `test-results-<variante>-<branche>`) :
+  `1_cote` … `5_perspective`, `18_ballon`, `19_ailerons`, `20_coque_suspendue`, `21_ailerons_en_virage`
+  (en virage et en montée, depuis une caméra derrière la queue), `6_pont`, `7_cabine`, `8_pont_superieur`,
+  `9_salle_commune` … `17_salle_machines_arriere`, `22_salle_machines_en_marche`.
+
+### Limites connues
+
+* Le flottement est seulement dessiné (±0,07 bloc) : les collisions et les joueurs à bord ne le suivent pas,
+  d'où, au plus, un écart de quelques centièmes de bloc entre les pieds et le pont.
+* La machine tourne avec la vitesse horizontale : en vol stationnaire, ou pendant une montée sur place, les
+  engrenages et les pistons sont immobiles (la vapeur et le battement continuent tant que quelqu'un tient la
+  barre).
+* La planche n'est pas cohérente entre ses vues (vue arrière : ailerons d'un seul côté) : disposition
+  symétrique, fidèle aux vues de côté et de dessus.
+* Les sons sont des sons vanilla (piston, chaîne, haut fourneau, feu éteint, bois) : une approximation
+  d'une machine à vapeur.
+* De loin, l'intérieur et les meubles ne sont plus dessinés (au-delà de 48 blocs), ni les petits détails
+  extérieurs (au-delà de 80 blocs).
+* Persistance (position, cap, altitude, vitesse, itinéraire, pilote automatique, portes) : générique au mod
+  et vérifiée par les tests unitaires et le test des itinéraires des nouveaux véhicules ; un vrai
+  redémarrage de serveur avec ce vaisseau n'a pas été fait à la main.

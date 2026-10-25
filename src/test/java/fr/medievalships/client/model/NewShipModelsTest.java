@@ -47,7 +47,8 @@ class NewShipModelsTest {
 					new String[] {"propeller", "steer", "elevator"}),
 			new Expected("sky_leviathan",
 					new String[] {"helm_wheel", "rudder", "fin_dorsal", "fin_lower", "fin_side_p", "fin_side_s", "fin_keel", "flag", "flag_tip",
-							"tower_gear_0", "engine_gear_0", "door_0_a", "door_1", "balloon", "hoops", "hull", "rooms", "furniture", "fittings"},
+							"tower_gear_0", "engine_gear_0", "engine_piston_0", "engine_boiler", "swag_p0", "black_sail_p0", "door_0_a", "door_1",
+							"balloon", "hoops", "hull", "rooms", "furniture", "fittings"},
 					new String[] {"steer", "elevator", "flag_wave", "engine", "lantern_sway", "streamer_wave", "door_0", "door_1", "door_11"}));
 
 	private static BbModel load(String name) throws Exception {

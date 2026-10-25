@@ -23,10 +23,13 @@ import fr.medievalships.entity.ShipEntity;
 import fr.medievalships.entity.ShipTracker;
 
 /**
- * In-game checks of the Sky Leviathan (about 50 s of game time): placed in the air over open ground,
- * hovers, the reference views, the furnished rooms, walking on the main deck, flown from the helm (climb, forward), the
- * pilot steps off onto the quarterdeck, the captain's door, the ladder of the tower up through the
- * balloon to the observation deck, the item. Called once from {@link ShipClientGameTest}.
+ * In-game checks of the Sky Leviathan (about 60 s of game time): placed in the air over open ground,
+ * hovers, the views of the reference sheet (side, front, back, top, perspective, the balloon, the fins, the suspended
+ * hull), the furnished rooms, walking on the main deck, flown from the helm (climb, forward, turn) with its animations
+ * (engine still when parked and turning under way, rudder and elevator fins following the helm and the climb, shot
+ * from outside during the turn, the engine room under way), the pilot steps off onto the quarterdeck, the captain's
+ * door, the ladder of the tower up through the balloon to the observation deck, the item. The HUD is hidden for the
+ * screenshots (comparison sheet docs/comparaison_sky_leviathan.png). Called once from {@link ShipClientGameTest}.
  */
 public final class LeviathanGameTest {
 	private static final ShipType TYPE = Ships.SKY_LEVIATHAN;
@@ -82,6 +85,18 @@ public final class LeviathanGameTest {
 		server.runCommand(String.format(Locale.ROOT, "tp @p %.3f %.3f %.3f %.1f %.1f", e[0], e[1] - 1.62, e[2], yaw, pitch));
 	}
 
+	/** The client copy of the airship's animation state: engine phase, helm, climb (null if not there). */
+	private static float[] anim(ClientGameTestContext context) {
+		return context.computeOnClient((MinecraftClient c) -> {
+			for (ShipEntity s : ShipTracker.ships(c.world)) {
+				if (!s.isRemoved() && s.shipType() == TYPE) {
+					return new float[] {s.wheelPhase, s.helmVisual, s.climbVisual};
+				}
+			}
+			return null;
+		});
+	}
+
 	private static void setDoor(TestServerContext server, int door, boolean open) {
 		server.computeOnServer(srv -> {
 			ShipEntity s = ship(srv.getOverworld());
@@ -109,6 +124,7 @@ public final class LeviathanGameTest {
 			check.accept(false, id + ": not spawned");
 			return;
 		}
+		context.runOnClient((MinecraftClient c) -> c.options.hudHidden = true);   // clean screenshots
 		double keel = p0.y() + g.lowestY();
 		log.accept(String.format(Locale.ROOT, "%s at %.2f %.2f %.2f, ground %d, keel %.2f", id, p0.x(), p0.y(), p0.z(), ground, keel));
 		check.accept(keel >= ground + 0.9 && keel < ground + 4, String.format(Locale.ROOT, "%s placed in the air above the ground (keel %.2f, ground %d)",
@@ -118,11 +134,21 @@ public final class LeviathanGameTest {
 		ShipPose hover = pose(server);
 		check.accept(Math.abs(hover.y() - p0.y()) < 0.01, String.format(Locale.ROOT, "%s hovers (%.3f -> %.3f)", id, p0.y(), hover.y()));
 
-		// the views of the reference sheet
-		String[] names = {"1_cote", "2_avant", "3_arriere", "4_dessus", "5_perspective"};
-		double[][] eyes = {{75, 13, -1}, {0, 15, 80}, {0, 15, -82}, {0.01, 95, -1}, {55, 26, 50}};
+		// parked: the engine is still (gears, pistons)
+		float[] a0 = anim(context);
+		context.waitTicks(20);
+		float[] a1 = anim(context);
+		check.accept(a0 != null && a1 != null && a0[0] == a1[0], String.format(Locale.ROOT, "%s parked: the engine is still (phase %s -> %s)", id,
+				a0 == null ? "?" : a0[0], a1 == null ? "?" : a1[0]));
+
+		// the views of the reference sheet, then close-ups of the balloon, the fins and the suspended hull
+		String[] names = {"1_cote", "2_avant", "3_arriere", "4_dessus", "5_perspective", "18_ballon", "19_ailerons", "20_coque_suspendue"};
+		double[][] eyes = { // eye x, y, z, target x, y, z
+				{48, 12.5, -1, 0, 12.5, -1}, {0, 13, 60, 0, 13, -1}, {0, 13, -62, 0, 13, -1}, {8, 68, -1, 0, 10, -1}, {44, 24, 40, 0, 11, -1},
+				{30, 21, 7, 0, 17.0, -2}, {17, 25, -46, 0, 17.5, -27}, {29, 1.5, 5, 0, 0.5, -1.5}};
 		for (int k = 0; k < names.length; k++) {
-			lookLocal(server, hover, eyes[k][0], eyes[k][1], eyes[k][2], 0, k == 3 ? 0 : 13, -1);
+			double[] e = eyes[k];
+			lookLocal(server, hover, e[0], e[1], e[2], e[3], e[4], e[5]);
 			context.waitTicks(k == 0 ? 30 : 15);
 			shot.accept(id + "_" + names[k]);
 		}
@@ -180,21 +206,72 @@ public final class LeviathanGameTest {
 		ShipPose s0 = pose(server);
 		context.getInput().holdKey(o -> o.jumpKey);
 		context.waitTicks(80);
+		float[] climbing0 = anim(context);
 		context.getInput().releaseKey(o -> o.jumpKey);
 		ShipPose s1 = pose(server);
 		check.accept(s1.y() - s0.y() > 1.5, String.format(Locale.ROOT, "%s climbs slowly under command (%.2f blocks in 4 s)", id, s1.y() - s0.y()));
+		check.accept(climbing0 != null && climbing0[2] > 0.3, String.format(Locale.ROOT, "%s climbing: the elevator fins follow (climb %.2f)", id,
+				climbing0 == null ? 0f : climbing0[2]));
+		float[] a2 = anim(context);
 		context.getInput().holdKey(o -> o.forwardKey);
 		context.waitTicks(80);
 		context.getInput().releaseKey(o -> o.forwardKey);
 		ShipPose s2 = pose(server);
 		double dist = Math.hypot(s2.x() - s1.x(), s2.z() - s1.z());
 		check.accept(dist > 1.0, String.format(Locale.ROOT, "%s flies forward under command (%.2f blocks in 4 s)", id, dist));
+		float[] a3 = anim(context);
+		check.accept(a2 != null && a3 != null && a3[0] - a2[0] > 0.3, String.format(Locale.ROOT,
+				"%s under way: the engine turns (phase %.2f -> %.2f)", id, a2 == null ? 0f : a2[0], a3 == null ? 0f : a3[0]));
+		// a turn to port, still climbing: the rudder fins follow the helm, the side fins the climb; seen from a
+		// camera behind the fins (an invisible marker armour stand) while the helm is hard over
+		context.getInput().holdKey(o -> o.forwardKey);
+		context.getInput().holdKey(o -> o.leftKey);
+		context.getInput().holdKey(o -> o.jumpKey);
+		context.waitTicks(36);
+		ShipPose sp = pose(server);
+		double[] ce = sp.toWorld(17, 25, -46), ct = sp.toWorld(0, 17.5, -27);
+		double cdx = ct[0] - ce[0], cdy = ct[1] - ce[1], cdz = ct[2] - ce[2];
+		server.runCommand(String.format(Locale.ROOT,
+				"summon armor_stand %.3f %.3f %.3f {Tags:[\"leviathan_cam\"],Invisible:1b,Marker:1b,NoGravity:1b,Invulnerable:1b,Rotation:[%.1ff,%.1ff]}",
+				ce[0], ce[1], ce[2], (float) Math.toDegrees(Math.atan2(-cdx, cdz)), (float) -Math.toDegrees(Math.atan2(cdy, Math.hypot(cdx, cdz)))));
+		context.waitTicks(4);
+		float[] a4 = anim(context);
+		boolean camera = context.computeOnClient((MinecraftClient c) -> {
+			for (net.minecraft.entity.Entity e : c.world.getEntities()) {
+				if (e instanceof net.minecraft.entity.decoration.ArmorStandEntity && e.squaredDistanceTo(ce[0], ce[1], ce[2]) < 1.0) {
+					c.setCameraEntity(e);
+					return true;
+				}
+			}
+			return false;
+		});
+		context.waitTicks(2);
+		shot.accept(id + "_21_ailerons_en_virage");
+		context.runOnClient((MinecraftClient c) -> c.setCameraEntity(c.player));
+		server.runCommand("kill @e[type=armor_stand,tag=leviathan_cam]");
+		context.getInput().releaseKey(o -> o.leftKey);
+		context.getInput().releaseKey(o -> o.forwardKey);
+		context.getInput().releaseKey(o -> o.jumpKey);
+		log.accept(id + " fins shot from " + (camera ? "the camera behind the fins" : "the helm (no camera)"));
+		check.accept(a4 != null && Math.abs(a4[1]) > 0.3 && a4[2] > 0.3, String.format(Locale.ROOT,
+				"%s turning and climbing: rudder and elevator fins over (helm %.2f, climb %.2f)", id, a4 == null ? 0f : a4[1], a4 == null ? 0f : a4[2]));
 		check.accept(collisions(server) == 0, id + " flight: inside nothing");
 		server.runCommand("ride @p dismount");
 		context.waitTicks(10);
 		l = local(context, server);
 		check.accept(g.inCarryVolume(l[0], l[1], l[2]) && Math.abs(l[1] - LeviathanLayout.QUARTERDECK_Y) < 0.15,
 				String.format(Locale.ROOT, "%s the pilot steps off onto the quarterdeck (local %.2f %.2f %.2f)", id, l[0], l[1], l[2]));
+		// still under way (strong inertia): the engine room running
+		server.runCommand("gamemode spectator @a");
+		float[] a5 = anim(context);
+		double[] ec = cams[8];
+		lookLocal(server, pose(server), ec[0], ec[1], ec[2], ec[3], ec[4], ec[5]);
+		context.waitTicks(4);
+		shot.accept(id + "_22_salle_machines_en_marche");
+		float[] a6 = anim(context);
+		check.accept(a5 != null && a6 != null && a6[0] != a5[0], String.format(Locale.ROOT,
+				"%s coasting: the engine still turns (phase %.2f -> %.2f)", id, a5 == null ? 0f : a5[0], a6 == null ? 0f : a6[0]));
+		server.runCommand("gamemode survival @a");
 
 		// the ladder of the tower, up through the balloon to the observation deck
 		setDoor(server, LeviathanLayout.TOWER_DOOR, true);
@@ -235,6 +312,7 @@ public final class LeviathanGameTest {
 			}
 			return null;
 		});
+		context.runOnClient((MinecraftClient c) -> c.options.hudHidden = false);
 		context.waitTicks(10);
 	}
 }

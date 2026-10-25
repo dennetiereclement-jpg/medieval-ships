@@ -36,6 +36,14 @@ plongée. Ce sont de **véritables entités**, pas des constructions en blocs :
 | Maniement | un dirigeable, pas un avion : accélération et virages lents, inertie, montée et descente progressives, **vol stationnaire**, l'altitude se maintient seule, plafond réglable |
 | Particularités | se pose au-dessus du sol, de l'eau ou d'un toit (clic droit), ne traverse ni le relief ni les bâtiments ; pilote automatique en **3D** sur des itinéraires aériens (décollage, altitude de croisière au-dessus du relief, descente aux escales, cap à l'escale) ; fumée d'échappement, bruit d'hélice, de vent, de moteur et de bois |
 
+| | Le Léviathan des Cieux |
+|---|---|
+| Objet / commande | *Le Léviathan des Cieux*, `sky_leviathan` |
+| Taille | 65 blocs de la pointe avant à la pointe arrière (67 avec les ailerons), ballon de 52 × 24 × 20 blocs, navire pirate suspendu de 36 blocs (45 avec le beaupré) et 10 de large, 48 de haut avec le pavillon |
+| Propulsion | **il vole** : machine à vapeur, ailerons noirs en aile de chauve-souris (gouvernail et profondeur) |
+| Places assises | 26 (barre du château arrière + bancs, chaises, fauteuils et tabourets des pièces) ; on marche partout à bord en vol |
+| Particularités | **intérieur complet** : pont principal, salle commune, cabine du capitaine, salle des cartes, coursive, poste d'équipage, cambuse, magasin, cale, **salle des machines** (chaudière, pistons et engrenages animés, vapeur, sons), tour à échelle jusqu'au pont d'observation au sommet du ballon ; mobilier des mods de décoration du joueur ; pilote automatique **3D** ; voir [docs/LEVIATHAN_PLAN.md](docs/LEVIATHAN_PLAN.md) |
+
 | | Nautilus — Sous-marin du capitaine Nemo |
 |---|---|
 | Objet / commande | *Nautilus — Sous-marin du capitaine Nemo*, `nautilus` |
@@ -296,6 +304,36 @@ blocs/s, accélération 0,35, virage maximal 6°/s), plus un bloc **`dive`** pro
 | `aiClearance` | 3 | pilote automatique : eau gardée sous la quille au-dessus du fond |
 | `aiCruiseDepth` | 24 | pilote automatique : profondeur de croisière des étapes sans profondeur indiquée |
 | `aiApproachDistance` | 40 | pilote automatique : distance d'une escale où il remonte à sa profondeur |
+
+## Le Léviathan des Cieux (`sky_leviathan`)
+
+![Le Léviathan des Cieux : planche de référence et captures en jeu](docs/comparaison_sky_leviathan.png)
+
+Immense dirigeable pirate steampunk : un ballon en œuf de plaques turquoise et de grands panneaux de bois,
+cerclé, drapé de toiles noires, une ferrure à engrenage et pointe au nez, des ailerons noirs en aile de
+chauve-souris à la queue, et dessous, pendu à ses chaînes, cordages et filets, un vrai navire pirate aux
+voiles noires. Le guide complet (pose, pilotage, pièces, portes, sièges, itinéraires, réglages, mobilier,
+limites) est dans [docs/LEVIATHAN_PLAN.md](docs/LEVIATHAN_PLAN.md).
+
+* **Obtenir / poser** : objet *Le Léviathan des Cieux* (créatif) ou `/ship give sky_leviathan` ; clic droit
+  sur le sol, l'eau ou un toit : il apparaît au-dessus, s'il y a la place pour tout le vaisseau
+  (≈ 67 × 25 × 48 blocs).
+* **Piloter** : clic droit sur la roue du château arrière ; Z/S vitesse, Q/D cap, **Espace monter, Ctrl
+  descendre** (relâchées : il garde son altitude), Maj quitter. Très lourd : forte inertie, larges virages,
+  changements d'altitude progressifs, il se stabilise seul.
+* **À bord** : clic droit sur la coque pour monter ; on marche sur les ponts et dans toutes les pièces en
+  vol ; portes et trappes au clic droit ; échelles de la tour (jusqu'au pont d'observation) et de la cale ;
+  26 places assises.
+* **Animations et effets** : ailerons qui suivent la barre et la montée / descente et frémissent au vent,
+  voiles noires qui respirent, pavillon pirate, banderoles et draperies qui se balancent, engrenages de la
+  tour et de la salle des machines et pistons qui tournent avec la vitesse (immobiles à l'arrêt), chaudière
+  qui vibre, vapeur aux soupapes, aux vannes, aux tuyaux de la tour et aux évents, sons de machine (vanilla),
+  léger flottement du vaisseau.
+* **Pilote automatique** : itinéraires aériens 3D (`/ship route create <nom> air`, `addstop`, `addpoint`,
+  `edit … altitude|speed|wait|yaw`, `assign`), comme le dirigeable steampunk.
+* **Réglages** : bloc `ships.sky_leviathan` de `config/medievalships.json` (vitesses 2 / 4,2 / 6,8 blocs/s,
+  accélération 0,3, virage maximal 6,5°/s) et son bloc `flight` (montée 1,2, descente 1,0, marge de 8 blocs
+  au-dessus du relief pour le pilote automatique).
 
 ## Structure du projet
 

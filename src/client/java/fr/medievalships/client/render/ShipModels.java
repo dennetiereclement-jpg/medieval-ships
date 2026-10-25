@@ -31,17 +31,24 @@ public final class ShipModels {
 	 *
 	 * @param rocking    wave rocking amplitude of this hull (multiplied by the config value)
 	 * @param cullRadius horizontal / vertical half extent of the render culling box
+	 * @param hover      slow up-and-down bob of the drawn model while it floats in the air, in blocks (0: none;
+	 *                   only the drawing moves, never the collisions)
 	 */
 	public record Visual(ShipType type, Identifier model, List<Identifier> textures, float rocking,
-			double cullRadius, double cullHeight, boolean bowWake, @Nullable Engine engine, @Nullable Propeller propeller) {
+			double cullRadius, double cullHeight, boolean bowWake, @Nullable Engine engine, @Nullable Propeller propeller, float hover) {
 		public Visual(ShipType type, Identifier model, List<Identifier> textures, float rocking,
 				double cullRadius, double cullHeight, boolean bowWake) {
-			this(type, model, textures, rocking, cullRadius, cullHeight, bowWake, null, null);
+			this(type, model, textures, rocking, cullRadius, cullHeight, bowWake, null, null, 0f);
 		}
 
 		public Visual(ShipType type, Identifier model, List<Identifier> textures, float rocking,
 				double cullRadius, double cullHeight, boolean bowWake, @Nullable Engine engine) {
-			this(type, model, textures, rocking, cullRadius, cullHeight, bowWake, engine, null);
+			this(type, model, textures, rocking, cullRadius, cullHeight, bowWake, engine, null, 0f);
+		}
+
+		public Visual(ShipType type, Identifier model, List<Identifier> textures, float rocking,
+				double cullRadius, double cullHeight, boolean bowWake, @Nullable Engine engine, @Nullable Propeller propeller) {
+			this(type, model, textures, rocking, cullRadius, cullHeight, bowWake, engine, propeller, 0f);
 		}
 	}
 
@@ -91,7 +98,7 @@ public final class ShipModels {
 	public static final Visual OLD_CORSAIR = new Visual(Ships.OLD_CORSAIR, model("old_corsair"), List.of(texture("old_corsair")), 0.5f, 34, 40, true);
 	public static final Visual SKY_LEVIATHAN = new Visual(Ships.SKY_LEVIATHAN, model("sky_leviathan"),
 			List.of(texture("sky_leviathan"), texture("sky_leviathan_interior")), 0.3f, 40, 40,
-			false);
+			false, null, null, 0.07f);
 	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT,
 			STEAMPUNK_AIRSHIP, NAUTILUS, OLD_CORSAIR, SKY_LEVIATHAN);
 
