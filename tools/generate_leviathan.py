@@ -296,7 +296,8 @@ def balloon(bone, hoops, detail):
             if in_wood(zm, az) or (az == 0 and ls.TOP_DECK_Z[0] - 0.5 < zm < ls.TOP_DECK_Z[1] + 0.5):
                 continue
             ra, rb = max(0.4, ls.balloon_hw(za)), max(0.4, ls.balloon_hw(zb))
-            da, db = math.degrees(0.28 / ra), math.degrees(0.28 / rb)
+            hw_ = 0.42 if az % 90 == 0 else 0.26
+            da, db = math.degrees(hw_ / ra), math.degrees(hw_ / rb)
             outward = v3(math.sin(math.radians(az)), math.cos(math.radians(az)), 0)
             quad(detail, "band_%d_%d" % (az, i), P(za, az - da, 0.1), P(zb, az - db, 0.1), P(za, az + da, 0.1), P(zb, az + db, 0.1), 0.09,
                  "band", outward, side="dark_wood", u_dir=v3(0, 0, 1))
@@ -634,7 +635,7 @@ def rigging(bone, pennants_root, lanterns_root):
 
 # ================================================================ the hanging ship's hull
 HULL_ST = [-19.8, -19.5, -19.0, -18.3, -17.4, -16.3, -15.0, -13.5, -12.0, -10.5, -9.0, -7.5, -6.0, -4.5, -3.0, -1.5, 0.0, 1.5, 3.0, 4.5,
-           6.0, 7.5, 9.0, 10.3, 11.5, 12.6, 13.5, 14.3, 14.9, 15.4, 15.75, 16.0]
+           6.0, 7.5, 9.0, 10.3, 11.5, 12.6, 13.5, 14.3, 14.9, 15.4, 15.8, 16.2, 16.6, 17.0, 17.4, 17.8, 18.1, 18.35, 18.55, 18.6]
 ETA = [0.0, 0.035, 0.08, 0.14, 0.22, 0.31, 0.41, 0.52, 0.64, 0.76, 0.88, 1.0]
 UPPER = [0.0, 0.25, 0.5, 0.75, 1.0]   # from the waist sheer up to the hull's sheer (castles)
 
@@ -682,22 +683,36 @@ def hull(bone, detail, lights):
         quad(bone, "bottom_%d" % i, v3(-xa, ya, za), v3(-xb, yb, zb), v3(xa, ya, za), v3(xb, yb, zb), 0.12, "hull_low", v3(0, -1, 0),
              u_dir=v3(0, 0, 1), stretch=False)
     # the keel and the cutwater curving forward under the beakhead
+    # the keel, the stem (raked, along the bottom of the bow) and the cutwater curving forward under the head
+    def bow_bottom(z):
+        if z <= ls.HULL_BOW_Z:
+            return ls.keel_y(z)
+        y0, y1 = ls.BOW_RAKE_Y
+        return y0 + (y1 - y0) * (z - ls.HULL_BOW_Z) / ls.BOW_RAKE
     kpts = [v3(0, ls.keel_y(z) - 0.15, z) for z in np.linspace(ls.HULL_STERN_Z + 3.5, 15.8, 14)]
-    kpts += [v3(0, -0.9, 18.0), v3(0, 0.2, 19.8), v3(0, ls.CUTWATER_TIP[1], ls.CUTWATER_TIP[0])]
+    kpts += [v3(0, -0.6, 18.4), v3(0, 0.5, 20.0), v3(0, ls.CUTWATER_TIP[1], ls.CUTWATER_TIP[0])]
     sm = catmull(kpts, 2)
     for k in range(len(sm) - 1):
-        beam(bone, "keel_%d" % k, sm[k], sm[k + 1], 0.55, "dark_wood", width=0.4, up=v3(0, 0, 1) if False else v3(1, 0, 0), extend=0.08)
-    # a dark fairing between the cutwater and the stem (fills the bow below the planking)
+        beam(bone, "keel_%d" % k, sm[k], sm[k + 1], 0.55, "dark_wood", width=0.4, up=v3(1, 0, 0), extend=0.08)
+    stem = [v3(0, bow_bottom(z) + 0.1, z) for z in np.linspace(15.0, ls.HULL_BOW_Z + ls.BOW_RAKE, 7)]
+    for k in range(len(stem) - 1):
+        beam(bone, "stem_%d" % k, stem[k], stem[k + 1], 0.45, "dark_wood", width=0.36, up=v3(1, 0, 0), extend=0.06)
+    # a dark knee filling between the cutwater and the stem
     for k in range(len(sm) - 1):
         a, b = sm[k], sm[k + 1]
-        if a[2] < 13.0:
+        if a[2] < 15.0:
             continue
-        ya_top = min(ls.FORECASTLE_Y - 0.3, ls.keel_y(min(a[2], 15.9)) + 0.0) if a[2] < 16.0 else a[1] + 0.2
-        top_a = v3(0, max(a[1] + 0.1, ls.SHEER_WAIST - 0.4 if a[2] < 16.0 else a[1] + 0.3), a[2])
-        top_b = v3(0, max(b[1] + 0.1, ls.SHEER_WAIST - 0.4 if b[2] < 16.0 else b[1] + 0.3), b[2])
-        quad(bone, "stem_web_%d" % k, a, b, top_a, top_b, 0.3, "dark_wood", v3(1, 0, 0), stretch=False)
+        ta, tb = bow_bottom(min(a[2], ls.HULL_BOW_Z + ls.BOW_RAKE)), bow_bottom(min(b[2], ls.HULL_BOW_Z + ls.BOW_RAKE))
+        if a[2] > ls.HULL_BOW_Z + ls.BOW_RAKE:
+            ta = max(a[1] + 0.3, ta)
+        if b[2] > ls.HULL_BOW_Z + ls.BOW_RAKE:
+            tb = max(b[1] + 0.3, tb)
+        if ta - a[1] < 0.05 and tb - b[1] < 0.05:
+            continue
+        quad(bone, "stem_web_%d" % k, a, b, v3(0, max(ta, a[1] + 0.05), a[2]), v3(0, max(tb, b[1] + 0.05), b[2]), 0.3, "dark_wood", v3(1, 0, 0),
+             stretch=False)
     # wales: black bands along the hull
-    for w_i, (yw, z0, z1) in enumerate(((-0.75, -19.6, 15.9), (-3.15, -18.6, 14.9), (-4.55, -16.8, 12.4), (2.0, -19.6, -6.6), (2.0, 9.6, 15.2))):
+    for w_i, (yw, z0, z1) in enumerate(((-0.75, -19.6, 17.1), (-3.15, -18.6, 14.9), (-4.55, -16.8, 12.4), (2.0, -19.6, -6.6), (2.0, 9.6, 18.0))):
         for side, sn in SIDES:
             zz = [z for z in np.linspace(z0, z1, max(4, int((z1 - z0) / 1.2)))]
             for k in range(len(zz) - 1):
@@ -705,11 +720,22 @@ def hull(bone, detail, lights):
                     continue
                 pa, na = hull_pt(zz[k], yw, side, 0.07)
                 pb, nb = hull_pt(zz[k + 1], yw, side, 0.07)
-                beam(bone, "wale_%d_%s%d" % (w_i, sn, k), pa, pb, 0.12, "wale", width=0.32, up=norm(na + nb) if False else v3(0, 1, 0),
-                     extend=0.08)
+                beam(bone, "wale_%d_%s%d" % (w_i, sn, k), pa, pb, 0.34, "wale", width=0.16, up=v3(0, 1, 0), extend=0.08)
+    # dark frames (stanchions) on the upper hull, from the main wale up to the sheer, and the engine room's vents
+    for side, sn in SIDES:
+        for k, z in enumerate(np.arange(-19.2, 15.0, 1.6)):
+            y0, y1 = -0.6, ls.sheer_y(z) - 0.05
+            if y1 - y0 < 0.6:
+                continue
+            pts = [hull_pt(z, y, side, 0.05)[0] for y in np.linspace(y0, y1, 4)]
+            polyline(detail, "frame_%s%d" % (sn, k), pts, 0.16, "wale", sides=4, extend=0.02)
+        for k, z in enumerate((-13.0, -12.2)):
+            p, n = hull_pt(z, -1.0, side, 0.0)
+            tube(detail, "vent_%s%d" % (sn, k), p, p + n * 0.3, 0.3, "copper", sides=8)
+            tube(detail, "vent_mouth_%s%d" % (sn, k), p + n * 0.3, p + n * 0.38, 0.42, "brass", sides=8)
     # cap rail along the sheer of the hull
     for side, sn in SIDES:
-        zz = list(np.linspace(ls.HULL_STERN_Z + 0.1, 15.85, 72))
+        zz = list(np.linspace(ls.HULL_STERN_Z + 0.1, ls.HULL_BOW_Z + ls.BOW_RAKE - 0.15, 76))
         for k in range(len(zz) - 1):
             ya, yb = ls.sheer_y(zz[k]), ls.sheer_y(zz[k + 1])
             pa = v3(side * (ls.hull_x(zz[k], ya) - 0.15), ya + 0.06, zz[k])
@@ -781,10 +807,10 @@ def hull(bone, detail, lights):
 def rudder(root):
     z = ls.HULL_STERN_Z
     rb = Bone("rudder", origin=(0, -1.2, z - 0.2), parent=root)
-    y0, y1 = ls.keel_y(z) - 3.0, -1.2
-    for k in range(4):
-        ya, yb = y0 + (y1 - y0) * k / 4, y0 + (y1 - y0) * (k + 1) / 4
-        wa, wb = 1.4 - 0.15 * k, 1.4 - 0.15 * (k + 1)
+    y0, y1 = ls.keel_y(z) - 2.6, -1.2
+    for k in range(2):
+        ya, yb = y0 + (y1 - y0) * k / 2, y0 + (y1 - y0) * (k + 1) / 2
+        wa, wb = 0.85 + 0.25 * k, 0.85 + 0.25 * (k + 1)
         quad(rb, "rudder_blade_%d" % k, v3(0, ya, z - 0.25), v3(0, ya, z - 0.25 - wa), v3(0, yb, z - 0.25), v3(0, yb, z - 0.25 - wb), 0.22,
              "hull_low", v3(1, 0, 0), side="dark_wood", u_dir=v3(0, 0, -1), stretch=False)
     tube(rb, "rudder_stock", (0, y0, z - 0.2), (0, 0.4, z - 0.2), 0.26, "dark_wood", sides=6)
@@ -799,13 +825,13 @@ def beakhead(bone, detail, lights):
     tip = v3(0, ls.CUTWATER_TIP[1], ls.CUTWATER_TIP[0])
     for side, sn in SIDES:
         for k, (y0, x0) in enumerate(((1.6, 1.7), (2.6, 1.3), (3.5, 0.9))):
-            pts = catmull([v3(side * x0, y0, 15.0), v3(side * x0 * 0.7, y0 - 0.2, 17.4), v3(side * 0.25, y0 - 0.1 * k + 0.15, 19.8),
+            pts = catmull([v3(side * x0 * 0.8, y0, 17.2), v3(side * x0 * 0.55, y0 - 0.2, 18.8), v3(side * 0.25, y0 - 0.1 * k + 0.15, 20.3),
                            v3(side * 0.1, ls.BOW_GEAR[1] - 0.4 + 0.25 * k, ls.BOW_GEAR[0] - 0.7)], 2)
             polyline(bone, "head_rail_%s%d" % (sn, k), pts, 0.16, "dark_wood", sides=4)
         # the curved knees between the rails and the cutwater
-        for k, z in enumerate((16.3, 17.6, 18.8)):
-            pts = catmull([v3(side * 1.4 * (1 - (z - 15) / 6), 3.2, z), v3(side * 0.6 * (1 - (z - 15) / 8), 1.6, z + 0.2),
-                           v3(0, max(-0.6, (z - 19.8) * 0.6 + 0.2), z + 0.3)], 2)
+        for k, z in enumerate((18.7, 19.5, 20.2)):
+            pts = catmull([v3(side * 1.1 * (1 - (z - 18) / 3.5), 3.2, z), v3(side * 0.5 * (1 - (z - 18) / 4), 2.0, z + 0.2),
+                           v3(0, max(0.2, (z - 20.0) * 0.6 + 0.9), z + 0.3)], 2)
             polyline(bone, "head_knee_%s%d" % (sn, k), pts, 0.14, "dark_wood", sides=4)
     # scrollwork at the head: a spiral under the gear
     gz, gy, gr = ls.BOW_GEAR
@@ -861,7 +887,7 @@ def decks(bone, g):
     n += grid_floor(bone, g, ls.POOP_Y, "deck", "poop_deck", lit=False, zrange=(-30, ls.POOP_Z + 0.6))
     # the balustrades of the castles: along the sides, across their fronts (gaps at the stairs), the stern
     for side, sn in SIDES:
-        for k, (z0, z1, y) in enumerate(((ls.FORECASTLE_Z + 0.1, 15.6, ls.FORECASTLE_Y), (ls.POOP_Z + 0.1, ls.QUARTERDECK_Z - 0.4, ls.QUARTERDECK_Y),
+        for k, (z0, z1, y) in enumerate(((ls.FORECASTLE_Z + 0.1, ls.HULL_BOW_Z + ls.BOW_RAKE - 0.4, ls.FORECASTLE_Y), (ls.POOP_Z + 0.1, ls.QUARTERDECK_Z - 0.4, ls.QUARTERDECK_Y),
                                          (ls.HULL_STERN_Z + 0.3, ls.POOP_Z - 0.1, ls.POOP_Y))):
             zz = np.linspace(z0, z1, max(3, int((z1 - z0) / 1.0) + 1))
             pts = [(side * (ls.hull_x(z, y + 0.5) - 0.25), y, z) for z in zz]
@@ -1048,8 +1074,9 @@ def ship_lanterns(lanterns_root, hook):
         polyline(lanterns_root, "stern_bracket_" + sn, [base, base + v3(side * 0.4, 0.3, -0.3), base + v3(side * 0.6, 0.15, -0.6)], 0.09, "iron",
                  sides=4)
         hanging_lantern(lanterns_root, "stern_" + sn, base + v3(side * 0.6, 0.15, -0.6), drop=0.3)
-        for k, z in enumerate((ls.FORECASTLE_Z + 0.4, ls.QUARTERDECK_Z - 0.4)):
-            y = ls.deck_y(z) + 1.0
+        for k, z in enumerate((ls.FORECASTLE_Z + 0.4, ls.QUARTERDECK_Z - 0.4, 13.0, -11.0, ls.POOP_Z - 0.4, -18.6, 6.5, 2.5, -2.5,
+                               -6.0)):
+            y = ls.deck_y(z) + (1.0 if ls.deck_y(z) > 0 else ls.sheer_y(z) - ls.deck_y(z) + 0.05)
             x = ls.hull_x(z, y) - 0.25
             box(lanterns_root, "rail_lantern_post_%s%d" % (sn, k), (side * x, y + 0.2, z), (0.1, 0.4, 0.1), "iron")
             add_cube(lanterns_root, "rail_lantern_%s%d" % (sn, k), v3(side * x, y + 0.65, z), EYE, (0.3, 0.42, 0.3),

@@ -82,6 +82,7 @@ public final class ClientShipEvents {
 				engine(world, ship, player);
 				airship(world, ship, player);
 				submarine(world, ship, player);
+				LeviathanEffects.tick(world, ship, player);
 			}
 		}
 		rescue(world, player);

@@ -39,6 +39,10 @@ public final class LeviathanLayout {
 	public static final double HULL_HW = 5.0;
 	public static final double HULL_BOW_Z = 16.0;
 	public static final double HULL_STERN_Z = -19.8;
+	/** The stem rakes forwards: the bow reaches HULL_BOW_Z + BOW_RAKE from the height BOW_RAKE_Y0 to BOW_RAKE_Y1. */
+	public static final double BOW_RAKE = 2.6;
+	public static final double BOW_RAKE_Y0 = -2.0;
+	public static final double BOW_RAKE_Y1 = 3.0;
 	private static final double[] BOW_PLAN = {16.4, 2.4, 0.62};
 	private static final double[] STERN_PLAN = {27.0, 2.6, 0.5};
 	private static final double[][] KEEL_PTS = {{-19.8, -2.6}, {-18.5, -4.2}, {-17.0, -5.3}, {-15.5, -5.95}, {-10.0, -6.25}, {-4.0, -6.3},
@@ -205,9 +209,23 @@ public final class LeviathanLayout {
 		return y;
 	}
 
-	/** Half width of the outside of the hull at (z, y). */
+	/** z of the stem at height y (raked forwards). */
+	public static double bowEnd(double y) {
+		return HULL_BOW_Z + BOW_RAKE * Math.min(1.0, Math.max(0.0, (y - BOW_RAKE_Y0) / (BOW_RAKE_Y1 - BOW_RAKE_Y0)));
+	}
+
+	/** Half width of the outside of the hull at (z, y) (the bow's plan stretched forwards with the height). */
 	public static double hullX(double z, double y) {
-		double w = hullHalfWidth(z);
+		double w;
+		if (z > 0) {
+			double e = bowEnd(y);
+			if (z >= e) {
+				return 0.0;
+			}
+			w = hullHalfWidth(z * HULL_BOW_Z / e);
+		} else {
+			w = hullHalfWidth(z);
+		}
 		if (w <= 0) {
 			return 0.0;
 		}
@@ -363,7 +381,7 @@ public final class LeviathanLayout {
 				probes.add(finPoint(k, uv[0], uv[1]));
 			}
 		}
-		for (double z = HULL_STERN_Z + 0.2; z <= HULL_BOW_Z - 0.3 + 1e-6; z += 2.0) {
+		for (double z = HULL_STERN_Z + 0.2; z <= HULL_BOW_Z + BOW_RAKE - 0.3 + 1e-6; z += 2.0) {
 			double k = keelY(z);
 			probes.add(new double[] {0, k + 0.1, z});
 			double top = sheerY(z) + (deckY(z) > MAIN_DECK_Y ? 1.0 : 0.0);

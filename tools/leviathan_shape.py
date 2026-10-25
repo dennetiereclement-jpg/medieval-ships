@@ -53,6 +53,8 @@ MAIN_DECK_Y = 0.0
 HULL_HW = 5.0             # half beam
 HULL_BOW_Z = 16.0         # the stem at the deck (the cutwater goes on below, to CUTWATER_TIP)
 HULL_STERN_Z = -19.8      # the transom
+BOW_RAKE = 2.6            # the stem rakes forward: the bow reaches HULL_BOW_Z + BOW_RAKE at the forecastle
+BOW_RAKE_Y = (-2.0, 3.0)  # from this height (where the bow ends at HULL_BOW_Z) to this one
 BOW_PLAN = (16.4, 2.4, 0.62)    # plan: hw = HULL_HW * (1 - (z / s)^a)^b ahead of the middle
 STERN_PLAN = (27.0, 2.6, 0.5)   # and behind it (a wide transom)
 KEEL_Y = -6.3
@@ -63,7 +65,7 @@ SHEER_WAIST = 1.0         # top of the hull planking in the waist (the bulwark)
 TUMBLE = 0.025            # the castle sides lean in above the waist
 SHELL = 0.4               # thickness of the hull planking (interior grid)
 CUTWATER_TIP = (20.8, 1.2)       # (z, y) of the tip of the cutwater under the beakhead
-BOW_GEAR = (21.7, 3.6, 1.0)      # (z, y, radius) of the gear wheel at the head of the beakhead
+BOW_GEAR = (21.7, 3.6, 1.3)      # (z, y, radius) of the gear wheel at the head of the beakhead
 BOWSPRIT = ((14.5, 2.6), (24.9, 5.3))  # (z, y) of its heel and its tip
 
 # decks
@@ -233,10 +235,22 @@ def section_eta(z, y):
     return (y - k) / (SHEER_WAIST - k)
 
 
+def bow_end(y):
+    """z of the stem at height y (raked forwards)."""
+    y0, y1 = BOW_RAKE_Y
+    return HULL_BOW_Z + BOW_RAKE * min(1.0, max(0.0, (y - y0) / (y1 - y0)))
+
+
 def hull_x(z, y):
     """Half width of the outside of the hull at (z, y): rounded bilge, then a slight tumblehome above
-    the waist (castles)."""
-    w = hull_hw(z)
+    the waist (castles); the bow's plan is stretched forwards with the height (raked stem)."""
+    if z > 0:
+        e = bow_end(y)
+        if z >= e:
+            return 0.0
+        w = hull_hw(z * HULL_BOW_Z / e)
+    else:
+        w = hull_hw(z)
     if w <= 0:
         return 0.0
     k = keel_y(z)
@@ -376,7 +390,7 @@ if __name__ == "__main__":
     # values checked by LeviathanTest.matchesModelGenerator
     for z in (-24.0, -12.0, -0.6, 10.0, 22.0):
         print("{%s, %.6f, %.6f}," % (z, balloon_hw(z), balloon_hh(z)))
-    for z, y in ((-18.0, -2.0), (-10.0, -4.0), (0.0, -5.5), (0.0, 0.5), (8.0, -3.0), (13.0, 2.0), (-16.5, 4.5)):
+    for z, y in ((-18.0, -2.0), (-10.0, -4.0), (0.0, -5.5), (0.0, 0.5), (8.0, -3.0), (13.0, 2.0), (-16.5, 4.5), (17.5, 2.5)):
         print("{%s, %s, %.6f, %.6f, %.6f}," % (z, y, hull_x(z, y), keel_y(z), sheer_y(z)))
     for f in FINS:
         print("{%s}, // %s" % (", ".join("%.6f" % c for c in fin_point(fin_frame(f), *FIN_TIP)), f[0]))
