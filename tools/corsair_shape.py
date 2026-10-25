@@ -23,7 +23,7 @@ FORE_SCALE, FORE_POW_A, FORE_POW_B = 21.6, 3.2, 0.6
 AFT_SCALE, AFT_POW_A, AFT_POW_B = 27.0, 4.0, 0.5
 KEEL_DEPTH, KEEL_RISE, KEEL_POW = 3.4, 2.2, 3.0
 WATERLINE_Y = 0.0
-RAIL_BASE, RAIL_RISE_FORE, RAIL_RISE_AFT, RAIL_POW = 5.6, 1.4, 0.4, 2.2
+RAIL_BASE, RAIL_RISE_FORE, RAIL_RISE_AFT, RAIL_POW = 5.6, 2.4, 0.4, 2.8
 BOTTOM_SECTION = [(0.0, 1.0), (0.45, 0.9), (0.8, 0.55), (0.97, 0.12)]
 
 # ---- decks and levels
@@ -71,7 +71,7 @@ def half_width(z):
 
 
 def rail_y(z):
-    a = abs(z) / HALF_LENGTH
+    a = min(1.0, abs(z) / HALF_LENGTH)   # (the raked bow goes beyond HALF_LENGTH at the top)
     rise = RAIL_RISE_FORE if z >= 0 else RAIL_RISE_AFT
     return RAIL_BASE + rise * a ** RAIL_POW
 
@@ -122,9 +122,24 @@ def section_points(z):
     return pts
 
 
+BOW_RAKE = (0.42, 0.3)   # the bow leans forward: the stem moves ahead by this much per block above (below) the water
+
+
+def rake(z, y):
+    """How far forward the bow sections are moved at height y (0 aft of the fore body)."""
+    f = min(1.0, max(0.0, (z - 6.0) / 12.0)) ** 1.5
+    return f * (BOW_RAKE[0] * y if y > 0 else BOW_RAKE[1] * y)
+
+
 def hull_x(z, y):
     """Outer half width of the hull at height y (0 below the keel); above the sheer the bulwark
-    continues the topside (same lean)."""
+    continues the topside (same lean). The bow sections lean forward (raked stem)."""
+    return _hull_x(z - rake(z, y), y)
+
+
+def _hull_x(z, y):
+    if z > FORE_SCALE:
+        return 0.0
     pts = section_points(z)
     if y < pts[0][1]:
         return 0.0

@@ -78,7 +78,7 @@ def lift(z):
 
 def band_lift(z, k):
     """Rise of the cream bands: they follow the sheer, and sweep up into the stem at the bow."""
-    bow = max(0.0, (z - 13.0) / (BOW_Z - 13.0)) ** 1.7
+    bow = min(1.0, max(0.0, (z - 13.0) / (BOW_Z - 13.0))) ** 1.7
     return k * lift(z) + (2.3 if k > 0.6 else 1.5) * bow
 
 
@@ -88,8 +88,13 @@ HIGH_BAND = (2.0, 2.55)     # the upper cream band, along the lower deck
 
 def hull_rows(z):
     """Points (x, y) of the outer hull section at z (one side, keel to sheer) and the region of each strake."""
-    w, yk, ys = cs.half_width(z), cs.keel_y(z), cs.sheer_y(z)
-    pts = [(0.16, yk), (max(0.16, 0.45 * w), 0.9 * yk), (max(0.16, 0.8 * w), 0.55 * yk), (max(0.16, 0.97 * w), 0.12 * yk)]
+    ys = cs.sheer_y(min(z, BOW_Z))
+    pts = []
+    for fx, fy in ((0.0, 1.0), (0.45, 0.9), (0.8, 0.55), (0.97, 0.12)):
+        y = fy * cs.keel_y(min(z, cs.HALF_LENGTH + 0.6))
+        zz = z - cs.rake(z, y)
+        w, yk = cs.half_width(zz), cs.keel_y(min(zz, cs.HALF_LENGTH + 0.6))
+        pts.append((max(0.16, fx * w), fy * yk))
     regs = ["hull_black", "hull_black", "hull_black"]
     lo, hi = band_lift(z, 0.45), band_lift(z, 0.8)
     levels = [(LOW_BAND[0] + lo, "hull_black2"), (LOW_BAND[1] + lo, "stripe"), (1.15 + hi * 0.6, "hull_black"),
@@ -104,7 +109,8 @@ def hull_rows(z):
 
 
 STATIONS = [TZ, -20.4, -19.6, -18.6, -17.4, -16.0, -14.5, -13.0, -11.5, -10.0, -8.5, -7.0, -5.5, -4.0, -2.5, -1.0, 0.5, 2.0,
-            3.5, 5.0, 6.5, 8.0, 9.5, 11.0, 12.4, 13.7, 14.9, 16.0, 17.0, 17.9, 18.7, 19.4, 20.0, 20.5, 20.9, 21.2, 21.42, BOW_Z]
+            3.5, 5.0, 6.5, 8.0, 9.5, 11.0, 12.4, 13.7, 14.9, 16.0, 17.0, 17.9, 18.7, 19.4, 20.0, 20.5, 20.9, 21.2, 21.42, BOW_Z,
+            21.9, 22.3, 22.7, 23.1, 23.5, 23.85, 24.15]
 
 
 def hp(z, y, side, out=0.0):
@@ -132,6 +138,11 @@ def hull_decal(bone, name, z, y, side, w, h, region, out=0.012, th=0.03, glow=Fa
                     u_dir=-u if side > 0 else u, v_dir=v3(0, -1, 0))
 
 
+def stem_clip(z, y):
+    """Beyond the raked stem a section point lies on the stem itself (the planking closes on it)."""
+    return min(z, BOW_Z + cs.rake(BOW_Z, y))
+
+
 def hull(bone):
     n = 0
     for side, sn in SIDES:
@@ -140,8 +151,10 @@ def hull(bone):
             A, regs = hull_rows(za)
             B, _ = hull_rows(zb)
             for k in range(len(A) - 1):
-                a0, a1 = v3(side * A[k][0], A[k][1], za), v3(side * A[k + 1][0], A[k + 1][1], za)
-                b0, b1 = v3(side * B[k][0], B[k][1], zb), v3(side * B[k + 1][0], B[k + 1][1], zb)
+                a0, a1 = v3(side * A[k][0], A[k][1], stem_clip(za, A[k][1])), v3(side * A[k + 1][0], A[k + 1][1], stem_clip(za, A[k + 1][1]))
+                b0, b1 = v3(side * B[k][0], B[k][1], stem_clip(zb, B[k][1])), v3(side * B[k + 1][0], B[k + 1][1], stem_clip(zb, B[k + 1][1]))
+                if np.linalg.norm((b0 + b1) - (a0 + a1)) < 0.02 or np.linalg.norm((a1 + b1) - (a0 + b0)) < 0.02:
+                    continue  # closed on the stem: nothing left of this plank
                 mid = (a0 + a1 + b0 + b1) / 4
                 t = (a1 + b1) - (a0 + b0)
                 outward = norm(v3(side * t[1], -side * t[0], 0) + v3(0, 0, 0.6 * max(0.0, mid[2] - 15) / 6))
@@ -151,6 +164,8 @@ def hull(bone):
     # keel and its shoe, rising into the stem
     for i in range(len(STATIONS) - 2):
         za, zb = STATIONS[i], STATIONS[i + 1]
+        if zb > cs.HALF_LENGTH + 0.2:
+            break
         beam(bone, "keel_%d" % i, (0, cs.keel_y(za) - 0.08, za), (0, cs.keel_y(zb) - 0.08, zb), 0.3, "dark_wood", width=0.36, extend=0.06)
     return n
 
@@ -233,7 +248,7 @@ def waist(bone, detail):
     """The waist from the castle to the bow: the brown planksheer, the bulwark (a low solid band and an
     open balustrade on it, stout posts with block heads every few balusters), the bow closing round the
     stem."""
-    zs = [z for z in STATIONS if CF - 0.6 <= z <= 21.3]
+    zs = [z for z in STATIONS if CF - 0.6 <= z <= 23.85]
     for side, sn in SIDES:
         for i in range(len(zs) - 1):
             za, zb = zs[i], zs[i + 1]
@@ -269,13 +284,13 @@ def waist(bone, detail):
             add_cube(bone, "rail_post_cap_%s%d" % (sn, j), p + v3(0, 0.33, 0), EYE, (0.46, 0.18, 0.46), "wood_mid")
             add_cube(bone, "rail_post_knob_%s%d" % (sn, j), p + v3(0, 0.5, 0), EYE, (0.26, 0.18, 0.26), "wood_dark")
     # the stem head: the two rails meet on a carved knighthead
-    zt = 21.3
+    zt = 23.9
     add_cube(bone, "knighthead", (0, cs.rail_y(zt) + 0.1, zt), EYE, (0.6, 0.5, 0.6), "wood_dark")
 
 
 def decks(bone, castle):
     """Main deck planking (fore and aft), with the companion hatch left open; the quarterdeck."""
-    zs = list(np.arange(CF - 0.5, 21.0, 1.0)) + [21.0]
+    zs = list(np.arange(CF - 0.5, 23.0, 1.0)) + [23.0]
     cx0, cx1 = cs.COMPANION_X
     cz0, cz1 = cs.COMPANION_Z
     for j in range(len(zs) - 1):
@@ -431,8 +446,8 @@ def bow(bone, lights):
     pts = []
     for j in range(9):
         t = j / 8
-        y = cs.keel_y(cs.HALF_LENGTH) - 0.1 + (cs.rail_y(21.4) + 0.3 - cs.keel_y(cs.HALF_LENGTH) + 0.1) * t
-        z = BOW_Z + 0.05 - 0.9 * (1 - t) ** 2.2
+        y = cs.keel_y(cs.HALF_LENGTH) - 0.1 + (cs.rail_y(cs.HALF_LENGTH) + 0.3 - cs.keel_y(cs.HALF_LENGTH) + 0.1) * t
+        z = BOW_Z + cs.rake(BOW_Z, y) + 0.05 - 0.6 * (1 - t) ** 2.2
         pts.append(v3(0, y, z))
     for j, (a, b) in enumerate(polyline(pts)):
         beam(bone, "stem_%d" % j, a, b, 0.42, "wood_dark", width=0.4, extend=0.08)
@@ -457,7 +472,7 @@ def bow(bone, lights):
         gn.g_anchor(bone, "anchor_" + sn, (x, y - 0.25, z + 0.55), (x, 2.1, z + 0.35), (0, 0, 1))
         disc(bone, "hawse_" + sn, side_frame(19.3, 4.0, side)[0] + v3(side * 0.03, 0, 0), (side, 0, 0), 0.16, 0.06, "iron")
     # the bow lantern on the stem head (front view)
-    lantern(lights, "lantern_bow", v3(0, cs.rail_y(21.4) + 0.45, 21.75), hang=False, s=1.25)
+    lantern(lights, "lantern_bow", v3(0, cs.rail_y(cs.HALF_LENGTH) + 0.35, BOW_Z + cs.rake(BOW_Z, 7.5) + 0.25), hang=False, s=1.25)
     return sa, sb, cap
 
 
@@ -485,12 +500,12 @@ MASTS = {
 }
 # square sails: mast, name, yard y, foot y, half width at the head, at the foot, belly, texture region
 SQUARE_SAILS = [
-    ("fore", "fore_course", 16.0, 9.0, 6.6, 7.4, 1.2, "course"),
-    ("fore", "fore_topsail", 24.0, 16.9, 5.0, 6.3, 0.95, "topsail"),
-    ("fore", "fore_topgallant", 31.0, 24.5, 3.7, 4.7, 0.75, "topgallant"),
-    ("main", "main_course", 17.0, 9.6, 7.0, 7.8, 1.3, "course"),
-    ("main", "main_topsail", 25.6, 17.9, 5.3, 6.7, 1.0, "topsail"),
-    ("main", "main_topgallant", 32.2, 26.1, 3.9, 4.9, 0.8, "topgallant"),
+    ("fore", "fore_course", 16.0, 9.0, 7.2, 8.0, 1.25, "course"),
+    ("fore", "fore_topsail", 24.0, 16.9, 5.5, 6.9, 1.0, "topsail"),
+    ("fore", "fore_topgallant", 31.0, 24.5, 4.1, 5.2, 0.8, "topgallant"),
+    ("main", "main_course", 17.0, 9.6, 7.6, 8.4, 1.35, "course"),
+    ("main", "main_topsail", 25.6, 17.9, 5.8, 7.3, 1.05, "topsail"),
+    ("main", "main_topgallant", 32.2, 26.1, 4.3, 5.4, 0.85, "topgallant"),
     ("mizzen", "mizzen_topsail", 23.4, 18.0, 4.4, 5.6, 0.85, "mizzen_top"),
     ("mizzen", "mizzen_topgallant", 29.2, 24.2, 3.2, 4.2, 0.7, "topgallant"),
 ]
@@ -741,9 +756,9 @@ def rigging(bone, hull_bone, masts, bowsprit, jib_tri_unused=None):
         ("mizzen_stay", v3(0, 17.0, zz + 0.3), v3(0, M + 0.9, mz - 0.45)),
         ("mizzen_topmast_stay", v3(0, 23.6, zz + 0.45), v3(0, 17.7, mz - 0.3)),
         ("mizzen_tg_stay", v3(0, 29.4, zz + 0.75), v3(0, 26.0, mz + 0.4)),
-        ("bobstay", cap - d * 0.6 + v3(0, -0.15, 0), v3(0, 0.9, BOW_Z + 0.6)),
+        ("bobstay", cap - d * 0.6 + v3(0, -0.15, 0), v3(0, 0.9, BOW_Z + cs.rake(BOW_Z, 0.9) + 0.1)),
         ("martingale", cap + v3(0, -1.55, 0.15), sb + v3(0, 0.2, 0)),
-        ("martingale_back", cap + v3(0, -1.55, 0.15), v3(0, 3.6, BOW_Z + 1.1)),
+        ("martingale_back", cap + v3(0, -1.55, 0.15), v3(0, 3.6, BOW_Z + cs.rake(BOW_Z, 3.6) + 0.1)),
         ("peak_halyard", v3(0, 23.4, zz + 0.45), GAFF[1] + norm(GAFF[1] - GAFF[0]) * 0.1),
         ("topping_lift", v3(0, 23.2, zz + 0.45), BOOM[1] + v3(0, 0.1, 0)),
         ("spanker_sheet", BOOM[1] + v3(0, -0.1, 0.4), v3(0, Q + 1.0, TZ + 0.3)),
@@ -753,11 +768,11 @@ def rigging(bone, hull_bone, masts, bowsprit, jib_tri_unused=None):
         ropes.append(("bowsprit_shroud_" + sn, sa + d * 4.0, hp(20.4, 2.6, side, 0.05)))
         ropes.append(("jib_sheet_" + sn, v3(0, 11.6, 20.6), hp(16.6, cs.rail_y(16.6), side, -0.1)))
         # braces of the lower yards, and sheets of the courses down to the rail
-        for mname, y, half in (("fore", 16.0, 6.6), ("main", 17.0, 7.0)):
+        for mname, y, half in (("fore", 16.0, 7.2), ("main", 17.0, 7.6)):
             z = MASTS[mname][0]
             arm = gn.braced((side * (half + 0.3), y, z + 0.42), z, BRACE)
             ropes.append(("%s_brace_%s" % (mname, sn), arm, v3(side * 0.6, 16.5 if mname == "fore" else 17.0, (mz if mname == "fore" else zz) + 0.2)))
-            clew = gn.braced((side * (7.4 if mname == "fore" else 7.8), 9.0 if mname == "fore" else 9.6, z + 0.5), z, BRACE)
+            clew = gn.braced((side * (8.0 if mname == "fore" else 8.4), 9.0 if mname == "fore" else 9.6, z + 0.5), z, BRACE)
             ropes.append(("%s_sheet_%s" % (mname, sn), clew, hp(z - 4.5, cs.rail_y(z - 4.5), side, -0.15)))
     for name, a, b in ropes:
         beam(bone, "rope_" + name, a, b, 0.06, "rope")

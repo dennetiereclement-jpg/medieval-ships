@@ -30,7 +30,7 @@ OUT, SOLID, DRY, LADDER, AIRLOCK, WINDOW, FURNITURE, DOOR = 0, 1, 2, 3, 4, 5, 6,
 CELL = cs.CELL
 X0, X1 = -6.0, 6.0
 Y0, Y1 = -4.5, 10.5
-Z0, Z1 = -23.0, 23.0
+Z0, Z1 = -23.0, 25.0
 
 M = cs.MAIN_DECK_Y          # 4.5
 L = cs.LOWER_FLOOR_Y        # 1.0
@@ -77,7 +77,7 @@ class Grid:
         hx = np.zeros(self.k.shape)
         for j, y in enumerate(ys):
             for l, z in enumerate(zs):
-                if cs.TRANSOM_Z < z < cs.FORE_SCALE:
+                if cs.TRANSOM_Z < z < cs.FORE_SCALE + 3.0:
                     hx[:, j, l] = cs.hull_x(z, y)
         self.HX = hx
 

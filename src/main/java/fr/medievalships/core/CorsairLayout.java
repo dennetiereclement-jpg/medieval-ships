@@ -37,7 +37,7 @@ public final class CorsairLayout {
 	public static final double BOOM_END_Z = -24.6;
 	public static final double BOOM_Y = 9.1;
 	/** Half span of the longest yard (main course). */
-	public static final double YARD_HALF = 7.8;
+	public static final double YARD_HALF = 8.4;
 	public static final double HELM_Z = -15.3;
 	public static final double PILOT_Z = -16.1;
 	/** Stairs: main deck -> quarterdeck (both sides), main deck -> common room (port), lower deck -> hold. */
@@ -75,9 +75,9 @@ public final class CorsairLayout {
 		p.keelRise = 2.2;
 		p.keelPow = 3.0;
 		p.railBase = 5.6;
-		p.railRiseFore = 1.4;
+		p.railRiseFore = 2.4;
 		p.railRiseAft = 0.4;
-		p.railPow = 2.2;
+		p.railPow = 2.8;
 		p.railFloors = List.of(new HullShape.RaisedDeck(Double.NEGATIVE_INFINITY, CABIN_FRONT_Z, QUARTERDECK_Y + 1.0));
 		p.waterlineY = WATERLINE_Y;
 		p.mainDeckY = MAIN_DECK_Y;
