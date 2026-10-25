@@ -63,6 +63,11 @@ REGIONS = {
     "rug":         (480, 96, 32, 64),
     "bedding":     (368, 72, 32, 16),
     "painting":    (400, 72, 32, 24),
+    # phase 2: the furniture made for the ship
+    "sack":        (64, 64, 16, 16),    # burlap
+    "linen":       (80, 64, 16, 16),    # pillows, sheets
+    "ham":         (96, 64, 16, 16),    # hams and sausages hanging in the kitchen
+    "canvas":      (112, 64, 32, 16),   # hammocks, mattresses
     # sails (stretched over the cloth: one block of canvas ~ one cell of the pattern)
     "course":      (0, 160, 192, 128),
     "topsail":     (192, 160, 160, 112),
@@ -77,7 +82,7 @@ REGIONS = {
 # names used by the shared helpers (ship_details, generate_galleon): the same pixels
 for _alias, _src in (("gold", "bronze"), ("hull_mid", "wood_mid"), ("hull_light", "wood_light"), ("hull_dark", "wood_dark"),
                      ("wood_trim", "wood_dark"), ("wood_honey", "wood_mid"), ("blue_paint", "glass"), ("pilaster", "wood_dark"),
-                     ("velvet", "red_paint"), ("cushion", "red_paint")):
+                     ("velvet", "red_paint"), ("cushion", "red_paint"), ("brass", "bronze"), ("organ_wood", "wood_dark"), ("steel", "iron")):
     REGIONS[_alias] = REGIONS[_src]
 
 SAIL_CELLS = {  # (columns, rows) of cloth blocks drawn in each sail region
@@ -345,7 +350,7 @@ def _rope(px, region, light, dark, rng):
             px[u + x, v + y] = _jitter(_mix(light, dark, t), rng, 4) + (255,)
 
 
-def _carpet(px, region, rng, border="c9a347", field="8e1c1c", centre="5e1010"):
+def _carpet(px, region, rng, border="9c7a36", field="7e1a1a", centre="4e0e0e"):
     u, v, w, h = region
     for y in range(h):
         for x in range(w):
@@ -356,7 +361,7 @@ def _carpet(px, region, rng, border="c9a347", field="8e1c1c", centre="5e1010"):
             else:
                 c = _rgb(field)
                 if (x + y) % 8 == 0 or (x - y) % 8 == 0:
-                    c = _scale(c, 1.18)
+                    c = _scale(c, 0.8)
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
@@ -364,15 +369,22 @@ def _rug(px, region, rng):
     u, v, w, h = region
     for y in range(h):
         for x in range(w):
-            if x < 2 or x >= w - 2 or y < 2 or y >= h - 2:
-                c = _rgb("d7b45a")
-            elif x < 5 or x >= w - 5 or y < 5 or y >= h - 5:
-                c = _rgb("6e1414")
+            # deep crimson, a dark border with a thin muted gold line, a lattice of darker motifs (panel 3)
+            if x < 1 or x >= w - 1 or y < 1 or y >= h - 1:
+                c = _rgb("3e0c0c")
+            elif x < 4 or x >= w - 4 or y < 4 or y >= h - 4:
+                c = _rgb("5a1212") if (x + y) % 4 else _rgb("74542a")
+            elif x == 4 or x == w - 5 or y == 4 or y == h - 5:
+                c = _rgb("a8843a")
             else:
-                c = _rgb("a52222")
+                c = _rgb("8c1c1c")
                 d = abs(x - w / 2 + 0.5) + abs(y - h / 2 + 0.5) * 0.5
-                if int(d) % 6 == 0:
-                    c = _rgb("d7b45a")
+                if (x + y) % 6 == 0 or (x - y) % 6 == 0:
+                    c = _rgb("701515")
+                if int(d) in (5, 11):
+                    c = _rgb("5e1010")
+                elif int(d) == 0:
+                    c = _rgb("8a6a30")
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
@@ -467,6 +479,61 @@ def _painting(px, region, rng):
             px[u + x, v + y] = _jitter(c, rng, 2) + (255,)
 
 
+def _replaced(px, region, rng, plank_h, n, tones, seam="2b1b0e"):
+    """Wear and repairs: planks replaced by others of another wood (fresh, darker, greyed), nailed at
+    their ends, as on the reference's deck and rooms."""
+    u, v, w, h = region
+    for _ in range(n):
+        r = rng.randrange(h // plank_h)
+        ln = rng.randint(w // 5, w // 2)
+        x0 = rng.randrange(0, w - ln)
+        base = _scale(_rgb(rng.choice(tones)), rng.uniform(0.95, 1.05))
+        ph = rng.uniform(0, 6.28)
+        for y in range(plank_h - 1):
+            for x in range(x0, x0 + ln):
+                c = _rgb(seam) if x in (x0, x0 + ln - 1) else _scale(base, 1 + 0.06 * math.sin(x * 0.35 + ph + y))
+                px[u + x, v + r * plank_h + y] = _jitter(c, rng, 3) + (255,)
+        for x in (x0 + 2, x0 + ln - 3):
+            px[u + x, v + r * plank_h + plank_h // 2 - 1] = (34, 32, 30, 255)
+
+
+def _replaced_boards(px, region, rng, n, tones, board_w=4):
+    """The same on vertical boards (wall panelling): short lengths of other woods, nailed."""
+    u, v, w, h = region
+    for _ in range(n):
+        x0 = rng.randrange(0, w // board_w) * board_w
+        ln = rng.randint(h // 5, h // 3)
+        y0 = rng.randrange(h // 3, h - ln)
+        base = _scale(_rgb(rng.choice(tones)), rng.uniform(0.95, 1.05))
+        for y in range(y0, y0 + ln):
+            for x in range(x0, x0 + board_w - 1):
+                c = _rgb("24170c") if y in (y0, y0 + ln - 1) else _scale(base, 1 + 0.05 * math.sin(y * 0.4 + x))
+                px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+        px[u + x0 + 1, v + y0 + 2] = px[u + x0 + 1, v + y0 + ln - 3] = (34, 32, 30, 255)
+
+
+def _iron_patch(px, region, rng, fx, fy, pw, ph):
+    """A small riveted iron plate nailed over a damaged plank."""
+    u, v, w, h = region
+    x0, y0 = int(fx * (w - pw)), int(fy * (h - ph))
+    for y in range(ph):
+        for x in range(pw):
+            edge = x in (0, pw - 1) or y in (0, ph - 1)
+            c = _rgb("2e2f33") if edge else _scale(_rgb("4a4b50"), 1 + 0.08 * ((x + y) % 3 == 0))
+            if (x, y) in ((1, 1), (pw - 2, 1), (1, ph - 2), (pw - 2, ph - 2)):
+                c = _rgb("8a8a86")
+            px[u + x0 + x, v + y0 + y] = _jitter(c, rng, 3) + (255,)
+
+
+def _weave(px, region, rng, a, b, period=2):
+    u, v, w, h = region
+    a, b = _rgb(a), _rgb(b)
+    for y in range(h):
+        for x in range(w):
+            c = a if ((x // period) + (y // period)) % 2 else b
+            px[u + x, v + y] = _jitter(c, rng, 5) + (255,)
+
+
 def make_texture(path, tris=None):
     """tris: the triangle (region fractions) of the jibs and of the staysail, as the model cuts them."""
     rng = random.Random(4207)
@@ -519,6 +586,16 @@ def make_texture(path, tris=None):
     _planks(px, R["hold_floor"], ("5e4228", "553b24", "684a2e"), "241810", rng, plank_h=8, joints=3, worn=0.04, worn_col="3a3a30")
     _planks(px, R["hold_wall"], ("4e3420", "5a3c24", "46301c"), "1e140a", rng, plank_h=8, joints=2)
     _rug(px, R["rug"], rng)
+    # phase 2: wear and repairs of the deck and the rooms, the furniture's cloths
+    _replaced(px, R["deck"], rng, 4, 6, ("a07a4c", "5e4228", "7a4e30", "93744e"), seam="3a2716")
+    _replaced(px, R["floor"], rng, 8, 3, ("86603c", "4a3220", "7a4a2e"))
+    _replaced(px, R["hold_floor"], rng, 8, 3, ("74563a", "3e2c1c", "6a4630"))
+    _replaced_boards(px, R["wall_wood"], rng, 3, ("82603e", "4a3220", "7a4a2e"), board_w=8)
+    _replaced_boards(px, R["hold_wall"], rng, 3, ("6e5236", "352416", "60402a"), board_w=8)
+    _weave(px, R["sack"], rng, "a98b5e", "8e7349")
+    _weave(px, R["canvas"], rng, "ab9a76", "9c8a66", period=1)
+    _fill(px, R["linen"], "e6dfcc", rng, 4)
+    _blocks(px, R["ham"], ("9a4632", "8a3c2a", "a8543c"), "5a2418", rng, bw=8, bh=4)
     _fill(px, R["bedding"], "8e1c1c", rng, 8)
     for name, (cols, rows) in SAIL_CELLS.items():
         tri = None

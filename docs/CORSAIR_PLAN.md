@@ -69,7 +69,38 @@ Hauteurs libres : pont inférieur 3 blocs, cale 2,5, cabine 2,5. La misaine trav
 et la cale jusqu'à la quille (pilier) ; le grand mât repose sur le pont principal, au-dessus de la
 coursive qu'il laisse libre.
 
-## 4. Sièges (phase 1)
+## 4. Sièges
 
-Pilote + 12 places : 8 sur les bancs de la salle commune, la chaise du capitaine, 4 sur deux bancs
-du pont principal (au milieu, entre les deux mâts). Décor complet (mods de décoration) en phase 2.
+Pilote + 22 places : 12 sur les bancs de la salle commune (6 de chaque côté de la table), 2 chaises
+au bout de la table, le fauteuil du capitaine devant son bureau, le tabouret de la cuisine, un tabouret
+dans chaque poste d'équipage, 4 sur les deux bancs du pont principal. Chaque siège a son point de
+relevé libre, sur un plancher (vérifié par `CorsairTest.helmAndSeats`).
+
+## 5. Phase 2 : aménagement des pièces (d'après les vues intérieures de la planche)
+
+Les meubles des mods de décoration de l'utilisateur passent en premier (seuls leurs identifiants de
+blocs sont utilisés, jamais leurs modèles ni leurs textures ; si un mod manque, un bloc de
+remplacement de la même taille est dessiné). Les pièces modélisées pour le navire
+(`tools/corsair_furniture.py`, plus les meubles de phase 1 de `tools/generate_corsair.py`) couvrent ce
+qu'aucun mod ne propose. Placement : `tools/corsair_decor.py` ; les meubles pleins entrent dans la
+grille (cellules FURNITURE). Les portes, les escaliers, l'allée centrale de la cale jusqu'au mât de
+misaine, la coursive et les zones de passage testées restent libres.
+
+| Pièce | Meubles des mods (identifiants) | Pièces modélisées |
+|---|---|---|
+| Cabine du capitaine | `farmhouse_decorations:desk` (bureau), `furnish:dark_oak_chair` (fauteuil à haut dossier, siège), `farmhouse_decorations:night_stand`, `farmhouse_decorations:tall_bookshelf`, `farmhouse_decorations:coat_hanger` (le manteau du capitaine), `farmhouse_decorations:liquor_cabinet`, `furnish:spruce_shelf` + `furnish:book_pile`, `farmhouse_decorations:pile_of_books`, `farmhouse_decorations:kerosene_lantern` ×3, `farmhouse_decorations:chained_kerosene_lantern`, `farmhouse_decorations:red_wine_bottle`, `farmhouse_decorations:wine_bottle` ×2, `farmhouse_decorations:wine_glass`, `farmhouse_decorations:cigar_box` | lit à baldaquin bas et couverture rouge (aucun lit des mods n'a de couverture rouge), deux coffres de marin cerclés de fer, tapis rouge rectangulaire, deux cartes marines encadrées, carte et compas sur le bureau, longue-vue sur trépied |
+| Salle commune | `farmhouse_decorations:dining_table_side` / `dining_table_middle` (table de 2 × 6), `furnish:spruce_bench` ×12 (sièges), `farmhouse_decorations:dining_chair` ×2 (sièges), `farmersdelight:roast_chicken_block`, `furnish:plate`, `farmhouse_decorations:wine_bottle` / `red_wine_bottle` / `wine_glass`, `farmhouse_decorations:kerosene_lantern`, `furnish:spruce_shelf` ×2, `farmhouse_decorations:kitchen_wall_shelf` ×3 (chopes et assiettes), `farmhouse_decorations:liquor_cabinet`, `landsoficaria:tapped_cypress_barrel` (le rhum), `landsoficaria:cypress_barrel`, `landsoficaria:fir_barrel`, `farmhouse_decorations:chained_kerosene_lantern` ×4 | tapis rouge sous la table, chopes en bois cerclées, carte marine encadrée, coffre de marin |
+| Cuisine | `farmersdelight:stove` ×2, `farmersdelight:cooking_pot`, `farmersdelight:skillet`, `farmersdelight:cutting_board` ×2, `farmersdelight:spruce_cabinet`, `farmhouse_decorations:kitchen_drawers`, `farmhouse_decorations:kitchen_counter` ×2, `farmhouse_decorations:kitchen_wall_cabinet`, `farmhouse_decorations:kitchen_wall_shelf` ×4, `farmhouse_decorations:seasoning_rack`, `farmersdelight:potato_crate`, `farmersdelight:cabbage_crate`, `farmersdelight:onion_crate`, `farmersdelight:rice_bag` ×2, `farmersdelight:wooden_basket`, `furnish:spruce_stool` (siège), `farmhouse_decorations:chained_kerosene_lantern` ×2 | grand foyer de pierre avec son feu, sa hotte et ses jambons pendus, table de travail centrale, barres à casseroles (poêles, marmite, louche), tonneaux debout |
+| Cale / stockage | `landsoficaria:cypress_rack` ×3 + `loaded_cypress_barrel` / `loaded_fir_barrel` (tonneaux couchés sur leurs berceaux) et `fir_barrel`, `furnish:spruce_crate` / `furnish:dark_oak_crate` (piles de caisses), `farmersdelight:potato_crate`, `carrot_crate`, `onion_crate`, `cabbage_crate`, `farmersdelight:rice_bag` (sacs), `landsoficaria:storage_vase` / `brown_storage_vase`, `furnish:amphora`, `farmhouse_decorations:workbench` + `farmhouse_decorations:tool_board` (le coin du charpentier), `furnish:spruce_shelf` ×3 (jarres), `farmhouse_decorations:chained_kerosene_lantern` ×5 | 10 piliers sur socles de pierre, tonneaux debout (la planche les montre debout ; ceux des mods sont couchés), coffres, glènes de cordage |
+| Coursive et postes d'équipage | `farmhouse_decorations:kerosene_lantern` ×6 (sur potences), `farmhouse_decorations:chained_kerosene_lantern` ×3, `furnish:spruce_square_table` ×2, `furnish:spruce_stool` ×2 (sièges), `farmersdelight:canvas_rug` ×2, `farmhouse_decorations:acoustic_guitar`, `farmersdelight:wooden_basket`, bouteilles | tapis de passage rouges (3), poteaux sous les barrots, potences de fer, couchettes doubles avec échelle, coffres de marin, hamacs, tonneau debout |
+| Pont principal et gaillard | `furnish:spruce_crate` ×2, `furnish:dark_oak_crate` ×2, `landsoficaria:cypress_rack` + `loaded_cypress_barrel` | tonneaux debout (bossoir, entre les mâts, devant le gaillard), glènes de cordage, longue-vue sur trépied près de l'habitacle (instruments de navigation) ; déjà en phase 1 : panneaux de cale, cabestan, cloche, bancs, canot |
+
+Textures (phase 2) : usure et réparations comme sur la planche — bordages remplacés d'autres
+essences (plus clairs, plus sombres, rougeâtres) et cloués sur le pont, les planchers, les parois et
+la cale ; tôles rivetées et planches rapiécées sur la coque (phase 1) ; voiles brique délavées avec
+pièces beiges cousues ; nouveaux motifs pour les meubles (toile de jute, lin, toile de hamac,
+jambons) ; tapis rouge sombre à liseré doré passé, proche des vues de la cabine et de la coursive.
+
+Captures : `CorsairGameTest` photographie chaque pièce en jeu (pont, gaillard, cabine, salle commune,
+cuisine, coursive, cale) ; les rendus hors jeu pièce par pièce, à côté des vues de référence, sont
+produits avec les scripts de rendu de l'agent (mods de décoration dessinés comme en jeu).

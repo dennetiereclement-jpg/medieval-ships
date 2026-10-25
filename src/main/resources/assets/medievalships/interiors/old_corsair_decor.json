@@ -1,330 +1,1770 @@
 {
  "blocks": [
   {
-   "block": "farmhouse_decorations:chained_kerosene_lantern",
-   "x": -2.2,
-   "y": 3.0,
-   "z": 1.0,
-   "yaw": 0.0,
+   "block": "farmhouse_decorations:night_stand",
+   "x": 1.55,
+   "y": 4.0,
+   "z": -19.95,
+   "yaw": 180.0,
    "scale": 1.0,
    "fallback": "fallback_0"
   },
   {
-   "block": "farmhouse_decorations:chained_kerosene_lantern",
-   "x": -2.2,
-   "y": 3.0,
-   "z": 5.5,
-   "yaw": 0.0,
+   "block": "farmhouse_decorations:kerosene_lantern",
+   "x": 1.55,
+   "y": 4.625,
+   "z": -20.15,
+   "yaw": 180.0,
    "scale": 1.0,
    "fallback": "fallback_1"
   },
   {
-   "block": "landsoficaria:fir_barrel",
-   "x": 3.6,
-   "y": 1.0,
-   "z": 6.9,
-   "yaw": 0.0,
+   "block": "farmhouse_decorations:desk",
+   "x": -2.95,
+   "y": 4.0,
+   "z": -19.0155,
+   "yaw": 270.0,
    "scale": 1.0,
    "fallback": "fallback_2"
   },
   {
-   "block": "landsoficaria:fir_barrel",
-   "x": 3.6,
-   "y": 1.0,
-   "z": 7.6,
-   "yaw": 0.0,
+   "block": "farmhouse_decorations:kerosene_lantern",
+   "x": -3.15,
+   "y": 5.02,
+   "z": -20.15,
+   "yaw": 270.0,
    "scale": 1.0,
    "fallback": "fallback_3"
   },
   {
-   "block": "landsoficaria:fir_barrel",
-   "x": 2.9,
-   "y": 1.0,
-   "z": 7.6,
-   "yaw": 0.0,
+   "block": "farmhouse_decorations:pile_of_books",
+   "x": -3.15,
+   "y": 5.02,
+   "z": -17.95,
+   "yaw": 270.0,
    "scale": 1.0,
    "fallback": "fallback_4"
   },
   {
-   "block": "farmhouse_decorations:chained_kerosene_lantern",
-   "x": 0.0,
-   "y": 5.5,
-   "z": -17.5,
-   "yaw": 0.0,
+   "block": "farmhouse_decorations:red_wine_bottle",
+   "x": -2.7,
+   "y": 5.02,
+   "z": -18.1,
+   "yaw": 270.0,
    "scale": 1.0,
    "fallback": "fallback_5"
   },
   {
-   "block": "farmersdelight:stove",
-   "x": 2.9,
-   "y": 1.0,
-   "z": 12.4,
+   "block": "farmhouse_decorations:wine_glass",
+   "x": -2.55,
+   "y": 5.02,
+   "z": -18.35,
    "yaw": 270.0,
    "scale": 1.0,
    "fallback": "fallback_6"
   },
   {
-   "block": "farmersdelight:cooking_pot",
-   "x": 2.9,
-   "y": 2.0,
-   "z": 12.4,
+   "block": "farmhouse_decorations:cigar_box",
+   "x": -3.2,
+   "y": 5.02,
+   "z": -19.9,
    "yaw": 270.0,
-   "scale": 1.0,
+   "scale": 0.8,
    "fallback": "fallback_7"
   },
   {
-   "block": "landsoficaria:fir_barrel",
-   "x": 3.2,
-   "y": 1.0,
-   "z": 9.2,
-   "yaw": 0.0,
+   "block": "furnish:dark_oak_chair",
+   "x": -1.656,
+   "y": 4.0,
+   "z": -19.0,
+   "yaw": 90.0,
    "scale": 1.0,
    "fallback": "fallback_8"
   },
   {
-   "block": "landsoficaria:fir_barrel",
-   "x": 3.2,
-   "y": 1.0,
-   "z": 10.2,
+   "block": "farmhouse_decorations:tall_bookshelf",
+   "x": 2.5,
+   "y": 4.0,
+   "z": -15.044,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_9"
   },
   {
-   "block": "farmhouse_decorations:chained_kerosene_lantern",
-   "x": 0.0,
-   "y": 3.0,
-   "z": 10.5,
+   "block": "farmhouse_decorations:coat_hanger",
+   "x": 3.5,
+   "y": 4.0,
+   "z": -15.0,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_10"
   },
   {
-   "block": "landsoficaria:cypress_barrel",
-   "x": 3.0,
-   "y": -2.0,
-   "z": -12.0,
+   "block": "farmhouse_decorations:liquor_cabinet",
+   "x": -2.5,
+   "y": 4.0,
+   "z": -14.9985,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_11"
   },
   {
-   "block": "furnish:oak_crate",
-   "x": -3.0,
-   "y": -2.0,
-   "z": -12.0,
+   "block": "farmhouse_decorations:kerosene_lantern",
+   "x": -3.6,
+   "y": 5.0,
+   "z": -14.85,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_12"
   },
   {
-   "block": "landsoficaria:fir_barrel",
-   "x": 3.0,
-   "y": -2.0,
-   "z": -11.0,
+   "block": "farmhouse_decorations:wine_bottle",
+   "x": -2.35,
+   "y": 5.0,
+   "z": -14.8,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_13"
   },
   {
-   "block": "furnish:spruce_crate",
-   "x": -3.0,
-   "y": -2.0,
-   "z": -11.0,
-   "yaw": 0.0,
+   "block": "furnish:spruce_shelf",
+   "x": 2.956,
+   "y": 5.45,
+   "z": -18.9,
+   "yaw": 90.0,
    "scale": 1.0,
    "fallback": "fallback_14"
   },
   {
-   "block": "landsoficaria:cypress_barrel",
-   "x": 3.0,
-   "y": -2.0,
-   "z": -10.0,
-   "yaw": 0.0,
-   "scale": 1.0,
+   "block": "furnish:book_pile",
+   "x": 3.3,
+   "y": 5.7,
+   "z": -19.15,
+   "yaw": 90.0,
+   "scale": 0.7,
    "fallback": "fallback_15"
   },
   {
-   "block": "furnish:oak_crate",
-   "x": -3.0,
-   "y": -2.0,
-   "z": -10.0,
-   "yaw": 0.0,
+   "block": "farmhouse_decorations:wine_bottle",
+   "x": 3.3,
+   "y": 5.7,
+   "z": -18.55,
+   "yaw": 90.0,
    "scale": 1.0,
    "fallback": "fallback_16"
   },
   {
-   "block": "landsoficaria:fir_barrel",
-   "x": 3.0,
-   "y": -2.0,
-   "z": 6.0,
+   "block": "farmhouse_decorations:chained_kerosene_lantern",
+   "x": 0.0,
+   "y": 5.5,
+   "z": -17.6,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_17"
   },
   {
-   "block": "furnish:spruce_crate",
+   "block": "farmhouse_decorations:dining_table_side",
    "x": -3.0,
-   "y": -2.0,
-   "z": 6.0,
+   "y": 1.0,
+   "z": 0.25,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_18"
   },
   {
-   "block": "landsoficaria:cypress_barrel",
-   "x": 3.0,
-   "y": -2.0,
-   "z": 7.0,
-   "yaw": 0.0,
+   "block": "farmhouse_decorations:dining_table_middle",
+   "x": -3.0,
+   "y": 1.0,
+   "z": 1.25,
+   "yaw": 90.0,
    "scale": 1.0,
    "fallback": "fallback_19"
   },
   {
-   "block": "furnish:oak_crate",
+   "block": "farmhouse_decorations:dining_table_middle",
    "x": -3.0,
-   "y": -2.0,
-   "z": 7.0,
-   "yaw": 0.0,
+   "y": 1.0,
+   "z": 2.25,
+   "yaw": 90.0,
    "scale": 1.0,
    "fallback": "fallback_20"
   },
   {
-   "block": "landsoficaria:fir_barrel",
-   "x": 3.0,
-   "y": -2.0,
-   "z": 8.0,
-   "yaw": 0.0,
+   "block": "farmhouse_decorations:dining_table_middle",
+   "x": -3.0,
+   "y": 1.0,
+   "z": 3.25,
+   "yaw": 90.0,
    "scale": 1.0,
    "fallback": "fallback_21"
   },
   {
-   "block": "furnish:spruce_crate",
+   "block": "farmhouse_decorations:dining_table_middle",
    "x": -3.0,
-   "y": -2.0,
-   "z": 8.0,
-   "yaw": 0.0,
+   "y": 1.0,
+   "z": 4.25,
+   "yaw": 90.0,
    "scale": 1.0,
    "fallback": "fallback_22"
   },
   {
-   "block": "farmhouse_decorations:chained_kerosene_lantern",
-   "x": 0.0,
-   "y": -0.5,
-   "z": -6.0,
-   "yaw": 0.0,
+   "block": "farmhouse_decorations:dining_table_side",
+   "x": -3.0,
+   "y": 1.0,
+   "z": 5.25,
+   "yaw": 180.0,
    "scale": 1.0,
    "fallback": "fallback_23"
   },
   {
-   "block": "farmhouse_decorations:chained_kerosene_lantern",
-   "x": 0.0,
-   "y": -0.5,
-   "z": 3.0,
+   "block": "farmhouse_decorations:dining_table_side",
+   "x": -2.0,
+   "y": 1.0,
+   "z": 0.25,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_24"
   },
   {
-   "block": "farmhouse_decorations:chained_kerosene_lantern",
-   "x": 0.0,
-   "y": 3.0,
-   "z": -11.0,
-   "yaw": 0.0,
+   "block": "farmhouse_decorations:dining_table_middle",
+   "x": -2.0,
+   "y": 1.0,
+   "z": 1.25,
+   "yaw": 90.0,
    "scale": 1.0,
    "fallback": "fallback_25"
   },
   {
-   "block": "farmhouse_decorations:chained_kerosene_lantern",
-   "x": 0.0,
-   "y": 3.0,
-   "z": -6.0,
-   "yaw": 0.0,
+   "block": "farmhouse_decorations:dining_table_middle",
+   "x": -2.0,
+   "y": 1.0,
+   "z": 2.25,
+   "yaw": 90.0,
    "scale": 1.0,
    "fallback": "fallback_26"
   },
   {
+   "block": "farmhouse_decorations:dining_table_middle",
+   "x": -2.0,
+   "y": 1.0,
+   "z": 3.25,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_27"
+  },
+  {
+   "block": "farmhouse_decorations:dining_table_middle",
+   "x": -2.0,
+   "y": 1.0,
+   "z": 4.25,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_28"
+  },
+  {
+   "block": "farmhouse_decorations:dining_table_side",
+   "x": -2.0,
+   "y": 1.0,
+   "z": 5.25,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_29"
+  },
+  {
+   "block": "furnish:spruce_bench",
+   "x": -4.05,
+   "y": 1.0,
+   "z": 0.25,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_30"
+  },
+  {
+   "block": "furnish:spruce_bench",
+   "x": -4.05,
+   "y": 1.0,
+   "z": 1.25,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_31"
+  },
+  {
+   "block": "furnish:spruce_bench",
+   "x": -4.05,
+   "y": 1.0,
+   "z": 2.25,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_32"
+  },
+  {
+   "block": "furnish:spruce_bench",
+   "x": -4.05,
+   "y": 1.0,
+   "z": 3.25,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_33"
+  },
+  {
+   "block": "furnish:spruce_bench",
+   "x": -4.05,
+   "y": 1.0,
+   "z": 4.25,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_34"
+  },
+  {
+   "block": "furnish:spruce_bench",
+   "x": -4.05,
+   "y": 1.0,
+   "z": 5.25,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_35"
+  },
+  {
+   "block": "furnish:spruce_bench",
+   "x": -0.95,
+   "y": 1.0,
+   "z": 0.25,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_36"
+  },
+  {
+   "block": "furnish:spruce_bench",
+   "x": -0.95,
+   "y": 1.0,
+   "z": 1.25,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_37"
+  },
+  {
+   "block": "furnish:spruce_bench",
+   "x": -0.95,
+   "y": 1.0,
+   "z": 2.25,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_38"
+  },
+  {
+   "block": "furnish:spruce_bench",
+   "x": -0.95,
+   "y": 1.0,
+   "z": 3.25,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_39"
+  },
+  {
+   "block": "furnish:spruce_bench",
+   "x": -0.95,
+   "y": 1.0,
+   "z": 4.25,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_40"
+  },
+  {
+   "block": "furnish:spruce_bench",
+   "x": -0.95,
+   "y": 1.0,
+   "z": 5.25,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_41"
+  },
+  {
+   "block": "farmhouse_decorations:dining_chair",
+   "x": -3.0,
+   "y": 1.0,
+   "z": 6.3135,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_42"
+  },
+  {
+   "block": "farmhouse_decorations:dining_chair",
+   "x": -2.0,
+   "y": 1.0,
+   "z": 6.3135,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_43"
+  },
+  {
+   "block": "farmersdelight:roast_chicken_block",
+   "x": -2.5,
+   "y": 2.0,
+   "z": 2.75,
+   "yaw": 0.0,
+   "scale": 0.8,
+   "fallback": "fallback_44"
+  },
+  {
+   "block": "furnish:plate",
+   "x": -3.25,
+   "y": 2.0,
+   "z": 0.25,
+   "yaw": 270.0,
+   "scale": 0.42,
+   "fallback": "fallback_45"
+  },
+  {
+   "block": "furnish:plate",
+   "x": -1.75,
+   "y": 2.0,
+   "z": 0.25,
+   "yaw": 90.0,
+   "scale": 0.42,
+   "fallback": "fallback_46"
+  },
+  {
+   "block": "furnish:plate",
+   "x": -1.75,
+   "y": 2.0,
+   "z": 1.25,
+   "yaw": 90.0,
+   "scale": 0.42,
+   "fallback": "fallback_47"
+  },
+  {
+   "block": "furnish:plate",
+   "x": -3.25,
+   "y": 2.0,
+   "z": 2.25,
+   "yaw": 270.0,
+   "scale": 0.42,
+   "fallback": "fallback_48"
+  },
+  {
+   "block": "furnish:plate",
+   "x": -1.75,
+   "y": 2.0,
+   "z": 3.25,
+   "yaw": 90.0,
+   "scale": 0.42,
+   "fallback": "fallback_49"
+  },
+  {
+   "block": "furnish:plate",
+   "x": -3.25,
+   "y": 2.0,
+   "z": 4.25,
+   "yaw": 270.0,
+   "scale": 0.42,
+   "fallback": "fallback_50"
+  },
+  {
+   "block": "furnish:plate",
+   "x": -3.25,
+   "y": 2.0,
+   "z": 5.25,
+   "yaw": 270.0,
+   "scale": 0.42,
+   "fallback": "fallback_51"
+  },
+  {
+   "block": "furnish:plate",
+   "x": -1.75,
+   "y": 2.0,
+   "z": 5.25,
+   "yaw": 90.0,
+   "scale": 0.42,
+   "fallback": "fallback_52"
+  },
+  {
+   "block": "farmhouse_decorations:wine_bottle",
+   "x": -2.6,
+   "y": 2.0,
+   "z": 0.6,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_53"
+  },
+  {
+   "block": "farmhouse_decorations:red_wine_bottle",
+   "x": -2.35,
+   "y": 2.0,
+   "z": 1.7,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_54"
+  },
+  {
+   "block": "farmhouse_decorations:wine_bottle",
+   "x": -2.7,
+   "y": 2.0,
+   "z": 4.1,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_55"
+  },
+  {
+   "block": "farmhouse_decorations:red_wine_bottle",
+   "x": -2.4,
+   "y": 2.0,
+   "z": 4.9,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_56"
+  },
+  {
+   "block": "farmhouse_decorations:wine_glass",
+   "x": -3.45,
+   "y": 2.0,
+   "z": 3.4,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_57"
+  },
+  {
+   "block": "farmhouse_decorations:wine_glass",
+   "x": -1.55,
+   "y": 2.0,
+   "z": 1.25,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_58"
+  },
+  {
+   "block": "farmhouse_decorations:wine_glass",
+   "x": -1.6,
+   "y": 2.0,
+   "z": 4.3,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_59"
+  },
+  {
+   "block": "farmhouse_decorations:kerosene_lantern",
+   "x": -2.5,
+   "y": 2.0,
+   "z": 3.9,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_60"
+  },
+  {
+   "block": "furnish:spruce_shelf",
+   "x": -3.956,
+   "y": 2.6,
+   "z": 4.0,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_61"
+  },
+  {
+   "block": "furnish:spruce_shelf",
+   "x": -3.956,
+   "y": 2.6,
+   "z": 5.0,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_62"
+  },
+  {
+   "block": "farmhouse_decorations:wine_bottle",
+   "x": -4.3,
+   "y": 2.85,
+   "z": 3.65,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_63"
+  },
+  {
+   "block": "farmhouse_decorations:red_wine_bottle",
+   "x": -4.3,
+   "y": 2.85,
+   "z": 3.95,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_64"
+  },
+  {
+   "block": "farmhouse_decorations:wine_bottle",
+   "x": -4.3,
+   "y": 2.85,
+   "z": 4.3,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_65"
+  },
+  {
+   "block": "farmhouse_decorations:wine_glass",
+   "x": -4.3,
+   "y": 2.85,
+   "z": 4.85,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_66"
+  },
+  {
+   "block": "farmhouse_decorations:red_wine_bottle",
+   "x": -4.3,
+   "y": 2.85,
+   "z": 5.15,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_67"
+  },
+  {
+   "block": "farmhouse_decorations:wine_bottle",
+   "x": -4.3,
+   "y": 2.85,
+   "z": 5.4,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_68"
+  },
+  {
+   "block": "farmhouse_decorations:kitchen_wall_shelf",
+   "x": -3.0,
+   "y": 2.55,
+   "z": -0.7625,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_69"
+  },
+  {
+   "block": "farmhouse_decorations:liquor_cabinet",
+   "x": 4.0015,
+   "y": 1.0,
+   "z": 5.5,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_70"
+  },
+  {
+   "block": "farmhouse_decorations:kitchen_wall_shelf",
+   "x": 4.1125,
+   "y": 2.5,
+   "z": 5.5,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_71"
+  },
+  {
+   "block": "farmhouse_decorations:kitchen_wall_shelf",
+   "x": 4.1125,
+   "y": 2.5,
+   "z": 6.5,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_72"
+  },
+  {
+   "block": "landsoficaria:tapped_cypress_barrel",
+   "x": 4.073,
+   "y": 1.0,
+   "z": 7.5,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_73"
+  },
+  {
+   "block": "landsoficaria:cypress_barrel",
+   "x": -3.95,
+   "y": 1.0,
+   "z": 7.45,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_74"
+  },
+  {
+   "block": "landsoficaria:fir_barrel",
+   "x": -3.95,
+   "y": 1.9,
+   "z": 7.45,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_75"
+  },
+  {
+   "block": "farmhouse_decorations:chained_kerosene_lantern",
+   "x": -2.5,
+   "y": 3.0,
+   "z": 0.9,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_76"
+  },
+  {
+   "block": "farmhouse_decorations:chained_kerosene_lantern",
+   "x": -2.5,
+   "y": 3.0,
+   "z": 4.6,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_77"
+  },
+  {
+   "block": "farmhouse_decorations:chained_kerosene_lantern",
+   "x": 2.6,
+   "y": 3.0,
+   "z": 6.2,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_78"
+  },
+  {
+   "block": "farmhouse_decorations:chained_kerosene_lantern",
+   "x": 1.2,
+   "y": 3.0,
+   "z": 2.5,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_79"
+  },
+  {
+   "block": "farmersdelight:stove",
+   "x": 3.45,
+   "y": 1.0,
+   "z": 12.6,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_80"
+  },
+  {
+   "block": "farmersdelight:cooking_pot",
+   "x": 3.45,
+   "y": 2.0,
+   "z": 12.6,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_81"
+  },
+  {
+   "block": "farmersdelight:stove",
+   "x": 3.45,
+   "y": 1.0,
+   "z": 11.6,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_82"
+  },
+  {
+   "block": "farmersdelight:skillet",
+   "x": 3.1125,
+   "y": 2.0,
+   "z": 11.6,
+   "yaw": 90.0,
+   "scale": 0.9,
+   "fallback": "fallback_83"
+  },
+  {
+   "block": "farmhouse_decorations:seasoning_rack",
+   "x": 3.506,
+   "y": 2.45,
+   "z": 12.6,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_84"
+  },
+  {
+   "block": "farmhouse_decorations:kitchen_wall_shelf",
+   "x": 3.5625,
+   "y": 2.6,
+   "z": 10.0,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_85"
+  },
+  {
+   "block": "farmhouse_decorations:kitchen_wall_shelf",
+   "x": 3.5625,
+   "y": 2.6,
+   "z": 11.0,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_86"
+  },
+  {
+   "block": "farmersdelight:rice_bag",
+   "x": 3.45,
+   "y": 1.95,
+   "z": 9.4,
+   "yaw": 90.0,
+   "scale": 0.6,
+   "fallback": "fallback_87"
+  },
+  {
+   "block": "farmersdelight:spruce_cabinet",
+   "x": -3.5,
+   "y": 1.0,
+   "z": 10.5,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_88"
+  },
+  {
+   "block": "farmhouse_decorations:kitchen_drawers",
+   "x": -3.461,
+   "y": 1.0,
+   "z": 11.5,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_89"
+  },
+  {
+   "block": "farmhouse_decorations:kitchen_counter",
+   "x": -3.461,
+   "y": 1.0,
+   "z": 12.5,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_90"
+  },
+  {
+   "block": "farmhouse_decorations:kitchen_counter",
+   "x": -3.461,
+   "y": 1.0,
+   "z": 13.5,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_91"
+  },
+  {
+   "block": "farmersdelight:cutting_board",
+   "x": -3.45,
+   "y": 2.0,
+   "z": 12.5,
+   "yaw": 270.0,
+   "scale": 0.8,
+   "fallback": "fallback_92"
+  },
+  {
+   "block": "farmersdelight:wooden_basket",
+   "x": -3.5,
+   "y": 2.0,
+   "z": 13.5,
+   "yaw": 270.0,
+   "scale": 0.5,
+   "fallback": "fallback_93"
+  },
+  {
+   "block": "farmersdelight:cabbage_crate",
+   "x": -3.5,
+   "y": 2.0,
+   "z": 11.5,
+   "yaw": 270.0,
+   "scale": 0.45,
+   "fallback": "fallback_94"
+  },
+  {
+   "block": "farmhouse_decorations:kitchen_wall_cabinet",
+   "x": -3.5125,
+   "y": 2.75,
+   "z": 12.5,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_95"
+  },
+  {
+   "block": "farmhouse_decorations:kitchen_wall_shelf",
+   "x": -3.5125,
+   "y": 2.75,
+   "z": 11.5,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_96"
+  },
+  {
+   "block": "farmhouse_decorations:kitchen_wall_shelf",
+   "x": -3.5125,
+   "y": 2.75,
+   "z": 10.5,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_97"
+  },
+  {
+   "block": "farmersdelight:potato_crate",
+   "x": -3.5,
+   "y": 1.0,
+   "z": 9.35,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_98"
+  },
+  {
+   "block": "farmersdelight:rice_bag",
+   "x": -3.5,
+   "y": 2.0,
+   "z": 9.35,
+   "yaw": 270.0,
+   "scale": 0.8,
+   "fallback": "fallback_99"
+  },
+  {
+   "block": "farmersdelight:cutting_board",
+   "x": 0.0,
+   "y": 1.9,
+   "z": 11.3,
+   "yaw": 270.0,
+   "scale": 0.7,
+   "fallback": "fallback_100"
+  },
+  {
+   "block": "farmersdelight:onion_crate",
+   "x": -0.25,
+   "y": 1.9,
+   "z": 12.0,
+   "yaw": 270.0,
+   "scale": 0.35,
+   "fallback": "fallback_101"
+  },
+  {
+   "block": "furnish:spruce_stool",
+   "x": 1.2625,
+   "y": 1.0,
+   "z": 11.6,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_102"
+  },
+  {
+   "block": "farmhouse_decorations:chained_kerosene_lantern",
+   "x": 1.9,
+   "y": 3.0,
+   "z": 9.9,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_103"
+  },
+  {
+   "block": "farmhouse_decorations:chained_kerosene_lantern",
+   "x": -2.2,
+   "y": 3.0,
+   "z": 10.0,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_104"
+  },
+  {
+   "block": "landsoficaria:cypress_rack",
+   "x": 3.0,
+   "y": -2.0,
+   "z": -9.3,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_105"
+  },
+  {
+   "block": "landsoficaria:loaded_cypress_barrel",
+   "x": 3.0,
+   "y": -1.75,
+   "z": -9.3,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_106"
+  },
+  {
+   "block": "landsoficaria:cypress_rack",
+   "x": 3.0,
+   "y": -2.0,
+   "z": -8.0,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_107"
+  },
+  {
+   "block": "landsoficaria:loaded_fir_barrel",
+   "x": 3.0,
+   "y": -1.75,
+   "z": -8.0,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_108"
+  },
+  {
+   "block": "landsoficaria:cypress_rack",
+   "x": 3.0,
+   "y": -2.0,
+   "z": -6.7,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_109"
+  },
+  {
+   "block": "landsoficaria:loaded_cypress_barrel",
+   "x": 3.0,
+   "y": -1.75,
+   "z": -6.7,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_110"
+  },
+  {
+   "block": "landsoficaria:fir_barrel",
+   "x": 3.15,
+   "y": -0.85,
+   "z": -8.65,
+   "yaw": 90.0,
+   "scale": 0.9,
+   "fallback": "fallback_111"
+  },
+  {
+   "block": "landsoficaria:fir_barrel",
+   "x": 3.15,
+   "y": -0.85,
+   "z": -7.35,
+   "yaw": 90.0,
+   "scale": 0.9,
+   "fallback": "fallback_112"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": 3.0,
+   "y": -2.0,
+   "z": -4.4,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_113"
+  },
+  {
+   "block": "furnish:dark_oak_crate",
+   "x": 3.0,
+   "y": -2.0,
+   "z": -3.3,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_114"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": 3.1,
+   "y": -1.0,
+   "z": -3.9,
+   "yaw": 90.0,
+   "scale": 0.9,
+   "fallback": "fallback_115"
+  },
+  {
+   "block": "farmersdelight:rice_bag",
+   "x": 3.0,
+   "y": -2.0,
+   "z": -2.0,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_116"
+  },
+  {
+   "block": "farmersdelight:rice_bag",
+   "x": 3.0,
+   "y": -1.05,
+   "z": -2.0,
+   "yaw": 90.0,
+   "scale": 0.75,
+   "fallback": "fallback_117"
+  },
+  {
+   "block": "farmersdelight:potato_crate",
+   "x": -3.0,
+   "y": -2.0,
+   "z": -4.4,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_118"
+  },
+  {
+   "block": "farmersdelight:carrot_crate",
+   "x": -3.0,
+   "y": -2.0,
+   "z": -3.3,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_119"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": -3.1,
+   "y": -1.0,
+   "z": -3.85,
+   "yaw": 270.0,
+   "scale": 0.9,
+   "fallback": "fallback_120"
+  },
+  {
+   "block": "landsoficaria:storage_vase",
+   "x": -3.0,
+   "y": -2.0,
+   "z": 0.6,
+   "yaw": 270.0,
+   "scale": 0.85,
+   "fallback": "fallback_121"
+  },
+  {
+   "block": "furnish:dark_oak_crate",
+   "x": 2.0,
+   "y": -2.0,
+   "z": 2.6,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_122"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": 3.0,
+   "y": -2.0,
+   "z": 2.6,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_123"
+  },
+  {
+   "block": "furnish:dark_oak_crate",
+   "x": 3.0,
+   "y": -2.0,
+   "z": 3.6,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_124"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": 2.0,
+   "y": -2.0,
+   "z": 3.6,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_125"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": 3.0,
+   "y": -1.0,
+   "z": 3.1,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_126"
+  },
+  {
+   "block": "furnish:dark_oak_crate",
+   "x": 2.05,
+   "y": -1.0,
+   "z": 2.9,
+   "yaw": 90.0,
+   "scale": 0.8,
+   "fallback": "fallback_127"
+  },
+  {
+   "block": "farmersdelight:potato_crate",
+   "x": 3.0,
+   "y": -2.0,
+   "z": 7.6,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_128"
+  },
+  {
+   "block": "farmersdelight:onion_crate",
+   "x": 2.0,
+   "y": -2.0,
+   "z": 7.6,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_129"
+  },
+  {
+   "block": "farmersdelight:cabbage_crate",
+   "x": 3.0,
+   "y": -2.0,
+   "z": 8.6,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_130"
+  },
+  {
+   "block": "farmersdelight:rice_bag",
+   "x": 2.0,
+   "y": -2.0,
+   "z": 8.6,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_131"
+  },
+  {
+   "block": "farmersdelight:rice_bag",
+   "x": 3.0,
+   "y": -1.0,
+   "z": 8.1,
+   "yaw": 90.0,
+   "scale": 0.8,
+   "fallback": "fallback_132"
+  },
+  {
+   "block": "landsoficaria:storage_vase",
+   "x": 2.0,
+   "y": -2.0,
+   "z": 10.7,
+   "yaw": 90.0,
+   "scale": 0.85,
+   "fallback": "fallback_133"
+  },
+  {
+   "block": "landsoficaria:brown_storage_vase",
+   "x": 2.0,
+   "y": -2.0,
+   "z": 11.6,
+   "yaw": 90.0,
+   "scale": 0.8,
+   "fallback": "fallback_134"
+  },
+  {
+   "block": "furnish:amphora",
+   "x": 1.9,
+   "y": -2.0,
+   "z": 12.4,
+   "yaw": 90.0,
+   "scale": 0.7,
+   "fallback": "fallback_135"
+  },
+  {
+   "block": "farmhouse_decorations:workbench",
+   "x": -2.961,
+   "y": -2.0,
+   "z": 8.8,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_136"
+  },
+  {
+   "block": "farmhouse_decorations:tool_board",
+   "x": -3.47,
+   "y": -0.75,
+   "z": 8.8,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_137"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": 0.0,
+   "y": -2.0,
+   "z": 11.9,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_138"
+  },
+  {
+   "block": "furnish:dark_oak_crate",
+   "x": 0.05,
+   "y": -1.0,
+   "z": 11.9,
+   "yaw": 180.0,
+   "scale": 0.85,
+   "fallback": "fallback_139"
+  },
+  {
+   "block": "farmersdelight:rice_bag",
+   "x": 0.0,
+   "y": -2.0,
+   "z": 10.9,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_140"
+  },
+  {
+   "block": "farmersdelight:rice_bag",
+   "x": -0.7,
+   "y": -2.0,
+   "z": 10.6,
+   "yaw": 0.0,
+   "scale": 0.7,
+   "fallback": "fallback_141"
+  },
+  {
+   "block": "furnish:spruce_shelf",
+   "x": 3.506,
+   "y": -0.05,
+   "z": -9.0,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_142"
+  },
+  {
+   "block": "furnish:spruce_shelf",
+   "x": 3.506,
+   "y": -0.05,
+   "z": -8.0,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_143"
+  },
+  {
+   "block": "furnish:spruce_shelf",
+   "x": 3.506,
+   "y": -0.05,
+   "z": -7.0,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_144"
+  },
+  {
+   "block": "landsoficaria:brown_storage_vase",
+   "x": 3.85,
+   "y": 0.2,
+   "z": -9.3,
+   "yaw": 90.0,
+   "scale": 0.3,
+   "fallback": "fallback_145"
+  },
+  {
+   "block": "landsoficaria:storage_vase",
+   "x": 3.85,
+   "y": 0.2,
+   "z": -8.6,
+   "yaw": 90.0,
+   "scale": 0.3,
+   "fallback": "fallback_146"
+  },
+  {
+   "block": "landsoficaria:brown_storage_vase",
+   "x": 3.85,
+   "y": 0.2,
+   "z": -7.8,
+   "yaw": 90.0,
+   "scale": 0.3,
+   "fallback": "fallback_147"
+  },
+  {
+   "block": "landsoficaria:storage_vase",
+   "x": 3.85,
+   "y": 0.2,
+   "z": -7.1,
+   "yaw": 90.0,
+   "scale": 0.3,
+   "fallback": "fallback_148"
+  },
+  {
+   "block": "landsoficaria:brown_storage_vase",
+   "x": 3.85,
+   "y": 0.2,
+   "z": -6.6,
+   "yaw": 90.0,
+   "scale": 0.3,
+   "fallback": "fallback_149"
+  },
+  {
+   "block": "farmhouse_decorations:chained_kerosene_lantern",
+   "x": 0.0,
+   "y": -0.5,
+   "z": -10.0,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_150"
+  },
+  {
+   "block": "farmhouse_decorations:chained_kerosene_lantern",
+   "x": 0.0,
+   "y": -0.5,
+   "z": -4.5,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_151"
+  },
+  {
+   "block": "farmhouse_decorations:chained_kerosene_lantern",
+   "x": 0.0,
+   "y": -0.5,
+   "z": 1.0,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_152"
+  },
+  {
+   "block": "farmhouse_decorations:chained_kerosene_lantern",
+   "x": 0.0,
+   "y": -0.5,
+   "z": 9.0,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_153"
+  },
+  {
+   "block": "farmhouse_decorations:chained_kerosene_lantern",
+   "x": -1.3,
+   "y": -0.5,
+   "z": 4.5,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_154"
+  },
+  {
+   "block": "farmhouse_decorations:kerosene_lantern",
+   "x": 0.8,
+   "y": 3.0,
+   "z": -12.2,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_155"
+  },
+  {
+   "block": "farmhouse_decorations:kerosene_lantern",
+   "x": -0.8,
+   "y": 3.0,
+   "z": -10.0,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_156"
+  },
+  {
+   "block": "farmhouse_decorations:kerosene_lantern",
+   "x": 0.8,
+   "y": 3.0,
+   "z": -4.5,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_157"
+  },
+  {
+   "block": "farmhouse_decorations:kerosene_lantern",
+   "x": -0.8,
+   "y": 3.0,
+   "z": -2.3,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_158"
+  },
+  {
    "block": "farmhouse_decorations:chained_kerosene_lantern",
    "x": 0.0,
    "y": 3.0,
-   "z": -3.0,
+   "z": -7.0,
    "yaw": 0.0,
    "scale": 1.0,
-   "fallback": "fallback_27"
+   "fallback": "fallback_159"
+  },
+  {
+   "block": "furnish:spruce_square_table",
+   "x": 3.75,
+   "y": 1.0,
+   "z": -2.2,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_160"
+  },
+  {
+   "block": "farmhouse_decorations:kerosene_lantern",
+   "x": 3.85,
+   "y": 2.0,
+   "z": -2.0,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_161"
+  },
+  {
+   "block": "farmhouse_decorations:wine_bottle",
+   "x": 3.55,
+   "y": 2.0,
+   "z": -2.45,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_162"
+  },
+  {
+   "block": "furnish:spruce_stool",
+   "x": 2.7875,
+   "y": 1.0,
+   "z": -2.2,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_163"
+  },
+  {
+   "block": "farmersdelight:canvas_rug",
+   "x": 2.4,
+   "y": 1.0,
+   "z": -4.7,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_164"
+  },
+  {
+   "block": "farmhouse_decorations:chained_kerosene_lantern",
+   "x": 2.9,
+   "y": 3.0,
+   "z": -9.6,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_165"
+  },
+  {
+   "block": "farmhouse_decorations:acoustic_guitar",
+   "x": 3.785,
+   "y": 1.0,
+   "z": -4.6,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_166"
+  },
+  {
+   "block": "furnish:spruce_square_table",
+   "x": -3.75,
+   "y": 1.0,
+   "z": -2.2,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_167"
+  },
+  {
+   "block": "farmhouse_decorations:kerosene_lantern",
+   "x": -3.85,
+   "y": 2.0,
+   "z": -2.0,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_168"
+  },
+  {
+   "block": "farmhouse_decorations:red_wine_bottle",
+   "x": -3.55,
+   "y": 2.0,
+   "z": -2.45,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_169"
+  },
+  {
+   "block": "furnish:spruce_stool",
+   "x": -2.7875,
+   "y": 1.0,
+   "z": -2.2,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_170"
+  },
+  {
+   "block": "farmersdelight:canvas_rug",
+   "x": -2.4,
+   "y": 1.0,
+   "z": -4.7,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_171"
+  },
+  {
+   "block": "farmhouse_decorations:chained_kerosene_lantern",
+   "x": -2.9,
+   "y": 3.0,
+   "z": -9.6,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_172"
+  },
+  {
+   "block": "farmersdelight:wooden_basket",
+   "x": -3.95,
+   "y": 1.0,
+   "z": -4.0,
+   "yaw": 270.0,
+   "scale": 0.7,
+   "fallback": "fallback_173"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": -3.0,
+   "y": 4.5,
+   "z": 13.1,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_174"
+  },
+  {
+   "block": "furnish:dark_oak_crate",
+   "x": -3.0,
+   "y": 5.5,
+   "z": 13.1,
+   "yaw": 270.0,
+   "scale": 0.7,
+   "fallback": "fallback_175"
+  },
+  {
+   "block": "landsoficaria:cypress_rack",
+   "x": -3.3,
+   "y": 4.5,
+   "z": 7.6,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_176"
+  },
+  {
+   "block": "landsoficaria:loaded_cypress_barrel",
+   "x": -3.3,
+   "y": 4.75,
+   "z": 7.6,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_177"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": -3.4,
+   "y": 4.5,
+   "z": 8.65,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_178"
+  },
+  {
+   "block": "furnish:dark_oak_crate",
+   "x": 3.45,
+   "y": 4.5,
+   "z": -10.0,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_179"
   }
  ],
  "seats": [
   {
-   "x": -3.55,
-   "y": 1.47,
-   "z": 0.6,
-   "dx": -3.55,
-   "dy": 1.02,
-   "dz": 0.6
-  },
-  {
-   "x": -3.55,
-   "y": 1.47,
-   "z": 2.4,
-   "dx": -3.55,
-   "dy": 1.02,
-   "dz": 2.4
-  },
-  {
-   "x": -3.55,
-   "y": 1.47,
-   "z": 4.2,
-   "dx": -3.55,
-   "dy": 1.02,
-   "dz": 4.2
-  },
-  {
-   "x": -3.55,
-   "y": 1.47,
-   "z": 6.0,
-   "dx": -3.55,
-   "dy": 1.02,
-   "dz": 6.0
-  },
-  {
-   "x": -0.85,
-   "y": 1.47,
-   "z": 0.6,
-   "dx": -0.85,
-   "dy": 1.02,
-   "dz": 0.6
-  },
-  {
-   "x": -0.85,
-   "y": 1.47,
-   "z": 2.4,
-   "dx": -0.85,
-   "dy": 1.02,
-   "dz": 2.4
-  },
-  {
-   "x": -0.85,
-   "y": 1.47,
-   "z": 4.2,
-   "dx": -0.85,
-   "dy": 1.02,
-   "dz": 4.2
-  },
-  {
-   "x": -0.85,
-   "y": 1.47,
-   "z": 6.0,
-   "dx": -0.85,
-   "dy": 1.02,
-   "dz": 6.0
-  },
-  {
-   "x": -2.7,
-   "y": 4.47,
-   "z": -17.2,
-   "dx": -2.7,
+   "x": -1.8,
+   "y": 4.46,
+   "z": -19.0,
+   "dx": -1.0,
    "dy": 4.02,
-   "dz": -16.4
+   "dz": -19.0
+  },
+  {
+   "x": -4.05,
+   "y": 1.46,
+   "z": 0.25,
+   "dx": -4.05,
+   "dy": 1.02,
+   "dz": 0.25
+  },
+  {
+   "x": -4.05,
+   "y": 1.46,
+   "z": 1.25,
+   "dx": -4.05,
+   "dy": 1.02,
+   "dz": 1.25
+  },
+  {
+   "x": -4.05,
+   "y": 1.46,
+   "z": 2.25,
+   "dx": -4.05,
+   "dy": 1.02,
+   "dz": 2.25
+  },
+  {
+   "x": -4.05,
+   "y": 1.46,
+   "z": 3.25,
+   "dx": -4.05,
+   "dy": 1.02,
+   "dz": 3.25
+  },
+  {
+   "x": -4.05,
+   "y": 1.46,
+   "z": 4.25,
+   "dx": -4.05,
+   "dy": 1.02,
+   "dz": 4.25
+  },
+  {
+   "x": -4.05,
+   "y": 1.46,
+   "z": 5.25,
+   "dx": -4.05,
+   "dy": 1.02,
+   "dz": 5.25
+  },
+  {
+   "x": -0.95,
+   "y": 1.46,
+   "z": 0.25,
+   "dx": -0.3,
+   "dy": 1.02,
+   "dz": 0.25
+  },
+  {
+   "x": -0.95,
+   "y": 1.46,
+   "z": 1.25,
+   "dx": -0.3,
+   "dy": 1.02,
+   "dz": 1.25
+  },
+  {
+   "x": -0.95,
+   "y": 1.46,
+   "z": 2.25,
+   "dx": -0.3,
+   "dy": 1.02,
+   "dz": 2.25
+  },
+  {
+   "x": -0.95,
+   "y": 1.46,
+   "z": 3.25,
+   "dx": -0.3,
+   "dy": 1.02,
+   "dz": 3.25
+  },
+  {
+   "x": -0.95,
+   "y": 1.46,
+   "z": 4.25,
+   "dx": -0.3,
+   "dy": 1.02,
+   "dz": 4.25
+  },
+  {
+   "x": -0.95,
+   "y": 1.46,
+   "z": 5.25,
+   "dx": -0.3,
+   "dy": 1.02,
+   "dz": 5.25
+  },
+  {
+   "x": -3.0,
+   "y": 1.52,
+   "z": 6.3,
+   "dx": -3.0,
+   "dy": 1.02,
+   "dz": 7.3
+  },
+  {
+   "x": -2.0,
+   "y": 1.52,
+   "z": 6.3,
+   "dx": -2.0,
+   "dy": 1.02,
+   "dz": 7.3
+  },
+  {
+   "x": 1.2,
+   "y": 1.46,
+   "z": 11.6,
+   "dx": 1.95,
+   "dy": 1.02,
+   "dz": 11.6
+  },
+  {
+   "x": 2.85,
+   "y": 1.46,
+   "z": -2.2,
+   "dx": 2.05,
+   "dy": 1.02,
+   "dz": -2.2
+  },
+  {
+   "x": -2.85,
+   "y": 1.46,
+   "z": -2.2,
+   "dx": -2.05,
+   "dy": 1.02,
+   "dz": -2.2
   },
   {
    "x": 3.75,

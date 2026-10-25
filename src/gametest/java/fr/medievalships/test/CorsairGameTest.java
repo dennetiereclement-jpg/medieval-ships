@@ -86,16 +86,18 @@ public final class CorsairGameTest {
 			shot.shot(id + "_" + names[k]);
 		}
 
-		// walking aboard: main deck, quarterdeck, captain's cabin, common room, hold (below the waterline)
+		// walking aboard, a screenshot of each furnished room: main deck, quarterdeck, captain's cabin, common room,
+		// kitchen, coursive, hold (below the waterline)
 		server.runCommand("gamemode survival @a");
 		double[][] spots = {
 				{0.0, CorsairLayout.MAIN_DECK_Y, -5.5, 180},
 				{1.6, CorsairLayout.QUARTERDECK_Y, -15.0, 180},
 				{0.0, CorsairLayout.CABIN_FLOOR_Y, -16.0, 180},
-				{1.3, CorsairLayout.LOWER_FLOOR_Y, CorsairLayout.FORE_MAST_Z - 1.5, 200},
+				{1.3, CorsairLayout.LOWER_FLOOR_Y, CorsairLayout.FORE_MAST_Z - 1.5, 155},
+				{0.5, CorsairLayout.LOWER_FLOOR_Y, 9.6, 0},
 				{0.0, CorsairLayout.LOWER_FLOOR_Y, -8.0, 180},
 				{0.0, CorsairLayout.HOLD_FLOOR_Y, -6.0, 0}};
-		String[] where = {"main deck", "quarterdeck", "captain's cabin", "common room", "coursive", "hold"};
+		String[] where = {"main deck", "quarterdeck", "captain's cabin", "common room", "kitchen", "coursive", "hold"};
 		for (int k = 0; k < spots.length; k++) {
 			ShipPose p = pose(server, type);
 			tp(server, p, spots[k][0], spots[k][1] + 0.02, spots[k][2], (float) spots[k][3], 10);
@@ -140,7 +142,7 @@ public final class CorsairGameTest {
 		double dist = Math.hypot(moved.x() - start.x(), moved.z() - start.z());
 		log.log("%s moved %.2f blocks in 7 s at the helm", id, dist);
 		check.check(dist > 1.5 && dist < 30, "%s sails under the player's control (moved %.2f)", id, dist);
-		shot.shot(id + "_11_a_la_barre");
+		shot.shot(id + "_12_a_la_barre");
 		server.runCommand("ride @p dismount");
 		server.runCommand("gamemode spectator @a");
 		server.runOnServer(srv -> {

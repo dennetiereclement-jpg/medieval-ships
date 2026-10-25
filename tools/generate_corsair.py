@@ -42,6 +42,7 @@ import corsair_shape as cs  # noqa: E402
 import corsair_interior as ci  # noqa: E402
 import corsair_texture as ct  # noqa: E402
 import corsair_decor as cd  # noqa: E402
+import corsair_furniture as cf  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _uuid_counter = [0]
@@ -1075,7 +1076,7 @@ def f_hearth(bone, lights, name, p, w=3.2):
     disc(bone, "lit_" + name + "_pot", p + v3(0, 0.7, -0.3), (0, 1, 0), 0.24, 0.3, "iron")
     for k, x in enumerate((-1.0, -0.6, 0.7, 1.1)):
         beam(bone, "lit_%s_string_%d" % (name, k), p + v3(x, 2.5, -0.45), p + v3(x, 2.1, -0.45), 0.03, "rope")
-        add_cube(bone, "lit_%s_ham_%d" % (name, k), p + v3(x, 1.88, -0.45), EYE, (0.2, 0.42, 0.16), "red_paint")
+        add_cube(bone, "lit_%s_ham_%d" % (name, k), p + v3(x, 1.88, -0.45), EYE, (0.2, 0.42, 0.16), "ham")
 
 
 def f_work_table(bone, name, p, w=1.2, l=2.2):
@@ -1098,8 +1099,11 @@ def f_boat(bone, name, c):
     gn.g_boat(bone, name, c, length=3.0, beam_=1.3, depth=0.5)
 
 
-CUSTOM_BUILDERS = {"long_table": f_long_table, "bench": f_bench, "bunk": f_bunk, "desk": f_desk, "chair": f_chair, "chest": f_chest,
-                   "rug": f_rug, "work_table": f_work_table, "barrel": f_barrel}
+CUSTOM_BUILDERS = {"long_table": f_long_table, "bench": f_bench, "bunk": f_bunk, "desk": f_desk, "chair": f_chair, "chest": cf.chest,
+                   "rug": f_rug, "work_table": f_work_table, "barrel": f_barrel, "captain_bed": cf.captain_bed, "chart_sheet": cf.chart_sheet,
+                   "compass_box": cf.compass_box, "wall_chart": cf.wall_chart, "telescope": cf.telescope, "tankards": cf.tankards,
+                   "bracket": cf.bracket, "pillar": cf.pillar, "coil": cf.coil, "post": cf.post, "bunk2": cf.bunk2, "hammock": cf.hammock,
+                   "pot_rack": cf.pot_rack}
 
 
 # ---------------------------------------------------------------- the rooms, on the interior grid
@@ -1285,9 +1289,8 @@ def doors(root, g):
 
 def fallbacks(root):
     """Stand-ins of the decoration blocks, shown only when their mod is missing on a client."""
-    import nautilus_decor as nd
     for i, b in enumerate(cd.BLOCKS):
-        x0, x1, y0, y1, z0, z1 = nd.footprint(b["block"], b["x"], b["y"], b["z"], b["yaw"], b["scale"])
+        x0, x1, y0, y1, z0, z1 = cd.footprint(b["block"], b["x"], b["y"], b["z"], b["yaw"], b["scale"])
         bone = Bone("fallback_%d" % i, parent=root)
         region = cd.FALLBACK_REGION.get(b["block"], "wood_mid")
         if region == "lantern":
