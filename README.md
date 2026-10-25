@@ -90,6 +90,8 @@ Pour tous :
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
 
+La version 1.8.1 corrige le Léviathan des Cieux : le pilote qui lâche la barre est bien déposé sur le château arrière, et l'échelle de la tour mène de nouveau au pont d'observation même quand le dirigeable tourne (les parois de la coque ne se laissent plus traverser pendant un virage) ; documentation et planches comparatives des deux nouveaux véhicules.
+
 La version 1.8.0 ajoute deux nouveaux véhicules, reproduits d'après leurs planches de référence : **Le Vieux
 Corsaire** (`old_corsair`), un vieux brick pirate rapiécé aux voiles brique, dont on parcourt le pont, la
 cabine du capitaine, la salle commune, la cuisine, la coursive, les postes d'équipage et la cale pendant qu'il
@@ -223,7 +225,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.8.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.8.1.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
