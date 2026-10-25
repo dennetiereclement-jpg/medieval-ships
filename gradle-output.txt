@@ -1,0 +1,400 @@
+[18:26:39] [Server thread/INFO]: Set Player845's game mode to Creative Mode
+[18:26:39] [Server thread/INFO]: Teleported Player845 to 150.500000, -60.000000, -39.500000
+[18:26:39] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Creative Mode
+[18:26:40] [Server thread/INFO]: Replaced a slot on Player845 with [Steampunk Airship]
+[18:26:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] steampunk_airship item: right click on the ground places an airship (1 -> 2)
+[18:26:42] [Server thread/INFO]: Removed 1 item(s) from player Player845
+[18:26:42] [Server thread/INFO]: Dirigeable steampunk donné(e) à 1 joueur(s).
+[18:26:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] steampunk_airship item: /ship give steampunk_airship gives the item (1)
+[18:26:42] [Server thread/INFO]: Removed 1 item(s) from player Player845
+[18:26:42] [Server thread/INFO]: Player845 is not riding any vehicle
+[18:26:42] [Server thread/INFO]: Set Player845's game mode to Spectator Mode
+[18:26:42] [Server thread/INFO]: Teleported Player845 to 215.500000, -20.000000, -89.500000
+[18:26:42] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[18:26:44] [Server thread/INFO]: Marked 30 chunks in minecraft:overworld from [12, -5] to [14, 4] to be force loaded
+[18:26:46] [Server thread/INFO]: Successfully filled 930 block(s)
+[18:26:46] [Server thread/INFO]: Successfully filled 930 block(s)
+[18:26:46] [Server thread/INFO]: Successfully filled 4290 block(s)
+[18:26:46] [Server thread/INFO]: Successfully filled 4290 block(s)
+[18:26:46] [Server thread/INFO]: Successfully filled 31320 block(s)
+[18:26:46] [Server thread/INFO]: Successfully filled 31320 block(s)
+[18:26:46] [Server thread/INFO]: Successfully filled 31320 block(s)
+[18:26:46] [Server thread/INFO]: Successfully filled 18009 block(s)
+[18:26:46] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus basin filled with water all along (143 / 143)
+[18:26:46] [Server thread/INFO]: Teleported Player845 to 215.500000, -20.000000, -49.500000
+[18:26:46] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 2395ms or 47 ticks behind
+[18:26:48] [Server thread/INFO]: Navire mis à l'eau : Nautilus [215 -35 -19]
+[18:26:52] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] nautilus at 215.50 -35.91 -19.50, water surface -36.111
+[18:26:52] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus floats on the surface (y -35.91, surfaced -35.91)
+[18:26:52] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus placed: inside nothing
+[18:26:52] [Server thread/INFO]: Teleported Player845 to 155.500000, -31.531000, -19.500000
+[18:26:53] [Server thread/INFO]: Teleported Player845 to 275.500000, -31.531000, -19.500000
+[18:26:54] [Server thread/INFO]: Teleported Player845 to 255.500000, -12.531000, 35.500000
+[18:26:55] [Server thread/INFO]: Teleported Player845 to 215.500000, 37.469000, -19.000000
+[18:26:57] [Server thread/INFO]: Teleported Player845 to 215.500000, -32.531000, 60.500000
+[18:26:58] [Server thread/INFO]: Teleported Player845 to 231.500000, -30.531000, -97.500000
+[18:26:58] [Server thread/INFO]: Teleported Player845 to 195.500000, -33.531000, -19.500000
+[18:26:59] [Server thread/INFO]: Profondeur ordonnée : 15 m.
+[18:26:59] [Server thread/INFO]: Projecteur allumé.
+[18:27:06] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 4157ms or 83 ticks behind
+[18:27:23] [Server thread/INFO]: Teleported Player845 to 153.500000, -51.319000, -19.500000
+[18:27:25] [Server thread/INFO]: Teleported Player845 to 165.500000, -44.319000, 14.500000
+[18:27:26] [Server thread/INFO]: Teleported Player845 to 165.500000, -54.319000, -55.500000
+[18:27:27] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 6093ms or 121 ticks behind
+[18:27:28] [Server thread/INFO]: Projecteur éteint.
+[18:27:28] [Server thread/INFO]: Teleported Player845 to 195.500000, -48.319000, -19.500000
+[18:27:28] [Server thread/INFO]: Ballasts vidés : le Nautilus remonte à la surface.
+[18:27:50] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 8087ms or 161 ticks behind
+[18:27:55] [Server thread/INFO]: Profondeur libre : le pilote commande les ballasts.
+[18:27:58] [Server thread/INFO]: Teleported Player845 to 215.500000, -35.860000, -1.900000
+[18:27:59] [Server thread/INFO]: Teleported Player845 to 211.500000, -35.760000, -12.000000
+[18:28:00] [Server thread/INFO]: Teleported Player845 to 215.500000, -35.360000, -13.700000
+[18:28:01] [Server thread/INFO]: Teleported Player845 to 217.900000, -35.860000, 0.800000
+[18:28:02] [Server thread/INFO]: Teleported Player845 to 213.100000, -35.860000, 0.800000
+[18:28:03] [Server thread/INFO]: Teleported Player845 to 215.500000, -26.860000, -3.500000
+[18:28:04] [Server thread/INFO]: Projecteur allumé.
+[18:28:04] [Server thread/INFO]: Teleported Player845 to 219.000000, -21.760000, 4.500000
+[18:28:05] [Server thread/INFO]: Teleported Player845 to 227.500000, -28.560000, 26.500000
+[18:28:06] [Server thread/INFO]: Projecteur éteint.
+[18:28:06] [Server thread/INFO]: Teleported Player845 to 218.500000, -40.360000, -14.500000
+[18:28:07] [Server thread/INFO]: Teleported Player845 to 217.000000, -40.360000, -27.000000
+[18:28:08] [Server thread/INFO]: Porte 0 ouverte.
+[18:28:08] [Server thread/INFO]: Teleported Player845 to 216.900000, -36.360000, -27.800000
+[18:28:09] [Server thread/INFO]: Porte 0 fermée.
+[18:28:09] [Server thread/INFO]: Teleported Player845 to 215.000000, -40.360000, -5.500000
+[18:28:09] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 4797ms or 95 ticks behind
+[18:28:10] [Server thread/INFO]: Teleported Player845 to 215.500000, -40.360000, -32.500000
+[18:28:11] [Server thread/INFO]: Teleported Player845 to 218.100000, -35.760000, -40.500000
+[18:28:12] [Server thread/INFO]: Teleported Player845 to 214.000000, -40.360000, 5.800000
+[18:28:13] [Server thread/INFO]: Porte 16 ouverte.
+[18:28:13] [Server thread/INFO]: Teleported Player845 to 216.500000, -33.960000, -37.900000
+[18:28:14] [Server thread/INFO]: Porte 16 fermée.
+[18:28:14] [Server thread/INFO]: Set Player845's game mode to Survival Mode
+[18:28:14] [Server thread/INFO]: Removed effect Water Breathing from Player845
+[18:28:14] [Server thread/INFO]: Teleported Player845 to 215.500000, -35.891000, -5.900000
+[18:28:14] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[18:28:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] nautilus dining room: water 0.0/0.0 camera 0.0, local y 0.000
+[18:28:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus walks on the main level floor (local y 0.000)
+[18:28:17] [Server thread/INFO]: Teleported Player845 to 215.500000, -35.891000, -21.500000
+[18:28:18] [Server thread/INFO]: Teleported Player845 to 215.500000, -40.391000, -19.500000
+[18:28:29] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 4927ms or 98 ticks behind
+[18:28:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] nautilus lower level (below the waterline): touching water client 0.0 server 0.0, submerged 0.0/0.0, camera 0.0, air 300/300, y -4.500
+[18:28:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus lower level is dry although below the waterline
+[18:28:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus lower level: no underwater view
+[18:28:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus lower level: the player keeps all his air (300/300)
+[18:28:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus lower level: standing on its floor (local y -4.500)
+[18:28:32] [Server thread/INFO]: Teleported Player845 to 214.791000, -39.920000, -27.631000
+[18:28:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] nautilus spiral staircase: local -1.71 0.00 -8.08
+[18:28:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus climbs the spiral staircase to the main level (local y 0.00)
+[18:28:36] [Server thread/INFO]: Teleported Player845 to 217.000000, -35.920000, -28.000000
+[18:28:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] nautilus ladder, hatch closed: local y 6.70 (hatch at 8.50)
+[18:28:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus climbs the ladder and stops under the closed hatch (local y 6.70)
+[18:28:48] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] nautilus ladder, hatch open: local 1.50 9.00 -17.62
+[18:28:48] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus goes out through the open hatch onto the casing (local y 9.00)
+[18:28:48] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus the hatch is open
+[18:28:48] [Server thread/INFO]: Teleported Player845 to 215.500000, -26.920000, -2.500000
+[18:28:50] [Server thread/INFO]: Summoned new Armor Stand
+[18:28:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus does not dive while someone stands in the open hatch (-35.94 -> -35.94)
+[18:28:53] [Server thread/INFO]: Killed Armor Stand
+[18:29:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus the dive order shuts the open hatch
+[18:29:08] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 2004ms or 40 ticks behind
+[18:29:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] nautilus dive: -35.94 -> -50.24, then -50.241 (depth 14.3)
+[18:29:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus dives under command (14.30 blocks)
+[18:29:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus holds its depth (-50.241 -> -50.241)
+[18:29:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus dived: inside nothing
+[18:29:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus the hatch does not open under water
+[18:29:16] [Server thread/INFO]: Summoned new Armor Stand
+[18:29:25] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 2264ms or 45 ticks behind
+[18:29:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] nautilus sailing submerged: 9.99 blocks, armor stand local 1.00 0.00 -4.00
+[18:29:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus sails submerged (9.99 blocks)
+[18:29:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus carries what stands in its rooms (armor stand local y 0.00 z -4.00)
+[18:29:28] [Server thread/INFO]: Player845 stopped riding Nautilus — Captain Nemo's Submarine
+[18:29:28] [Server thread/INFO]: Teleported Player845 to 215.500000, -50.221000, -11.507000
+[18:29:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] nautilus inside, submerged: touching water 0.0/0.0, submerged 0.0/0.0, camera 0.0, air 300/300, local y -0.000
+[18:29:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus submerged: the rooms are dry (no water, no underwater view)
+[18:29:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus submerged: the player keeps all his air (300/300)
+[18:29:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus submerged: standing on the main level floor (local y -0.000)
+[18:29:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus submerged: the sea seen through the glass is murky (sea fog and veils behind the windows)
+[18:29:47] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 7568ms or 151 ticks behind
+[18:29:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus submerged: walking in the salon (local 0.00 -0.00 -2.36)
+[18:29:50] [Server thread/INFO]: Teleported Player845 to 214.500000, -50.221000, -0.109000
+[18:29:52] [Server thread/INFO]: Teleported Player845 to 218.500000, -50.221000, 3.812000
+[18:29:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus salon: a click on the lever closes the shutters of the windows
+[18:29:57] [Server thread/INFO]: Teleported Player845 to 214.500000, -50.221000, 0.913000
+[18:29:58] [Server thread/INFO]: Teleported Player845 to 215.500000, -50.221000, 2.440000
+[18:30:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus salon: a click on the sofa seats the player (seat 20)
+[18:30:00] [Server thread/INFO]: Player845 stopped riding Nautilus — Captain Nemo's Submarine
+[18:30:00] [Server thread/INFO]: Lumières éteintes.
+[18:30:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus /ship nautilus lumieres off switches the lamps off
+[18:30:01] [Server thread/INFO]: Lumières allumées.
+[18:30:01] [Server thread/INFO]: Panneaux des baies ouverts.
+[18:30:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus /ship nautilus volets on opens the shutters
+[18:30:04] [Server thread/INFO]: Porte 8 ouverte.
+[18:30:04] [Server thread/INFO]: Teleported Player845 to 214.900000, -54.721000, 29.979000
+[18:30:05] [Server thread/INFO]: Porte 8 fermée.
+[18:30:05] [Server thread/INFO]: La mer est derrière cette porte : remplissez d'abord le sas (vanne rouge).
+[18:30:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus airlock: the outer door stays shut while the airlock is dry
+[18:30:05] [Server thread/INFO]: Vanne ouverte : le sas se remplit d'eau de mer.
+[18:30:06] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 3283ms or 65 ticks behind
+[18:30:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] nautilus airlock filled: level 1.00, touching water 1.0/1.0, submerged 1.0/1.0
+[18:30:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus airlock: filled with sea water, the player is under water (level 1.00)
+[18:30:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus airlock: the inner door stays shut while it is full
+[18:30:13] [Server thread/INFO]: Porte 9 ouverte.
+[18:30:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus airlock: full, the outer door opens onto the sea
+[18:30:15] [Server thread/INFO]: Teleported Player845 to 213.900000, -54.441000, 31.130000
+[18:30:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] nautilus swims out of the airlock: local -11.01 -6.10 27.00
+[18:30:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus swims out of the airlock through its tunnel into the sea (local x -11.01)
+[18:30:21] [Server thread/INFO]: Teleported Player845 to 214.900000, -54.721000, 30.433000
+[18:30:21] [Server thread/INFO]: Fermez la porte extérieure du sas avant de le vider.
+[18:30:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus airlock: the pumps do not start while the outer door is open (level 1.00)
+[18:30:22] [Server thread/INFO]: Porte 9 fermée.
+[18:30:22] [Server thread/INFO]: Pompes en marche : le sas se vide.
+[18:30:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] nautilus airlock pumped out: level 0.00, touching water 0.0/0.0, submerged 0.0/0.0
+[18:30:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus airlock: pumped out, dry again (level 0.00)
+[18:30:32] [Server thread/INFO]: Porte 8 ouverte.
+[18:30:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus airlock: empty, the inner door opens
+[18:30:32] [Server thread/INFO]: Projecteur allumé.
+[18:30:32] [Server thread/INFO]: Set Player845's game mode to Spectator Mode
+[18:30:32] [Server thread/INFO]: Teleported Player845 to 227.500000, -36.861000, 56.133000
+[18:30:32] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[18:30:33] [Server thread/INFO]: Teleported Player845 to 204.500000, -53.861000, -17.867000
+[18:30:35] [Server thread/INFO]: Set Player845's game mode to Survival Mode
+[18:30:35] [Server thread/INFO]: Teleported Player845 to 215.500000, -41.221000, 21.133000
+[18:30:35] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[18:30:38] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 2006ms or 40 ticks behind
+[18:31:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] nautilus surfacing: depth 0.02
+[18:31:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus rises back to the surface (depth 0.02)
+[18:31:04] [Server thread/INFO]: Player845 stopped riding Nautilus — Captain Nemo's Submarine
+[18:31:04] [Server thread/INFO]: Teleported Player845 to 215.500000, -26.891000, 21.133000
+[18:31:05] [Server thread/INFO]: Le canot est à l'eau. Ramenez-le près de la coque et actionnez le levier pour le rembarquer.
+[18:31:06] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus lifeboat: launched on the water (1 boat)
+[18:31:06] [Server thread/INFO]: Set Player845's game mode to Spectator Mode
+[18:31:06] [Server thread/INFO]: Teleported Player845 to 241.500000, -27.531000, -5.867000
+[18:31:06] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[18:31:07] [Server thread/INFO]: Set Player845's game mode to Survival Mode
+[18:31:07] [Server thread/INFO]: Teleported Player845 to 215.500000, -26.891000, 21.133000
+[18:31:07] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[18:31:08] [Server thread/INFO]: Le canot a repris sa place dans son logement.
+[18:31:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus lifeboat: taken back into its recess
+[18:31:08] [Server thread/INFO]: Profondeur ordonnée : 10 m.
+[18:31:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] nautilus /ship nautilus profondeur 10: depth 9.94
+[18:31:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus goes to the ordered depth (9.94)
+[18:31:34] [Server thread/INFO]: Ballasts vidés : le Nautilus remonte à la surface.
+[18:31:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus ballasts emptied: back on the surface (depth 0.06)
+[18:31:59] [Server thread/INFO]: Itinéraire nautile créé (once). Ajoutez des points avec /ship route addstop|addpoint nautile
+[18:31:59] [Server thread/INFO]: Point 1 ajouté à nautile : 215.5 4.1 (escale Quai, 3 s)
+[18:31:59] [Server thread/INFO]: Point 2 ajouté à nautile : 215.5 13.1
+[18:31:59] [Server thread/INFO]: Point 3 ajouté à nautile : 215.5 22.0 (escale Grotte, 5 s)
+[18:31:59] [Server thread/INFO]: Point 2 de nautile : sous-marin : 9 m de profondeur jusqu'à ce point.
+[18:31:59] [Server thread/INFO]: Point 3 de nautile : sous-marin : 9 m de profondeur jusqu'à ce point.
+[18:31:59] [Server thread/INFO]: Point 2 de nautile : vitesse 2.0 blocs/s jusqu'à ce point.
+[18:31:59] [Server thread/INFO]: Point 3 de nautile : vitesse 2.0 blocs/s jusqu'à ce point.
+[18:31:59] [Server thread/INFO]: Déjà fermée.
+[18:31:59] [Server thread/INFO]: Nautilus [215 -35 4] suit maintenant l'itinéraire nautile (DOCKED).
+[18:32:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] nautilus route t=0: phase DOCKED target 0 z 4.1 depth 0.06 speed 0.00 altErr 0.00 vy 0.00 ai true
+[18:32:02] [Render thread/INFO]: [System] [CHAT] Le navire lève l'ancre !
+[18:32:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] nautilus route t=100: phase SAILING target 2 z 5.7 depth 1.58 speed 1.01 altErr -7.47 vy -1.01 ai true
+[18:32:07] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 2000ms or 40 ticks behind
+[18:32:10] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] nautilus route t=200: phase SAILING target 2 z 14.4 depth 7.07 speed 1.90 altErr -1.98 vy -1.05 ai true
+[18:32:15] [Render thread/INFO]: [System] [CHAT] Le navire est arrivé à Grotte. Départ dans 5 s.
+[18:32:15] [Render thread/INFO]: [System] [CHAT] Le navire est arrivé à destination.
+[18:32:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] nautilus route: docked at the underwater stop true, depth 8.93, at z 19.4 (stop 22.0), collisions 0
+[18:32:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus autopilot: dives along the route and stops at 9 blocks under water (depth 8.93)
+[18:32:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus autopilot: never inside the basin
+[18:32:15] [Server thread/INFO]: Pilote automatique désactivé, le navire s'arrête.
+[18:32:15] [Server thread/INFO]: Itinéraire nautile supprimé.
+[18:32:15] [Server thread/INFO]: Ballasts vidés : le Nautilus remonte à la surface.
+[18:32:35] [Server thread/INFO]: Killed Armor Stand
+[18:32:35] [Server thread/INFO]: No items were found on player Player845
+[18:32:35] [Server thread/INFO]: Nautilus donné(e) à 1 joueur(s).
+[18:32:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus item: /ship give nautilus gives the item (1)
+[18:32:35] [Server thread/INFO]: Set Player845's game mode to Creative Mode
+[18:32:35] [Server thread/INFO]: Teleported Player845 to 215.500000, -33.000000, -70.500000
+[18:32:35] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Creative Mode
+[18:32:36] [Server thread/INFO]: Replaced a slot on Player845 with [Nautilus — Captain Nemo's Submarine]
+[18:32:37] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] nautilus item: right click on the water places the Nautilus
+[18:32:37] [Server thread/INFO]: Removed 1 item(s) from player Player845
+[18:32:37] [Server thread/INFO]: Unmarked 30 chunks in minecraft:overworld from [12, -5] to [14, 4] for force loading
+[18:32:38] [Server thread/INFO]: Player845 is not riding any vehicle
+[18:32:38] [Server thread/INFO]: Set Player845's game mode to Spectator Mode
+[18:32:38] [Server thread/INFO]: Teleported Player845 to 315.500000, -30.000000, -39.500000
+[18:32:38] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[18:32:39] [Server thread/INFO]: Marked 18 chunks in minecraft:overworld from [18, -3] to [20, 2] to be force loaded
+[18:32:41] [Server thread/INFO]: Successfully filled 558 block(s)
+[18:32:41] [Server thread/INFO]: Successfully filled 558 block(s)
+[18:32:41] [Server thread/INFO]: Successfully filled 1602 block(s)
+[18:32:41] [Server thread/INFO]: Successfully filled 1602 block(s)
+[18:32:41] [Server thread/INFO]: Successfully filled 12180 block(s)
+[18:32:41] [Server thread/INFO]: No blocks were filled
+[18:32:41] [Server thread/INFO]: Successfully filled 12180 block(s)
+[18:32:41] [Server thread/INFO]: No blocks were filled
+[18:32:41] [Server thread/INFO]: Successfully filled 11774 block(s)
+[18:32:41] [Server thread/INFO]: No blocks were filled
+[18:32:41] [Server thread/INFO]: Navire mis à l'eau : Vieux Corsaire [315 -49 -11]
+[18:32:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] old_corsair at 315.50 -49.11 -11.50, water surface -49.111
+[18:32:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair floats on the surface (y -49.11, water -49.11)
+[18:32:44] [Server thread/INFO]: Teleported Player845 to 355.500000, -43.731000, 18.500000
+[18:32:46] [Server thread/INFO]: Teleported Player845 to 315.500000, -41.731000, 43.500000
+[18:32:47] [Server thread/INFO]: Teleported Player845 to 311.500000, -40.731000, -56.500000
+[18:32:47] [Server thread/INFO]: Teleported Player845 to 347.500000, -38.731000, 33.500000
+[18:32:48] [Server thread/INFO]: Set Player845's game mode to Survival Mode
+[18:32:48] [Server thread/INFO]: Teleported Player845 to 315.500000, -44.591000, -17.000000
+[18:32:48] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[18:32:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] old_corsair main deck: local 0.00 4.500 -5.50, on ground 1.0, water 0.0/0.0, air 300
+[18:32:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair: standing in the main deck (local y 4.500)
+[18:32:50] [Server thread/INFO]: Teleported Player845 to 317.100000, -42.091000, -26.500000
+[18:32:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] old_corsair quarterdeck: local 1.60 7.000 -15.00, on ground 1.0, water 0.0/0.0, air 300
+[18:32:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair: standing in the quarterdeck (local y 7.000)
+[18:32:51] [Server thread/INFO]: Teleported Player845 to 315.500000, -45.091000, -27.500000
+[18:32:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] old_corsair captain's cabin: local 0.00 4.000 -16.00, on ground 1.0, water 0.0/0.0, air 300
+[18:32:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair: standing in the captain's cabin (local y 4.000)
+[18:32:53] [Server thread/INFO]: Teleported Player845 to 316.800000, -48.091000, -6.500000
+[18:32:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] old_corsair common room: local 1.30 1.000 5.00, on ground 1.0, water 0.0/0.0, air 300
+[18:32:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair: standing in the common room (local y 1.000)
+[18:32:54] [Server thread/INFO]: Teleported Player845 to 315.500000, -48.091000, -19.500000
+[18:32:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] old_corsair coursive: local 0.00 1.000 -8.00, on ground 1.0, water 0.0/0.0, air 300
+[18:32:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair: standing in the coursive (local y 1.000)
+[18:32:56] [Server thread/INFO]: Teleported Player845 to 315.500000, -51.091000, -17.500000
+[18:33:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] old_corsair hold: local 0.00 -2.000 -6.00, on ground 1.0, water 0.0/0.0, air 300
+[18:33:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair: standing in the hold (local y -2.000)
+[18:33:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair: the hold is dry below the waterline (water 0.0/0.0)
+[18:33:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair: the kitchen door opens
+[18:33:00] [Server thread/INFO]: Teleported Player845 to 315.500000, -42.090000, -27.600000
+[18:33:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] old_corsair moved 6.81 blocks in 7 s at the helm
+[18:33:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair sails under the player's control (moved 6.81)
+[18:33:08] [Server thread/INFO]: Player845 stopped riding The Old Corsair
+[18:33:08] [Server thread/INFO]: Set Player845's game mode to Spectator Mode
+[18:33:08] [Server thread/INFO]: Unmarked 18 chunks in minecraft:overworld from [18, -3] to [20, 2] for force loading
+[18:33:08] [Server thread/INFO]: Player845 is not riding any vehicle
+[18:33:08] [Server thread/INFO]: Teleported Player845 to 300.500000, -20.000000, -39.500000
+[18:33:08] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[18:33:10] [Server thread/INFO]: Navire mis à l'eau : Léviathan des Cieux [300 -32 0]
+[18:33:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] sky_leviathan at 300.50 -32.35 0.50, ground -45, keel -44.00
+[18:33:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan placed in the air above the ground (keel -44.00, ground -45)
+[18:33:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan placed: inside nothing
+[18:33:14] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan hovers (-32.346 -> -32.346)
+[18:33:14] [Server thread/INFO]: Teleported Player845 to 375.500000, -20.966000, -0.500000
+[18:33:16] [Server thread/INFO]: Teleported Player845 to 300.500000, -18.966000, 80.500000
+[18:33:17] [Server thread/INFO]: Teleported Player845 to 300.500000, -18.966000, -81.500000
+[18:33:18] [Server thread/INFO]: Teleported Player845 to 300.510000, 61.034000, -0.500000
+[18:33:18] [Server thread/INFO]: Teleported Player845 to 355.500000, -7.966000, 50.500000
+[18:33:19] [Server thread/INFO]: Set Player845's game mode to Survival Mode
+[18:33:19] [Server thread/INFO]: Unable to apply this effect (target is either immune to effects, or has something stronger)
+[18:33:19] [Server thread/INFO]: Teleported Player845 to 300.500000, -31.746000, 4.500000
+[18:33:19] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[18:33:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan stands on the main deck (local y 0.000)
+[18:33:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan walks on the main deck (local 0.00 0.00 0.30)
+[18:33:23] [Server thread/INFO]: Teleported Player845 to 300.500000, -32.296000, -6.100000
+[18:33:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan walks into the captain's quarters (local z -10.70 y 0.00)
+[18:33:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan the player takes the helm
+[18:33:29] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan climbs slowly under command (3.17 blocks in 4 s)
+[18:33:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan flies forward under command (2.37 blocks in 4 s)
+[18:33:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan flight: inside nothing
+[18:33:33] [Server thread/INFO]: Player845 stopped riding The Sky Leviathan
+[18:33:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan the pilot steps off onto the quarterdeck (local 1.30 3.00 -11.65)
+[18:33:34] [Server thread/INFO]: Teleported Player845 to 300.500000, -27.497000, 1.939000
+[18:33:48] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] sky_leviathan after the ladder: local 0.00 28.00 -6.73
+[18:33:48] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan climbs the tower's ladder onto the observation deck (local y 28.00)
+[18:33:48] [Server thread/INFO]: No items were found on player Player845
+[18:33:48] [Server thread/INFO]: Léviathan des Cieux donné(e) à 1 joueur(s).
+[18:33:48] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan item: /ship give gives it (1)
+[18:33:48] [Server thread/INFO]: Removed 1 item(s) from player Player845
+[18:33:49] [Server thread/INFO]: Player845 is not riding any vehicle
+[18:33:49] [Server thread/INFO]: Set Player845's game mode to Spectator Mode
+[18:33:49] [Server thread/INFO]: Teleported Player845 to 415.500000, -25.000000, -19.500000
+[18:33:49] [Server thread/INFO]: Marked 16 chunks in minecraft:overworld from [25, -3] to [26, 4] to be force loaded
+[18:33:49] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[18:33:50] [Server thread/INFO]: Successfully filled 558 block(s)
+[18:33:50] [Server thread/INFO]: Successfully filled 558 block(s)
+[18:33:50] [Server thread/INFO]: Successfully filled 2052 block(s)
+[18:33:50] [Server thread/INFO]: Successfully filled 2052 block(s)
+[18:33:50] [Server thread/INFO]: Successfully filled 12180 block(s)
+[18:33:50] [Server thread/INFO]: No blocks were filled
+[18:33:50] [Server thread/INFO]: Successfully filled 12180 block(s)
+[18:33:50] [Server thread/INFO]: No blocks were filled
+[18:33:50] [Server thread/INFO]: Successfully filled 12180 block(s)
+[18:33:50] [Server thread/INFO]: No blocks were filled
+[18:33:50] [Server thread/INFO]: Successfully filled 9744 block(s)
+[18:33:50] [Server thread/INFO]: No blocks were filled
+[18:33:50] [Server thread/INFO]: Navire mis à l'eau : Vieux Corsaire [415 -49 -4]
+[18:33:52] [Server thread/INFO]: Itinéraire inconnu : nv_corsaire
+[18:33:52] [Server thread/INFO]: Itinéraire nv_corsaire créé (pingpong). Ajoutez des points avec /ship route addstop|addpoint nv_corsaire
+[18:33:52] [Server thread/INFO]: Point 1 ajouté à nv_corsaire : 415.5 -4.5 (escale Depart, 3 s)
+[18:33:52] [Server thread/INFO]: Point 2 ajouté à nv_corsaire : 415.5 31.5 (escale Quai, 8 s)
+[18:33:52] [Server thread/INFO]: Vieux Corsaire [415 -49 -4] suit maintenant l'itinéraire nv_corsaire (DOCKED).
+[18:33:52] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] old_corsair route: started at 415.50 -49.11 -4.50, ai true route nv_corsaire phase DOCKED target 0 wait 59 speed 0.00 vy 0.00
+[18:33:52] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair route: /ship route start puts it on the route, moored at its first stop (ai true route nv_corsaire phase DOCKED target 0 wait 59 speed 0.00 vy 0.00)
+[18:33:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] old_corsair route t=1s: z -4.50 (quay 31.50) ai true route nv_corsaire phase DOCKED target 0 wait 39 speed 0.00 vy 0.00
+[18:33:55] [Render thread/INFO]: [System] [CHAT] Le navire lève l'ancre !
+[18:33:58] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] old_corsair route t=6s: z -3.22 (quay 31.50) ai true route nv_corsaire phase SAILING target 1 wait 0 speed 0.84 vy 0.00
+[18:34:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] old_corsair route t=11s: z 4.52 (quay 31.50) ai true route nv_corsaire phase SAILING target 1 wait 0 speed 2.24 vy 0.00
+[18:34:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] old_corsair route t=16s: z 17.58 (quay 31.50) ai true route nv_corsaire phase SAILING target 1 wait 0 speed 2.35 vy 0.00
+[18:34:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] old_corsair route t=21s: z 26.49 (quay 31.50) ai true route nv_corsaire phase SAILING target 1 wait 0 speed 1.22 vy 0.00
+[18:34:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] old_corsair route t=24s: z 29.06 (quay 31.50) ai true route nv_corsaire phase DOCKED target 1 wait 148 speed 0.37 vy 0.00
+[18:34:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair route: leaves its first stop after the wait, towards the quay
+[18:34:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair route: sails towards the quay (36.0 -> 2.4 blocks, top speed 2.80)
+[18:34:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair route: stops and moors at the quay (2.44 blocks off, ai true route nv_corsaire phase DOCKED target 1 wait 148 speed 0.37 vy 0.00)
+[18:34:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair route: never inside the basin walls, all along the voyage (0)
+[18:34:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] old_corsair saved and read back: |at 415.50 -49.11 29.06 yaw 0.0, nv_corsaire DOCKED target 1 wait 148, 31 NBT keys
+[18:34:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair persistence: position, heading, altitude, speed, route, autopilot state and doors survive the save (|at 415.50 -49.11 29.06 yaw 0.0, nv_corsaire DOCKED target 1 wait 148, 31 NBT keys)
+[18:34:16] [Server thread/INFO]: Saving the game (this may take a moment!)
+[18:34:16] [Server thread/INFO]: Saved the game
+[18:34:16] [Server thread/INFO]: Unmarked 16 chunks in minecraft:overworld from [25, -3] to [26, 4] for force loading
+[18:34:16] [Server thread/INFO]: Player845 is not riding any vehicle
+[18:34:16] [Server thread/INFO]: Marked 75 chunks in minecraft:overworld from [29, -4] to [33, 10] to be force loaded
+[18:34:16] [Server thread/INFO]: Teleported Player845 to 560.500000, -10.000000, 10.500000
+[18:34:18] [Server thread/INFO]: Navire mis à l'eau : Léviathan des Cieux [500 -47 0]
+[18:34:19] [Server thread/INFO]: Itinéraire inconnu : nv_ciel
+[18:34:19] [Server thread/INFO]: Itinéraire aérien nv_ciel créé (pingpong). Ajoutez des points avec /ship route addstop|addpoint nv_ciel (à l'endroit et à la hauteur où doit se trouver le pont de la nacelle)
+[18:34:19] [Server thread/INFO]: Point 1 ajouté à nv_ciel : 500.5 -47.3 0.5 (escale Envol, 2 s, cap 0)
+[18:34:19] [Server thread/INFO]: Point 2 ajouté à nv_ciel : 500.5 -34.3 60.5
+[18:34:19] [Server thread/INFO]: Point 3 ajouté à nv_ciel : 500.5 -59.0 115.5 (escale Mouillage, 20 s, cap 0)
+[18:34:19] [Server thread/INFO]: Léviathan des Cieux [500 -47 0] suit maintenant l'itinéraire nv_ciel (DOCKED).
+[18:34:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] sky_leviathan route: started at 500.50 -47.35 0.50 (ground -60), ai true route nv_ciel phase DOCKED target 0 wait 39 speed 0.00 vy 0.02
+[18:34:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan route: /ship route start puts it on the air route, at its take-off stop (ai true route nv_ciel phase DOCKED target 0 wait 39 speed 0.00 vy 0.02)
+[18:34:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] sky_leviathan route t=1s: z 0.50 (stop 115.50) y -47.09 keel -58.74 ai true route nv_ciel phase DOCKED target 0 wait 19 speed 0.00 vy 0.47
+[18:34:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] sky_leviathan route t=6s: z 2.93 (stop 115.50) y -42.77 keel -54.43 ai true route nv_ciel phase SAILING target 1 wait 0 speed 1.20 vy 1.20
+[18:34:31] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] sky_leviathan route t=11s: z 12.72 (stop 115.50) y -36.77 keel -48.43 ai true route nv_ciel phase SAILING target 1 wait 0 speed 2.70 vy 1.20
+[18:34:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] sky_leviathan route t=16s: z 30.00 (stop 115.50) y -34.34 keel -45.99 ai true route nv_ciel phase SAILING target 1 wait 0 speed 4.20 vy 0.00
+[18:34:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] sky_leviathan route t=21s: z 51.01 (stop 115.50) y -34.83 keel -46.48 ai true route nv_ciel phase SAILING target 2 wait 0 speed 4.20 vy -0.65
+[18:34:46] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] sky_leviathan route t=26s: z 72.00 (stop 115.50) y -39.70 keel -51.36 ai true route nv_ciel phase SAILING target 2 wait 0 speed 4.20 vy -1.00
+[18:34:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] sky_leviathan route t=31s: z 91.89 (stop 115.50) y -44.70 keel -56.36 ai true route nv_ciel phase SAILING target 2 wait 0 speed 3.43 vy -1.00
+[18:34:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] sky_leviathan route t=36s: z 105.62 (stop 115.50) y -46.31 keel -57.96 ai true route nv_ciel phase SAILING target 2 wait 0 speed 2.08 vy 0.00
+[18:35:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] sky_leviathan route t=41s: z 112.58 (stop 115.50) y -46.31 keel -57.96 ai true route nv_ciel phase SAILING target 2 wait 0 speed 0.72 vy 0.00
+[18:35:02] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] sky_leviathan route t=42s: z 113.01 (stop 115.50) y -46.31 keel -57.96 ai true route nv_ciel phase DOCKED target 2 wait 383 speed 0.15 vy 0.00
+[18:35:02] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan route: takes off from its first stop after the wait
+[18:35:02] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan route: climbs to the waypoint's own altitude, above the clearance one (deck -47.35 -> -34.34, waypoint deck -34.35, clearance deck -40.35)
+[18:35:02] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan route: flies towards the stop (115.0 -> 2.5 blocks)
+[18:35:02] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan route: comes down and moors at the stop (2.49 blocks off, ai true route nv_ciel phase DOCKED target 2 wait 383 speed 0.15 vy 0.00)
+[18:35:02] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan route: moored at its landing clearance over the ground, not on the quay height (keel -57.96, ground -60)
+[18:35:02] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan route: never inside the ground (0)
+[18:35:02] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] sky_leviathan saved and read back: |at 500.50 -46.31 113.01 yaw 0.0, nv_ciel DOCKED target 2 wait 383, 31 NBT keys
+[18:35:02] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan persistence: position, heading, altitude, speed, route, autopilot state and doors survive the save (|at 500.50 -46.31 113.01 yaw 0.0, nv_ciel DOCKED target 2 wait 383, 31 NBT keys)
+[18:35:02] [Server thread/INFO]: Départ immédiat.
+[18:35:06] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan route: leaves the mooring again, climbing (y -46.31 -> -43.14, ai true route nv_ciel phase SAILING target 1 wait 0 speed 0.41 vy 1.20)
+[18:35:06] [Server thread/INFO]: Unmarked 75 chunks in minecraft:overworld from [29, -4] to [33, 10] for force loading
+[18:35:06] [Server thread/INFO]: Stopping server
+[18:35:06] [Server thread/INFO]: Saving players
+[18:35:06] [Server thread/INFO]: Player845 lost connection: Disconnected
+[18:35:06] [Server thread/INFO]: Player845 left the game
+[18:35:06] [Server thread/INFO]: Saving worlds
+[18:35:06] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:overworld
+[18:35:06] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_nether
+[18:35:06] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_end
+[18:35:06] [Server thread/INFO]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[18:35:06] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[18:35:06] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[18:35:06] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[18:35:06] [Render thread/INFO]: Stopping!
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1792951467795.json
+
+[Incubating] Problems report is available at: file:///home/runner/work/medieval-ships/medieval-ships/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.2.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 30m 46s
+13 actionable tasks: 13 executed
