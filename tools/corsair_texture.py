@@ -68,6 +68,8 @@ REGIONS = {
     "linen":       (80, 64, 16, 16),    # pillows, sheets
     "ham":         (96, 64, 16, 16),    # hams and sausages hanging in the kitchen
     "canvas":      (112, 64, 32, 16),   # hammocks, mattresses
+    "hearth_stone": (144, 64, 32, 32),  # the kitchen hearth: dark stone blackened by the smoke
+    "soot":        (176, 64, 16, 16),   # the back of the fire opening
     # sails (stretched over the cloth: one block of canvas ~ one cell of the pattern)
     "course":      (0, 160, 192, 128),
     "topsail":     (192, 160, 160, 112),
@@ -534,6 +536,16 @@ def _weave(px, region, rng, a, b, period=2):
             px[u + x, v + y] = _jitter(c, rng, 5) + (255,)
 
 
+def _sooted(px, region, rng, k):
+    """Smoke-blackened: darker upwards (v = 0 is the top of the region), in uneven patches."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = px[u + x, v + y]
+            f = 1.0 - k * (1.0 - y / h) * rng.uniform(0.6, 1.0)
+            px[u + x, v + y] = (int(r * f), int(g * f), int(b * f), a)
+
+
 def make_texture(path, tris=None):
     """tris: the triangle (region fractions) of the jibs and of the staysail, as the model cuts them."""
     rng = random.Random(4207)
@@ -602,6 +614,12 @@ def make_texture(path, tris=None):
         if name in ("jib", "staysail"):
             tri = (tris or {}).get(name) or [(0.0, 0.0), (1.0, 0.0), (0.62, 1.0)]
         _sail(px, R[name], cols, rows, rng, patches=2 if tri else 3, tri=tri)
+    # the hearth (own random stream: the regions above keep their pixels)
+    rng2 = random.Random(4211)
+    _blocks(px, R["hearth_stone"], ("5a544c", "4e4942", "625b52", "46413b"), "26231f", rng2, bw=8, bh=4, crack=0.15, crack_col="2e2a26")
+    _sooted(px, R["hearth_stone"], rng2, 0.45)
+    _fill(px, R["soot"], "1c1916", rng2, 5)
+    _sooted(px, R["soot"], rng2, 0.3)
     img.save(path)
     return img
 

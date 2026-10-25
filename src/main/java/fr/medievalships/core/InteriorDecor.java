@@ -25,9 +25,10 @@ import com.google.gson.JsonParser;
 public final class InteriorDecor {
 	/**
 	 * A decoration block: its id ({@code mod:block}), the centre of its bottom face (ship-local),
-	 * its rotation about the vertical (degrees, 0 = the block's north facing the stern), its scale.
+	 * its rotation about the vertical (degrees, 0 = the block's north facing the stern), its scale;
+	 * glow: drawn full-bright while the vessel's lamps are lit (a lantern).
 	 */
-	public record Block(String block, double x, double y, double z, float yaw, float scale, String fallback) {
+	public record Block(String block, double x, double y, double z, float yaw, float scale, String fallback, boolean glow) {
 	}
 
 	/** A seat: where the passenger sits (ship-local) and where he stands up. */
@@ -99,7 +100,7 @@ public final class InteriorDecor {
 			JsonObject o = e.getAsJsonObject();
 			blocks.add(new Block(o.get("block").getAsString(), o.get("x").getAsDouble(), o.get("y").getAsDouble(), o.get("z").getAsDouble(),
 					o.has("yaw") ? o.get("yaw").getAsFloat() : 0f, o.has("scale") ? o.get("scale").getAsFloat() : 1f,
-					o.has("fallback") ? o.get("fallback").getAsString() : ""));
+					o.has("fallback") ? o.get("fallback").getAsString() : "", o.has("glow") && o.get("glow").getAsBoolean()));
 		}
 		List<SeatSpot> seats = new ArrayList<>();
 		JsonArray s = root.has("seats") ? root.getAsJsonArray("seats") : new JsonArray();

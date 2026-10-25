@@ -1065,15 +1065,30 @@ def f_rug(bone, name, p, w, l, region="rug"):
 
 
 def f_hearth(bone, lights, name, p, w=3.2):
-    """Stone hearth (kitchen panel): a stone block with its fire opening, a mantle, a chimney hood up to
-    the deck beams, hams hanging, a pot on the fire."""
+    """Stone hearth (kitchen panel): sooty stone with its fire opening (a recess 1.4 x 0.8, black back,
+    logs, embers and flames), a mantle, a chimney hood up to the deck beams, hams hanging, a pot on the
+    hearthstone by the fire."""
     p = v3(*p)
-    add_cube(bone, "lit_" + name + "_base", p + v3(0, 0.55, 0.05), EYE, (w, 1.1, 1.0), {"all": "wall_stone"})
+    ow, oh, od = 1.4, 0.8, 0.3            # the fire opening: width, height, depth of the recess
+    front, depth = -0.45, 1.0             # front face (aft-facing) and depth of the base
+    cheek = (w - ow) / 2
+    for k, sx in enumerate((-1, 1)):
+        add_cube(bone, "lit_%s_cheek_%d" % (name, k), p + v3(sx * (ow + cheek) / 2, 0.55, front + depth / 2), EYE,
+                 (cheek, 1.1, depth), "hearth_stone")
+    add_cube(bone, "lit_" + name + "_lintel", p + v3(0, (oh + 1.1) / 2, front + depth / 2), EYE, (ow, 1.1 - oh, depth), "hearth_stone")
+    add_cube(bone, "lit_" + name + "_back", p + v3(0, oh / 2, front + od + (depth - od) / 2), EYE, (ow, oh, depth - od),
+             {"all": "hearth_stone", "-3": "soot"})
+    add_cube(bone, "lit_" + name + "_hearthstone", p + v3(0, 0.03, front + od / 2), EYE, (ow, 0.06, od), "soot")
     add_cube(bone, "lit_" + name + "_mantle", p + v3(0, 1.2, -0.1), EYE, (w + 0.2, 0.2, 1.1), "wood_dark")
-    add_cube(bone, "lit_" + name + "_hood", p + v3(0, 2.15, 0.1), EYE, (w - 0.6, 1.7, 0.8), "wall_stone")
-    add_cube(bone, "lit_" + name + "_opening", p + v3(0, 0.45, -0.46), EYE, (1.1, 0.7, 0.04), "iron")
-    add_cube(bone, "glow_" + name + "_fire", p + v3(0, 0.3, -0.47), EYE, (0.8, 0.35, 0.04), "glow")
-    disc(bone, "lit_" + name + "_pot", p + v3(0, 0.7, -0.3), (0, 1, 0), 0.24, 0.3, "iron")
+    add_cube(bone, "lit_" + name + "_hood", p + v3(0, 2.15, 0.1), EYE, (w - 0.6, 1.7, 0.8), "hearth_stone")
+    # the fire: two logs across, the embers under them, two flames standing up
+    fz = front + od * 0.55
+    for k, (dx, dz) in enumerate(((-0.05, -0.04), (0.05, 0.05))):
+        beam(bone, "lit_%s_log_%d" % (name, k), p + v3(-0.45, 0.13, fz + dz), p + v3(0.4, 0.13, fz + dz + 0.04 * (1 - 2 * k)), 0.11, "end_grain")
+    add_cube(bone, "glow_" + name + "_embers", p + v3(-0.03, 0.08, fz), EYE, (0.85, 0.05, 0.22), "glow")
+    add_cube(bone, "glow_" + name + "_flame_0", p + v3(-0.12, 0.38, fz - 0.02), EYE, (0.5, 0.42, 0.02), "glow")
+    add_cube(bone, "glow_" + name + "_flame_1", p + v3(0.12, 0.32, fz + 0.04), ry(0.3), (0.34, 0.3, 0.02), "glow")
+    disc(bone, "lit_" + name + "_pot", p + v3(0.5, 0.19, front + 0.12), (0, 1, 0), 0.15, 0.24, "iron")
     for k, x in enumerate((-1.0, -0.6, 0.7, 1.1)):
         beam(bone, "lit_%s_string_%d" % (name, k), p + v3(x, 2.5, -0.45), p + v3(x, 2.1, -0.45), 0.03, "rope")
         add_cube(bone, "lit_%s_ham_%d" % (name, k), p + v3(x, 1.88, -0.45), EYE, (0.2, 0.42, 0.16), "ham")

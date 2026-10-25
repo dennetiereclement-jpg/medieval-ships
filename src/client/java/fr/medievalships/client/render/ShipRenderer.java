@@ -240,7 +240,7 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 						matrices.scale(b.scale(), b.scale(), b.scale());
 					}
 					matrices.translate(-0.5, 0, -0.5);
-					queue.submitBlock(matrices, decor.states[i], lit, OverlayTexture.DEFAULT_UV, 0);
+					queue.submitBlock(matrices, decor.states[i], b.glow() && lampsOn ? glowLight : lit, OverlayTexture.DEFAULT_UV, 0);
 					matrices.pop();
 				}
 			}

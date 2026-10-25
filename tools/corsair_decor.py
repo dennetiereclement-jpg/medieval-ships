@@ -13,11 +13,15 @@ Phase 2: every room furnished after the interior views of the reference sheet (d
 lists the mods' furniture room by room): the mods' blocks first (Farmhouse Decorations, Furnish,
 Farmer's Delight, Lands of Icaria), modelled pieces only for what they lack (the captain's bed with its
 red blanket, sea chests, the stone hearth, upright barrels, framed sea charts, pillars, hammocks,
-rope coils, the telescope...). Kept clear (checked by CorsairTest and tools/corsair_decor.py's own
-check): the doors, the stairs, the walking areas of the rooms, the seats' stand-up spots.
+rope coils, the telescope...). Kept clear (checked by CorsairTest): the doors, the stairs, the walking
+areas of the rooms, the seats' stand-up spots. apply_to_grid checks that every solid piece is solid in
+the grid (at least one FURNITURE cell). The lanterns are drawn full-bright while the lamps are lit
+("glow" in the json).
 """
 import json
 import math
+
+import numpy as np
 
 import corsair_interior as ci
 import corsair_shape as cs
@@ -58,8 +62,10 @@ BOUNDS = {
     FD + "coat_hanger": (0.078, 0.922, -0.048, 1.953, 0.078, 0.922),
     FD + "rug_1x_3": (-0.875, 1.875, 0, 0.031, 0, 1),
     FU + "spruce_bench": (0, 1, 0, 0.562, 0.25, 0.75),
+    FU + "dark_oak_bench": (0, 1, 0, 0.562, 0.25, 0.75),
     FU + "dark_oak_chair": (0.062, 0.938, 0, 1.875, 0, 0.812),
     FU + "spruce_stool": (0.188, 0.812, 0, 0.562, 0.125, 0.75),
+    FU + "dark_oak_stool": (0.188, 0.812, 0, 0.562, 0.125, 0.75),
     FU + "spruce_crate": (0, 1, 0, 1, 0, 1),
     FU + "dark_oak_crate": (0, 1, 0, 1, 0, 1),
     FU + "spruce_shelf": (0, 1, 0, 0.25, 0.688, 1),
@@ -96,9 +102,11 @@ FALLBACK_REGION = {FR + "stove": "wall_stone", FR + "cooking_pot": "iron", FR + 
                    FD + "kerosene_lantern": "lantern", FD + "wine_bottle": "glass", FD + "red_wine_bottle": "glass", FD + "wine_glass": "glass",
                    FD + "pile_of_books": "books", FU + "book_pile": "books", FU + "plate": "stripe", FR + "rice_bag": "sack",
                    FD + "rug_1x_3": "rug", FR + "canvas_rug": "sack", FD + "tall_bookshelf": "books", FD + "wall_shelf": "books",
-                   FU + "spruce_crate": "wood_light", FU + "dark_oak_crate": "wood_dark", FD + "desk": "wood_dark", FD + "liquor_cabinet": "wood_dark",
+                   FU + "spruce_crate": "wood_light", FU + "dark_oak_crate": "wood_dark", FU + "dark_oak_bench": "wood_dark", FU + "dark_oak_stool": "wood_dark", FD + "desk": "wood_dark", FD + "liquor_cabinet": "wood_dark",
                    LI + "storage_vase": "red_paint", LI + "brown_storage_vase": "wood_mid", FU + "amphora": "red_paint",
                    FR + "roast_chicken_block": "wood_light", FD + "cigar_box": "red_paint"}
+
+GLOWING = {FD + "kerosene_lantern", FD + "chained_kerosene_lantern"}   # drawn full-bright while the lamps are lit
 
 BLOCKS = []   # dicts: block, x, y, z, yaw, solid, scale
 SEATS = []    # dicts: x, y, z, dx, dy, dz
@@ -131,7 +139,8 @@ def block(bid, x, y, z, facing="stern", solid=True, scale=1.0, centre=False):
     if centre:
         x0, x1, _, _, z0, z1 = footprint(bid, x, y, z, yaw, scale)
         x, z = x - ((x0 + x1) / 2 - x), z - ((z0 + z1) / 2 - z)
-    BLOCKS.append({"block": bid, "x": round(x, 4), "y": round(y, 4), "z": round(z, 4), "yaw": yaw, "solid": solid, "scale": scale})
+    BLOCKS.append({"block": bid, "x": round(x, 4), "y": round(y, 4), "z": round(z, 4), "yaw": yaw, "solid": solid, "scale": scale,
+                   "glow": bid in GLOWING})
     return len(BLOCKS) - 1
 
 
@@ -179,8 +188,8 @@ def captain_cabin():
     block(FD + "wine_glass", -2.55, C + 1.02, -18.35, "port", solid=False)
     block(FD + "cigar_box", -3.2, C + 1.02, -19.9, "port", solid=False, scale=0.8)
     custom("compass_box", name="captain_compass", p=(-2.6, C + 1.02, -19.95))
-    block(FU + "dark_oak_chair", -1.75, C, -19.0, "starboard", solid=False, centre=True)
-    seat(-1.8, C + 0.46, -19.0, -1.0, C, -19.0)
+    block(FD + "dining_chair", -1.75, C, -19.0, "starboard", solid=False, centre=True)
+    seat(-1.8, C + 0.52, -19.0, -1.0, C, -19.0)
     custom("wall_chart", name="captain_wall_chart", center=(-3.47, C + 1.85, -19.0), normal=(1, 0, 0), w=1.3, h=0.85)
     # by the door: the bookcase and the coat rack (port), the liquor cabinet (starboard), a second chart
     block(FD + "tall_bookshelf", 2.5, C, -14.95, "stern", centre=True)
@@ -194,6 +203,17 @@ def captain_cabin():
     block(FU + "spruce_shelf", 3.3, C + 1.45, -18.9, "starboard", solid=False, centre=True)
     block(FU + "book_pile", 3.3, C + 1.7, -19.15, "starboard", solid=False, scale=0.7)
     block(FD + "wine_bottle", 3.3, C + 1.7, -18.55, "starboard", solid=False)
+    # shelves of books and bottles on the stern bulkhead, by the bed and over it, a lantern at its foot
+    sz = -20.345
+    for x, y in ((1.25, C + 1.3), (1.25, C + 1.8), (2.85, C + 1.6)):
+        block(FU + "spruce_shelf", x, y, sz, "bow", solid=False, centre=True)
+    block(FU + "book_pile", 1.0, C + 1.55, sz, "bow", solid=False, scale=0.7)
+    block(FD + "red_wine_bottle", 1.5, C + 1.55, sz, "bow", solid=False)
+    block(FD + "pile_of_books", 1.1, C + 2.05, sz, "bow", solid=False, scale=0.8)
+    block(FD + "wine_bottle", 1.55, C + 2.05, sz, "bow", solid=False)
+    block(FD + "pile_of_books", 2.55, C + 1.85, sz, "bow", solid=False, scale=0.8)
+    block(FD + "kerosene_lantern", 3.15, C + 1.85, sz, "bow", solid=False)
+    wall_lantern(3.18, C + 1.3, -17.3, 1)
     custom("rug", name="captain_rug", p=(-0.05, C, -17.7), w=2.6, l=3.4, region="rug")
     custom("telescope", name="captain_telescope", p=(-1.1, C, -20.0), facing="stern")
     lantern(0.0, CABIN_CEIL, -17.6)
@@ -216,7 +236,7 @@ def common_room():
                 block(FD + "dining_table_middle", x, L, z, "starboard")
     for bx, dx in ((-4.05, -4.05), (-0.95, -0.3)):
         for z in zs:
-            block(FU + "spruce_bench", bx, L, z, "starboard", solid=False)
+            block(FU + "dark_oak_bench", bx, L, z, "starboard", solid=False)
             seat(bx, L + 0.46, z, dx, L, z)
     for x in rows:
         block(FD + "dining_chair", x, L, 6.3, "stern", solid=False, centre=True)
@@ -284,12 +304,14 @@ def kitchen():
     block(FR + "potato_crate", -3.5, L, 9.35, "port")
     block(FR + "rice_bag", -3.5, L + 1.0, 9.35, "port", solid=False, scale=0.8)
     # the block work table in the middle, its stool, pans hanging over it
-    custom("work_table", solid=(-0.6, 0.6, L, L + 0.9, 10.9, 12.3), name="kitchen_table", p=(0.0, L, 11.6), w=1.2, l=1.4)
-    block(FR + "cutting_board", 0.0, L + 0.9, 11.3, "port", solid=False, scale=0.7)
-    block(FR + "onion_crate", -0.25, L + 0.9, 12.0, "port", solid=False, scale=0.35)
-    block(FU + "spruce_stool", 1.2, L, 11.6, "starboard", solid=False, centre=True)
-    seat(1.2, L + 0.46, 11.6, 1.95, L, 11.6)
-    custom("pot_rack", name="kitchen_pot_rack", p=(0.0, LOWER_CEIL, 11.6), l=1.4)
+    # (on the starboard side of the axis: the fire stays in view from the door)
+    tx = -1.2
+    custom("work_table", solid=(tx - 0.6, tx + 0.6, L, L + 0.9, 10.9, 12.3), name="kitchen_table", p=(tx, L, 11.6), w=1.2, l=1.4)
+    block(FR + "cutting_board", tx, L + 0.9, 11.3, "port", solid=False, scale=0.7)
+    block(FR + "onion_crate", tx - 0.25, L + 0.9, 12.0, "port", solid=False, scale=0.35)
+    block(FU + "dark_oak_stool", tx, L, 10.35, "bow", solid=False, centre=True)
+    seat(tx, L + 0.46, 10.35, tx, L, 9.6)
+    custom("pot_rack", name="kitchen_pot_rack", p=(tx, LOWER_CEIL, 11.6), l=1.4)
     lantern(1.9, LOWER_CEIL, 9.9)
     lantern(-2.2, LOWER_CEIL, 10.0)
 
@@ -397,7 +419,7 @@ def coursive_and_crew():
         block(FU + "spruce_square_table", side * 3.75, L, -2.2, f_in)
         block(FD + "kerosene_lantern", side * 3.85, L + 1.0, -2.0, f_in, solid=False)
         block(FD + ("wine_bottle" if side > 0 else "red_wine_bottle"), side * 3.55, L + 1.0, -2.45, f_in, solid=False)
-        block(FU + "spruce_stool", side * 2.85, L, -2.2, "port" if side > 0 else "starboard", solid=False, centre=True)
+        block(FU + "dark_oak_stool", side * 2.85, L, -2.2, "port" if side > 0 else "starboard", solid=False, centre=True)
         seat(side * 2.85, L + 0.46, -2.2, side * 2.05, L, -2.2)
         block(FR + "canvas_rug", side * 2.4, L, -4.7, f_in, solid=False)
         lantern(side * 2.9, LOWER_CEIL, -9.6)
@@ -453,17 +475,30 @@ def build():
     return BLOCKS, SEATS
 
 
+def _cells(g, box, min_overlap=0.2):
+    """The grid cells under a solid box: the cells it overlaps by min_overlap or more on each axis (by
+    its whole height if it is thinner, a rack)."""
+    x0, x1, y0, y1, z0, z1 = box
+    h = ci.CELL / 2
+    ox = np.minimum(g.X + h, x1) - np.maximum(g.X - h, x0)
+    oy = np.minimum(g.Y + h, y1) - np.maximum(g.Y - h, y0 + 0.01)
+    oz = np.minimum(g.Z + h, z1) - np.maximum(g.Z - h, z0)
+    return (ox >= min_overlap - 1e-6) & (oz >= min_overlap - 1e-6) & (oy >= min(min_overlap, y1 - y0 - 0.01) - 1e-6)
+
+
 def apply_to_grid(g):
-    """FURNITURE cells under the solid furniture (on the floor of a room, or on a deck)."""
-    for builder, kwargs, solid in CUSTOM:
-        if solid is not None:
-            x0, x1, y0, y1, z0, z1 = solid
-            g.set(ci.FURNITURE, x0 + 0.05, x1 - 0.05, y0 + 0.01, y1, z0 + 0.05, z1 - 0.05, where=(g.k == ci.DRY) | (g.k == ci.OUT))
-    for b in BLOCKS:
-        if not b["solid"]:
-            continue
-        x0, x1, y0, y1, z0, z1 = footprint(b["block"], b["x"], b["y"], b["z"], b["yaw"], b["scale"])
-        g.set(ci.FURNITURE, x0 + 0.05, x1 - 0.05, b["y"] + 0.01, y1, z0 + 0.05, z1 - 0.05, where=(g.k == ci.DRY) | (g.k == ci.OUT))
+    """FURNITURE cells under the solid furniture (on the floor of a room, or on a deck). Every solid
+    piece must be solid somewhere (a piece standing over cell boundaries keeps the cells it covers)."""
+    free = (g.k == ci.DRY) | (g.k == ci.OUT)
+    boxes = [(kwargs.get("name", builder), solid) for builder, kwargs, solid in CUSTOM if solid is not None]
+    for i, b in enumerate(BLOCKS):
+        if b["solid"]:
+            x0, x1, y0, y1, z0, z1 = footprint(b["block"], b["x"], b["y"], b["z"], b["yaw"], b["scale"])
+            boxes.append(("%s #%d" % (b["block"], i), (x0, x1, b["y"], y1, z0, z1)))
+    for name, box in boxes:
+        g.k[_cells(g, box) & free] = ci.FURNITURE
+    hollow = [name for name, box in boxes if not (_cells(g, box) & (g.k == ci.FURNITURE)).any()]
+    assert not hollow, "solid furniture with no FURNITURE cell: %s" % hollow
 
 
 def write(path):
@@ -471,6 +506,8 @@ def write(path):
     for i, b in enumerate(BLOCKS):
         data["blocks"].append({"block": b["block"], "x": round(b["x"], 4), "y": round(b["y"], 4), "z": round(b["z"], 4),
                                "yaw": b["yaw"], "scale": b["scale"], "fallback": "fallback_%d" % i})
+        if b["glow"]:
+            data["blocks"][-1]["glow"] = True
     with open(path, "w") as f:
         json.dump(data, f, indent=1)
 

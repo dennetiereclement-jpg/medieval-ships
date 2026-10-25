@@ -121,6 +121,19 @@ class CorsairTest {
 		room("common room (aisle)", -0.5, 1.6, L, 0.0, 4.2, true);
 		room("common room (beside the fore mast)", 0.9, 1.6, L, 4.6, 7.4, true);
 		room("kitchen", -1.4, 1.4, L, 9.0, 10.2, true);
+		// the work table stands aside (starboard): the way to the hearth is clear, the fire in view from the door
+		room("kitchen (before the hearth)", 0.0, 1.8, L, 10.4, 12.4, true);
+		assertFalse(fits(-1.2, L, 11.6, CLOSED), "the kitchen work table is solid");
+		// solid furniture standing over cell boundaries is solid all over (pillars, chests, the dining table)
+		for (double z : new double[] {-10.5, -5.5, -0.5}) {
+			assertFalse(fits(2.75, H, z, CLOSED), "hold pillar (port) at z " + z);
+			assertFalse(fits(-2.75, H, z, CLOSED), "hold pillar (starboard) at z " + z);
+		}
+		assertFalse(fits(-3.0, H, -1.9, CLOSED), "the hold's starboard chest");
+		assertFalse(fits(3.97, L, -0.45, CLOSED), "the common room's sea chest");
+		for (double z = 0.0; z <= 5.5; z += 0.25) {
+			assertFalse(fits(-2.5, L, z, CLOSED), "the dining table at z " + z);
+		}
 		room("hold", -1.8, 1.8, H, -12.0, 1.4, true);
 		// the hold lies below the waterline, and stays dry
 		assertTrue(H < CorsairLayout.WATERLINE_Y - 1.5);
