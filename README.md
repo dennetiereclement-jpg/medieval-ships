@@ -41,7 +41,7 @@ plongée. Ce sont de **véritables entités**, pas des constructions en blocs :
 | Objet / commande | *Le Vieux Corsaire*, `old_corsair` |
 | Taille | coque de 42 blocs (53 avec le beaupré), 10 de large, coque de 9 blocs (quille à la lisse), 38 de haut au grand mât |
 | Propulsion | brick à deux mâts : basse voile, hunier et perroquet carrés sur chaque mât (grand-voile ferlée), brigantine, 2 focs, voile d'étai ; voiles brique délavées et rapiécées |
-| Places assises | 23 (barre du gaillard d'arrière + bancs et chaises de la salle commune, fauteuil du capitaine, tabourets, bancs du pont) |
+| Places assises | 23 (barre du gaillard d'arrière + bancs et chaises de la salle commune, chaise du bureau du capitaine, tabourets, bancs du pont) |
 | Maniement | lourd : lente accélération, forte inertie, larges virages ; voiles carguées à l'arrêt |
 | Particularités | vieux navire pirate rapiécé (bordages remplacés, tôles rivetées), pavillons noirs à tête de mort, lanternes ; **intérieur complet où l'on marche en naviguant** : pont principal, gaillard d'arrière, cabine du capitaine, salle commune, cuisine (foyer qui crépite et fume), coursive, postes d'équipage, cale sèche sous la flottaison ; 5 portes ; mobilier des mods de décoration du joueur ; voir [docs/CORSAIR_PLAN.md](docs/CORSAIR_PLAN.md) |
 

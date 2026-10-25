@@ -264,7 +264,8 @@ Le bloc est ajouté automatiquement au fichier au premier lancement avec ces val
 
 **Vérifié automatiquement en jeu** (CI, client Minecraft 1.21.11 réel, en **solo** et sur **serveur
 dédié**, dans les trois variantes : vanilla, avec Lithium, avec les mods de décoration ; 48 vérifications
-du Vieux Corsaire par variante, toutes PASS sur `main` au commit 768c5d88) :
+du Vieux Corsaire par variante, toutes PASS sur `main` au commit 768c5d88 et sur la branche `corsair-finish`
+au commit a7462402, qui a pris les captures de la comparaison) :
 
 * mise à l'eau (`/ship spawn`) dans un bassin, flottaison à la surface de l'eau ;
 * voiles carguées à l'arrêt puis rétablies ; les 6 animations du modèle chargées par le jeu ;
