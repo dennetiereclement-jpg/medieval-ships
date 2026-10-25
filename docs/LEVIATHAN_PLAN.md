@@ -238,13 +238,28 @@ Les itinéraires sont sauvegardés dans le monde.
 ### Captures
 
 * Comparaison planche / jeu (variante avec les mods de décoration) :
-  [comparaison_sky_leviathan.png](comparaison_sky_leviathan.png) — côté, avant, arrière, dessus,
-  perspective, ballon, ailerons, navire suspendu ; pont, salle commune, cabine du capitaine, cale, coursive,
-  salle des machines.
+  [comparaison_sky_leviathan.png](comparaison_sky_leviathan.png) — côté, perspective, avant, arrière,
+  dessus, détails / ailerons ; pont principal, salle commune, cabine du capitaine, cale, coursive, salle des
+  machines. Refaite par `python3 tools/leviathan_compare.py <planche de référence> <dossier des captures>`
+  (captures `*_solo_sky_leviathan_*.png` de la branche `test-results-decor`).
 * Prises de vue du test en jeu (`LeviathanGameTest`, branche `test-results-<variante>-<branche>`) :
   `1_cote` … `5_perspective`, `18_ballon`, `19_ailerons`, `20_coque_suspendue`, `21_ailerons_en_virage`
   (en virage et en montée, depuis une caméra derrière la queue), `6_pont`, `7_cabine`, `8_pont_superieur`,
   `9_salle_commune` … `17_salle_machines_arriere`, `22_salle_machines_en_marche`.
+
+### À bord pendant les virages et les montées
+
+* Sur un client, la coque suit le serveur sans le glissement vanilla de trois ticks (`followsServerExactly`) :
+  le pont où l'on marche est où le serveur l'a (à un tick près), au lieu d'environ quatre ticks de retard ;
+  son cap est le cap précis synchronisé (le cap des paquets, arrondi à 1,4°, faisait osciller la coque de
+  quelques dixièmes de degré). En descendant de la barre pendant une montée, le pilote se pose sur la
+  dunette au lieu de 0,15 bloc sous le pont du serveur.
+* Les cellules de la coque sont données au moteur de collision comme des boîtes alignées sur le monde
+  couvrant chaque cellule tournée : quand le vaisseau tourne, elles changent de forme, et un joueur appuyé
+  contre une paroi pouvait s'y retrouver d'un centième de bloc ; la règle vanilla ignore une boîte déjà
+  chevauchée, et il traversait la paroi (dans le puits de la tour, après un virage : chute sur le pont
+  principal). Une boîte chevauchée de moins de 0,1 bloc est maintenant rognée de son côté et l'arrête
+  toujours (`HullContact`, pour tous les vaisseaux ; testé par `HullContactTest`).
 
 ### Limites connues
 

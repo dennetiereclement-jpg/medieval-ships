@@ -294,12 +294,9 @@ public final class LeviathanGameTest {
 		check.accept(a4 != null && Math.abs(a4[1]) > 0.3 && a4[2] > 0.3, String.format(Locale.ROOT,
 				"%s turning and climbing: rudder and elevator fins over (helm %.2f, climb %.2f)", id, a4 == null ? 0f : a4[1], a4 == null ? 0f : a4[2]));
 		check.accept(collisions(server) == 0, id + " flight: inside nothing");
-		diag(context, server, log, "before dismount");
 		server.runCommand("ride @p dismount");
-		for (int i = 0; i < 10; i++) {
-			context.waitTicks(1);
-			diag(context, server, log, "dismount +" + (i + 1));
-		}
+		context.waitTicks(10);
+		diag(context, server, log, "stepped off");
 		l = local(context, server);
 		check.accept(g.inCarryVolume(l[0], l[1], l[2]) && Math.abs(l[1] - LeviathanLayout.QUARTERDECK_Y) < 0.15,
 				String.format(Locale.ROOT, "%s the pilot steps off onto the quarterdeck (local %.2f %.2f %.2f)", id, l[0], l[1], l[2]));
@@ -318,12 +315,9 @@ public final class LeviathanGameTest {
 		// the ladder of the tower, up through the balloon to the observation deck
 		setDoor(server, LeviathanLayout.TOWER_DOOR, true);
 		setDoor(server, LeviathanLayout.TOP_HATCH, true);
-		diag(context, server, log, "before the tower");
 		tpLocal(server, pose(server), 0, 0.05, -1.5, 180, -30);
-		for (int i = 0; i < 10; i++) {
-			context.waitTicks(1);
-			diag(context, server, log, "tower +" + (i + 1));
-		}
+		context.waitTicks(10);
+		diag(context, server, log, "at the foot of the ladder");
 		context.getInput().holdKey(o -> o.jumpKey);
 		context.getInput().holdKey(o -> o.forwardKey);
 		double top = -99;

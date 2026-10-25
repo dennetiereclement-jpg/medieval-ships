@@ -14,6 +14,15 @@ public class SkyLeviathanEntity extends ShipEntity {
 		super(type, world);
 	}
 
+	/**
+	 * Players walk in its rooms and climb its tower while it flies, climbs and turns: its hull follows the server
+	 * without the vanilla glide, so the decks the players stand on are where the server has them.
+	 */
+	@Override
+	protected boolean followsServerExactly() {
+		return true;
+	}
+
 	@Override
 	public ShipType shipType() {
 		return Ships.SKY_LEVIATHAN;

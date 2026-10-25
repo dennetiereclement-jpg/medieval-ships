@@ -13,6 +13,8 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.World;
 
+import fr.medievalships.core.HullContact;
+
 
 /** Adds the hull boxes of nearby ships to the collisions of a moving entity. */
 public final class ShipCollisions {
@@ -45,12 +47,20 @@ public final class ShipCollisions {
 			return false;
 		}
 		int before = out.size();
+		// a collider the entity already overlaps by a hair still stops it (see HullContact)
+		Box own = entity == null ? null : entity.getBoundingBox();
+		double[] body = own == null ? null : new double[] {own.minX, own.minY, own.minZ, own.maxX, own.maxY, own.maxZ};
 		for (ShipEntity ship : ShipTracker.ships(world)) {
 			if (ship.isRemoved() || (entity != null && entity.getRootVehicle() == ship)) {
 				continue;
 			}
 			ship.geometry().collectBoxes(ship.pose(), ship.interiorState(), query.minX, query.minY, query.minZ, query.maxX, query.maxY, query.maxZ,
-					(a, b, c, d, e, f) -> out.add(VoxelShapes.cuboid(a, b, c, d, e, f)));
+					(a, b, c, d, e, f) -> {
+						double[] k = HullContact.clip(body, new double[] {a, b, c, d, e, f});
+						if (k != null) {
+							out.add(VoxelShapes.cuboid(k[0], k[1], k[2], k[3], k[4], k[5]));
+						}
+					});
 		}
 		return out.size() > before;
 	}

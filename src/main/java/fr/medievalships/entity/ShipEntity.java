@@ -114,7 +114,7 @@ public abstract class ShipEntity extends Entity {
 	private java.util.UUID lifeboat;
 
 	// ---- shared / client state
-	private final PositionInterpolator interpolator = new PositionInterpolator(this, 3);
+	private final PositionInterpolator interpolator = followsServerExactly() ? new ExactInterpolator(this) : new PositionInterpolator(this, 3);
 	/** Yaw change during the last tick, applied to passengers so they turn with the ship. */
 	private float yawDelta;
 	private float lastTickYaw;
@@ -284,6 +284,33 @@ public abstract class ShipEntity extends Entity {
 	@Override
 	public PositionInterpolator getInterpolator() {
 		return interpolator;
+	}
+
+	/**
+	 * Client: does the hull follow the server's packets as they come (one tick behind the server), instead of gliding
+	 * towards them over three ticks (vanilla, about four ticks behind with the network)? The hull the players walk in
+	 * is then where the server has it: a player the server puts on a deck (stepping off the helm, a teleport...) lands
+	 * on it, also while the ship climbs or turns. Its yaw is then the precise synced one, as it comes (the packets'
+	 * yaw, quantised to 1.4 degrees, is not used: it made the hull swing back and forth by a few tenths of a degree).
+	 * Only for a vessel that moves slowly and has rooms (see {@link SkyLeviathanEntity}).
+	 */
+	protected boolean followsServerExactly() {
+		return false;
+	}
+
+	/** One-tick interpolation of the position only; the yaw is left to {@link #clientTick}. */
+	private static final class ExactInterpolator extends PositionInterpolator {
+		private final Entity ship;
+
+		ExactInterpolator(Entity ship) {
+			super(ship, 1);
+			this.ship = ship;
+		}
+
+		@Override
+		public void refreshPositionAndAngles(Vec3d pos, float yaw, float pitch) {
+			super.refreshPositionAndAngles(pos, ship.getYaw(), pitch);
+		}
 	}
 
 	@Override
@@ -477,7 +504,7 @@ public abstract class ShipEntity extends Entity {
 		float target = dataTracker.get(SHIP_YAW);
 		float diff = (float) ShipPose.wrapDegrees(target - getYaw());
 		setYaw(getYaw() + diff * 0.5f);
-		if (Math.abs(diff) > 45) {
+		if (Math.abs(diff) > 45 || followsServerExactly()) {
 			setYaw(target);
 		}
 		parseSeats();
