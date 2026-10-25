@@ -197,6 +197,21 @@ class CorsairTest {
 	}
 
 	@Test
+	void clickingTheDeckDoesNotBoardAgain() {
+		// from the main deck, looking down at it or at a mast: DECK, never HULL (which would board again)
+		ShipGeometry.Pick p = G.pick(ORIGIN, 1.0, M + 1.6, -5.0, 0, -1, 0.2, 5);
+		assertNotNull(p);
+		assertEquals(ShipGeometry.PickKind.DECK, p.kind());
+		p = G.pick(ORIGIN, 1.5, M + 1.6, CorsairLayout.MAIN_MAST_Z, -1, -0.3, 0, 5);
+		assertNotNull(p);
+		assertEquals(ShipGeometry.PickKind.DECK, p.kind());
+		// from the sea, the hull boards
+		p = G.pick(ORIGIN, 9.0, 1.0, 0, -1, 0, 0, 6);
+		assertNotNull(p);
+		assertEquals(ShipGeometry.PickKind.HULL, p.kind());
+	}
+
+	@Test
 	void boardingSpotIsOnTheMainDeck() {
 		for (double z = -12; z <= 18; z += 3) {
 			double[] b = G.boardingSpot(5.5, z);

@@ -578,7 +578,10 @@ public final class ShipGeometry {
 		}
 		if (interior != null) {
 			// walls, floors, doors of the rooms (and the outer hull): the first cell met along the ray
-			boolean outside = interior.kindAt(o[0], o[1], o[2]) == InteriorGrid.OUT;
+			// on an open deck of a ship with rooms (the Old Corsair) the player is aboard: clicking the
+			// deck or a mast must not board him again
+			boolean outside = interior.kindAt(o[0], o[1], o[2]) == InteriorGrid.OUT
+					&& (spec.submarine || !interior.carryAt(o[0], o[1], o[2]));
 			double limit = best == null ? maxDist : Math.min(maxDist, best.distance());
 			for (double tt = 0.05; tt <= limit; tt += 0.05) {
 				byte k = interior.kindAt(o[0] + d[0] * tt, o[1] + d[1] * tt, o[2] + d[2] * tt);
