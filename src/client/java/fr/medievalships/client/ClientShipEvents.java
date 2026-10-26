@@ -88,6 +88,8 @@ public final class ClientShipEvents {
 		}
 		rescue(world, player);
 		showHint(client);
+		PlacementPreview.tick(client, world);
+		PilotHudOverlay.tick(client, world);
 	}
 
 	/**

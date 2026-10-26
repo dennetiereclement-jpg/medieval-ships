@@ -14,6 +14,10 @@ public class ShipRenderState extends EntityRenderState {
 	public double rockScale;
 	/** Aircraft: -1 descending .. 1 climbing (fins). */
 	public float climb;
+	/** Aircraft: bank into the turn (degrees, positive = right side down), drawn about the main deck's axis. */
+	public float bank;
+	public float bankPivotY;
+	public boolean aircraft;
 	/** Vessels with rooms: the rooms are lit by the vessel's lamps. */
 	public boolean interiorLight;
 	/** Vessels with rooms: opening of each door (0 closed .. 1 open). */

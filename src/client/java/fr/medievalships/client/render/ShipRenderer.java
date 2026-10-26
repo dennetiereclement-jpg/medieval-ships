@@ -84,6 +84,9 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 		state.rockTime = entity.rockTime + tickProgress * 0.05f;
 		state.rockScale = entity.config().waveRocking * visual.rocking() * (entity.config().flight != null ? entity.config().flight.sway : 1.0);
 		state.climb = MathHelper.lerp(tickProgress, entity.lastClimbVisual, entity.climbVisual);
+		state.aircraft = entity.config().flight != null;
+		state.bank = MathHelper.lerp(tickProgress, entity.lastBankVisual, entity.bankVisual);
+		state.bankPivotY = (float) entity.geometry().hull().mainDeckY;
 		state.interiorLight = entity.geometry().interior() != null;
 		if (state.interiorLight) {
 			for (int k = 0; k < state.doors.length; k++) {
@@ -113,9 +116,16 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 			matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-state.yaw));
 			double rock = state.rockScale;
 			float t = state.rockTime;
-			float heel = state.helm * Math.min(1f, Math.abs(state.speed) / 6f) * 2.5f;
+			// a ship heels with the helm; an aircraft banks into its turns instead (FlightConfig.bankAngle, see Flight.bankLimit)
+			float heel = state.aircraft ? 0f : state.helm * Math.min(1f, Math.abs(state.speed) / 6f) * 2.5f;
 			matrices.multiply(RotationAxis.POSITIVE_X.rotationDegrees((float) (Math.sin(t * 0.9) * 0.45 * rock)));
 			matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees((float) (Math.sin(t * 0.63) * 0.9 * rock) + heel));
+			if (state.aircraft && state.bank != 0f) {
+				// about the fore-and-aft axis at deck height: the deck one walks on hardly moves (visual only)
+				matrices.translate(0, state.bankPivotY, 0);
+				matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(state.bank));
+				matrices.translate(0, -state.bankPivotY, 0);
+			}
 			matrices.translate(0, Math.sin(t * 1.1) * 0.03 * rock, 0);
 			if (visual.hover() > 0f) {
 				// floating in the air: a slow bob (two beats so it never looks mechanical); only the drawing moves

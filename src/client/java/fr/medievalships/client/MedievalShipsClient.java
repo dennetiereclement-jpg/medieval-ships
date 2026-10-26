@@ -4,6 +4,9 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
 
 import net.minecraft.resource.ResourceType;
@@ -24,5 +27,8 @@ public final class MedievalShipsClient implements ClientModInitializer {
 				(SynchronousResourceReloader) ShipModels::reload);
 		ClientTickEvents.END_WORLD_TICK.register(ClientShipEvents::endWorldTick);
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> ShipTracker.clearClientWorlds());
+		// the ghost of the vessel whose item the player holds, and the pilot's panel
+		WorldRenderEvents.BEFORE_ENTITIES.register(PlacementPreview::render);
+		HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, MedievalShips.id("pilot_panel"), PilotHudOverlay::render);
 	}
 }

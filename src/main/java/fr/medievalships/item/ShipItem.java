@@ -34,20 +34,38 @@ public class ShipItem extends Item {
 		return type;
 	}
 
+	/**
+	 * The block a right click with the item of this vessel aims at, or null: any block for an aircraft (it is
+	 * placed above), water for a ship. The same on the server (placing) and on the client (the preview).
+	 */
+	@org.jetbrains.annotations.Nullable
+	public static BlockHitResult placementTarget(World world, PlayerEntity user, ShipType type) {
+		BlockHitResult hit = raycast(world, user, RaycastContext.FluidHandling.ANY);
+		if (hit.getType() != HitResult.Type.BLOCK) {
+			return null;
+		}
+		// ships go on water; an aircraft is placed above whatever was clicked (ground, water, roof)
+		if (!type.geometry().flying() && !world.getFluidState(hit.getBlockPos()).isIn(FluidTags.WATER)) {
+			return null;
+		}
+		return hit;
+	}
+
 	@Override
 	public ActionResult use(World world, PlayerEntity user, Hand hand) {
 		ItemStack stack = user.getStackInHand(hand);
-		BlockHitResult hit = raycast(world, user, RaycastContext.FluidHandling.ANY);
+		BlockHitResult hit = placementTarget(world, user, type);
 		boolean flying = type.geometry().flying();
-		// ships go on water; an aircraft is placed above whatever was clicked (ground, water, roof)
-		if (hit.getType() != HitResult.Type.BLOCK || !flying && !world.getFluidState(hit.getBlockPos()).isIn(FluidTags.WATER)) {
+		if (hit == null) {
 			return ActionResult.PASS;
 		}
 		if (!(world instanceof ServerWorld serverWorld)) {
 			return ActionResult.SUCCESS;
 		}
-		if (ConfigManager.server().placeRequiresAdmin && !ShipPermissions.isAdmin(user)) {
-			user.sendMessage(Text.literal("Seuls les administrateurs peuvent mettre un navire à l'eau.").formatted(Formatting.RED), true);
+		if (!ShipPermissions.mayPlace(user, type)) {
+			user.sendMessage(Text.literal(ConfigManager.server().placeRequiresAdmin
+					? "Seuls les administrateurs et les joueurs autorisés peuvent mettre un navire à l'eau."
+					: "Seuls les administrateurs et les joueurs autorisés peuvent placer ce vaisseau.").formatted(Formatting.RED), true);
 			return ActionResult.FAIL;
 		}
 		Vec3d hitPos = hit.getPos();

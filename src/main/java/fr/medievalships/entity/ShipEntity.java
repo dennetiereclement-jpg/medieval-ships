@@ -38,6 +38,7 @@ import fr.medievalships.core.InteriorGrid;
 import fr.medievalships.core.Ships;
 import fr.medievalships.core.Flight;
 import fr.medievalships.core.Gait;
+import fr.medievalships.core.GotoRoutes;
 import fr.medievalships.core.Route;
 import fr.medievalships.core.ShipConfig;
 import fr.medievalships.core.ShipGeometry;
@@ -79,6 +80,11 @@ public abstract class ShipEntity extends Entity {
 	private static final TrackedData<Float> DEPTH = DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.FLOAT);
 	/** Vessels with rooms: fittings switched on or off (bits, see {@link Ships.NautilusLayout#SHUTTERS_CLOSED}). */
 	private static final TrackedData<Integer> TOGGLES = DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.INTEGER);
+	/**
+	 * Autopilot state for the pilot's panel: {@code "<phase>;<route>;<label>;<x>;<y>;<z>"} of the point it heads for,
+	 * empty while it is off (updated twice a second).
+	 */
+	private static final TrackedData<String> AUTOPILOT_INFO = DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.STRING);
 
 	private static final double DT = 0.05;
 
@@ -103,7 +109,7 @@ public abstract class ShipEntity extends Entity {
 	private boolean lastJump;
 	private boolean lastSprint;
 	private boolean seatsDirty;
-	/** Until this age the pilot's action bar shows a message instead of the depth gauge. */
+	/** Until this age a message on the pilot's action bar is not replaced by another one. */
 	private int diveMessageUntil;
 	/** Airlock: level the valves are bringing the water to (0 or 1). */
 	private float airlockTarget;
@@ -138,6 +144,12 @@ public abstract class ShipEntity extends Entity {
 	/** Aircraft: smoothed vertical speed order for the fins (-1 descending .. 1 climbing). */
 	public float climbVisual;
 	public float lastClimbVisual;
+	/**
+	 * Aircraft: drawn bank into the turns (degrees, positive = right side down), see {@link Flight#bankTarget}. Visual
+	 * only: the collisions, the decks one walks on and the carrying of the passengers stay level.
+	 */
+	public float bankVisual;
+	public float lastBankVisual;
 	public float rockTime;
 	/** Vessels with rooms: smoothed opening of each door (0 closed .. 1 open), for the animations. */
 	public final float[] doorVisual = new float[InteriorGrid.MAX_DOORS];
@@ -182,6 +194,7 @@ public abstract class ShipEntity extends Entity {
 		builder.add(AIRLOCK, 0f);
 		builder.add(DEPTH, 0f);
 		builder.add(TOGGLES, 0);
+		builder.add(AUTOPILOT_INFO, "");
 	}
 
 	@Override
@@ -324,6 +337,9 @@ public abstract class ShipEntity extends Entity {
 	public void remove(RemovalReason reason) {
 		if (reason.shouldDestroy() && getEntityWorld() instanceof ServerWorld sw) {
 			ShipData.get(sw.getServer()).removeFerry(getUuid());
+			if (GotoRoutes.isGoto(routeName)) {
+				ShipData.get(sw.getServer()).removeRoute(routeName);
+			}
 		}
 		super.remove(reason);
 	}
@@ -529,9 +545,13 @@ public abstract class ShipEntity extends Entity {
 		sailOpen += ((sailSet() ? 1f : 0f) - sailOpen) * 0.05f;
 		helmVisual += (syncedHelm() - helmVisual) * 0.3f;
 		lastClimbVisual = climbVisual;
+		lastBankVisual = bankVisual;
 		if (cfg.flight != null) {
 			float climb = Math.max(-1f, Math.min(1f, syncedVerticalSpeed() / (float) cfg.flight.climbSpeed));
 			climbVisual += (climb - climbVisual) * 0.15f;
+			// the turn rate as seen here: the yaw change of the last tick (the yaw is already smoothed above)
+			double target = Flight.bankTarget(syncedSpeed(), yawDelta / DT, Flight.bankLimit(geometry(), cfg.flight));
+			bankVisual = (float) Flight.bankStep(bankVisual, target, DT);
 		}
 		rockTime += DT;
 		if (geometry().interior() != null) {
@@ -555,6 +575,9 @@ public abstract class ShipEntity extends Entity {
 		ShipPose before = pose();
 		if (seatsDirty) {
 			syncSeats();
+		}
+		if (age % 10 == 0) {
+			syncAutopilotInfo(world);
 		}
 
 		// ---- controls
@@ -647,10 +670,6 @@ public abstract class ShipEntity extends Entity {
 						world.getRegistryKey().getValue().toString(), getX(), getZ(), routeName));
 			}
 		}
-
-		if (pilot instanceof ServerPlayerEntity player && age % 10 == 0) {
-			player.sendMessage(helmStatus(cfg), true);
-		}
 	}
 
 	/**
@@ -710,9 +729,6 @@ public abstract class ShipEntity extends Entity {
 				ShipData.get(world.getServer()).updateFerry(getUuid(), new ShipData.FerryRecord(
 						world.getRegistryKey().getValue().toString(), getX(), getZ(), routeName));
 			}
-		}
-		if (pilot instanceof ServerPlayerEntity player && age % 10 == 0) {
-			player.sendMessage(flightStatus(cfg), true);
 		}
 	}
 
@@ -799,9 +815,6 @@ public abstract class ShipEntity extends Entity {
 		} else if (Double.isNaN(surfacedY) && vy < 0) {
 			diveMessage(pilot, Text.literal("Pas d'eau sous la coque : impossible de plonger.").formatted(Formatting.RED));
 		}
-		if (pilot instanceof ServerPlayerEntity player && age % 10 == 0 && age >= diveMessageUntil) {
-			player.sendMessage(diveStatus(depth), true);
-		}
 		NautilusFittings.tick(this, world);
 	}
 
@@ -811,20 +824,6 @@ public abstract class ShipEntity extends Entity {
 			player.sendMessage(text, true);
 			diveMessageUntil = age + 40;
 		}
-	}
-
-	private Text diveStatus(float depth) {
-		String vertical = dive.vy > 0.05 ? "remonte" : dive.vy < -0.05 ? "plonge" : depth < Dive.SURFACED ? "en surface" : "immersion stable";
-		String limit = Double.isNaN(speedLimit) ? "" : String.format(" max %.1f", speedLimit);
-		return Text.literal(String.format("Profondeur %.0f m (%s) - %.1f blocs/s%s  [Z/S: vitesse, Q/D: cap, Espace: remonter, Ctrl: plonger, Maj: quitter]",
-				depth, vertical, Math.abs(physics.speed), limit)).formatted(Formatting.GOLD);
-	}
-
-	private Text flightStatus(ShipConfig cfg) {
-		String vertical = flight.vy > 0.05 ? " montée" : flight.vy < -0.05 ? " descente" : " palier";
-		String limit = Double.isNaN(speedLimit) ? "" : String.format(" max %.1f", speedLimit);
-		return Text.literal(String.format("Altitude %d (%s) - %.1f blocs/s%s  [Z/S: vitesse, Q/D: cap, Espace: monter, Ctrl: descendre, Maj: quitter]",
-				(int) Math.floor(getY()), vertical.trim(), Math.abs(physics.speed), limit)).formatted(Formatting.GOLD);
 	}
 
 	private ShipPhysics.Controls manualControls(ServerPlayerEntity player, ShipConfig cfg) {
@@ -852,14 +851,6 @@ public abstract class ShipEntity extends Entity {
 		}
 		double helm = (in.right() ? 1 : 0) - (in.left() ? 1 : 0);
 		return new ShipPhysics.Controls(target, helm);
-	}
-
-	private Text helmStatus(ShipConfig cfg) {
-		double kmh = Math.abs(physics.speed) * 3.6;
-		String dir = physics.speed < -0.05 ? " (arrière)" : "";
-		String limit = Double.isNaN(speedLimit) ? "" : String.format(" max %.1f", speedLimit);
-		return Text.literal(String.format("Allure %s%s - %.1f blocs/s (%.0f km/h)%s  [Espace/Ctrl: allure, Maj: quitter]",
-				gait.frenchName(), limit, Math.abs(physics.speed), kmh, dir)).formatted(Formatting.GOLD);
 	}
 
 	/** Moves mobs, items and other entities standing on the deck along with the hull (server side). */
@@ -955,6 +946,66 @@ public abstract class ShipEntity extends Entity {
 			}
 		}
 		dataTracker.set(AUTOPILOT, enabled);
+		if (!enabled) {
+			dataTracker.set(AUTOPILOT_INFO, "");
+		}
+	}
+
+	/**
+	 * Sends the vessel to a destination ({@link GotoRoutes}): its own one-point route, saved with the world, flown or
+	 * sailed by the autopilot (which takes the helm). Replaces the previous destination.
+	 */
+	public void startGoto(Route route) {
+		if (!(getEntityWorld() instanceof ServerWorld sw)) {
+			return;
+		}
+		ShipData.get(sw.getServer()).putRoute(route);
+		startRoute(route);
+		syncAutopilotInfo(sw);
+	}
+
+	/** Is the autopilot following a destination given with {@code goto} (not an administrator's route)? */
+	public boolean onGoto() {
+		return aiEnabled && GotoRoutes.isGoto(routeName);
+	}
+
+	/**
+	 * Cancels the destination given with {@code goto}: the autopilot lets go (an aircraft hovers where it is, a ship
+	 * glides to a stop) and its route is forgotten. False if the vessel had no such destination.
+	 */
+	public boolean cancelGoto() {
+		if (!GotoRoutes.isGoto(routeName)) {
+			return false;
+		}
+		String name = routeName;
+		setAutopilot(false);
+		routeName = null;
+		if (getEntityWorld() instanceof ServerWorld sw) {
+			ShipData.get(sw.getServer()).removeRoute(name);
+		}
+		return true;
+	}
+
+	/** Autopilot state for the pilot's panel (client): see {@link #AUTOPILOT_INFO}. */
+	public String syncedAutopilotInfo() {
+		return dataTracker.get(AUTOPILOT_INFO);
+	}
+
+	private void syncAutopilotInfo(ServerWorld world) {
+		String info = "";
+		if (aiEnabled) {
+			Route route = ShipData.get(world.getServer()).route(routeName);
+			Waypoint wp = autopilot.currentTarget(route);
+			if (wp != null) {
+				String label = wp.label(autopilot.target).replace(';', ',');
+				info = String.format(java.util.Locale.ROOT, "%s;%s;%s;%.1f;%.1f;%.1f", autopilot.phase.name(), routeName, label, wp.x, wp.y, wp.z);
+			} else {
+				info = autopilot.phase.name() + ";" + routeName + ";;;;";
+			}
+		}
+		if (!info.equals(dataTracker.get(AUTOPILOT_INFO))) {
+			dataTracker.set(AUTOPILOT_INFO, info);
+		}
 	}
 
 	/** Sends route events (departure countdown, arrival...) to players aboard and nearby. */

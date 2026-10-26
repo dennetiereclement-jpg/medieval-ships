@@ -235,6 +235,9 @@ public final class ShipCommands {
 		nautilus.then(CommandManager.literal("etat").executes(ShipCommands::nautilusState));
 		root.then(nautilus);
 
+		// /ship goto ..., /ship destination ... (and the players' /pilote): destinations for the autopilot
+		DestinationCommands.register(dispatcher, root);
+
 		dispatcher.register(root);
 	}
 
@@ -341,11 +344,11 @@ public final class ShipCommands {
 
 	// ------------------------------------------------------------------ helpers
 
-	private static void ok(CommandContext<ServerCommandSource> ctx, String msg) {
+	static void ok(CommandContext<ServerCommandSource> ctx, String msg) {
 		ctx.getSource().sendFeedback(() -> Text.literal(msg).formatted(Formatting.GREEN), true);
 	}
 
-	private static CommandSyntaxException error(String msg) {
+	static CommandSyntaxException error(String msg) {
 		return new com.mojang.brigadier.exceptions.SimpleCommandExceptionType(Text.literal(msg)).create();
 	}
 
@@ -353,7 +356,7 @@ public final class ShipCommands {
 	 * The ship the command applies to: the one the player rides or stands on, else the one
 	 * he looks at, else the nearest one within 32 blocks.
 	 */
-	private static ShipEntity target(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
+	static ShipEntity target(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
 		ServerCommandSource source = ctx.getSource();
 		ServerWorld world = source.getWorld();
 		Entity entity = source.getEntity();
@@ -405,7 +408,7 @@ public final class ShipCommands {
 		return r;
 	}
 
-	private static String describe(ShipEntity ship) {
+	static String describe(ShipEntity ship) {
 		String name = ship.hasCustomName() ? ship.getCustomName().getString() : capitalize(ship.shipType().frenchName());
 		return String.format(Locale.ROOT, "%s [%d %d %d]", name, (int) ship.getX(), (int) ship.getY(), (int) ship.getZ());
 	}

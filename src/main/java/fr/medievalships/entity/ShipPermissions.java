@@ -29,4 +29,12 @@ public final class ShipPermissions {
 	public static boolean isAdmin(PlayerEntity player) {
 		return level(player.getPermissions()) >= ConfigManager.server().adminPermissionLevel;
 	}
+
+	/**
+	 * May this player place this vessel with its item (config {@code server}: {@code placeRequiresAdmin},
+	 * {@code placeAdminOnly}, {@code placeAllowedPlayers})? Admins always may.
+	 */
+	public static boolean mayPlace(PlayerEntity player, fr.medievalships.core.ShipType type) {
+		return ConfigManager.server().mayPlace(type.id(), isAdmin(player), player.getGameProfile().name(), player.getUuidAsString());
+	}
 }

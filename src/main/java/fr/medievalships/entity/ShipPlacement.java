@@ -3,6 +3,7 @@ package fr.medievalships.entity;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.world.World;
 
 import fr.medievalships.MedievalShips;
 import fr.medievalships.core.ShipMover;
@@ -15,6 +16,13 @@ public final class ShipPlacement {
 	}
 
 	/**
+	 * Where a vessel would be placed: {@code pose} and whether it fits ({@code valid}). When it does not fit, the
+	 * pose is the first one that was tried (for the red preview).
+	 */
+	public record Spot(ShipPose pose, boolean valid) {
+	}
+
+	/**
 	 * Spawns a ship of the given type near (x, z) facing {@code yaw}. When {@code ahead} is true the ship is pushed
 	 * forward so its stern starts at the clicked point (the player is not inside the hull).
 	 *
@@ -22,18 +30,38 @@ public final class ShipPlacement {
 	 */
 	@Nullable
 	public static ShipEntity place(ServerWorld world, ShipType type, double x, double y, double z, float yaw, boolean ahead) {
+		Spot spot = find(world, type, x, y, z, yaw, ahead);
+		if (spot == null || !spot.valid()) {
+			return null;
+		}
 		ShipEntity ship = MedievalShips.entityType(type).create(world, net.minecraft.entity.SpawnReason.COMMAND);
 		if (ship == null) {
 			return null;
 		}
-		ship.refreshPositionAndAngles(x, y, z, yaw, 0f); // the obstacle scan looks around the ship's position
-		ShipWorld shipWorld = new ShipWorld(world, ship);
+		ShipPose p = spot.pose();
+		ship.refreshPositionAndAngles(p.x(), p.y(), p.z(), yaw, 0f);
+		ship.setShipYaw(yaw);
+		world.spawnEntity(ship);
+		return ship;
+	}
+
+	/**
+	 * The space check of the placement, the same on the server (item, {@code /ship spawn}) and on the client (the
+	 * preview of the item): the first pose near (x, z) facing {@code yaw} where the whole vessel is inside nothing
+	 * (terrain, buildings, other hulls) — a ship floating on open water, an aircraft above whatever was clicked.
+	 *
+	 * @return the pose and whether it fits, or null for a ship when there is no water at all to show it on
+	 */
+	@Nullable
+	public static Spot find(World world, ShipType type, double x, double y, double z, float yaw, boolean ahead) {
+		ShipWorld shipWorld = new ShipWorld(world, null, x, y, z);
 		if (type.geometry().flying()) {
-			return placeInTheAir(world, ship, shipWorld, type, x, y, z, yaw, ahead);
+			return findInTheAir(shipWorld, type, x, y, z, yaw, ahead);
 		}
 		double fx = -Math.sin(Math.toRadians(yaw)), fz = Math.cos(Math.toRadians(yaw));
 		double h = type.hull().halfLength;
 		double[] offsets = ahead ? new double[] {h + 2, h - 2, h + 6, h - 6, 0} : new double[] {0, 0.4 * h, -0.4 * h, 0.8 * h, -0.8 * h};
+		ShipPose first = null;
 		for (double off : offsets) {
 			double cx = x + fx * off, cz = z + fz * off;
 			double surface = shipWorld.waterSurface(cx, cz, y);
@@ -42,14 +70,14 @@ public final class ShipPlacement {
 			}
 			double sy = surface - type.hull().waterlineY;
 			ShipPose pose = new ShipPose(cx, sy, cz, yaw);
-			if (ShipMover.countCollisions(type.geometry(), pose, shipWorld) == 0) {
-				ship.refreshPositionAndAngles(cx, sy, cz, yaw, 0f);
-				ship.setShipYaw(yaw);
-				world.spawnEntity(ship);
-				return ship;
+			if (!ShipMover.collides(type.geometry(), pose, shipWorld)) {
+				return new Spot(pose, true);
+			}
+			if (first == null) {
+				first = pose;
 			}
 		}
-		return null;
+		return first == null ? null : new Spot(first, false);
 	}
 
 	/**
@@ -57,29 +85,26 @@ public final class ShipPlacement {
 	 * fins, propeller), its keel a block above the clicked surface or higher, never inside a hill
 	 * or a building.
 	 */
-	@Nullable
-	private static ShipEntity placeInTheAir(ServerWorld world, ShipEntity ship, ShipWorld shipWorld, ShipType type, double x, double y,
-			double z, float yaw, boolean ahead) {
+	private static Spot findInTheAir(ShipWorld shipWorld, ShipType type, double x, double y, double z, float yaw, boolean ahead) {
 		double fx = -Math.sin(Math.toRadians(yaw)), fz = Math.cos(Math.toRadians(yaw));
 		double h = type.hull().halfLength;
 		double[] offsets = ahead ? new double[] {h + 2, h + 6, h - 2, 0} : new double[] {0, 0.5 * h, -0.5 * h};
 		double base = y + 1.0 - type.geometry().lowestY();
+		double ceiling = fr.medievalships.data.ConfigManager.ship(type).flight.maxAltitude;
+		ShipPose first = new ShipPose(x + fx * offsets[0], base, z + fz * offsets[0], yaw);
 		for (double off : offsets) {
 			double cx = x + fx * off, cz = z + fz * off;
 			for (double dy = 0; dy <= 16; dy += 1.0) {
 				ShipPose pose = new ShipPose(cx, base + dy, cz, yaw);
-				if (pose.y() + type.geometry().topY() > fr.medievalships.data.ConfigManager.ship(type).flight.maxAltitude) {
+				if (pose.y() + type.geometry().topY() > ceiling) {
 					break;
 				}
-				if (ShipMover.countCollisions(type.geometry(), pose, shipWorld) == 0) {
-					ship.refreshPositionAndAngles(cx, pose.y(), cz, yaw, 0f);
-					ship.setShipYaw(yaw);
-					world.spawnEntity(ship);
-					return ship;
+				if (!ShipMover.collides(type.geometry(), pose, shipWorld)) {
+					return new Spot(pose, true);
 				}
 			}
 		}
-		return null;
+		return new Spot(first, false);
 	}
 
 	/** Moves a ship to the nearest open water position (within 24 blocks); an aircraft to the nearest free space. */
