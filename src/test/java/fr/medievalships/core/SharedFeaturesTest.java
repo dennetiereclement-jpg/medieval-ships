@@ -56,6 +56,18 @@ class SharedFeaturesTest {
 	}
 
 	@Test
+	void placeAdminOnlyAcceptsTheAliasesAndReportsUnknownIds() {
+		ServerSettings s = new ServerSettings();
+		s.placeAdminOnly = new java.util.ArrayList<>(List.of("grand_warship", " Sky_Leviathan ", "sky_leviathan", "galion_volant"));
+		s.sanitize();
+		assertEquals(List.of("warship", "sky_leviathan", "galion_volant"), s.placeAdminOnly, "aliases and any case become the ids, once each");
+		assertFalse(s.mayPlace("warship", false, "Alice", "0000-1"), "\"grand_warship\" reserves the great warship");
+		assertFalse(s.mayPlace("sky_leviathan", false, "Alice", "0000-1"));
+		assertTrue(s.mayPlace("galleon", false, "Alice", "0000-1"));
+		assertEquals(List.of("galion_volant"), s.unknownVessels(), "a typo is reported (logged as a warning)");
+	}
+
+	@Test
 	void oldConfigFilesKeepTheNewDefaults() {
 		// a "server" section written by 1.8 (no new keys), and one with explicit nulls
 		ServerSettings old = new Gson().fromJson("{\"adminPermissionLevel\":3,\"placeRequiresAdmin\":false}", ServerSettings.class);
@@ -63,7 +75,7 @@ class SharedFeaturesTest {
 		assertEquals(3, old.adminPermissionLevel);
 		assertTrue(old.placeAdminOnly.isEmpty() && old.placeAllowedPlayers.isEmpty());
 		assertTrue(old.playerDestinations);
-		assertEquals(5000, old.playerDestinationMaxDistance, 1e-9);
+		assertEquals(1000, old.playerDestinationMaxDistance, 1e-9, "a player's destination is at most 1000 blocks away by default");
 		ServerSettings nulls = new Gson().fromJson("{\"placeAdminOnly\":null,\"placeAllowedPlayers\":null}", ServerSettings.class);
 		nulls.sanitize();
 		assertNotNull(nulls.placeAdminOnly);
@@ -119,9 +131,17 @@ class SharedFeaturesTest {
 			double limit = Flight.bankLimit(t.geometry(), c.flight);
 			assertTrue(c.flight.bankAngle > 0 && limit > 0, t.id() + ": banking is on by default");
 			assertTrue(limit <= c.flight.bankAngle + 1e-9, t.id());
-			double drift = Flight.walkRadius(t.geometry()) * Math.sin(Math.toRadians(limit));
+			// the renderer's own transform (Flight.bankPoint) applied, at full bank either way, to every place where one
+			// walks: the deck from rail to rail up to head height, and every walkable cell of the rooms
+			double drift = 0;
+			for (double[] p : walkablePoints(t.geometry())) {
+				for (double bank : new double[] {limit, -limit}) {
+					double[] q = Flight.bankPoint(p[0], p[1], t.geometry().hull().mainDeckY, bank);
+					drift = Math.max(drift, Math.hypot(q[0] - p[0], q[1] - p[1]));
+				}
+			}
 			assertTrue(drift <= Flight.BANK_TOLERANCE + 1e-9,
-					t.id() + ": at full bank no walkable deck or room moves more than half a block (" + drift + ")");
+					t.id() + ": at full bank no walkable deck or room is drawn more than half a block away (" + drift + ")");
 			FlightConfig off = c.flight;
 			off.bankAngle = 0;
 			assertEquals(0, Flight.bankLimit(t.geometry(), off), 1e-12, t.id() + ": bankAngle 0 disables it");
@@ -132,6 +152,46 @@ class SharedFeaturesTest {
 		ShipConfig leviathan = Ships.SKY_LEVIATHAN.defaults().get();
 		double l = Flight.bankLimit(Ships.SKY_LEVIATHAN.geometry(), leviathan.flight);
 		assertTrue(l > 0.3 && l < 1.5, "the Sky Leviathan, rooms from its hold to the top of its balloon, hardly leans (" + l + ")");
+	}
+
+	/** Local (x, y) of the places where one walks: deck edges at foot and head height, every walkable cell. */
+	private static List<double[]> walkablePoints(ShipGeometry g) {
+		List<double[]> out = new java.util.ArrayList<>();
+		double deck = g.hull().mainDeckY, w = g.hull().maxHalfWidth;
+		for (double x : new double[] {-w, 0, w}) {
+			out.add(new double[] {x, deck});
+			out.add(new double[] {x, deck + 2.0});
+		}
+		InteriorGrid grid = g.interior();
+		if (grid != null) {
+			for (int i = 0; i < grid.nx; i++) {
+				for (int k = 0; k < grid.nz; k++) {
+					for (int j = 0; j < grid.ny; j++) {
+						byte kind = grid.kind(i, j, k);
+						if (kind == InteriorGrid.DRY || kind == InteriorGrid.LADDER || kind == InteriorGrid.AIRLOCK || kind >= InteriorGrid.DOOR) {
+							out.add(new double[] {grid.x0 + (i + 0.5) * grid.cell, grid.y0 + (j + 0.5) * grid.cell});
+						}
+					}
+				}
+			}
+		}
+		return out;
+	}
+
+	@Test
+	void theStarboardSideGoesDownInARightTurn() {
+		// the yaw grows in a right turn (clockwise seen from above); local +x is the port side
+		double bank = Flight.bankTarget(5, 10, 6);
+		assertTrue(bank > 0, "a right turn banks positive (" + bank + ")");
+		double deck = 1.2;
+		double[] starboard = Flight.bankPoint(-3, deck, deck, bank), port = Flight.bankPoint(3, deck, deck, bank);
+		assertTrue(starboard[1] < deck - 0.1 && port[1] > deck + 0.1, "starboard (inside of the turn) down, port up: "
+				+ starboard[1] + " / " + port[1]);
+		double[] axis = Flight.bankPoint(0, deck, deck, bank);
+		assertEquals(0, axis[0], 1e-12, "the roll axis is the keel line at deck height");
+		assertEquals(deck, axis[1], 1e-12);
+		double[] left = Flight.bankPoint(-3, deck, deck, Flight.bankTarget(5, -10, 6));
+		assertTrue(left[1] > deck + 0.1, "a left turn lifts the starboard side");
 	}
 
 	// ------------------------------------------------------------------ the pilot's panel
@@ -172,6 +232,24 @@ class SharedFeaturesTest {
 		hover.verticalSpeed = 0;
 		List<String> h = PilotHud.lines(hover);
 		assertTrue(h.contains("Moteur : vol stationnaire · allure normale") && h.contains("Vertical : palier"), h.toString());
+	}
+
+	@Test
+	void panelShowsTheKeysAsBoundAndTheAdminsSpeedLimit() {
+		PilotHud.Status s = airship();
+		s.keys = new PilotHud.Keys("W", "S", "A", "D", "Space", "Left Control", "Left Shift");
+		List<String> l = PilotHud.lines(s);
+		assertEquals("[W/S vitesse · A/D cap · Space monter · Left Control descendre · Left Shift quitter]", l.get(l.size() - 1),
+				"a QWERTY (or rebound) keyboard sees its own keys");
+		assertFalse(l.stream().anyMatch(x -> x.startsWith("Limite")), "no limit line without a limit");
+		s.speedLimit = 3.0;
+		List<String> lim = PilotHud.lines(s);
+		assertTrue(lim.contains("Limite : 3,0 blocs/s (administrateur)"), lim.toString());
+		PilotHud.Status ship = new PilotHud.Status();
+		ship.speedLimit = 1.5;
+		List<String> sl = PilotHud.lines(ship);
+		assertTrue(sl.contains("Limite : 1,5 bloc/s (administrateur)"), sl.toString());
+		assertEquals("[Z/S avant/arrière · Q/D barre · Espace/Ctrl allure · Maj quitter]", sl.get(sl.size() - 1), "default: AZERTY names");
 	}
 
 	@Test
@@ -240,6 +318,69 @@ class SharedFeaturesTest {
 		assertEquals("Port", r.get(0).label(0));
 		assertEquals("100 80 -300", GotoRoutes.label(100.2, 80.4, -299.6, true));
 		assertEquals("100 -300", GotoRoutes.label(100.2, 80.4, -299.6, false));
+		assertTrue(GotoRoutes.isGoto("GOTO-port"), "the prefix is reserved in any case");
+	}
+
+	@Test
+	void whoMayGiveADestination() {
+		// admins always may
+		assertEquals(null, GotoRoutes.vesselRefusal(true, true, "ferry_capitale", true));
+		// a free vessel, or one already on a destination (the player redirects it)
+		assertEquals(null, GotoRoutes.vesselRefusal(false, false, null, false));
+		assertEquals(null, GotoRoutes.vesselRefusal(false, true, "goto-1a2b3c4d", false));
+		assertEquals(null, GotoRoutes.vesselRefusal(false, false, "goto-1a2b3c4d", false), "a paused destination");
+		// a ferry: running, paused (its assignment would be lost), or an admin's autopilot without a route
+		assertEquals(GotoRoutes.Refusal.FERRY, GotoRoutes.vesselRefusal(false, true, "ferry_capitale", false));
+		assertEquals(GotoRoutes.Refusal.PAUSED_FERRY, GotoRoutes.vesselRefusal(false, false, "ferry_capitale", false));
+		assertEquals(GotoRoutes.Refusal.FERRY, GotoRoutes.vesselRefusal(false, true, null, false));
+		// someone else at the helm
+		assertEquals(GotoRoutes.Refusal.HELM_TAKEN, GotoRoutes.vesselRefusal(false, false, null, true));
+		assertEquals(GotoRoutes.Refusal.FERRY, GotoRoutes.vesselRefusal(false, true, "ferry_capitale", true), "the ferry first");
+		// the destination itself
+		assertEquals(null, GotoRoutes.destinationRefusal(false, 999, 1000, false));
+		assertEquals(GotoRoutes.Refusal.TOO_FAR, GotoRoutes.destinationRefusal(false, 1001, 1000, false));
+		assertEquals(null, GotoRoutes.destinationRefusal(true, 50_000, 1000, false), "no limit for an admin");
+		assertEquals(GotoRoutes.Refusal.SUBMARINE, GotoRoutes.destinationRefusal(true, 10, 1000, true), "never the Nautilus");
+		assertEquals(GotoRoutes.Refusal.SUBMARINE, GotoRoutes.destinationRefusal(false, 5000, 1000, true));
+	}
+
+	@Test
+	void aShipSentInlandIsReportedStuckSoItsDestinationIsCancelled() {
+		// open sea up to z = 40, land beyond: the destination (z = 90) cannot be reached; the autopilot must report it
+		// (ShipEntity then cancels the destination and releases its chunks) instead of trying forever
+		ShipType type = Ships.GALLEY;
+		ShipGeometry g = type.geometry();
+		ShipConfig cfg = type.defaults().get();
+		ShipMover.Obstacles coast = (x, y, z) -> z >= 40;
+		Autopilot.Navigator sea = (x, z) -> z < 40;
+		ShipPose pose = new ShipPose(0, 62, 0, 0);
+		Route route = GotoRoutes.build("goto-land", "minecraft:overworld", false, "Prairie", 5, 62, 90);
+		Autopilot ap = new Autopilot();
+		ap.start(route, pose, cfg, g);
+		ShipPhysics physics = new ShipPhysics();
+		int[] stuck = {-1};
+		int[] tick = {0};
+		Autopilot.Listener listener = new Autopilot.Listener() {
+			@Override
+			public void stuck() {
+				if (stuck[0] < 0) {
+					stuck[0] = tick[0];
+				}
+			}
+		};
+		int collisions = 0;
+		for (; tick[0] < 20 * 300 && stuck[0] < 0; tick[0]++) {
+			ShipPhysics.Controls c = ap.tick(route, pose, physics.speed, physics.yawRate, Gait.NORMAL, cfg, g, sea, listener);
+			ShipPhysics.Step step = physics.step(c, cfg, DT);
+			ShipMover.Result r = ShipMover.move(g, pose, step.forward(), step.yaw(), 0, coast);
+			physics.collide(r.forwardBlocked(), r.rotationBlocked());
+			pose = r.pose();
+			collisions += ShipMover.countCollisions(g, pose, coast);
+		}
+		assertTrue(stuck[0] > 0, "the autopilot reports the unreachable destination (" + ap.phase + " at " + pose + ")");
+		assertTrue(stuck[0] < 20 * 180, "within three minutes (" + stuck[0] / 20 + " s)");
+		assertEquals(0, collisions, "never on the land");
+		assertTrue(ap.phase != Autopilot.Phase.FINISHED, "it did not pretend to arrive");
 	}
 
 	/** A world with a height map: everything under ground(x, z) is solid. */

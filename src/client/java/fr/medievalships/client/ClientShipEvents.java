@@ -316,12 +316,20 @@ public final class ClientShipEvents {
 		return player.getVelocity().y < -0.05 && drop > 0 && drop < 4.2 && side < 1.5;
 	}
 
+	/** Is the autopilot of this vessel following a destination ({@code goto}) rather than a route (synced state)? */
+	static boolean onGoto(ShipEntity ship) {
+		String[] info = ship.syncedAutopilotInfo().split(";", -1);
+		return info.length > 1 && fr.medievalships.core.GotoRoutes.isGoto(info[1]);
+	}
+
 	private static void showHint(MinecraftClient client) {
 		ShipPicker.Target t = ShipPicker.current();
 		String hint = "";
 		if (t != null) {
 			hint = switch (t.pick().kind()) {
-				case HELM -> t.ship().autopilotActive() ? "Pilote automatique à la barre" : "Clic droit : prendre la barre";
+				case HELM -> !t.ship().autopilotActive() ? "Clic droit : prendre la barre"
+						// a destination given with goto: the click takes the helm back (the server cancels it)
+						: onGoto(t.ship()) ? "Clic droit : reprendre la barre (annule la destination)" : "Pilote automatique à la barre";
 				case SEAT -> "Clic droit : s'asseoir";
 				case HULL -> "Clic droit : monter à bord";
 				case DECK -> "";

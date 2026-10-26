@@ -61,6 +61,7 @@ import fr.medievalships.entity.WarshipEntity;
 import fr.medievalships.core.ShipType;
 import fr.medievalships.core.Ships;
 import fr.medievalships.mixin.ServerPlayNetworkHandlerAccessor;
+import fr.medievalships.network.ServerConfigPayload;
 import fr.medievalships.network.ShipInteractPayload;
 import fr.medievalships.network.ShipInteractions;
 
@@ -144,6 +145,7 @@ public final class MedievalShips implements ModInitializer {
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(entries -> ITEMS.values().forEach(entries::add));
 
 		PayloadTypeRegistry.playC2S().register(ShipInteractPayload.ID, ShipInteractPayload.CODEC);
+		PayloadTypeRegistry.playS2C().register(ServerConfigPayload.ID, ServerConfigPayload.CODEC);
 		ServerPlayNetworking.registerGlobalReceiver(ShipInteractPayload.ID,
 				(payload, context) -> ShipInteractions.handle(payload, context.player()));
 
@@ -170,12 +172,25 @@ public final class MedievalShips implements ModInitializer {
 			ShipData.get(server).setPlayerShip(player.getUuid(), ship == null ? null : ship.getUuid());
 		});
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+			if (ServerPlayNetworking.canSend(handler.player, ServerConfigPayload.ID)) {
+				sender.sendPacket(ServerConfigPayload.current()); // what the client shows follows this server's config
+			}
 			UUID shipId = ShipData.get(server).playerShip(handler.player.getUuid());
 			if (shipId != null) {
 				REJOINS.add(new PendingRejoin(handler.player.getUuid(), shipId, new int[] {20}));
 			}
 		});
 		LOGGER.info("Medieval ships loaded");
+	}
+
+	/** Sends the settings the clients need ({@link ServerConfigPayload}) to every player, after {@code /ship reload}. */
+	public static void sendConfig(MinecraftServer server) {
+		ServerConfigPayload payload = ServerConfigPayload.current();
+		for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+			if (ServerPlayNetworking.canSend(player, ServerConfigPayload.ID)) {
+				ServerPlayNetworking.send(player, payload);
+			}
+		}
 	}
 
 	private static void serverTick(MinecraftServer server) {

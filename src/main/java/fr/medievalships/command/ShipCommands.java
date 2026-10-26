@@ -32,6 +32,7 @@ import net.minecraft.util.math.Vec3d;
 
 import fr.medievalships.MedievalShips;
 import fr.medievalships.core.Gait;
+import fr.medievalships.core.GotoRoutes;
 import fr.medievalships.core.Route;
 import fr.medievalships.core.ShipGeometry;
 import fr.medievalships.core.ShipType;
@@ -91,6 +92,7 @@ public final class ShipCommands {
 		root.then(CommandManager.literal("unstuck").executes(ShipCommands::unstuck));
 		root.then(CommandManager.literal("reload").executes(ctx -> {
 			ConfigManager.load();
+			fr.medievalships.MedievalShips.sendConfig(ctx.getSource().getServer()); // what the clients show follows it
 			ok(ctx, "Configuration rechargée (" + ConfigManager.path().getFileName() + ").");
 			return 1;
 		}));
@@ -560,6 +562,9 @@ public final class ShipCommands {
 	private static int routeCreate(CommandContext<ServerCommandSource> ctx, String modeName, boolean air) throws CommandSyntaxException {
 		String name = StringArgumentType.getString(ctx, "name");
 		ShipData data = ShipData.get(ctx.getSource().getServer());
+		if (GotoRoutes.isGoto(name)) {
+			throw error("Les noms qui commencent par " + GotoRoutes.PREFIX + " sont réservés aux destinations (/ship goto, /pilote goto).");
+		}
 		if (data.route(name) != null) {
 			throw error("L'itinéraire " + name + " existe déjà (/ship route delete " + name + ").");
 		}
@@ -723,6 +728,9 @@ public final class ShipCommands {
 
 	private static int routeStart(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
 		Route route = route(ctx);
+		if (GotoRoutes.isGoto(route.name)) {
+			throw error("C'est la destination d'un vaisseau : /ship goto pour en donner une.");
+		}
 		if (route.size() < 2) {
 			throw error("Il faut au moins 2 points (de préférence des escales aux extrémités).");
 		}

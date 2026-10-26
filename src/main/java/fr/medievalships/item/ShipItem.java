@@ -11,7 +11,6 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 import net.minecraft.world.World;
 
@@ -68,8 +67,9 @@ public class ShipItem extends Item {
 					: "Seuls les administrateurs et les joueurs autorisés peuvent placer ce vaisseau.").formatted(Formatting.RED), true);
 			return ActionResult.FAIL;
 		}
-		Vec3d hitPos = hit.getPos();
-		ShipEntity ship = ShipPlacement.place(serverWorld, type, hitPos.x, hitPos.y, hitPos.z, user.getYaw(), true);
+		// the same rounded point and heading as the preview's (ShipPlacement.Aim): placed exactly where the ghost was
+		ShipPlacement.Aim aim = ShipPlacement.Aim.of(hit, user.getYaw());
+		ShipEntity ship = ShipPlacement.place(serverWorld, type, aim.x(), aim.y(), aim.z(), aim.yaw(), true);
 		if (ship == null && flying) {
 			user.sendMessage(Text.literal(String.format(java.util.Locale.ROOT,
 					"Pas assez d'espace libre ici pour le dirigeable (%.0f blocs de long, %.0f de haut) : visez un endroit dégagé.",

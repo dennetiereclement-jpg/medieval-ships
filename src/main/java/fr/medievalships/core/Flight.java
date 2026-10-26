@@ -225,11 +225,30 @@ public final class Flight {
 	 * its deck only by a fraction of a degree.
 	 */
 	public static double bankLimit(ShipGeometry g, FlightConfig f) {
-		if (f == null || !(f.bankAngle > 0)) {
+		return f == null ? 0 : bankLimit(g, f.bankAngle);
+	}
+
+	/** {@link #bankLimit(ShipGeometry, FlightConfig)} for a given {@code bankAngle} (the server's, on a client). */
+	public static double bankLimit(ShipGeometry g, double bankAngle) {
+		if (!(bankAngle > 0)) {
 			return 0;
 		}
+		// a point at r from the roll axis moves along the chord 2 r sin(bank / 2)
 		double r = Math.max(BANK_TOLERANCE, walkRadius(g));
-		return Math.min(f.bankAngle, Math.toDegrees(Math.asin(BANK_TOLERANCE / r)));
+		return Math.min(bankAngle, Math.toDegrees(2 * Math.asin(BANK_TOLERANCE / (2 * r))));
+	}
+
+	/**
+	 * Where the renderer draws a point of the vessel (local x, y; z, along the keel, does not change) once banked by
+	 * {@code bankDegrees}: the drawing is rotated about the fore-and-aft axis at the height {@code pivotY} of the main
+	 * deck, exactly as {@code ShipRenderer} does it (translate to the pivot, {@code RotationAxis.POSITIVE_Z} by the
+	 * bank, translate back). Local +x is the port side, so a positive bank lowers the starboard side: the right side
+	 * goes down in a right turn ({@link #bankTarget} is positive while the yaw increases).
+	 */
+	public static double[] bankPoint(double x, double y, double pivotY, double bankDegrees) {
+		double a = Math.toRadians(bankDegrees), c = Math.cos(a), s = Math.sin(a);
+		double dy = y - pivotY;
+		return new double[] {x * c - dy * s, pivotY + x * s + dy * c};
 	}
 
 	/**

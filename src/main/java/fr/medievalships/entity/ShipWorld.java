@@ -61,6 +61,11 @@ final class ShipWorld implements ShipMover.Obstacles, Autopilot.Navigator, Fligh
 		return world.isChunkLoaded(((int) Math.floor(x)) >> 4, ((int) Math.floor(z)) >> 4);
 	}
 
+	/** Is the chunk of this column loaded (nothing is known about an unloaded one)? */
+	boolean isLoaded(double x, double z) {
+		return loaded(x, z);
+	}
+
 	@Override
 	public boolean blocked(double wx, double wy, double wz) {
 		if (!loaded(wx, wz)) {

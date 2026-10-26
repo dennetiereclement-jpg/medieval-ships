@@ -19,39 +19,67 @@ Le test (`src/gametest/.../ShipClientGameTest.java`) crée un monde, des bassins
 
 ### Fonctions communes (aperçu de placement, tableau de bord, inclinaison, permissions, destinations)
 
-`SharedFeaturesGameTest` (≈ 90 s de jeu, en solo **et** sur serveur dédié, avec et sans Lithium et
+`SharedFeaturesGameTest` (≈ 2 min de jeu, en solo **et** sur serveur dédié, avec et sans Lithium et
 avec les mods de décoration) :
 
 * **aperçu** : objet du dirigeable steampunk en main au-dessus d'un terrain dégagé → silhouette
   **verte** ; le serveur, avec la même visée et le même cap, trouve **exactement le même
-  emplacement** (0,000000 bloc d'écart) ; le clic droit pose le dirigeable **là où était la
-  silhouette** (0,00 bloc, même cap) ; ensuite l'emplacement n'est plus montré libre ; entre deux
+  emplacement** (0,000000 bloc d'écart) ; le clic droit pose le dirigeable **exactement sur la
+  silhouette** (moins de 0,01 bloc, même cap : le clic part du même point arrondi que l'aperçu) ;
+  ensuite l'emplacement n'est plus montré libre ; entre deux
   murs de pierre trop rapprochés pour le ballon → silhouette **rouge**, et le clic droit **ne pose rien** ; plus de
   silhouette une fois l'objet rangé (captures `partage_1_apercu_vert`, `partage_2_apercu_rouge`) ;
-* **permissions** : avec `placeAdminOnly: ["steampunk_airship"]`, le joueur de test (qui n'est pas
-  administrateur, en solo comme sur le serveur dédié) **ne peut pas** poser le dirigeable ;
+* **permissions** : avec `placeAdminOnly: ["steampunk_airship"]` envoyé par le serveur au client (comme
+  après `/ship reload`), le joueur de test (qui n'est pas administrateur, en solo comme sur le serveur
+  dédié) voit une silhouette **grise** (`partage_2b_apercu_non_autorise`) et **ne peut pas** poser le
+  dirigeable ; la règle levée, la silhouette redevient plaçable ;
+* **navire sur l'eau** : dans un bassin creusé dans la plaine, l'objet de la galère montre une
+  silhouette verte sur l'eau (`partage_7_apercu_navire_eau`), le serveur trouve le même emplacement et
+  le clic droit pose la galère exactement dessus ;
 * **tableau de bord** : un joueur sur le pont (pas à la barre) ne voit **rien** ; le pilote voit
-  vitesse, altitude, montée/palier, moteur, pilote automatique et touches (`partage_3_hud_pilote`) ;
+  vitesse, altitude, montée/palier, moteur, pilote automatique et touches **telles qu'elles sont
+  réglées dans ses options** (`partage_3_hud_pilote`) ; une limite `/ship speed 2` s'affiche
+  (« Limite : 2,0 blocs/s ») ;
 * **destination** : le pilote (non administrateur) tape `/pilote goto x y z` (45 blocs devant, 6 plus
   haut) → le pilote automatique prend la barre sur son propre itinéraire `goto-…`, le tableau de bord
   du joueur resté près de la barre affiche « Pilote auto : en route vers … (44 blocs) » et « Clic
   droit sur la barre : reprendre la main » (`partage_4_hud_pilote_auto`) ; le dirigeable arrive
   (phase *arrivé*, à 1,5 bloc du point, pont à 0,1 bloc de la hauteur demandée) avec le joueur à bord ;
   reprendre la barre annule la destination, efface son itinéraire et installe le joueur à la barre ;
+* **garde-fous de `/pilote`** (joueur non administrateur) : au-delà de `playerDestinationMaxDistance`
+  (réglé à 16 pour le test) la destination est refusée ; la destination d'un joueur n'est **pas** un
+  ferry (après 5 s : aucun enregistrement pour le redémarrage, donc aucun chunk chargé pour elle) ;
+  sauvegardée puis relue avec le code de sauvegarde des entités du jeu, elle est intacte (itinéraire,
+  phase, auteur) ; `/pilote stop` l'annule ; celle d'un administrateur est menée comme un ferry
+  (enregistrement présent) et relue comme telle ; un dirigeable affecté à l'itinéraire d'un
+  administrateur ne peut pas être dérouté, ni en route, ni arrêté par `/ship ai disable` (il garde son
+  itinéraire) ;
+* **destinations d'un navire** (joueur à bord de la galère) : un point à terre sans eau à moins de 32
+  blocs est refusé ; un point à 5 blocs du bord du bassin est ramené dans l'eau libre la plus proche ;
+  le joueur descend à terre : 5 s plus tard la destination tient toujours, après 12 s elle est
+  **annulée** (plus personne à bord pendant 10 s) ;
 * **inclinaison** : dirigeable steampunk et Léviathan des Cieux en boucle sur un cercle (pilote
   automatique), un joueur **debout puis marchant** sur le pont : le steampunk tourne de 140° en 18 s
   et s'incline jusqu'à **4,5°** (borne 6°), le Léviathan tourne de 76° et s'incline de **1,0°** (sa
-  borne) ; dans les deux cas le joueur **reste sur le pont**, à 0,000 bloc de sa hauteur
+  borne) ; le client l'incline **du côté intérieur du virage** (tribord vers le bas dans ce virage à
+  droite, contrôlé sur les échantillons du client) ; comme l'inclinaison n'est que dessinée, le pont
+  où l'on se tient reste à plat et le joueur **reste sur le pont**, à 0,000 bloc de sa hauteur
   (`partage_5_inclinaison_*` à bord, `partage_6_inclinaison_dehors_*` de l'extérieur).
 
-Tests unitaires (`SharedFeaturesTest`, 15 tests) : règles de permission (défaut, `placeRequiresAdmin`,
-`placeAllowedPlayers` par pseudo ou UUID, `placeAdminOnly`, ancien fichier de configuration sans les
-nouvelles clés) ; inclinaison (sens, virage sur place et marche arrière, borne, lissage, activée par
-défaut sur chaque aéronef sans qu'aucun pont ni pièce ne dérive de plus d'un demi-bloc, `bankAngle: 0`
-la coupe) ; tableau de bord (aéronef, navire, sous-marin, pilote automatique, pluriels français) ;
-destinations (itinéraire d'un point, vol du dirigeable par-dessus un mur de 20 blocs jusqu'au point
-puis atterrissage à sa garde, sans jamais toucher le relief ; navigation d'une galère jusqu'à son point) ;
-contrôle d'espace à arrêt précoce identique au comptage complet sur tous les navires.
+Tests unitaires (`SharedFeaturesTest`, 20 tests) : règles de permission (défaut, `placeRequiresAdmin`,
+`placeAllowedPlayers` par pseudo ou UUID, `placeAdminOnly` avec alias et noms inconnus signalés,
+ancien fichier de configuration sans les nouvelles clés) ; inclinaison (sens, virage sur place et
+marche arrière, borne, lissage ; la transformation même du rendu, `Flight.bankPoint`, appliquée à
+pleine inclinaison à chaque cellule praticable et aux bords du pont de chaque aéronef : aucune ne
+bouge de plus d'un demi-bloc — ce test a trouvé que l'ancienne borne `asin(0,5/r)` laissait 0,50002
+bloc sur le Léviathan, corrigée en `2 asin(0,5/2r)` ; tribord vers le bas dans un virage à droite ;
+`bankAngle: 0` la coupe) ; tableau de bord (aéronef, navire, sous-marin, pilote automatique, pluriels
+français, touches d'un clavier QWERTY, limite de vitesse) ; destinations (itinéraire d'un point,
+préfixe réservé, chaque refus de `/pilote` : ferry en route ou arrêté, autre pilote, distance,
+Nautilus ; vol du dirigeable par-dessus un mur de 20 blocs jusqu'au point puis atterrissage à sa
+garde, sans jamais toucher le relief ; navigation d'une galère jusqu'à son point ; une galère envoyée
+dans les terres est déclarée bloquée, ce qui fait annuler la destination, sans jamais toucher la
+côte) ; contrôle d'espace à arrêt précoce identique au comptage complet sur tous les navires.
 
 ### Nouveaux navires (galère rouge, bateau à roue à vapeur, voilier elfique) — 1.5.0
 
@@ -277,14 +305,17 @@ Les modèles ont aussi été vérifiés visuellement (`docs/preview.png`, `docs/
 
 Ce que les tests automatiques ne peuvent pas juger ou n'ont pas couvert :
 
-0. **Fonctions communes** : l'aperçu n'a été testé en jeu qu'avec le dirigeable steampunk (le calcul
-   est le même pour tous, et les navires sur l'eau sont couverts par le même code que `/ship spawn`) ;
-   sur un serveur dédié le client ne connaît pas `placeRequiresAdmin` / `placeAdminOnly` : la
-   silhouette peut être verte pour un joueur qui n'a pas le droit de poser (le serveur refuse alors,
-   avec un message). L'inclinaison est visuelle : sur le dessus d'un ballon (où l'on peut se tenir),
-   le décalage visuel peut dépasser le demi-bloc garanti sur les ponts et dans les pièces.
-   `/pilote goto` vers un point très lointain garde les chunks du trajet chargés (comme un ferry)
-   jusqu'à l'arrivée ; la distance est bornée par `playerDestinationMaxDistance`.
+0. **Fonctions communes** : l'aperçu a été testé en jeu avec le dirigeable steampunk et la galère (le
+   calcul est le même pour tous). Si l'administrateur change le niveau de permission d'un joueur, le
+   client le sait (le jeu le lui envoie) ; si la configuration change sans `/ship reload`, la
+   silhouette peut se tromper jusqu'au prochain envoi (le serveur décide toujours). L'inclinaison est
+   visuelle : sur le dessus d'un ballon (où l'on peut se tenir), le décalage visuel peut dépasser le
+   demi-bloc garanti sur les ponts et dans les pièces. L'abandon d'une destination inaccessible est
+   testé par le test unitaire du pilote automatique (il faut 50 s sans progrès), pas en jeu. Une
+   destination d'administrateur charge les chunks de son trajet jusqu'à l'arrivée, comme un ferry ;
+   un point d'arrivée dont les chunks ne sont pas chargés n'est pas vérifié (un navire qui ne peut pas
+   l'atteindre abandonne). Le test multijoueur à deux (un autre joueur à la barre) n'est couvert que
+   par le test unitaire des refus.
 
 1. **Plusieurs joueurs en même temps** : le serveur dédié est testé avec un joueur ; vérifiez à
    deux : marcher sur le galion pendant qu'un autre barre, s'asseoir, descendre.

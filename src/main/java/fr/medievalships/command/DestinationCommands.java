@@ -29,6 +29,7 @@ import fr.medievalships.data.ConfigManager;
 import fr.medievalships.data.ShipData;
 import fr.medievalships.entity.ShipEntity;
 import fr.medievalships.entity.ShipPermissions;
+import fr.medievalships.entity.ShipPlacement;
 import fr.medievalships.entity.ShipTracker;
 
 /**
@@ -38,13 +39,19 @@ import fr.medievalships.entity.ShipTracker;
  * stop} (admins, the targeted vessel);</li>
  * <li>{@code /ship destination add|remove <name>}, {@code /ship destination list} (admins: saved destinations);</li>
  * <li>{@code /pilote goto ...}, {@code /pilote stop}, {@code /pilote destinations} (any player aboard a vessel,
- * if {@code playerDestinations} is on): never for a ferry on an administrator's route, never against the player at
- * the helm, at most {@code playerDestinationMaxDistance} blocks away.</li>
+ * if {@code playerDestinations} is on): never for a vessel assigned an administrator's route (a ferry, even paused),
+ * never against the player at the helm, at most {@code playerDestinationMaxDistance} blocks away; such a trip loads no
+ * chunks and stops once nobody is aboard ({@link GotoRoutes}).</li>
  * </ul>
+ * A ship's destination must be open water: a point on land moves to the nearest open water within
+ * {@link #WATER_SEARCH_RADIUS} blocks, or is refused (when its chunks are not loaded it cannot be checked: a ship that
+ * then cannot reach it gives up, see {@link ShipEntity#startGoto}).
  */
 final class DestinationCommands {
 	/** Farthest aimed destination, never beyond the chunks loaded around the players (a ray must not load chunks). */
 	private static final double LOOK_RANGE = 512.0;
+	/** A ship's destination on land moves to the nearest open water within this distance (blocks), or is refused. */
+	static final int WATER_SEARCH_RADIUS = 32;
 
 	private DestinationCommands() {
 	}
@@ -101,19 +108,22 @@ final class DestinationCommands {
 		if (ship == null) {
 			throw ShipCommands.error("Montez à bord du navire (à la barre, sur le pont ou dans une cabine) pour lui donner une destination.");
 		}
-		if (ShipPermissions.isAdmin(player)) {
+		Entity pilot = ship.passengerInSeat(ShipGeometry.PILOT_SEAT);
+		GotoRoutes.Refusal refusal = GotoRoutes.vesselRefusal(ShipPermissions.isAdmin(player), ship.isAutopilotEnabled(), ship.routeName(),
+				pilot != null && pilot != player);
+		if (refusal == null) {
 			return ship;
 		}
-		if (ship.isAutopilotEnabled() && !ship.onGoto()) {
-			throw ShipCommands.error("Ce navire suit l'itinéraire " + ship.routeName() + " : seul un administrateur peut changer sa route.");
-		}
-		Entity pilot = ship.passengerInSeat(ShipGeometry.PILOT_SEAT);
-		if (pilot != null && pilot != player) {
-			throw ShipCommands.error(pilot instanceof ServerPlayerEntity other
+		throw ShipCommands.error(switch (refusal) {
+			case FERRY -> "Ce navire suit " + (ship.routeName() == null ? "le pilote automatique d'un administrateur"
+					: "l'itinéraire " + ship.routeName()) + " : seul un administrateur peut changer sa route.";
+			case PAUSED_FERRY -> "Ce navire est affecté à l'itinéraire " + ship.routeName()
+					+ " (pilote automatique en pause) : seul un administrateur peut changer sa route.";
+			case HELM_TAKEN -> pilot instanceof ServerPlayerEntity other
 					? "C'est " + other.getName().getString() + " qui tient la barre : lui seul peut choisir la destination."
-					: "Un capitaine tient la barre : seul un administrateur peut changer la destination.");
-		}
-		return ship;
+					: "Un capitaine tient la barre : seul un administrateur peut changer la destination.";
+			default -> "Destination refusée.";
+		});
 	}
 
 	// ------------------------------------------------------------------ goto
@@ -155,21 +165,37 @@ final class DestinationCommands {
 		double dist = Math.hypot(x - ship.getX(), z - ship.getZ());
 		boolean privileged = admin || ShipPermissions.isAdmin(ctx.getSource());
 		double max = ConfigManager.server().playerDestinationMaxDistance;
-		if (!privileged && dist > max) {
-			throw ShipCommands.error(String.format(Locale.ROOT, "Destination trop lointaine (%.0f blocs, %.0f au plus).", dist, max));
-		}
-		if (ship.geometry().submarine()) {
+		GotoRoutes.Refusal refusal = GotoRoutes.destinationRefusal(privileged, dist, max, ship.geometry().submarine());
+		if (refusal == GotoRoutes.Refusal.SUBMARINE) {
 			throw ShipCommands.error("Le Nautilus suit des itinéraires sous-marins (/ship route), pas une destination directe.");
 		}
+		if (refusal == GotoRoutes.Refusal.TOO_FAR) {
+			throw ShipCommands.error(String.format(Locale.ROOT, "Destination trop lointaine (%.0f blocs, %.0f au plus).", dist, max));
+		}
 		boolean air = ship.geometry().flying();
+		String note = "";
 		if (!air) {
+			// a ship only goes on open water: the point itself, or the nearest open water around it
+			ShipPlacement.WaterSpot water = ShipPlacement.openWaterNear(ship, x, z, WATER_SEARCH_RADIUS);
+			if (water == null) {
+				throw ShipCommands.error("Pas d'eau libre à moins de " + WATER_SEARCH_RADIUS + " blocs de ce point : un navire ne va que sur l'eau.");
+			}
+			double moved = Math.hypot(water.x() - x, water.z() - z);
+			if (moved > 0.5) {
+				note = String.format(Locale.ROOT, " (eau libre la plus proche, à %.0f blocs du point demandé)", moved);
+				x = water.x();
+				z = water.z();
+				label = GotoRoutes.label(x, y, z, false);
+				dist = Math.hypot(x - ship.getX(), z - ship.getZ());
+			}
 			y = ship.getY() + ship.geometry().hull().mainDeckY; // a ship stays on the water
 		}
 		String dim = ship.getEntityWorld().getRegistryKey().getValue().toString();
 		Route route = GotoRoutes.build(GotoRoutes.routeName(ship.getUuidAsString()), dim, air, label, x, y, z);
-		ship.startGoto(route);
-		String msg = String.format(Locale.ROOT, "%s : cap sur %s (%.0f blocs). Le pilote automatique tient la barre ; "
-				+ "clic droit sur la barre ou /pilote stop pour reprendre la main.", ShipCommands.describe(ship), label, dist);
+		ship.startGoto(route, privileged);
+		String msg = String.format(Locale.ROOT, "%s : cap sur %s%s (%.0f blocs). Le pilote automatique tient la barre ; "
+				+ "clic droit sur la barre ou /pilote stop pour reprendre la main.%s", ShipCommands.describe(ship), label, note, dist,
+				privileged ? "" : " Le trajet s'arrête si plus personne n'est à bord.");
 		ctx.getSource().sendFeedback(() -> Text.literal(msg).formatted(Formatting.GREEN), privileged);
 		return 1;
 	}

@@ -94,32 +94,44 @@ Pour tous :
 ## Fonctions communes à tous les vaisseaux
 
 * **Aperçu de placement** : en tenant l'objet d'un vaisseau, une silhouette translucide du vaisseau
-  apparaît là où le clic droit le posera, orientée comme vous regardez, **verte** s'il y a la place et
-  **rouge** sinon. Elle vient du même calcul que le serveur (même visée, même contrôle d'espace :
-  relief, bâtiments, autres coques) : vert, le vaisseau est posé exactement là ; rouge, rien n'est posé
-  et l'objet est gardé. Seule la coque est dessinée (ni pièces, ni meubles), seulement pour le joueur
-  qui tient l'objet, et le contrôle n'est refait que si la visée change.
+  apparaît là où le clic droit le posera, orientée comme vous regardez, **verte** s'il y a la place,
+  **rouge** sinon, **grise** si la configuration du serveur ne vous permet pas de placer ce vaisseau.
+  Elle vient du même calcul que le serveur, à partir du même point (le milieu de la face visée) et du
+  même cap (arrondi à 2°), avec le même contrôle d'espace (relief, bâtiments, autres coques) : vert,
+  le vaisseau est posé exactement là ; rouge, rien n'est posé et l'objet est gardé. Seule la coque est
+  dessinée (ni pièces, ni meubles), seulement pour le joueur qui tient l'objet, et le contrôle n'est
+  refait que si la visée change.
 * **Tableau de bord du pilote** (en haut à gauche, en français) : vitesse, altitude et hauteur sous la
   quille, montée / descente / palier, profondeur (Nautilus), état du moteur et allure, état du pilote
-  automatique, touches. Seul le joueur à la barre le voit (et, quand le pilote automatique emmène le
+  automatique, limite de vitesse fixée par un administrateur, touches (celles de *vos* options, quel
+  que soit le clavier). Seul le joueur à la barre le voit (et, quand le pilote automatique emmène le
   vaisseau vers une destination, le joueur resté près de la barre) : rien pour les passagers.
 * **Inclinaison en virage** des aéronefs, proportionnelle à la vitesse et au taux de virage (virage
   coordonné), purement visuelle : collisions, ponts, pièces et passagers restent à plat, et l'angle
   est borné pour qu'aucun endroit où l'on marche ne paraisse à plus d'un demi-bloc de sa position
   réelle (≈ 6° pour le dirigeable steampunk, ≈ 1° pour l'immense Léviathan des Cieux). Réglable par
-  vaisseau (`bankAngle` du bloc `flight`, 0 = désactivé). Un joueur debout ou qui marche sur le pont
+  vaisseau dans la configuration du serveur (`bankAngle` du bloc `flight`, 0 = désactivé), qui
+  s'applique à tous les joueurs. Un joueur debout ou qui marche sur le pont
   pendant les virages reste sur le pont (testé en jeu sur le dirigeable steampunk et le Léviathan).
 * **Permissions de placement** : `placeRequiresAdmin` (tous les vaisseaux réservés aux
   administrateurs), `placeAdminOnly` (certains vaisseaux seulement, ex. `["sky_leviathan"]`),
   `placeAllowedPlayers` (joueurs autorisés malgré tout). `/ship` et la récupération d'un navire
-  restent réservés aux administrateurs.
+  restent réservés aux administrateurs. Le serveur envoie à chaque joueur, à la connexion et après
+  `/ship reload`, les réglages qui changent ce qu'il voit (ces permissions, le plafond d'altitude de
+  l'aperçu, `bankAngle`, les vitesses des allures du tableau de bord) : sur un serveur dédié, c'est la
+  configuration du serveur qui compte, pas celle du joueur.
 * **Destinations** pour le pilote automatique, en plus des itinéraires : `/ship goto <x y z>`,
   `/ship goto destination <nom>`, `/ship goto visee`, destinations enregistrées
   (`/ship destination add|remove|list`), et pour **les joueurs à bord** `/pilote goto …`,
   `/pilote stop`, `/pilote destinations`. Le vaisseau y va seul (évitement des obstacles, altitude
   au-dessus du relief et des bâtiments, ralentissement à l'approche, arrêt sur le point, un aéronef se
-  pose à sa garde au-dessus du sol), et un clic droit sur la barre rend la main. Un joueur ne peut pas
-  dérouter un ferry ni passer outre le joueur qui tient la barre. Détails :
+  pose à sa garde au-dessus du sol), et un clic droit sur la barre rend la main. Un navire ne va que sur
+  l'eau (un point à terre est ramené à l'eau libre la plus proche, à 32 blocs au plus, sinon refusé) ;
+  une destination que le vaisseau ne peut pas atteindre est abandonnée (« destination inaccessible »).
+  Le trajet donné par un joueur ne charge aucun chunk (ce sont les joueurs à bord qui les chargent) et
+  s'arrête si plus personne n'est à bord pendant 10 s : on ne peut pas envoyer au loin le vaisseau d'un
+  autre. Un joueur ne peut pas dérouter un ferry (même arrêté par `/ship ai disable`) ni passer outre le
+  joueur qui tient la barre ; 1000 blocs au plus par défaut. Détails :
   [docs/COMMANDES.md](docs/COMMANDES.md#destinations-aller-à-un-point).
 * **Intérieurs praticables en vol** : on marche sur les ponts et dans les pièces pendant que le
   vaisseau vole ou navigue grâce au système du mod (grille intérieure de collisions qui suit la coque,
@@ -307,7 +319,7 @@ automatiquement : ses valeurs deviennent celles de la galère.
 | `placeAdminOnly` | `[]` | vaisseaux réservés aux administrateurs, ex. `["sky_leviathan"]` |
 | `placeAllowedPlayers` | `[]` | joueurs (pseudo ou UUID) autorisés à placer même quand c'est réservé aux administrateurs |
 | `playerDestinations` | true | les joueurs à bord peuvent donner une destination (`/pilote goto`) |
-| `playerDestinationMaxDistance` | 5000 | distance maximale d'une destination donnée par un joueur non administrateur |
+| `playerDestinationMaxDistance` | 1000 | distance maximale d'une destination donnée par un joueur non administrateur |
 
 **`ships.galley` / `ships.galleon` / `ships.warship`**
 

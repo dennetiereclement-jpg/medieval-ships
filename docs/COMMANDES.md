@@ -56,10 +56,13 @@ navire. Le navire disparaît et l'objet est rendu (en créatif, seulement si vou
 
 * **Aperçu** : tant que vous tenez l'objet d'un vaisseau en main, une **silhouette translucide** du
   vaisseau apparaît là où un clic droit le placerait, la proue dans la direction où vous regardez :
-  **verte** s'il y a la place, **rouge** sinon (la barre d'action le rappelle : « Clic droit : placer
-  ici » / « Pas assez d'espace libre ici »). C'est exactement le calcul du serveur (même visée, même
-  contrôle d'espace : relief, bâtiments, autres coques) : là où c'est vert, le vaisseau est posé à cet
-  endroit précis ; là où c'est rouge, rien n'est placé et l'objet n'est pas consommé. Un navire se pose
+  **verte** s'il y a la place, **rouge** sinon, **grise** si le serveur ne vous autorise pas à placer ce
+  vaisseau (la barre d'action le rappelle : « Clic droit : placer ici » / « Pas assez d'espace libre
+  ici » / « Placement non autorisé »). C'est exactement le calcul du serveur, à partir du même point
+  (le milieu de la face du bloc visé) et du même cap (arrondi à 2°), avec le même contrôle d'espace
+  (relief, bâtiments, autres coques) et le plafond d'altitude du serveur : là où c'est vert, le
+  vaisseau est posé à cet endroit précis ; là où c'est rouge, rien n'est placé et l'objet n'est pas
+  consommé. Un navire se pose
   sur l'eau (visez l'eau), un aéronef au-dessus de ce que vous visez (sol, eau, toit). L'aperçu ne
   dessine que la coque et l'extérieur (pas les pièces ni le mobilier) et n'est calculé que pour vous.
 * **Qui peut placer** (section `server` de `config/medievalships.json`, `/ship reload` pour appliquer) :
@@ -67,11 +70,12 @@ navire. Le navire disparaît et l'objet est rendu (en créatif, seulement si vou
 | Clé | Défaut | Effet |
 |---|---|---|
 | `placeRequiresAdmin` | `false` | `true` : seuls les administrateurs (niveau `adminPermissionLevel`) et les joueurs de `placeAllowedPlayers` placent un vaisseau, quel qu'il soit. |
-| `placeAdminOnly` | `[]` | Vaisseaux réservés aux administrateurs même si `placeRequiresAdmin` est `false`, ex. `["sky_leviathan", "crystal_airship"]`. |
+| `placeAdminOnly` | `[]` | Vaisseaux réservés aux administrateurs même si `placeRequiresAdmin` est `false`, ex. `["sky_leviathan", "grand_warship"]` (identifiants ou alias, majuscules indifférentes ; un nom qui ne désigne aucun vaisseau est signalé dans le journal du serveur). |
 | `placeAllowedPlayers` | `[]` | Joueurs non administrateurs autorisés malgré tout (pseudo ou UUID, majuscules indifférentes), ex. `["Capitaine_Nemo"]`. |
 
   Un joueur refusé reçoit « Seuls les administrateurs et les joueurs autorisés peuvent… » et garde son
-  objet. `/ship give` et `/ship spawn` restent réservés aux administrateurs, comme tout `/ship`.
+  objet ; sa silhouette est grise. Le serveur envoie ces règles aux joueurs à la connexion et après
+  `/ship reload`. `/ship give` et `/ship spawn` restent réservés aux administrateurs, comme tout `/ship`.
   Récupérer un navire (accroupi + clic gauche) est réservé aux administrateurs. Aucun vaisseau
   n'apparaît naturellement dans le monde et le mod n'ajoute aucune structure.
 
@@ -96,12 +100,26 @@ s'en charge (évitement des obstacles, altitude de croisière au-dessus du relie
 un aéronef, qui monte au-dessus de ce qui barre la route, ralentit à l'approche, s'arrête sur le
 point et tient sa position ; un aéronef redescend alors à sa garde d'atterrissage `aiLandingClearance`
 au-dessus du sol). La destination est un itinéraire d'un seul point propre au vaisseau
-(`goto-<début de son UUID>`, visible dans `/ship route list`), enregistré avec le monde : le trajet
-reprend après un redémarrage.
+(`goto-<début de son UUID>`, visible dans `/ship route list` ; les noms commençant par `goto-` sont
+réservés : `/ship route create` les refuse et `/ship route assign` ne donne pas la destination d'un
+vaisseau à un autre), enregistré avec le monde.
+
+* Donnée par un **administrateur** (`/ship goto`), elle est menée comme un ferry : chunks du trajet
+  gardés chargés, trajet repris après un redémarrage, jusqu'à l'arrivée.
+* Donnée par un **joueur** (`/pilote goto`), elle ne charge aucun chunk : ce sont les joueurs à bord
+  qui chargent ceux où ils se trouvent. Elle est annulée si plus personne n'est à bord pendant 10 s
+  (on ne peut donc pas envoyer au loin, à vide, le vaisseau d'un autre) ; après un redémarrage, elle
+  reprend quand les joueurs reviennent à bord.
+* **Un navire ne va que sur l'eau** : un point à terre est ramené à l'eau libre la plus proche (assez
+  large pour la coque, au niveau de l'eau où il flotte, à 32 blocs au plus), sinon la destination est
+  refusée. Si les chunks du point ne sont pas chargés, il ne peut pas être vérifié : il est accepté.
+* **Destination inaccessible** : si le pilote automatique se déclare bloqué (aucun progrès pendant
+  50 s, ou échecs répétés), la destination est abandonnée, ses chunks sont libérés et les joueurs à
+  bord et autour lisent « destination inaccessible, le pilote automatique rend la main ».
 
 | Commande | Effet |
 |---|---|
-| `/ship goto <x> <y> <z>` | Envoie le vaisseau ciblé à ce point (`~` accepté : `/ship goto ~200 ~ ~-50`). Pour un aéronef, `y` est la hauteur de son **pont** à l'arrivée (sous le sol : il se pose à sa garde au-dessus) ; un navire reste sur l'eau (seuls `x` et `z` comptent). |
+| `/ship goto <x> <y> <z>` | Envoie le vaisseau ciblé à ce point (`~` accepté : `/ship goto ~200 ~ ~-50`). Pour un aéronef, `y` est la hauteur de son **pont** à l'arrivée (sous le sol : il se pose à sa garde au-dessus) ; un navire reste sur l'eau (seuls `x` et `z` comptent ; à terre, voir ci-dessus). |
 | `/ship goto destination <nom>` | Vers une destination enregistrée. |
 | `/ship goto visee` | Vers le bloc que vous visez (dans la distance de vue du serveur, 512 blocs au plus ; aucun chunk n'est chargé pour cela) : un aéronef s'y pose. |
 | `/ship goto stop` | Annule la destination : un aéronef s'arrête en vol stationnaire, un navire file sur son erre. |
@@ -126,11 +144,12 @@ cabine) peut donner une destination au vaisseau sur lequel il se trouve :
 | `/pilote destinations` | Liste les destinations enregistrées. |
 
 **Reprendre la main** : clic droit sur la barre (ou `/pilote stop`) — la destination est annulée et
-vous tenez la barre. Garde-fous : un vaisseau qui suit l'itinéraire d'un administrateur (un ferry)
-ne peut pas être dérouté par un joueur ; si un autre joueur tient la barre, lui seul choisit la
-destination ; la destination est au plus à `playerDestinationMaxDistance` blocs (5000 par défaut)
-pour un joueur qui n'est pas administrateur. `playerDestinations: false` réserve `/pilote` aux
-administrateurs.
+vous tenez la barre. Garde-fous : un vaisseau affecté à l'itinéraire d'un administrateur (un ferry),
+qu'il le suive ou qu'il soit arrêté par `/ship ai disable`, ne peut pas être dérouté par un joueur
+(son affectation est gardée) ; si un autre joueur tient la barre, lui seul choisit la destination ;
+la destination est au plus à `playerDestinationMaxDistance` blocs (1000 par défaut) pour un joueur
+qui n'est pas administrateur ; le trajet ne charge aucun chunk et s'arrête si plus personne n'est à
+bord pendant 10 s. `playerDestinations: false` réserve `/pilote` aux administrateurs.
 
 ## Itinéraires
 
@@ -224,7 +243,10 @@ descente / palier**, pour le Nautilus la **profondeur**, l'état du **moteur** (
 ralenti, croisière, plein régime, marche arrière) et l'**allure**, l'état du **pilote automatique**
 et les touches. Quand le pilote automatique emmène le vaisseau vers une destination, le joueur resté
 près de la barre voit « Pilote auto : en route vers … (… blocs) » et « Clic droit sur la barre :
-reprendre la main ». Le tableau se cache avec l'interface (F1) et sous l'écran de débogage (F3).
+reprendre la main » (en visant la barre : « Clic droit : reprendre la barre (annule la
+destination) »). Une limite fixée par un administrateur (`/ship speed <n>`) s'affiche (« Limite : …
+blocs/s »). Les touches indiquées sont celles de vos options (*Avancer*, *Reculer*, *Gauche*,
+*Droite*, *Sauter*, *Sprinter*, *S'accroupir*), quel que soit le clavier. Le tableau se cache avec l'interface (F1) et sous l'écran de débogage (F3).
 La barre d'action reste libre pour les messages (plongée, refus, annonces).
 
 **Inclinaison en virage** : les aéronefs s'inclinent légèrement dans les virages (côté intérieur
@@ -232,4 +254,5 @@ vers le bas), d'autant plus qu'ils vont vite et tournent serré. C'est purement 
 collisions, les ponts où l'on marche et le transport des passagers restent à plat, et l'angle est
 limité pour que ni le pont ni les pièces ne paraissent à plus d'un demi-bloc de leur position réelle
 (≈ 6° pour le dirigeable steampunk, ≈ 1° pour le Léviathan des Cieux, dont les pièces vont de la cale
-au sommet du ballon). Réglable par vaisseau : `bankAngle` du bloc `flight` (0 = aucune inclinaison).
+au sommet du ballon). Réglable par vaisseau : `bankAngle` du bloc `flight` (0 = aucune inclinaison),
+dans la configuration **du serveur**, envoyée aux joueurs.

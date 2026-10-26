@@ -14,12 +14,22 @@ public final class PilotHud {
 
 	public enum Kind { SHIP, AIRCRAFT, SUBMARINE }
 
+	/**
+	 * The names of the keys the pilot uses, as bound in the player's options (the vanilla movement keys: forward,
+	 * back, left, right, jump, sprint, sneak). {@link #AZERTY} is the default French layout.
+	 */
+	public record Keys(String forward, String back, String left, String right, String jump, String sprint, String sneak) {
+		public static final Keys AZERTY = new Keys("Z", "S", "Q", "D", "Espace", "Ctrl", "Maj");
+	}
+
 	/** What the panel shows. Unknown values are NaN / null. */
 	public static final class Status {
 		public String vessel = "";
 		public Kind kind = Kind.SHIP;
 		/** Signed speed (blocks/s), negative going astern. */
 		public double speed;
+		/** Speed limit set by an administrator ({@code /ship speed}), blocks/s; NaN = none. */
+		public double speedLimit = Double.NaN;
 		public double slowSpeed = 2.5;
 		public double normalSpeed = 5.0;
 		public double fastSpeed = 8.0;
@@ -44,6 +54,8 @@ public final class PilotHud {
 		public boolean autopilotGoto;
 		/** The player holds the helm (false: he stands by it while the autopilot steers). */
 		public boolean atHelm = true;
+		/** The keys shown on the last line. */
+		public Keys keys = Keys.AZERTY;
 	}
 
 	private PilotHud() {
@@ -57,6 +69,9 @@ public final class PilotHud {
 		out.add(s.speed < -0.05
 				? String.format(FR, "Vitesse : %.1f %s/s en arrière", v, blocks(v, 1))
 				: String.format(FR, "Vitesse : %.1f %s/s (%.0f km/h)", v, blocks(v, 1), v * 3.6));
+		if (s.speedLimit > 0) {
+			out.add(String.format(FR, "Limite : %.1f %s/s (administrateur)", s.speedLimit, blocks(s.speedLimit, 1)));
+		}
 		if (s.kind == Kind.AIRCRAFT) {
 			String alt = Double.isNaN(s.deckY) ? "?" : String.valueOf((int) Math.floor(s.deckY));
 			out.add(Double.isNaN(s.groundClearance) || Double.isInfinite(s.groundClearance)
@@ -74,10 +89,16 @@ public final class PilotHud {
 				: "Moteur : " + engineState(s) + " · allure " + s.gait);
 		out.add("Pilote auto : " + autopilot(s));
 		if (s.atHelm) {
+			Keys k = s.keys == null ? Keys.AZERTY : s.keys;
+			String move = k.forward() + "/" + k.back();
+			String turn = k.left() + "/" + k.right();
 			out.add(switch (s.kind) {
-				case AIRCRAFT -> "[Z/S vitesse · Q/D cap · Espace monter · Ctrl descendre · Maj quitter]";
-				case SUBMARINE -> "[Z/S vitesse · Q/D cap · Espace remonter · Ctrl plonger · Maj quitter]";
-				case SHIP -> "[Z/S avant/arrière · Q/D barre · Espace/Ctrl allure · Maj quitter]";
+				case AIRCRAFT -> "[" + move + " vitesse · " + turn + " cap · " + k.jump() + " monter · " + k.sprint() + " descendre · "
+						+ k.sneak() + " quitter]";
+				case SUBMARINE -> "[" + move + " vitesse · " + turn + " cap · " + k.jump() + " remonter · " + k.sprint() + " plonger · "
+						+ k.sneak() + " quitter]";
+				case SHIP -> "[" + move + " avant/arrière · " + turn + " barre · " + k.jump() + "/" + k.sprint() + " allure · "
+						+ k.sneak() + " quitter]";
 			});
 		} else if (s.autopilotGoto) {
 			out.add("[Clic droit sur la barre : reprendre la main]");

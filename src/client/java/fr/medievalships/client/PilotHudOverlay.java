@@ -6,16 +6,19 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.option.GameOptions;
+import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.world.Heightmap;
 
 import fr.medievalships.core.GotoRoutes;
 import fr.medievalships.core.PilotHud;
-import fr.medievalships.core.ShipConfig;
 import fr.medievalships.core.ShipGeometry;
 import fr.medievalships.core.ShipPose;
+import fr.medievalships.data.SyncedConfig;
 import fr.medievalships.entity.ShipEntity;
+import fr.medievalships.network.ServerConfigPayload;
 import fr.medievalships.entity.ShipTracker;
 
 /**
@@ -65,14 +68,17 @@ public final class PilotHudOverlay {
 			return List.of();
 		}
 		ShipGeometry g = ship.geometry();
-		ShipConfig cfg = ship.config();
+		// the server's gait speeds (its config, not this client's)
+		ServerConfigPayload.Vessel cfg = SyncedConfig.vessel(ship.shipType());
 		PilotHud.Status s = new PilotHud.Status();
 		s.vessel = ship.hasCustomName() ? ship.getCustomName().getString() : capitalize(ship.shipType().frenchName());
 		s.kind = g.flying() ? PilotHud.Kind.AIRCRAFT : g.submarine() ? PilotHud.Kind.SUBMARINE : PilotHud.Kind.SHIP;
 		s.speed = ship.syncedSpeed();
-		s.slowSpeed = cfg.slowSpeed;
-		s.normalSpeed = cfg.normalSpeed;
-		s.fastSpeed = cfg.fastSpeed;
+		s.speedLimit = ship.syncedSpeedLimit();
+		s.slowSpeed = cfg.slowSpeed();
+		s.normalSpeed = cfg.normalSpeed();
+		s.fastSpeed = cfg.fastSpeed();
+		s.keys = keys(client);
 		s.gait = ship.gait().frenchName();
 		s.verticalSpeed = ship.syncedVerticalSpeed();
 		s.deckY = ship.getY() + g.hull().mainDeckY;
@@ -95,6 +101,18 @@ public final class PilotHudOverlay {
 			}
 		}
 		return PilotHud.lines(s);
+	}
+
+	/** The pilot's keys as bound in this player's options (any keyboard layout, any rebinding). */
+	static PilotHud.Keys keys(MinecraftClient client) {
+		GameOptions o = client.options;
+		return new PilotHud.Keys(key(o.forwardKey), key(o.backKey), key(o.leftKey), key(o.rightKey), key(o.jumpKey), key(o.sprintKey),
+				key(o.sneakKey));
+	}
+
+	private static String key(KeyBinding binding) {
+		String name = binding.getBoundKeyLocalizedText().getString();
+		return name.length() == 1 ? name.toUpperCase(java.util.Locale.ROOT) : name;
 	}
 
 	private static boolean nearHelm(ShipEntity ship, ClientPlayerEntity player) {
