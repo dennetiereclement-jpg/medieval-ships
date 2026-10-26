@@ -996,7 +996,7 @@ def beakhead(bone, detail, lights):
     tops = []
     for k in range(len(knee) - 1):
         t = k / (len(knee) - 2)
-        h = 1.05 - 0.5 * t
+        h = 1.3 - 0.6 * t
         a, b = knee[k], knee[k + 1]
         d = norm(b - a)
         up = norm(np.cross(v3(1, 0, 0), d))   # perpendicular to the knee, upwards
@@ -1015,10 +1015,10 @@ def beakhead(bone, detail, lights):
     # on each side: a rail following the knee a little above it, short slats between them (a ladder of the
     # reference's head), the upper head rail from the forecastle's rail to the gear, long head timbers between
     for side, sn in SIDES:
-        mids = [(p + up * 0.68, p) for p, up, d in tops if p[2] > 14.3]
+        mids = [(p + up * 0.62, p) for p, up, d in tops if p[2] > 14.3]
         mid_pts = [v3(side * (0.34 - 0.14 * (m[2] - 14.3) / 7.0), m[1], m[2]) for m, _ in mids]
         polyline(bone, "head_rail_lo_%s" % sn, mid_pts, 0.2, "wale", sides=4)
-        for k, (m, p) in enumerate(mids[::2]):
+        for k, (m, p) in enumerate(mids):
             x = side * (0.3 - 0.12 * (m[2] - 14.3) / 7.0)
             tube(bone, "head_slat_%s%d" % (sn, k), v3(x, p[1] - 0.05, p[2]), v3(x, m[1], m[2]), 0.13, "wale", sides=4)
         xb = ls.hull_x(14.6, 2.9)
