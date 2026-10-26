@@ -58,10 +58,14 @@ BOW_RAKE_Y = (-2.5, 3.0)  # from this height (where the bow ends at HULL_BOW_Z) 
 BOW_PLAN = (14.4, 2.4, 0.5)     # plan: hw = HULL_HW * (1 - (z / s)^a)^b ahead of the middle
 STERN_PLAN = (27.0, 2.6, 0.5)   # and behind it (a wide transom)
 KEEL_Y = -6.3
-# the keel line (z, y): lowest amidships, curving up to the bow and steeply up to the stern, where the hull tucks
-# in under the stern walk (the counter: the transom only goes down to y = -0.6); monotone cubic through these
-KEEL_PTS = ((-19.8, -0.6), (-19.3, -1.6), (-18.7, -2.7), (-18.0, -3.8), (-17.0, -5.3), (-15.5, -5.95), (-10.0, -6.25), (-4.0, -6.3), (2.0, -6.28), (6.0, -6.15),
-            (9.0, -5.85), (11.0, -5.35), (12.6, -4.55), (13.5, -3.6), (14.0, -2.5))
+# the keel line (z, y): a deep, rounded belly (lowest a little aft of the middle) curving up to the bow; aft, deep
+# down to the sternpost (z -17.5), which rises almost straight, then the counter sweeping aft under the stern
+# galleries to the transom (y -0.5); monotone cubic through these
+KEEL_PTS = ((-19.8, -0.5), (-19.2, -0.9), (-18.5, -1.6), (-17.95, -2.7), (-17.7, -3.8), (-17.45, -4.9), (-17.0, -5.6),
+            (-15.5, -6.0), (-10.0, -6.35), (-5.0, -6.55), (-1.0, -6.6), (3.0, -6.5), (6.0, -6.25), (9.0, -5.85), (11.0, -5.35),
+            (12.6, -4.55), (13.5, -3.6), (14.0, -2.5))
+# the run: aft of RUN[0], over RUN[1] blocks, the bilge's exponent drops by RUN[2] (finer, rounder lower stern)
+RUN = (-16.6, 2.8, 1.3)
 SHEER_WAIST = 1.0         # top of the hull planking in the waist (the bulwark)
 TUMBLE = 0.025            # the castle sides lean in above the waist
 SHELL = 0.4               # thickness of the hull planking (interior grid)
@@ -259,8 +263,29 @@ def hull_x(z, y):
         return 0.0
     if y <= SHEER_WAIST:
         eta = (y - k) / (SHEER_WAIST - k)
-        return w * (0.12 + 0.88 * (1.0 - (1.0 - eta) ** 3) ** 0.5)
+        p = 3.0 - RUN[2] * _smooth((RUN[0] - z) / RUN[1])
+        return w * (0.12 + 0.88 * (1.0 - (1.0 - eta) ** p) ** 0.5)
     return w * (1.0 - TUMBLE * (y - SHEER_WAIST))
+
+
+# the stern: curved in plan (it bulges aft by STERN_RAKE[0] in the middle) and, from y STERN_RAKE[2] up over
+# STERN_RAKE[3] blocks, more and more overhanging (STERN_RAKE[1] at the poop deck): the upper stern over the
+# galleries, the poop deck running on over it (visual, and in the grid a slab and its taffrail)
+STERN_RAKE = (0.3, 1.65, 2.4, 3.1)
+
+
+def stern_bulge(y):
+    a, b, y0, dy = STERN_RAKE
+    return a + (b - a) * _smooth((y - y0) / dy)
+
+
+def stern_z(x, y):
+    """z of the aft face of the stern at (x, y): -> HULL_STERN_Z at the sides (where it meets the hull's sides)."""
+    w = hull_x(HULL_STERN_Z, min(y, POOP_Y))
+    if w <= 1e-6:
+        return HULL_STERN_Z
+    u = min(1.0, abs(x) / w)
+    return HULL_STERN_Z - stern_bulge(y) * (1.0 - u ** 4) ** 0.25
 
 
 def inside_hull(x, y, z, inset=0.0):

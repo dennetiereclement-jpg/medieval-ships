@@ -158,6 +158,7 @@ CHIMNEY_R = 0.45
 CATWALK_Y = LO + 0.5                        # the catwalk along the engine room's starboard wall (walked at this height)
 CATWALK = (-INF, -2.5, -16.5, ENGINE_LANDING[0])   # its floor (x0, x1, z0, z1), a railing on its inner edge
 ENGINE_BLOCK = (-0.9, 0.9, EO, EO + 1.6, -16.5, -15.55)   # the piston engine aft of the boiler
+STERN_LANTERN_HOUSES = ((2.0, 3.0), (-3.0, -2.0))   # x ranges of the lit lantern houses on the poop's aft corners
 HELM_BOX = (-0.5, 0.5, CASTLE, CASTLE + 1.0, -11.0, -10.5)
 
 
@@ -221,9 +222,22 @@ def build():
     hx_next = _vec(ls.hull_x, Z + CELL, np.minimum(Y, ls.POOP_Y + 1.0))
     bow_rail = (Z > 0) & (hx_rail > 0.2) & (np.abs(X) <= hx_rail) & (np.abs(X) > hx_next) & (Y > deck) & (Y < deck + 1.0) & (deck > M0)
     g.k[bow_rail & (Y > sheer)] = FURNITURE
-    # the stern rail across the transom and the bow rail (fore end of the forecastle)
-    for z0, z1, y in ((ls.HULL_STERN_Z, ls.HULL_STERN_Z + CELL + 0.01, POOP),):
-        g.k[g.sel(-INF, INF, y, y + 1.0, z0 - 0.01, z1) & (np.abs(X) <= hx_rail)] = FURNITURE
+    # the poop deck runs on aft over the overhanging upper stern (ls.stern_z): its slab, the taffrail round its
+    # edge (the outermost cells), the lantern houses on its aft corners
+    ext2d = np.zeros((g.nx, g.nz), dtype=bool)
+    for i in range(g.nx):
+        for l in range(g.nz):
+            z = g.zs[l]
+            if ls.HULL_STERN_Z - 1.6 < z < ls.HULL_STERN_Z:
+                ext2d[i, l] = z > ls.stern_z(g.xs[i], POOP) + 0.1
+    slab = (g.ys > POOP - SLAB) & (g.ys < POOP)
+    g.k[ext2d[:, None, :] & slab[None, :, None]] = SOLID
+    deck2d = ext2d | ((g.zs > ls.HULL_STERN_Z - 0.3)[None, :] & (np.abs(g.xs) < 4.0)[:, None])
+    ring = ext2d & ~(np.roll(deck2d, 1, axis=1) & np.roll(deck2d, -1, axis=1) & np.roll(deck2d, 1, axis=0) & np.roll(deck2d, -1, axis=0))
+    rail = (g.ys > POOP) & (g.ys < POOP + 1.0)
+    g.k[ring[:, None, :] & rail[None, :, None]] = FURNITURE
+    for x0, x1 in STERN_LANTERN_HOUSES:
+        g.set(FURNITURE, x0, x1, POOP, POOP + 2.0, ls.HULL_STERN_Z - 1.2, ls.HULL_STERN_Z - 0.2)
     hx_c = _vec(ls.hull_x, Z, np.minimum(Y, ls.POOP_Y + 1.0))
     wide = (hx_c > 0.5) & (np.abs(X) <= hx_c - ls.SHELL)
     # ---- rooms: inside the hull with a solid cell between them and the outside across every face (also

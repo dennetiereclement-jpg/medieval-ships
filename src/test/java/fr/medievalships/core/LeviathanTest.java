@@ -33,13 +33,13 @@ class LeviathanTest {
 			assertEquals(r[2], LeviathanLayout.balloonHalfHeight(r[0]), 1e-5, "balloon half height at " + r[0]);
 		}
 		double[][] hull = {
-				{-18.0, -2.0, 3.572048, -3.800000, 5.500000},
-				{-10.0, -4.0, 4.044763, -6.250000, 3.000000},
-				{0.0, -5.5, 2.978980, -6.294074, 1.000000},
-				{0.0, 0.5, 4.999291, -6.294074, 1.000000},
-				{8.0, -3.0, 3.970589, -5.990833, 1.148148},
+				{-18.0, -2.0, 2.512059, -2.548347, 5.500000},
+				{-10.0, -4.0, 4.078676, -6.350000, 3.000000},
+				{0.0, -5.5, 3.287402, -6.594531, 1.000000},
+				{0.0, 0.5, 4.999372, -6.594531, 1.000000},
+				{8.0, -3.0, 3.974649, -6.014815, 1.148148},
 				{13.0, 2.0, 2.746305, -4.218587, 3.000000},
-				{-16.5, 4.5, 3.877010, -5.665301, 5.500000},
+				{-16.5, 4.5, 3.877010, -5.862777, 5.500000},
 				{14.5, 2.5, 1.706544, -2.500000, 3.000000}};
 		for (double[] r : hull) {
 			assertEquals(r[2], LeviathanLayout.hullX(r[0], r[1]), 1e-5, "hull half width at " + r[0] + ", " + r[1]);
@@ -270,7 +270,12 @@ class LeviathanTest {
 		assertFalse(fits(0, 0, -19.6), "the transom closes the captain's bedroom");
 		assertFalse(fits(0, 3, -19.6), "the transom closes the chart room");
 		assertFalse(fits(0, 0, 14.2), "the stem closes the bosun's store");
-		assertFalse(fits(2.6, -5.5, 2.5), "the bilge closes the hold");
+		// the poop deck runs on over the overhanging upper stern, the taffrail closes it
+		assertEquals(LeviathanLayout.POOP_Y, floorUnder(0, LeviathanLayout.POOP_Y, -20.3), 1e-9, "the poop deck over the overhang");
+		assertTrue(fits(0, LeviathanLayout.POOP_Y, -20.2), "room on the poop deck over the overhang");
+		assertFalse(fits(0, LeviathanLayout.POOP_Y, -20.9), "the taffrail closes the poop deck");
+		assertFalse(fits(2.5, LeviathanLayout.POOP_Y, -20.3), "the lantern houses are solid");
+		assertFalse(fits(3.3, -5.5, 2.5), "the bilge closes the hold");
 	}
 
 	@Test

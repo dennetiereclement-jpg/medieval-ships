@@ -22,9 +22,10 @@ top; at the tail a hub with a spike carrying black bat-wing fins (ribs, scallope
 three holes near the tip): a dorsal fin, two upper fins, two side fins and a lower fin. Under it, on
 chains, ropes and rope nets, a pirate ship with a short round bow and a long open beakhead (a thick
 dark knee, a ladder of slats, head rails) up to a gear wheel under the bowsprit, a forecastle with
-pale portholes, wales sweeping up to the stem, turned balusters, a stern castle with quarter galleries
-and a stern walk under a shingled awning in front of rows of lit leaded windows, the hull tucking in
-under it, a central tower with an iron lantern room, two platforms and a big brass gear up to the
+pale portholes, wales sweeping up to the stem, turned balusters, a deep rounded belly, a stern castle
+rising in a curve and overhanging (the poop deck running on over it, lantern houses and a carved crest on
+its taffrail) with two stacked galleries in front of two rows of lit leaded windows, the hull deep down to
+an upright sternpost and its rudder, then tucking in under the galleries, a central tower with an iron lantern room, two platforms and a big brass gear up to the
 balloon, black sails hanging from the rigging and a ventral bat-wing fin under
 the keel.
 
@@ -665,7 +666,7 @@ def rigging(bone, pennants_root, lanterns_root, swags_root):
 
 # ================================================================ the hanging ship's hull
 # stations: dense towards the stern and the round of the bow, where the lines curve fast
-HULL_ST = [-19.8, -19.5, -19.0, -18.3, -17.4, -16.3, -15.0, -13.5, -12.0, -10.5, -9.0, -7.5, -6.0, -4.5, -3.0, -1.5, 0.0, 1.5, 3.0, 4.5,
+HULL_ST = [-19.8, -19.5, -19.1, -18.7, -18.35, -18.05, -17.8, -17.55, -17.3, -16.95, -16.4, -15.6, -14.6, -13.5, -12.0, -10.5, -9.0, -7.5, -6.0, -4.5, -3.0, -1.5, 0.0, 1.5, 3.0, 4.5,
            6.0, 7.3, 8.5, 9.6, 10.5, 11.3, 12.0, 12.6, 13.1, 13.5, 13.85, 14.1, 14.3, 14.48, 14.63, 14.76, 14.86, 14.93, 14.97]
 ETA = [0.0, 0.035, 0.08, 0.14, 0.22, 0.31, 0.41, 0.52, 0.64, 0.76, 0.88, 1.0]
 UPPER = [0.0, 0.25, 0.5, 0.75, 1.0]   # from the waist sheer up to the hull's sheer (castles)
@@ -673,7 +674,10 @@ UPPER = [0.0, 0.25, 0.5, 0.75, 1.0]   # from the waist sheer up to the hull's sh
 GALLERY_Z = (-10.4, ls.HULL_STERN_Z)   # along the sides of the stern castle, then round the stern
 GALLERY_Y = 0.12                       # their floor
 GALLERY_OUT = 0.62                     # how far they stand out of the hull
-STERN_WALK_Z = ls.HULL_STERN_Z - 0.95  # the stern walk's outer edge
+GALLERY_CORNER_Z = -19.45              # where they turn round the stern corner (a quarter ellipse)
+GALLERY_CORNER_R = 0.9
+STERN_WALK_Z = ls.HULL_STERN_Z - 1.25  # the stern walk's outer edge (the stern bulges 0.3 aft in its middle)
+UPPER_BALCONY_Y = 2.62                 # floor of the upper stern balcony, on the stern walk's roof
 AWNING_Y = (2.78, 2.32)                # the slanted roof over the galleries: at the wall, at its eave
 SIDE_WINDOWS_Z = (-11.2, -12.6, -14.0, -15.4, -16.8)
 
@@ -780,10 +784,17 @@ def hull(bone, detail, lights):
         quad(bone, "bottom_%d" % i, v3(-xa, ya, za), v3(-xb, yb, zb), v3(xa, ya, za), v3(xb, yb, zb), 0.12, "hull_low", v3(0, -1, 0),
              u_dir=v3(0, 0, 1), stretch=False)
     # the keel, sweeping up into the stem; the stem rakes up to the forecastle and ends in a carved head post
-    kpts = [v3(0, ls.keel_y(z) - 0.12, z) for z in np.linspace(ls.HULL_STERN_Z + 3.4, 12.6, 14)]
-    spts = [v3(0, ls.keel_y(z) - 0.1, z + 0.06 * (z < -19.0)) for z in np.linspace(ls.HULL_STERN_Z + 0.05, ls.HULL_STERN_Z + 3.4, 7)]
-    for k in range(len(spts) - 1):
-        beam(bone, "sternpost_%d" % k, spts[k], spts[k + 1], 0.42, "wale", width=0.4, up=v3(1, 0, 0), extend=0.08)
+    kpts = [v3(0, STERNPOST[1] - 0.12, STERNPOST[0] + 0.2)] + [v3(0, ls.keel_y(z) - 0.12, z) for z in np.linspace(-16.8, 12.6, 15)]
+    # the sternpost, almost upright, from the heel of the keel up under the counter; the deadwood between it and
+    # the hull's aft edge
+    zp, y0p, y1p = STERNPOST
+    beam(bone, "sternpost", v3(0, y0p - 0.12, zp), v3(0, y1p, zp - 0.1), 0.42, "wale", width=0.42, up=v3(0, 0, 1), extend=0.05)
+    zf = np.linspace(-18.4, -16.4, 81)
+    kf = [ls.keel_y(q) for q in zf]
+    for k, (ya, yb) in enumerate(((-5.95, -5.35), (-5.35, -4.7), (-4.7, -4.0), (-4.0, -3.3), (-3.3, -2.7))):
+        za, zb = float(np.interp(ya, kf[::-1], zf[::-1])), float(np.interp(yb, kf[::-1], zf[::-1]))
+        quad(bone, "deadwood_%d" % k, v3(0, ya, zp), v3(0, ya, za + 0.15), v3(0, yb, zp - 0.02), v3(0, yb, zb + 0.15), 0.3, "wale", v3(1, 0, 0),
+             side="wale", u_dir=v3(0, 0, 1), stretch=False)
     kpts += [v3(0, ls.keel_y(13.5) - 0.05, 13.62), v3(0, -2.3, ls.bow_end(-2.3) + 0.14)]
     kpts += [v3(0, y, ls.bow_end(y) + 0.14) for y in (-1.0, 0.5, 1.7, 2.5)]
     sm = catmull(kpts, 2)
@@ -852,85 +863,146 @@ def hull(bone, detail, lights):
 
 
 def gallery_path(n_side=10):
-    """Outer edge of the quarter galleries and the stern walk: port side aft, round the stern, starboard side
-    forward (points at the gallery floor's height)."""
+    """Outer edge of the quarter galleries and the stern walk: port side aft, round the stern corner (a quarter
+    ellipse), across the stern, starboard side forward (points at the gallery floor's height)."""
     y = GALLERY_Y
-    z0, z1 = GALLERY_Z
-    zz = list(np.linspace(z0, z1 + 0.35, n_side))
+    z0, z1 = GALLERY_Z[0], GALLERY_CORNER_Z
+    zz = list(np.linspace(z0, z1, n_side))
     port = [v3(ls.hull_x(z, y + 0.5) + GALLERY_OUT, y, z) for z in zz]
-    xe = ls.hull_x(z1, y + 0.5) + GALLERY_OUT
-    corner = [v3(xe - 0.25 * (1 - math.cos(a)), y, z1 + 0.35 - (z1 + 0.35 - STERN_WALK_Z) * math.sin(a))
-              for a in np.linspace(0.0, math.pi / 2, 4)[1:]]
-    corner[-1] = v3(xe - 0.3, y, STERN_WALK_Z)
-    path = port + corner
+    xe = port[-1][0]
+    a, b = GALLERY_CORNER_R, z1 - STERN_WALK_Z
+    corner = [v3(xe - a + a * math.cos(t), y, z1 - b * math.sin(t)) for t in np.linspace(0.0, math.pi / 2, 5)[1:]]
+    xc = xe - a
+    across = [v3(x, y, STERN_WALK_Z) for x in (xc * 0.6, xc * 0.2)]
+    path = port + corner + across
     return path + [v3(-p[0], p[1], p[2]) for p in reversed(path)]
 
 
+def transom_pt(x, y, out=0.0):
+    """Point of the stern's aft face (curved, overhanging above the galleries) at (x, y) and its outward normal."""
+    e = 0.03
+    dzdx = (ls.stern_z(x + e, y) - ls.stern_z(x - e, y)) / (2 * e)
+    dzdy = (ls.stern_z(x, y + e) - ls.stern_z(x, y - e)) / (2 * e)
+    n = norm(v3(dzdx, dzdy, -1.0))
+    return v3(x, y, ls.stern_z(x, y)) + n * out, n
+
+
+def face_frame(n):
+    """Axes (right, up, normal) of a part lying on a face whose outward normal is n (tilted faces allowed)."""
+    r = norm(np.cross(v3(0, 1, 0), n))
+    return np.column_stack([r, np.cross(n, r), n])
+
+
+def stern_window(lights, detail, name, x, y, w, h):
+    """A leaded window lit from inside on the stern's face: its frame, sill, head and a brass keystone."""
+    c, n = transom_pt(x, y + h / 2, 0.05)
+    R = face_frame(n)
+    add_cube(lights, "glow_" + name, c, R, (w, h, 0.04), {"all": None, "+3": "window", "-3": "window"}, stretch=True)
+    for e in (-1, 1):
+        add_cube(detail, "%s_jamb_%d" % (name, e > 0), c + R[:, 0] * e * (w / 2 + 0.07) + n * 0.02, R, (0.14, h + 0.12, 0.14), "dark_wood")
+    add_cube(detail, name + "_sill", c - R[:, 1] * (h / 2 + 0.06) + n * 0.05, R, (w + 0.34, 0.12, 0.2), "dark_wood")
+    add_cube(detail, name + "_head", c + R[:, 1] * (h / 2 + 0.09) + n * 0.05, R, (w + 0.36, 0.16, 0.22), "dark_wood")
+    add_cube(detail, name + "_key", c + R[:, 1] * (h / 2 + 0.22) + n * 0.08, R, (0.16, 0.13, 0.12), "brass")
+
+
+def along_transom(bone, name, y, h, d, region, out=0.0, x_in=0.0, n=12):
+    """A moulding laid across the stern's face at height y, following its curve."""
+    w = ls.hull_x(ls.HULL_STERN_Z, min(y, ls.POOP_Y)) + x_in
+    us = [math.sin(math.pi / 2 * t) for t in np.linspace(-1.0, 1.0, n + 1)]
+    pts = [transom_pt(u * w, y, out)[0] for u in us]
+    for k in range(len(pts) - 1):
+        beam(bone, "%s_%d" % (name, k), pts[k], pts[k + 1], h, region, width=d, up=v3(0, 1, 0), extend=0.03)
+    return pts
+
+
+lanterns_root_ref = [None]   # the lanterns' bone, set by build() (the stern's hanging lanterns sway with the others)
+
+
 def stern_castle(bone, detail, lights):
-    """The stern castle of the reference: quarter galleries with their balustrades under a slanted awning in
-    front of the lit windows of the captain's quarters, the stern walk round the transom with its own row of
-    windows, the chart room's windows above, diagonal braces on the poop's sides, carved and brass ornaments,
-    a gear medallion on the counter."""
+    """The stern castle of the reference: the stern curved in plan and overhanging more and more above the
+    galleries (rising in a curve to the poop, which runs on over it); two stacked galleries with turned balusters
+    (the quarter galleries and stern walk of the captain's quarters, the upper stern balcony on its roof) in front
+    of two rows of lit leaded windows; a heavy cornice under the taffrail, a carved crest with a brass gear,
+    lantern houses on its corners; diagonal braces on the poop's sides, brass ornaments."""
     z = ls.HULL_STERN_Z
-    # the transom planks
-    ys = [ls.keel_y(z)] + list(np.linspace(-1.5, ls.sheer_y(z), 8))
-    for k in range(len(ys) - 1):
-        y0, y1 = ys[k], ys[k + 1]
-        x0, x1 = ls.hull_x(z, y0), ls.hull_x(z, y1)
-        quad(bone, "transom_%d" % k, v3(-x0, y0, z), v3(x0, y0, z), v3(-x1, y1, z), v3(x1, y1, z), 0.14, "transom", v3(0, 0, -1),
-             u_dir=v3(-1, 0, 0), stretch=False)
-    # windows of the stern: six on the stern walk (the captain's bedroom), five above (the chart room)
-    wins = [(x, 0.55, 0.78, 1.4) for x in (-2.75, -1.65, -0.55, 0.55, 1.65, 2.75)] + \
-           [(x, 3.45, 0.72, 1.25) for x in (-2.2, -1.1, 0.0, 1.1, 2.2)]
-    for k, (x, y, w, h) in enumerate(wins):
-        add_cube(lights, "glow_stern_window_%d" % k, v3(x, y + h / 2, z - 0.09), EYE, (w, h, 0.04), {"all": None, "+3": "window", "-3": "window"},
-                 stretch=True)
-        for e in (-1, 1):
-            box(detail, "stern_window_frame_%d_%d" % (k, e > 0), (x + e * (w / 2 + 0.07), y + h / 2, z - 0.11), (0.14, h + 0.1, 0.12), "dark_wood")
-        box(detail, "stern_window_sill_%d" % k, (x, y - 0.06, z - 0.13), (w + 0.32, 0.12, 0.18), "dark_wood")
-        box(detail, "stern_window_head_%d" % k, (x, y + h + 0.08, z - 0.13), (w + 0.34, 0.16, 0.2), "dark_wood")
-        box(detail, "stern_window_key_%d" % k, (x, y + h + 0.2, z - 0.15), (0.16, 0.12, 0.12), "brass")
-    # mouldings across the transom: under the chart room's windows (the cornice of the gallery), at the taffrail
-    for k, (y, h, d) in enumerate(((3.05, 0.22, 0.3), (5.3, 0.18, 0.26), (-0.12, 0.22, 0.24))):
-        x = ls.hull_x(z, y) + 0.06
-        box(detail, "transom_moulding_%d" % k, (0, y, z - d / 2 + 0.04), (2 * x, h, d), "wale")
-    # the brass gear crest in the middle of the taffrail
-    gear(detail, "stern_crest", (0, ls.POOP_Y + 0.55, z + 0.18), (0, 0, -1), 0.5, 0.1, teeth=12, region="brass", spokes=6, rim="brass")
-    disc(detail, "stern_crest_boss", (0, ls.POOP_Y + 0.55, z + 0.1), (0, 0, -1), 0.15, 0.1, "gold", sides=8)
-    # the galleries: floor, brackets under it, balustrade, posts up to the awning, the awning
+    # the stern's face: planks on a mesh following ls.stern_z
+    k0 = ls.keel_y(z)
+    ys = [k0 + e * (ls.SHEER_WAIST - k0) for e in ETA] + [1.6, 2.3, 2.8, 3.3, 3.8, 4.3, 4.8, 5.15, ls.POOP_Y]   # (the hull's sections below)
+    us = [-1.0, -0.97, -0.88, -0.7, -0.44, -0.15, 0.15, 0.44, 0.7, 0.88, 0.97, 1.0]
+
+    def S(u, y):
+        x = u * ls.hull_x(z, min(y, ls.POOP_Y))
+        return v3(x, y, ls.stern_z(x, y))
+    for j in range(len(ys) - 1):
+        for i in range(len(us) - 1):
+            mid = (S(us[i], ys[j]) + S(us[i + 1], ys[j + 1])) / 2
+            quad(bone, "transom_%d_%d" % (j, i), S(us[i], ys[j]), S(us[i + 1], ys[j]), S(us[i], ys[j + 1]), S(us[i + 1], ys[j + 1]), 0.12,
+                 "transom", transom_pt(mid[0], mid[1])[1], u_dir=v3(-1, 0, 0), stretch=False, back="dark_wood")
+    # the sole under the bulge of the stern, at the keel (closes it from below)
+    for i in range(len(us) - 1):
+        pa, pb = S(us[i], k0), S(us[i + 1], k0)
+        quad(bone, "transom_sole_%d" % i, v3(pa[0], k0 + 0.02, z + 0.12), v3(pb[0], k0 + 0.02, z + 0.12), pa + v3(0, 0.02, -0.03),
+             pb + v3(0, 0.02, -0.03), 0.1, "hull_low", v3(0, -1, 0), u_dir=v3(1, 0, 0), stretch=False)
+    # two rows of lit leaded windows: six on the stern walk (the captain's bedroom), five on the overhanging upper
+    # stern behind the upper balcony (the chart room)
+    for k, x in enumerate((-2.75, -1.65, -0.55, 0.55, 1.65, 2.75)):
+        stern_window(lights, detail, "stern_window_%d" % k, x, 0.6, 0.78, 1.38)
+    for k, x in enumerate((-2.2, -1.1, 0.0, 1.1, 2.2)):
+        stern_window(lights, detail, "stern_window_up_%d" % k, x, 3.3, 0.72, 1.3)
+    # brass gear medallions either side of the upper row, pilasters between the windows of the upper row
+    for e in (-1, 1):
+        p, n = transom_pt(e * 2.95, 3.95, 0.04)
+        gear(detail, "stern_medallion_%d" % (e > 0), p, n, 0.32, 0.1, teeth=10, region="brass", spokes=5, rim="brass")
+    for k, x in enumerate((-1.65, -0.55, 0.55, 1.65)):
+        p, n = transom_pt(x, 3.95, 0.04)
+        add_cube(detail, "stern_pilaster_%d" % k, p, face_frame(n), (0.16, 1.55, 0.1), "wale")
+    # mouldings: the cornice under the taffrail (dark, a brass band under it), a band at the upper balcony's floor
+    along_transom(detail, "stern_cornice", 5.33, 0.3, 0.26, "wale", out=0.08, x_in=0.04)
+    along_transom(detail, "stern_cornice_brass", 5.12, 0.07, 0.12, "brass", out=0.12)
+    along_transom(detail, "stern_band", UPPER_BALCONY_Y - 0.12, 0.2, 0.2, "wale", out=0.06)
+    # the cap board along the top of the stern, under the taffrail (the poop deck runs on over the overhang)
+    capz = [(u * (ls.hull_x(z, ls.POOP_Y) - 0.02), ls.POOP_Y) for u in [math.sin(math.pi / 2 * t) for t in np.linspace(-1, 1, 15)]]
+    for k in range(len(capz) - 1):
+        (xa, ya), (xb, yb) = capz[k], capz[k + 1]
+        pa, pb = v3(xa, ya - 0.04, ls.stern_z(xa, ya) + 0.3), v3(xb, yb - 0.04, ls.stern_z(xb, yb) + 0.3)
+        beam(bone, "stern_cap_%d" % k, pa, pb, 0.1, "rail", width=0.64, up=v3(0, 1, 0), extend=0.04)
+    # the stern walk and the quarter galleries: floor, brackets, balustrade, posts
     path = gallery_path()
     y = GALLERY_Y
+
+    def inner(p, yy):
+        if p[2] > GALLERY_CORNER_Z + 0.05:
+            return v3(np.sign(p[0]) * (ls.hull_x(p[2], yy + 0.5) - 0.05), yy, p[2])
+        xi = np.sign(p[0]) * min(abs(p[0]), 0.985 * ls.hull_x(z, yy + 0.5))
+        return v3(xi, yy, ls.stern_z(xi, yy + 0.5) + 0.05)
     for k in range(len(path) - 1):
         a, b = path[k], path[k + 1]
-        # inner edge on the hull side (or on the transom)
-        def inner(p):
-            if p[2] > z + 0.2:
-                return v3(np.sign(p[0]) * (ls.hull_x(p[2], y + 0.5) - 0.05), y, p[2])
-            return v3(p[0] * 0.98, y, z + 0.05)
-        ia, ib = inner(a), inner(b)
-        quad(bone, "gallery_floor_%d" % k, ia, ib, a, b, 0.14, "deck", v3(0, 1, 0), side="dark_wood", back="dark_wood", u_dir=b - a,
-             stretch=False)
-        beam(detail, "gallery_edge_%d" % k, a - v3(0, 0.1, 0), b - v3(0, 0.1, 0), 0.14, "wale", width=0.16, extend=0.06)
+        quad(bone, "gallery_floor_%d" % k, inner(a, y), inner(b, y), a, b, 0.14, "deck", v3(0, 1, 0), side="dark_wood", back="dark_wood",
+             u_dir=b - a, stretch=False)
+        beam(detail, "gallery_edge_%d" % k, a - v3(0, 0.1, 0), b - v3(0, 0.1, 0), 0.16, "wale", width=0.18, extend=0.06)
     balustrade(bone, "gallery_rail", [p + v3(0, 0.07, 0) for p in path], h=0.82, step=0.42, turned=True, newel=5)
-    # brackets (curved knees) under the gallery floor
     for k, p in enumerate(path[::2]):
-        if p[2] > z + 0.2:
+        if p[2] > GALLERY_CORNER_Z + 0.05:
             w, n = hull_pt(p[2], y - 0.7, np.sign(p[0]), 0.0)
         else:
-            w, n = v3(p[0] * 0.95, y - 0.7, z), v3(0, 0, -1)
-        pts = catmull([w, w + n * 0.25 + v3(0, 0.45, 0), p - v3(0, 0.1, 0) - (p - w) * 0.12], 2)
-        polyline(detail, "gallery_knee_%d" % k, pts, 0.14, "dark_wood", sides=4)
-    # posts from the balustrade up to the awning (between the windows), the awning
-    for k, p in enumerate(path[::3] + [path[-1]]):
-        tube(detail, "gallery_post_%d" % k, p + v3(0, 0.8, 0), p + v3(0, AWNING_Y[1] + 0.05 - y, 0), 0.1, "dark_wood", sides=4)
+            xb = np.sign(p[0]) * min(abs(p[0]), 0.85 * ls.hull_x(z, -0.25))
+            w, n = v3(xb, -0.25, ls.stern_z(xb, -0.25) + 0.05), v3(0, 0, -1)
+        pts = catmull([w, w + n * 0.25 + v3(0, 0.25, 0), p - v3(0, 0.1, 0) - (p - w) * 0.12], 2)
+        polyline(detail, "gallery_knee_%d" % k, pts, 0.15, "wale", sides=4)
+        # a small turned drop under the edge
+        tube(detail, "gallery_drop_%d" % k, p - v3(0, 0.18, 0), p - v3(0, 0.42, 0), 0.12, "dark_wood", sides=4)
+        tube(detail, "gallery_drop_tip_%d" % k, p - v3(0, 0.42, 0), p - v3(0, 0.52, 0), 0.08, "brass", sides=4)
+    stern_part = [p for p in path if p[2] <= GALLERY_CORNER_Z + 0.05]
+    for k, p in enumerate(path[::3] + [path[-1]] + [p for p in stern_part[::2]]):
+        top = UPPER_BALCONY_Y - 0.14 if p[2] <= GALLERY_CORNER_Z + 0.05 else AWNING_Y[1] + 0.05
+        tube(detail, "gallery_post_%d" % k, p + v3(0, 0.8, 0), p + v3(0, top - y, 0), 0.12, "dark_wood", sides=4)
+    # the quarter galleries' slanted shingled awning (along the sides)
     ya, yb = AWNING_Y
-    for k in range(len(path) - 1):
-        a, b = path[k], path[k + 1]
-
+    side_segs = [(path[k], path[k + 1]) for k in range(len(path) - 1)
+                 if path[k][2] > GALLERY_CORNER_Z + 0.05 and path[k + 1][2] > GALLERY_CORNER_Z + 0.05]
+    for k, (a, b) in enumerate(side_segs):
         def wall(p, yy):
-            if p[2] > z + 0.2:
-                return v3(np.sign(p[0]) * (ls.hull_x(p[2], yy) - 0.02), yy, p[2])
-            return v3(p[0] * 0.95, yy, z - 0.02)
+            return v3(np.sign(p[0]) * (ls.hull_x(p[2], yy) - 0.02), yy, p[2])
 
         def eave(p):
             d = p - wall(p, y)
@@ -939,7 +1011,32 @@ def stern_castle(bone, detail, lights):
         quad(bone, "awning_%d" % k, wall(a, ya), wall(b, ya), eave(a), eave(b), 0.1, "shingle", v3(0, 1, 0), side="dark_wood",
              back="dark_wood", u_dir=b - a, stretch=False)
         beam(detail, "awning_eave_%d" % k, eave(a) - v3(0, 0.07, 0), eave(b) - v3(0, 0.07, 0), 0.1, "wale", width=0.12, extend=0.05)
-    # the side windows of the captain's quarters (behind the galleries), leaded and lit
+    # the upper stern balcony on the stern walk's roof: floor, fascia with a brass band, turned balustrade, drops
+    yu = UPPER_BALCONY_Y
+    up_path = []
+    for p in stern_part:
+        q = v3(p[0], yu, p[2])
+        if abs(p[0]) > 0.5 and p[2] > STERN_WALK_Z + 0.05:
+            q = q + v3(np.sign(p[0]) * 0.12, 0, -0.06)
+        else:
+            q = q + v3(0, 0, -0.14)
+        up_path.append(q)
+    for k in range(len(up_path) - 1):
+        a, b = up_path[k], up_path[k + 1]
+        if abs(a[0] - b[0]) < 1e-6 and abs(a[2] - b[2]) < 1e-6:
+            continue
+        quad(bone, "balcony_floor_%d" % k, inner(a, yu), inner(b, yu), a, b, 0.16, "deck", v3(0, 1, 0), side="wale", back="dark_wood",
+             u_dir=b - a, stretch=False)
+        beam(detail, "balcony_fascia_%d" % k, a - v3(0, 0.12, 0), b - v3(0, 0.12, 0), 0.24, "wale", width=0.16, extend=0.06)
+        beam(detail, "balcony_band_%d" % k, a - v3(0, 0.2, 0), b - v3(0, 0.2, 0), 0.05, "brass", width=0.18, extend=0.06)
+    balustrade(bone, "balcony_rail", [p + v3(0, 0.0, 0) for p in up_path], h=0.72, step=0.4, turned=True, newel=4)
+    # lanterns hanging at the stern's corners, under the upper balcony and under the stern walk (the reference's back view)
+    for side, sn in SIDES:
+        corner_up = max(up_path, key=lambda q: side * q[0] - 0.3 * q[2])
+        hanging_lantern(lanterns_root_ref[0], "balcony_%s" % sn, corner_up - v3(0, 0.26, 0), drop=0.35)
+        corner_lo = max(stern_part, key=lambda q: side * q[0] - 0.3 * q[2])
+        hanging_lantern(lanterns_root_ref[0], "stern_walk_%s" % sn, corner_lo - v3(0, 0.2, 0), drop=0.3)
+    # the side windows of the captain's quarters (behind the quarter galleries), leaded and lit
     for side, sn in SIDES:
         for k, zc in enumerate(SIDE_WINDOWS_Z):
             p, n = hull_pt(zc, 1.2, side, 0.04)
@@ -951,7 +1048,7 @@ def stern_castle(bone, detail, lights):
                 add_cube(detail, "side_window_post_%s%d_%d" % (sn, k, e > 0), p + R[:, 0] * e * 0.5 + n * 0.04, R, (0.14, 1.4, 0.12), "dark_wood")
             add_cube(detail, "side_window_sill_%s%d" % (sn, k), p - v3(0, 0.67, 0) + n * 0.06, R, (1.1, 0.12, 0.18), "dark_wood")
             add_cube(detail, "side_window_head_%s%d" % (sn, k), p + v3(0, 0.7, 0) + n * 0.07, R, (1.14, 0.16, 0.2), "dark_wood")
-        # the poop's sides: diagonal braces between the cornice and the taffrail
+        # the poop's sides: diagonal braces between the cornice and the taffrail, posts, a lit stern light
         for k, (za, zb) in enumerate(((ls.POOP_Z - 0.3, -17.4), (-17.4, ls.HULL_STERN_Z + 0.25))):
             for e, (ya_, yb_) in enumerate(((3.15, 5.25), (5.25, 3.15))):
                 pa = hull_pt(za, ya_, side, 0.06)[0]
@@ -961,6 +1058,12 @@ def stern_castle(bone, detail, lights):
         for k, zc in enumerate((ls.POOP_Z - 0.3, -17.4, ls.HULL_STERN_Z + 0.25)):
             pts = [hull_pt(zc, yy, side, 0.06)[0] for yy in (3.0, 4.2, 5.4)]
             polyline(detail, "poop_post_%s%d" % (sn, k), pts, 0.18, "wale", sides=4, extend=0.02)
+        for k, (zc, yc) in enumerate(((-16.2, 4.2), (-18.6, 4.2))):
+            p, n = hull_pt(zc, yc, side, 0.05)
+            R = wall_frame(n)
+            add_cube(lights, "glow_poop_light_%s%d" % (sn, k), p, R, (0.42, 0.42, 0.04), {"all": None, "+3": "window", "-3": "window"},
+                     stretch=True)
+            ring(detail, "poop_light_rim_%s%d" % (sn, k), p + R[:, 2] * 0.03, R[:, 2], 0.3, 0.1, "brass", n=8)
         # brass steampunk ornament at the fore end of the castle: a gear with scrolls
         p, n = hull_pt(-8.6, 1.7, side, 0.08)
         gear(detail, "castle_gear_" + sn, p, n, 0.55, 0.12, teeth=10, region="brass", spokes=5, rim="brass")
@@ -970,18 +1073,53 @@ def stern_castle(bone, detail, lights):
             polyline(detail, "castle_scroll_%s%d" % (sn, e > 0), [v3(p[0], yy, zz) + n * 0.02 for zz, yy in spts], 0.08, "brass", sides=4)
 
 
+def taffrail(bone, detail, lights):
+    """The taffrail round the poop's overhang (turned balusters), the carved crest in its middle with a brass gear,
+    the lit lantern houses on its aft corners (their footprint is solid in the grid)."""
+    yp = ls.POOP_Y
+    w = ls.hull_x(ls.HULL_STERN_Z, yp + 0.5) - 0.25
+    us = [math.cos(math.pi * t) for t in np.linspace(0.0, 1.0, 13)]
+    pts = [(u * w, yp, ls.stern_z(u * w, yp) + 0.25) for u in us]
+    balustrade(bone, "stern_rail", pts, h=1.0, step=0.42, turned=True, newel=50)
+    zc = ls.stern_z(0.0, yp) + 0.25
+    # the crest: an arched board on the rail, the brass gear on it, scrolls either side
+    for k, x in enumerate(np.linspace(-0.9, 0.9, 7)):
+        h = 0.35 + 0.45 * math.cos(x / 0.9 * math.pi / 2) ** 0.7
+        box(bone, "stern_crest_board_%d" % k, (x, yp + 1.0 + h / 2, zc), (0.31, h, 0.12), "wale")
+    gear(detail, "stern_crest", (0, yp + 1.42, zc - 0.1), (0, 0, -1), 0.42, 0.1, teeth=12, region="brass", spokes=6, rim="brass")
+    disc(detail, "stern_crest_boss", (0, yp + 1.42, zc - 0.17), (0, 0, -1), 0.13, 0.1, "gold", sides=8)
+    tube(detail, "stern_crest_finial", (0, yp + 1.83, zc), (0, yp + 2.05, zc), 0.12, "gold", sides=8)
+    for e in (-1, 1):
+        spts = ga.scroll_pts(e * 1.05, yp + 1.35, 0.25, 1.0, -e, [(e * 0.75, yp + 1.05)], m=8)
+        polyline(detail, "stern_crest_scroll_%d" % (e > 0), [v3(xx, yy, zc - 0.08) for xx, yy in spts], 0.08, "brass", sides=4)
+    # the lantern houses (the reference's lit lantern room on the stern's corner): a plinth with a brass edge, a
+    # big lantern on it (redrawn as lit glass with its roof by lanterns.convert)
+    for (x0, x1), sn in zip(li.STERN_LANTERN_HOUSES, ("p", "s")):
+        xc, zh = (x0 + x1) / 2, ls.HULL_STERN_Z - 0.7
+        box(bone, "lantern_house_plinth_" + sn, (xc, yp + 0.3, zh), (0.95, 0.6, 0.95), {"all": "wale", "+2": "dark_wood"})
+        box(detail, "lantern_house_band_" + sn, (xc, yp + 0.6, zh), (1.0, 0.07, 1.0), "brass")
+        add_cube(bone, "lantern_house_" + sn, v3(xc, yp + 1.3, zh), EYE, (0.78, 1.32, 0.78), {"all": "lantern", "+2": "gold", "-2": "gold"},
+                 stretch=True)
+
+
+STERNPOST = (-17.95, -5.85, -2.55)   # z, foot, head (under the counter) of the sternpost
+
+
 def rudder(root):
-    """The rudder hangs under the counter, behind the sternpost: its top follows the tuck of the stern."""
-    zh, yb = -17.75, -5.45
-    rb = Bone("rudder", origin=(0, -4.6, zh), parent=root)
-    for k in range(5):   # vertical boards, their tops hidden in the hull's tuck
-        za, zb = zh - 0.25 * k, zh - 0.25 * (k + 1)
-        top = ls.keel_y((za + zb) / 2) + 0.25
-        bot = yb
-        box(rb, "rudder_blade_%d" % k, (0, (top + bot) / 2, (za + zb) / 2), (0.22, top - bot, 0.26), "wale")
-    tube(rb, "rudder_stock", (0, yb - 0.05, zh - 0.05), (0, ls.keel_y(zh) + 0.1, zh - 0.05), 0.26, "wale", sides=6)
-    for k, y in enumerate(np.linspace(yb + 0.3, ls.keel_y(zh) - 0.15, 3)):
-        box(rb, "rudder_strap_%d" % k, (0, y, zh - 0.45), (0.26, 0.1, 0.8), "iron")
+    """The rudder hangs on the sternpost under the counter: boards of dark wood, their tops following the counter
+    as it sweeps aft, iron straps and pintles."""
+    zp, y0, y1 = STERNPOST
+    zh = zp - 0.27
+    rb = Bone("rudder", origin=(0, (y0 + y1) / 2, zh), parent=root)
+    tube(rb, "rudder_stock", (0, y0 - 0.05, zh), (0, y1 + 0.35, zh), 0.26, "wale", sides=6)
+    for k in range(4):
+        za, zb = zh - 0.1 - 0.27 * k, zh - 0.1 - 0.27 * (k + 1)
+        top = min(-2.15, ls.keel_y((za + zb) / 2) - 0.06)
+        bot = y0 + 0.07 * k * k
+        box(rb, "rudder_blade_%d" % k, (0, (top + bot) / 2, (za + zb) / 2), (0.24 - 0.02 * k, top - bot, 0.28), "wale")
+    for k, y in enumerate(np.linspace(y0 + 0.4, y1 - 0.2, 4)):
+        box(rb, "rudder_strap_%d" % k, (0, y, zh - 0.5), (0.3, 0.1, 0.95 - 0.05 * k), "iron")
+        box(rb, "rudder_pintle_%d" % k, (0, y, zh + 0.12), (0.34, 0.12, 0.3), "iron")
     return rb
 
 
@@ -1092,11 +1230,21 @@ def decks(bone, g):
     # the quarterdeck and of the poop, across the castles' fronts (gaps at the stairs), the taffrail
     def rail_x(z, y):
         return ls.hull_x(z, y + 0.5) - 0.25
+    # the forecastle: a planked bulwark rising towards the stem (the sheer sweeps up at the bow), the balustrade on it
     yf = ls.FORECASTLE_Y
-    z_tip = ls.bow_end(yf + 0.5) - 0.32
-    zz = list(np.linspace(ls.FORECASTLE_Z + 0.1, z_tip - 0.25, 9))
-    port = [(rail_x(z, yf), yf, z) for z in zz] + [(rail_x(z_tip - 0.05, yf) * 0.55, yf, z_tip)]
-    balustrade(bone, "castle_rail_fc", port + [(-x, y, z) for x, y, z in reversed(port)], h=1.0, step=0.42, turned=True, newel=6)
+    z_tip = ls.bow_end(yf + 0.5) - 0.3
+
+    def rise(z):
+        return 0.25 + 0.5 * _sm((z - 10.5) / 3.8)
+    zz = list(np.linspace(ls.FORECASTLE_Z + 0.1, z_tip - 0.25, 10))
+    port = [(ls.hull_x(z, yf + 0.3) - 0.14, yf + rise(z), z) for z in zz] + [((ls.hull_x(z_tip - 0.05, yf + 0.3) - 0.14) * 0.55, yf + rise(z_tip), z_tip)]
+    ring_pts = port + [(-x, y, z) for x, y, z in reversed(port)]
+    for k in range(len(ring_pts) - 1):
+        (xa, ya, za), (xb, yb, zb) = ring_pts[k], ring_pts[k + 1]
+        nrm = v3(np.sign(xa + xb) if abs(xa + xb) > 0.05 else 0.0, 0, 1.0 if abs(xa + xb) <= 0.05 else 0.0)
+        quad(bone, "fc_bulwark_%d" % k, v3(xa, yf, za), v3(xb, yf, zb), v3(xa, ya, za), v3(xb, yb, zb), 0.1, "hull", nrm, back="wall_wood",
+             u_dir=v3(xb - xa, 0, zb - za), stretch=False)
+    balustrade(bone, "castle_rail_fc", ring_pts, h=0.78, step=0.42, turned=True, newel=6)
     for side, sn in SIDES:
         for k, (z0, z1, y) in enumerate(((ls.POOP_Z + 0.1, ls.QUARTERDECK_Z - 0.4, ls.QUARTERDECK_Y),
                                          (ls.HULL_STERN_Z + 0.3, ls.POOP_Z - 0.1, ls.POOP_Y))):
@@ -1125,9 +1273,6 @@ def decks(bone, g):
         zz = np.linspace(ls.QUARTERDECK_Z + 1.25, ls.FORECASTLE_Z - 1.25, 22)
         pts = [(side * (ls.hull_x(z, ls.SHEER_WAIST) - 0.15), ls.sheer_y(z) + 0.13, z) for z in zz]
         balustrade(bone, "waist_rail_" + sn, pts, h=WAIST_RAIL_H, step=0.42, turned=True, newel=8)
-    zt = ls.HULL_STERN_Z + 0.3
-    w = ls.hull_x(zt, ls.POOP_Y + 0.5) - 0.3
-    balustrade(bone, "stern_rail", [(-w, ls.POOP_Y, zt), (w, ls.POOP_Y, zt)], h=1.0, step=0.42, turned=True, newel=4)
     # the companion's rails on the main deck
     x0, x1, z0, z1 = li.COMPANION_HOLE
     balustrade(bone, "companion_rail", [(x0 - 0.25, 0.0, z1), (x0 - 0.25, 0.0, z0 - 0.25), (x1 + 0.25, 0.0, z0 - 0.25), (x1 + 0.25, 0.0, z1)],
@@ -1303,12 +1448,12 @@ def suspension(bone, sails_root):
 def ship_lanterns(lanterns_root, hook):
     hanging_lantern(lanterns_root, "bowsprit", hook, drop=0.9)
     for side, sn in SIDES:
-        z = ls.HULL_STERN_Z - 0.2
-        x = ls.hull_x(z, ls.POOP_Y) + 0.1
-        base = v3(side * x, ls.POOP_Y + 0.6, z + 0.6)
-        polyline(lanterns_root, "stern_bracket_" + sn, [base, base + v3(side * 0.4, 0.3, -0.3), base + v3(side * 0.6, 0.15, -0.6)], 0.09, "iron",
+        # big lanterns hanging from iron brackets at the top corners of the overhanging stern
+        x = side * 0.93 * ls.hull_x(ls.HULL_STERN_Z, 5.1)
+        base = v3(x, 5.05, ls.stern_z(x, 5.05) - 0.05)
+        polyline(lanterns_root, "stern_bracket_" + sn, [base, base + v3(side * 0.35, 0.3, -0.35), base + v3(side * 0.55, 0.2, -0.7)], 0.1, "iron",
                  sides=4)
-        hanging_lantern(lanterns_root, "stern_" + sn, base + v3(side * 0.6, 0.15, -0.6), drop=0.3)
+        hanging_lantern(lanterns_root, "stern_" + sn, base + v3(side * 0.55, 0.2, -0.7), drop=1.1, w=0.42, h=0.6)
         for k, z in enumerate((ls.FORECASTLE_Z + 0.4, ls.QUARTERDECK_Z - 0.4, 13.0, -11.0, ls.POOP_Z - 0.4, -18.6, 6.5, 2.5, -2.5,
                                -6.0)):
             if ls.deck_y(z) > 0:
@@ -1322,14 +1467,6 @@ def ship_lanterns(lanterns_root, hook):
                      {"all": "lantern", "+2": "iron", "-2": "iron"}, stretch=True)
     for k, z in enumerate((-2.1, -7.85)):
         hanging_lantern(lanterns_root, "keel_%d" % k, v3(0, ls.keel_y(z) - 0.3, z), drop=1.0)
-    # the big lanterns of the taffrail, on the poop's aft corners (the reference's lit lantern at the top of the stern)
-    for side, sn in SIDES:
-        z = ls.HULL_STERN_Z + 0.3
-        x = ls.hull_x(z, ls.POOP_Y + 0.5) - 0.3
-        y = ls.POOP_Y + 1.24
-        tube(lanterns_root, "taffrail_lantern_post_" + sn, v3(side * x, y - 0.02, z), v3(side * x, y + 0.3, z), 0.14, "iron", sides=4)
-        add_cube(lanterns_root, "taffrail_lantern_" + sn, v3(side * x, y + 0.72, z), EYE, (0.5, 0.78, 0.5), {"all": "lantern", "+2": "gold", "-2": "gold"},
-                 stretch=True)
 
 
 # ================================================================ rooms (grid surfaces), ladders, doors
@@ -1679,10 +1816,12 @@ def build(g):
     fins(root)
     top_deck(top, root, g)
     rigging(rig, pennants, lanterns, swags)
+    lanterns_root_ref[0] = lanterns
     hull(hull_b, detail, lights)
     rudder(root)
     hook = beakhead(head, detail, lights)
     decks(deck_b, g)
+    taffrail(deck_b, detail, lights)
     stairs(deck_b, fittings)
     tower(tower_b, root, lights)
     suspension(susp, sails)

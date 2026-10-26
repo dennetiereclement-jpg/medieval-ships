@@ -45,8 +45,11 @@ public final class LeviathanLayout {
 	public static final double BOW_RAKE_Y1 = 3.0;
 	private static final double[] BOW_PLAN = {14.4, 2.4, 0.5};
 	private static final double[] STERN_PLAN = {27.0, 2.6, 0.5};
-	private static final double[][] KEEL_PTS = {{-19.8, -0.6}, {-19.3, -1.6}, {-18.7, -2.7}, {-18.0, -3.8}, {-17.0, -5.3}, {-15.5, -5.95}, {-10.0, -6.25}, {-4.0, -6.3},
-			{2.0, -6.28}, {6.0, -6.15}, {9.0, -5.85}, {11.0, -5.35}, {12.6, -4.55}, {13.5, -3.6}, {14.0, -2.5}};
+	private static final double[][] KEEL_PTS = {{-19.8, -0.5}, {-19.2, -0.9}, {-18.5, -1.6}, {-17.95, -2.7}, {-17.7, -3.8}, {-17.45, -4.9},
+			{-17.0, -5.6}, {-15.5, -6.0}, {-10.0, -6.35}, {-5.0, -6.55}, {-1.0, -6.6}, {3.0, -6.5}, {6.0, -6.25}, {9.0, -5.85}, {11.0, -5.35},
+			{12.6, -4.55}, {13.5, -3.6}, {14.0, -2.5}};
+	/** The run: aft of RUN_Z, over RUN_LEN blocks, the bilge's exponent drops by RUN_DROP (finer lower stern). */
+	private static final double RUN_Z = -16.6, RUN_LEN = 2.8, RUN_DROP = 1.3;
 	private static final double[] KEEL_SLOPES = keelSlopes();
 	public static final double SHEER_WAIST = 1.0;
 	public static final double TUMBLE = 0.025;
@@ -235,7 +238,8 @@ public final class LeviathanLayout {
 		}
 		if (y <= SHEER_WAIST) {
 			double eta = (y - k) / (SHEER_WAIST - k);
-			return w * (0.12 + 0.88 * Math.pow(1.0 - Math.pow(1.0 - eta, 3), 0.5));
+			double p = 3.0 - RUN_DROP * smooth((RUN_Z - z) / RUN_LEN);
+			return w * (0.12 + 0.88 * Math.pow(1.0 - Math.pow(1.0 - eta, p), 0.5));
 		}
 		return w * (1.0 - TUMBLE * (y - SHEER_WAIST));
 	}
@@ -390,6 +394,13 @@ public final class LeviathanLayout {
 				probes.add(new double[] {x, y, z});
 				probes.add(new double[] {-x, y, z});
 			}
+		}
+		// the overhanging upper stern and its galleries, the lantern houses on the taffrail
+		probes.add(new double[] {0, POOP_Y, HULL_STERN_Z - 1.65});
+		probes.add(new double[] {0, 0.2, HULL_STERN_Z - 1.25});
+		for (double x : new double[] {-2.5, 2.5}) {
+			probes.add(new double[] {x, POOP_Y + 2.0, HULL_STERN_Z - 0.7});
+			probes.add(new double[] {x * 1.6, 0.2, HULL_STERN_Z - 0.4});
 		}
 		probes.add(new double[] {0, 1.2, 20.8});
 		probes.add(new double[] {0, 3.6, 22.4});
