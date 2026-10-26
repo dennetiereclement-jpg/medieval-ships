@@ -99,8 +99,11 @@ public final class ShipModels {
 	public static final Visual SKY_LEVIATHAN = new Visual(Ships.SKY_LEVIATHAN, model("sky_leviathan"),
 			List.of(texture("sky_leviathan"), texture("sky_leviathan_interior")), 0.3f, 40, 40,
 			false, null, null, 0.07f);
+	public static final Visual CRYSTAL_AIRSHIP = new Visual(Ships.CRYSTAL_AIRSHIP, model("crystal_airship"),
+			List.of(texture("crystal_airship"), texture("crystal_airship_interior")), 0.25f, 42, 42,
+			false, null, null, 0.09f);
 	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT,
-			STEAMPUNK_AIRSHIP, NAUTILUS, OLD_CORSAIR, SKY_LEVIATHAN);
+			STEAMPUNK_AIRSHIP, NAUTILUS, OLD_CORSAIR, SKY_LEVIATHAN, CRYSTAL_AIRSHIP);
 
 	@Nullable
 	public static Visual of(ShipType type) {

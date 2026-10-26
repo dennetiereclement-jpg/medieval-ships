@@ -258,6 +258,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			CorsairGameTest.run(context, sp.getServer(), sp.getClientWorld(), this::check, this::log, name -> shot(context, name));
 			LeviathanGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 			NewVehiclesRoutesGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m));
+			CrystalGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 		}
 	}
 
