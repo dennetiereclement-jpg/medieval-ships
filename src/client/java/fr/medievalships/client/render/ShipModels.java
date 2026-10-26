@@ -99,8 +99,13 @@ public final class ShipModels {
 	public static final Visual SKY_LEVIATHAN = new Visual(Ships.SKY_LEVIATHAN, model("sky_leviathan"),
 			List.of(texture("sky_leviathan"), texture("sky_leviathan_interior")), 0.3f, 40, 40,
 			false, null, null, 0.07f);
+	/** The Rustic Skyskiff: the hum of its tubes and puffs of smoke from the middle tube's mouth; a light bob in the air. */
+	public static final Visual RUSTIC_SKIFF = new Visual(Ships.RUSTIC_SKIFF, model("rustic_skiff"), List.of(texture("rustic_skiff")), 0.8f, 26, 22,
+			false, null, new Propeller(new double[] {0, fr.medievalships.core.SkiffLayout.TUBES[4][1], fr.medievalships.core.SkiffLayout.TUBE_START_Z},
+					new double[] {0, fr.medievalships.core.SkiffLayout.TUBES[4][1], fr.medievalships.core.SkiffLayout.TUBE_CENTRE_END_Z - 0.3}), 0.06f);
 	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT,
-			STEAMPUNK_AIRSHIP, NAUTILUS, OLD_CORSAIR, SKY_LEVIATHAN);
+			STEAMPUNK_AIRSHIP, NAUTILUS, OLD_CORSAIR, SKY_LEVIATHAN,
+			RUSTIC_SKIFF);
 
 	@Nullable
 	public static Visual of(ShipType type) {

@@ -1275,8 +1275,12 @@ public final class Ships {
 	/** The Sky Leviathan: a huge steampunk pirate airship with rooms (see {@link LeviathanLayout}). */
 	public static final ShipType SKY_LEVIATHAN = LeviathanLayout.type();
 
+	/** The Rustic Skyskiff: a small, agile flying boat with rooms (see {@link SkiffLayout}). */
+	public static final ShipType RUSTIC_SKIFF = SkiffLayout.type();
+
 	public static final List<ShipType> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT, STEAMPUNK_AIRSHIP, NAUTILUS,
-			OLD_CORSAIR, SKY_LEVIATHAN);
+			OLD_CORSAIR, SKY_LEVIATHAN,
+			RUSTIC_SKIFF);
 
 	/**
 	 * Other names accepted by the commands (the ids used in saves and configs never change):
