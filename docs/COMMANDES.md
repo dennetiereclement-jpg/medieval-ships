@@ -103,7 +103,7 @@ reprend après un redémarrage.
 |---|---|
 | `/ship goto <x> <y> <z>` | Envoie le vaisseau ciblé à ce point (`~` accepté : `/ship goto ~200 ~ ~-50`). Pour un aéronef, `y` est la hauteur de son **pont** à l'arrivée (sous le sol : il se pose à sa garde au-dessus) ; un navire reste sur l'eau (seuls `x` et `z` comptent). |
 | `/ship goto destination <nom>` | Vers une destination enregistrée. |
-| `/ship goto visee` | Vers le bloc que vous visez (jusqu'à 512 blocs, zones chargées) : un aéronef s'y pose. |
+| `/ship goto visee` | Vers le bloc que vous visez (dans la distance de vue du serveur, 512 blocs au plus ; aucun chunk n'est chargé pour cela) : un aéronef s'y pose. |
 | `/ship goto stop` | Annule la destination : un aéronef s'arrête en vol stationnaire, un navire file sur son erre. |
 | `/ship destination add <nom>` | Enregistre votre position comme destination (pour un aéronef : hauteur du pont). |
 | `/ship destination remove <nom>` | Supprime une destination. |

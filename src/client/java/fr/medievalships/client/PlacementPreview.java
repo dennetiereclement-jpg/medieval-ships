@@ -65,15 +65,17 @@ public final class PlacementPreview {
 		return current;
 	}
 
-	/** The vessel whose item the player holds (main hand first, as a right click uses it), or null. */
+	/**
+	 * The vessel a right click would place, or null: the item in the main hand, or the one in the other hand when the
+	 * main hand is empty (with something else in the main hand, that is what a right click uses).
+	 */
 	@Nullable
 	static ShipType heldType(ClientPlayerEntity player) {
-		for (ItemStack stack : new ItemStack[] {player.getMainHandStack(), player.getOffHandStack()}) {
-			if (stack.getItem() instanceof ShipItem item) {
-				return item.shipType();
-			}
+		ItemStack main = player.getMainHandStack();
+		if (main.getItem() instanceof ShipItem item) {
+			return item.shipType();
 		}
-		return null;
+		return main.isEmpty() && player.getOffHandStack().getItem() instanceof ShipItem item ? item.shipType() : null;
 	}
 
 	/** Client tick: where would the held vessel go? */

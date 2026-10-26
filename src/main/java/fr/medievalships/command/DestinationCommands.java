@@ -43,6 +43,7 @@ import fr.medievalships.entity.ShipTracker;
  * </ul>
  */
 final class DestinationCommands {
+	/** Farthest aimed destination, never beyond the chunks loaded around the players (a ray must not load chunks). */
 	private static final double LOOK_RANGE = 512.0;
 
 	private DestinationCommands() {
@@ -130,15 +131,16 @@ final class DestinationCommands {
 		return go(ctx, ship, admin, d.x, d.y, d.z, d.name);
 	}
 
-	/** To the block the player looks at (up to 512 blocks, in loaded chunks): an aircraft lands on it. */
+	/** To the block the player looks at (within his view distance): an aircraft lands on it. */
 	private static int gotoLook(CommandContext<ServerCommandSource> ctx, boolean admin) throws CommandSyntaxException {
 		Entity source = ctx.getSource().getEntity();
 		if (source == null) {
 			throw ShipCommands.error("Seul un joueur peut viser une destination.");
 		}
-		HitResult hit = source.raycast(LOOK_RANGE, 1f, true);
+		double range = Math.min(LOOK_RANGE, Math.max(2, ctx.getSource().getServer().getPlayerManager().getViewDistance() - 1) * 16.0);
+		HitResult hit = source.raycast(range, 1f, true);
 		if (hit.getType() == HitResult.Type.MISS) {
-			throw ShipCommands.error("Aucun bloc visé (à moins de " + (int) LOOK_RANGE + " blocs, dans les zones chargées).");
+			throw ShipCommands.error("Aucun bloc visé (à moins de " + (int) range + " blocs).");
 		}
 		ShipEntity ship = vessel(ctx, admin);
 		Vec3d p = hit.getPos();
