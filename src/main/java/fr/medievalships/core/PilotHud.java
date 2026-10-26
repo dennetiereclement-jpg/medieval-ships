@@ -55,13 +55,14 @@ public final class PilotHud {
 		out.add(s.vessel == null || s.vessel.isBlank() ? "Navire" : s.vessel);
 		double v = Math.abs(s.speed);
 		out.add(s.speed < -0.05
-				? String.format(FR, "Vitesse : %.1f blocs/s en arrière", v)
-				: String.format(FR, "Vitesse : %.1f blocs/s (%.0f km/h)", v, v * 3.6));
+				? String.format(FR, "Vitesse : %.1f %s/s en arrière", v, blocks(v, 1))
+				: String.format(FR, "Vitesse : %.1f %s/s (%.0f km/h)", v, blocks(v, 1), v * 3.6));
 		if (s.kind == Kind.AIRCRAFT) {
 			String alt = Double.isNaN(s.deckY) ? "?" : String.valueOf((int) Math.floor(s.deckY));
 			out.add(Double.isNaN(s.groundClearance) || Double.isInfinite(s.groundClearance)
 					? "Altitude : " + alt
-					: String.format(FR, "Altitude : %s (%.0f blocs sous la quille)", alt, Math.max(0, s.groundClearance)));
+					: String.format(FR, "Altitude : %s (%.0f %s sous la quille)", alt, Math.max(0, s.groundClearance),
+							blocks(Math.max(0, s.groundClearance), 0)));
 			out.add("Vertical : " + vertical(s.verticalSpeed, "montée", "descente", "palier"));
 		} else if (s.kind == Kind.SUBMARINE) {
 			double d = Double.isNaN(s.depth) ? 0 : s.depth;
@@ -99,12 +100,18 @@ public final class PilotHud {
 		return v <= (s.normalSpeed + s.fastSpeed) / 2 ? "croisière" : "plein régime";
 	}
 
+	/** "bloc" or "blocs" for this value as it is shown with {@code decimals} decimals (French: singular below 2). */
+	static String blocks(double value, int decimals) {
+		double scale = Math.pow(10, decimals);
+		return Math.round(Math.abs(value) * scale) / scale >= 2 ? "blocs" : "bloc";
+	}
+
 	private static String vertical(double vy, String up, String down, String level) {
 		if (vy > 0.05) {
-			return String.format(FR, "%s %.1f bloc/s", up, vy);
+			return String.format(FR, "%s %.1f %s/s", up, vy, blocks(vy, 1));
 		}
 		if (vy < -0.05) {
-			return String.format(FR, "%s %.1f bloc/s", down, -vy);
+			return String.format(FR, "%s %.1f %s/s", down, -vy, blocks(-vy, 1));
 		}
 		return level;
 	}
@@ -114,7 +121,8 @@ public final class PilotHud {
 			return "inactif";
 		}
 		String target = s.autopilotTarget == null || s.autopilotTarget.isBlank() ? "" : s.autopilotTarget;
-		String dist = Double.isNaN(s.autopilotDistance) ? "" : String.format(FR, " (%.0f blocs)", s.autopilotDistance);
+		String dist = Double.isNaN(s.autopilotDistance) ? ""
+				: String.format(FR, " (%.0f %s)", s.autopilotDistance, blocks(s.autopilotDistance, 0));
 		String phase = s.autopilotPhase == null ? "" : s.autopilotPhase;
 		return switch (phase) {
 			case "SAILING" -> target.isEmpty() ? "en route" + dist : "en route vers " + target + dist;

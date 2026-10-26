@@ -157,6 +157,13 @@ class SharedFeaturesTest {
 		assertTrue(l.contains("Vitesse : 4,2 blocs/s (15 km/h)"), l.toString());
 		assertTrue(l.contains("Altitude : 112 (24 blocs sous la quille)"), l.toString());
 		assertTrue(l.contains("Vertical : montée 1,2 bloc/s"), l.toString());
+		PilotHud.Status low = airship();
+		low.speed = 1.96;
+		low.groundClearance = 1.2;
+		low.verticalSpeed = -2.5;
+		List<String> lo = PilotHud.lines(low);
+		assertTrue(lo.contains("Vitesse : 2,0 blocs/s (7 km/h)") && lo.contains("Altitude : 112 (1 bloc sous la quille)")
+				&& lo.contains("Vertical : descente 2,5 blocs/s"), "French plurals: " + lo);
 		assertTrue(l.contains("Moteur : croisière · allure normale"), l.toString());
 		assertTrue(l.contains("Pilote auto : inactif"), l.toString());
 		assertTrue(l.get(l.size() - 1).startsWith("[") && l.get(l.size() - 1).contains("Espace monter"), l.toString());
@@ -174,7 +181,7 @@ class SharedFeaturesTest {
 		s.speed = -1.5;
 		s.gait = "rapide";
 		List<String> l = PilotHud.lines(s);
-		assertTrue(l.contains("Vitesse : 1,5 blocs/s en arrière"), l.toString());
+		assertTrue(l.contains("Vitesse : 1,5 bloc/s en arrière"), l.toString());
 		assertTrue(l.contains("Allure : rapide · marche arrière"), l.toString());
 		assertFalse(l.stream().anyMatch(x -> x.startsWith("Altitude")), "no altitude on the water");
 		PilotHud.Status n = new PilotHud.Status();

@@ -17,6 +17,42 @@ Le test (`src/gametest/.../ShipClientGameTest.java`) crée un monde, des bassins
 à l'eau puis vérifie (résultats et captures publiés sur les branches `test-results-vanilla` et
 `test-results-lithium`) :
 
+### Fonctions communes (aperçu de placement, tableau de bord, inclinaison, permissions, destinations)
+
+`SharedFeaturesGameTest` (≈ 90 s de jeu, en solo **et** sur serveur dédié, avec et sans Lithium et
+avec les mods de décoration) :
+
+* **aperçu** : objet du dirigeable steampunk en main au-dessus d'un terrain dégagé → silhouette
+  **verte** ; le serveur, avec la même visée et le même cap, trouve **exactement le même
+  emplacement** (0,000000 bloc d'écart) ; le clic droit pose le dirigeable **là où était la
+  silhouette** (0,00 bloc, même cap) ; ensuite l'emplacement n'est plus montré libre ; devant une
+  falaise de pierre trop haute → silhouette **rouge**, et le clic droit **ne pose rien** ; plus de
+  silhouette une fois l'objet rangé (captures `partage_1_apercu_vert`, `partage_2_apercu_rouge`) ;
+* **permissions** : avec `placeAdminOnly: ["steampunk_airship"]`, le joueur de test (qui n'est pas
+  administrateur, en solo comme sur le serveur dédié) **ne peut pas** poser le dirigeable ;
+* **tableau de bord** : un joueur sur le pont (pas à la barre) ne voit **rien** ; le pilote voit
+  vitesse, altitude, montée/palier, moteur, pilote automatique et touches (`partage_3_hud_pilote`) ;
+* **destination** : le pilote (non administrateur) tape `/pilote goto x y z` (45 blocs devant, 6 plus
+  haut) → le pilote automatique prend la barre sur son propre itinéraire `goto-…`, le tableau de bord
+  du joueur resté près de la barre affiche « Pilote auto : en route vers … (44 blocs) » et « Clic
+  droit sur la barre : reprendre la main » (`partage_4_hud_pilote_auto`) ; le dirigeable arrive
+  (phase *arrivé*, à 1,6 bloc du point, pont à 0,1 bloc de la hauteur demandée) avec le joueur à bord ;
+  reprendre la barre annule la destination, efface son itinéraire et installe le joueur à la barre ;
+* **inclinaison** : dirigeable steampunk et Léviathan des Cieux en boucle sur un cercle (pilote
+  automatique), un joueur **debout puis marchant** sur le pont : le steampunk tourne de 135° en 18 s
+  et s'incline jusqu'à **4,4°** (borne 6°), le Léviathan tourne de 59° et s'incline de **1,0°** (sa
+  borne) ; dans les deux cas le joueur **reste sur le pont**, à 0,000 bloc de sa hauteur
+  (`partage_5_inclinaison_*` à bord, `partage_6_inclinaison_dehors_*` de l'extérieur).
+
+Tests unitaires (`SharedFeaturesTest`, 15 tests) : règles de permission (défaut, `placeRequiresAdmin`,
+`placeAllowedPlayers` par pseudo ou UUID, `placeAdminOnly`, ancien fichier de configuration sans les
+nouvelles clés) ; inclinaison (sens, virage sur place et marche arrière, borne, lissage, activée par
+défaut sur chaque aéronef sans qu'aucun pont ni pièce ne dérive de plus d'un demi-bloc, `bankAngle: 0`
+la coupe) ; tableau de bord (aéronef, navire, sous-marin, pilote automatique, pluriels français) ;
+destinations (itinéraire d'un point, vol du dirigeable par-dessus un mur de 20 blocs jusqu'au point
+puis atterrissage à sa garde, sans jamais toucher le relief ; navigation d'une galère jusqu'à son point) ;
+contrôle d'espace à arrêt précoce identique au comptage complet sur tous les navires.
+
 ### Nouveaux navires (galère rouge, bateau à roue à vapeur, voilier elfique) — 1.5.0
 
 Le même scénario pour chacun, dans un quatrième bassin (44 × 100 blocs) :
@@ -240,6 +276,15 @@ Les modèles ont aussi été vérifiés visuellement (`docs/preview.png`, `docs/
 ## À valider en jeu de votre côté
 
 Ce que les tests automatiques ne peuvent pas juger ou n'ont pas couvert :
+
+0. **Fonctions communes** : l'aperçu n'a été testé en jeu qu'avec le dirigeable steampunk (le calcul
+   est le même pour tous, et les navires sur l'eau sont couverts par le même code que `/ship spawn`) ;
+   sur un serveur dédié le client ne connaît pas `placeRequiresAdmin` / `placeAdminOnly` : la
+   silhouette peut être verte pour un joueur qui n'a pas le droit de poser (le serveur refuse alors,
+   avec un message). L'inclinaison est visuelle : sur le dessus d'un ballon (où l'on peut se tenir),
+   le décalage visuel peut dépasser le demi-bloc garanti sur les ponts et dans les pièces.
+   `/pilote goto` vers un point très lointain garde les chunks du trajet chargés (comme un ferry)
+   jusqu'à l'arrivée ; la distance est bornée par `playerDestinationMaxDistance`.
 
 1. **Plusieurs joueurs en même temps** : le serveur dédié est testé avec un joueur ; vérifiez à
    deux : marcher sur le galion pendant qu'un autre barre, s'asseoir, descendre.

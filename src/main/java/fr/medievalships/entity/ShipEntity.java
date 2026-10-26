@@ -655,7 +655,7 @@ public abstract class ShipEntity extends Entity {
 		}
 
 		// ---- ferries keep their chunks loaded and are remembered across restarts
-		if (aiEnabled && age % 20 == 0) {
+		if (keepsChunksLoaded() && age % 20 == 0) {
 			if (ConfigManager.server().chunkLoadAutopilotShips) {
 				ChunkPos here = new ChunkPos(BlockPos.ofFloored(getX(), getY(), getZ()));
 				world.getChunkManager().addTicket(ChunkTicketType.PORTAL, here, ConfigManager.server().chunkLoadRadius);
@@ -715,7 +715,7 @@ public abstract class ShipEntity extends Entity {
 		if (dataTracker.get(AUTOPILOT) != aiEnabled) {
 			dataTracker.set(AUTOPILOT, aiEnabled);
 		}
-		if (aiEnabled && age % 20 == 0) {
+		if (keepsChunksLoaded() && age % 20 == 0) {
 			if (ConfigManager.server().chunkLoadAutopilotShips) {
 				ChunkPos here = new ChunkPos(BlockPos.ofFloored(getX(), getY(), getZ()));
 				world.getChunkManager().addTicket(ChunkTicketType.PORTAL, here, ConfigManager.server().chunkLoadRadius);
@@ -964,6 +964,14 @@ public abstract class ShipEntity extends Entity {
 		syncAutopilotInfo(sw);
 	}
 
+	/**
+	 * Does the autopilot keep its chunks loaded and its position remembered across restarts (a ferry)? Not once it
+	 * has arrived at a destination given with {@code goto}: it then just holds its position there.
+	 */
+	private boolean keepsChunksLoaded() {
+		return aiEnabled && !(GotoRoutes.isGoto(routeName) && autopilot.phase == Autopilot.Phase.FINISHED);
+	}
+
 	/** Is the autopilot following a destination given with {@code goto} (not an administrator's route)? */
 	public boolean onGoto() {
 		return aiEnabled && GotoRoutes.isGoto(routeName);
@@ -1065,6 +1073,9 @@ public abstract class ShipEntity extends Entity {
 
 		@Override
 		public void finished() {
+			if (GotoRoutes.isGoto(routeName)) {
+				ShipData.get(world.getServer()).removeFerry(getUuid()); // arrived: nothing to reload after a restart
+			}
 			say(Text.literal(shipName() + " est arrivé à destination.").formatted(Formatting.AQUA), false);
 		}
 	}

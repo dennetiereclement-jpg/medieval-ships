@@ -65,7 +65,8 @@ Le Nautilus a son guide : [docs/NAUTILUS.md](docs/NAUTILUS.md) (plan des salles,
 commandes `/ship nautilus`, itinéraires sous-marins, mobilier utilisé).
 
 Pilotage du dirigeable : Z/S vitesse, Q/D cap, **Espace monter, Ctrl descendre** (relâchées : il
-garde son altitude), Maj quitter le poste. Voir [docs/COMMANDES.md](docs/COMMANDES.md) pour les
+garde son altitude), Maj quitter le poste ; le tableau de bord du pilote affiche vitesse, altitude,
+moteur et pilote automatique. Voir [docs/COMMANDES.md](docs/COMMANDES.md) pour les
 itinéraires aériens et [docs/comparaison_dirigeable.png](docs/comparaison_dirigeable.png) pour la
 comparaison avec l'image de référence.
 
@@ -89,6 +90,40 @@ Pour tous :
 * commandes `/ship` pour les administrateurs ;
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
+
+## Fonctions communes à tous les vaisseaux
+
+* **Aperçu de placement** : en tenant l'objet d'un vaisseau, une silhouette translucide du vaisseau
+  apparaît là où le clic droit le posera, orientée comme vous regardez, **verte** s'il y a la place et
+  **rouge** sinon. Elle vient du même calcul que le serveur (même visée, même contrôle d'espace :
+  relief, bâtiments, autres coques) : vert, le vaisseau est posé exactement là ; rouge, rien n'est posé
+  et l'objet est gardé. Seule la coque est dessinée (ni pièces, ni meubles), seulement pour le joueur
+  qui tient l'objet, et le contrôle n'est refait que si la visée change.
+* **Tableau de bord du pilote** (en haut à gauche, en français) : vitesse, altitude et hauteur sous la
+  quille, montée / descente / palier, profondeur (Nautilus), état du moteur et allure, état du pilote
+  automatique, touches. Seul le joueur à la barre le voit (et, quand le pilote automatique emmène le
+  vaisseau vers une destination, le joueur resté près de la barre) : rien pour les passagers.
+* **Inclinaison en virage** des aéronefs, proportionnelle à la vitesse et au taux de virage (virage
+  coordonné), purement visuelle : collisions, ponts, pièces et passagers restent à plat, et l'angle
+  est borné pour qu'aucun endroit où l'on marche ne paraisse à plus d'un demi-bloc de sa position
+  réelle (≈ 6° pour le dirigeable steampunk, ≈ 1° pour l'immense Léviathan des Cieux). Réglable par
+  vaisseau (`bankAngle` du bloc `flight`, 0 = désactivé). Un joueur debout ou qui marche sur le pont
+  pendant les virages reste sur le pont (testé en jeu sur le dirigeable steampunk et le Léviathan).
+* **Permissions de placement** : `placeRequiresAdmin` (tous les vaisseaux réservés aux
+  administrateurs), `placeAdminOnly` (certains vaisseaux seulement, ex. `["sky_leviathan"]`),
+  `placeAllowedPlayers` (joueurs autorisés malgré tout). `/ship` et la récupération d'un navire
+  restent réservés aux administrateurs.
+* **Destinations** pour le pilote automatique, en plus des itinéraires : `/ship goto <x y z>`,
+  `/ship goto destination <nom>`, `/ship goto visee`, destinations enregistrées
+  (`/ship destination add|remove|list`), et pour **les joueurs à bord** `/pilote goto …`,
+  `/pilote stop`, `/pilote destinations`. Le vaisseau y va seul (évitement des obstacles, altitude
+  au-dessus du relief et des bâtiments, ralentissement à l'approche, arrêt sur le point, un aéronef se
+  pose à sa garde au-dessus du sol), et un clic droit sur la barre rend la main. Un joueur ne peut pas
+  dérouter un ferry ni passer outre le joueur qui tient la barre. Détails :
+  [docs/COMMANDES.md](docs/COMMANDES.md#destinations-aller-à-un-point).
+* **Intérieurs praticables en vol** : on marche sur les ponts et dans les pièces pendant que le
+  vaisseau vole ou navigue grâce au système du mod (grille intérieure de collisions qui suit la coque,
+  transport des joueurs et des entités à bord), **pas** Valkyrien Skies, qui n'est ni requis ni utilisé.
 
 La version 1.8.2 embellit le navire suspendu du Léviathan des Cieux : poupe bombée qui monte en surplomb avec deux galeries superposées à balustres, onze fenêtres plombées éclairées, ornements et engrenages de laiton, lanternons ; ventre profond et arrondi, tonture relevée, proue ronde à longue poulaine ajourée, préceintes courbes, hublots cerclés de laiton, garde-corps à balustres tournés ; on peut marcher sur la dunette prolongée.
 
@@ -268,7 +303,11 @@ automatiquement : ses valeurs deviennent celles de la galère.
 | `announceDepartures`, `announceRadius` | true, 40 | annonces de départ / d'arrivée |
 | `chunkLoadAutopilotShips`, `chunkLoadRadius` | true, 2 | garder chargés les chunks des ferries |
 | `adminPermissionLevel` | 2 | niveau requis pour `/ship` et la récupération des navires |
-| `placeRequiresAdmin` | false | réserver la mise à l'eau aux administrateurs |
+| `placeRequiresAdmin` | false | réserver la mise à l'eau aux administrateurs (et aux joueurs de `placeAllowedPlayers`) |
+| `placeAdminOnly` | `[]` | vaisseaux réservés aux administrateurs, ex. `["sky_leviathan"]` |
+| `placeAllowedPlayers` | `[]` | joueurs (pseudo ou UUID) autorisés à placer même quand c'est réservé aux administrateurs |
+| `playerDestinations` | true | les joueurs à bord peuvent donner une destination (`/pilote goto`) |
+| `playerDestinationMaxDistance` | 5000 | distance maximale d'une destination donnée par un joueur non administrateur |
 
 **`ships.galley` / `ships.galleon` / `ships.warship`**
 
@@ -313,6 +352,7 @@ plus un bloc **`flight`** propre aux aéronefs (ajouté automatiquement à un fi
 | `aiApproachDistance` | 26 | pilote automatique : distance d'une escale où il commence à descendre à sa hauteur |
 | `aiLandingClearance` | 1.2 | pilote automatique : hauteur gardée sous la quille en descendant à une escale |
 | `sway` | 1.0 | balancement visuel de la nacelle (0 = aucun) |
+| `bankAngle` | 6.0 | inclinaison maximale en virage (degrés, visuelle ; bornée selon la taille du vaisseau ; 0 = aucune) |
 
 **`ships.nautilus`** : mêmes clés de vitesse, d'inertie et de pilote automatique (vitesses 2 / 4,5 / 7
 blocs/s, accélération 0,35, virage maximal 6°/s), plus un bloc **`dive`** propre aux sous-marins :

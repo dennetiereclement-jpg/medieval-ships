@@ -139,6 +139,13 @@ public final class SharedFeaturesGameTest {
 		server.runCommand(String.format(Locale.ROOT, "tp @p %.3f %.3f %.3f %.1f %.1f", w[0], w[1], w[2], (float) (pose.yaw() + localYaw), pitch));
 	}
 
+	/** A screenshot without the chat lines of the commands. */
+	private static void shot(ClientGameTestContext context, Consumer<String> shot, String name) {
+		context.runOnClient(c -> c.inGameHud.getChatHud().clear(false));
+		context.waitTicks(2);
+		shot.accept(name);
+	}
+
 	private static void lookLocal(TestServerContext server, ShipPose pose, double ex, double ey, double ez, double tx, double ty, double tz) {
 		double[] e = pose.toWorld(ex, ey, ez), t = pose.toWorld(tx, ty, tz);
 		double dx = t[0] - e[0], dy = t[1] - e[1], dz = t[2] - e[2];
@@ -159,7 +166,7 @@ public final class SharedFeaturesGameTest {
 		context.waitTicks(40);
 		int ground = ground(server, X, Z);
 		server.runCommand("gamemode creative @a");
-		server.runCommand(String.format(Locale.ROOT, "tp @p %.1f %d %.1f 0 30", X + 0.5, ground, Z + 0.5));
+		server.runCommand(String.format(Locale.ROOT, "tp @p %.1f %d %.1f 0 20", X + 0.5, ground, Z + 0.5));
 		world.waitForChunksRender();
 		context.waitTicks(20);
 		server.runCommand("item replace entity @p weapon.mainhand with medievalships:" + id);
@@ -177,7 +184,7 @@ public final class SharedFeaturesGameTest {
 				String.format(Locale.ROOT, "preview: the server's space check gives the same spot (%.6f blocks apart)", agree));
 		context.runOnClient(c -> c.options.setPerspective(Perspective.THIRD_PERSON_BACK));
 		context.waitTicks(5);
-		shot.accept("partage_1_apercu_vert");
+		shot(context, shot, "partage_1_apercu_vert");
 		context.runOnClient(c -> c.options.setPerspective(Perspective.FIRST_PERSON));
 
 		// placement still works, where the ghost was
@@ -200,14 +207,14 @@ public final class SharedFeaturesGameTest {
 
 		// red where it cannot fit: aiming at the ground just before a stone cliff higher than the airship can be
 		// placed above it; a right click places nothing
-		server.runCommand(String.format(Locale.ROOT, "tp @p %.1f %d %.1f 180 30", X + 0.5, ground, Z - 29.5));
+		server.runCommand(String.format(Locale.ROOT, "tp @p %.1f %d %.1f 180 20", X + 0.5, ground, Z - 29.5));
 		server.runCommand(String.format(Locale.ROOT, "fill %d %d %d %d %d %d stone", X - 9, ground, Z - 62, X + 9, ground + 36, Z - 36));
 		context.waitTicks(25);
 		PlacementPreview.State red = context.computeOnClient((MinecraftClient c) -> PlacementPreview.current());
-		check.accept(red != null && !red.valid(), "preview: inside a narrow chimney the ghost is red (" + (red == null ? "none" : red.pose()) + ")");
+		check.accept(red != null && !red.valid(), "preview: in front of a stone cliff the ghost is red (" + (red == null ? "none" : red.pose()) + ")");
 		context.runOnClient(c -> c.options.setPerspective(Perspective.THIRD_PERSON_BACK));
 		context.waitTicks(5);
-		shot.accept("partage_2_apercu_rouge");
+		shot(context, shot, "partage_2_apercu_rouge");
 		context.runOnClient(c -> c.options.setPerspective(Perspective.FIRST_PERSON));
 		List<UUID> b2 = near(server, type, X, Z - 40, 40);
 		context.getInput().pressKey(o -> o.useKey);
@@ -269,7 +276,7 @@ public final class SharedFeaturesGameTest {
 		check.accept(seated && all.contains("Vitesse :") && all.contains("Altitude :") && all.contains("Moteur :")
 				&& all.contains("Pilote auto : inactif") && all.contains("Espace monter"),
 				"panel: the pilot of the airship sees speed, altitude, engine and autopilot state, keys (" + all + ")");
-		shot.accept("partage_3_hud_pilote");
+		shot(context, shot, "partage_3_hud_pilote");
 
 		// the pilot gives a destination: 45 blocks ahead, 6 blocks higher (as a player, from the chat)
 		ShipPose s0 = pose(server, id);
@@ -290,7 +297,7 @@ public final class SharedFeaturesGameTest {
 		String autoAll = String.join(" | ", auto);
 		check.accept(autoAll.contains("Pilote auto : en route") && autoAll.contains("reprendre la main"),
 				"panel: standing by the helm while the autopilot flies there, the panel shows it (" + autoAll + ")");
-		shot.accept("partage_4_hud_pilote_auto");
+		shot(context, shot, "partage_4_hud_pilote_auto");
 		ShipPose b = s0;
 		String phase = "";
 		for (int i = 0; i < 45; i++) {
@@ -344,7 +351,9 @@ public final class SharedFeaturesGameTest {
 		context.waitTicks(40);
 		int ground = ground(server, x, z);
 		List<UUID> before = near(server, type, x, z, 40);
-		server.runCommand(String.format(Locale.ROOT, "execute positioned %d %d %d rotated 0 0 run ship spawn %s", x, ground, z, id));
+		// placed high enough above the ground for its autopilot's clearance: it turns at once, without climbing first
+		int air = ground + (int) Math.ceil(type.defaults().get().flight.aiClearance) + 2;
+		server.runCommand(String.format(Locale.ROOT, "execute positioned %d %d %d rotated 0 0 run ship spawn %s", x, air, z, id));
 		context.waitTicks(20);
 		List<UUID> after = near(server, type, x, z, 40);
 		after.removeAll(before);
@@ -413,7 +422,7 @@ public final class SharedFeaturesGameTest {
 				shotTaken = true;
 				context.runOnClient(c -> c.options.setPerspective(Perspective.THIRD_PERSON_BACK));
 				context.waitTicks(3);
-				shot.accept("partage_5_inclinaison_" + id);
+				shot(context, shot, "partage_5_inclinaison_" + id);
 				context.runOnClient(c -> c.options.setPerspective(Perspective.FIRST_PERSON));
 			}
 		}
@@ -424,15 +433,19 @@ public final class SharedFeaturesGameTest {
 				String.format(Locale.ROOT, "%s banking: it banks into the turns, within its limit (%.2f of %.2f deg)", id, maxBank, limit));
 		check.accept(aboard && worstDeck < 0.25, String.format(Locale.ROOT,
 				"%s banking: the player standing (and walking) on the deck stays on it (worst %.3f blocks off the deck)", id, worstDeck));
-		// from outside, still turning
+		// from outside, still turning: in front of the bow, the bank shows as a tilt against the horizon
 		server.runCommand("ride @p dismount");
 		server.runCommand("gamemode spectator @a");
 		ShipPose p = pose(server, ship);
 		if (p != null) {
 			double r = g.boundingRadius();
-			lookLocal(server, p, 0.2 * r, 0.35 * r, 1.9 * r, 0, 0.25 * g.topY(), 0);
+			double mid = 0.5 * (g.lowestY() + g.topY());
+			// where it will be in half a second (the spectator camera is placed by a command, the ship goes on)
+			double half = type.defaults().get().normalSpeed * 0.5;
+			ShipPose ahead = new ShipPose(p.worldX(0, half), p.y(), p.worldZ(0, half), p.yaw());
+			lookLocal(server, ahead, 0, mid, 1.15 * r, 0, mid, 0);
 			context.waitTicks(10);
-			shot.accept("partage_6_inclinaison_dehors_" + id);
+			shot(context, shot, "partage_6_inclinaison_dehors_" + id);
 		}
 		server.runCommand(String.format(Locale.ROOT, "execute positioned %.2f %.2f %.2f run ship ai disable", last.x(), last.y(), last.z()));
 		server.runCommand("ship route delete " + route);

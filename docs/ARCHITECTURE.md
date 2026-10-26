@@ -216,12 +216,44 @@ suivre chaque mise à jour. Notre approche ne touche qu'une méthode de collisio
   60 archipels aléatoires (57 réussis ; les 3 échecs étaient des ports encombrés d'îlots à
   7 blocs, où l'administrateur doit ajouter un point de passage — le navire l'a signalé).
 
+## Fonctions communes à tous les vaisseaux
+
+* **Aperçu de placement** (`client/PlacementPreview`) : à chaque tick où le joueur local tient
+  l'objet d'un vaisseau, la visée (`ShipItem.placementTarget`, celle du clic droit) et le contrôle
+  d'espace (`ShipPlacement.find`, celui du serveur : sondes de la coque contre le relief, les blocs
+  et les autres coques, arrêt à la première sonde bloquée) sont refaits sur le monde du client, mais
+  seulement quand le bloc visé ou le cap (pas de 2°) change, et au plus toutes les 10 ticks sinon.
+  Le modèle Blockbench du vaisseau est dessiné translucide (calque `entityTranslucent`, couleur
+  verte ou rouge, pleine lumière) par l'évènement `WorldRenderEvents.BEFORE_ENTITIES` de Fabric,
+  sans les os `rooms`, `furniture`, `fittings`, `detail` ni les meubles de remplacement.
+* **Tableau de bord du pilote** (`core/PilotHud`, texte pur testé ; `client/PilotHudOverlay`,
+  élément de HUD Fabric `HudElementRegistry`) : construit à chaque tick client à partir de l'état
+  synchronisé (vitesse, vitesse verticale, profondeur, allure, pilote automatique) ; une seule valeur
+  synchronisée de plus : `"phase;itinéraire;point;x;y;z"` du pilote automatique, mise à jour deux
+  fois par seconde et seulement quand elle change. Il remplace le message périodique de la barre
+  d'action.
+* **Inclinaison en virage** (`Flight.bankTarget`, `bankLimit`, `bankStep`) : virage coordonné
+  `tan φ = v·ω / g` (g = 9,8 blocs/s²) calculé par chaque client à partir de la vitesse
+  synchronisée et du cap, lissé (constante de temps 0,8 s) et dessiné par une rotation autour de
+  l'axe longitudinal à la hauteur du pont principal. Les collisions ne la voient pas. Borne :
+  `min(bankAngle, asin(0,5 / r))`, `r` étant la plus grande distance à cet axe d'un endroit où l'on
+  marche (bord du pont à hauteur de tête, toutes les cellules praticables de la grille intérieure) :
+  aucun plancher, mur ou meuble ne paraît à plus d'un demi-bloc de sa collision. Pour les aéronefs,
+  elle remplace la gîte à la barre des navires.
+* **Destinations** (`core/GotoRoutes`, `command/DestinationCommands`) : une destination est un
+  itinéraire d'un seul point (`goto-<UUID>`, mode `once`) suivi par le pilote automatique existant ;
+  rien de nouveau dans la navigation elle-même. Une fois arrivé, le vaisseau ne garde plus ses chunks
+  chargés et n'est plus rechargé au démarrage (seuls les ferries le sont). Le pilote automatique
+  aérien regarde devant lui à la distance de sa vitesse de croisière (et non de sa vitesse du moment) :
+  un dirigeable qui ralentit pour monter au-dessus d'un mur ne le perd plus de vue.
+
 ## Persistance
 
 Sauvegardé avec l'entité : position, cap, vitesse, vitesse de rotation, barre, allure, limite
 de vitesse, mode automatique, itinéraire, point visé, sens, phase (en mer / à quai), temps
 d'attente restant, nom. Sauvegardé dans le monde (`data/medievalships.dat`) : itinéraires,
-dernière position des navires automatiques, navire de chaque joueur déconnecté à bord.
+dernière position des navires automatiques, navire de chaque joueur déconnecté à bord,
+destinations enregistrées (`/ship destination add`).
 
 ## Performances
 
