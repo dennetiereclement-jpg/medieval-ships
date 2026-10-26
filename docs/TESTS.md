@@ -25,8 +25,8 @@ avec les mods de décoration) :
 * **aperçu** : objet du dirigeable steampunk en main au-dessus d'un terrain dégagé → silhouette
   **verte** ; le serveur, avec la même visée et le même cap, trouve **exactement le même
   emplacement** (0,000000 bloc d'écart) ; le clic droit pose le dirigeable **là où était la
-  silhouette** (0,00 bloc, même cap) ; ensuite l'emplacement n'est plus montré libre ; devant une
-  falaise de pierre trop haute → silhouette **rouge**, et le clic droit **ne pose rien** ; plus de
+  silhouette** (0,00 bloc, même cap) ; ensuite l'emplacement n'est plus montré libre ; entre deux
+  murs de pierre trop rapprochés pour le ballon → silhouette **rouge**, et le clic droit **ne pose rien** ; plus de
   silhouette une fois l'objet rangé (captures `partage_1_apercu_vert`, `partage_2_apercu_rouge`) ;
 * **permissions** : avec `placeAdminOnly: ["steampunk_airship"]`, le joueur de test (qui n'est pas
   administrateur, en solo comme sur le serveur dédié) **ne peut pas** poser le dirigeable ;
@@ -36,11 +36,11 @@ avec les mods de décoration) :
   haut) → le pilote automatique prend la barre sur son propre itinéraire `goto-…`, le tableau de bord
   du joueur resté près de la barre affiche « Pilote auto : en route vers … (44 blocs) » et « Clic
   droit sur la barre : reprendre la main » (`partage_4_hud_pilote_auto`) ; le dirigeable arrive
-  (phase *arrivé*, à 1,6 bloc du point, pont à 0,1 bloc de la hauteur demandée) avec le joueur à bord ;
+  (phase *arrivé*, à 1,5 bloc du point, pont à 0,1 bloc de la hauteur demandée) avec le joueur à bord ;
   reprendre la barre annule la destination, efface son itinéraire et installe le joueur à la barre ;
 * **inclinaison** : dirigeable steampunk et Léviathan des Cieux en boucle sur un cercle (pilote
-  automatique), un joueur **debout puis marchant** sur le pont : le steampunk tourne de 135° en 18 s
-  et s'incline jusqu'à **4,4°** (borne 6°), le Léviathan tourne de 59° et s'incline de **1,0°** (sa
+  automatique), un joueur **debout puis marchant** sur le pont : le steampunk tourne de 140° en 18 s
+  et s'incline jusqu'à **4,5°** (borne 6°), le Léviathan tourne de 76° et s'incline de **1,0°** (sa
   borne) ; dans les deux cas le joueur **reste sur le pont**, à 0,000 bloc de sa hauteur
   (`partage_5_inclinaison_*` à bord, `partage_6_inclinaison_dehors_*` de l'extérieur).
 
