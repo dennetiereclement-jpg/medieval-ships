@@ -965,11 +965,11 @@ def porch_roof(bone, detail, lights):
             beam(bone, "porch_bargeboard_%s%d" % (sn, j), pts[j], pts[j + 1], 0.4, "bargeboard", width=0.24, extend=0.08)
         scroll(bone, detail, "porch_bargeboard_scroll_" + sn, pts[0] + v3(side * 0.1, -0.12, 0), side)
         # battens down the slope
-        for j, z in enumerate((z0 + 1.15, z1 + 0.5)):
+        for j, z in enumerate((z0 - 1.15, z1 + 0.6)):
             q = [P(d, z) + v3(0, 0.16, 0) for d in np.linspace(0.1, hw - 0.15, 6)]
             for i in range(len(q) - 1):
                 tube(bone, "porch_batten_%s%d_%d" % (sn, j, i), q[i], q[i + 1], 0.22, "bamboo", sides=4, extend=0.05)
-        q = [P(hw * 0.45, z0 + 0.1), P(hw * 0.45, z1)]
+        q = [P(hw * 0.45, z0 - 0.1), P(hw * 0.45, z1 + 0.2)]
         tube(bone, "porch_batten_long_" + sn, q[0] + v3(0, 0.17, 0), q[1] + v3(0, 0.17, 0), 0.22, "bamboo", sides=4, extend=0.05)
     ry = js.PORCH_RIDGE_Y + 0.12
     beam(bone, "porch_ridge", (0, ry, z0 - 0.25), (0, ry, z1), 0.34, "ridge", width=0.4, extend=0.1)
