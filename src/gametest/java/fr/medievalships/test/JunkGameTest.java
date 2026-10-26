@@ -116,10 +116,18 @@ public final class JunkGameTest {
 		server.runCommand("gamemode spectator @a");
 		server.runCommand(String.format(Locale.ROOT, "tp @p %d -30 %d 0 20", X, Z - 40));
 		context.waitTicks(30);
-		// a pool of water three blocks deep under it: it is placed over the water and comes down onto it later
+		// a pool of water three blocks deep under it: it is placed over the water and comes down onto it later (its chunks
+		// force-loaded first: the fill does nothing where a chunk is not loaded)
+		server.runCommand(String.format(Locale.ROOT, "forceload add %d %d %d %d", X - 20, Z - 30, X + 20, Z + 45));
+		context.waitTicks(30);
 		int ground = server.computeOnServer(srv -> srv.getOverworld().getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING, X, Z));
-		server.runCommand(String.format(Locale.ROOT, "fill %d %d %d %d %d %d water", X - 20, ground - 3, Z - 30, X + 20, ground - 1, Z + 45));
+		server.runCommand(String.format(Locale.ROOT, "fill %d %d %d %d %d %d water", X - 20, ground - 3, Z - 30, X + 20, ground - 1, Z + 7));
+		server.runCommand(String.format(Locale.ROOT, "fill %d %d %d %d %d %d water", X - 20, ground - 3, Z + 8, X + 20, ground - 1, Z + 45));
 		context.waitTicks(5);
+		boolean pool = server.computeOnServer(srv -> srv.getOverworld().getFluidState(new net.minecraft.util.math.BlockPos(X, ground - 1, Z + 40))
+				.isIn(net.minecraft.registry.tag.FluidTags.WATER) && srv.getOverworld().getFluidState(new net.minecraft.util.math.BlockPos(X, ground - 1, Z - 25))
+				.isIn(net.minecraft.registry.tag.FluidTags.WATER));
+		check.accept(pool, id + ": the pool of water is filled under it");
 		int water = server.computeOnServer(srv -> srv.getOverworld().getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING, X, Z));
 		server.runCommand(String.format(Locale.ROOT, "execute positioned %d %d %d rotated 0 0 run ship spawn %s", X, water, Z, id));
 		world.waitForChunksRender();
@@ -145,8 +153,8 @@ public final class JunkGameTest {
 				"9_reserve", "10_chambre", "11_cabine_poupe"};
 		double[][] eyes = { // eye x, y, z, target x, y, z
 				{42, 8.5, 2.5, 0, 8.5, 2.5}, {0, 9, 48, 0, 8.5, 0}, {0, 6, -48, 0, 5.5, -2}, {4, 56, 1, 0, 0, 1}, {28, 13, 26, 0, 6, 0},
-				{-1.6, 1.75, 1.6, 1.2, 0.1, 7.4}, {-1.0, 1.9, 7.0, 0.0, 3.5, -8.0}, {2.9, -1.3, 6.9, -0.6, -2.7, 2.2},
-				{0.6, -1.4, 8.4, -0.2, -2.3, 14.8}, {-1.2, 1.15, -2.6, 2.0, 0.1, -8.6}, {0.0, 4.2, -8.9, 0.0, 3.1, -17.5}};
+				{-2.2, 1.62, 5.2, 0.8, 0.0, 11.6}, {-1.2, 1.62, 5.0, 0.3, 3.4, -8.0}, {2.9, -1.38, 6.9, -0.6, -2.7, 2.2},
+				{-1.5, -1.38, 8.9, 0.9, -2.5, 15.0}, {-0.6, 1.12, -2.4, 2.0, -0.4, -8.6}, {0.0, 4.12, -8.9, 0.0, 3.1, -17.5}};
 		for (int k = 0; k < names.length; k++) {
 			double[] e = eyes[k];
 			lookLocal(server, hover, e[0], e[1], e[2], e[3], e[4], e[5]);
@@ -243,6 +251,7 @@ public final class JunkGameTest {
 			}
 			return null;
 		});
+		server.runCommand(String.format(Locale.ROOT, "forceload remove %d %d %d %d", X - 20, Z - 30, X + 20, Z + 45));
 		server.runCommand("gamemode survival @a");
 		context.runOnClient((MinecraftClient c) -> c.options.hudHidden = false);
 		context.waitTicks(10);

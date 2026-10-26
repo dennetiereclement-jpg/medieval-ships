@@ -177,12 +177,14 @@ class JunkTest {
 		area("main room (aisle)", -0.8, 0.8, LO, 5.4, 7.0);
 		area("main room (starboard of the table)", -2.6, -2.2, LO, 0.4, 2.4);
 		area("main room (foot of the companion)", 2.0, 2.6, LO, -1.0, -0.4);
-		area("storage (aisle)", -0.8, 0.8, LO, 8.6, 10.6);
+		area("storage (starboard of the pillar)", -1.6, -0.85, LO, 8.6, 10.6);
+		area("storage (port of the pillar)", 0.85, 1.45, LO, 8.6, 9.3);
 		area("bedroom", -1.0, 0.8, BR, -6.6, -2.4);
 		area("stern cabin (by the door)", -1.0, 1.0, Q, -10.6, -9.0);
 		area("stern cabin (beside the table)", -2.6, -2.4, Q, -13.6, -12.0);
 		area("companion house (landing)", 3.4, 3.4, M, 3.15, 3.15);
 		assertFalse(fits(0, LO, 3.5), "the map table is solid");
+		assertFalse(fits(0, LO, 9.5), "the storage's pillar is solid");
 		assertFalse(fits(0, Q, -12.7), "the stern cabin's table is solid");
 		// outside: not carried, nothing to stand on
 		assertFalse(G.inCarryVolume(0, -12, 0));
@@ -302,7 +304,7 @@ class JunkTest {
 			}
 		}
 		double[][] places = { // name index, x, floor y, z
-				{0, 0.0, LO, 6.0}, {1, 0.0, LO, 9.5}, {2, 0.0, BR, -5.0}, {3, 0.0, Q, -10.0}, {4, 0.0, Q, -3.0}, {5, 3.5, M, 3.25},
+				{0, 0.0, LO, 6.0}, {1, -1.0, LO, 9.5}, {2, 0.0, BR, -5.0}, {3, 0.0, Q, -10.0}, {4, 0.0, Q, -3.0}, {5, 3.5, M, 3.25},
 				{6, -1.0, LO, 13.0}};
 		String[] names = {"main room", "storage", "bedroom", "stern cabin", "quarterdeck", "companion house", "storage (fore)"};
 		for (double[] p : places) {

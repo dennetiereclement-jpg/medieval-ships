@@ -79,10 +79,10 @@ sillage quand elle rase l'eau, filets de vent au bout des perches en route.
 
 | Niveau | Pièces |
 |---|---|
-| Gaillard / maison de poupe (+2,5) | pont du gaillard, **barre** (pilote debout derrière la roue, z −5,6), porche ; **cabine de poupe** (z −8,5 → −19, plafond +6) : table laquée et tabourets sur un tapis, bureau du capitaine et fauteuil face à la porte, bibliothèques, canapé rouge, cabinet à liqueurs, étagères de bocaux, fenêtres à croisillons, lanternes, charpente apparente |
+| Gaillard / maison de poupe (+2,5) | pont du gaillard, **barre** (pilote debout derrière la roue, z −5,6), porche ; **cabine de poupe** (z −8,5 → −19, plafond +6) : table laquée et tabourets sur un tapis, assiettes de porcelaine bleue et blanche, bureau du capitaine et fauteuil face à la porte, bibliothèques, canapé rouge, cabinet à liqueurs, étagères de bocaux, fenêtres à croisillons, lanternes, charpente apparente |
 | Pont principal (0) | ouvert de la proue à la coupure : mât, caillebotis, lanternes sur dés de pierre, bittes, bancs, caisses, tonneaux, cordages ; **panneau** et échelle vers la réserve ; **maison du capot** (escalier vers la salle principale) ; escalier vers le gaillard (tribord) ; porte de la chambre dans la cloison de la coupure |
-| Sous le gaillard (−0,5) | **chambre** : lit sous sa couverture rouge, table de nuit et lanterne près de la fenêtre, étagère de bouteilles, tapis, commode, armoire, chaise |
-| Pont inférieur (−3) | **salle principale** (z −1,5 → +7,5) : grande table et sa carte sur le tapis rouge, tabourets, canapé rouge, étagères de bouteilles et bocaux, écritoire et lanterne près d'un hublot, coffre ; **réserve** (z +8 → +17) : piliers sur dés, caisses, tonneaux couchés et debout, sacs, caisses de récoltes, bocaux, cordages, échelle |
+| Sous le gaillard (−0,5) | **chambre** : lit sous sa couverture rouge, coffre au pied du lit, table de nuit et lanterne près de la fenêtre, étagère de bouteilles, tapis, commode, armoire, chaise, chevet et sa lanterne ; dans le coin avant tribord un **fauteuil à bascule** devant une table basse et son échiquier, une étagère de livres et de bouteilles, un portemanteau et une horloge près de la porte |
+| Pont inférieur (−3) | **salle principale** (z −1,5 → +7,5) : grande table et sa carte sur le tapis rouge, tabourets, canapé rouge, étagères de bouteilles et bocaux, écritoire et lanterne près d'un hublot, coffre ; **réserve** (z +8 → +17) : deux piliers sur dés (pleins), caisses empilées, tonneaux couchés et debout, sacs, caisses de récoltes, bocaux, cordages, échelle |
 
 Portes : 0 cabine de poupe (deux battants), 1 chambre, 2 maison du capot, 3 réserve (deux battants), 4 panneau du pont.
 Escaliers de 0,5 bloc (gaillard, capot) ; échelle de la réserve. Toutes les pièces sont fermées par au moins une cellule
@@ -108,3 +108,24 @@ mods et sièges), `tools/junk_texture.py` (atlas, voile, intérieur, icône), `t
 `tools/generate_junk.py` (modèle). Java : `core/JunkLayout`, `entity/DragonJunkEntity`, `client/JunkEffects`. Tests :
 `JunkTest` (forme, pièces, portes, escaliers, échelle, sièges, sondes, vol), `NewShipModelsTest` / `NoZFightingTest`
 (modèle), `JunkGameTest` (en jeu).
+
+## 6. Vérifications
+
+* **Rendus de comparaison** (`docs/preview_dragon_junk.png`) : les 5 vues de la planche à côté du modèle (rendu logiciel
+  du `.bbmodel`), puis les pièces vues depuis les points de vue des vues intérieures de la planche, avec les **meubles des
+  mods dessinés comme le jeu les dessine** (modèles de blocs des mods, état par défaut).
+* **JUnit** (`JunkTest`, 13 tests) : formes = générateur Python, dimensions, sondes du pilote automatique sur tout le
+  volume, sièges (assis et descente libre), sols et hauteur sous plafond pièce par pièce, portes qui ferment, escaliers et
+  échelle, aucune pièce ouverte sur le vide, toutes les pièces atteintes depuis le pont, secours et chutes, fichier de
+  grille, maniabilité intermédiaire, vol ; plus `NewShipModelsTest` (os, animations, quads Java = quads Python) et
+  `NoZFightingTest`.
+* **En jeu** (`JunkGameTest`, appelé par `ShipClientGameTest`, CI « In-game test », variantes vanilla / lithium / décor) :
+  pose au-dessus d'un bassin, rien dans la coque, vol stationnaire, marche sur le pont et entrée dans la cabine de poupe par
+  sa porte, pilotage (montée, avance, virage, roue animée), descente au ras de l'eau (la quille s'arrête entre 0,4 et 1,4
+  bloc au-dessus de la surface), descente du pilote sur le gaillard, `/ship give`, 13 captures (5 vues extérieures, les
+  pièces, au ras de l'eau).
+
+**Limites** : les vues de la planche ne sont pas cohérentes entre elles (image générée), le modèle suit la vue de côté et
+la perspective ; le toit est un peu plus haut et plus raide que sur la vue arrière ; les sculptures du pignon avant sont
+plus simples que sur la perspective. Les pièces sont un peu plus grandes que sur les vues intérieures (il faut 2 blocs de
+hauteur sous plafond et des passages de 1 bloc pour marcher).

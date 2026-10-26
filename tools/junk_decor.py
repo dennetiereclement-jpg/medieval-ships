@@ -44,15 +44,21 @@ BOUNDS.update({
     IC + "loaded_fir_barrel": (0.047, 0.953, 0.0, 0.906, 0.0, 1.0),
     IC + "cypress_rack": (0.0, 1.0, 0.0, 0.25, 0.0, 1.0),
     FR + "canvas_rug": (-0.5, 1.5, 0.0, 0.062, -0.5, 1.5),
+    FD + "rocking_chair": (0.0, 1.0, 0.0, 1.522, 0.0, 1.183),
+    FD + "coffee_table": (-0.062, 1.062, 0.0, 0.5, -0.062, 1.062),
+    FU + "dark_oak_bedside_table": (0.0, 1.0, 0.0, 1.0, -0.062, 1.0),
+    FU + "rare_chinese_plate": (0.062, 0.938, 0.0, 0.062, 0.062, 0.938),
 })
 SEAT_H = dict(ld.SEAT_H)
 SEAT_H.update({FU + "crimson_stool": 0.562, FU + "spruce_bench": 0.562, FD + "sofa_left": 0.344, FD + "sofa_middle": 0.344,
-               FD + "sofa_right": 0.344, FU + "dark_oak_log_bench": 0.625})
+               FD + "sofa_right": 0.344, FU + "dark_oak_log_bench": 0.625, FD + "rocking_chair": 0.625})
 FALLBACK_REGION = dict(ld.FALLBACK_REGION)
 FALLBACK_REGION.update({FD + "sofa_left": "in_cushion", FD + "sofa_middle": "in_cushion", FD + "sofa_right": "in_cushion",
                         FU + "crimson_table": "in_lacquer", FU + "crimson_stool": "in_cushion", FD + "round_table": "in_plank",
                         FD + "lamp": "in_lamp", FU + "spruce_bench": "in_plank", IC + "loaded_fir_barrel": "barrel",
-                        IC + "cypress_rack": "in_plank", FR + "canvas_rug": "in_canvas", FU + "dark_oak_log_bench": "in_beam"})
+                        IC + "cypress_rack": "in_plank", FR + "canvas_rug": "in_canvas", FU + "dark_oak_log_bench": "in_beam",
+                        FD + "rocking_chair": "in_plank", FD + "coffee_table": "in_plank", FU + "dark_oak_bedside_table": "in_plank",
+                        FU + "rare_chinese_plate": "pearl"})
 GLOWING_FALLBACK = ld.GLOWING_FALLBACK + (FD + "lamp",)
 
 BLOCKS = []    # dicts: block, x, y, z, yaw, solid, scale
@@ -264,11 +270,10 @@ def storage():
     """Réserve (reference panel 4): heavy square pillars on stone bases, crates and barrels stacked along both sides,
     sacks, crates of the harvest, shelves of jars, lanterns, the ladder up to the hatch in the main deck."""
     f = LO
-    for k, z in enumerate((9.4, 13.6)):
-        custom("timber", name="storage_pillar_%d" % k, a=(0.0, f, z), b=(0.0, CEIL_LO, z), w=0.5)
-        custom("timber", name="storage_pillar_base_%d" % k, a=(0.0, f, z), b=(0.0, f + 0.35, z), w=0.66)
+    for k, z in enumerate((9.5, 13.5)):   # on the grid's cell corners: the pillar's solid is the 2x2 cells around it
+        custom("timber", name="storage_pillar_%d" % k, solid=(-0.5, 0.5, f, CEIL_LO, z - 0.5, z + 0.5), a=(0.0, f, z), b=(0.0, CEIL_LO, z), w=0.6)
+        custom("timber", name="storage_pillar_base_%d" % k, a=(0.0, f, z), b=(0.0, f + 0.35, z), w=0.8)
         custom("timber", name="storage_beam_%d" % k, a=(-3.6, CEIL_LO - 0.14, z), b=(3.6, CEIL_LO - 0.14, z), w=0.3)
-        CUSTOM[-3] = (CUSTOM[-3][0], CUSTOM[-3][1], (-0.3, 0.3, f, CEIL_LO, z - 0.3, z + 0.3))
     # port side: crates and a stack, sacks, harvest crates
     for k, (z, bid, stack) in enumerate(((8.7, FU + "spruce_crate", True), (9.8, FR + "potato_crate", False), (10.9, FU + "dark_oak_crate", True),
                                          (12.4, FR + "carrot_crate", False), (13.5, FU + "spruce_crate", False))):
@@ -292,6 +297,9 @@ def storage():
     at(FR + "straw_bale", -1.9, f, 14.6, "bow") if wall_min(f, f + 1.0, 14.6, -1) < -2.5 else None
     # shelves of jars on the bow bulkhead, the storage's lanterns
     zf = 15.4
+    at(FU + "dark_oak_crate", -0.75, f, 14.85, "stern", scale=0.9)
+    at(FU + "spruce_crate", -0.7, f + 0.9, 14.85, "stern", scale=0.65)
+    custom("barrel", solid=(-0.05, 0.65, f, f + 0.85, 14.55, 15.25), name="storage_barrel_2", p=(0.3, f, 14.9), r=0.34)
     custom("jar_shelf", name="storage_jars", p=(0.9, f, zf), normal=(0, 0, -1), w=1.4, h=2.0, rows=4)
     hanging(-1.2, CEIL_LO, 10.5, drop=0.05)
     hanging(1.2, CEIL_LO, 12.9, drop=0.05)
@@ -320,6 +328,20 @@ def bedroom():
     custom("candle", name="bedroom_candle", p=(wall_x(f + 0.5, -7.9, -1) + 0.45, f + 1.02, -7.6))
     against(FD + "wardrobe", -1, f, -4.4)
     chair(FU + "spruce_chair", -2.2, f, -6.9, "starboard", -1.4, -6.2)
+    # a sea chest at the foot of the bed, red vases by the dresser, a coat rack by the door, a clock on the bulkhead
+    custom("sea_chest", solid=(1.7, 2.7, f, f + 0.62, -6.95, -6.4), name="bedroom_chest", p=(2.2, f, -6.68), facing="bow", w=1.0, d=0.55)
+    ws = wall_min(f, f + 1.0, -6.0, -1)
+    at(FU + "dark_oak_bedside_table", ws + 0.55, f, -6.0, "port")
+    block(FD + "kerosene_lantern", ws + 0.55, f + 1.0, -5.85, "port", solid=False)
+    block(FD + "wine_glass", ws + 0.5, f + 1.0, -6.25, "port", solid=False)
+    at(FD + "coat_hanger", 3.0, f, -2.65, "stern")
+    block(FD + "cuckoo_clock", 1.6, f + 1.15, -2.52, "stern", solid=False)
+    # the starboard fore corner: a rocking chair by a low table with a chess board, a shelf of books and bottles to port
+    w = wall_min(f, f + 1.5, -2.8, -1)
+    chair(FD + "rocking_chair", w + 0.66, f, -2.75, "port", -2.5, -3.95)
+    at(FD + "coffee_table", -1.95, f, -2.75, "stern")
+    block(FU + "chess_board", -1.95, f + 0.5, -2.75, "stern", solid=False, scale=0.8)
+    against(FD + "wall_shelf", 1, f + 0.9, -4.4, solid=False)
     hanging(0.0, CEIL_BR, -5.6, drop=0.0)
     wall_lantern("bedroom_wall_lantern", 1, f + 1.75, -3.6)
     frame_room("bedroom", f, CEIL_BR, zs=[-2.25, -5.6, -8.75])
@@ -339,8 +361,8 @@ def stern_cabin():
         chair(FU + "crimson_stool", x, f, z, fc, x + (-0.8 if x < 0 else 0.8), z)
     t = f + 1.0
     block(FD + "kerosene_lantern", 0.0, t, -12.7, "stern", solid=False)
-    block(FU + "plate", -0.5, t, -12.3, "stern", solid=False, scale=0.55)
-    block(FU + "plate", 0.5, t, -13.1, "stern", solid=False, scale=0.55)
+    block(FU + "rare_chinese_plate", -0.5, t, -12.3, "stern", solid=False, scale=0.55)
+    block(FU + "rare_chinese_plate", 0.5, t, -13.1, "stern", solid=False, scale=0.55)
     block(FD + "wine_glass", 0.4, t, -12.3, "stern", solid=False, scale=0.85)
     block(FD + "red_wine_bottle", -0.3, t, -13.0, "stern", solid=False)
     # the captain's desk aft, facing the door, his chair behind it
