@@ -31,7 +31,7 @@ OUT, SOLID, DRY, LADDER, AIRLOCK, WINDOW, FURNITURE, DOOR = 0, 1, 2, 3, 4, 5, 6,
 
 CELL = js.CELL
 X0, X1 = -5.0, 5.0
-Y0, Y1 = -5.0, 7.5
+Y0, Y1 = -5.5, 7.5
 Z0, Z1 = -20.0, 23.0
 
 M0 = js.MAIN_DECK_Y          # 0
@@ -61,6 +61,8 @@ DOORS = {
 STERN_DOOR, BEDROOM_DOOR, COMPANION_DOOR, STORAGE_DOOR, HATCH = 0, 1, 2, 3, 4
 LADDERS = {
     "hatch": (-0.5, 0.5, LO, M0 - SLAB, 11.0, 12.0),
+    # the rope ladder hanging down the bow face to the beak: whoever drops onto the beak climbs back aboard
+    "bow": (-0.5, 0.5, js.WALE_Y - 0.25, js.sheer_y(js.BOW_Z) + 0.6, js.BOW_Z, js.BOW_Z + 0.5),
 }
 # stairs: (name, x0, x1, z_start, direction (+1: climbs towards the bow), y_start, steps); each step is 0.5 high and
 # 0.5 deep, the first step's top at y_start + 0.5 (going up) or y_start - 0.5 (going down)
@@ -169,9 +171,11 @@ def build():
     hx_top = _vec(js.hull_x, Z, np.full(Z.shape, QD - 0.1))
     house = (Z <= js.HOUSE_FRONT_Z) & (Z >= js.STERN_Z) & (np.abs(X) <= hx_top) & (Y >= QD - SLAB) & (Y <= HC + SLAB) & (hx_top > 0.2)
     g.k[house] = SOLID
-    # ---- the companion house on the port side of the break: walls, roof slab, its floor is the main deck
+    # ---- the companion house on the port side of the break: walls, its floor is the main deck, solid up under its
+    # lean-to roof (players walk on the tiles, never inside the roof)
     hx_mid = _vec(js.hull_x, Z, np.full(Z.shape, 0.5))
-    mid = (X >= js.MID_X[0]) & (X <= hx_mid) & (Z >= js.MID_Z[0]) & (Z <= js.MID_Z[1]) & (Y >= M0 - SLAB) & (Y <= js.MID_WALL_Y + SLAB)
+    mroof = _vec(js.mid_roof_y, X)
+    mid = (X >= js.MID_X[0]) & (X <= hx_mid) & (Z >= js.MID_Z[0]) & (Z <= js.MID_Z[1]) & (Y >= M0 - SLAB) & (Y <= mroof - 0.3)
     g.k[mid] = SOLID
     # ---- rooms: a solid cell between them and the outside across every face (also at the bow, the transom and
     # under the curve of the bilge), so no room opens on the air
@@ -180,7 +184,10 @@ def build():
     for o in FACES:
         enclosed &= np.roll(shell, o, axis=(0, 1, 2))
     for name, box in ROOMS.items():
-        g.set(DRY, *box, where=enclosed)
+        where = enclosed
+        if name == "companion":
+            where = enclosed & (Y <= mroof - 0.95)       # its ceiling a slab under the sloping roof
+        g.set(DRY, *box, where=where)
     # ---- the balustrade of the quarterdeck along the sides (the outermost cells), across its front edge
     rail_layer = (Y > QD) & (Y < QD + js.RAIL_H)
     edge = (np.abs(X) <= hx_top) & (np.abs(X) > hx_top - CELL) & (Z < js.BREAK_Z) & (Z > js.HOUSE_FRONT_Z) & (hx_top > 0.2)
@@ -201,7 +208,7 @@ def build():
     g.set(FURNITURE, *HELM_BOX)
     # ---- ladder, doors (after everything: they cut through walls, decks and rails)
     for name, box in LADDERS.items():
-        g.set(LADDER, *box)
+        g.set(LADDER, *box, where=(g.k == OUT) | (g.k == DRY))
     for d, (name, box) in DOORS.items():
         g.set(DOOR + d, *box)
     return g
@@ -258,10 +265,65 @@ def walkable_report(g, start=(0.0, M0 + 0.01, 9.0)):
     return reached, len(seen)
 
 
+def trapped(g, start=(-0.25, M0 + 0.01, 9.25), jump=2, fall=12):
+    """Standing places reached from the main deck (all doors open; a 2 x 2 cells footprint for the player, standing on
+    whichever cell holds it, jumps up to `jump` cells, falls down to `fall` cells, ladders climbed both ways) from which the
+    main deck cannot be reached again."""
+    k = g.k
+    passable = (k == OUT) | (k == DRY) | (k == LADDER) | (k >= DOOR)
+    lad = k == LADDER
+    nx, ny, nz = k.shape
+
+    def free(i, j, l):
+        return 0 <= i and i + 2 <= nx and 0 <= l and l + 2 <= nz and 0 <= j and j + 4 <= ny and passable[i:i + 2, j:j + 4, l:l + 2].all()
+
+    def stand(i, j, l):
+        return free(i, j, l) and j > 0 and (not passable[i:i + 2, j - 1, l:l + 2].all() or lad[i:i + 2, j - 1:j + 1, l:l + 2].any())
+
+    def moves(c):
+        i, j, l = c
+        out = []
+        for di, dl in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            for dj in range(jump, -fall - 1, -1):
+                n = (i + di, j + dj, l + dl)
+                if dj > 0 and not all(free(i, j + q, l) for q in range(1, dj + 1)):
+                    continue      # jumping: room above
+                if dj < 0 and not free(i + di, j, l + dl):
+                    break         # falling: the step sideways must be clear first (no falling through a deck)
+                if stand(*n):
+                    out.append(n)
+                    break
+                if dj <= 0 and not free(*n):
+                    break
+        if lad[i:i + 2, max(0, j - 1):j + 2, l:l + 2].any():
+            for dj in (1, -1):
+                n = (i, j + dj, l)
+                if free(*n) and (lad[i:i + 2, max(0, n[1] - 1):n[1] + 1, l:l + 2].any() or stand(*n)):
+                    out.append(n)
+        return out
+    s0 = (int((start[0] - 0.25 - X0) / CELL), int((start[1] - Y0) / CELL), int((start[2] - 0.25 - Z0) / CELL))
+    seen, q, edges = {s0}, deque([s0]), {}
+    while q:
+        c = q.popleft()
+        for n in moves(c):
+            edges.setdefault(n, []).append(c)
+            if n not in seen:
+                seen.add(n)
+                q.append(n)
+    back, q = {s0}, deque([s0])
+    while q:
+        c = q.popleft()
+        for p in edges.get(c, ()):
+            if p not in back:
+                back.add(p)
+                q.append(p)
+    return [(X0 + (i + 1) * CELL, Y0 + j * CELL, Z0 + (l + 1) * CELL) for (i, j, l) in seen - back], len(seen)
+
+
 def leaks(g):
     """Cells of the rooms (dry or ladder) that touch the outside air across a face: none."""
     k = g.k
-    room = (k == DRY) | (k == LADDER)
+    room = (k == DRY) | ((k == LADDER) & (g.Z < js.BOW_Z))     # (the rope ladder down the bow face is outside)
     out = k == OUT
     touch = np.zeros_like(room)
     for o in FACES:
@@ -280,5 +342,7 @@ if __name__ == "__main__":
     print("room cells open on the outside:", len(lk), lk[:10])
     reached, total = walkable_report(g)
     print("standing places reached from the main deck (doors open):", total)
+    tr, n = trapped(g)
+    print("places reached with jumps and falls:", n, "no way back to the main deck from:", len(tr), tr[:8])
     for name, n in reached.items():
         print("  %-16s %s" % (name, n if n else "UNREACHABLE"))

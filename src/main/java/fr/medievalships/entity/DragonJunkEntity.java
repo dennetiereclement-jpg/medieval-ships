@@ -1,6 +1,7 @@
 package fr.medievalships.entity;
 
 import net.minecraft.entity.EntityType;
+import net.minecraft.fluid.FlowableFluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.item.Item;
 import net.minecraft.registry.tag.FluidTags;
@@ -45,20 +46,19 @@ public class DragonJunkEntity extends ShipEntity {
 	/** Keeps the keel over the water: no further descent within the hover height, a gentle rise if below it. */
 	private void skimWater(ServerWorld world) {
 		double gap = waterGap(world, pose());
-		if (Double.isNaN(gap) || gap >= JunkLayout.WATER_HOVER + 0.05) {
+		if (Double.isNaN(gap)) {
 			return;
 		}
 		var flight = flight();
 		double a = config().flight != null ? config().flight.verticalAcceleration * 0.05 : 0.05;
-		if (gap < JunkLayout.WATER_HOVER - 0.3) {
-			flight.vy = Math.max(flight.vy, 0.6);
-		} else if (flight.vy <= a) {
-			// cancels what a descent order would add this tick: the altitude holds
-			flight.vy = a;
-		}
+		flight.vy = JunkLayout.skimVy(gap, flight.vy, a);
 	}
 
-	/** Lowest height of the keel over the water surface under it (negative: under the surface), NaN without water. */
+	/**
+	 * Lowest height of the keel over the surface of the water body under it (negative: under the surface), NaN without water.
+	 * Only still water reaching up from the bottom of the scan counts: falling water (a waterfall, a column the junk flies
+	 * through) and water hanging above air are ignored, so they never hold the junk up.
+	 */
 	static double waterGap(ServerWorld world, ShipPose pose) {
 		double best = Double.NaN;
 		BlockPos.Mutable pos = new BlockPos.Mutable();
@@ -70,15 +70,16 @@ public class DragonJunkEntity extends ShipEntity {
 				continue;
 			}
 			int y0 = (int) Math.floor(w[1] - JunkLayout.WATER_HOVER - 1.0);
-			int y1 = (int) Math.floor(w[1]) + 6;
+			int y1 = (int) Math.floor(w[1]) + 2;
 			double surface = Double.NaN;
 			for (int y = y0; y <= y1; y++) {
 				pos.set(bx, y, bz);
 				FluidState fluid = world.getFluidState(pos);
-				if (fluid.isIn(FluidTags.WATER)) {
+				boolean falling = fluid.contains(FlowableFluid.FALLING) && fluid.get(FlowableFluid.FALLING);
+				if (fluid.isIn(FluidTags.WATER) && !falling) {
 					surface = y + fluid.getHeight(world, pos);
-				} else if (!Double.isNaN(surface)) {
-					break;
+				} else {
+					break;     // the water body must reach up from the scan's bottom: air (or falling water) ends it
 				}
 			}
 			if (!Double.isNaN(surface)) {

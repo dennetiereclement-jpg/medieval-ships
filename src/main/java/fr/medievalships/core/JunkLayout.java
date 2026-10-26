@@ -4,15 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The Dragon Junk ({@code dragon_junk}): an Asian-style junk that flies, 39 blocks from its square bow to its transom
- * (42 with the pale beak pointing forwards low down under the bow, 46.7 with the bowsprit), 8.8 wide, 27 high from the
- * anchor to the masthead. A long dark hull, a white band of plaster blocks along the bulwarks, red lacquered panels
- * aft, the multi-level stern house (white plaster, dark beams) under a tall red roof of four stacked tiers with upturned
- * edges, the companion house at the break; one mast stepped far forward and raked aft carries the great red sail with
- * the black dragon: two battened panels spread in a V from a short yard under the masthead. It flies like the other
- * airships ({@link Flight}), with a handling between the slow Crystal Airship and the agile Rustic Skiff, and can
- * hover low over the water; its rooms are described by an interior grid (tools/junk_interior.py): players walk on
- * its decks and in its rooms (main room, storage, bedroom, stern cabin) while it flies.
+ * The Dragon Junk ({@code dragon_junk}): an Asian-style junk that flies, 39 blocks from its square bow to the top of its
+ * transom (42 with the pale beak pointing forwards low down under the bow, 44 with the short bowsprit), 8.8 wide, about
+ * 30 high from the anchor to the masthead. A long dark hull in a rounded V, narrowing forwards to a square bow half as wide,
+ * its counter sweeping up aft in a V to a small raked transom; a white band of plaster blocks along the bulwarks, red
+ * lacquered panels aft under a carved frieze; the stern gallery round the multi-level stern house (white plaster, dark
+ * beams) under a tall red roof of four stacked tiers, the porch's lower gable in front of it, the companion house's lean-to
+ * at the break; one mast stepped far forward and raked aft carries the great red sail with the black dragon: two battened
+ * panels spread in a V from a short yard under the masthead. It flies like the other airships ({@link Flight}), with a
+ * handling between the slow Crystal Airship and the agile Rustic Skiff, and can hover low over the water; its rooms are
+ * described by an interior grid (tools/junk_interior.py): players walk on its decks and in its rooms (main room, storage,
+ * bedroom, stern cabin) while it flies.
  *
  * <p>Ship-local blocks, shared with tools/junk_shape.py (same numbers, same formulas; checked by JunkTest):
  * x = lateral (+x = port), y = up (0 = the main deck), z = forward (+z = bow).
@@ -28,62 +30,78 @@ public final class JunkLayout {
 
 	// ---- hull
 	public static final double BOW_Z = 19.5;
+	/** The transom's top; it rakes forwards down to its foot ({@link #TRANSOM_FOOT}), the counter sweeping down from there. */
 	public static final double STERN_Z = -19.5;
 	public static final double HULL_HW = 4.4;
-	public static final double BOW_HW = 3.5;
-	public static final double STERN_HW = 3.8;
-	private static final double[] FULL_Z = {-9.0, 9.5};
-	private static final double BOW_PLAN_POW = 2.2;
+	public static final double BOW_HW = 2.4;
+	public static final double STERN_HW = 3.9;
+	private static final double[] FULL_Z = {-5.0, 4.0};
+	private static final double BOW_PLAN_POW = 1.4;
 	private static final double STERN_PLAN_POW = 2.0;
-	public static final double SIDE_Y = -1.0;
-	private static final double FLAT = 0.24;
-	private static final double BILGE_POW = 3.2;
+	public static final double SIDE_Y = 1.0;
+	private static final double FLAT = 0.03;
+	private static final double BILGE_POW = 4.0;
+	private static final double BILGE_Q = 1.6;
 	public static final double SHEER_FORE = 1.0;
+	private static final double[] BOW_SHEER = {10.0, 0.75};
 	public static final double BREAK_Z = -1.5;
 	private static final double[] BREAK_RISE = {1.2, -1.5};
 	public static final double WALE_Y = -1.5;
 	public static final double BEAK_TIP_Z = 22.6;
 	public static final double BEAK_TIP_Y = -3.6;
 	private static final double PINCH_Z = 12.5;
-	private static final double[] RUN = {-10.5, 9.0, 0.75, 1.3};
-	private static final double[][] KEEL_PTS = {{-19.5, -1.9}, {-18.5, -2.5}, {-17.0, -3.2}, {-15.0, -3.8}, {-13.0, -4.25}, {-11.0, -4.45},
-			{-8.0, -4.5}, {0.0, -4.5}, {10.0, -4.5}, {16.0, -4.4}, {20.0, -4.15}, {22.6, -3.6}};
+	private static final double[] RUN = {-9.0, 7.0, 0.5, 1.0, 0.5};
+	public static final double[] TRANSOM_FOOT = {-19.1, 0.9};
+	private static final double[][] KEEL_PTS = {TRANSOM_FOOT, {-18.3, -0.45}, {-17.2, -1.85}, {-15.8, -3.15}, {-14.0, -4.15}, {-11.5, -4.8},
+			{-8.5, -5.04}, {-4.0, -5.1}, {1.0, -5.08}, {6.0, -4.92}, {10.0, -4.66}, {14.0, -4.3}, {17.0, -4.02}, {20.0, -3.8}, {22.6, -3.6}};
 	private static final double[] KEEL_SLOPES = slopes(KEEL_PTS);
 
-	// ---- stern house and roof, companion house
+	// ---- stern house and its roofs, the stern gallery, the companion house
 	public static final double HOUSE_FRONT_Z = -8.0;
-	public static final double EAVE_Y = 5.0;
-	public static final double RIDGE_Y = 10.5;
-	public static final double ROOF_HW = 5.4;
-	public static final double ROOF_FRONT_Z = -5.8;
-	public static final double GABLE_LEAN = 0.18;
-	public static final double ROOF_BACK_Z = -20.4;
-	private static final double[] ROOF_CURVE = {0.35, 1.8};
-	public static final double[][] STERN_POLE = {{0.0, 10.4, -14.0}, {0.0, 13.6, -17.6}};
+	public static final double EAVE_Y = 5.45;
+	public static final double RIDGE_Y = 11.4;
+	public static final double TIER_LIFT = 0.3;
+	public static final double ROOF_HW = 5.2;
+	public static final double ROOF_FRONT_Z = -8.6;
+	public static final double GABLE_LEAN = 0.08;
+	public static final double ROOF_BACK_Z = -20.9;
+	public static final int ROOF_TIERS = 4;
+	private static final double[] ROOF_EDGES = {0.0, 1.25, 2.45, 3.6};
+	private static final double[] ROOF_CURVE = {0.32, 1.8};
+	public static final double PORCH_FRONT_Z = -5.6;
+	public static final double PORCH_RIDGE_Y = 9.4;
+	private static final double[] PORCH_CURVE = {0.55, 1.6};
+	public static final double[][] STERN_POLE = {{0.0, 12.2, -14.0}, {0.0, 15.2, -17.4}};
+	public static final double GALLERY_OUT = 0.6;
+	public static final double GALLERY_AFT = 1.05;
+	public static final double GALLERY_RAIL_H = 1.0;
 	public static final double[] MID_Z = {-1.5, 4.0};
 	public static final double MID_WALL_Y = 3.0;
-	public static final double MID_RIDGE_Y = 6.8;
+	public static final double MID_HIGH_Y = 4.6;
+	public static final double MID_EAVE_Y = 2.4;
 
 	// ---- mast, sail, spars
 	public static final double[] MAST_FOOT = {0.0, 0.0, 16.5};
 	public static final double MAST_RAKE_DEG = 26.0;
 	public static final double MAST_HEAD_Y = 22.0;
 	public static final double[][] YARD = {{0.0, 16.0, 11.4}, {0.0, 16.0, 6.6}};
-	public static final double[] SAIL_TACK = {0.45, 3.3, 20.2};
+	public static final double[] SAIL_TACK = {0.45, 3.3, 19.6};
 	public static final double[] SAIL_CLEW = {7.0, 1.2, 3.0};
 	public static final double SAIL_BILLOW = 0.85;
-	public static final double[][] FORE_BOOM = {{0.0, 3.35, 12.2}, {0.0, 3.55, 21.1}};
+	public static final double[][] FORE_BOOM = {{0.0, 3.35, 12.2}, {0.0, 3.5, 19.9}};
 	public static final double[] CLEW_BOOM_END = {4.75, -1.25, -5.0};
-	public static final double[][] BOWSPRIT = {{0.0, 0.75, 18.6}, {0.0, 0.15, 26.3}};
-	public static final double[][] BOW_YARD = {{0.0, 1.55, 19.2}, {0.0, 1.05, 24.4}};
-	public static final double BOW_SAIL_DROP = 3.3;
+	public static final double[][] BOWSPRIT = {{0.0, 1.3, 18.4}, {0.0, 2.45, 23.4}};
+	public static final double[][] BOW_YARD = {{0.0, 1.42, 20.3}, {0.0, 1.98, 22.8}};
+	public static final double BOW_SAIL_DROP = 2.3;
 
 	// ---- fittings
 	public static final double[] ANCHOR = {4.6, 7.3};
-	public static final double ANCHOR_TOP_Y = -4.0;
-	public static final double ANCHOR_BOTTOM_Y = -6.4;
+	public static final double ANCHOR_TOP_Y = -5.3;
+	public static final double ANCHOR_BOTTOM_Y = -7.6;
 	public static final double HELM_Z = -4.8;
 	public static final double PILOT_Z = -5.6;
+	/** The rudder under the counter: its stock's z, the blade's bottom, its width aft of the stock. */
+	public static final double[] RUDDER = {-16.0, -4.9, 1.7};
 	public static final double[][] SIDE_STAIR = {{4.65, 2.3, -8.3}, {4.65, -2.6, -4.6}};
 	/** The keel stays this high over the water when the junk comes down on it (DragonJunkEntity). */
 	public static final double WATER_HOVER = 0.8;
@@ -137,11 +155,18 @@ public final class JunkLayout {
 		return m;
 	}
 
-	/** Bottom of the hull at z (the beak's lower edge forward of the bow). */
+	/** z of the raked transom at height y: its foot forward of its top. */
+	public static double transomZ(double y) {
+		double f = (QUARTERDECK_Y - y) / (QUARTERDECK_Y - TRANSOM_FOOT[1]);
+		return STERN_Z + (TRANSOM_FOOT[0] - STERN_Z) * Math.max(0.0, Math.min(1.0, f));
+	}
+
+	/** Bottom of the hull at z: the keel, the raked transom's lower edge aft of its foot, the beak's lower edge forward of the bow. */
 	public static double keelY(double z) {
 		double[][] p = KEEL_PTS;
 		if (z <= p[0][0]) {
-			return p[0][1];
+			double f = (z - STERN_Z) / (TRANSOM_FOOT[0] - STERN_Z);
+			return QUARTERDECK_Y + (TRANSOM_FOOT[1] - QUARTERDECK_Y) * Math.max(0.0, Math.min(1.0, f));
 		}
 		if (z >= p[p.length - 1][0]) {
 			return p[p.length - 1][1];
@@ -178,9 +203,13 @@ public final class JunkLayout {
 		return WALE_Y + (BEAK_TIP_Y - WALE_Y) * Math.max(0.0, Math.min(1.0, t));
 	}
 
-	/** Top of the hull's side planking: the white bulwark of the main deck, rising at the break to the quarterdeck. */
+	/**
+	 * Top of the hull's side planking: the white bulwark of the main deck, sweeping up to the bow, rising at the break to the
+	 * quarterdeck.
+	 */
 	public static double sheerY(double z) {
-		return SHEER_FORE + (QUARTERDECK_Y - SHEER_FORE) * smooth((BREAK_RISE[0] - z) / (BREAK_RISE[0] - BREAK_RISE[1]));
+		return SHEER_FORE + (QUARTERDECK_Y - SHEER_FORE) * smooth((BREAK_RISE[0] - z) / (BREAK_RISE[0] - BREAK_RISE[1]))
+				+ BOW_SHEER[1] * Math.pow(smooth((z - BOW_SHEER[0]) / (BOW_Z - BOW_SHEER[0])), 1.5);
 	}
 
 	public static double deckY(double z) {
@@ -209,10 +238,11 @@ public final class JunkLayout {
 		if (y >= SIDE_Y) {
 			x = w;
 		} else {
-			double eta = SIDE_Y > k ? (y - k) / (SIDE_Y - k) : 1.0;
+			double ks = keelY(Math.max(z, TRANSOM_FOOT[0]));
+			double eta = (y - ks) / (SIDE_Y - ks);
 			double fr = smooth((RUN[0] - z) / RUN[1]);
 			double flat = FLAT * (1.0 - RUN[2] * fr);
-			x = w * (flat + (1.0 - flat) * Math.pow(1.0 - Math.pow(1.0 - eta, BILGE_POW - RUN[3] * fr), 0.5));
+			x = w * (flat + (1.0 - flat) * Math.pow(1.0 - Math.pow(1.0 - eta, BILGE_POW - RUN[3] * fr), BILGE_Q + RUN[4] * fr));
 		}
 		if (z > PINCH_Z && y < WALE_Y + 0.1) {
 			double pz = smooth((z - PINCH_Z) / (BEAK_TIP_Z - PINCH_Z));
@@ -225,15 +255,37 @@ public final class JunkLayout {
 		return x;
 	}
 
-	/** Height of the stern house's roof surface at a distance d from its eaves (concave, up to the ridge). */
+	/** Height of the stern house's main roof (its tiers' envelope) at a distance d from its eaves. */
 	public static double roofY(double d) {
 		d = Math.max(0.0, Math.min(ROOF_HW, d));
 		double t = d / ROOF_HW;
-		return EAVE_Y + (RIDGE_Y - EAVE_Y) * (ROOF_CURVE[0] * t + (1.0 - ROOF_CURVE[0]) * Math.pow(t, ROOF_CURVE[1]));
+		return EAVE_Y + (RIDGE_Y - EAVE_Y) * (ROOF_CURVE[0] * t + (1.0 - ROOF_CURVE[0]) * (1.0 - Math.pow(1.0 - t, ROOF_CURVE[1])));
+	}
+
+	/** Height of the main roof's tiles at a distance d from the eaves, with the lifts of the stacked tiers. */
+	public static double roofTop(double d) {
+		int k = 0;
+		for (int i = 0; i < ROOF_EDGES.length; i++) {
+			if (d >= ROOF_EDGES[i] - 1e-9) {
+				k = i;
+			}
+		}
+		return roofY(d) + TIER_LIFT * k;
+	}
+
+	public static double ridgeTop() {
+		return RIDGE_Y + TIER_LIFT * (ROOF_TIERS - 1);
 	}
 
 	public static double roofFrontZ(double d) {
 		return ROOF_FRONT_Z + GABLE_LEAN * Math.max(0.0, d);
+	}
+
+	/** Height of the porch's lower gable roof at a distance d from its eaves. */
+	public static double porchY(double d) {
+		d = Math.max(0.0, Math.min(ROOF_HW, d));
+		double t = d / ROOF_HW;
+		return EAVE_Y + (PORCH_RIDGE_Y - EAVE_Y) * (PORCH_CURVE[0] * t + (1.0 - PORCH_CURVE[0]) * Math.pow(t, PORCH_CURVE[1]));
 	}
 
 	/** Point of the raked mast's axis at height y. */
@@ -302,7 +354,7 @@ public final class JunkLayout {
 		p.aftPowA = 3.0;
 		p.aftPowB = 0.5;
 		// keelY(0) under the whole grid, so the collision query never cuts the lower deck
-		p.keelDepth = 5.5;
+		p.keelDepth = 6.0;
 		p.keelRise = 0.0;
 		p.keelPow = 2.0;
 		p.railBase = SHEER_FORE;
@@ -350,8 +402,9 @@ public final class JunkLayout {
 
 	/**
 	 * Terrain probes over the whole volume: sections of the hull (keel, bilge, sides, bulwark) from the transom to the beak,
-	 * the stern house and its roof (eaves, tiers, ridge, the staff), the companion house's roof, the mast, the yard, the
-	 * sail's corners and its middle, the booms, the bowsprit, the bow sail, the anchor, the outside stair.
+	 * the counter and the rudder, the stern gallery, the stern house and its roofs (eaves, tiers, ridge, the staff, the
+	 * porch's gable), the companion house's roof, the mast, the yard, the sail's corners and its middle, the booms, the
+	 * bowsprit, the bow sail, the anchor, the outside stair.
 	 */
 	static List<double[]> probes() {
 		List<double[]> probes = new ArrayList<>();
@@ -360,7 +413,7 @@ public final class JunkLayout {
 			probes.add(new double[] {0, k + 0.1, z});
 			double top = z > BOW_Z ? beakTop(z) : sheerY(z) + (z <= BREAK_Z ? RAIL_H : 0.0);
 			for (double y : new double[] {k + 0.6, (k + SIDE_Y) / 2, SIDE_Y, top - 0.1}) {
-				double x = hullX(z, Math.min(y, z > BOW_Z ? beakTop(z) : sheerY(z))) - 0.05;
+				double x = hullX(z, Math.min(Math.max(y, k + 0.01), z > BOW_Z ? beakTop(z) : sheerY(z))) - 0.05;
 				if (x > 0.1) {
 					probes.add(new double[] {x, y, z});
 					probes.add(new double[] {-x, y, z});
@@ -368,31 +421,49 @@ public final class JunkLayout {
 			}
 		}
 		probes.add(new double[] {0, BEAK_TIP_Y + 0.1, BEAK_TIP_Z - 0.1});
+		// the transom's foot, the rudder hanging under the counter
+		probes.add(new double[] {0, TRANSOM_FOOT[1], TRANSOM_FOOT[0]});
+		probes.add(new double[] {0, RUDDER[1] + 0.1, RUDDER[0]});
+		probes.add(new double[] {0, RUDDER[1] + 0.3, RUDDER[0] - RUDDER[2]});
+		probes.add(new double[] {0, (RUDDER[1] + keelY(RUDDER[0] - RUDDER[2])) / 2, RUDDER[0] - RUDDER[2]});
+		// the stern gallery round the house (its outer corners and the middle of its back)
+		for (int side = -1; side <= 1; side += 2) {
+			for (double z : new double[] {-9.0, -14.0, STERN_Z + 0.9}) {
+				probes.add(new double[] {side * (hullX(z, QUARTERDECK_Y) + GALLERY_OUT), QUARTERDECK_Y + GALLERY_RAIL_H, z});
+			}
+			probes.add(new double[] {side * (hullX(STERN_Z + 0.9, QUARTERDECK_Y) + GALLERY_OUT - 0.9), QUARTERDECK_Y + 0.5, STERN_Z - GALLERY_AFT});
+		}
+		probes.add(new double[] {0, QUARTERDECK_Y + 0.5, STERN_Z - GALLERY_AFT});
 		// the stern house: its walls' top corners, the roof's eaves (corners and middles), its tiers and its ridge
-		for (double z : new double[] {HOUSE_FRONT_Z, (HOUSE_FRONT_Z + STERN_Z) / 2, STERN_Z}) {
+		for (double z : new double[] {HOUSE_FRONT_Z, (HOUSE_FRONT_Z + STERN_Z) / 2, STERN_Z + 0.05}) {
 			double w = hullX(z, QUARTERDECK_Y - 0.1);
 			probes.add(new double[] {w, EAVE_Y, z});
 			probes.add(new double[] {-w, EAVE_Y, z});
 		}
-		for (double z : new double[] {ROOF_FRONT_Z, -9.0, -13.0, -17.0, ROOF_BACK_Z + 0.2}) {
+		for (double z : new double[] {PORCH_FRONT_Z - 0.2, ROOF_FRONT_Z, -11.0, -13.0, -17.0, ROOF_BACK_Z + 0.2}) {
 			probes.add(new double[] {ROOF_HW + 0.3, EAVE_Y + 0.2, z});
 			probes.add(new double[] {-ROOF_HW - 0.3, EAVE_Y + 0.2, z});
 		}
-		for (double d : new double[] {1.5, 2.8, 3.95}) {
+		for (double d : ROOF_EDGES) {
+			if (d <= 0) {
+				continue;
+			}
 			for (double z : new double[] {roofFrontZ(d), -12.0, ROOF_BACK_Z + d}) {
-				probes.add(new double[] {ROOF_HW - d, roofY(d) + 0.2, z});
-				probes.add(new double[] {-(ROOF_HW - d), roofY(d) + 0.2, z});
+				probes.add(new double[] {ROOF_HW - d, roofTop(d) + 0.2, z});
+				probes.add(new double[] {-(ROOF_HW - d), roofTop(d) + 0.2, z});
 			}
 		}
 		for (double z = roofFrontZ(ROOF_HW); z >= ROOF_BACK_Z + ROOF_HW - 1e-6; z -= 2.2) {
-			probes.add(new double[] {0, RIDGE_Y + 1.3, z});
+			probes.add(new double[] {0, ridgeTop() + 1.0, z});
 		}
-		probes.add(new double[] {0, RIDGE_Y + 1.3, ROOF_BACK_Z + ROOF_HW});
+		probes.add(new double[] {0, ridgeTop() + 1.0, ROOF_BACK_Z + ROOF_HW});
+		probes.add(new double[] {0, PORCH_RIDGE_Y + 1.0, PORCH_FRONT_Z - 0.3});
 		probes.add(new double[] {0, 0.0, ROOF_BACK_Z});
 		probes.add(STERN_POLE[1].clone());
-		// the companion house's roof
+		// the companion house's lean-to roof (its high edge inboard)
 		for (double z : MID_Z) {
-			probes.add(new double[] {2.4, MID_RIDGE_Y + 0.3, z});
+			probes.add(new double[] {0.3, MID_HIGH_Y + 0.4, z});
+			probes.add(new double[] {hullX(1.0, 0.5) + 0.6, MID_EAVE_Y, z});
 		}
 		// the mast, the yard, the sail (corners, middle of each edge, the middle), the booms, the bowsprit, the bow sail
 		for (double y = 2.0; y <= MAST_HEAD_Y + 0.6; y += 2.5) {
@@ -412,11 +483,27 @@ public final class JunkLayout {
 		probes.add(new double[] {0, BOW_YARD[1][1] - BOW_SAIL_DROP, BOW_YARD[1][2] - 0.4});
 		probes.add(new double[] {0, BOW_YARD[0][1] - BOW_SAIL_DROP, BOW_YARD[0][2] + 0.6});
 		// the anchor hanging on its chain, the foot of the outside stair
-		probes.add(new double[] {ANCHOR[0] + 0.3, ANCHOR_BOTTOM_Y + 0.05, ANCHOR[1]});
-		probes.add(new double[] {ANCHOR[0] + 0.3, (ANCHOR_TOP_Y + ANCHOR_BOTTOM_Y) / 2, ANCHOR[1] + 1.0});
-		probes.add(new double[] {ANCHOR[0] + 0.3, (ANCHOR_TOP_Y + ANCHOR_BOTTOM_Y) / 2, ANCHOR[1] - 1.0});
+		probes.add(new double[] {ANCHOR[0] + 0.5, ANCHOR_BOTTOM_Y + 0.05, ANCHOR[1]});
+		probes.add(new double[] {ANCHOR[0] + 0.5, (ANCHOR_TOP_Y + ANCHOR_BOTTOM_Y) / 2, ANCHOR[1] + 1.0});
+		probes.add(new double[] {ANCHOR[0] + 0.5, (ANCHOR_TOP_Y + ANCHOR_BOTTOM_Y) / 2, ANCHOR[1] - 1.0});
 		probes.add(new double[] {SIDE_STAIR[1][0] + 0.5, SIDE_STAIR[1][1], SIDE_STAIR[1][2]});
 		return probes;
+	}
+
+	/**
+	 * The vertical speed the junk keeps skimming the water: {@code gap} is the lowest height of its keel over the water under
+	 * it (NaN without water), {@code vy} the speed the flight would keep, {@code accelPerTick} the speed it gains in a tick.
+	 * Within the hover height it holds its altitude (cancelling a descent order), pushed lower it rises gently; higher, or
+	 * climbing, it is left alone.
+	 */
+	public static double skimVy(double gap, double vy, double accelPerTick) {
+		if (Double.isNaN(gap) || gap >= WATER_HOVER + 0.05) {
+			return vy;
+		}
+		if (gap < WATER_HOVER - 0.3) {
+			return Math.max(vy, 0.6);
+		}
+		return vy <= accelPerTick ? accelPerTick : vy;
 	}
 
 	/**

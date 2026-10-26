@@ -28,26 +28,38 @@ class JunkTest {
 	/** Values printed by {@code python3 tools/junk_shape.py} (see the commit of this test). */
 	@Test
 	void matchesModelGenerator() {
-		double[][] keel = {{-19.0, -2.208333}, {-14.0, -4.05}, {-6.0, -4.5}, {15.0, -4.434896}, {21.0, -3.966682}};
+		double[][] keel = {{-19.3, 1.7}, {-18.6, 0.031947}, {-14.0, -4.15}, {-6.0, -5.094733}, {15.0, -4.205185}, {21.0, -3.723757}};
 		for (double[] r : keel) {
 			assertEquals(r[1], JunkLayout.keelY(r[0]), 1e-5, "keel at " + r[0]);
 		}
-		double[][] hull = {{0.0, -3.5, 3.771208, 1.625514}, {0.0, -2.0, 4.369507, 1.625514}, {-16.0, -1.5, 4.091993, 2.5},
-				{-16.0, -3.0, 2.861765, 2.5}, {15.0, -3.0, 3.331002, 1.0}, {18.5, -2.5, 1.515943, 1.0}, {20.5, -2.8, 0.651096, 1.0},
-				{19.0, 0.5, 3.59604, 1.0}, {-18.0, 1.5, 3.959184, 2.5}, {-12.0, -4.0, 2.854173, 2.5}};
+		double[][] sheer = {{3.0, 1.0}, {0.5, 1.250191}, {-0.4, 1.955952}, {-1.2, 2.44856}, {-5.0, 2.5}, {14.0, 1.177466}, {19.0, 1.740997}};
+		for (double[] r : sheer) {
+			assertEquals(r[1], JunkLayout.sheerY(r[0]), 1e-5, "sheer at " + r[0]);
+		}
+		double[][] transom = {{0.5, -19.1}, {1.5, -19.25}, {2.4, -19.475}};
+		for (double[] r : transom) {
+			assertEquals(r[1], JunkLayout.transomZ(r[0]), 1e-5, "transom at " + r[0]);
+		}
+		double[][] hull = {{0.0, -3.5, 2.554174}, {0.0, -2.0, 4.004976}, {-16.0, -1.0, 3.118936}, {15.0, -3.0, 1.413054}, {18.5, -2.5, 0.690274},
+				{20.5, -2.8, 0.217629}, {19.0, 0.5, 2.489307}, {-18.0, 1.5, 3.998098}, {-12.0, -4.0, 0.840632}, {-18.8, 0.5, 0.882938},
+				{-19.3, 2.0, 3.913698}};
 		for (double[] r : hull) {
 			assertEquals(r[2], JunkLayout.hullX(r[0], r[1]), 1e-5, "hull half width at " + r[0] + ", " + r[1]);
-			assertEquals(r[3], JunkLayout.sheerY(r[0]), 1e-5, "sheer at " + r[0]);
 		}
-		double[] roof = {5.0, 5.891117, 7.094252, 8.444403, 10.5};
-		double[] d = {0.0, 1.5, 2.8, 3.95, 5.4};
+		double[] roof = {5.45, 7.487116, 9.107735, 10.329272, 11.4};
+		double[] d = {0.0, 1.25, 2.45, 3.6, 5.2};
 		for (int i = 0; i < d.length; i++) {
 			assertEquals(roof[i], JunkLayout.roofY(d[i]), 1e-5, "roof at " + d[i]);
 		}
+		assertEquals(7.10749, JunkLayout.roofTop(1.0), 1e-5);
+		assertEquals(10.334299, JunkLayout.roofTop(3.0), 1e-5);
+		assertEquals(12.215286, JunkLayout.roofTop(5.0), 1e-5);
+		assertEquals(7.122606, JunkLayout.porchY(2.6), 1e-5);
+		assertEquals(9.4, JunkLayout.porchY(5.2), 1e-9);
 		double[] head = JunkLayout.mastHead();
 		assertEquals(22.0, head[1], 1e-9);
 		assertEquals(5.769883, head[2], 1e-5);
-		double[][] sail = {{0.5, 0.5, 2.716826, 9.282861, 10.526738}, {1.0, 1.0, 7.0, 1.2, 3.0}, {0.3, 0.8, 2.228676, 11.693889, 7.451727}};
+		double[][] sail = {{0.5, 0.5, 2.716265, 9.27904, 10.383081}, {1.0, 1.0, 7.0, 1.2, 3.0}, {0.3, 0.8, 2.228373, 11.691825, 7.419153}};
 		for (double[] r : sail) {
 			for (int side = -1; side <= 1; side += 2) {
 				double[] p = JunkLayout.sailPoint(side, r[0], r[1]);
@@ -58,6 +70,18 @@ class JunkTest {
 		}
 	}
 
+	/** The hull's shape: a square bow about half the beam, the beam aft of amidships, a rocker, a raised bow, the counter. */
+	@Test
+	void hullShape() {
+		assertTrue(JunkLayout.BOW_HW < 0.6 * JunkLayout.HULL_HW, "the bow face is about half the beam");
+		assertTrue(JunkLayout.planHw(14.0) < JunkLayout.HULL_HW - 0.8, "the forward third narrows steadily");
+		assertTrue(JunkLayout.keelY(14.0) > JunkLayout.keelY(0.0) + 0.6, "the keel rises forwards (rocker)");
+		assertTrue(JunkLayout.sheerY(JunkLayout.BOW_Z) > JunkLayout.SHEER_FORE + 0.6, "the bow is raised");
+		assertTrue(JunkLayout.TRANSOM_FOOT[1] > JunkLayout.MAIN_DECK_Y, "the counter sweeps up to a high transom");
+		assertTrue(JunkLayout.transomZ(JunkLayout.QUARTERDECK_Y) < JunkLayout.transomZ(JunkLayout.TRANSOM_FOOT[1]), "the transom rakes aft");
+		assertTrue(JunkLayout.hullX(-14.0, -3.0) < 0.6 * JunkLayout.hullX(-14.0, 0.0), "a V-shaped run under the counter");
+	}
+
 	@Test
 	void dimensions() {
 		assertNotNull(GRID);
@@ -66,7 +90,7 @@ class JunkTest {
 		assertEquals(TYPE, Ships.byId("dragon_junk"));
 		assertEquals(39.0, JunkLayout.BOW_Z - JunkLayout.STERN_Z, 1e-9, "hull length, square bow to transom");
 		double overall = JunkLayout.BOWSPRIT[1][2] - JunkLayout.ROOF_BACK_Z;
-		assertTrue(overall > 45 && overall < 48, "overall length " + overall);
+		assertTrue(overall > 43 && overall < 47, "overall length " + overall);
 		assertEquals(8.8, 2 * JunkLayout.HULL_HW, 1e-9, "beam");
 		double height = G.topY() - G.lowestY();
 		assertTrue(height > 27 && height < 31, "overall height (anchor to masthead) " + height);
@@ -169,17 +193,17 @@ class JunkTest {
 	@Test
 	void decksAndRooms() {
 		area("main deck (fore)", -1.5, 1.5, M, 8.6, 10.4);
-		area("main deck (waist, starboard)", -2.8, -1.6, M, 3.0, 7.6);
+		area("main deck (waist, starboard)", -2.5, -1.6, M, 3.8, 7.3);
 		area("main deck (before the break)", -1.1, 0.1, M, -1.15, 2.6);
-		area("main deck (bow)", -1.6, 1.6, M, 17.8, 18.5);
+		area("main deck (bow)", -1.2, 1.2, M, 17.85, 18.5);
 		area("quarterdeck", -1.6, 1.6, Q, -3.8, -2.4);
 		area("porch", -1.2, 1.2, Q, -7.6, -6.4);
 		area("main room (aisle)", -0.8, 0.8, LO, 5.4, 7.0);
 		area("main room (starboard of the table)", -2.6, -2.2, LO, 0.4, 2.4);
 		area("main room (foot of the companion)", 2.0, 2.6, LO, -1.0, -0.4);
-		area("storage (starboard of the pillar)", -1.6, -0.85, LO, 8.6, 10.6);
-		area("storage (port of the pillar)", 0.85, 1.45, LO, 8.6, 9.3);
-		area("bedroom", -1.0, 0.8, BR, -6.6, -2.4);
+		area("storage (starboard of the pillar)", -1.3, -0.85, LO, 9.4, 10.6);
+		area("storage (port of the pillar)", 0.85, 1.25, LO, 9.5, 9.7);
+		area("bedroom", -1.0, 0.6, BR, -6.6, -3.5);
 		area("stern cabin (by the door)", -1.0, 1.0, Q, -10.6, -9.0);
 		area("stern cabin (beside the table)", -2.6, -2.4, Q, -13.6, -12.0);
 		area("companion house (landing)", 3.4, 3.4, M, 3.15, 3.15);
@@ -243,7 +267,8 @@ class JunkTest {
 			for (int j = 0; j < GRID.ny; j++) {
 				for (int k = 0; k < GRID.nz; k++) {
 					byte kind = GRID.kind(i, j, k);
-					if (kind != InteriorGrid.DRY && kind != InteriorGrid.LADDER) {
+					boolean outsideLadder = GRID.z0 + (k + 0.5) * GRID.cell > JunkLayout.BOW_Z;   // the rope ladder down the bow face
+					if (kind != InteriorGrid.DRY && (kind != InteriorGrid.LADDER || outsideLadder)) {
 						continue;
 					}
 					for (int[] f : faces) {
@@ -334,6 +359,140 @@ class JunkTest {
 	private static boolean stand(int i, int j, int k, InteriorGrid.State st) {
 		return free(i, j, k, st) && (InteriorGrid.solid(GRID.kind(i, j - 1, k), st) || GRID.kind(i, j - 1, k) == InteriorGrid.LADDER
 				|| GRID.kind(i, j, k) == InteriorGrid.LADDER);
+	}
+
+	/**
+	 * No trap outside: from every place a player can reach from the main deck (jumping a block, falling, climbing ladders,
+	 * a 2 x 2 cells footprint standing on whichever cell holds it), the main deck can be reached again; whoever drops onto
+	 * the beak climbs the rope ladder down the bow face back aboard.
+	 */
+	@Test
+	void noTrapOutside() {
+		InteriorGrid.State open = CLOSED;
+		for (int k = 0; k < 8; k++) {
+			open = open.withDoor(k, true);
+		}
+		InteriorGrid.State st = open;
+		int[] start = {GRID.ix(-0.5), GRID.iy(M + 0.01), GRID.iz(9.0)};
+		assertTrue(stand2(start[0], start[1], start[2], st), "standing on the main deck");
+		java.util.Map<Long, java.util.List<Long>> back = new java.util.HashMap<>();
+		Set<Long> seen = new HashSet<>();
+		ArrayDeque<int[]> queue = new ArrayDeque<>();
+		queue.add(start);
+		seen.add(key(start));
+		boolean beak = false;
+		while (!queue.isEmpty()) {
+			int[] c = queue.poll();
+			for (int[] n : moves(c, st)) {
+				back.computeIfAbsent(key(n), q -> new java.util.ArrayList<>()).add(key(c));
+				if (seen.add(key(n))) {
+					queue.add(n);
+					beak |= GRID.z0 + (n[2] + 1) * GRID.cell > JunkLayout.BOW_Z + 0.4;
+				}
+			}
+		}
+		Set<Long> home = new HashSet<>();
+		ArrayDeque<Long> q2 = new ArrayDeque<>();
+		home.add(key(start));
+		q2.add(key(start));
+		while (!q2.isEmpty()) {
+			for (long p : back.getOrDefault(q2.poll(), java.util.List.of())) {
+				if (home.add(p)) {
+					q2.add(p);
+				}
+			}
+		}
+		assertTrue(beak, "the beak is reached (jumping on the bulwark and dropping off the bow)");
+		seen.removeAll(home);
+		assertEquals(0, seen.size(), "places from which the main deck cannot be reached again");
+	}
+
+	private static boolean free2(int i, int j, int k, InteriorGrid.State st) {
+		for (int a = 0; a < 2; a++) {
+			for (int c = 0; c < 2; c++) {
+				for (int dy = 0; dy < 4; dy++) {
+					if (!passable(i + a, j + dy, k + c, st)) {
+						return false;
+					}
+				}
+			}
+		}
+		return true;
+	}
+
+	private static boolean ladder2(int i, int j0, int j1, int k) {
+		for (int a = 0; a < 2; a++) {
+			for (int c = 0; c < 2; c++) {
+				for (int j = j0; j <= j1; j++) {
+					if (GRID.kind(i + a, j, k + c) == InteriorGrid.LADDER) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	private static boolean stand2(int i, int j, int k, InteriorGrid.State st) {
+		if (!free2(i, j, k, st)) {
+			return false;
+		}
+		for (int a = 0; a < 2; a++) {
+			for (int c = 0; c < 2; c++) {
+				if (!passable(i + a, j - 1, k + c, st)) {
+					return true;
+				}
+			}
+		}
+		return ladder2(i, j - 1, j, k);
+	}
+
+	private static java.util.List<int[]> moves(int[] c, InteriorGrid.State st) {
+		java.util.List<int[]> out = new java.util.ArrayList<>();
+		for (int[] d : new int[][] {{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+			for (int dy = 2; dy >= -12; dy--) {
+				boolean clear = true;
+				for (int q = 1; q <= dy; q++) {
+					clear &= free2(c[0], c[1] + q, c[2], st);     // jumping: room above
+				}
+				if (!clear) {
+					continue;
+				}
+				int[] n = {c[0] + d[0], c[1] + dy, c[2] + d[1]};
+				if (dy < 0 && !free2(n[0], c[1], n[2], st)) {
+					break;                                      // falling: the step sideways must be clear first
+				}
+				if (stand2(n[0], n[1], n[2], st)) {
+					out.add(n);
+					break;
+				}
+				if (dy <= 0 && !free2(n[0], n[1], n[2], st)) {
+					break;                                      // landed on something it cannot stand on: no going through
+				}
+			}
+		}
+		if (ladder2(c[0], c[1] - 1, c[1] + 1, c[2])) {
+			for (int dy : new int[] {1, -1}) {
+				int[] n = {c[0], c[1] + dy, c[2]};
+				if (free2(n[0], n[1], n[2], st) && (ladder2(n[0], n[1] - 1, n[1], n[2]) || stand2(n[0], n[1], n[2], st))) {
+					out.add(n);
+				}
+			}
+		}
+		return out;
+	}
+
+	/** Skimming the water: holds within the hover height, rises below it, leaves it alone above it or when climbing. */
+	@Test
+	void skimsTheWater() {
+		double a = 0.045;
+		double h = JunkLayout.WATER_HOVER;
+		assertEquals(a, JunkLayout.skimVy(h - 0.1, -1.2, a), 1e-12, "within the hover band a descent is cancelled");
+		assertEquals(0.6, JunkLayout.skimVy(h - 0.6, -1.2, a), 1e-12, "pushed below it, it rises");
+		assertEquals(-1.2, JunkLayout.skimVy(h + 0.3, -1.2, a), 1e-12, "higher up, nothing changes");
+		assertEquals(-1.2, JunkLayout.skimVy(Double.NaN, -1.2, a), 1e-12, "no water, nothing changes");
+		assertEquals(1.3, JunkLayout.skimVy(h - 0.1, 1.3, a), 1e-12, "climbing is never held back");
+		assertEquals(1.3, JunkLayout.skimVy(h - 0.6, 1.3, a), 1e-12, "climbing faster than the rise is kept");
 	}
 
 	@Test

@@ -63,6 +63,16 @@ REGIONS = {
     "sail_edge":    (416, 64, 32, 16),  # the rolled red cloth along the yard
     "chain_big":    (448, 64, 16, 32),  # the anchor chain (big links)
     "plank_light":  (464, 64, 32, 16),
+    # the stern and the roofs (second round)
+    "frieze":       (0, 176, 32, 16),   # carved frieze under the quarterdeck: pale wood, dark ring motifs (one panel)
+    "baluster":     (32, 176, 32, 16),  # pale turned balusters between thin rails (open between them), 2 blocks along u
+    "window_arch":  (64, 176, 16, 24),  # an arched lattice window lit from inside (transparent outside the arch)
+    "arch_frame":   (80, 176, 16, 24),  # the carved dark frame round it (transparent in the opening)
+    "carved":       (96, 176, 32, 32),  # dark carved panels (the gables' infill, between the windows)
+    "sternpost":    (128, 176, 32, 16), # pale timber with iron bands (along u)
+    "medallion":    (160, 176, 32, 32), # the round carved medallion: a beige disc with a dark interlaced knot
+    "eave_frieze":  (192, 176, 64, 16), # the dark band under the eaves with carved brackets (along u)
+    "void":         (256, 176, 16, 16), # the dark hold seen through the grating
 }
 # small regions copied from the Sky Leviathan's atlas (same names, same look)
 COPIED = ("iron", "steel", "brass", "gold", "copper", "chain", "rope", "rope_dark", "glow", "lantern", "glass", "gauge", "wax", "pearl",
@@ -172,28 +182,36 @@ def _red_panel(px, region, rng):
 
 
 def _roof(px, region, rng):
-    """Red barrel tiles: vertical rows of round tiles (the tiles run down v), each course overlapping the next, the
-    gutters between the rows dark, sun-faded highlights on the crowns, some tiles darker or replaced."""
+    """Red tiles in lapped courses (the courses run along u, the tiles hang down v): each tile's lower end rounded, the
+    shadow of each course under the next one's scalloped edge, a soft highlight down the crowns, a darker brick red
+    with each tile its own tone, a few darker or faded ones."""
     u, v, w, h = region
     nz = _noise(w, h, 6, rng)
-    col_w, course = 8, 8
+    tw, course = 8, 8
+    tones = {}
     for y in range(h):
         for x in range(w):
-            col = x // col_w
-            cx = (x % col_w + 0.5) / col_w - 0.5
-            cy = (y % course) / course
-            seed = (col * 31 + (y // course) * 17) % 7
-            base = _rgb("a8382a") if seed not in (2, 5) else (_rgb("8a2c22") if seed == 2 else _rgb("b4483a"))
-            crown = math.cos(cx * math.pi) ** 0.7
-            k = 0.62 + 0.45 * crown - 0.18 * cy + 0.06 * nz[y, x]
+            row = y // course
+            xs = x + (tw // 2 if row % 2 else 0)
+            col = xs // tw
+            lx = (xs % tw) + 0.5
+            ly = (y % course) + 0.5
+            key = (row, col % (w // tw + 1))
+            if key not in tones:
+                r = rng.random()
+                tones[key] = 0.82 if r < 0.12 else 1.1 if r < 0.2 else 1.0 + rng.uniform(-0.05, 0.05)
+            base = _scale(_rgb("8e3e2c"), tones[key])
+            edge = course - 1.6 * math.sqrt(max(0.0, 1.0 - ((lx - tw / 2) / (tw / 2)) ** 2))   # the rounded lower end
+            crown = math.cos((lx / tw - 0.5) * math.pi) ** 1.2
+            k = 0.86 + 0.16 * crown - 0.1 * (ly / course) + 0.04 * nz[y, x]
             c = _scale(base, k)
-            if abs(cx) > 0.44:
-                c = _rgb("3a1410")
-            if cy > 0.86:
-                c = _scale(base, 0.45)
-            if crown > 0.92 and cy < 0.3:
-                c = _mix(c, (226, 150, 120), 0.35)
-            _put(px, u, v, x, y, _jitter(c, rng, 4))
+            if ly > edge:
+                c = _scale(_rgb("8e3e2c"), 0.55)          # the shadow under the next course's edge
+            elif ly > edge - 1.0:
+                c = _scale(base, 0.75)
+            if lx < 0.9:
+                c = _scale(base, 0.7)                     # the joint between two tiles
+            _put(px, u, v, x, y, _jitter(c, rng, 3))
 
 
 def _bamboo(px, region, rng, base="c8a46a"):
@@ -347,6 +365,149 @@ def _gable(px, region, rng):
                 _put(px, u, v, x, y, _jitter(_scale(_rgb("3a2414"), 1.0 + 0.06 * math.sin(x + y)), rng, 3))
 
 
+def _frieze(px, region, rng):
+    """One panel of the carved frieze: pale wood between dark rails, two dark rings with a knot, small dark studs."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            c = _scale(_rgb("b89a6c"), 1.0 + 0.06 * math.sin(x * 0.7 + y * 0.2) - 0.05 * ((x * 3 + y * 5) % 7 == 0))
+            if y < 2 or y > h - 3:
+                c = _scale(_rgb("3a2414"), 1.0 + 0.05 * math.sin(x))
+            for cx in (w * 0.25, w * 0.75):
+                r = math.hypot(x + 0.5 - cx, (y + 0.5 - h / 2) * 1.05)
+                if 3.6 < r < 5.6:
+                    c = _scale(_rgb("2e1c10"), 1.0 + 0.1 * math.sin(math.atan2(y - h / 2, x - cx) * 3))
+                elif r <= 1.6:
+                    c = _rgb("4a2e18")
+            if x in (0, w - 1):
+                c = _rgb("3a2414")
+            _put(px, u, v, x, y, _jitter(c, rng, 3))
+
+
+def _baluster(px, region, rng):
+    """Pale turned balusters (a swelling every 8 pixels) between the rails, open between them."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            cx = (x % 8) + 0.5 - 4
+            t = (y + 0.5) / h
+            r = 1.3 + 1.1 * math.sin(math.pi * t) ** 2 + (0.6 if abs(t - 0.22) < 0.07 or abs(t - 0.78) < 0.07 else 0.0)
+            if y < 2 or y > h - 3:
+                c = _scale(_rgb("8a6a44"), 1.0 + 0.05 * math.sin(x))
+            elif abs(cx) <= r:
+                c = _scale(_rgb("c8aa78"), 0.8 + 0.35 * math.cos(cx / (r + 0.5) * 1.4))
+            else:
+                px[u + x, v + y] = (0, 0, 0, 0)
+                continue
+            _put(px, u, v, x, y, _jitter(c, rng, 3))
+
+
+def _arch_shape(x, y, w, h, inset=0.0):
+    """Is (x, y) inside the arched opening (a rectangle with a round top) of a w x h panel, shrunk by inset pixels?"""
+    r = w / 2 - inset
+    cy = r + inset
+    if y < cy:
+        return math.hypot(x + 0.5 - w / 2, y + 0.5 - cy) <= r
+    return inset <= x + 0.5 <= w - inset and y + 0.5 <= h - inset
+
+
+def _window_arch(px, region):
+    """The arched window's lit paper panes behind a dark lattice (transparent outside the arch)."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            if not _arch_shape(x, y, w, h):
+                px[u + x, v + y] = (0, 0, 0, 0)
+                continue
+            if x % 4 == 1 or y % 4 == 1:
+                c = (64, 40, 22)
+            else:
+                g = 1.0 - 0.35 * abs((y + 0.5) / h - 0.55)
+                c = _scale((255, 204, 122), g)
+            _put(px, u, v, x, y, c)
+
+
+def _arch_frame(px, region, rng):
+    """The carved dark frame of an arched window: a thick arch band, carved spandrels, transparent in the opening."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            if _arch_shape(x, y, w, h, inset=2.6):
+                px[u + x, v + y] = (0, 0, 0, 0)
+                continue
+            c = _scale(_rgb("3a2414"), 1.0 + 0.07 * math.sin(x * 1.3 + y * 0.7))
+            if not _arch_shape(x, y, w, h, inset=1.2) and _arch_shape(x, y, w + 6, h + 6, inset=0.0) and 2 < y < h - 2:
+                c = _scale(_rgb("5a3a20"), 1.0)
+            if y < w / 2 and not _arch_shape(x, y, w, h, inset=0.4) and (x + y) % 3 == 0:
+                c = _rgb("6a4a2a")                     # carving in the spandrels
+            _put(px, u, v, x, y, _jitter(c, rng, 2))
+
+
+def _carved(px, region, rng):
+    """Dark carved panels: a raised frame, a fret of interlocking squares, worn highlights."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            xx, yy = x % 16, y % 16
+            e = min(xx, yy, 15 - xx, 15 - yy)
+            c = _scale(_rgb("3e2716"), 1.0 + 0.06 * math.sin(x * 0.9 + y * 0.4))
+            if e == 0:
+                c = _rgb("1e120a")
+            elif e == 1:
+                c = _rgb("6a4a2c")
+            elif e >= 3:
+                fx, fy = xx - 3, yy - 3
+                fret = (fx in (0, 9) and 0 <= fy <= 9) or (fy in (0, 9) and 0 <= fx <= 9) or (fx == 4 and 2 <= fy <= 9) or (fy == 4 and 0 <= fx <= 6)
+                if fret:
+                    c = _scale(_rgb("7a5634"), 1.0 + 0.05 * math.sin(x + y))
+                elif (fx, fy) in ((2, 2), (7, 7), (2, 7), (7, 2)):
+                    c = _rgb("a07a48")
+            _put(px, u, v, x, y, _jitter(c, rng, 3))
+
+
+def _medallion(px, region):
+    """The round carved medallion: a beige disc in a dark rim with a dark interlaced knot (no spiral)."""
+    u, v, w, h = region
+    S = 4
+    im = Image.new("RGBA", (w * S, h * S), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    W = w * S
+    d.ellipse((1, 1, W - 2, W - 2), fill=(46, 30, 18, 255))
+    d.ellipse((7, 7, W - 8, W - 8), fill=(206, 186, 146, 255))
+    d.ellipse((14, 14, W - 15, W - 15), outline=(120, 92, 60, 255), width=3)
+    c = W / 2
+    # an endless knot: two interlaced loops and a ring
+    for k in range(4):
+        a = k * math.pi / 2 + math.pi / 4
+        ox, oy = math.cos(a) * W * 0.17, math.sin(a) * W * 0.17
+        r = W * 0.15
+        d.ellipse((c + ox - r, c + oy - r, c + ox + r, c + oy + r), outline=(52, 34, 20, 255), width=6)
+    d.ellipse((c - W * 0.09, c - W * 0.09, c + W * 0.09, c + W * 0.09), outline=(52, 34, 20, 255), width=6)
+    im = im.resize((w, h), Image.LANCZOS)
+    for y in range(h):
+        for x in range(w):
+            q = im.getpixel((x, y))
+            px[u + x, v + y] = q if q[3] > 110 else (0, 0, 0, 0)
+
+
+def _eave_frieze(px, region, rng):
+    """The band under the eaves: dark boards, carved brackets every block, a pale bead along the bottom."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            c = _scale(_rgb("34200f"), 1.0 + 0.06 * math.sin(x * 0.5 + y))
+            xx = x % 16
+            if 5 <= xx <= 10 and y > 3:
+                c = _scale(_rgb("4e3218"), 1.0 + (0.12 if xx in (5, 10) else 0.0))      # a bracket
+                if y > h - 6 and xx in (7, 8):
+                    c = _rgb("8a6038")
+            if y >= h - 2:
+                c = _rgb("8a6a44")
+            if y < 2:
+                c = _rgb("24160c")
+            _put(px, u, v, x, y, _jitter(c, rng, 2))
+
+
 # ---------------------------------------------------------------- the atlas
 def make_texture(path):
     rng = random.Random(23)
@@ -408,11 +569,32 @@ def make_texture(path):
     u, v, w, h = R["bargeboard"]
     for y in range(h):
         for x in range(w):
-            c = _scale(_rgb("c8b494"), 0.9 + 0.15 * math.sin(x * 0.6) * math.sin(y * 0.9))
-            if y in (0, h - 1) or (x % 10 in (0, 1) and 3 < y < h - 4):
-                c = _rgb("6a5236")
+            c = _scale(_rgb("3c2614"), 1.0 + 0.08 * math.sin(x * 0.6) * math.sin(y * 0.9))
+            if y in (1, h - 2):
+                c = _rgb("6a4a2a")                      # carved beads along both edges
+            if y in (0, h - 1):
+                c = _rgb("1e120a")
+            if 4 <= y <= h - 5 and (x % 8 in (3, 4)) and abs(y - h / 2) < 3:
+                c = _rgb("7a5634")                      # carved rosettes
             _put(px, u, v, x, y, _jitter(c, rng, 3))
     _emblem(px, R["emblem"])
+    _frieze(px, R["frieze"], rng)
+    _baluster(px, R["baluster"], rng)
+    _window_arch(px, R["window_arch"])
+    _arch_frame(px, R["arch_frame"], rng)
+    _carved(px, R["carved"], rng)
+    fine_wood(img, R["sternpost"], _rgb("b08e60"), _rgb("5a4028"), 4, rng, knots=0.05)
+    u, v, w, h = R["sternpost"]
+    for y in range(h):
+        for x in range(w):
+            if x % 16 in (6, 7):
+                _put(px, u, v, x, y, _rgb("3a3a3c") if y % 5 else _rgb("74706a"))
+    _medallion(px, R["medallion"])
+    _eave_frieze(px, R["eave_frieze"], rng)
+    u, v, w, h = R["void"]
+    for y in range(h):
+        for x in range(w):
+            _put(px, u, v, x, y, _jitter((20, 14, 10), rng, 2))
     _window_lattice(px, R["window"], lit=True)
     _window_lattice(px, R["window_dark"], lit=False)
     _door(px, R["door_leaf"], rng)
@@ -528,6 +710,10 @@ def _bilinear(c, s, t):
     return top + (bot - top) * s[..., None]
 
 
+ARCH = (0.5, 0.8, 3.9)     # the arch cut round the mast: from / to (fractions of the foot from the clew), its height (blocks);
+#                            a broad leg of cloth (a fifth of the foot) stays forward of it, down to the tack
+
+
 def sail_outline_2d():
     """Outline of the panel in its flattened plane (blocks): the head along the yard, the leech bulging a little
     aft, the foot from the clew with a gentle hollow and, near the tack, the high arch cut round the mast
@@ -547,11 +733,11 @@ def sail_outline_2d():
     foot = tack - clew
     up = h0 - (tack + clew) / 2
     up /= np.linalg.norm(up)
-    for k in range(1, 41):
-        f = k / 40          # 0 at the clew, 1 at the tack
+    for k in range(1, 61):
+        f = k / 60          # 0 at the clew, 1 at the tack
         lift = 0.45 * math.sin(math.pi * f)
-        if 0.6 < f < 0.97:
-            lift += 4.3 * math.sin(math.pi * (f - 0.6) / 0.37) ** 0.75
+        if ARCH[0] < f < ARCH[1]:
+            lift += ARCH[2] * math.sin(math.pi * (f - ARCH[0]) / (ARCH[1] - ARCH[0])) ** 0.7
         pts.append(clew + foot * f + up * lift)
     for k in range(1, 8):
         pts.append(tack + (h0 - tack) * k / 8)
@@ -595,31 +781,31 @@ def make_sail_texture(path, ppb=40):
     d = ImageDraw.Draw(canvas)
     outline = [C(p) for p in allp]
     # the cloth: panels of slightly different reds, diagonal seams (the reference's patchwork)
-    base = np.array([158, 58, 44], dtype=float)
+    base = np.array([178, 72, 56], dtype=float)
     cloth = Image.new("RGB", (Wc, Hc))
     arr = np.zeros((Hc, Wc, 3))
     ys, xs = np.mgrid[0:Hc, 0:Wc]
     bx = (xs / ppb + amin[0])
     by = (ys / ppb + amin[1])
     band = np.floor((bx * 0.55 + by * 0.85) / 1.6)
-    tone = 1.0 + 0.07 * np.sin(band * 2.3) + 0.04 * np.cos(band * 5.1)
+    tone = 1.0 + 0.05 * np.sin(band * 2.3) + 0.03 * np.cos(band * 5.1)
     nz = _noise(Wc, Hc, 14, rng)
     nz2 = _noise(Wc, Hc, 40, rng)
     shade = tone + 0.06 * nz + 0.03 * nz2
     for k in range(3):
         arr[..., k] = base[k] * shade
     seam = np.abs(((bx * 0.55 + by * 0.85) / 1.6) % 1.0 - 0.0) < (1.2 / ppb / 1.6 * 2.2)
-    arr[seam] *= 0.72
+    arr[seam] *= 0.86
     # cross seams (horizontal cloths) and the weave
     seam2 = np.abs((by / 2.4) % 1.0) < 0.012
-    arr[seam2] *= 0.8
+    arr[seam2] *= 0.9
     weave = ((xs + ys) % 2 == 0)
     arr[weave] *= 1.025
     # patches: stitched rectangles of paler or darker cloth
     for k in range(9):
         cx, cy = rng.uniform(amin[0] + 2, amax[0] - 2), rng.uniform(amin[1] + 2, amax[1] - 2)
         w, h = rng.uniform(0.9, 2.2), rng.uniform(0.8, 1.8)
-        f = rng.choice((0.9, 1.07, 0.94, 1.1))
+        f = rng.choice((0.93, 1.05, 0.96, 1.07))
         m = (np.abs(bx - cx) < w / 2) & (np.abs(by - cy) < h / 2)
         arr[m] *= f
         edge = m & ((np.abs(np.abs(bx - cx) - w / 2) < 1.5 / ppb) | (np.abs(np.abs(by - cy) - h / 2) < 1.5 / ppb))
@@ -632,7 +818,7 @@ def make_sail_texture(path, ppb=40):
     edge_dark = mask.filter(ImageFilter.GaussianBlur(ppb * 0.35))
     ed = np.asarray(edge_dark, dtype=float) / 255.0
     arr = np.asarray(cloth, dtype=float)
-    arr *= (0.72 + 0.28 * np.clip((ed - 0.5) * 2.2, 0, 1))[..., None]
+    arr *= (0.8 + 0.2 * np.clip((ed - 0.5) * 2.2, 0, 1))[..., None]
     # the battens' shadows across the cloth
     for sb in js.SAIL_BATTENS:
         for k in range(60):
@@ -642,25 +828,23 @@ def make_sail_texture(path, ppb=40):
             r = ppb * 0.22
             x0_, x1_ = int(max(0, px_ - r)), int(min(Wc, px_ + r))
             y0_, y1_ = int(max(0, py_ - r * 0.4)), int(min(Hc, py_ + r * 1.6))
-            arr[y0_:y1_, x0_:x1_] *= 0.93
+            arr[y0_:y1_, x0_:x1_] *= 0.965
     cloth = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8)).convert("RGBA")
     # the dragon, painted in black ink, its head towards the luff (forwards); placed after the side and
     # perspective views: from just under the yard down to the middle of the foot, in the aft half of the panel
     ink = Image.new("RGBA", (Wc, Hc), (0, 0, 0, 0))
     di = ImageDraw.Draw(ink)
     h0, h1, tack, clew = c
-    top = h0 + (h1 - h0) * 0.5 + np.array([0.0, 0.6])
-    box_w, box_h = 10.0, 12.6
-    ox = top[0] - box_w * 0.5
-    oy = top[1]
+    box_w = 8.4                         # blocks; the design is about 1.33 widths high
+    ox, oy = -2.3, 0.9
     x0_, y0_ = C((ox, oy))
-    x1_, y1_ = C((ox + box_w, oy + box_h))
-    jd.draw_dragon(di, (x0_, y0_, x1_, y1_), ink=(18, 12, 12, 255), gap=(0, 0, 0, 0))
+    x1_, y1_ = C((ox + box_w, oy + box_w * 1.33))
+    jd.draw_dragon(di, (x0_, y0_, x1_, y1_), ink=(20, 12, 10, 255), gap=None)
     ink_a = np.asarray(ink, dtype=float)[..., 3] / 255.0
     # worn paint: the cloth's weave shows a little through the ink
     wear = np.clip(0.88 + 0.12 * nz2 + 0.05 * nz, 0.6, 1.0)
     cl = np.asarray(cloth, dtype=float)
-    inkc = np.array([22, 14, 14], dtype=float)
+    inkc = np.array([20, 12, 10], dtype=float)
     a = (ink_a * wear)[..., None]
     cl[..., :3] = cl[..., :3] * (1 - a) + inkc * a
     cl[..., 3] = np.asarray(mask, dtype=float)
