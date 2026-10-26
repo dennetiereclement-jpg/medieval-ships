@@ -99,8 +99,12 @@ public final class ShipModels {
 	public static final Visual SKY_LEVIATHAN = new Visual(Ships.SKY_LEVIATHAN, model("sky_leviathan"),
 			List.of(texture("sky_leviathan"), texture("sky_leviathan_interior")), 0.3f, 40, 40,
 			false, null, null, 0.07f);
+	/** The Dragon Junk: its rooms' atlas and its great sail are textures of their own; a light bob in the air. */
+	public static final Visual DRAGON_JUNK = new Visual(Ships.DRAGON_JUNK, model("dragon_junk"),
+			List.of(texture("dragon_junk"), texture("dragon_junk_interior"), texture("dragon_junk_sail")), 0.45f, 30, 26, false, null, null, 0.06f);
 	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT,
-			STEAMPUNK_AIRSHIP, NAUTILUS, OLD_CORSAIR, SKY_LEVIATHAN);
+			STEAMPUNK_AIRSHIP, NAUTILUS, OLD_CORSAIR, SKY_LEVIATHAN,
+			DRAGON_JUNK);
 
 	@Nullable
 	public static Visual of(ShipType type) {
