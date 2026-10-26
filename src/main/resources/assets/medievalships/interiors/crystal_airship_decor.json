@@ -28,20 +28,20 @@
    "fallback": "fallback_2"
   },
   {
-   "block": "furnish:dark_oak_chair",
-   "x": -0.5,
+   "block": "furnish:mangrove_chair",
+   "x": -1.613,
    "y": 3.0,
-   "z": -21.394,
-   "yaw": 180.0,
+   "z": -20.3,
+   "yaw": 270.0,
    "scale": 1.0,
    "fallback": "fallback_3"
   },
   {
-   "block": "furnish:dark_oak_chair",
-   "x": 0.5,
+   "block": "furnish:mangrove_chair",
+   "x": 1.613,
    "y": 3.0,
-   "z": -19.256,
-   "yaw": 0.0,
+   "z": -20.3,
+   "yaw": 90.0,
    "scale": 1.0,
    "fallback": "fallback_4"
   },
@@ -64,10 +64,10 @@
    "fallback": "fallback_6"
   },
   {
-   "block": "furnish:dark_oak_chair",
+   "block": "furnish:mangrove_chair",
    "x": -3.0,
    "y": 3.0,
-   "z": -16.494,
+   "z": -16.463,
    "yaw": 180.0,
    "scale": 1.0,
    "fallback": "fallback_7"
@@ -532,8 +532,8 @@
    "fallback": "fallback_58"
   },
   {
-   "block": "furnish:dark_oak_chair",
-   "x": -0.306,
+   "block": "furnish:mangrove_chair",
+   "x": -0.337,
    "y": -4.0,
    "z": 6.6,
    "yaw": 90.0,
@@ -541,8 +541,8 @@
    "fallback": "fallback_59"
   },
   {
-   "block": "furnish:dark_oak_chair",
-   "x": -0.306,
+   "block": "furnish:mangrove_chair",
+   "x": -0.337,
    "y": -4.0,
    "z": 7.8,
    "yaw": 90.0,
@@ -586,19 +586,19 @@
    "fallback": "fallback_64"
   },
   {
-   "block": "furnish:dark_oak_chair",
+   "block": "furnish:mangrove_chair",
    "x": 2.6,
    "y": -4.0,
-   "z": 3.556,
+   "z": 3.587,
    "yaw": 180.0,
    "scale": 1.0,
    "fallback": "fallback_65"
   },
   {
-   "block": "furnish:dark_oak_chair",
+   "block": "furnish:mangrove_chair",
    "x": 2.6,
    "y": -4.0,
-   "z": 5.644,
+   "z": 5.613,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_66"
@@ -667,8 +667,8 @@
    "fallback": "fallback_73"
   },
   {
-   "block": "furnish:dark_oak_chair",
-   "x": 0.906,
+   "block": "furnish:mangrove_chair",
+   "x": 0.937,
    "y": -4.0,
    "z": -3.7,
    "yaw": 270.0,
@@ -676,8 +676,8 @@
    "fallback": "fallback_74"
   },
   {
-   "block": "furnish:dark_oak_chair",
-   "x": 0.906,
+   "block": "furnish:mangrove_chair",
+   "x": 0.937,
    "y": -4.0,
    "z": -2.3,
    "yaw": 270.0,
@@ -1335,20 +1335,20 @@
  ],
  "seats": [
   {
-   "x": -0.5,
+   "x": -1.55,
    "y": 3.442,
-   "z": -21.3,
-   "dx": -1.4,
+   "z": -20.3,
+   "dx": -2.45,
    "dy": 3.02,
-   "dz": -21.3
+   "dz": -20.3
   },
   {
-   "x": 0.5,
+   "x": 1.55,
    "y": 3.442,
-   "z": -19.35,
-   "dx": 1.4,
+   "z": -20.3,
+   "dx": 2.45,
    "dy": 3.02,
-   "dz": -19.2
+   "dz": -20.3
   },
   {
    "x": -3.0,
