@@ -182,14 +182,16 @@ def straps(bone, gems):
             disc(bone, "gem_setting_%s%d" % (sn, j), p - nrm * 0.05, nrm, 0.36, 0.08, "gold", sides=8)
         for j in range(len(cross_z) - 1):
             za, zb = cross_z[j], cross_z[j + 1]
-            for drop, w in ((1.2, 0.17), (0.6, 0.13)):
+            for drop, w in ((16.0, 0.2), (8.0, 0.15)):
                 pts = []
                 for q in range(9):
                     z = za + (zb - za) * q / 8
-                    sag = drop * math.sin(math.pi * q / 8)
-                    p = LP("c", z, az + side * 8 * math.sin(math.pi * q / 8), 0.18 + 0.15 * math.sin(math.pi * q / 8)) - v3(0, sag, 0)
-                    pts.append(p)
-                polyline(bone, "swag_%s%d_%d" % (sn, j, int(drop * 10)), pts, w, "gold", sides=4)
+                    pts.append(LP("c", z, az + side * drop * math.sin(math.pi * q / 8), 0.22))
+                polyline(bone, "swag_%s%d_%d" % (sn, j, int(drop)), pts, w, "gold", sides=4)
+            zm = (za + zb) / 2
+            p = LP("c", zm, az + side * 16.0, 0.3)
+            nrm = norm(LP("c", zm, az + side * 16.0, 1.0) - LP("c", zm, az + side * 16.0))
+            disc(gems, "glow_gem_swag_%s%d" % (sn, j), p, nrm, 0.2, 0.1, "gem", sides=8)
     # jewels on the other straps (their lowest visible points on the flanks)
     for k, (name, t) in enumerate(cs.STRAPS):
         if name == "c":
@@ -274,7 +276,7 @@ def golden_ring(bone, detail):
         p1 = c + v3(0, math.cos(a1), math.sin(a1)) * rm
         am = (a0 + a1) / 2
         rad = v3(0, math.cos(am), math.sin(am))
-        beam(bone, "ring_%d" % k, p0, p1, w, "gold", width=t, up=rad, extend=0.03)
+        beam(bone, "ring_%d" % k, p0, p1, w, "brass", width=t, up=rad, extend=0.03)
         # a raised bead on both faces and blocky studs round the rim (the reference's chunky gilded ring)
         for sx in (1, -1):
             q0 = c + v3(sx * (t / 2 + 0.04), 0, 0) + v3(0, math.cos(a0), math.sin(a0)) * (ro - 0.12)
@@ -367,7 +369,8 @@ def hull(bone, detail, lights):
                 mid = (A[k] + A[k + 1] + B[k] + B[k + 1]) / 4
                 if in_window(mid[2], mid[1]):
                     continue
-                region = "hull_green" if mid[1] < BAND_Y + 0.01 else "hull_brown"
+                region = "hull_green" if mid[1] < BAND_Y + 0.01 or (mid[1] > cs.SHEER_WAIST + 0.05 and mid[2] > cs.FORECASTLE_Z - 0.8) \
+                    else "hull_brown"
                 outward = norm(v3(side, -0.5 if k < 5 else 0.0, 0.25 * np.sign(mid[2])))
                 quad(bone, "hull_%s%d_%d" % (sn, i, k), A[k], B[k], A[k + 1], B[k + 1], 0.14, region, outward, u_dir=v3(0, 0, 1),
                      stretch=False, back="dark_wood", overlap=(1.03, 1.06))
@@ -452,10 +455,11 @@ def hull(bone, detail, lights):
     # a carved beak under the forecastle's bow, gilded
     (bz0, by0), (bz1, by1) = cs.BEAK
     pts = [v3(0, by0, bz0), v3(0, by0 + 0.05, (bz0 + bz1) / 2), v3(0, by1, bz1)]
-    polyline(bone, "beak", pts, 0.42, "dark_wood", sides=6)
-    tube(bone, "beak_tip", v3(0, by1, bz1), v3(0, by1 + 0.05, bz1 + 0.5), 0.26, "gold", sides=6)
+    for k in range(len(pts) - 1):
+        beam(bone, "beak_%d" % k, pts[k], pts[k + 1], 0.5, "dark_wood", width=0.5, extend=0.1, u_dir=pts[k + 1] - pts[k])
+    tube(bone, "beak_tip", v3(0, by1, bz1), v3(0, by1 + 0.05, bz1 + 0.5), 0.3, "gold", sides=6)
     for k, z in enumerate((26.6, 27.3)):
-        disc(bone, "beak_band_%d" % k, v3(0, by0 + (by1 - by0) * (z - bz0) / (bz1 - bz0), z), (0, 0, 1), 0.28, 0.1, "gold", sides=6)
+        box(bone, "beak_band_%d" % k, v3(0, by0 + (by1 - by0) * (z - bz0) / (bz1 - bz0), z), (0.58, 0.58, 0.14), "brass")
     # the inner faces of the bulwarks (seen from the decks), the cap rail
     for side, sn in SIDES:
         zz = list(np.linspace(cs.CASTLE_Z + 0.05, 25.6, 46))
@@ -757,10 +761,8 @@ def nacelles(bone, detail, lights, root):
 
         def reg(z, a):
             if z > cs.NACELLE_NOSE[1]:
-                return "bronze"
-            if z < z0 + 1.6:
-                return "engine_dark"
-            return "engine_plate"
+                return "engine_plate"
+            return "engine_dark"
         body_of_revolution(bone, "nacelle_%s" % sn, (cx, y), cs.nacelle_r, z0, z1, NACELLE_ST, 22, reg)
         # gilded bands, the dome's spike, the mount to the hull
         for k, z in enumerate((z1 - cs.NACELLE_NOSE[0], -12.6, cs.NACELLE_NOSE[1] - 0.1, -16.4, -21.1, z0 + 1.6)):
@@ -793,6 +795,15 @@ def nacelles(bone, detail, lights, root):
             R = gg.frame_from(tip - root_pt, v3(side, 1, 0))
             add_cube(bone, "nacelle_feather_%s%d" % (sn, k), (root_pt + tip) / 2, R, (np.linalg.norm(tip - root_pt), 0.08, 1.1 - 0.12 * k),
                      "feather", u_dir=tip - root_pt)
+        # curved brass plates fanning round the drum behind the eye (the reference's turbine fins)
+        for k in range(7):
+            a = math.radians(-60 + 40 * k) if side > 0 else math.radians(240 - 40 * k)
+            d = v3(math.cos(a), math.sin(a), 0)
+            if d[0] * side < -0.3:
+                continue
+            c = v3(cx, y, -21.0) + d * (r + 0.15)
+            R = np.column_stack([np.cross(d, v3(0, 0, 1)), d, v3(0, 0, 1)])
+            add_cube(bone, "nacelle_fin_%s%d" % (sn, k), c, R, (1.0, 0.5, 2.0), {"all": "brass", "+2": "feather", "-2": "feather"}, u_dir=v3(0, 0, -1))
         # copper tanks under the drum, a gear train on its fore face
         for k, dz in enumerate((-16.2, -19.6)):
             p = v3(cx + side * 1.4, y - r + 0.2, dz)
@@ -864,13 +875,13 @@ def prop_pods(bone, detail, lights, root):
     for side, sn in SIDES:
         rp, hub, ax = cs.pod_frame(side)
         rp, hub, ax = v3(*rp), v3(*hub), v3(*ax)
-        tube(bone, "pod_body_%s" % sn, rp, hub - ax * 0.4, 1.8, "bronze", sides=10)
-        tube(bone, "pod_cap_%s" % sn, rp - ax * 0.3, rp + ax * 0.3, 2.0, "brass", sides=10)
-        tube(bone, "pod_nose_%s" % sn, hub - ax * 0.45, hub - ax * 0.05, 1.4, "gold", sides=10)
+        tube(bone, "pod_body_%s" % sn, rp, hub - ax * 0.4, 2.3, "bronze", sides=10)
+        tube(bone, "pod_cap_%s" % sn, rp - ax * 0.3, rp + ax * 0.3, 2.5, "brass", sides=10)
+        tube(bone, "pod_nose_%s" % sn, hub - ax * 0.45, hub - ax * 0.05, 1.8, "gold", sides=10)
         for k, t in enumerate((0.35, 0.6, 0.82)):
             p = rp + (hub - rp) * t
-            tube(lights, "glow_pod_crystal_band_%s%d" % (sn, k), p - ax * 0.17, p + ax * 0.17, 1.92, "crystal", sides=10)
-            tube(detail, "pod_band_%s%d" % (sn, k), p - ax * 0.28, p - ax * 0.18, 2.0, "gold", sides=10)
+            tube(lights, "glow_pod_crystal_band_%s%d" % (sn, k), p - ax * 0.2, p + ax * 0.2, 2.42, "crystal", sides=10)
+            tube(detail, "pod_band_%s%d" % (sn, k), p - ax * 0.32, p - ax * 0.21, 2.5, "gold", sides=10)
         # the hanger to the hull
         top = v3(side * (cs.hull_x(-5.5, -6.0) - 0.3), -6.0, -5.5)
         beam(bone, "pod_hanger_%s" % sn, top, rp + v3(0, 0.6, 0), 0.4, "bronze", width=0.5)
@@ -893,7 +904,7 @@ def prop_pods(bone, detail, lights, root):
             tw = t * math.cos(0.45) + ax * math.sin(0.45)
             tw = norm(tw - np.dot(tw, dd) * dd)
             Rb = np.column_stack([dd, tw, np.cross(dd, tw)])
-            add_cube(pb, "pod_blade_%s%d" % (sn, k), cc, Rb, (L, 1.05, 0.05), {"all": "gold", "+3": "blade", "-3": "blade"}, stretch=True,
+            add_cube(pb, "pod_blade_%s%d" % (sn, k), cc, Rb, (L, 1.4, 0.05), {"all": "gold", "+3": "blade", "-3": "blade"}, stretch=True,
                      u_dir=-dd)
 
 
@@ -918,9 +929,9 @@ def crystals(bone, lights, detail, root, lantern_bone):
         a = 2 * math.pi * k / 8
         p = c + v3(math.cos(a) * (pr - 0.2), 0.15, math.sin(a) * (pr - 0.2))
         tube(detail, "crystal_platform_post_%d" % k, p, p + v3(0, 0.6, 0), 0.1, "brass", sides=4)
-    crystal(lights, "bottom_big", c - v3(0, 0.2, 0), (0, -1, 0), py - tip - 0.2, 0.75, sides=6)
-    for k, (dx, dz, h, r, tilt) in enumerate(((0, 0, 1.6, 0.5, 0), (0.7, 0.4, 1.1, 0.32, 0.3), (-0.6, 0.5, 1.2, 0.34, 0.3), (0.3, -0.7, 1.0, 0.3, 0.35),
-                                              (-0.5, -0.5, 0.9, 0.28, 0.3))):
+    crystal(lights, "bottom_big", c - v3(0, 0.2, 0), (0, -1, 0), py - tip - 0.2, 1.05, sides=6)
+    for k, (dx, dz, h, r, tilt) in enumerate(((0, 0, 2.2, 0.8, 0), (1.1, 0.6, 1.6, 0.55, 0.35), (-1.0, 0.7, 1.7, 0.55, 0.35), (0.5, -1.1, 1.5, 0.5, 0.4),
+                                              (-0.8, -0.9, 1.4, 0.48, 0.35), (1.5, -0.5, 1.1, 0.4, 0.5), (-1.6, 0.0, 1.2, 0.42, 0.5))):
         d = norm(v3(dx * tilt, 1, dz * tilt)) if tilt else v3(0, 1, 0)
         crystal(lights, "bottom_up_%d" % k, c + v3(dx, 0.1, dz), d, h, r)
     keel = cs.keel_y(z)
@@ -947,7 +958,7 @@ def crystals(bone, lights, detail, root, lantern_bone):
     for k, (x, y, zz) in enumerate(cs.CASTLE_CRYSTALS):
         tube(bone, "castle_lamp_post_%d" % k, v3(x, 0.0, zz), v3(x, y - 0.3, zz), 0.2, "brass", sides=6)
         disc(bone, "castle_lamp_cup_%d" % k, v3(x, y - 0.25, zz), (0, 1, 0), 0.3, 0.15, "gold", sides=8)
-        crystal(lights, "castle_lamp_%d" % k, v3(x, y - 0.2, zz), (0, 1, 0), 1.0, 0.26)
+        crystal(lights, "castle_lamp_%d" % k, v3(x, y - 0.2, zz), (0, 1, 0), 1.4, 0.4)
         for j in range(3):
             a = 2 * math.pi * j / 3
             tube(detail, "castle_lamp_claw_%d_%d" % (k, j), v3(x, y - 0.2, zz), v3(x + math.cos(a) * 0.3, y + 0.3, zz + math.sin(a) * 0.3), 0.05, "gold",
@@ -958,9 +969,9 @@ def crystals(bone, lights, detail, root, lantern_bone):
         pb = Bone("pod_" + name, origin=tuple(p), parent=root)
         rb = Bone("pod_%s_ring" % name, origin=tuple(p), parent=pb)
         R = cs.POD_R * (1.25 if big else 1.0)
-        gl.gear(rb, "pod_%s_gear" % name, p, (0, 0, 1), R, 0.5, teeth=16, region="copper" if big else "bronze", spokes=6, rim="copper" if big else "brass")
-        ring(rb, "pod_%s_ring_in" % name, p, (0, 0, 1), R * 0.62, 0.22, "gold", n=12)
-        disc(rb, "pod_%s_disc" % name, p, (0, 0, 1), R * 0.55, 0.3, "engine_plate", sides=12)
+        gl.gear(rb, "pod_%s_gear" % name, p, (1, 0, 0), R, 0.5, teeth=16, region="copper" if big else "bronze", spokes=6, rim="copper" if big else "brass")
+        ring(rb, "pod_%s_ring_in" % name, p, (1, 0, 0), R * 0.62, 0.22, "gold", n=12)
+        disc(rb, "pod_%s_disc" % name, p, (1, 0, 0), R * 0.55, 0.3, "engine_plate", sides=12)
         crystal(pb, "pod_%s_core" % name, p - v3(0, 0.55 * R, 0), (0, 1, 0), 1.1 * R, 0.3 * R)
         for s in (1, -1):
             crystal(pb, "pod_%s_side_%d" % (name, s > 0), p + v3(0, 0, s * 0.3), (0, 0, s), 0.9 * R, 0.36)
@@ -987,7 +998,7 @@ def rigging(bone, girdle):
         for j, (z, p, h) in enumerate(line):
             if h or j % 3:
                 continue
-            zt = max(cs.CASTLE_Z + 0.5, min(cs.FORECASTLE_Z + 8.0, z * 1.05))
+            zt = max(cs.CASTLE_Z + 0.5, min(cs.FORECASTLE_Z + 8.0, z * 1.45 + 1.0))   # the shrouds fan out towards the ends
             if cs.CASTLE_Z - 0.2 > zt or zt > 24.5:
                 continue
             ytop = cs.sheer_y(zt) + 0.75
@@ -1047,7 +1058,7 @@ def lanterns(lanterns_bone, detail):
 OPEN_KINDS = (ci.DRY, ci.LADDER)
 ROOM_MATERIALS = {
     "mess": ("in_wall_lounge", "in_floor_lounge", "in_ceil_lounge"),
-    "cockpit": ("in_stone", "in_floor_capt", "in_ceil"),
+    "cockpit": ("in_wall_lounge", "in_floor_capt", "in_ceil"),
     "lounge": ("in_wall_lounge", "in_floor_lounge", "in_ceil_lounge"),
     "storeroom": ("in_wall_store", "in_floor_hold", "in_ceil_store"),
     "engine_room": ("in_wall_works", "in_floor_grate", "in_ceil_soot"),
@@ -1363,7 +1374,7 @@ def build_animations(root):
         b = find(root, name)
         tracks.append((b, [kf("position", t, (0, 16 * 0.12 * math.sin(w * t + 1.7 * k), 0)) for t, _ in _loop_keys(3.0, 12, lambda t: 0)]))
         r = find(root, name + "_ring")
-        tracks.append((r, [rot_kf(t, (0, 0, (1 if k else -1) * 360.0 * t / 3.0)) for t in [3.0 * i / 12 for i in range(13)]]))
+        tracks.append((r, [rot_kf(t, ((1 if k else -1) * 360.0 * t / 3.0, 0, 0)) for t in [3.0 * i / 12 for i in range(13)]]))
     anims.append(animation("streamer_wave", 3.0, "loop", tracks))
     tracks = []
     lan = find(root, "lanterns")

@@ -202,9 +202,9 @@ def _rivets(px, region, stops, rng, pw=16, ph=16, dark=False):
             c = _ramp(stops, t)
             if x % pw == 0 or y % ph == 0:
                 c = _scale(c, 0.55)
-            elif (x % pw in (2, pw - 2)) and (y % 4 == 2):
+            elif (x % pw in (2, pw - 2)) and (y % 5 == 2):
                 c = _scale(_ramp(stops, 0.95), 1.0)
-            elif (y % ph in (2, ph - 2)) and (x % 4 == 2):
+            elif (y % ph in (2, ph - 2)) and (x % 5 == 2):
                 c = _scale(_ramp(stops, 0.95), 1.0)
             _put(px, u, v, x, y, _jitter(c, rng, 3))
 
@@ -364,13 +364,13 @@ def _rose(px, region):
                 _put(px, u, v, x, y, (0, 0, 0), 0)
                 continue
             a = math.degrees(math.atan2(dy, dx))
-            sector = int(a // 22.5)
-            if r > 0.9 or r < 0.2 or abs(a - (sector + 0.5) * 22.5) > 10.0 or abs(r - 0.58) < 0.035:
-                c = _rgb("2e1d10") if r < 0.93 else _ramp(GOLD_STOPS, 0.65)
-            elif r < 0.58:
-                c = (255, 214, 124) if sector % 2 == 0 else (238, 176, 84)
+            sector = int(a // 18.0)
+            ring_i = int(r / 0.2)
+            if r > 0.92 or r < 0.14 or abs(a - (sector + 0.5) * 18.0) > 7.6 or abs(r - 0.2 * round(r / 0.2)) < 0.025:
+                c = _rgb("2e1d10") if r < 0.94 else _ramp(GOLD_STOPS, 0.65)
             else:
-                c = (112, 168, 96) if sector % 2 == 0 else (255, 200, 110)
+                pal = [(255, 214, 124), (118, 172, 96), (238, 176, 84), (200, 90, 60), (255, 200, 110), (96, 150, 84)]
+                c = pal[(ring_i * 2 + sector) % len(pal)]
             _put(px, u, v, x, y, c)
 
 
@@ -487,8 +487,8 @@ def make_texture(path):
     fine_wood(img, R["rail"], _rgb("6a4222"), _rgb("2c1a0c"), 4, rng)
     end_grain(img, R["end_grain"], _rgb("8a5c34"), _rgb("4a2e16"), rng)
     fine_wood(img, R["rung"], _rgb("7a5030"), _rgb("3a2414"), 4, rng)
-    _rivets(px, R["engine_plate"], BRONZE_STOPS, rng)
-    _rivets(px, R["engine_dark"], [(0.0, (30, 30, 34)), (0.5, (62, 60, 62)), (1.0, (110, 106, 100))], rng)
+    _rivets(px, R["engine_plate"], [(0.0, (52, 36, 20)), (0.35, (96, 64, 34)), (0.7, (140, 98, 52)), (1.0, (190, 146, 84))], rng, pw=32, ph=16)
+    _rivets(px, R["engine_dark"], [(0.0, (30, 30, 34)), (0.5, (62, 60, 62)), (1.0, (110, 106, 100))], rng, pw=32, ph=16)
     _feather(px, R["feather"], rng)
     fine_wood(img, R["hull_band"], _rgb("3e2614"), _rgb("1c1008"), 4, rng)
     _blade(px, R["blade"], rng)

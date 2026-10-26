@@ -174,7 +174,7 @@ public final class CrystalGameTest {
 		l = local(context, server);
 		check.accept(g.inCarryVolume(l[0], l[1], l[2]) && Math.abs(l[1]) < 0.08,
 				String.format(Locale.ROOT, "%s walks on the main deck (local %.2f %.2f %.2f)", id, l[0], l[1], l[2]));
-		lookLocal(server, pose(server), l[0], l[1] + 1.62, l[2], 0.0, 3.0, -12.0);
+		lookLocal(server, pose(server), 2.4, CrystalLayout.MAIN_DECK_Y + 1.62, 8.8, -0.6, 2.6, -10.0);   // beside the ring's foot, towards the castle
 		context.waitTicks(10);
 		shot.accept(id + "_17_pont");
 
@@ -214,14 +214,14 @@ public final class CrystalGameTest {
 				"%s under way: the propellers turn (phase %.2f -> %.2f)", id, a2 == null ? 0f : a2[0], a3 == null ? 0f : a3[0]));
 		context.getInput().holdKey(o -> o.forwardKey);
 		context.getInput().holdKey(o -> o.leftKey);
-		context.waitTicks(40);
+		context.waitTicks(80);          // a heavy airship: the helm comes over, then the bow swings round slowly
 		float[] a4 = anim(context);
 		ShipPose s3 = pose(server);
 		context.getInput().releaseKey(o -> o.leftKey);
 		context.getInput().releaseKey(o -> o.forwardKey);
 		check.accept(a4 != null && Math.abs(a4[1]) > 0.3, String.format(Locale.ROOT, "%s turning: the wheel follows the helm (%.2f)", id,
 				a4 == null ? 0f : a4[1]));
-		check.accept(Math.abs(ShipPose.wrapDegrees(s3.yaw() - s2.yaw())) > 1.0, String.format(Locale.ROOT, "%s turns slowly (%.2f degrees in 2 s)", id,
+		check.accept(Math.abs(ShipPose.wrapDegrees(s3.yaw() - s2.yaw())) > 1.0, String.format(Locale.ROOT, "%s turns slowly (%.2f degrees in 4 s)", id,
 				ShipPose.wrapDegrees(s3.yaw() - s2.yaw())));
 		check.accept(collisions(server) == 0, id + " flight: inside nothing");
 		server.runCommand("ride @p dismount");

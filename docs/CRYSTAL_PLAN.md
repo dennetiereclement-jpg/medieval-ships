@@ -1,4 +1,4 @@
-# Le Grand Dirigeable de Cristal (`crystal_airship`) — plan et guide
+# Le Grand Dirigeable de Cristal (`crystal_airship`) — plan, animations et guide du joueur
 
 Planche de référence : `scratchpad/ref/crystal_airship_ref.png` (grande perspective, vues de côté, de dessus,
 avant, arrière, quatre vues intérieures : poste de pilotage, salon, salle des machines, réserve).
@@ -84,3 +84,99 @@ grille (on voit dehors) : baie du poste de pilotage, fenêtres du salon.
   tout le volume (lobes, anneau, nacelles, moteurs, cristaux, mâts) pour le pilote automatique aérien.
 * Modèle Blockbench généré (`tools/generate_crystal.py`), deux textures (extérieur, pièces), meubles des mods
   de décoration embarqués (identifiants seulement, boîtes de remplacement si un mod manque).
+
+## 5. Ce qui a été construit
+
+Comparaison planche / modèle : [comparaison_crystal_airship.png](comparaison_crystal_airship.png) (côté,
+dessus, avant, arrière, perspective) et [comparaison_crystal_airship_pieces.png](comparaison_crystal_airship_pieces.png)
+(vues de la planche à gauche, rendu des pièces meublées à droite).
+
+| Fichier | Rôle |
+|---|---|
+| `tools/crystal_shape.py` | formes (lobes du ballon, coque, château, nacelles, cristaux), source unique des mesures |
+| `tools/crystal_interior.py` | grille intérieure (cellules de 0,5 bloc) : pièces, portes, escaliers, échelle, vitres |
+| `tools/crystal_decor.py` | ameublement : blocs des mods de décoration, meubles faits sur mesure, sièges, tableaux |
+| `tools/crystal_furniture.py` | meubles sur mesure (colonnes d'instruments, lampes de cristal, horloge murale, carte du monde, chaînes, porte-voix) |
+| `tools/crystal_texture.py` | les deux textures (extérieur 512², pièces) et l'icône |
+| `tools/generate_crystal.py` | modèle Blockbench (≈ 13 000 cubes, 11 animations) ; réutilise les outils du Léviathan et du Corsaire |
+| `core/CrystalLayout.java` | type, géométrie, sondes, sièges, barre, réglages de vol (miroir de `crystal_shape.py`) |
+| `entity/CrystalAirshipEntity.java`, `client/CrystalEffects.java` | entité, particules (étincelles bleues des cristaux, fumée des moteurs) |
+| `CrystalTest` (JUnit), `CrystalGameTest` (en jeu) | tests |
+
+Ameublement (148 blocs de mods, 40 places assises) : `farmhouse_decorations` (75 : canapés, fauteuils,
+tables, piano, gramophone, bibliothèques, vitrines, lampes, établi), `furnish` (55 : caisses, étagères,
+tabourets, casiers, tableaux), `farmersdelight` (10 : caisses de légumes, sacs, paniers), `landsoficaria`
+(2 tonneaux), `mebahelcreaturesdwarven` (6 : tuyaux et blocs de métal nain de la salle des machines).
+Faits sur mesure (aucun mod n'a la pièce) : roue de barre, colonnes d'instruments, lampes de cristal,
+machine à cœur de cristal (engrenages et pistons animés), horloge et manomètres muraux, carte du monde,
+chaînes de la réserve, tonneaux et sacs, lanternes. Sans les mods, des boîtes de remplacement texturées
+prennent leur place (même encombrement).
+
+## 6. Animations et effets
+
+| Animation | Pièces | Pilotée par |
+|---|---|---|
+| `propeller` | rotors des deux nacelles, hélice du moteur arrière, hélices des deux nacelles inclinées sous la poupe | la vitesse (immobiles à l'arrêt) |
+| `engine` | engrenages et pistons de la machine à cœur de cristal | la vitesse |
+| `steer` | roue de la barre | la barre |
+| `elevator` | volets des nacelles (± 14°) | montée / descente |
+| `flag_wave`, `streamer_wave` | flamme du mât, flammes du château et de l'espar ; bob des nacelles flottantes, rotation lente de leurs anneaux | le temps |
+| `lantern_sway` | lanternes suspendues, lanternes de cristal sous l'avant | le temps |
+| portes 0 à 3 | battants, trappe | clic droit |
+
+Particules (côté client, à moins de 80 blocs) : étincelles et lueurs bleues autour des cristaux (plateforme,
+nacelles flottantes, yeux de cristal des moteurs), nuages et fumée blanche derrière les moteurs quand ils tournent.
+
+## 7. Guide du joueur
+
+### Obtenir et poser
+
+* Objet *Le Grand Dirigeable de Cristal* (inventaire créatif, onglet *Navires médiévaux*) ou
+  `/ship give crystal_airship [joueurs]` ; `/ship spawn crystal_airship` le pose au-dessus de vous.
+* **Clic droit sur le sol, l'eau ou un toit** : il apparaît en vol stationnaire au-dessus, seulement si toute
+  sa place est libre (environ 55 blocs de long, 23 de large, 44 de haut : ballon, anneau, nacelles,
+  cristaux, mât). Sinon un message l'indique et rien n'est posé.
+
+### À bord
+
+* **Clic droit sur la coque** : on est déposé sur le pont principal. On marche partout, pendant le vol :
+  pont, gaillard d'avant (escaliers de chaque côté de la tourelle), château, **poste de pilotage** (escalier
+  bâbord du carré), **salon** et **réserve** (escalier tribord du carré, puis le palier de la salle des
+  machines), **fond de la salle des machines** (escalier du palier), **cale** (trappe et échelle du salon).
+* **Portes** (clic droit) : 0 porte double du château sur le pont, 1 salon ↔ salle des machines, 2 salon ↔
+  réserve, 3 trappe de la cale. Les vitres (baie du poste de pilotage, grandes fenêtres du salon) laissent
+  voir dehors.
+* **Sièges** : canapés, fauteuils, chaises, tabourets, bancs du pont (40 places) ; Maj pour se lever.
+
+### Piloter
+
+**Prendre la barre** : clic droit sur la grande roue du poste de pilotage (le pilote se tient derrière).
+Z avancer, S ralentir puis reculer, Q / D virer, **Espace monter**, **Ctrl descendre**, Maj quitter la barre
+(on se retrouve debout dans le poste de pilotage). Relâchées, Espace et Ctrl laissent le dirigeable garder son
+altitude. C'est le vaisseau volant le plus lourd du mod, plus lent que le Léviathan : il prend son erre
+lentement, la roue vient progressivement, la proue pivote doucement (quelques degrés par seconde),
+il monte et descend sans à-coups.
+
+Pilote automatique : itinéraires aériens comme le dirigeable steampunk et le Léviathan (`/ship route create
+<nom> loop air`, `addstop`, `addpoint`, `assign` ; voir [COMMANDES.md](COMMANDES.md)). Les sondes de terrain
+couvrent tout le volume (lobes, anneau, nacelles, moteurs, cristaux) : il garde au moins 9 blocs sous la
+quille au-dessus du relief et descend à l'escale dans les 52 derniers blocs.
+
+### Réglages (`config/medievalships.json`, bloc `ships.crystal_airship`, `/ship reload`)
+
+| Clé | Défaut | Rôle |
+|---|---|---|
+| `slowSpeed` / `normalSpeed` / `fastSpeed` / `reverseSpeed` | 1.8 / 3.8 / 6.0 / 1.0 | allures (blocs/s) |
+| `acceleration`, `braking`, `waterDrag` | 0.22, 0.45, 0.12 | forte inertie |
+| `maxTurnRate`, `minTurnFactor` | 5.0, 0.45 | rotation (°/s), part disponible à l'arrêt |
+| `helmRate`, `helmReturnRate`, `turnResponse`, `turnSpeedLoss` | 0.6, 0.7, 0.4, 0.08 | barre lente, rotation lente |
+| `waveRocking` | 0.4 | balancement visuel |
+| `flight.climbSpeed` / `flight.descendSpeed` / `flight.verticalAcceleration` | 1.0 / 0.85 / 0.35 | montée et descente |
+| `flight.aiClearance`, `flight.aiApproachDistance`, `flight.sway` | 9, 52, 0.5 | pilote automatique, balancement en vol |
+
+## 8. Limites
+
+* La planche n'est pas cohérente d'une vue à l'autre : la grappe du ballon a été rendue symétrique, la coque
+  est un peu plus droite que sur la grande perspective (pont continu, pour pouvoir y marcher).
+* Les vitres sont des cellules pleines transparentes : on ne passe pas par les fenêtres.
+* Les tonneaux, sacs et caisses de la réserve et de la cale sont du décor (pas d'inventaire).

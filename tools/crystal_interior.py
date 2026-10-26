@@ -90,7 +90,7 @@ POSTS = ((-2.2, M0, -9.4), (2.2, M0, -9.4), (-1.9, cs.FORECASTLE_Y, 15.2), (1.9,
 # the lounge's windows (z centre, half width) between y WIN_Y; the cockpit's side windows
 LOUNGE_WINDOWS = ((-6.0, -4.0), (-3.0, -1.0), (0.0, 2.0), (3.0, 5.0), (6.0, 8.0))   # z spans (on cell boundaries)
 WIN_Y = (-3.0, -1.0)
-ROSE = (10.6, -0.35, 2.5)     # the bow's fan window (outside only): z of its centre, its flat top, radius
+ROSE = (10.2, -0.3, 3.1)     # the bow's fan window (outside only): z of its centre, its flat top, radius
 COCKPIT_WINDOWS = ((-18.0, -16.5), (-20.5, -19.0), (-22.5, -21.5))
 COCKPIT_WIN_Y = (3.5, 5.5)
 
