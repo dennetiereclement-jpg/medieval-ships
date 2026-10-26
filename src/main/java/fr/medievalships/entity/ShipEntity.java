@@ -550,8 +550,8 @@ public abstract class ShipEntity extends Entity {
 			float climb = Math.max(-1f, Math.min(1f, syncedVerticalSpeed() / (float) cfg.flight.climbSpeed));
 			climbVisual += (climb - climbVisual) * 0.15f;
 			// the turn rate as seen here: the yaw change of the last tick (the yaw is already smoothed above)
-			double target = Flight.bankTarget(syncedSpeed(), yawDelta / DT, Flight.bankLimit(geometry(), cfg.flight));
-			bankVisual = (float) Flight.bankStep(bankVisual, target, DT);
+			double bank = Flight.bankTarget(syncedSpeed(), yawDelta / DT, Flight.bankLimit(geometry(), cfg.flight));
+			bankVisual = (float) Flight.bankStep(bankVisual, bank, DT);
 		}
 		rockTime += DT;
 		if (geometry().interior() != null) {
