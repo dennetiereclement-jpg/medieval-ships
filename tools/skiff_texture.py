@@ -56,14 +56,25 @@ REGIONS = {
     "sack":        (432, 16, 16, 16),
     "glass":       (448, 16, 16, 16),
     "carving":     (464, 16, 32, 16),
+    "iron_light":  (128, 32, 16, 16),
+    "tube_rim":    (128, 48, 16, 16),   # the tubes' bells: worn bronze-brown   # grey iron: ring bolts, bollards, fittings
+    "iron_dark":   (144, 32, 16, 16),   # blackened iron: the fans in the tubes
+    "bone":        (160, 32, 32, 16),   # pale bone segments of the wings' ribs
+    "tube_in":     (192, 32, 16, 16),   # inside of the tubes' bells: dark
+    "emblem":      (208, 32, 32, 32),   # the carved square panel of the cabin's sides
+    "window_in":   (240, 32, 16, 16),   # a window seen from inside: the sky through small panes
+    "curtain":     (256, 32, 16, 32),   # a ragged curtain
+    "quilt":       (272, 32, 32, 32),   # the bed's red quilt, a darker border, the folded sheet at its head
     # cloth
     "canvas":      (0, 64, 64, 64),     # the roof canvas: worn beige, stains, stitched patches
     "canvas_under": (64, 64, 32, 32),   # its underside, darker
     "fringe":      (96, 64, 32, 32),    # torn strips hanging from the eaves (ragged, transparent tears)
     "wing":        (128, 64, 64, 64),   # the wings' canvas: tan panels, holes, patches
-    "pennant_beige": (192, 64, 16, 16),
-    "pennant_red": (208, 64, 16, 16),
-    "pennant_black": (224, 64, 16, 16),
+    "wing_t":      (384, 64, 64, 64),   # the same, transposed (the quads along the wings' free edges)
+    "pennant_beige": (320, 64, 16, 32),   # big tattered pennants: notched, ragged tails
+    "pennant_red": (336, 64, 16, 32),
+    "pennant_black": (352, 64, 16, 32),
+    "pennant_brown": (368, 64, 16, 32),
     "cloth":       (240, 64, 16, 16),   # plain worn canvas (bundles, the tent's ends)
     "books":       (256, 64, 32, 32),
     "chart":       (288, 64, 32, 32),
@@ -104,17 +115,18 @@ def _moss(px, region, rng, top=1.0, amount=0.55):
     """Moss over planks: olive green patches, denser towards the top (v = 0) of the region."""
     u, v, w, h = region
     n = _noise(w, h, 5, rng)
-    greens = [_rgb(c) for c in ("5d6b2a", "4e5c24", "6c7a32", "445020", "7a8638")]
+    greens = [_rgb(c) for c in ("5d6b33", "4f5a2c", "66703a", "48522a", "56603a")]
+    browns = [_rgb(c) for c in ("4a3e26", "5a4a2e")]
     for y in range(h):
         for x in range(w):
             k = n[y][x] * 0.6 + rng.uniform(-0.25, 0.25) + amount - (y / h) * (1.0 - top) * 1.2
             if k > 0.25:
-                c = rng.choice(greens)
+                c = rng.choice(browns) if rng.random() < 0.14 else rng.choice(greens)
                 r, g, b, a = px[u + x, v + y]
-                px[u + x, v + y] = _jitter(_mix((r, g, b), c, min(1.0, 0.55 + k * 0.5)), rng, 4) + (255,)
+                px[u + x, v + y] = _jitter(_mix((r, g, b), c, min(1.0, 0.5 + k * 0.45)), rng, 4) + (255,)
 
 
-def _canvas(px, region, rng, base, dark, light, patches=4, alpha_holes=0, seams=True):
+def _canvas(px, region, rng, base, dark, light, patches=4, alpha_holes=0, seams=True, patch_cols=None, stitches=False):
     """Worn canvas: a fine weave, stains, darker seams of the stitched widths, stitched patches."""
     u, v, w, h = region
     base, dark, light = _rgb(base), _rgb(dark), _rgb(light)
@@ -132,12 +144,21 @@ def _canvas(px, region, rng, base, dark, light, patches=4, alpha_holes=0, seams=
     for _ in range(patches):
         pw, ph = rng.randint(6, 14), rng.randint(6, 12)
         x0, y0 = rng.randrange(1, w - pw - 1), rng.randrange(1, h - ph - 1)
-        pc = _scale(rng.choice((base, light, dark, _rgb("8a6a4a"), _rgb("b8a888"))), rng.uniform(0.9, 1.08))
+        pc = _scale(rng.choice(patch_cols or (base, light, dark)), rng.uniform(0.9, 1.05))
         for y in range(ph):
             for x in range(pw):
                 edge = x in (0, pw - 1) or y in (0, ph - 1)
                 c = _scale(pc, 0.75) if edge and (x + y) % 2 == 0 else pc
                 px[u + x0 + x, v + y0 + y] = _jitter(c, rng, 3) + (255,)
+    if stitches:
+        # stitched seams between the widths of cloth: a dark line with pale stitches across it
+        for x in range(7, w, 16):
+            for y in range(h):
+                px[u + x, v + y] = _jitter(_scale(dark, 0.85), rng, 3) + (255,)
+                if y % 3 == 0:
+                    for xx in (x - 1, x + 1):
+                        if 0 <= xx < w:
+                            px[u + xx, v + y] = _jitter(_mix(light, (230, 220, 190), 0.4), rng, 3) + (255,)
     for _ in range(alpha_holes):
         cx, cy, r = rng.uniform(4, w - 4), rng.uniform(4, h - 4), rng.uniform(1.0, 2.6)
         for y in range(h):
@@ -151,73 +172,155 @@ def _canvas(px, region, rng, base, dark, light, patches=4, alpha_holes=0, seams=
 
 
 def _fringe(px, region, rng):
-    """Torn strips of canvas hanging from the eaves: vertical strips of uneven length, ragged ends, gaps."""
+    """Four torn tongues of cloth side by side (8 px each): the roof canvas's colour, full width at the top (the eave),
+    tapering to a ragged point, the tip darker."""
     u, v, w, h = region
-    x = 0
-    tones = [_rgb(c) for c in ("5e5246", "4e4338", "6a5c4c", "443a30", "766654", "3a322a", "8a7a64")]
+    base, dark, tip = _rgb("76604a"), _rgb("584634"), _rgb("3a2e22")
     for y in range(h):
-        for xx in range(w):
-            px[u + xx, v + y] = (0, 0, 0, 0)
-    while x < w:
-        sw = rng.randint(2, 5)
-        length = rng.uniform(0.35, 1.0) * h
-        tone = rng.choice(tones)
-        for xx in range(x, min(w, x + sw)):
-            end = length - rng.uniform(0, 4) - (2 if xx in (x, x + sw - 1) else 0)
-            for y in range(h):
-                if y < end:
-                    k = 1.0 - 0.25 * (y / h) + 0.05 * math.sin(xx * 1.3 + y * 0.4)
-                    c = _scale(tone, k)
-                    if xx == x:
-                        c = _scale(c, 0.8)
-                    px[u + xx, v + y] = _jitter(c, rng, 4) + (255,)
-        x += sw + (1 if rng.random() < 0.45 else 0)
+        for x in range(w):
+            px[u + x, v + y] = (0, 0, 0, 0)
+    for k in range(w // 8):
+        x0 = k * 8
+        skew = rng.uniform(-1.2, 1.2)
+        for y in range(h):
+            t = y / (h - 1)
+            half = 4.0 * (1.0 - t ** 1.35) + 0.4
+            cx = x0 + 3.5 + skew * t
+            for x in range(x0, x0 + 8):
+                d = abs(x - cx)
+                if d <= half + rng.uniform(-0.6, 0.3):
+                    if t > 0.5 and rng.random() < 0.06:
+                        continue   # a tear
+                    c = _mix(base, dark, 0.3 * rng.random() + (0.25 if d > half - 1 else 0))
+                    c = _mix(c, tip, max(0.0, (t - 0.55) / 0.45) * 0.8)
+                    if (x + 2 * y) % 3 == 0:
+                        c = _scale(c, 0.95)
+                    px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
 def _pennant(px, region, rng, col, dark):
-    """A small tattered pennant: the hoist along the top (v = 0), tapering to a ragged point."""
+    """A big tattered pennant: the hoist along the top (v = 0), the sides tapering a little, a deep notch cut in the
+    tail and ragged edges, a few tears."""
     u, v, w, h = region
     col, dark = _rgb(col), _rgb(dark)
     for y in range(h):
         for x in range(w):
             px[u + x, v + y] = (0, 0, 0, 0)
     for y in range(h):
-        half = (w / 2) * (1.0 - y / h) + 0.5
-        cut = rng.random() < 0.18 and y > h * 0.5
+        t = y / h
+        half = (w / 2) * (1.0 - 0.45 * t) + rng.uniform(-0.7, 0.2)
+        notch = max(0.0, (t - 0.62) / 0.38) * (w / 2) * 0.95     # the swallowtail
         for x in range(w):
-            if abs(x - w / 2 + 0.5) <= half and not (cut and abs(x - w / 2 + 0.5) > half - 2):
-                if y > h * 0.55 and rng.random() < 0.12:
+            d = abs(x - w / 2 + 0.5)
+            if d <= half and d >= notch - rng.uniform(0, 0.8):
+                if t > 0.5 and rng.random() < 0.1:
                     continue   # tears
-                c = _mix(col, dark, 0.35 * (y / h) + (0.25 if (x + y) % 5 == 0 else 0))
+                c = _mix(col, dark, 0.35 * t + (0.25 if (x + y) % 5 == 0 else 0) + (0.2 if d > half - 1.2 else 0))
                 px[u + x, v + y] = _jitter(c, rng, 5) + (255,)
     for x in range(w):
         px[u + x, v] = _jitter(_rgb("6a5638"), rng, 3) + (255,)   # the hem round the rope
+        px[u + x, v + 1] = _jitter(_rgb("7a6646"), rng, 3) + (255,)
 
 
 def _tube(px, region, rng):
-    """Bronze-brown tube plates: riveted seams across, a darker band each end, verdigris and soot."""
+    """Polished, darkened bronze-brown plates: a soft highlight down the middle of each facet, dark riveted seams,
+    soot and a little verdigris."""
     u, v, w, h = region
-    base = _rgb("8a6038")
+    base = _rgb("6e4a2a")
     for y in range(h):
         for x in range(w):
-            k = 1.0 + 0.16 * math.cos((y / h - 0.35) * math.pi * 1.6) + 0.04 * math.sin(x * 0.7)
+            k = 0.82 + 0.3 * math.exp(-((y / h - 0.45) / 0.22) ** 2) + 0.03 * math.sin(x * 0.9 + y * 0.3)
             c = _scale(base, k)
             if x % 16 in (0, 15):
-                c = _rgb("3a2a1c")
+                c = _rgb("2a1c10")
             elif x % 16 in (2, 13) and y % 4 == 2:
-                c = _rgb("c49a62")   # rivets
-            if rng.random() < 0.05:
-                c = _mix(c, _rgb("4a6a5a"), 0.4)
-            px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
+                c = _rgb("a8824e")   # rivets
+            if rng.random() < 0.04:
+                c = _mix(c, _rgb("3e5a4a"), 0.35)
+            elif rng.random() < 0.06:
+                c = _scale(c, 0.8)
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
 def _tube_mouth(px, region, rng):
+    """The back of a tube's throat: near black, a dim deep red glow in the middle."""
     u, v, w, h = region
     for y in range(h):
         for x in range(w):
             d = math.hypot(x - w / 2 + 0.5, y - h / 2 + 0.5) / (w / 2)
-            c = _mix(_rgb("ff8a3a"), _rgb("140c08"), min(1.0, d * 1.6)) if d < 0.6 else _rgb("1c120c")
+            c = _mix(_rgb("4a1a0c"), _rgb("100a08"), min(1.0, d * 1.5)) if d < 0.7 else _rgb("0e0a08")
+            px[u + x, v + y] = _jitter(c, rng, 2) + (255,)
+
+
+def _emblem(px, region, rng):
+    """The carved panel: light planks, a dark carved emblem (a winged diamond on a cross), a bevelled edge."""
+    u, v, w, h = region
+    _planks(px, region, ("8a6a48", "806244", "927252"), "5a4430", rng, plank_h=8, joints=0, grain=0.06)
+    cx, cy = w / 2 - 0.5, h / 2 - 0.5
+    dark, mid = _rgb("2e1f12"), _rgb("4a3420")
+    for y in range(h):
+        for x in range(w):
+            dx, dy = x - cx, y - cy
+            edge = x < 2 or y < 2 or x >= w - 2 or y >= h - 2
+            cross = (abs(dx) < 1.6 and abs(dy) < 11) or (abs(dy) < 1.6 and abs(dx) < 11)
+            diamond = abs(dx) + abs(dy) < 6.5
+            wing = abs(dy + 0.35 * abs(dx) - 1) < 1.8 and 3 < abs(dx) < 12
+            if edge:
+                px[u + x, v + y] = _jitter(_scale(_rgb("6a4e34"), 0.85 if x < 2 or y < 2 else 0.7), rng, 3) + (255,)
+            elif diamond and abs(dx) + abs(dy) > 4:
+                px[u + x, v + y] = _jitter(mid, rng, 3) + (255,)
+            elif diamond or cross or wing:
+                px[u + x, v + y] = _jitter(dark, rng, 3) + (255,)
+
+
+def _window_in(px, region, rng):
+    """A small-paned window seen from inside: the sky (lighter at the bottom), dark wooden bars."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            frame = x < 2 or x >= w - 2 or y < 2 or y >= h - 2
+            bar = abs(x - w / 2 + 0.5) < 1.0 or abs(y - h / 2 + 0.5) < 1.0
+            if frame or bar:
+                c = _rgb("3a2614")
+            else:
+                c = _mix(_rgb("7eaee0"), _rgb("c8dcec"), y / h)
+                if (x + y) % 7 == 0:
+                    c = _scale(c, 1.06)
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+
+
+def _curtain(px, region, rng):
+    """A ragged curtain: worn beige cloth in folds, its bottom torn (transparent)."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            bottom = h - 2 - 4 * abs(math.sin(x * 1.7)) - rng.uniform(0, 3)
+            if y > bottom:
+                px[u + x, v + y] = (0, 0, 0, 0)
+                continue
+            c = _scale(_rgb("a8946e"), 0.8 + 0.25 * (0.5 + 0.5 * math.sin(x * 1.3)))
+            if y < 2:
+                c = _rgb("5a4630")
+            px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
+
+
+def _quilt(px, region, rng):
+    """The bed's red quilt: patched red squares, a darker border, the folded linen sheet at its head (v = 0)."""
+    u, v, w, h = region
+    reds = [_rgb(c) for c in ("8e1c1c", "7e1818", "9a2420", "862020")]
+    for y in range(h):
+        for x in range(w):
+            if y < 6:
+                c = _scale(_rgb("ddd2bc"), 0.9 + 0.1 * (y % 3 == 0))
+                if y == 5:
+                    c = _rgb("9a8a70")
+            elif x < 2 or x >= w - 2 or y >= h - 2:
+                c = _rgb("4e0e0c")
+            else:
+                c = reds[((x - 2) // 7 + (y - 6) // 7) % len(reds)]
+                if (x - 2) % 7 == 0 or (y - 6) % 7 == 0:
+                    c = _scale(c, 0.78)
+            px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
 
 
 def _grate(px, region, rng):
@@ -300,12 +403,21 @@ def make_texture(path):
     _replaced(px, R["deck"], rng, 4, 2, ("94704a", "6a4a2c"), seam="4a3018")
     _wall_rough(px, R["cabin_wall"], rng, ("5e3e22", "6a4628", "553820", "73502e"))
     _replaced_boards(px, R["cabin_wall"], rng, 2, ("8a6a48", "3e2a18"), board_w=4)
-    _planks(px, R["lean"], ("98805e", "a28a68", "8a7456", "ae9672", "806a50"), "4e3c2a", rng, plank_h=4, joints=3, grain=0.06, worn=0.05,
-            worn_col="c4b494")
+    _planks(px, R["lean"], ("8a7460", "7e6854", "947c66", "766250", "866e5a"), "5a4838", rng, plank_h=8, joints=1, grain=0.06, worn=0.04,
+            worn_col="9a8a78")
     _fill(px, R["end_grain"], "8a6a42", rng, 10)
     _rope(px, R["rope"], "b09468", "6e5a3a", rng)
     _rope(px, R["rope_dark"], "7a6446", "4a3a26", rng)
     _fill(px, R["iron"], "3a3a3c", rng, 6)
+    _fill(px, R["iron_light"], "6c6c6e", rng, 8)
+    _fill(px, R["iron_dark"], "222224", rng, 4)
+    _planks(px, R["bone"], ("a89a7e", "9e9074", "b0a286"), "7a6e58", rng, plank_h=4, joints=0, grain=0.05)
+    _planks(px, R["tube_rim"], ("8a6440", "7e5a38", "936c46"), "4a3420", rng, plank_h=4, joints=0, grain=0.05)
+    _fill(px, R["tube_in"], "1e1610", rng, 3)
+    _emblem(px, R["emblem"], rng)
+    _window_in(px, R["window_in"], rng)
+    _curtain(px, R["curtain"], rng)
+    _quilt(px, R["quilt"], rng)
     _blocks(px, R["chain"], ("4a4744", "3a3836", "56524c"), "1e1c1a", rng, bw=4, bh=2)
     _fill(px, R["glow"], "ffd27a", rng, 4)
     u, v, w, h = R["lantern"]
@@ -325,19 +437,26 @@ def make_texture(path):
     _fill(px, R["glass"], "b8d4dc", rng, 4)
     _planks(px, R["carving"], ("5e3e22", "4a2f1a"), "24160a", rng, plank_h=4, joints=4)
     # cloth
-    _canvas(px, R["canvas"], random.Random(41), "b09a78", "7e6a50", "cdbd9c", patches=6)
-    _canvas(px, R["canvas_under"], random.Random(42), "7a6650", "54463a", "8e7a62", patches=2)
+    _canvas(px, R["canvas"], random.Random(41), "866e52", "5e4c38", "9c8466", patches=7, patch_cols=(_rgb("765f46"), _rgb("7e6a52"), _rgb("6a5640")))
+    _canvas(px, R["canvas_under"], random.Random(42), "5a4836", "3e3226", "6a5642", patches=2)
     _fringe(px, R["fringe"], random.Random(43))
-    _canvas(px, R["wing"], random.Random(44), "b08452", "82603a", "c8a272", patches=9, alpha_holes=5, seams=False)
+    _canvas(px, R["wing"], random.Random(44), "8c6640", "684a2c", "a27a50", patches=6, alpha_holes=2, seams=False, stitches=True,
+            patch_cols=(_rgb("7a5838"), _rgb("96704a"), _rgb("82603c")))
+    u0, v0, w0, h0 = R["wing"]
+    u1, v1, _, _ = R["wing_t"]
+    for y in range(h0):
+        for x in range(w0):
+            px[u1 + y, v1 + x] = px[u0 + x, v0 + y]
     _pennant(px, R["pennant_beige"], random.Random(45), "c0a884", "8a7656")
-    _pennant(px, R["pennant_red"], random.Random(46), "8e2a1e", "5a1810")
-    _pennant(px, R["pennant_black"], random.Random(47), "2c2826", "141210")
+    _pennant(px, R["pennant_red"], random.Random(46), "8a2418", "561410")
+    _pennant(px, R["pennant_black"], random.Random(47), "2e2a28", "141210")
+    _pennant(px, R["pennant_brown"], random.Random(49), "7a5a38", "4a3420")
     _canvas(px, R["cloth"], random.Random(48), "a89070", "7a6650", "c0aa88", patches=1, seams=False)
     _books(px, R["books"], rng)
     _chart(px, R["chart"], rng)
     # rooms
     _wall_rough(px, R["in_wall"], random.Random(51), ("5e3e22", "6a4628", "553820", "73502e", "4e3420"))
-    _replaced_boards(px, R["in_wall"], rng, 2, ("8a6a48", "3e2a18"), board_w=4)
+    _replaced_boards(px, R["in_wall"], rng, 2, ("3e2a18", "4a3220"), board_w=4)
     _planks(px, R["in_floor"], ("6e4a2a", "634226", "7a5230", "5a3c22"), "2b1b0e", random.Random(52), plank_h=4, joints=2)
     _replaced(px, R["in_floor"], rng, 4, 3, ("86603c", "4a3220", "7a4a2e"))
     _ceiling(px, R["in_ceil"], random.Random(53))
@@ -356,7 +475,7 @@ def make_item_icon(path):
     img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
     px = img.load()
     hull, hull_d, moss = _rgb("6e4a2a"), _rgb("4a3020"), _rgb("5d6b2a")
-    canvas, canvas_d, pole = _rgb("c0aa86"), _rgb("8e7858"), _rgb("4a321c")
+    canvas, canvas_d, pole = _rgb("9a8466"), _rgb("6e5a44"), _rgb("4a321c")
     wing, tube, lamp = _rgb("9a7048"), _rgb("8a6038"), _rgb("ffd27a")
     # hull (bow to the left, rising)
     rows = {8: (0, 13), 9: (1, 13), 10: (2, 12), 11: (4, 11)}

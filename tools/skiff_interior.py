@@ -124,6 +124,8 @@ STAIRS = (
     ("pilot", -3.5, -2.0, 0.0, -1, M0, +6),       # fore deck -> pilot deck, crate steps climbing aft along the starboard side
     ("hold", 0.0, 1.5, -4.5, -1, M0, -4),          # common room -> hold, going down aft
 )
+STAIR_Z = (-3.0, 0.0)           # z range of the crate stair
+STAIR_RAIL_H = 2.0              # its outboard rail collides this high above each step
 HOLD_HOLE = (0.0, 1.5, -7.5, -4.5)      # opening in the cabin floor over the hold stair (x0, x1, z0, z1)
 WINDOWS = ((-11.0, -9.5, 1.0, 2.0), (-6.0, -4.5, 1.0, 2.0))   # (z0, z1, y0, y1): the bedroom's and the common room's windows, both sides
 HELM_BOX = (-0.5, 0.5, PY, PY + 1.0, -4.5, -4.0)
@@ -147,6 +149,37 @@ def stair_steps(st):
     return out
 
 
+BULWARK_H = 1.5         # the fore deck's bulwark collides this high above the deck (no jumping onto it in flight)
+
+
+def bulwark_inner(z):
+    """Inner face of the fore deck's bulwark at z (half width): where the planking meets the deck; the wall rises
+    vertically from there (the planking flares outwards above the deck: one cell column of wall all the way up)."""
+    return ss.hull_x(z, ss.deck_y(z) + 0.25) - ss.SHELL
+
+
+def fore_bulwark(g):
+    """The bulwark of the open fore deck: vertical on its inner side, at least one cell thick and BULWARK_H high above
+    the deck (never a stair of cells along the flaring planking to walk up onto it and over the side)."""
+    for l, z in enumerate(g.zs):
+        if z <= CF or ss.hull_hw(z) <= 0.2:
+            continue
+        f = ss.deck_y(z)
+        top = max(ss.sheer_y(z), f + BULWARK_H)
+        L = bulwark_inner(z)
+        if STAIR_Z[0] - 0.25 <= z <= STAIR_Z[1] + 1.25:
+            L = max(L, -STAIRS[0][1] - 0.24)   # along the crate stair the wall stands just outboard of its steps
+        M = max(ss.hull_x(z, y) for y in np.linspace(f, ss.sheer_y(z), 8))
+        for i, x in enumerate(g.xs):
+            c = abs(x)
+            col = g.k[i, :, l]
+            above = (g.ys > f) & (g.ys < top)
+            if c <= L:
+                col[above] = OUT
+            elif c <= max(M, L + CELL):
+                col[above] = SOLID
+
+
 def pilot_plan(x, z):
     """Is (x, z) on the pilot deck (the cabin roof and its overhang)?"""
     return abs(x) <= ss.PILOT_HW and ss.PILOT_Z[0] <= z <= ss.PILOT_Z[1]
@@ -165,6 +198,7 @@ def build():
     fore = Z > CF
     floor = _vec(ss.deck_y, Z)
     g.k[inner & fore & (Y > floor)] = OUT
+    fore_bulwark(g)
     # the pilot deck: its slab over the cabin and its overhang beyond the hull sides and the cabin's front wall
     plan2d = np.zeros((g.nx, g.nz), dtype=bool)
     for i in range(g.nx):
@@ -172,7 +206,7 @@ def build():
             plan2d[i, l] = pilot_plan(g.xs[i], g.zs[l])
     slab = (g.ys > PY - SLAB) & (g.ys < PY)
     g.k[plan2d[:, None, :] & slab[None, :, None]] = SOLID
-    # its balustrade: the outermost ring of cells, a block high (open over the crate stair)
+    # its balustrade: the outermost ring of cells, RAIL_H (1.5) high (open over the crate stair)
     inner2d = plan2d.copy()
     inner2d[1:, :] &= plan2d[:-1, :]
     inner2d[:-1, :] &= plan2d[1:, :]
@@ -202,6 +236,13 @@ def build():
                 g.set(FURNITURE, x0, x1, st[5], top, z0, z1)   # crate steps, solid down to the deck
             else:
                 g.set(FURNITURE, x0, x1, top - 0.5, top, z0, z1)
+    # a rail along the outboard side of the crate stair (on the bulwark): 2 above each step, so 1.5 above the next one
+    # up (no jumping onto it from the step above, no climbing its tops as a second stair)
+    st = STAIRS[0]
+    for x0, x1, z0, z1, top in stair_steps(st):
+        g.set(SOLID, x0 - CELL, x0, top, top + STAIR_RAIL_H, z0, z1)
+    # ... and on past its foot (beside the first step)
+    g.set(SOLID, st[1] - CELL, st[1], M0, M0 + 0.5 + ss.RAIL_H, STAIR_Z[1], STAIR_Z[1] + 1.0)
     # the gap in the pilot deck's front balustrade at the top of the crate stair
     g.set(OUT, PILOT_RAIL_GAP[0], PILOT_RAIL_GAP[1], PY, PY + ss.RAIL_H, ss.PILOT_Z[1] - 0.6, ss.PILOT_Z[1] + 0.1)
     # rails round the hold stair's opening in the common room (not at its fore end, where one goes down)

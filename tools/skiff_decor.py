@@ -165,8 +165,17 @@ def wall_barrel(name, side, y, z, h=0.9, r=0.32):
     barrel(name, w - side * (r + 0.03), y, z, h=h, r=r)
 
 
-def barrel(name, x, y, z, h=0.95, r=0.36):
-    custom("barrel", solid=(x - r, x + r, y, y + h, z - r, z + r), name=name, p=(x, y, z), h=h, r=r)
+def barrel(name, x, y, z, h=0.95, r=0.36, solid=True):
+    custom("barrel", solid=(x - r, x + r, y, y + h, z - r, z + r) if solid else None, name=name, p=(x, y, z), h=h, r=r)
+
+
+def quilt(i):
+    """A red quilt over the bed i (the farmhouse bed has no red variant): over its blanket, from the foot to the pillow."""
+    b = BLOCKS[i]
+    # the blanket of farmhouse_decorations:single_bed: x -0.5..16.5 px, top 7.75 px, z 1.75..20.5 px (model frame)
+    head = to_ship(b["x"], b["y"], b["z"], b["yaw"], 0.5, 7.8 / 16, 20.8 / 16)
+    foot = to_ship(b["x"], b["y"], b["z"], b["yaw"], 0.5, 7.8 / 16, 1.5 / 16)
+    custom("quilt", name="bed_quilt_%d" % i, head=head, foot=foot, w=1.08)
 
 
 def crate(name, x, y, z, s=0.8, yaw=0.0, solid=True):
@@ -179,7 +188,7 @@ def common_room():
     barrel and a crate in the corners, a shelf of jars over the hold stair, a runner from the door to the bedroom."""
     f = M0
     at(FU + "spruce_table", -2.2, f, -5.2, "stern")
-    block(FU + "plate", -2.05, f + 1.0, -5.0, "stern", solid=False, scale=0.8)
+    custom("rug", name="table_linen", p=(-2.1, f + 1.0, -5.05), w=0.55, l=0.7, region="linen")
     block(FD + "red_wine_bottle", -2.5, f + 1.0, -5.45, "stern", solid=False)
     block(FD + "wine_glass", -1.95, f + 1.0, -5.45, "stern", solid=False)
     chair(FU + "spruce_chair", -2.2, f, -4.25, "stern", -1.1, -4.25)
@@ -200,20 +209,23 @@ def bedroom():
     tall bookcase in the aft starboard corner, the desk with open books, a chart and a lantern, its chair, a dresser by
     the door, the red rug, lanterns."""
     f = M0
-    against(FD + "single_bed", 1, f, -11.35, facing="bow")
+    bed = against(FD + "single_bed", 1, f, -11.35, facing="bow")
+    quilt(bed)
     custom("chest", solid=(2.0, 3.0, f, f + 0.65, -10.05, -9.55), name="bed_chest", p=(2.5, f, -9.8))
     against(FD + "tall_bookshelf", -1, f, -12.0)
-    at(FU + "spruce_table", -2.55, f, -10.2, "port")
-    custom("chart_sheet", name="desk_chart", p=(-2.5, f + 1.01, -10.05), yaw=0.2)
-    block(FD + "pile_of_books", -2.75, f + 1.0, -10.55, "port", solid=False)
-    block(FD + "kerosene_lantern", -2.8, f + 1.0, -9.85, "port", solid=False)
-    chair(FU + "spruce_chair", -1.6, f, -10.2, "starboard", -0.7, -10.2)
+    at(FU + "spruce_table", -2.45, f, -10.2, "port")
+    custom("chart_sheet", name="desk_chart", p=(-2.4, f + 1.01, -10.05), yaw=0.2)
+    block(FD + "pile_of_books", -2.62, f + 1.0, -10.55, "port", solid=False)
+    block(FD + "kerosene_lantern", -2.68, f + 1.0, -9.85, "port", solid=False)
+    chair(FU + "spruce_chair", -1.5, f, -10.2, "starboard", -0.6, -10.2)
     against(FD + "dresser", -1, f, -8.55, facing="port")
     block(FD + "wine_bottle", -2.95, f + 1.02, -8.4, "port", solid=False)
     custom("rug", name="bedroom_rug", p=(0.1, f, -10.4), w=1.9, l=2.6, region="rug")
     hanging(0.2, CEIL_C, -10.4)
     wall_lantern(1, f + 1.75, -8.6)
+    wall_lantern(-1, f + 1.75, -11.2)
     against(FD + "wall_shelf", 1, f + 1.15, -12.1, solid=False)
+    crate("bedroom_crate", -1.0, f, -12.15, s=0.55, yaw=0.25, solid=False)
 
 
 def hold():
@@ -239,7 +251,11 @@ def hold():
     against(FU + "dark_oak_crate", -1, f, -8.3)
     against(FR + "rice_bag", -1, f, -9.6, scale=0.55)
     # shelves of jars along both walls, lanterns on brackets
-    for side, zs in ((1, (-4.2, -9.0)), (-1, (2.3, -7.2))):
+    # iron-barred locker doors in the walls ("the doors on the right" of the reference)
+    for side, z in ((-1, -3.75), (1, -7.95)):
+        w = wall_min(f + 0.1, f + 1.5, z, side)
+        custom("locker", name="hold_locker_%d" % (side > 0), p=(w - side * 0.07, f, z), side=side)
+    for side, zs in ((1, (3.1, -4.2, -6.0, -9.0)), (-1, (2.3, 0.6, -5.6, -7.2))):
         for z in zs:
             against(FU + "spruce_shelf", side, f + 1.2, z, solid=False, x_from=0.0)
             w = wall_x(f + 1.25, z, side)
@@ -254,21 +270,22 @@ def fore_deck():
     port bulwark; under the bow's lean-to the storage corner (crates, barrels, sacks, a chest), a lantern under its
     ridge."""
     f = M0
-    crate("deck_crate_0", 2.75, f, -2.45, s=0.85)
+    # (nothing solid against the bulwark: it would be a step up onto it, and over the side in flight)
+    crate("deck_crate_0", 2.75, f, -2.45, s=0.85, solid=False)
     crate("deck_crate_1", 2.7, f + 0.85, -2.5, s=0.6, yaw=0.3, solid=False)
-    barrel("deck_barrel_0", 2.85, f, -1.25, h=0.9, r=0.33)
+    barrel("deck_barrel_0", 2.85, f, -1.25, h=0.9, r=0.33, solid=False)
     custom("coil", name="deck_coil", p=(-1.9, f, 4.6), r=0.32)
-    at(FU + "spruce_bench", 3.05, f, 3.6, "starboard")
+    at(FU + "spruce_bench", 2.95, f, 3.6, "starboard", solid=False)
     seat(3.05, f + 0.44, 3.6, 2.0, f, 3.6)
     # the storage corner under the lean-to
-    crate("bow_crate_0", -1.05, f, 8.4, s=0.8)
-    crate("bow_crate_1", -1.0, f + 0.8, 8.45, s=0.55, yaw=0.4, solid=False)
-    against(IC + "cypress_barrel", 1, f, 8.55, facing="starboard")
-    block(FR + "rice_bag", -0.8, 0.5, 10.6, "bow", scale=0.6)
-    block(FR + "rice_bag", 0.8, 0.5, 10.55, "bow", scale=0.6)
-    custom("chest", solid=(-0.45, 0.45, 1.0, 1.6, 11.6, 12.1), name="bow_chest", p=(0.0, 1.0, 11.85), w=0.9, d=0.5)
+    crate("bow_crate_0", -0.95, f, 8.4, s=0.8, solid=False)
+    crate("bow_crate_1", -0.9, f + 0.8, 8.45, s=0.55, yaw=0.4, solid=False)
+    against(IC + "cypress_barrel", 1, f, 8.55, facing="starboard", solid=False)
+    block(FR + "rice_bag", -0.6, 0.5, 10.6, "bow", scale=0.6, solid=False)
+    block(FR + "rice_bag", 0.6, 0.5, 10.55, "bow", scale=0.6, solid=False)
+    custom("chest", solid=None, name="bow_chest", p=(0.0, 1.0, 11.85), w=0.9, d=0.5)
     custom("coil", name="bow_coil", p=(0.9, f, 9.4), r=0.28)
-    block(FD + "chained_kerosene_lantern", 0.0, 2.65, 8.4, "stern", solid=False)
+    block(FD + "chained_kerosene_lantern", 0.0, 2.75, 9.5, "stern", solid=False)
 
 
 def pilot_deck():
@@ -278,8 +295,9 @@ def pilot_deck():
         chair(FU + "spruce_bench", x, f, -12.55, "bow", x, -11.7)
     for side in (1, -1):
         chair(FU + "spruce_bench", side * 3.6, f, -9.6, "starboard" if side > 0 else "port", side * 2.75, -9.6)
-    barrel("pilot_barrel", 3.45, f, -6.6, h=0.85, r=0.32)
-    crate("pilot_crate", -3.45, f, -6.6, s=0.7)
+    # not solid: a step up onto the balustrade
+    barrel("pilot_barrel", 3.45, f, -6.6, h=0.85, r=0.32, solid=False)
+    crate("pilot_crate", -3.45, f, -6.6, s=0.7, solid=False)
 
 
 def build():

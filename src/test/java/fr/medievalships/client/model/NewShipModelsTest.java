@@ -51,7 +51,7 @@ class NewShipModelsTest {
 							"balloon", "hoops", "hull", "rooms", "furniture", "fittings"},
 					new String[] {"steer", "elevator", "flag_wave", "engine", "lantern_sway", "streamer_wave", "door_0", "door_1", "door_11"}),
 			new Expected("rustic_skiff",
-					new String[] {"helm_wheel", "wing_fore_p", "wing_fore_s", "wing_aft_p", "wing_aft_s", "tube_fan_0", "tube_fan_4", "pennants_p",
+					new String[] {"helm_wheel", "wing_fore_p", "wing_fore_s", "wing_aft_p", "wing_aft_s", "tube_fan_0", "tube_fan_3", "pennants_p",
 							"pennant_p0", "fringe_0", "lantern_door_p", "door_0_a", "door_1_b", "door_2", "hull", "canopy", "rooms", "furniture", "fittings"},
 					new String[] {"steer", "elevator", "engine", "lantern_sway", "streamer_wave", "door_0", "door_1", "door_2"}));
 

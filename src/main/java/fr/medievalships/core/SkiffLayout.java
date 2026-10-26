@@ -5,10 +5,12 @@ import java.util.List;
 
 /**
  * The Rustic Skyskiff ({@code rustic_skiff}): an old, hand-made wooden boat turned into a small, agile flying craft.
- * A long, banana-shaped patched hull of 26 blocks (bow head to transom; 41 from the tip of the bow beam to the mouths
- * of the stern tubes), 8 wide, rising to a raised bow; the open fore deck with the lean-to over the bow; the cabin at
- * the stern (common room, bedroom) with the pilot deck on its roof under a big worn canvas roof on splayed poles; the
- * storage hold under the decks; five tubes on the transom and four canvas wings hanging under the sides. It flies like
+ * A long, banana-shaped patched hull of 26 blocks (bow head to transom; 38.4 from the tip of the bow beam to the
+ * mouths of the stern tubes), 8 wide, rising to a raised bow; the open fore deck with the lean-to over the bow; the
+ * cabin at the stern (common room, bedroom) with the pilot deck on its roof under a big worn canvas roof on splayed
+ * poles (a pagoda: its corners pulled up to the poles' tops); the storage hold under the decks; four telescoping tubes on
+ * the transom, a stepped keel and its long spike under the stern half, and four canvas wings hanging under the sides
+ * (edge-on from the front and the back). It flies like
  * the steampunk airship ({@link Flight}), more nimbly; its rooms are described by an interior grid
  * (tools/skiff_interior.py): players walk on its decks and in its rooms while it flies.
  *
@@ -29,13 +31,17 @@ public final class SkiffLayout {
 	public static final double SHEER_WAIST = 1.0;
 	public static final double BOW_SHEER = 2.8;
 	private static final double BOW_RISE_Z = 4.0;
-	private static final double[] SECTION = {0.07, 1.7, 0.62};
+	/** a, ce, cf, q: a flat floor rounding up to a chine (eta ce, fraction cf), then a straight, slightly full flank. */
+	private static final double[] SECTION = {0.07, 0.16, 0.47, 0.8};
 	private static final double FLARE = 0.03;
 	private static final double[][] KEEL_PTS = {{-13.0, -2.3}, {-12.4, -2.75}, {-11.0, -3.05}, {-8.0, -3.15}, {-4.0, -3.2}, {0.0, -3.15}, {3.0, -3.0}, {5.5, -2.7}, {7.5, -2.3}, {9.5, -1.5}, {11.0, -0.6}, {12.2, 0.3}, {13.0, 1.2}, {13.4, 2.0}};
 	private static final double[] KEEL_SLOPES = keelSlopes();
 	private static final double[][] BOW_STEPS = {{10.0, 0.5}, {11.5, 1.0}};
-	public static final double BOWSPRIT_TIP_Y = 2.05;
-	public static final double BOWSPRIT_TIP_Z = 18.0;
+	/** The heavy square bow beam: heel (y, z) on the bow head and tip, horizontal at the rail's height. */
+	public static final double BOWSPRIT_HEEL_Y = 2.7;
+	public static final double BOWSPRIT_HEEL_Z = 12.9;
+	public static final double BOWSPRIT_TIP_Y = 2.85;
+	public static final double BOWSPRIT_TIP_Z = 17.2;
 
 	// ---- cabin, pilot deck, hold
 	public static final double CABIN_FRONT_Z = -3.0;
@@ -50,36 +56,49 @@ public final class SkiffLayout {
 	public static final double HELM_Z = -4.3;
 	public static final double PILOT_STAND_Z = -5.1;
 	public static final double RAIL_H = 1.5;
+	/** The carved outriggers stick out this far beyond the pilot deck's sides (under its edge beams), at these z. */
+	public static final double OUTRIGGER = 0.8;
+	private static final double[] OUTRIGGER_Z = {-3.4, -9.0, -12.75};
 
 	// ---- the canvas roof
 	public static final double CANOPY_Z = -9.0;
 	public static final double APEX_Y = 11.8;
 	public static final double KING_TOP = 12.6;
 	/** (|x|, y, z) of the corner poles' tops. */
-	private static final double[][] POLE_TOPS = {{4.869, 8.9, -1.5}, {4.869, 8.9, -16.5}};
-	private static final double POLE_TIP = 1.4;
+	private static final double[][] POLE_TOPS = {{4.869, 9.5, -1.5}, {4.869, 9.5, -16.5}};
+	private static final double POLE_TIP = 0.9;
 	private static final double[] EAVE_HALF = {5.6, 8.6};
 	private static final double EAVE_N = 5.0;
-	public static final double EAVE_Y = 8.9;
-	private static final double EAVE_SAG = 1.0;
+	public static final double EAVE_Y = 9.5;
+	private static final double EAVE_SAG = 1.6;
+	private static final double EAVE_SAG_POW = 0.8;
 	private static final double EAVE_PINCH = 0.08;
-	private static final double ROOF_POW = 1.7;
+	private static final double ROOF_POW = 2.0;
 	/** The derricks at the stern: foot and tip (port side). */
 	private static final double[][] DERRICK = {{2.9, PILOT_Y, -12.9}, {4.3, 11.6, -18.6}};
 
 	// ---- the tubes and the wings
-	/** x, y, radius of the five stern tubes. */
-	public static final double[][] TUBES = {{0.95, 2.8, 0.6}, {-0.95, 2.8, 0.6}, {0.95, 1.35, 0.6}, {-0.95, 1.35, 0.6}, {0.0, 2.07, 0.42}};
+	/** x, y, radius at the root and z of the mouth of the four telescoping stern tubes (the upper pair the longest). */
+	public static final double[][] TUBES = {{1.1, 2.45, 0.44, -21.2}, {-1.1, 2.45, 0.44, -21.2}, {1.15, 1.1, 0.42, -19.8}, {-1.15, 1.1, 0.42, -19.8}};
 	public static final double TUBE_START_Z = -12.7;
-	public static final double TUBE_END_Z = -20.6;
-	public static final double TUBE_CENTRE_END_Z = -21.1;
+	/** Each of a tube's three lengths is this much wider than the one before; the mouth's bell is TUBE_BELL times wider. */
+	public static final double TUBE_STEP = 0.07;
+	public static final double TUBE_BELL = 1.3;
+	/** The farthest mouth (the upper tubes'). */
+	public static final double TUBE_END_Z = -21.2;
+	/** Where the tubes hum (the middle of the bundle at the transom) and where they puff smoke (an upper tube's mouth). */
+	public static final double[] TUBE_HUB = {0.0, 1.8, TUBE_START_Z};
+	public static final double[] TUBE_EXHAUST = {TUBES[0][0], TUBES[0][1], TUBE_END_Z - 0.3};
 	/** The wings (port side; starboard mirrored): root on the hull, top corner, tip. */
 	public static final String[] WING_NAMES = {"wing_fore", "wing_aft"};
 	private static final double[][][] WINGS = {
-			{{2.75, -1.8, -0.6}, {6.2, -4.6, -7.4}, {4.9, -9.0, -6.4}},
-			{{2.6, -1.2, -11.9}, {5.8, -1.7, -18.6}, {5.0, -11.0, -14.2}}};
-	/** The point of the keel spike under the stern box (y, z). */
-	public static final double[] SKID_TIP = {-8.3, -11.75};
+			{{2.6, -1.8, -0.6}, {3.9, -4.6, -7.4}, {3.4, -9.0, -6.4}},
+			{{2.45, -1.2, -11.9}, {3.8, -1.7, -18.6}, {3.4, -11.0, -14.2}}};
+	/** The stepped keel under the stern half: tiers (half width, top, bottom, aft z, fore z). */
+	public static final double[][] KEEL_TIERS = {{1.45, -2.6, -3.95, -12.55, -7.3}, {1.0, -3.95, -4.85, -12.1, -8.2}, {0.6, -4.85, -5.75, -11.6, -9.1}};
+	/** The head and the point of the long spike under the lowest tier (y, z). */
+	public static final double[] SKID_TOP = {-5.75, -10.35};
+	public static final double[] SKID_TIP = {-9.5, -10.8};
 
 	// ---- interior
 	public static final String GRID = "/assets/medievalships/interiors/rustic_skiff.grid";
@@ -208,7 +227,11 @@ public final class SkiffLayout {
 		double top = waistY(z);
 		if (y <= top) {
 			double eta = (y - k) / (top - k);
-			return w * (SECTION[0] + (1.0 - SECTION[0]) * Math.pow(1.0 - Math.pow(1.0 - eta, SECTION[1]), SECTION[2]));
+			if (eta <= SECTION[1]) {
+				double u = 1.0 - eta / SECTION[1];
+				return w * (SECTION[0] + (SECTION[2] - SECTION[0]) * (1.0 - u * u));
+			}
+			return w * (SECTION[2] + (1.0 - SECTION[2]) * Math.pow((eta - SECTION[1]) / (1.0 - SECTION[1]), SECTION[3]));
 		}
 		return w * (1.0 + FLARE * (y - top));
 	}
@@ -233,7 +256,7 @@ public final class SkiffLayout {
 	}
 
 	static double eaveDrop(double theta) {
-		return EAVE_SAG * Math.pow(Math.sin(Math.PI * edgeFraction(theta)), 1.5);
+		return EAVE_SAG * Math.pow(Math.sin(Math.PI * edgeFraction(theta)), EAVE_SAG_POW);
 	}
 
 	/** Where the azimuth theta falls on the edge between two corner poles: 0 at a pole, 1 at the next one. */
@@ -329,10 +352,13 @@ public final class SkiffLayout {
 		// not solid (the grid is): the king post of the canvas roof gives the height
 		spec.masts = List.of(new ShipGeometry.Mast(0.0, CANOPY_Z, PILOT_Y, KING_TOP + 0.8, 0.21));
 		spec.extraProbes = List.copyOf(probes());
-		spec.boundingRadius = Math.hypot(-TUBE_CENTRE_END_Z, 6.5) + 1.0;
-		spec.aiReach = BOWSPRIT_TIP_Z;
-		spec.aiBack = -TUBE_CENTRE_END_Z;
-		spec.aiHalfWidth = 6.6;
+		spec.boundingRadius = Math.hypot(-TUBE_END_Z, 6.5) + 1.0;
+		spec.aiReach = BOWSPRIT_TIP_Z + 0.3;
+		spec.aiBack = -TUBE_END_Z;
+		spec.aiHalfWidth = PILOT_HW + OUTRIGGER + 0.3;
+		// what hangs far below the hull (the wings, the stepped keel and its spike) is not in the interior grid: clicking
+		// it from outside still boards the skiff (a player on the ground under it) or picks it up
+		spec.pickBoxes = List.copyOf(pickBoxes());
 		spec.lowestY = lowestY();
 		spec.boardMinZ = -1.5;
 		spec.boardMaxZ = 6.5;
@@ -366,12 +392,25 @@ public final class SkiffLayout {
 		}
 		probes.add(new double[] {0, 3.2, 13.5});
 		for (double t = 0.25; t <= 1.0 + 1e-9; t += 0.25) {
-			probes.add(new double[] {0, 2.6 + (BOWSPRIT_TIP_Y - 2.6) * t, 12.9 + (BOWSPRIT_TIP_Z - 12.9) * t});
+			probes.add(new double[] {0, BOWSPRIT_HEEL_Y + (BOWSPRIT_TIP_Y - BOWSPRIT_HEEL_Y) * t, BOWSPRIT_HEEL_Z + (BOWSPRIT_TIP_Z - BOWSPRIT_HEEL_Z) * t});
 		}
-		// the stern box and its spike
-		probes.add(new double[] {0, -4.8, -11.2});
-		probes.add(new double[] {0, (SKID_TIP[0] - 4.85) / 2, (SKID_TIP[1] - 11.3) / 2});
+		probes.add(new double[] {0, BOWSPRIT_TIP_Y, BOWSPRIT_TIP_Z + 0.25});
+		// the stepped keel (the bottom corners of its tiers) and its spike
+		for (double[] k : KEEL_TIERS) {
+			for (double z : new double[] {k[3] + 0.1, k[4] - 0.1}) {
+				for (double sx : new double[] {1, -1}) {
+					probes.add(new double[] {sx * (k[0] - 0.05), k[2] + 0.05, z});
+				}
+			}
+		}
+		probes.add(new double[] {0, (SKID_TIP[0] + SKID_TOP[0]) / 2, (SKID_TIP[1] + SKID_TOP[1]) / 2});
 		probes.add(new double[] {0, SKID_TIP[0] + 0.05, SKID_TIP[1]});
+		// the outriggers under the pilot deck's edges
+		for (double z : OUTRIGGER_Z) {
+			for (double sx : new double[] {1, -1}) {
+				probes.add(new double[] {sx * (PILOT_HW + OUTRIGGER - 0.05), PILOT_Y - 1.2, z});
+			}
+		}
 		// the pilot deck's edges and its balustrade
 		for (double z : new double[] {PILOT_AFT_Z + 0.1, (PILOT_AFT_Z + PILOT_FORE_Z) / 2, PILOT_FORE_Z - 0.1}) {
 			for (double x : new double[] {-PILOT_HW + 0.1, PILOT_HW - 0.1}) {
@@ -395,11 +434,13 @@ public final class SkiffLayout {
 			probes.add(new double[] {sx * d[0], d[1] + 0.4, d[2] - 0.3});
 			probes.add(new double[] {sx * (f[0] + d[0]) / 2, (f[1] + d[1]) / 2, (f[2] + d[2]) / 2});
 		}
-		// the tubes' mouths and middles
+		// the tubes' mouths (the rims of their bells) and middles
 		for (double[] t : TUBES) {
-			double end = t[2] < 0.5 ? TUBE_CENTRE_END_Z : TUBE_END_Z;
-			probes.add(new double[] {t[0], t[1], end});
-			probes.add(new double[] {t[0] + Math.signum(t[0]) * t[2], t[1] + Math.signum(t[1] - 2.0) * t[2], (TUBE_START_Z + end) / 2});
+			double bell = (t[2] + 2 * TUBE_STEP) * TUBE_BELL;
+			double up = t[1] > 2.0 ? 1 : -1;
+			probes.add(new double[] {t[0], t[1], t[3]});
+			probes.add(new double[] {t[0] + Math.signum(t[0]) * bell, t[1] + up * bell, t[3] + 0.1});
+			probes.add(new double[] {t[0] + Math.signum(t[0]) * t[2], t[1] + up * t[2], (TUBE_START_Z + t[3]) / 2});
 		}
 		// the wings: root, top corner, tip and points of their canvas
 		for (int k = 0; k < WINGS.length; k++) {
@@ -416,6 +457,40 @@ public final class SkiffLayout {
 			}
 		}
 		return probes;
+	}
+
+	/**
+	 * Boxes round what hangs below the hull outside the interior grid (pick only, never solid): the wings' spars and free
+	 * edges in short lengths, the tiers of the stepped keel and its spike.
+	 */
+	static List<ShipGeometry.LocalBox> pickBoxes() {
+		List<ShipGeometry.LocalBox> boxes = new ArrayList<>();
+		for (int k = 0; k < WINGS.length; k++) {
+			for (int side : new int[] {1, -1}) {
+				double[][] w = wing(k, side);
+				double[][][] lines = {{w[0], w[1]}, {w[0], w[2]}, {w[1], w[2]}};
+				for (double[][] line : lines) {
+					for (int i = 0; i < 4; i++) {
+						double[] a = lerp(line[0], line[1], i / 4.0), b = lerp(line[0], line[1], (i + 1) / 4.0);
+						boxes.add(new ShipGeometry.LocalBox(Math.min(a[0], b[0]) - 0.35, Math.min(a[1], b[1]) - 0.35, Math.min(a[2], b[2]) - 0.35,
+								Math.max(a[0], b[0]) + 0.35, Math.max(a[1], b[1]) + 0.35, Math.max(a[2], b[2]) + 0.35));
+					}
+				}
+			}
+		}
+		for (double[] t : KEEL_TIERS) {
+			boxes.add(new ShipGeometry.LocalBox(-t[0], t[2], t[3], t[0], t[1], t[4]));
+		}
+		for (int i = 0; i < 3; i++) {
+			double[] a = lerp(new double[] {0, SKID_TOP[0], SKID_TOP[1]}, new double[] {0, SKID_TIP[0], SKID_TIP[1]}, i / 3.0);
+			double[] b = lerp(new double[] {0, SKID_TOP[0], SKID_TOP[1]}, new double[] {0, SKID_TIP[0], SKID_TIP[1]}, (i + 1) / 3.0);
+			boxes.add(new ShipGeometry.LocalBox(-0.4, Math.min(a[1], b[1]), Math.min(a[2], b[2]) - 0.4, 0.4, Math.max(a[1], b[1]), Math.max(a[2], b[2]) + 0.4));
+		}
+		return boxes;
+	}
+
+	private static double[] lerp(double[] a, double[] b, double t) {
+		return new double[] {a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t};
 	}
 
 	/**

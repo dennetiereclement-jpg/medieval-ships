@@ -154,8 +154,27 @@ public final class SkiffGameTest {
 			shot.accept(id + "_" + names[k]);
 		}
 
-		// standing and walking on the fore deck
+		// boarding from the ground: a survival player standing under the parked skiff (its hull 8 blocks up) clicks the
+		// tip of a rear wing hanging within his reach, and is taken aboard
 		server.runCommand("gamemode survival @a");
+		server.runCommand("clear @a");
+		double[][] wing = SkiffLayout.wing(1, 1);
+		double[] aim = {wing[0][0] + (wing[2][0] - wing[0][0]) * 0.85, wing[0][1] + (wing[2][1] - wing[0][1]) * 0.85,
+				wing[0][2] + (wing[2][2] - wing[0][2]) * 0.85};
+		double[] stand = hover.toWorld(aim[0] + 2.0, 0, aim[2] + 0.6);
+		int top = server.computeOnServer(srv -> srv.getOverworld().getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING,
+				(int) Math.floor(stand[0]), (int) Math.floor(stand[2])));
+		double gy = top - hover.y();
+		lookLocal(server, hover, aim[0] + 2.0, gy + 1.62, aim[2] + 0.6, aim[0], aim[1], aim[2]);
+		context.waitTicks(15);
+		double[] g0 = local(context, server);
+		context.getInput().pressKey(o -> o.useKey);
+		context.waitTicks(20);
+		double[] g1 = local(context, server);
+		check.accept(Math.abs(g0[1] - gy) < 0.3 && g.inCarryVolume(g1[0], g1[1] + 0.2, g1[2]) && g1[1] > -0.1, String.format(Locale.ROOT,
+				"%s a player on the ground under it (local y %.2f) clicks a wing's tip and boards it (local %.2f %.2f %.2f)", id, g0[1], g1[0], g1[1], g1[2]));
+
+		// standing and walking on the fore deck
 		server.runCommand("effect give @a minecraft:resistance infinite 4 true");
 		tpLocal(server, hover, 0, 0.6, 5.0, 180, 10);
 		context.waitTicks(30);
