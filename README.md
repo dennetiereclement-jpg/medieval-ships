@@ -90,6 +90,8 @@ Pour tous :
 * aucune dépendance autre que Fabric API (ni GeckoLib, ni Valkyrien Skies, ni Eureka),
   aucune apparition naturelle.
 
+La version 1.8.2 embellit le navire suspendu du Léviathan des Cieux : poupe bombée qui monte en surplomb avec deux galeries superposées à balustres, onze fenêtres plombées éclairées, ornements et engrenages de laiton, lanternons ; ventre profond et arrondi, tonture relevée, proue ronde à longue poulaine ajourée, préceintes courbes, hublots cerclés de laiton, garde-corps à balustres tournés ; on peut marcher sur la dunette prolongée.
+
 La version 1.8.1 corrige le Léviathan des Cieux : le pilote qui lâche la barre est bien déposé sur le château arrière, et l'échelle de la tour mène de nouveau au pont d'observation même quand le dirigeable tourne (les parois de la coque ne se laissent plus traverser pendant un virage) ; documentation et planches comparatives des deux nouveaux véhicules.
 
 La version 1.8.0 ajoute deux nouveaux véhicules, reproduits d'après leurs planches de référence : **Le Vieux
@@ -225,7 +227,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.8.1.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.8.2.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
