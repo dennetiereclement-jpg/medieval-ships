@@ -217,6 +217,10 @@ def build():
     hx_rail = _vec(ls.hull_x, Z, np.minimum(Y, ls.POOP_Y + 1.0))
     rail_zone = (hx_rail > 0.5) & (np.abs(X) <= hx_rail) & (np.abs(X) > hx_rail - CELL) & (Y > deck) & (Y < deck + 1.0) & (deck > M0)
     g.k[rail_zone & (Y > sheer)] = FURNITURE
+    # ... and across the round bow of the forecastle: its foremost cells (the next cell forward is outside the hull)
+    hx_next = _vec(ls.hull_x, Z + CELL, np.minimum(Y, ls.POOP_Y + 1.0))
+    bow_rail = (Z > 0) & (hx_rail > 0.2) & (np.abs(X) <= hx_rail) & (np.abs(X) > hx_next) & (Y > deck) & (Y < deck + 1.0) & (deck > M0)
+    g.k[bow_rail & (Y > sheer)] = FURNITURE
     # the stern rail across the transom and the bow rail (fore end of the forecastle)
     for z0, z1, y in ((ls.HULL_STERN_Z, ls.HULL_STERN_Z + CELL + 0.01, POOP),):
         g.k[g.sel(-INF, INF, y, y + 1.0, z0 - 0.01, z1) & (np.abs(X) <= hx_rail)] = FURNITURE

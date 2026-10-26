@@ -17,7 +17,7 @@ arrière, comme le cahier des charges).
 | Grands panneaux de bois des flancs | entre les deux cerclages du milieu, y 190 → 395 | azimut 45° → 142° |
 | Nez : ferrure à engrenage + pointe | x 0 → 100 | jusqu'à z = 32,2 |
 | Queue : moyeu + pointe | x 838 → 935 | jusqu'à z = −33,2 |
-| Navire suspendu (coque) | x 165 → 745 | **35,8** (41 avec l'éperon, 45 avec le beaupré), 10 de large |
+| Navire suspendu (coque) | x 255 → 745, puis la poulaine ajourée jusqu'à x 165 | **34,8** au gaillard (33,8 au pied de l'étrave), 43 avec la poulaine et sa roue dentée, 45 avec le beaupré ; 10 de large |
 | Pont principal / quille | y 540 / 630 | 0 / −6,3 |
 | Gaillard d'avant, dunette, château arrière | y 497 / 490 / 455 | +3,0 / +3,0 / +5,5 |
 | Espace ballon → pont | y 425 → 540 | 8 blocs |
@@ -136,7 +136,28 @@ quelqu'un (ou le pilote automatique) tient la barre ; garée, elle est froide.
   (piston qui sort / qui rentre), cliquetis des engrenages, grondement du foyer ; tout est plus rapide et
   plus fort avec la vitesse. Les sons de la salle des machines s'entendent à moins de 28 blocs.
 
-## 6. Guide du joueur
+## 6. Extérieur du navire suspendu (refonte d'après les gros plans de la planche)
+
+Le navire a été repris d'après des gros plans de chaque vue de la planche (côté, proue, poupe, arrière,
+avant, perspective, détails), comparés au rendu à la même échelle (0,07 bloc par pixel).
+
+| Sur la planche | Avant | Maintenant |
+|---|---|---|
+| Proue ronde et courte (étrave vers z 13 – 15), longue **poulaine ajourée** jusqu'à la roue dentée | coque prolongée jusqu'à z 18,6 sous le gaillard (proue en caisson), petite poulaine | étrave de 14,0 (pied) à 15,0 (gaillard) ; poulaine : genou épais et sombre et ses dents de fer, rail parallèle et barreaux, rails hauts, montants, la roue dentée sous le beaupré, la coque qui coule dans le genou |
+| Préceintes sombres qui remontent vers l'avant (tonture « en banane ») | lisses droites horizontales | 4 préceintes qui suivent la tonture et convergent sur l'étrave, moulures sous les garde-corps des châteaux, membrures verticales, cadènes avec anneaux et caps-de-mouton |
+| Poupe : la coque rentre sous la galerie (voûte) ; galeries latérales et galerie de poupe à balustres sous un auvent ; deux rangées de fenêtres éclairées ; château haut à croix de bois ; grosse lanterne de couronnement | tableau plat vertical de y −2,6 à 5,5, cinq fenêtres | **voûte** (le tableau ne descend plus qu'à y −0,6, la quille remonte en courbe), galeries à balustres tournés sur consoles, **auvent de bardeaux**, 6 + 5 fenêtres plombées éclairées, croix de bois sur les flancs de la dunette, écusson en engrenage de laiton, deux grosses lanternes, safran sous la voûte |
+| Hublots ronds au verre clair dans des cadres carrés sombres (vue « détails ») | petits hublots jaunes | 16 hublots de verre clair cerclés de laiton dans des cadres sombres, 4 sur le gaillard |
+| Garde-corps à balustres, lanternes | barreaux carrés | **balustres tournés** et poteaux à chapeau de laiton : gaillard en fer à cheval autour de la proue, dunette, couronnement, passavants |
+| Tour : socle de fer éclairé, deux plateformes, grand engrenage de laiton | tour de planches | socle de tôle rivetée, deux plateformes sur consoles à bords de laiton, engrenage et pignon entre elles |
+| Bordé brun chaud, planches usées de teintes variées | bordé sombre taché de plaques noires | bordé plus clair et plus gris, planches remplacées, sans plaques noires |
+
+À l'intérieur, la grille suit la nouvelle coque (avant plus court, voûte arrière, sous les pièces) : toutes
+les pièces restent reliées et fermées (`LeviathanTest`), un garde-corps ferme l'avant du gaillard, le
+magasin du maître d'équipage est réaménagé dans l'arrondi de la proue (hublots, coffre contre l'étrave), les
+fenêtres de poupe vues de l'intérieur suivent les nouvelles (6 dans la chambre du capitaine, 5 dans la salle
+des cartes). Les galeries, l'auvent et la poulaine sont du décor (hors de la coque où l'on marche).
+
+## 7. Guide du joueur
 
 ### Obtenir et poser le vaisseau
 

@@ -33,14 +33,14 @@ class LeviathanTest {
 			assertEquals(r[2], LeviathanLayout.balloonHalfHeight(r[0]), 1e-5, "balloon half height at " + r[0]);
 		}
 		double[][] hull = {
-				{-18.0, -2.0, 3.757521, -4.638604, 5.500000},
+				{-18.0, -2.0, 3.572048, -3.800000, 5.500000},
 				{-10.0, -4.0, 4.044763, -6.250000, 3.000000},
 				{0.0, -5.5, 2.978980, -6.294074, 1.000000},
 				{0.0, 0.5, 4.999291, -6.294074, 1.000000},
-				{8.0, -3.0, 4.011826, -5.824630, 1.148148},
-				{13.0, 2.0, 3.451596, -4.019921, 3.000000},
-				{-16.5, 4.5, 3.877010, -5.580115, 5.500000},
-				{17.5, 2.5, 1.532011, -1.500000, 3.000000}};
+				{8.0, -3.0, 3.970589, -5.990833, 1.148148},
+				{13.0, 2.0, 2.746305, -4.218587, 3.000000},
+				{-16.5, 4.5, 3.877010, -5.665301, 5.500000},
+				{14.5, 2.5, 1.706544, -2.500000, 3.000000}};
 		for (double[] r : hull) {
 			assertEquals(r[2], LeviathanLayout.hullX(r[0], r[1]), 1e-5, "hull half width at " + r[0] + ", " + r[1]);
 			assertEquals(r[3], LeviathanLayout.keelY(r[0]), 1e-5, "keel at " + r[0]);
@@ -77,7 +77,7 @@ class LeviathanTest {
 		assertEquals(19.6, 2 * LeviathanLayout.BALLOON_HH, 1e-9, "balloon height");
 		assertTrue(LeviathanLayout.BALLOON_HW > LeviathanLayout.BALLOON_HH, "the balloon is a little flattened");
 		assertEquals(10.0, 2 * LeviathanLayout.HULL_HW, 1e-9, "beam of the ship");
-		assertEquals(35.8, LeviathanLayout.HULL_BOW_Z - LeviathanLayout.HULL_STERN_Z, 1e-9, "hull length");
+		assertEquals(33.8, LeviathanLayout.HULL_BOW_Z - LeviathanLayout.HULL_STERN_Z, 1e-9, "hull length (at the foot of the stem)");
 		double height = G.topY() - G.lowestY();
 		assertTrue(height > 45 && height < 50, "overall height (flag mast and ventral fin) " + height);
 		// the ship hangs under the balloon
@@ -269,7 +269,7 @@ class LeviathanTest {
 		// room, the stem in the bosun's store, the bilge of the hold
 		assertFalse(fits(0, 0, -19.6), "the transom closes the captain's bedroom");
 		assertFalse(fits(0, 3, -19.6), "the transom closes the chart room");
-		assertFalse(fits(0, 0, 16.6), "the stem closes the bosun's store");
+		assertFalse(fits(0, 0, 14.2), "the stem closes the bosun's store");
 		assertFalse(fits(2.6, -5.5, 2.5), "the bilge closes the hold");
 	}
 

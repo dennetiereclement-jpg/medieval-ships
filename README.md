@@ -48,7 +48,7 @@ plongée. Ce sont de **véritables entités**, pas des constructions en blocs :
 | | Le Léviathan des Cieux |
 |---|---|
 | Objet / commande | *Le Léviathan des Cieux*, `sky_leviathan` |
-| Taille | 65 blocs de la pointe avant à la pointe arrière (67 avec les ailerons), ballon de 52 × 24 × 20 blocs, navire pirate suspendu de 36 blocs (45 avec le beaupré) et 10 de large, 48 de haut avec le pavillon |
+| Taille | 65 blocs de la pointe avant à la pointe arrière (67 avec les ailerons), ballon de 52 × 24 × 20 blocs, navire pirate suspendu de 35 blocs (45 avec la poulaine et le beaupré) et 10 de large, 48 de haut avec le pavillon |
 | Propulsion | **il vole** : machine à vapeur, ailerons noirs en aile de chauve-souris (gouvernail et profondeur) |
 | Places assises | 26 (barre du château arrière + bancs, chaises, fauteuils et tabourets des pièces) ; on marche partout à bord en vol |
 | Particularités | **intérieur complet** : pont principal, salle commune, cabine du capitaine, salle des cartes, coursive, poste d'équipage, cambuse, magasin, cale, **salle des machines** (chaudière, pistons et engrenages animés, vapeur, sons), tour à échelle jusqu'au pont d'observation au sommet du ballon ; mobilier des mods de décoration du joueur ; pilote automatique **3D** ; voir [docs/LEVIATHAN_PLAN.md](docs/LEVIATHAN_PLAN.md) |

@@ -37,16 +37,16 @@ public final class LeviathanLayout {
 	// ---- the hanging ship
 	public static final double MAIN_DECK_Y = 0.0;
 	public static final double HULL_HW = 5.0;
-	public static final double HULL_BOW_Z = 16.0;
+	public static final double HULL_BOW_Z = 14.0;
 	public static final double HULL_STERN_Z = -19.8;
 	/** The stem rakes forwards: the bow reaches HULL_BOW_Z + BOW_RAKE from the height BOW_RAKE_Y0 to BOW_RAKE_Y1. */
-	public static final double BOW_RAKE = 2.6;
-	public static final double BOW_RAKE_Y0 = -2.0;
+	public static final double BOW_RAKE = 1.0;
+	public static final double BOW_RAKE_Y0 = -2.5;
 	public static final double BOW_RAKE_Y1 = 3.0;
-	private static final double[] BOW_PLAN = {16.4, 2.4, 0.62};
+	private static final double[] BOW_PLAN = {14.4, 2.4, 0.5};
 	private static final double[] STERN_PLAN = {27.0, 2.6, 0.5};
-	private static final double[][] KEEL_PTS = {{-19.8, -2.6}, {-18.5, -4.2}, {-17.0, -5.3}, {-15.5, -5.95}, {-10.0, -6.25}, {-4.0, -6.3},
-			{2.0, -6.28}, {6.0, -6.1}, {9.0, -5.6}, {12.0, -4.5}, {14.3, -3.2}, {16.0, -1.5}};
+	private static final double[][] KEEL_PTS = {{-19.8, -0.6}, {-19.3, -1.6}, {-18.7, -2.7}, {-18.0, -3.8}, {-17.0, -5.3}, {-15.5, -5.95}, {-10.0, -6.25}, {-4.0, -6.3},
+			{2.0, -6.28}, {6.0, -6.15}, {9.0, -5.85}, {11.0, -5.35}, {12.6, -4.55}, {13.5, -3.6}, {14.0, -2.5}};
 	private static final double[] KEEL_SLOPES = keelSlopes();
 	public static final double SHEER_WAIST = 1.0;
 	public static final double TUMBLE = 0.025;

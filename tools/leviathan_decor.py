@@ -305,8 +305,8 @@ def common_room():
     block(FD + "kitchen_wall_shelf", -0.55, f + 1.25, 12.3, "stern", solid=False)
     block(FD + "kitchen_wall_shelf", 0.55, f + 1.25, 12.3, "stern", solid=False)
     for side in (-1, 1):
-        x = side * 1.9
-        custom("cask", solid=(x - 0.4, x + 0.4, f, f + 0.9, 11.05, 11.95), name="common_cask_%d" % (side > 0), p=(x, f, 11.5),
+        x = side * 1.6
+        custom("cask", solid=(x - 0.4, x + 0.4, f, f + 0.9, 10.85, 11.75), name="common_cask_%d" % (side > 0), p=(x, f, 11.3),
                facing=(0, 0, -1))
     # side walls: shelf units of bottles and jars between the portholes, standing shelves, chests
     for side in (-1, 1):
@@ -322,7 +322,7 @@ def common_room():
     against(FD + "wall_shelf", -1, f, 3.6, solid=True)
     against(FD + "wall_shelf", -1, f, 9.4, solid=True)
     against(FD + "dresser", 1, f, 9.4, solid=True)
-    block(FD + "pile_of_books", 3.05, f + 1.02, 9.4, "starboard", solid=False)
+    block(FD + "pile_of_books", 2.7, f + 1.02, 9.4, "starboard", solid=False)
     custom("sea_chest", solid=(-3.85, -3.3, f, f + 0.6, 4.25, 5.15), name="common_chest_0", p=(-3.55, f, 4.7), facing="port", w=0.9, d=0.55)
     # a side table for cards in the starboard aft corner, its stools
     at(FU + "spruce_square_table", -2.9, f, 2.0, "stern")
@@ -413,9 +413,9 @@ def captain():
     custom("globe", solid=(-2.05, -1.25, f, f + 1.4, -19.5, -18.8), name="captain_globe", p=(-1.65, f, -19.15))
     custom("rug", name="captain_bed_rug", p=(-0.1, f, -16.1), w=2.4, l=3.2)
     # the stern windows from inside
-    for k, x in enumerate((-2.4, -1.2, 1.2, 2.4)):
-        custom("window_in", name="captain_stern_window_%d" % k, center=(x, 0.7 + 0.575, STERN_WALL + 0.01), normal=(0, 0, 1), w=0.75,
-               h=1.1)
+    for k, x in enumerate((-2.75, -1.65, -0.55, 0.55, 1.65, 2.75)):     # (the stern walk's six windows)
+        custom("window_in", name="captain_stern_window_%d" % k, center=(x, 0.55 + 0.7, STERN_WALL + 0.01), normal=(0, 0, 1), w=0.74,
+               h=1.36)
     painting("captain_bed_painting", "skull_and_roses", (-2.5, f + 1.5, -13.0), (0, 0, -1), 0.9, 0.9)
     painting("captain_bed_painting_b", "sea", (2.6, f + 1.55, -13.0), (0, 0, -1), 1.2, 0.6)
     hanging(0.0, CEIL_M, -15.0, drop=0.05)
@@ -448,45 +448,41 @@ def chart_room():
         custom("map_roll", name="chart_roll_%d" % k, p=(-1.9 + dx, f + 0.75, -19.1 + dz), yaw=yw, l=0.5)
     for k, x in enumerate((-2.25, 2.25)):
         custom("wall_map", name="chart_wall_map_%d" % k, center=(x, f + 1.3, ls.POOP_Z - 0.5), normal=(0, 0, -1), w=1.2, h=0.8)
-    for k, x in enumerate((-1.6, 0.0, 1.6)):
-        custom("window_in", name="chart_stern_window_%d" % k, center=(x, 3.6 + 0.5, STERN_WALL + 0.01), normal=(0, 0, 1), w=0.7, h=1.0)
+    for k, x in enumerate((-2.2, -1.1, 0.0, 1.1, 2.2)):
+        custom("window_in", name="chart_stern_window_%d" % k, center=(x, 3.45 + 0.625, STERN_WALL + 0.01), normal=(0, 0, 1), w=0.66, h=1.2)
     hanging(0.0, CEIL_C, -17.6, drop=0.0)
 
 
 def bosun_store():
-    """Magasin du maître d'équipage (under the forecastle): crates, barrels, sacks, coils of rope, the
-    carpenter's bench and its tools, a lantern."""
+    """Magasin du maître d'équipage (under the forecastle, in the round of the bow): crates, barrels, sacks,
+    coils of rope, the carpenter's bench and its tools, a sea chest against the stem, a lantern."""
     f = M0
     for z in (10.25, 11.25):
         against(FU + "spruce_crate", -1, f, z)
     against(FU + "dark_oak_crate", -1, f + 1.0, 10.25, solid=True)
-    against(FR + "potato_crate", -1, f, 12.4)
+    against(FR + "potato_crate", -1, f, 12.15, scale=0.75)
     against(FR + "rice_bag", -1, f + 1.0, 11.25)
-    against(FD + "workbench", 1, f, 11.0)
-    block(FD + "kerosene_lantern", 2.95, f + 1.25, 10.4, "stern", solid=False)
+    bench = BLOCKS[against(FD + "workbench", 1, f, 11.0)]
+    block(FD + "kerosene_lantern", bench["x"] + 0.47, f + 1.25, 10.4, "stern", solid=False)
     w = wall_x(f + 1.6, 11.0, 1)
     at(FD + "tool_board", w - 0.07, f + 1.25, 11.0, "starboard", solid=False)
-    custom("barrel", solid=(1.25, 2.05, f, f + 1.0, 12.1, 12.9), name="bosun_barrel_0", p=(1.65, f, 12.5))
-    custom("barrel", solid=(-2.15, -1.35, f, f + 1.0, 13.25, 14.05), name="bosun_barrel_1", p=(-1.75, f, 13.65))
-    custom("rope_coil", name="bosun_rope_0", p=(0.6, f, 14.3), r=0.45)
-    custom("rope_coil", name="bosun_rope_1", p=(-0.45, f, 15.4), r=0.36)
-    # the forward half (reference: cale / stockage): shelves of jars and bottles on both walls, crates and
-    # barrels in the corners of the bow, a sea chest under the tool board on the forward bulkhead
+    custom("barrel", solid=(1.25, 2.05, f, f + 1.0, 12.05, 12.85), name="bosun_barrel_0", p=(1.65, f, 12.45))
+    # the round of the bow (reference: cale / stockage): barrels and crates in its corners, coils of rope,
+    # sacks, the sea chest against the stem
+    custom("barrel", solid=(-1.47, -0.83, f, f + 0.95, 12.78, 13.42), name="bosun_barrel_1", p=(-1.15, f, 13.1), r=0.32)
+    custom("barrel", solid=(0.95, 1.55, f, f + 0.9, 12.95, 13.55), name="bosun_barrel_2", p=(1.25, f, 13.25), r=0.3)
+    custom("sea_chest", solid=(-0.45, 0.45, f, f + 0.6, 13.3, 13.8), name="bosun_chest", p=(0.0, f, 13.55), facing="stern", w=0.9, d=0.5)
+    custom("rope_coil", name="bosun_rope_0", p=(-1.55, f, 12.45), r=0.36)
+    custom("rope_coil", name="bosun_rope_1", p=(-0.05, f + 0.6, 13.55), r=0.3)
+    custom("sack", name="bosun_sack_0", p=(2.0, f, 11.8), yaw=0.4, s=0.85)
+    custom("sack", name="bosun_sack_1", p=(0.75, f, 13.05), yaw=-0.3, s=0.8)
+    hanging(0.0, CEIL_M, 11.8, drop=0.05)
+    # the forward porthole of each side (the forecastle's portholes of the reference; the after ones are hidden
+    # behind the tool board and the crates)
     for side in (-1, 1):
-        z = 14.0
-        w = wall_min(f, CEIL_M, z, side)
-        custom("jar_shelf", solid=(min(w, w - side * 0.36), max(w, w - side * 0.36), f, f + 1.9, z - 0.5, z + 0.5),
-               name="bosun_jars_%d" % (side > 0), p=(w - side * 0.02, f, z), normal=(-side, 0, 0), w=1.0, h=1.9, rows=4)
-    c = BLOCKS[against(FU + "dark_oak_crate", -1, f, 15.0, facing="port", scale=0.8)]
-    at(FU + "spruce_crate", c["x"] + 0.02, f + 0.8, 15.0, "stern", scale=0.6)
-    for k, (x, z, r) in enumerate(((1.55, 15.0, 0.34), (1.0, 15.7, 0.3))):
-        custom("barrel", solid=(x - r, x + r, f, f + 0.95, z - r, z + r), name="bosun_barrel_%d" % (k + 2), p=(x, f, z), r=r)
-    custom("sea_chest", solid=(-0.45, 0.45, f, f + 0.6, 15.95, 16.45), name="bosun_chest", p=(0.0, f, 16.2), facing="stern", w=0.9, d=0.5)
-    at(FD + "tool_board", 0.0, f + 1.2, 16.44, "stern", solid=False)
-    custom("sack", name="bosun_sack_0", p=(1.6, f, 13.7), yaw=0.4)
-    custom("sack", name="bosun_sack_1", p=(1.9, f, 13.1), yaw=-0.3, s=0.9)
-    hanging(0.0, CEIL_M, 12.0, drop=0.05)
-    frame_room("bosun", 9.5, 16.0, f, CEIL_M, zs=[10.0, 13.0], beams=True)
+        w = wall_x(f + 1.75, 12.45, side)
+        custom("porthole_in", name="bosun_porthole_%d" % (side > 0), center=(w - side * 0.01, f + 1.75, 12.45), normal=(-side, 0, 0))
+    frame_room("bosun", 9.5, 14.0, f, CEIL_M, zs=[10.0, 13.25], beams=True)
 
 
 def coursive():
@@ -658,7 +654,7 @@ def engine_room():
            h=0.75, gauges=((-0.25, 0.1, 0.15, True), (0.25, 0.1, 0.15, False), (0.0, -0.2, 0.1, False)))
     # vertical pipes down the walls to valves, a second tank under the landing
     for k, (side, z) in enumerate(((1, -14.9), (-1, -12.4))):
-        x = wall_x(f + 2.0, z, side) - side * 0.2
+        x = wall_min(f + 0.1, f + 2.0, z, side) - side * 0.2     # clear of the bilge's curve at its foot
         custom("pipe", name="engine_drop_%d" % k, pts=[(x, -0.95, z), (x, f + 0.3, z)], d=0.2)
         custom("valve", name="engine_drop_valve_%d" % k, p=(x, f + 1.3, z), normal=(-side, 0, 0), r=0.18)
         custom("gauge", name="engine_drop_gauge_%d" % k, p=(x - side * 0.12, f + 1.85, z), normal=(-side, 0, 0), r=0.12, red=k == 0)
@@ -704,9 +700,9 @@ def main_deck():
     custom("sea_chest", solid=(-3.85, -3.25, q, q + 0.6, -12.6, -11.6), name="qd_chest", p=(-3.55, q, -12.1), facing="port", w=0.95, d=0.55)
     # forecastle: a coil of rope, crates
     fc = ls.FORECASTLE_Y
-    custom("rope_coil", name="fc_rope_0", p=(1.4, fc, 13.0), r=0.42)
-    at(FU + "spruce_crate", -2.3, fc, 12.0, "stern")
-    custom("barrel", solid=(-2.75, -1.95, fc, fc + 0.95, 13.0, 13.8), name="fc_barrel_0", p=(-2.35, fc, 13.4), r=0.35)
+    custom("rope_coil", name="fc_rope_0", p=(0.9, fc, 12.9), r=0.4)
+    at(FU + "spruce_crate", -1.9, fc, 10.6, "stern")
+    custom("barrel", solid=(-1.35, -0.65, fc, fc + 0.95, 12.95, 13.65), name="fc_barrel_0", p=(-1.0, fc, 13.3), r=0.35)
 
 
 def deck_benches():

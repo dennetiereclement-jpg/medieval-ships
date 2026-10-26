@@ -51,21 +51,22 @@ MAST_TOP = 36.8
 # ---------------------------------------------------------------- the hanging ship
 MAIN_DECK_Y = 0.0
 HULL_HW = 5.0             # half beam
-HULL_BOW_Z = 16.0         # the stem at the deck (the cutwater goes on below, to CUTWATER_TIP)
+HULL_BOW_Z = 14.0         # the stem low down (a bluff, rounded bow; the long open head goes on beyond it)
 HULL_STERN_Z = -19.8      # the transom
-BOW_RAKE = 2.6            # the stem rakes forward: the bow reaches HULL_BOW_Z + BOW_RAKE at the forecastle
-BOW_RAKE_Y = (-2.0, 3.0)  # from this height (where the bow ends at HULL_BOW_Z) to this one
-BOW_PLAN = (16.4, 2.4, 0.62)    # plan: hw = HULL_HW * (1 - (z / s)^a)^b ahead of the middle
+BOW_RAKE = 1.0            # the stem rakes forward: the bow reaches HULL_BOW_Z + BOW_RAKE at the forecastle
+BOW_RAKE_Y = (-2.5, 3.0)  # from this height (where the bow ends at HULL_BOW_Z) to this one
+BOW_PLAN = (14.4, 2.4, 0.5)     # plan: hw = HULL_HW * (1 - (z / s)^a)^b ahead of the middle
 STERN_PLAN = (27.0, 2.6, 0.5)   # and behind it (a wide transom)
 KEEL_Y = -6.3
-# the keel line (z, y): lowest amidships, curving up to the stern and to the bow (monotone cubic through these)
-KEEL_PTS = ((-19.8, -2.6), (-18.5, -4.2), (-17.0, -5.3), (-15.5, -5.95), (-10.0, -6.25), (-4.0, -6.3), (2.0, -6.28), (6.0, -6.1),
-            (9.0, -5.6), (12.0, -4.5), (14.3, -3.2), (16.0, -1.5))
+# the keel line (z, y): lowest amidships, curving up to the bow and steeply up to the stern, where the hull tucks
+# in under the stern walk (the counter: the transom only goes down to y = -0.6); monotone cubic through these
+KEEL_PTS = ((-19.8, -0.6), (-19.3, -1.6), (-18.7, -2.7), (-18.0, -3.8), (-17.0, -5.3), (-15.5, -5.95), (-10.0, -6.25), (-4.0, -6.3), (2.0, -6.28), (6.0, -6.15),
+            (9.0, -5.85), (11.0, -5.35), (12.6, -4.55), (13.5, -3.6), (14.0, -2.5))
 SHEER_WAIST = 1.0         # top of the hull planking in the waist (the bulwark)
 TUMBLE = 0.025            # the castle sides lean in above the waist
 SHELL = 0.4               # thickness of the hull planking (interior grid)
 CUTWATER_TIP = (20.8, 1.2)       # (z, y) of the tip of the cutwater under the beakhead
-BOW_GEAR = (21.7, 3.6, 1.3)      # (z, y, radius) of the gear wheel at the head of the beakhead
+BOW_GEAR = (21.8, 3.0, 1.2)      # (z, y, radius) of the gear wheel at the head of the beakhead (under the bowsprit)
 BOWSPRIT = ((14.5, 2.6), (24.9, 5.3))  # (z, y) of its heel and its tip
 
 # decks
@@ -83,7 +84,7 @@ TOWER_X = 1.5
 TOWER_Z = (-3.0, 0.0)
 SHAFT_X = 1.0
 SHAFT_Z = (-2.5, -0.5)
-TOWER_GEAR = (0.0, 4.4, 0.4, 1.8)   # centre height, how far its face stands off the side, radius  # (x, y, z of its face, radius): faces the bow
+TOWER_GEAR = (0.0, 4.5, 0.3, 1.5)   # centre height, how far its face stands off the side, radius  # (x, y, z of its face, radius): faces the bow
 
 # helm on the quarterdeck, the pilot behind it facing the bow
 HELM_Z = -10.75
@@ -390,7 +391,7 @@ if __name__ == "__main__":
     # values checked by LeviathanTest.matchesModelGenerator
     for z in (-24.0, -12.0, -0.6, 10.0, 22.0):
         print("{%s, %.6f, %.6f}," % (z, balloon_hw(z), balloon_hh(z)))
-    for z, y in ((-18.0, -2.0), (-10.0, -4.0), (0.0, -5.5), (0.0, 0.5), (8.0, -3.0), (13.0, 2.0), (-16.5, 4.5), (17.5, 2.5)):
+    for z, y in ((-18.0, -2.0), (-10.0, -4.0), (0.0, -5.5), (0.0, 0.5), (8.0, -3.0), (13.0, 2.0), (-16.5, 4.5), (14.5, 2.5)):
         print("{%s, %s, %.6f, %.6f, %.6f}," % (z, y, hull_x(z, y), keel_y(z), sheer_y(z)))
     for f in FINS:
         print("{%s}, // %s" % (", ".join("%.6f" % c for c in fin_point(fin_frame(f), *FIN_TIP)), f[0]))

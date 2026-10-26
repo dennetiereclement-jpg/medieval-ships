@@ -77,6 +77,8 @@ REGIONS = {
     "wood":         (96, 176, 32, 16),
     "deck":         (128, 192, 32, 32),  # deck planks along u, 2 blocks
     "transom":      (160, 192, 32, 32),
+    "shingle":      (0, 256, 64, 32),    # dark wooden shingles of the galleries' awning (rows along u)
+    "glass_round":  (64, 256, 16, 16),   # round porthole of pale glass reflecting the sky (transparent outside)
     "gear_iron":    (416, 64, 16, 16),
     "door_leaf":    (432, 64, 32, 64),   # one leaf of a 2 block door (1 x 2): planks, iron straps
     "hatch":        (464, 64, 32, 32),
@@ -459,6 +461,33 @@ def _tile_room(img, px, rng):
             _put(px, u, v, x, y, _jitter(c, rng, 3))
 
 
+def _shingles(px, region, base, rng, row=4, width=(3, 6)):
+    """Overlapping wooden shingles in rows along u: each its own tone, a pale lit lower edge, a dark gap
+    between neighbours and a shadow under the row above."""
+    u, v, w, h = region
+    for r in range(h // row):
+        x = -rng.randint(0, 3)
+        while x < w:
+            sw = rng.randint(*width)
+            tone = _jitter(_scale(base, rng.uniform(0.85, 1.18)), rng, 6)
+            for dx in range(sw):
+                xx = x + dx
+                if not 0 <= xx < w:
+                    continue
+                for dy in range(row):
+                    c = tone
+                    if dx == sw - 1:
+                        c = _scale(base, 0.45)
+                    elif dy == 0:
+                        c = _scale(tone, 0.62)
+                    elif dy == row - 1:
+                        c = _scale(tone, 1.22)
+                    elif (xx * 3 + dy * 5) % 7 == 0:
+                        c = _scale(tone, 0.9)
+                    _put(px, u, v, xx, r * row + dy, _jitter(c, rng, 3))
+            x += sw
+
+
 def _iron_patches(px, region, rng, n):
     """Repairs: riveted iron plates nailed over the planks."""
     u, v, w, h = region
@@ -573,17 +602,23 @@ def make_texture(path):
     _fin(px, REGIONS["fin"], ls.FIN_ROOT_U, rng, holes=True)
     _fin(px, REGIONS["fin_keel"], ls.KEEL_FIN_ROOT_U, rng, holes=False)
     # ---- hull
-    _plank_field(px, REGIONS["hull"], _rgb("7a4e2e"), _rgb("2c1a0c"), rng, plank_w=4, along_u=True, repairs=0.2, lengths=(14, 34),
-                 tone_var=12, nail_p=0.7)
-    _plank_field(px, REGIONS["hull_low"], _rgb("5c3c24"), _rgb("22140a"), rng, plank_w=4, along_u=True, repairs=0.15, lengths=(14, 34),
-                 tone_var=10, nail_p=0.5)
-    _iron_patches(px, REGIONS["hull"], rng, 2)
-    _iron_patches(px, REGIONS["hull_low"], rng, 2)
-    fine_wood(img, REGIONS["wale"], _rgb("2e2016"), _rgb("120c07"), 4, rng, knots=0.0)
+    # the reference's hull: weathered mid-brown planks, rather grey, many boards of their own tone (some
+    # replaced by paler, greyer or darker ones), dark caulked seams
+    weathered = [_rgb("967454"), _rgb("664630"), _rgb("85725c"), _rgb("a07a50")]
+    _plank_field(px, REGIONS["hull"], _rgb("845c3e"), _rgb("3a2818"), rng, plank_w=4, along_u=True, repairs=0.16, lengths=(14, 34),
+                 tone_var=10, nail_p=0.5, patch_cols=weathered)
+    _plank_field(px, REGIONS["hull_low"], _rgb("745034"), _rgb("342216"), rng, plank_w=4, along_u=True, repairs=0.14, lengths=(14, 34),
+                 tone_var=9, nail_p=0.4, patch_cols=weathered)
+    fine_wood(img, REGIONS["wale"], _rgb("33261c"), _rgb("15100b"), 4, rng, knots=0.0)
     fine_wood(img, REGIONS["rail"], _rgb("583820"), _rgb("22140a"), 4, rng, knots=0.0)
     fine_wood(img, REGIONS["dark_wood"], _rgb("462c18"), _rgb("1c1008"), 4, rng, knots=0.0)
     fine_wood(img, REGIONS["wood"], _rgb("7a5232"), _rgb("2e1c0e"), 4, rng, knots=0.1)
-    _plank_field(px, REGIONS["transom"], _rgb("684226"), _rgb("26160a"), rng, plank_w=4, along_u=True, repairs=0.15, lengths=(12, 30))
+    _plank_field(px, REGIONS["transom"], _rgb("845840"), _rgb("342216"), rng, plank_w=4, along_u=True, repairs=0.15, lengths=(12, 30),
+                 patch_cols=weathered)
+    _shingles(px, REGIONS["shingle"], _rgb("4a3628"), rng)
+    _round(px, REGIONS["glass_round"], lambda rr, dx, dy: (34, 30, 28) if rr > 0.84 else
+           _mix((214, 226, 232), (120, 146, 170), min(1.0, max(0.0, 0.5 + 0.6 * (dy + dx * 0.3)))) if abs(dx + dy * 0.6 + 0.25) > 0.12
+           else (240, 246, 250))
     hammered_iron(img, REGIONS["gear_iron"], _rgb("3a3634"), rng)
     _door_leaf(px, REGIONS["door_leaf"], rng)
     u, v, w, h = REGIONS["hatch"]
