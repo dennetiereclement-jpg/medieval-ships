@@ -26,8 +26,9 @@ import fr.medievalships.entity.ShipTracker;
  * In-game checks of the Crystal Airship (about 50 s of game time): placed in the air over open ground, hovers, the views
  * of the reference sheet (side, front, back, top, perspective) and close-ups (balloon, ring, engines, stern castle), the
  * furnished rooms (cockpit, lounge, engine room, storeroom, officers' mess, hold), standing and walking on the main deck,
- * walking through the castle's door into the officers' mess, flown from the helm in the cockpit (climb, forward, turn: the
- * propellers turn under way), the pilot steps off in the cockpit, the item. The HUD is hidden for the screenshots.
+ * walking through the castle's door into the officers' mess, out of the cockpit onto the terrace, flown from the helm in
+ * the cockpit (climb, forward, turn: the propellers turn under way), the pilot steps off in the cockpit, the item. The HUD
+ * is hidden for the screenshots.
  * Called once from {@link ShipClientGameTest}.
  */
 public final class CrystalGameTest {
@@ -186,6 +187,16 @@ public final class CrystalGameTest {
 		context.waitTicks(10);
 		l = local(context, server);
 		check.accept(l[2] < -11.0 && Math.abs(l[1]) < 0.08, String.format(Locale.ROOT, "%s walks into the officers' mess (local z %.2f y %.2f)", id, l[2], l[1]));
+
+		// out of the cockpit through its door beside the arch, onto the terrace on the mess's roof
+		setDoor(server, CrystalLayout.TERRACE_DOOR, true);
+		tpLocal(server, pose(server), -3.5, CrystalLayout.L2_Y + 0.05, -15.4, 0, 0);
+		context.waitTicks(15);
+		context.getInput().holdKeyFor(o -> o.forwardKey, 20);
+		context.waitTicks(10);
+		l = local(context, server);
+		check.accept(l[2] > CrystalLayout.L2_Z + 0.3 && Math.abs(l[1] - CrystalLayout.L1_TOP) < 0.08,
+				String.format(Locale.ROOT, "%s walks out of the cockpit onto the terrace (local z %.2f y %.2f)", id, l[2], l[1]));
 
 		// flown from the helm in the cockpit: climb, forward, turn; then the pilot steps off in the cockpit
 		boolean seated = server.computeOnServer(srv -> {

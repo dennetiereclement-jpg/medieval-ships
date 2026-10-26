@@ -51,10 +51,11 @@ class NewShipModelsTest {
 							"balloon", "hoops", "hull", "rooms", "furniture", "fittings"},
 					new String[] {"steer", "elevator", "flag_wave", "engine", "lantern_sway", "streamer_wave", "door_0", "door_1", "door_11"}),
 			new Expected("crystal_airship",
-					new String[] {"helm_wheel", "rotor_p", "rotor_s", "rear_prop", "pod_prop_p", "pod_prop_s", "flap_p", "flap_s", "flag", "flag_tip",
-							"pod_front", "pod_front_ring", "pod_rear", "engine_gear_0", "door_0_a", "door_3", "balloon", "hull", "castle", "rooms",
-							"furniture", "fittings", "engines", "crystals"},
-					new String[] {"propeller", "engine", "steer", "elevator", "flag_wave", "streamer_wave", "lantern_sway", "door_0", "door_3"}));
+					new String[] {"helm_wheel", "rotor_p", "rotor_s", "stern_gear", "pod_prop_p", "pod_prop_s", "flap_p", "flap_s", "flag", "flag_tip",
+							"pod_front", "pod_front_ring", "pod_rear", "engine_gear_0", "door_0_a", "door_3", "door_4_a", "balloon", "straps", "gems",
+							"hull", "castle", "rooms", "furniture", "fittings", "engines", "crystals"},
+					new String[] {"propeller", "engine", "steer", "elevator", "flag_wave", "streamer_wave", "lantern_sway", "door_0", "door_3",
+							"door_4"}));
 
 	private static BbModel load(String name) throws Exception {
 		try (Reader r = Files.newBufferedReader(Path.of("src/main/resources/assets/medievalships/models/entity/" + name + ".bbmodel"),

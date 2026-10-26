@@ -43,6 +43,8 @@ BOUNDS.update({
     FD + "lamp": (0.156, 0.844, 0.0, 0.969, 0.156, 0.844),
     FD + "typewriter": (0.125, 0.875, 0.0, 0.503, 0.031, 0.961),
     FU + "crimson_chair": (0.125, 0.875, -0.038, 1.0, 0.0, 0.75),
+    FU + "dark_oak_pedestal_table": (0.0, 1.0, 0.0, 1.0, 0.0, 1.0),
+    FU + "dark_oak_cabinet": (0.0, 1.0, 0.0, 1.0, -0.062, 1.0),
     FU + "crimson_stool": (0.188, 0.812, 0.0, 0.562, 0.125, 0.75),
     FU + "crimson_pedestal_table": (0.0, 1.0, 0.0, 1.0, 0.0, 1.0),
     FU + "crimson_drawers": (0.0, 1.0, 0.0, 1.0, -0.062, 1.0),
@@ -61,6 +63,7 @@ FALLBACK_REGION.update({
     FD + "lamp": "in_lamp", FD + "typewriter": "in_iron", FU + "crimson_chair": "in_sofa", FU + "crimson_stool": "in_sofa",
     FU + "crimson_pedestal_table": "in_wood_carved", FU + "crimson_drawers": "in_wood_carved", FU + "red_showcase": "in_jars2",
     FU + "spruce_bench": "in_plank", IC + "loaded_fir_barrel": "barrel", FD + "radiator": "in_iron",
+    FU + "dark_oak_pedestal_table": "in_wood_carved", FU + "dark_oak_cabinet": "in_wood_carved", FU + "dark_oak_stool": "in_sofa_wood",
     FD + "dining_chair": "in_wood_carved", FU + "dark_oak_chair": "in_sofa", FD + "tall_bookshelf": "in_books", FD + "workbench": "in_plank",
 })
 GLOWING_FALLBACK = ld.GLOWING_FALLBACK + (FD + "lamp",)
@@ -73,6 +76,7 @@ PAINTINGS = []
 SWITCHES = []
 
 M0, LO, HO, L2 = ci.M0, ci.LO, ci.HO, ci.L2
+MESS_BACK = -22.0          # the mess's back wall behind its middle (the stern is rounded)
 CEIL_L1, CEIL_L2, CEIL_LO, CEIL_HO = ci.CEIL_L1, ci.CEIL_L2, ci.CEIL_LO, ci.CEIL_HO
 
 _GRID = []
@@ -217,10 +221,10 @@ def cockpit():
            facing=(0, 0, -1))
     custom("instrument_column", solid=(1.15, 1.85, f, f + 1.6, -15.65, -14.95), name="cockpit_column_1", p=(1.5, f, -15.3), top="globe",
            facing=(0, 0, -1))
-    custom("crystal_lamp", solid=(-4.75, -4.15, f, f + 2.0, -15.4, -14.8), name="cockpit_crystal_lamp", p=(-4.45, f, -15.1))
+    custom("crystal_lamp", solid=(-3.45, -2.85, f, f + 2.0, -21.05, -20.45), name="cockpit_crystal_lamp", p=(-3.15, f, -20.75))
     custom("wall_gauge", name="cockpit_clock", center=(-3.7, f + 1.5, ci.ROOMS["cockpit"][5] + 0.0), normal=(0, 0, -1), r=0.55)
     custom("wall_gauge", name="cockpit_gauge_1", center=(-3.7, f + 0.6, ci.ROOMS["cockpit"][5] + 0.0), normal=(0, 0, -1), r=0.28)
-    custom("lever_bank", solid=(-4.6, -3.9, f, f + 0.9, -17.8, -16.8), name="cockpit_levers", p=(-4.25, f, -17.3), normal=(1, 0, 0))
+    custom("lever_bank", solid=(-3.98, -3.3, f, f + 0.9, -18.4, -17.4), name="cockpit_levers", p=(-3.64, f, -17.9), normal=(1, 0, 0))
     custom("speaking_tube", name="cockpit_tube", foot=(0.9, f, -15.2), top=(0.9, f + 1.3, -15.2), normal=(-1, 0, 0))
     # the chart table aft: two Furnish dark oak tables, two chairs, the charts and instruments on it
     for x in (-0.5, 0.5):
@@ -232,14 +236,14 @@ def cockpit():
     custom("map_roll", name="cockpit_map_roll", p=(0.75, t, -20.55), yaw=1.2, l=0.5)
     block(FD + "kerosene_lantern", -0.7, t, -20.6, "stern", solid=False)
     chair(FU + "dark_oak_chair", -0.5, f, -21.3, "bow", -1.4, -21.3)
-    chair(FU + "crimson_chair", 0.5, f, -19.35, "stern", 1.4, -19.2)
-    # bookcases against the back wall, the globe, a telescope at a side window
-    for x in (-3.4, 3.4):
-        against_z(FD + "tall_bookshelf", x, f, ci.STERN_IN, +1)
-    custom("globe", solid=(3.1, 3.9, f, f + 1.3, -21.0, -20.2), name="cockpit_globe", p=(3.5, f, -20.6))
-    custom("telescope", name="cockpit_telescope", p=(-4.2, f, -19.75), facing="starboard")
+    chair(FU + "dark_oak_chair", 0.5, f, -19.35, "stern", 1.4, -19.2)
+    # bookcases against the rounded back wall (under the overhang), the globe, a telescope at a side window
+    for x in (-1.5, 1.5):
+        against_z(FD + "tall_bookshelf", x, f, ci.STERN_IN2 - 0.1, +1)
+    custom("globe", solid=(3.0, 3.8, f, f + 1.3, -21.0, -20.2), name="cockpit_globe", p=(3.4, f, -20.6))
+    custom("telescope", name="cockpit_telescope", p=(-3.5, f, -19.5), facing="starboard")
     # a co-pilot's chair by the starboard window, lanterns
-    chair(FU + "crimson_chair", -3.2, f, -16.6, "bow", -2.3, -16.6)
+    chair(FU + "dark_oak_chair", -3.0, f, -16.4, "bow", -2.1, -16.4)
     for x, z in ((-2.6, -16.0), (2.6, -19.0), (0.0, -21.3)):
         hanging(x, CEIL_L2, z)
     custom("rug", name="cockpit_rug", p=(0.0, f, -17.2), w=2.2, l=1.8, region="in_rug_red")
@@ -255,7 +259,7 @@ def mess():
     for z in (-20.5, -19.5, -18.5):
         chair(FD + "dining_chair", -1.55, f, z, "port", -2.45, z)
         chair(FD + "dining_chair", 1.55, f, z, "starboard", 2.45, z)
-    chair(FD + "dining_chair", 0.0, f, -21.6, "bow", -0.9, -21.75)
+    chair(FD + "dining_chair", 0.0, f, -21.5, "bow", -0.95, -21.5)
     t = f + 1.0
     for k, (x, z) in enumerate(((-0.5, -20.6), (0.5, -20.4), (-0.5, -18.4), (0.5, -18.6), (-0.5, -19.5), (0.5, -19.5))):
         block(FU + "plate", x, t, z, "stern", solid=False, scale=0.55)
@@ -266,12 +270,12 @@ def mess():
     block(FR + "roast_chicken_block", 0.0, t, -19.6, "stern", solid=False, scale=0.6)
     for z in (-20.5, -18.5):
         hanging(0.0, CEIL_L1, z, drop=-0.3)
-    against_z(FD + "liquor_cabinet", -3.3, f, ci.STERN_IN, +1)
-    against_z(FD + "wall_shelf", 3.3, f, ci.STERN_IN, +1)
-    block(FD + "pile_of_books", 3.3, f + 1.22, ci.STERN_IN + 0.3, "bow", solid=False)
+    against_z(FD + "liquor_cabinet", -2.45, f, MESS_BACK, +1)
+    against_z(FD + "wall_shelf", 2.2, f, MESS_BACK, +1)
+    block(FD + "pile_of_books", 2.2, f + 1.22, MESS_BACK + 0.3, "bow", solid=False)
     # by the door: a coat hanger, a chest of drawers with the gramophone
     at(FD + "coat_hanger", -3.9, f, -11.3, "port")
-    i = against(FU + "crimson_drawers", 1, f, -11.4)
+    i = against(FU + "dark_oak_cabinet", 1, f, -11.4)
     x0, x1, _, _, _, _ = footprint(BLOCKS[i])
     at(FD + "gramophone", (x0 + x1) / 2, f + 1.0, -11.4, "starboard", solid=False, scale=0.8)
     wall_lantern("mess_lantern_s", -1, f + 1.9, -17.0)
@@ -301,24 +305,24 @@ def lounge():
     at(FD + "coffee_table", -2.1, f, 7.2, "stern")
     block(FD + "kerosene_lantern", -2.3, f + 0.5, 7.0, "stern", solid=False)
     block(FU + "book_pile", -1.9, f + 0.5, 7.5, "stern", solid=False, scale=0.6)
-    chair(FU + "crimson_chair", -0.4, f, 6.6, "starboard", 0.5, 6.6)
-    chair(FU + "crimson_chair", -0.4, f, 7.8, "starboard", 0.5, 7.8)
+    chair(FU + "dark_oak_chair", -0.4, f, 6.6, "starboard", 0.5, 6.6)
+    chair(FU + "dark_oak_chair", -0.4, f, 7.8, "starboard", 0.5, 7.8)
     custom("world_map", name="lounge_map", center=(wall_x(f + 1.9, 9.1, -1) + 0.02, f + 1.95, 9.1), normal=(1, 0, 0), w=1.2, h=0.9)
     # port, forward: the piano against the wall, its stool; the card table and its chairs
     against(FD + "piano", 1, f, 9.0)
-    chair(FU + "crimson_stool", 3.0, f, 8.9, "port", 2.1, 8.4)
-    at(FU + "crimson_pedestal_table", 2.9, f, 4.6, "stern")
-    block(FU + "chess_board", 2.9, f + 1.0, 4.6, "stern", solid=False, scale=0.8)
-    chair(FU + "crimson_chair", 2.9, f, 3.65, "bow", 1.9, 3.6)
-    chair(FU + "crimson_chair", 2.9, f, 5.55, "stern", 1.9, 5.6)
+    chair(FU + "dark_oak_stool", 2.8, f, 8.9, "port", 2.0, 8.4)
+    at(FU + "dark_oak_pedestal_table", 2.6, f, 4.6, "stern")
+    block(FU + "chess_board", 2.6, f + 1.0, 4.6, "stern", solid=False, scale=0.8)
+    chair(FU + "dark_oak_chair", 2.6, f, 3.65, "bow", 1.6, 3.6)
+    chair(FU + "dark_oak_chair", 2.6, f, 5.55, "stern", 1.6, 5.6)
     # aft: a sofa of four pieces along the port wall, its low table and armchairs on a rug
     sofa(1, f, -5.0, 4, "lounge_sofa_p")
-    custom("rug", name="lounge_rug_aft", p=(2.2, f, -3.0), w=3.6, l=4.6, region="in_rug_red")
-    at(FD + "coffee_table", 2.45, f, -3.0, "stern")
-    block(FD + "wine_bottle", 2.3, f + 0.5, -3.2, "stern", solid=False)
-    block(FD + "wine_glass", 2.6, f + 0.5, -2.8, "stern", solid=False, scale=0.85)
-    chair(FU + "crimson_chair", 1.0, f, -3.7, "port", 0.1, -3.7)
-    chair(FU + "crimson_chair", 1.0, f, -2.3, "port", 0.1, -2.3)
+    custom("rug", name="lounge_rug_aft", p=(2.0, f, -3.0), w=3.4, l=4.6, region="in_rug_red")
+    at(FD + "coffee_table", 2.05, f, -3.0, "stern")
+    block(FD + "wine_bottle", 1.9, f + 0.5, -3.2, "stern", solid=False)
+    block(FD + "wine_glass", 2.2, f + 0.5, -2.8, "stern", solid=False, scale=0.85)
+    chair(FU + "dark_oak_chair", 1.0, f, -3.7, "port", 0.1, -3.7)
+    chair(FU + "dark_oak_chair", 1.0, f, -2.3, "port", 0.1, -2.3)
     # starboard, aft: the liquor cabinet on the aft bulkhead, bookcases, a rocking chair by the window, a lamp
     against_z(FD + "liquor_cabinet", -3.0, f, -7.0, +1)
     against(FD + "tall_bookshelf", -1, f, -6.5)
@@ -398,12 +402,12 @@ def engine_room():
     # the floor: dwarven pipes along both walls, crates in the corners, gauges, crystal lamps
     h = HO
     for z in (-12.0, -13.0):          # the starboard wall (the stair down runs along the port wall)
-        w = wall_x(h + 0.6, z, -1)
+        w = max(wall_x(h + 0.1, z - 0.4, -1), wall_x(h + 0.1, z + 0.4, -1))
         block(MB + "dwemer_metal_pipe", w + 0.42, h, z, "bow", solid=True)
     w = wall_x(h + 1.6, -12.5, -1)
     block(MB + "dwemer_metal_pipe_gear", w + 0.42, h + 1.0, -12.5, "bow", solid=False)
-    at(FU + "dark_oak_crate", -2.6, ci.PLINTH[2], -19.8, "stern")
-    at(FU + "small_locker", 2.6, ci.PLINTH[2], -19.8, "stern")
+    at(FU + "dark_oak_crate", -2.15, ci.PLINTH[2], -19.6, "stern")
+    at(FU + "small_locker", 2.15, ci.PLINTH[2], -19.6, "stern")
     custom("gauge_board", name="engine_gauges_s", center=(wall_x(h + 2.4, -15.5, -1) + 0.02, h + 2.4, -15.5), normal=(1, 0, 0), w=1.2, h=0.8)
     custom("gauge_board", name="engine_gauges_p", center=(wall_x(h + 2.4, -16.8, 1) - 0.02, h + 2.4, -16.8), normal=(-1, 0, 0), w=1.2, h=0.8)
     for side in (-1, 1):

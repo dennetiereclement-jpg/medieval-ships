@@ -13,9 +13,9 @@ import fr.medievalships.entity.ShipEntity;
 
 /**
  * Client effects of the Crystal Airship, only near the player (vanilla particles, a handful per tick): a few blue
- * magic sparks round its glowing crystals (the platform under the keel, the floating pods, the eyes of the engine
- * nacelles), more of them while its engines run (under way, climbing, or someone at the helm), and a light breath of
- * vapour behind the nacelles and the stern engine under way.
+ * magic sparks round its glowing crystals (the platform under the keel, the floating pods, the eyes of the engines, the
+ * porthole of the stern medallion), more of them while its engines run (under way, climbing, or someone at the helm), and a
+ * light breath of vapour behind the engines under way.
  */
 public final class CrystalEffects {
 	private static final double RANGE = 80;
@@ -62,9 +62,10 @@ public final class CrystalEffects {
 				world.addParticleClient(ParticleTypes.CLOUD, w[0], w[1], w[2], (back[0] - w[0]) * 0.1, 0.0, (back[2] - w[2]) * 0.1);
 			}
 		}
-		if (speed > 0.3 && r.nextFloat() < 0.2 * load) {
-			double[] w = pose.toWorld((r.nextDouble() - 0.5) * 3, CrystalLayout.REAR_ENGINE[0] + (r.nextDouble() - 0.5) * 3, CrystalLayout.REAR_ENGINE[2] - 0.4);
-			world.addParticleClient(ParticleTypes.WHITE_SMOKE, w[0], w[1], w[2], 0, 0.01, 0);
+		// a few sparks at the porthole of the stern medallion
+		if (r.nextFloat() < 0.1 * load) {
+			double[] w = pose.toWorld((r.nextDouble() - 0.5) * 1.6, CrystalLayout.MEDALLION[0] + (r.nextDouble() - 0.5) * 1.6, CrystalLayout.MEDALLION[1] - 0.8);
+			world.addParticleClient(ParticleTypes.ELECTRIC_SPARK, w[0], w[1], w[2], 0, 0.01, -0.02);
 		}
 	}
 }

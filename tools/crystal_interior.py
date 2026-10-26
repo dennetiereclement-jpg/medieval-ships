@@ -11,9 +11,10 @@ Same file format as the Nautilus and the Sky Leviathan (magic b"MSGRID1\\0", int
 z0, float64 cell, then the cells in runs (uint8 kind, varint length), index (ix * nz + iz) * ny + iy).
 
 Layout (docs/CRYSTAL_PLAN.md): the open main deck and the forecastle; the stern castle with the officers' mess
-(storey 1, on the main deck) and the cockpit (storey 2: the arched window facing the bow, the helm); under the
-main deck the lounge (big windows on both sides) with the storeroom forward of it, the hold under the lounge, the
-engine room aft over two levels (a landing at the lounge's level, the floor below).
+(storey 1, on the main deck) and the cockpit (storey 2, overhanging the stern: the arched window facing the bow, the
+helm, a door out onto the terrace on storey 1's roof); under the main deck the lounge (six windows on both sides)
+with the storeroom forward of it, the hold under the lounge, the engine room aft over two levels (a landing at the
+lounge's level, the floor below).
 """
 import math
 import struct
@@ -43,10 +44,11 @@ CEIL_HO = LO - SLAB            # -4.5
 INF = 20.0
 
 # ---------------------------------------------------------------- rooms: (x0, x1, y0, y1, z0, z1), clipped to the hull
-STERN_IN = cs.STERN_Z + 0.5    # inner face of the stern wall
+STERN_IN = cs.STERN_Z + 0.5    # inner face of the stern wall (storey 1, at the centreline)
+STERN_IN2 = cs.STERN2_Z + 0.5  # the same for storey 2 (the cockpit overhangs the stern)
 ROOMS = {
     "mess": (-INF, INF, M0, CEIL_L1, STERN_IN, cs.CASTLE_Z - 0.5),        # officers' mess (castle, storey 1)
-    "cockpit": (-INF, INF, L2, CEIL_L2, STERN_IN, cs.L2_Z - 0.5),         # cockpit (castle, storey 2)
+    "cockpit": (-INF, INF, L2, CEIL_L2, STERN_IN2, cs.L2_Z - 0.5),        # cockpit (castle, storey 2)
     "lounge": (-INF, INF, LO, CEIL_LO, -7.0, 10.0),
     "storeroom": (-INF, INF, LO, CEIL_LO, 10.5, 19.5),
     "engine_room": (-INF, INF, HO, CEIL_LO, -20.5, -7.5),
@@ -57,13 +59,14 @@ WALKED = {   # the floors of the rooms (for the reports and the decor)
 }
 
 # doors: index -> (name, box): 2 blocks wide (two leaves) and 2 high in the bulkheads; the hatch lies flat
-CASTLE_DOOR, ENGINE_DOOR, STORE_DOOR, HOLD_HATCH = 0, 1, 2, 3
+CASTLE_DOOR, ENGINE_DOOR, STORE_DOOR, HOLD_HATCH, TERRACE_DOOR = 0, 1, 2, 3, 4
 HATCH = (2.0, 3.0, -6.5, -5.5)     # x0, x1, z0, z1 of the hold hatch in the lounge's floor (its ladder under it)
 DOORS = {
     CASTLE_DOOR: ("castle", (-1.0, 1.0, M0, M0 + 2.0, cs.CASTLE_Z - 0.5, cs.CASTLE_Z)),
     ENGINE_DOOR: ("engine_room", (-1.0, 1.0, LO, LO + 2.0, -7.5, -7.0)),
     STORE_DOOR: ("storeroom", (0.5, 2.5, LO, LO + 2.0, 10.0, 10.5)),
     HOLD_HATCH: ("hold_hatch", (HATCH[0], HATCH[1], LO - SLAB, LO, HATCH[2], HATCH[3])),
+    TERRACE_DOOR: ("terrace", (-4.0, -3.0, L2, L2 + 2.0, cs.L2_Z - 0.5, cs.L2_Z)),   # cockpit -> terrace, beside the arch
 }
 
 LADDERS = {
@@ -75,23 +78,23 @@ LADDERS = {
 STAIRS = (
     ("fc_port", 2.6, 4.1, 11.3, +1, M0, +4),          # main deck -> forecastle, climbing forward
     ("fc_stbd", -4.1, -2.6, 11.3, +1, M0, +4),
-    ("cockpit", 2.9, 4.4, -15.0, -1, M0, +6),          # mess -> cockpit, climbing aft (port side)
+    ("cockpit", 2.4, 3.9, -15.0, -1, M0, +6),          # mess -> cockpit, climbing aft (port side)
     ("engine", -4.4, -2.9, -15.0, +1, M0, -8),         # mess -> engine room landing, going down forward (starboard)
-    ("engine_floor", 2.0, 3.5, -11.0, -1, LO, -7),     # landing -> engine room floor, going down aft (port)
+    ("engine_floor", 1.0, 2.5, -11.0, -1, LO, -7),     # landing -> engine room floor, going down aft (port of the middle)
 )
 LANDING = (-11.0, -7.5)                       # the engine room's landing at the lounge's level (z)
 ENGINE_HOLE = (-4.4, -2.9, -15.0, -12.5)      # opening in the mess's floor over the engine stair (x0, x1, z0, z1)
-COCKPIT_HOLE = (2.9, 4.4, -18.0, -14.5)       # opening in the cockpit's floor over its stair
-ENGINE = (0.0, -16.6, 2.0, HO, -3.6)          # the crystal engine: x, z, radius (of its cells), bottom, top
+COCKPIT_HOLE = (2.4, 3.9, -18.0, -14.5)       # opening in the cockpit's floor over its stair
+ENGINE = (0.0, -16.6, 2.2, HO, -1.0)          # the crystal engine: x, z, radius (of its cells), bottom, top (the ceiling)
 PLINTH = (-20.5, -18.6, HO + 1.0)             # z0, z1, top of the raised floor aft of the engine
 HELM_BOX = (-0.6, 0.6, L2, L2 + 1.0, cs.HELM_Z - 0.3, cs.HELM_Z + 0.3)
 # lantern posts on the main deck and the forecastle, the bow pennant's pole (x, floor, z)
 POSTS = ((-2.2, M0, -9.4), (2.2, M0, -9.4), (-1.9, cs.FORECASTLE_Y, 15.2), (1.9, cs.FORECASTLE_Y, 15.2), (0.0, cs.FORECASTLE_Y, 23.4))
-# the lounge's windows (z centre, half width) between y WIN_Y; the cockpit's side windows
-LOUNGE_WINDOWS = ((-6.0, -4.0), (-3.0, -1.0), (0.0, 2.0), (3.0, 5.0), (6.0, 8.0))   # z spans (on cell boundaries)
+# the lounge's six windows between y WIN_Y (z spans on cell boundaries); the cockpit's side windows
+LOUNGE_WINDOWS = ((-5.5, -4.0), (-3.0, -1.5), (-0.5, 1.0), (2.0, 3.5), (4.5, 6.0), (7.0, 8.5))
 WIN_Y = (-3.0, -1.0)
-ROSE = (10.2, -0.3, 3.1)     # the bow's fan window (outside only): z of its centre, its flat top, radius
-COCKPIT_WINDOWS = ((-18.0, -16.5), (-20.5, -19.0), (-22.5, -21.5))
+ROSE = (13.8, -0.3, 4.6)     # the bow's fan window (outside only): z and y of its hub (its upper aft corner), radius
+COCKPIT_WINDOWS = ((-16.5, -15.0), (-19.0, -17.5))
 COCKPIT_WIN_Y = (3.5, 5.5)
 
 FACES = ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))
@@ -193,8 +196,8 @@ def build():
     # ---- engine nacelles, the stern engine (solid)
     nac = _vec(lambda x, y, z: 1.0 if cs.inside_nacelle(x, y, z) else 0.0, X, Y, Z) > 0.5
     g.k[nac] = SOLID
-    ry, rz0, rz1, rr = cs.REAR_ENGINE
-    g.k[(np.hypot(X, Y - ry) < rr) & (Z > rz1) & (Z < rz0 + 0.5)] = SOLID
+    my, mz, mr = cs.MEDALLION      # the gear medallion on the stern
+    g.k[(np.hypot(X, Y - my) < mr) & (Z > mz - 0.55) & (Z < mz + 0.6) & (g.k == OUT)] = SOLID
 
     # ---- hull: solid planking, decks; open air above the open decks
     hx = _vec(cs.hull_x, Z, Y)
@@ -215,18 +218,34 @@ def build():
     bow_rail = (Z > cs.FORECASTLE_Z) & (hx_rail > 0.1) & (np.abs(X) <= hx_rail) & (np.abs(X) > hx_next - 0.05) & (Y > deck) & (Y < deck + cs.RAIL_H)
     g.k[bow_rail & (g.k == OUT)] = FURNITURE
 
-    # ---- the stern castle: walls a cell thick, storey 1 on the main deck, storey 2 (the cockpit) aft of L2_Z
-    cx = _vec(cs.castle_x, Z, Y)
-    ctop = _vec(cs.castle_top, Z)
-    castle = (Z > cs.STERN_Z) & (Z < cs.CASTLE_Z) & (np.abs(X) <= cx) & (Y > M0 - 0.01) & (Y < ctop)
+    # ---- the stern castle in tiers: storey 1 (inset from the hull's sides), storey 2 (narrower, overhanging the
+    # stern), walls a cell thick (the rooms are the castle's cells whose four horizontal neighbours are castle too)
+    c1 = _vec(cs.castle1_x, Z)
+    c2 = _vec(cs.castle2_x, Z)
+    st1 = (Z > cs.STERN_Z) & (Z < cs.CASTLE_Z) & (np.abs(X) <= c1) & (Y > M0 - 0.01) & (Y < cs.L1_TOP)
+    st2 = (Z > cs.STERN2_Z) & (Z < cs.L2_Z) & (np.abs(X) <= c2) & (Y > cs.L1_TOP - SLAB) & (Y < cs.L2_TOP)
+    castle = st1 | st2
     g.k[castle] = SOLID
-    for (z0, z1, y0, y1) in ((STERN_IN, cs.CASTLE_Z - 0.5, M0, CEIL_L1), (STERN_IN, cs.L2_Z - 0.5, L2, CEIL_L2)):
-        g.set(DRY, -INF, INF, y0, y1, z0, z1, where=castle & (np.abs(X) < cx - 0.5))
-    # the terrace on storey 1's roof in front of the cockpit: its rail
-    terrace = (Z > cs.L2_Z) & (Z < cs.CASTLE_Z) & (np.abs(X) <= cx)
-    g.k[terrace & (Y > cs.L1_TOP) & (Y < cs.L1_TOP + cs.RAIL_H) & ((np.abs(X) > cx - 0.5) | (Z > cs.CASTLE_Z - 0.5))] = FURNITURE
-    # the roof over the cockpit
-    g.set(SOLID, -INF, INF, cs.L2_TOP - 0.01, cs.ROOF_Y[1] - 0.6, cs.ROOF_Z[0] + 0.4, cs.ROOF_Z[1], where=np.abs(X) < cx)
+    for (st, room) in ((st1, "mess"), (st2, "cockpit")):
+        walled = st.copy()
+        for o in ((1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1)):
+            walled &= np.roll(st, o, axis=(0, 1, 2))
+        g.set(DRY, *ROOMS[room], where=walled)
+    # the terrace on storey 1's roof in front of the cockpit: its rail; the ledges beside storey 2 (railed, too narrow
+    # to walk on), the balustrade round the roof deck
+    roof1 = (Z > cs.STERN_Z) & (Z < cs.CASTLE_Z) & (np.abs(X) <= c1) & (Y > cs.L1_TOP) & (Y < cs.L1_TOP + cs.RAIL_H)
+    terrace = roof1 & (Z > cs.L2_Z)
+    g.k[terrace & ((np.abs(X) > c1 - 0.5) | (Z > cs.CASTLE_Z - 0.5))] = FURNITURE
+    g.k[roof1 & (Z <= cs.L2_Z) & (g.k == OUT)] = FURNITURE
+    roof2 = (Z > cs.STERN2_Z) & (Z < cs.L2_Z) & (np.abs(X) <= c2) & (Y > cs.L2_TOP) & (Y < cs.ROOF_Y[1])
+    inner2 = roof2.copy()
+    for o in ((1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1)):
+        inner2 &= np.roll(roof2, o, axis=(0, 1, 2))
+    g.k[roof2 & ~inner2] = FURNITURE
+    # the stern balcony round storey 1's stern, at the main deck's level (its floor and balusters)
+    bx = _vec(cs.balcony_x, Z)
+    yb = cs.sheer_y(cs.STERN_Z)
+    g.k[(np.abs(X) <= bx) & (Y > yb - 0.3) & (Y < yb + 0.7) & (g.k == OUT)] = FURNITURE
 
     # ---- rooms under the main deck: inside the hull with a solid cell between them and the outside across every
     # face, so no room opens on the air
@@ -253,7 +272,7 @@ def build():
         (Y < spring) | (((np.abs(X) / ax) ** 2 + ((Y - spring) / rad) ** 2) <= 1.0))
     g.k[arch & (g.k == SOLID)] = WINDOW
     for z0, z1 in COCKPIT_WINDOWS:
-        g.set(WINDOW, -INF, INF, COCKPIT_WIN_Y[0], COCKPIT_WIN_Y[1], z0, z1, where=(g.k == SOLID) & castle & (np.abs(X) > cx - 0.55))
+        g.set(WINDOW, -INF, INF, COCKPIT_WIN_Y[0], COCKPIT_WIN_Y[1], z0, z1, where=(g.k == SOLID) & st2 & (np.abs(X) > c2 - 0.55))
     hx_in = _vec(cs.hull_x, Z, Y)
     for z0, z1 in LOUNGE_WINDOWS:
         g.set(WINDOW, -INF, INF, WIN_Y[0], WIN_Y[1], z0, z1, where=(g.k == SOLID) & body & (np.abs(X) > 2.5))
@@ -293,7 +312,7 @@ def build():
     x0, x1, z0, z1 = COCKPIT_HOLE
     g.set(FURNITURE, x0 - 0.5, x0, L2, L2 + 1.0, z0, z1)                  # inboard side (one comes out at the aft end)
     # the landing's rail over the engine room (not over the two stairs)
-    g.set(FURNITURE, -2.9, 2.0, LO, LO + 1.0, LANDING[0], LANDING[0] + 0.5, where=g.k == DRY)
+    g.set(FURNITURE, -2.9, 1.0, LO, LO + 1.0, LANDING[0], LANDING[0] + 0.5, where=g.k == DRY)
     # the helm
     g.set(FURNITURE, *HELM_BOX)
     # ---- doors (after everything: they cut through walls, decks and rails)
@@ -347,6 +366,7 @@ def walkable_report(g, start=(0.0, M0 + 0.01, 4.0)):
     places["engine_landing"] = (-INF, INF, LO, LO + 0.4, LANDING[0], LANDING[1])
     places["main_deck"] = (-INF, INF, M0, M0 + 0.4, cs.CASTLE_Z, cs.FORECASTLE_Z)
     places["forecastle"] = (-INF, INF, FC, FC + 0.4, cs.FORECASTLE_Z, INF)
+    places["terrace"] = (-INF, INF, cs.L1_TOP, cs.L1_TOP + 0.4, cs.L2_Z, cs.CASTLE_Z)
     for name, (x0, x1, y0, y1, z0, z1) in places.items():
         cells = [(i, j, l) for (i, j, l) in seen
                  if x0 <= X0 + (i + 1) * CELL <= x1 and y0 - 0.1 <= Y0 + j * CELL <= y1 and z0 <= Z0 + (l + 1) * CELL <= z1]

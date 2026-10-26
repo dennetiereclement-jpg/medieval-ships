@@ -27,29 +27,38 @@ class CrystalTest {
 	@Test
 	void matchesModelGenerator() {
 		double[][] lobes = {
-				{0, -8.200000, 0.884512}, {0, -0.300000, 1.000000}, {0, 12.340000, 0.622844},
-				{1, 11.300000, 0.884512}, {1, 14.600000, 1.000000}, {1, 19.880000, 0.622844},
-				{2, -16.300000, 0.884512}, {2, -12.000000, 1.000000}, {2, -5.120000, 0.622844}};
+				{0, -8.200000, 0.900297}, {0, -0.300000, 1.000000}, {0, 12.340000, 0.643933},
+				{1, 11.300000, 0.925426}, {1, 14.600000, 1.000000}, {1, 19.880000, 0.681640},
+				{2, -16.300000, 0.925426}, {2, -12.000000, 1.000000}, {2, -5.120000, 0.681640}};
 		for (double[] r : lobes) {
 			assertEquals(r[2], CrystalLayout.lobeScale((int) r[0], r[1]), 1e-5, "lobe " + (int) r[0] + " at " + r[1]);
 		}
 		double[][] hull = {
-				{-20.0, -3.0, 4.962613, -6.625835, 1.000000},
-				{-10.0, -6.0, 4.985641, -9.900000, 1.000000},
-				{0.0, -8.5, 2.508060, -9.000000, 1.000000},
-				{0.0, 0.5, 5.998881, -9.000000, 1.000000},
-				{8.0, -3.0, 5.260012, -7.221454, 1.000000},
-				{16.0, -2.0, 4.305152, -5.574002, 3.000000},
-				{22.0, 1.5, 2.975534, -2.810432, 3.000000},
-				{-16.0, 2.0, 5.574560, -8.631093, 1.000000}};
+				{-20.0, -3.0, 4.657258, -7.729129, 1.000000},
+				{-10.0, -6.0, 4.039664, -8.851100, 1.000000},
+				{0.0, -8.5, 2.543452, -9.360400, 1.000000},
+				{0.0, 0.5, 5.978818, -9.360400, 1.000000},
+				{8.0, -3.0, 5.029966, -8.900000, 1.000000},
+				{16.0, -2.0, 4.094033, -6.665089, 2.522547},
+				{22.0, 1.5, 2.975534, -2.978629, 2.955247},
+				{-16.0, 2.0, 5.574560, -8.350000, 1.000000},
+				{-22.5, -2.0, 3.225243, -6.552315, 1.000000},
+				{11.0, 0.5, 5.339056, -8.333600, 1.626409},
+				{25.0, 2.0, 1.620247, 0.507022, 3.239092},
+				{-7.0, 1.0, 5.961442, -9.050000, 1.000000}};
 		for (double[] r : hull) {
 			assertEquals(r[2], CrystalLayout.hullX(r[0], r[1]), 1e-5, "hull half width at " + r[0] + ", " + r[1]);
 			assertEquals(r[3], CrystalLayout.keelY(r[0]), 1e-5, "keel at " + r[0]);
 			assertEquals(r[4], CrystalLayout.sheerY(r[0]), 1e-5, "sheer at " + r[0]);
 		}
-		assertEquals(2.232000, CrystalLayout.nacelleR(-22.0), 1e-5);
-		assertEquals(2.785185, CrystalLayout.nacelleR(-15.0), 1e-5);
-		assertEquals(1.833030, CrystalLayout.nacelleR(-10.0), 1e-5);
+		assertEquals(0.845990, CrystalLayout.nacelleR(-24.0), 1e-5);
+		assertEquals(2.195494, CrystalLayout.nacelleR(-22.0), 1e-5);
+		assertEquals(3.100000, CrystalLayout.nacelleR(-15.0), 1e-5);
+		assertEquals(1.326650, CrystalLayout.nacelleR(-10.0), 1e-5);
+		double[][] castle = {{-12.0, 1.0, 5.550246}, {-20.0, 4.0, 4.341773}, {-22.5, 1.0, 2.790458}, {-23.5, 4.0, 2.544016}, {-18.0, 2.7, 5.277609}};
+		for (double[] r : castle) {
+			assertEquals(r[2], CrystalLayout.castleX(r[0], r[1]), 1e-5, "castle half width at " + r[0] + ", " + r[1]);
+		}
 	}
 
 	@Test
@@ -60,16 +69,27 @@ class CrystalTest {
 		assertEquals(TYPE, Ships.byId("crystal_airship"));
 		assertTrue(Ships.ALL.contains(TYPE));
 		double length = CrystalLayout.BEAK_TIP_Z - CrystalLayout.tailEndZ();
-		assertTrue(length > 50 && length < 56, "overall length " + length);
+		assertTrue(length > 52 && length < 58, "overall length " + length);
 		assertEquals(48.6, CrystalLayout.BOW_Z - CrystalLayout.STERN_Z, 1e-9, "hull length");
 		assertEquals(12.0, 2 * CrystalLayout.HULL_HW, 1e-9, "beam");
 		double height = G.topY() - G.lowestY();
 		assertTrue(height > 40 && height < 46, "overall height (mast and the crystal under the keel) " + height);
-		// the balloon floats over the ring, the ring over the deck; the castle's roof clears the aft lobes
+		// the balloon floats low over the ring (its top runs a little into the belly, as on the sheet), the ring over the
+		// deck; the castle's roof deck, its crest and the floating pods clear the lobes
+		double belly = CrystalLayout.CY - CrystalLayout.LOBES[0][4];
+		double ringTop = CrystalLayout.RING_Y + CrystalLayout.RING_R;
 		assertTrue(CrystalLayout.RING_Y - CrystalLayout.RING_R > CrystalLayout.SHEER_WAIST, "the ring stands over the rail");
-		assertTrue(CrystalLayout.CY - 6.6 >= CrystalLayout.RING_Y + CrystalLayout.RING_R - 0.01, "the ring's top under the balloon");
-		assertFalse(CrystalLayout.insideBalloon(0, CrystalLayout.ROOF_TOP + 0.5, -18), "the roof clears the balloon");
-		assertTrue(CrystalLayout.insideBalloon(0, CrystalLayout.CY, 0) && CrystalLayout.insideBalloon(5.9, CrystalLayout.CY + 1.1, 9.6));
+		assertTrue(ringTop > belly && ringTop - belly < 2.5, "the ring's top runs into the belly: " + ringTop + " / " + belly);
+		for (double z = CrystalLayout.STERN2_Z; z <= CrystalLayout.L2_Z; z += 0.5) {
+			for (double x : new double[] {0, CrystalLayout.castle2X(z), -CrystalLayout.castle2X(z)}) {
+				assertFalse(CrystalLayout.insideBalloon(x, CrystalLayout.ROOF_TOP + 0.6, z), "the roof deck clears the balloon at " + x + ", " + z);
+			}
+		}
+		assertFalse(CrystalLayout.insideBalloon(0, CrystalLayout.CREST_Y + 0.3, CrystalLayout.L2_Z - 1.3), "the crest clears the balloon");
+		for (double[] pod : new double[][] {CrystalLayout.FRONT_POD, CrystalLayout.REAR_POD}) {
+			assertFalse(CrystalLayout.insideBalloon(pod[0], pod[1] + 2.6, pod[2]), "the floating pod clears the balloon");
+		}
+		assertTrue(CrystalLayout.insideBalloon(0, CrystalLayout.CY, 0) && CrystalLayout.insideBalloon(6.4, CrystalLayout.CY + 1.0, 9.6));
 		assertTrue(G.boundingRadius() >= CrystalLayout.BEAK_TIP_Z);
 		assertTrue(G.aiReach() >= CrystalLayout.BEAK_TIP_Z && G.aiBack() >= -CrystalLayout.tailEndZ() - 1e-9);
 		ShipConfig cfg = TYPE.defaults().get();
@@ -173,17 +193,18 @@ class CrystalTest {
 		area("forecastle", -1.0, 1.0, CrystalLayout.FORECASTLE_Y, 14.4, 19.0);
 		area("terrace on the castle", -1.4, 1.4, CrystalLayout.L1_TOP, -13.6, -11.0);
 		area("officers' mess (aisle)", -0.6, 0.6, m, -17.0, -11.2);
-		area("officers' mess (by the stair)", 2.4, 2.6, m, -22.0, -18.5);
+		area("officers' mess (by the stair)", 2.4, 2.6, m, -20.8, -18.5);
 		area("cockpit (at the window)", -0.6, 0.6, c, -14.9, -14.9);
 		area("cockpit (behind the helm)", -1.6, 1.6, c, -18.6, -17.4);
-		area("cockpit (starboard)", -2.9, -2.9, c, -20.6, -15.0);
+		area("cockpit (starboard)", -2.9, -2.9, c, -19.9, -15.0);
+		area("cockpit (aft, under the overhang)", -0.6, 0.6, c, -22.6, -22.6);
 		area("lounge (aisle)", -0.2, 0.2, lo, -6.6, 9.6);
 		area("lounge (middle)", -1.0, 1.6, lo, -0.6, 2.6);
 		area("storeroom", -0.6, 0.6, lo, 10.9, 14.0);
 		area("storeroom (sides)", -2.2, 2.2, lo, 13.4, 13.4);
 		area("hold", -0.6, 0.6, CrystalLayout.HOLD_Y, -4.6, 1.8);
 		area("engine room landing", -0.9, 0.9, lo, -10.1, -8.2);
-		area("engine room floor", -1.6, 1.6, CrystalLayout.ENGINE_FLOOR_Y, -14.0, -11.4);
+		area("engine room floor", -1.6, 0.4, CrystalLayout.ENGINE_FLOOR_Y, -14.0, -11.4);
 		assertFalse(fits(0, CrystalLayout.ENGINE_FLOOR_Y, CrystalLayout.ENGINE_Z), "the crystal engine is solid");
 		assertFalse(fits(0, m, CrystalLayout.RING_Z), "the ring's pillar is solid");
 		assertFalse(fits(0, c, CrystalLayout.HELM_Z), "the helm is solid");
@@ -198,7 +219,8 @@ class CrystalTest {
 	@Test
 	void doorsCloseTheRooms() {
 		double[][] doors = { // door, x, y, z (in the doorway)
-				{CrystalLayout.CASTLE_DOOR, 0, 0, -10.35}, {CrystalLayout.ENGINE_DOOR, 0, -4, -7.25}, {CrystalLayout.STORE_DOOR, 1.5, -4, 10.25}};
+				{CrystalLayout.CASTLE_DOOR, 0, 0, -10.35}, {CrystalLayout.ENGINE_DOOR, 0, -4, -7.25}, {CrystalLayout.STORE_DOOR, 1.5, -4, 10.25},
+				{CrystalLayout.TERRACE_DOOR, -3.5, CrystalLayout.L2_Y, -14.25}};
 		for (double[] d : doors) {
 			int k = (int) d[0];
 			assertFalse(fits(d[1], d[2], d[3]), "closed door " + k);
@@ -253,9 +275,9 @@ class CrystalTest {
 	void stairsAndLadder() {
 		walk("forecastle stair (port)", 3.35, 0.0, 10.8, 0.5, 4, CrystalLayout.FORECASTLE_Y);
 		walk("forecastle stair (starboard)", -3.35, 0.0, 10.8, 0.5, 4, CrystalLayout.FORECASTLE_Y);
-		walk("mess -> cockpit", 3.65, 0.0, -14.5, -0.5, 7, CrystalLayout.L2_Y);
+		walk("mess -> cockpit", 3.15, 0.0, -14.5, -0.5, 7, CrystalLayout.L2_Y);
 		walk("mess -> engine room landing", -3.65, 0.0, -15.6, 0.5, 9, CrystalLayout.LOUNGE_Y);
-		walk("landing -> engine room floor", 2.75, CrystalLayout.LOUNGE_Y, -10.5, -0.5, 7, CrystalLayout.ENGINE_FLOOR_Y);
+		walk("landing -> engine room floor", 1.75, CrystalLayout.LOUNGE_Y, -10.5, -0.5, 7, CrystalLayout.ENGINE_FLOOR_Y);
 		InteriorGrid.State open = CLOSED.withDoor(CrystalLayout.HOLD_HATCH, true);
 		for (double y = CrystalLayout.HOLD_Y + 0.25; y < CrystalLayout.LOUNGE_Y + 0.5; y += 0.5) {
 			assertTrue(GRID.ladderAt(2.5, y, -6.0) || GRID.solidAt(2.5, y, -6.0, CLOSED), "hold ladder at " + y);
@@ -310,8 +332,9 @@ class CrystalTest {
 		double[][] places = { // name index, x, floor, z of a spot in each room
 				{0, 0.0, CrystalLayout.MAIN_DECK_Y, -19.5}, {1, 0.0, CrystalLayout.L2_Y, -18.0}, {2, 0.0, CrystalLayout.LOUNGE_Y, 1.0},
 				{3, 0.0, CrystalLayout.LOUNGE_Y, 12.0}, {4, 0.0, CrystalLayout.HOLD_Y, -1.0}, {5, 0.0, CrystalLayout.LOUNGE_Y, -9.0},
-				{6, 0.0, CrystalLayout.ENGINE_FLOOR_Y, -12.5}, {7, 0.0, CrystalLayout.FORECASTLE_Y, 16.0}};
-		String[] names = {"officers' mess", "cockpit", "lounge", "storeroom", "hold", "engine room landing", "engine room floor", "forecastle"};
+				{6, 0.0, CrystalLayout.ENGINE_FLOOR_Y, -12.5}, {7, 0.0, CrystalLayout.FORECASTLE_Y, 16.0}, {8, 0.0, CrystalLayout.L1_TOP, -12.0}};
+		String[] names = {"officers' mess", "cockpit", "lounge", "storeroom", "hold", "engine room landing", "engine room floor", "forecastle",
+				"terrace (through the cockpit's door)"};
 		for (double[] p : places) {
 			boolean reached = false;
 			int j = (int) Math.round((p[2] - GRID.y0) / GRID.cell);
@@ -419,7 +442,7 @@ class CrystalTest {
 		assertTrue(kinds[InteriorGrid.SOLID] > 40000);
 		assertTrue(kinds[InteriorGrid.DRY] > 10000);
 		assertTrue(kinds[InteriorGrid.LADDER] > 10);
-		for (int d : new int[] {0, 1, 2, 3}) {
+		for (int d : new int[] {0, 1, 2, 3, 4}) {
 			assertTrue(kinds[InteriorGrid.DOOR + d] > 0, "door " + d);
 		}
 		assertNotNull(G.decor());
@@ -428,6 +451,76 @@ class CrystalTest {
 		for (String mod : new String[] {"farmhouse_decorations:", "furnish:", "farmersdelight:", "landsoficaria:", "mebahelcreaturesdwarven:"}) {
 			assertTrue(G.decor().blocks().stream().anyMatch(b -> b.block().startsWith(mod)), "uses " + mod);
 		}
+	}
+
+	/**
+	 * Every vertex of the model (as the mod reads it: src/test/resources/crystal_airship_reference_quads.json, written by
+	 * tools/reference_quads.py) lies inside the envelope the placement, the probes and the autopilot use.
+	 */
+	@Test
+	void modelWithinEnvelope() throws Exception {
+		com.google.gson.JsonObject ref;
+		try (java.io.Reader r = new java.io.InputStreamReader(CrystalTest.class.getResourceAsStream("/crystal_airship_reference_quads.json"),
+				java.nio.charset.StandardCharsets.UTF_8)) {
+			ref = com.google.gson.JsonParser.parseReader(r).getAsJsonObject();
+		}
+		double minX = 0, maxX = 0, minY = 0, maxY = 0, minZ = 0, maxZ = 0;
+		for (com.google.gson.JsonElement q : ref.getAsJsonArray("quads")) {
+			com.google.gson.JsonArray p = q.getAsJsonArray().get(0).getAsJsonArray();
+			for (int i = 0; i < 12; i += 3) {
+				double x = p.get(i).getAsDouble(), y = p.get(i + 1).getAsDouble(), z = p.get(i + 2).getAsDouble();
+				minX = Math.min(minX, x);
+				maxX = Math.max(maxX, x);
+				minY = Math.min(minY, y);
+				maxY = Math.max(maxY, y);
+				minZ = Math.min(minZ, z);
+				maxZ = Math.max(maxZ, z);
+			}
+		}
+		String box = String.format(java.util.Locale.ROOT, "model x %.2f..%.2f y %.2f..%.2f z %.2f..%.2f", minX, maxX, minY, maxY, minZ, maxZ);
+		assertTrue(Math.max(-minX, maxX) <= G.aiHalfWidth() + 0.1, box + " / half width " + G.aiHalfWidth());
+		assertTrue(minY >= G.lowestY() - 0.1 && maxY <= G.topY() + 0.6, box + " / y " + G.lowestY() + ".." + G.topY());
+		assertTrue(minZ >= -G.aiBack() - 0.1 && maxZ <= G.aiReach() + 0.1, box + " / z " + -G.aiBack() + ".." + G.aiReach());
+		// and the probes reach the model's ends
+		double pMinZ = 0, pMaxZ = 0, pMaxX = 0;
+		for (double[] p : G.probes()) {
+			pMinZ = Math.min(pMinZ, p[2]);
+			pMaxZ = Math.max(pMaxZ, p[2]);
+			pMaxX = Math.max(pMaxX, Math.abs(p[0]));
+		}
+		assertTrue(pMinZ <= minZ + 0.6 && pMaxZ >= maxZ - 0.6 && pMaxX >= Math.max(-minX, maxX) - 0.6,
+				box + String.format(java.util.Locale.ROOT, " / probes z %.2f..%.2f, |x| %.2f", pMinZ, pMaxZ, pMaxX));
+	}
+
+	/**
+	 * The heavy airship turns slowly but stays steerable: yaw under full helm at cruising speed after 4 s and 20 s, always
+	 * less than the Sky Leviathan's.
+	 */
+	@Test
+	void turnsSlowlyButSteers() {
+		double[] mine = yawAfter(TYPE, new double[] {4, 20});
+		double[] lev = yawAfter(Ships.SKY_LEVIATHAN, new double[] {4, 20});
+		assertTrue(mine[0] >= 2 && mine[0] <= 10, "yaw after 4 s " + mine[0]);
+		assertTrue(mine[1] > 45, "yaw after 20 s " + mine[1]);
+		assertTrue(mine[0] < lev[0] && mine[1] < lev[1], "slower than the Sky Leviathan: " + mine[0] + " / " + lev[0] + ", " + mine[1] + " / " + lev[1]);
+	}
+
+	private static double[] yawAfter(ShipType type, double[] seconds) {
+		ShipConfig cfg = type.defaults().get();
+		ShipGeometry g = type.geometry();
+		ShipMover.Obstacles air = (x, y, z) -> false;
+		ShipPhysics physics = new ShipPhysics();
+		Flight flight = new Flight();
+		ShipPose pose = new ShipPose(0, 100, 0, 0);
+		double[] out = new double[seconds.length];
+		int k = 0;
+		for (int i = 1; k < seconds.length; i++) {
+			pose = Flight.tick(g, pose, physics, flight, new ShipPhysics.Controls(cfg.normalSpeed, 1.0), 0, cfg, air, DT).pose();
+			if (i * DT >= seconds[k] - 1e-9) {
+				out[k++] = Math.abs(ShipPose.wrapDegrees(pose.yaw()));
+			}
+		}
+		return out;
 	}
 
 	// ------------------------------------------------------------------ flight

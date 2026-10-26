@@ -79,6 +79,22 @@ REGIONS = {
     "window_arch":  (416, 80, 32, 32),  # the cockpit's arched window seen from outside: frame, open panes
     "wall_wood":    (448, 64, 32, 32),  # castle walls: vertical boards between gilded pilasters
     "turret":       (480, 64, 32, 32),  # the turret's dark planks with iron bands
+    # second pass (the stern, the engines, the gallery, the bow's fan window)
+    "window_gallery": (0, 128, 16, 32),  # tall arched gallery window: gilded frame, amber lit quarries and clear ones (lit)
+    "window_fan":   (16, 128, 64, 32),  # the bow's quarter fan window in polar layout: u = angle, v = radius (lit)
+    "brass_olive":  (80, 128, 16, 16),  # warm brass with an olive patina (the engines)
+    "engine_brass": (96, 128, 32, 32),  # riveted warm brass plates (the engines' helmet and drum)
+    "petal":        (128, 128, 16, 32), # green-bronze petal plate of the turbine cowl (pointed, transparent outside)
+    "louver":       (144, 128, 32, 16), # louvered grille slat: dark gap, brass lip
+    "coaming":      (176, 128, 64, 16), # green panel of the roof deck's coaming with a gilded scroll, gilded frame
+    "stern_panel":  (240, 128, 32, 32), # carved green panel in a gilded frame with a rosette (the castle's back)
+    "cap_iron":     (272, 128, 32, 32), # dark ribbed iron (the engines' tail caps): ribs along v, rivets
+    "medal_glass":  (304, 128, 32, 32), # the medallion's porthole: blue-grey glass, a glowing blue heart (lit)
+    "ring_bronze":  (336, 128, 32, 16), # the great ring: smooth tan bronze along u, a polished highlight
+    "fairy":        (368, 128, 16, 16), # warm glowing bead (the fairy lights under the swags)
+    "plate_brass":  (384, 128, 16, 16), # one riveted plate of warm brass with an olive patina (drawn whole on a panel)
+    "plate_bronze": (400, 128, 16, 16), # the same in dark bronze (the engines' undersides and tapers)
+    "plate_helmet": (416, 128, 16, 16), # the same, bright polished brass (the engines' helmets)
 }
 
 
@@ -97,30 +113,45 @@ STEEL_STOPS = [(0.0, (70, 72, 76)), (0.4, (120, 122, 126)), (0.75, (168, 170, 17
 
 
 def _quilt(px, region, rng, dark=False):
-    """The lobes' skin: small knobbly squares (4 px, a quarter block) in cream, white and pale grey, each
-    lit on its upper edge and shaded below, dark seams between them."""
+    """The lobes' skin: warm cream and ivory, knobbly: small raised squares (1-2 px knobs) catching the light here and
+    there over a soft mottle, faint seams (no regular grid)."""
     u, v, w, h = region
-    tones = [(238, 230, 210), (246, 242, 230), (226, 218, 196), (214, 210, 200), (236, 224, 196), (250, 248, 240), (206, 202, 196)]
+    tones = [(236, 228, 206), (246, 240, 224), (252, 248, 238), (226, 214, 190), (240, 232, 212), (232, 222, 200)]
     if dark:
-        tones = [_mix(_scale(t, 0.78), (150, 156, 172), 0.18) for t in tones]
+        tones = [_mix(_scale(t, 0.8), (178, 160, 130), 0.12) for t in tones]
     nz = _noise(w, h, 4, rng)
-    t = 8
+    nz2 = _noise(w, h, 9, rng)
+    base = [[None] * w for _ in range(h)]
+    t = 4
     for ty in range(h // t):
         for tx in range(w // t):
-            tone = _jitter(rng.choice(tones), rng, 4)
+            tone = _jitter(rng.choice(tones), rng, 3)
             for y in range(t):
                 for x in range(t):
-                    X, Y = tx * t + x, ty * t + y
-                    k = 1.0 + 0.05 * nz[Y][X]
-                    if x == t - 1 or y == t - 1:
-                        k -= 0.24
-                    elif x == t - 2 or y == t - 2:
-                        k -= 0.1
-                    elif y == 0 or x == 0:
-                        k += 0.08
-                    elif 2 <= x <= 4 and 2 <= y <= 4:
-                        k += 0.03
-                    _put(px, u, v, X, Y, _jitter(_scale(tone, k), rng, 2))
+                    base[ty * t + y][tx * t + x] = tone
+    for y in range(h):
+        for x in range(w):
+            k = 1.0 + 0.045 * nz[y][x] + 0.03 * nz2[y][x]
+            if x % 4 == 3 or y % 4 == 3:
+                k -= 0.06
+            elif x % 4 == 0 or y % 4 == 0:
+                k += 0.03
+            _put(px, u, v, x, y, _jitter(_scale(base[y][x], k), rng, 2))
+    # knobs: small raised cubes, lit on top and shaded below
+    for _ in range(w * h // 22):
+        x, y = rng.randrange(w - 2), rng.randrange(1, h - 2)
+        size = rng.choice((1, 1, 2))
+        c = _scale(rng.choice(tones), 1.07 if not dark else 0.95)
+        for yy in range(size):
+            for xx in range(size):
+                _put(px, u, v, x + xx, y + yy, c)
+        for xx in range(size):
+            cc = px[u + x + xx, v + y + size][:3]
+            _put(px, u, v, x + xx, y + size, _scale(cc, 0.9))
+    for _ in range(w * h // 40):
+        x, y = rng.randrange(w), rng.randrange(h)
+        cc = px[u + x, v + y][:3]
+        _put(px, u, v, x, y, _scale(cc, 0.93))
 
 
 def _strap(px, region, rng, chain=False):
@@ -432,6 +463,206 @@ def _hatch(px, region, rng):
             _put(px, u, v, x, y, _jitter(c, rng, 3))
 
 
+def _window_gallery(px, region):
+    """Tall arched gallery window lit from inside: a gilded frame, dark leading, amber quarries alternating with clear
+    ones (seen through), a lit transom."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            fx, fy = (x + 0.5) / w, (y + 0.5) / h
+            ax = abs(fx - 0.5) / 0.5
+            top = 0.22
+            if fy < top and ax ** 2 + ((top - fy) / top) ** 2 > 1.0:
+                _put(px, u, v, x, y, (0, 0, 0), 0)
+                continue
+            frame = x in (0, w - 1) or y in (h - 1, h - 2) or (fy < top and ax ** 2 + ((top - fy) / top) ** 2 > 0.7)
+            if frame:
+                _put(px, u, v, x, y, _ramp(GOLD_STOPS, 0.55 + 0.3 * (x % 2)))
+                continue
+            if x == w // 2 or y in (int(h * 0.4), int(h * 0.7)) or x in (1, w - 2):
+                _put(px, u, v, x, y, _rgb("3a2414"))
+                continue
+            if fy < 0.4:
+                g = 1.0 - 0.25 * abs(fy - 0.3)
+                _put(px, u, v, x, y, _scale((255, 206, 118), g))
+                continue
+            qx, qy = (x - 2) // 3, (y - int(h * 0.4)) // 3
+            if (qx + qy) % 2 == 0:
+                _put(px, u, v, x, y, _scale((255, 196, 104), 0.95 - 0.2 * (fy - 0.4)))
+            else:
+                _put(px, u, v, x, y, (0, 0, 0), 0)
+
+
+def _window_fan(px, region):
+    """The bow's quarter fan window, in polar layout (u: the angle from its top edge round to its aft edge, v: the radius
+    from the hub): stained panes in amber, green, gold and red between dark radial ribs and leaded arcs, a gilded rim."""
+    u, v, w, h = region
+    pal = [(255, 210, 120), (120, 176, 96), (238, 176, 80), (196, 86, 56), (255, 226, 150), (98, 150, 84), (230, 150, 70)]
+    for y in range(h):
+        for x in range(w):
+            fa, fr = (x + 0.5) / w, (y + 0.5) / h
+            sector = int(fa * 7)
+            ring_i = int(fr * 4)
+            edge_a = abs(fa * 7 - round(fa * 7)) < 0.09
+            edge_r = abs(fr * 4 - round(fr * 4)) < 0.1
+            if fr > 0.93:
+                c = _ramp(GOLD_STOPS, 0.7)
+            elif fr < 0.2:
+                c = _ramp(GOLD_STOPS, 0.5) if fr < 0.14 else _rgb("2e1d10")
+            elif edge_a or edge_r:
+                c = _rgb("2e1d10")
+            else:
+                c = pal[(ring_i * 3 + sector) % len(pal)]
+                c = _scale(c, 0.92 + 0.12 * math.sin(fa * 40 + fr * 9))
+            _put(px, u, v, x, y, c)
+
+
+def _petal(px, region, rng):
+    """A pointed petal plate of the engines' turbine cowl: green-bronze, a gilded rim, a rivet row (transparent
+    outside its outline; the point at v = 0)."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            t = (y + 0.5) / h
+            half = 0.5 * min(1.0, math.sin(math.pi * min(1.0, t * 1.15)) ** 0.6) * (0.65 + 0.35 * t)
+            dx = (x + 0.5) / w - 0.5
+            if abs(dx) > half:
+                _put(px, u, v, x, y, (0, 0, 0), 0)
+                continue
+            if abs(dx) > half - 0.12:
+                c = _ramp(GOLD_STOPS, 0.6)
+            else:
+                c = _mix(_ramp(BRONZE_STOPS, 0.55 + 0.3 * (0.5 - abs(dx))), (92, 128, 88), 0.45)
+                if abs(dx) < 0.05 and y % 5 == 2:
+                    c = _ramp(BRASS_STOPS, 0.9)
+            _put(px, u, v, x, y, _jitter(c, rng, 3))
+
+
+def _louver(px, region, rng):
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            if y < 3:
+                c = _ramp(BRASS_STOPS, 0.85 - 0.1 * y)
+            elif y > h - 3:
+                c = _ramp(BRASS_STOPS, 0.4)
+            else:
+                c = _scale(_mix(_ramp(BRASS_STOPS, 0.45), (40, 30, 20), 0.6), 1.0 - 0.4 * (y - 3) / (h - 5))
+            if x % 16 == 0:
+                c = _ramp(BRASS_STOPS, 0.95)
+            _put(px, u, v, x, y, _jitter(c, rng, 3))
+
+
+def _coaming(img, region, rng):
+    """Green panel of the roof deck's coaming with a gilded scroll in the middle and a gilded frame (along u)."""
+    u, v, w, h = region
+    _green(img, region, rng)
+    px = img.load()
+    S = 4
+    m = Image.new("L", (w * S, h * S), 0)
+    d = ImageDraw.Draw(m)
+    for cx, sgn in ((w * 0.38, 1), (w * 0.62, -1)):
+        pts = []
+        for i in range(90):
+            t = i / 89
+            a = sgn * t * 1.7 * 2 * math.pi + (0 if sgn > 0 else math.pi)
+            r = (1 - 0.82 * t) * h * 0.32
+            pts.append(((cx + math.cos(a) * r * 1.3) * S, (h * 0.5 + math.sin(a) * r) * S))
+        d.line(pts, fill=255, width=int(1.6 * S))
+    d.line([(w * 0.18 * S, h * 0.5 * S), (w * 0.82 * S, h * 0.5 * S)], fill=255, width=int(1.2 * S))
+    m = m.resize((w, h), Image.BILINEAR)
+    mp = m.load()
+    for y in range(h):
+        for x in range(w):
+            if y < 2 or y > h - 3 or x < 1 or x > w - 2:
+                _put(px, u, v, x, y, _ramp(GOLD_STOPS, 0.45 + 0.35 * ((x + y) % 3) / 2))
+            elif mp[x, y] > 90:
+                _put(px, u, v, x, y, _ramp(GOLD_STOPS, 0.45 + 0.4 * mp[x, y] / 255.0))
+
+
+def _stern_panel(img, region, rng):
+    """Carved green panel in a gilded frame, a gilded rosette in its middle (the back of the castle)."""
+    u, v, w, h = region
+    _green(img, region, rng)
+    px = img.load()
+    for y in range(h):
+        for x in range(w):
+            if x < 2 or y < 2 or x > w - 3 or y > h - 3:
+                _put(px, u, v, x, y, _ramp(GOLD_STOPS, 0.4 + 0.4 * ((x + y) % 3) / 2))
+            elif x < 4 or y < 4 or x > w - 5 or y > h - 5:
+                _put(px, u, v, x, y, _rgb("2c3a20"))
+            else:
+                r = math.hypot(x + 0.5 - w / 2, y + 0.5 - h / 2)
+                a = math.atan2(y + 0.5 - h / 2, x + 0.5 - w / 2)
+                if r < 2.0 or (r < 5.5 and abs(math.sin(a * 4)) > 0.75 and r > 3.0):
+                    _put(px, u, v, x, y, _ramp(GOLD_STOPS, 0.7 - 0.05 * r))
+
+
+def _cap_iron(px, region, rng):
+    """Dark ribbed iron: raised ribs along v, rivets between them, a little rust."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            rib = x % 8
+            c = _ramp([(0.0, (44, 40, 38)), (0.5, (82, 74, 64)), (1.0, (134, 122, 104))], 0.38 + (0.42 if rib in (3, 4) else 0.0) - (0.15 if rib == 5 else 0.0))
+            if rib in (0, 7) and y % 6 == 3:
+                c = (120, 112, 100)
+            if rng.random() < 0.03:
+                c = _mix(c, (110, 64, 34), 0.5)
+            _put(px, u, v, x, y, _jitter(c, rng, 3))
+
+
+def _medal_glass(px, region):
+    """The medallion's porthole: blue-grey glass round a glowing blue heart, transparent outside the circle."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            dx, dy = (x + 0.5) / w * 2 - 1, (y + 0.5) / h * 2 - 1
+            r = math.hypot(dx, dy)
+            if r > 1.0:
+                _put(px, u, v, x, y, (0, 0, 0), 0)
+                continue
+            if r > 0.88:
+                c = _ramp(BRASS_STOPS, 0.8)
+            elif r < 0.35:
+                c = _mix((235, 250, 255), (70, 160, 240), r / 0.35)
+            else:
+                c = _mix((96, 136, 176), (60, 84, 120), (r - 0.35) / 0.53)
+                if abs(dx - dy) < 0.06 and r > 0.45:
+                    c = (170, 200, 220)
+            _put(px, u, v, x, y, c)
+
+
+def _plate(px, region, stops, rng):
+    """One riveted metal plate (drawn whole on each panel): a light top edge, a dark seam round it, rivets in the corners
+    and along the edges, a soft patina."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            t = 0.62 - 0.22 * (y / (h - 1)) + 0.06 * math.sin(x * 0.9 + y * 0.4)
+            if (x * 7 + y * 5) % 17 == 0:
+                t -= 0.12
+            c = _ramp(stops, t)
+            if x == 0 or y == 0:
+                c = _ramp(stops, 0.92)
+            elif x == w - 1 or y == h - 1:
+                c = _ramp(stops, 0.12)
+            elif (x in (2, w - 3) and y % 4 == 2) or (y in (2, h - 3) and x % 4 == 2):
+                c = _ramp(stops, 0.98)
+            _put(px, u, v, x, y, _jitter(c, rng, 2))
+
+
+def _ring_bronze(px, region, rng):
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            t = 0.42 + 0.38 * math.cos((y + 0.5 - h * 0.4) / (h / 2) * math.pi / 1.6)
+            c = _mix(_ramp(BRASS_STOPS, t), (160, 120, 70), 0.25)
+            if y in (0, h - 1):
+                c = _scale(c, 0.6)
+            _put(px, u, v, x, y, _jitter(c, rng, 2))
+
+
 def make_texture(path):
     rng = random.Random(11)
     img = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
@@ -514,6 +745,28 @@ def make_texture(path):
     _trim(px, R["cornice"], rng, dark=True)
     _window_frame(px, R["window_arch"], rows=2, cols=4, arch=True)
     _wall_wood(img, R["wall_wood"], rng)
+    _window_gallery(px, R["window_gallery"])
+    _window_fan(px, R["window_fan"])
+    polished_metal(img, R["brass_olive"], [(0.0, (70, 58, 26)), (0.3, (126, 106, 52)), (0.6, (176, 148, 78)), (0.85, (210, 182, 112)),
+                                           (1.0, (232, 214, 156))], rng, seed=1.7)
+    _rivets(px, R["engine_brass"], [(0.0, (74, 56, 24)), (0.35, (128, 98, 44)), (0.7, (182, 146, 74)), (1.0, (226, 196, 128))], rng, pw=32, ph=16)
+    u, v, w, h = R["engine_brass"]
+    for y in range(h):
+        for x in range(w):
+            if (x * 5 + y * 3) % 23 == 0:
+                _put(px, u, v, x, y, _mix(px[u + x, v + y][:3], (96, 120, 80), 0.5))
+    _petal(px, R["petal"], rng)
+    _louver(px, R["louver"], rng)
+    _coaming(img, R["coaming"], rng)
+    _stern_panel(img, R["stern_panel"], rng)
+    _cap_iron(px, R["cap_iron"], rng)
+    _medal_glass(px, R["medal_glass"])
+    _ring_bronze(px, R["ring_bronze"], rng)
+    for name, stops in (("plate_brass", [(0.0, (66, 54, 26)), (0.35, (118, 98, 50)), (0.7, (164, 136, 72)), (1.0, (204, 176, 106))]),
+                        ("plate_bronze", [(0.0, (46, 34, 20)), (0.35, (84, 62, 34)), (0.7, (122, 92, 52)), (1.0, (160, 124, 76))]),
+                        ("plate_helmet", [(0.0, (92, 70, 30)), (0.35, (150, 118, 54)), (0.7, (198, 164, 86)), (1.0, (236, 214, 150))])):
+        _plate(px, R[name], stops, rng)
+    lt._round(px, R["fairy"], lambda r, dx, dy: (255, 236, 170) if r < 0.45 else (255, 196, 96) if r < 0.85 else (220, 150, 70))
     u, v, w, h = R["turret"]
     fine_wood(img, R["turret"], _rgb("6e4626"), _rgb("2e1c0e"), 4, rng, vertical=True)
     for y in (6, 7, h - 8, h - 7):
@@ -702,6 +955,12 @@ def make_item_icon(path):
 
 
 if __name__ == "__main__":
-    make_texture("/tmp/claude-0/agent_crystal/tex.png")
-    make_interior_texture("/tmp/claude-0/agent_crystal/tex_in.png", "/tmp/claude-0/agent_crystal/tex_in_base.png")
-    make_item_icon("/tmp/claude-0/agent_crystal/icon.png")
+    import os
+    import sys
+    import tempfile
+    out = sys.argv[1] if len(sys.argv) > 1 else tempfile.mkdtemp(prefix="crystal_tex_")   # preview directory
+    os.makedirs(out, exist_ok=True)
+    make_texture(os.path.join(out, "tex.png"))
+    make_interior_texture(os.path.join(out, "tex_in.png"), os.path.join(out, "tex_in_base.png"))
+    make_item_icon(os.path.join(out, "icon.png"))
+    print("textures in", out)

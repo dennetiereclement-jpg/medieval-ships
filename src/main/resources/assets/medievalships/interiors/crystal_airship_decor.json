@@ -37,37 +37,37 @@
    "fallback": "fallback_3"
   },
   {
-   "block": "furnish:crimson_chair",
+   "block": "furnish:dark_oak_chair",
    "x": 0.5,
    "y": 3.0,
-   "z": -19.225,
+   "z": -19.256,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_4"
   },
   {
    "block": "farmhouse_decorations:tall_bookshelf",
-   "x": -3.4,
+   "x": -1.5,
    "y": 3.0,
-   "z": -21.98,
+   "z": -22.98,
    "yaw": 180.0,
    "scale": 1.0,
    "fallback": "fallback_5"
   },
   {
    "block": "farmhouse_decorations:tall_bookshelf",
-   "x": 3.4,
+   "x": 1.5,
    "y": 3.0,
-   "z": -21.98,
+   "z": -22.98,
    "yaw": 180.0,
    "scale": 1.0,
    "fallback": "fallback_6"
   },
   {
-   "block": "furnish:crimson_chair",
-   "x": -3.2,
+   "block": "furnish:dark_oak_chair",
+   "x": -3.0,
    "y": 3.0,
-   "z": -16.725,
+   "z": -16.494,
    "yaw": 180.0,
    "scale": 1.0,
    "fallback": "fallback_7"
@@ -75,7 +75,7 @@
   {
    "block": "farmhouse_decorations:chained_kerosene_lantern",
    "x": -2.6,
-   "y": 4.3,
+   "y": 4.9,
    "z": -16.0,
    "yaw": 0.0,
    "scale": 1.0,
@@ -84,7 +84,7 @@
   {
    "block": "farmhouse_decorations:chained_kerosene_lantern",
    "x": 2.6,
-   "y": 4.3,
+   "y": 4.9,
    "z": -19.0,
    "yaw": 0.0,
    "scale": 1.0,
@@ -93,7 +93,7 @@
   {
    "block": "farmhouse_decorations:chained_kerosene_lantern",
    "x": 0.0,
-   "y": 4.3,
+   "y": 4.9,
    "z": -21.3,
    "yaw": 0.0,
    "scale": 1.0,
@@ -211,7 +211,7 @@
    "block": "farmhouse_decorations:dining_chair",
    "x": 0.0,
    "y": 0.0,
-   "z": -21.6135,
+   "z": -21.5135,
    "yaw": 180.0,
    "scale": 1.0,
    "fallback": "fallback_23"
@@ -344,27 +344,27 @@
   },
   {
    "block": "farmhouse_decorations:liquor_cabinet",
-   "x": -3.8,
+   "x": -2.95,
    "y": 0.0,
-   "z": -21.98,
+   "z": -21.48,
    "yaw": 180.0,
    "scale": 1.0,
    "fallback": "fallback_38"
   },
   {
    "block": "farmhouse_decorations:wall_shelf",
-   "x": 3.3,
+   "x": 2.2,
    "y": 0.0,
-   "z": -21.98,
+   "z": -21.48,
    "yaw": 180.0,
    "scale": 1.0,
    "fallback": "fallback_39"
   },
   {
    "block": "farmhouse_decorations:pile_of_books",
-   "x": 3.3,
+   "x": 2.2,
    "y": 1.22,
-   "z": -22.2,
+   "z": -21.7,
    "yaw": 180.0,
    "scale": 1.0,
    "fallback": "fallback_40"
@@ -379,8 +379,8 @@
    "fallback": "fallback_41"
   },
   {
-   "block": "furnish:crimson_drawers",
-   "x": 4.98,
+   "block": "furnish:dark_oak_cabinet",
+   "x": 4.48,
    "y": 0.0,
    "z": -11.4,
    "yaw": 90.0,
@@ -389,7 +389,7 @@
   },
   {
    "block": "farmhouse_decorations:gramophone",
-   "x": 4.949,
+   "x": 4.449,
    "y": 1.0,
    "z": -11.4564,
    "yaw": 90.0,
@@ -398,7 +398,7 @@
   },
   {
    "block": "farmhouse_decorations:kerosene_lantern",
-   "x": -5.16,
+   "x": -4.66,
    "y": 1.38,
    "z": -17.0,
    "yaw": 0.0,
@@ -407,7 +407,7 @@
   },
   {
    "block": "farmhouse_decorations:kerosene_lantern",
-   "x": 4.66,
+   "x": 4.16,
    "y": 1.38,
    "z": -21.0,
    "yaw": 0.0,
@@ -532,8 +532,8 @@
    "fallback": "fallback_58"
   },
   {
-   "block": "furnish:crimson_chair",
-   "x": -0.275,
+   "block": "furnish:dark_oak_chair",
+   "x": -0.306,
    "y": -4.0,
    "z": 6.6,
    "yaw": 90.0,
@@ -541,8 +541,8 @@
    "fallback": "fallback_59"
   },
   {
-   "block": "furnish:crimson_chair",
-   "x": -0.275,
+   "block": "furnish:dark_oak_chair",
+   "x": -0.306,
    "y": -4.0,
    "z": 7.8,
    "yaw": 90.0,
@@ -551,7 +551,7 @@
   },
   {
    "block": "farmhouse_decorations:piano",
-   "x": 3.964,
+   "x": 3.464,
    "y": -4.0,
    "z": 8.5155,
    "yaw": 90.0,
@@ -559,8 +559,8 @@
    "fallback": "fallback_61"
   },
   {
-   "block": "furnish:crimson_stool",
-   "x": 2.9375,
+   "block": "furnish:dark_oak_stool",
+   "x": 2.7375,
    "y": -4.0,
    "z": 8.9,
    "yaw": 270.0,
@@ -568,8 +568,8 @@
    "fallback": "fallback_62"
   },
   {
-   "block": "furnish:crimson_pedestal_table",
-   "x": 2.9,
+   "block": "furnish:dark_oak_pedestal_table",
+   "x": 2.6,
    "y": -4.0,
    "z": 4.6,
    "yaw": 0.0,
@@ -578,7 +578,7 @@
   },
   {
    "block": "furnish:chess_board",
-   "x": 2.9,
+   "x": 2.6,
    "y": -3.0,
    "z": 4.6,
    "yaw": 0.0,
@@ -586,26 +586,26 @@
    "fallback": "fallback_64"
   },
   {
-   "block": "furnish:crimson_chair",
-   "x": 2.9,
+   "block": "furnish:dark_oak_chair",
+   "x": 2.6,
    "y": -4.0,
-   "z": 3.525,
+   "z": 3.556,
    "yaw": 180.0,
    "scale": 1.0,
    "fallback": "fallback_65"
   },
   {
-   "block": "furnish:crimson_chair",
-   "x": 2.9,
+   "block": "furnish:dark_oak_chair",
+   "x": 2.6,
    "y": -4.0,
-   "z": 5.675,
+   "z": 5.644,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_66"
   },
   {
    "block": "farmhouse_decorations:sofa_left",
-   "x": 4.48,
+   "x": 3.98,
    "y": -4.0,
    "z": -4.5625,
    "yaw": 90.0,
@@ -614,7 +614,7 @@
   },
   {
    "block": "farmhouse_decorations:sofa_middle",
-   "x": 4.496,
+   "x": 3.996,
    "y": -4.0,
    "z": -3.5,
    "yaw": 90.0,
@@ -623,7 +623,7 @@
   },
   {
    "block": "farmhouse_decorations:sofa_middle",
-   "x": 4.496,
+   "x": 3.996,
    "y": -4.0,
    "z": -2.5,
    "yaw": 90.0,
@@ -632,7 +632,7 @@
   },
   {
    "block": "farmhouse_decorations:sofa_right",
-   "x": 4.48,
+   "x": 3.98,
    "y": -4.0,
    "z": -1.4375,
    "yaw": 90.0,
@@ -641,7 +641,7 @@
   },
   {
    "block": "farmhouse_decorations:coffee_table",
-   "x": 2.45,
+   "x": 2.05,
    "y": -4.0,
    "z": -3.0,
    "yaw": 0.0,
@@ -650,7 +650,7 @@
   },
   {
    "block": "farmhouse_decorations:wine_bottle",
-   "x": 2.3,
+   "x": 1.9,
    "y": -3.5,
    "z": -3.2,
    "yaw": 0.0,
@@ -659,7 +659,7 @@
   },
   {
    "block": "farmhouse_decorations:wine_glass",
-   "x": 2.6,
+   "x": 2.2,
    "y": -3.5,
    "z": -2.8,
    "yaw": 0.0,
@@ -667,8 +667,8 @@
    "fallback": "fallback_73"
   },
   {
-   "block": "furnish:crimson_chair",
-   "x": 0.875,
+   "block": "furnish:dark_oak_chair",
+   "x": 0.906,
    "y": -4.0,
    "z": -3.7,
    "yaw": 270.0,
@@ -676,8 +676,8 @@
    "fallback": "fallback_74"
   },
   {
-   "block": "furnish:crimson_chair",
-   "x": 0.875,
+   "block": "furnish:dark_oak_chair",
+   "x": 0.906,
    "y": -4.0,
    "z": -2.3,
    "yaw": 270.0,
@@ -695,7 +695,7 @@
   },
   {
    "block": "farmhouse_decorations:tall_bookshelf",
-   "x": -4.48,
+   "x": -3.98,
    "y": -4.0,
    "z": -6.5,
    "yaw": 270.0,
@@ -713,7 +713,7 @@
   },
   {
    "block": "farmhouse_decorations:night_stand",
-   "x": -4.48,
+   "x": -3.98,
    "y": -4.0,
    "z": -4.4,
    "yaw": 270.0,
@@ -722,7 +722,7 @@
   },
   {
    "block": "farmhouse_decorations:lamp",
-   "x": -4.6,
+   "x": -4.1,
    "y": -3.37,
    "z": -4.4,
    "yaw": 0.0,
@@ -830,7 +830,7 @@
   },
   {
    "block": "farmhouse_decorations:kerosene_lantern",
-   "x": -5.16,
+   "x": -4.66,
    "y": -1.92,
    "z": 2.5,
    "yaw": 0.0,
@@ -848,7 +848,7 @@
   },
   {
    "block": "farmhouse_decorations:kerosene_lantern",
-   "x": 5.16,
+   "x": 4.66,
    "y": -1.92,
    "z": 2.5,
    "yaw": 0.0,
@@ -866,7 +866,7 @@
   },
   {
    "block": "furnish:spruce_crate",
-   "x": -3.48,
+   "x": -2.98,
    "y": -4.0,
    "z": 12.5,
    "yaw": 270.0,
@@ -875,7 +875,7 @@
   },
   {
    "block": "furnish:dark_oak_crate",
-   "x": -3.98,
+   "x": -3.48,
    "y": -3.0,
    "z": 11.5,
    "yaw": 270.0,
@@ -893,7 +893,7 @@
   },
   {
    "block": "farmersdelight:carrot_crate",
-   "x": 3.48,
+   "x": 2.98,
    "y": -4.0,
    "z": 12.5,
    "yaw": 90.0,
@@ -902,7 +902,7 @@
   },
   {
    "block": "farmersdelight:onion_crate",
-   "x": 3.98,
+   "x": 3.48,
    "y": -3.0,
    "z": 11.5,
    "yaw": 90.0,
@@ -1019,7 +1019,7 @@
   },
   {
    "block": "furnish:spruce_crate",
-   "x": -2.98,
+   "x": -2.48,
    "y": -7.5,
    "z": -3.5,
    "yaw": 270.0,
@@ -1028,7 +1028,7 @@
   },
   {
    "block": "furnish:spruce_crate",
-   "x": -2.98,
+   "x": -2.48,
    "y": -7.5,
    "z": -2.5,
    "yaw": 270.0,
@@ -1037,7 +1037,7 @@
   },
   {
    "block": "furnish:spruce_crate",
-   "x": -2.98,
+   "x": -2.48,
    "y": -7.5,
    "z": -1.5,
    "yaw": 270.0,
@@ -1046,7 +1046,7 @@
   },
   {
    "block": "furnish:dark_oak_crate",
-   "x": -3.98,
+   "x": -2.98,
    "y": -6.5,
    "z": -2.5,
    "yaw": 270.0,
@@ -1055,7 +1055,7 @@
   },
   {
    "block": "farmersdelight:cabbage_crate",
-   "x": 2.98,
+   "x": 2.48,
    "y": -7.5,
    "z": -2.0,
    "yaw": 90.0,
@@ -1064,7 +1064,7 @@
   },
   {
    "block": "farmersdelight:cabbage_crate",
-   "x": 2.98,
+   "x": 2.48,
    "y": -7.5,
    "z": -1.0,
    "yaw": 90.0,
@@ -1073,7 +1073,7 @@
   },
   {
    "block": "farmersdelight:straw_bale",
-   "x": 2.98,
+   "x": 2.48,
    "y": -7.5,
    "z": 0.5,
    "yaw": 90.0,
@@ -1082,7 +1082,7 @@
   },
   {
    "block": "farmersdelight:rice_bag",
-   "x": -2.98,
+   "x": -2.48,
    "y": -7.5,
    "z": 0.5,
    "yaw": 270.0,
@@ -1154,7 +1154,7 @@
   },
   {
    "block": "mebahelcreaturesdwarven:dwemer_metal_pipe",
-   "x": -3.58,
+   "x": -2.08,
    "y": -7.5,
    "z": -12.0,
    "yaw": 180.0,
@@ -1163,7 +1163,7 @@
   },
   {
    "block": "mebahelcreaturesdwarven:dwemer_metal_pipe",
-   "x": -3.58,
+   "x": -2.08,
    "y": -7.5,
    "z": -13.0,
    "yaw": 180.0,
@@ -1172,7 +1172,7 @@
   },
   {
    "block": "mebahelcreaturesdwarven:dwemer_metal_pipe_gear",
-   "x": -4.08,
+   "x": -3.08,
    "y": -6.5,
    "z": -12.5,
    "yaw": 180.0,
@@ -1181,18 +1181,18 @@
   },
   {
    "block": "furnish:dark_oak_crate",
-   "x": -2.6,
+   "x": -2.15,
    "y": -6.5,
-   "z": -19.8,
+   "z": -19.6,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_131"
   },
   {
    "block": "furnish:small_locker",
-   "x": 2.6,
+   "x": 2.15,
    "y": -6.5,
-   "z": -19.8,
+   "z": -19.6,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_132"
@@ -1235,7 +1235,7 @@
   },
   {
    "block": "furnish:dark_oak_bench",
-   "x": -4.7824,
+   "x": -4.7616,
    "y": 0.0,
    "z": -5.0,
    "yaw": 0.0,
@@ -1244,7 +1244,7 @@
   },
   {
    "block": "furnish:dark_oak_bench",
-   "x": -4.7895,
+   "x": -4.7689,
    "y": 0.0,
    "z": -4.0,
    "yaw": 0.0,
@@ -1253,7 +1253,7 @@
   },
   {
    "block": "furnish:dark_oak_bench",
-   "x": -4.7528,
+   "x": -4.7332,
    "y": 0.0,
    "z": 3.0,
    "yaw": 0.0,
@@ -1262,7 +1262,7 @@
   },
   {
    "block": "furnish:dark_oak_bench",
-   "x": -4.7168,
+   "x": -4.6974,
    "y": 0.0,
    "z": 4.0,
    "yaw": 0.0,
@@ -1271,7 +1271,7 @@
   },
   {
    "block": "furnish:dark_oak_bench",
-   "x": 4.7824,
+   "x": 4.7616,
    "y": 0.0,
    "z": -5.0,
    "yaw": 0.0,
@@ -1280,7 +1280,7 @@
   },
   {
    "block": "furnish:dark_oak_bench",
-   "x": 4.7895,
+   "x": 4.7689,
    "y": 0.0,
    "z": -4.0,
    "yaw": 0.0,
@@ -1289,7 +1289,7 @@
   },
   {
    "block": "furnish:dark_oak_bench",
-   "x": 4.7528,
+   "x": 4.7332,
    "y": 0.0,
    "z": 3.0,
    "yaw": 0.0,
@@ -1298,7 +1298,7 @@
   },
   {
    "block": "furnish:dark_oak_bench",
-   "x": 4.7168,
+   "x": 4.6974,
    "y": 0.0,
    "z": 4.0,
    "yaw": 0.0,
@@ -1344,19 +1344,19 @@
   },
   {
    "x": 0.5,
-   "y": 3.38,
+   "y": 3.442,
    "z": -19.35,
    "dx": 1.4,
    "dy": 3.02,
    "dz": -19.2
   },
   {
-   "x": -3.2,
-   "y": 3.38,
-   "z": -16.6,
-   "dx": -2.3,
+   "x": -3.0,
+   "y": 3.442,
+   "z": -16.4,
+   "dx": -2.1,
    "dy": 3.02,
-   "dz": -16.6
+   "dz": -16.4
   },
   {
    "x": -1.55,
@@ -1409,10 +1409,10 @@
   {
    "x": 0.0,
    "y": 0.505,
-   "z": -21.6,
-   "dx": -0.9,
+   "z": -21.5,
+   "dx": -0.95,
    "dy": 0.02,
-   "dz": -21.75
+   "dz": -21.5
   },
   {
    "x": -3.5,
@@ -1472,7 +1472,7 @@
   },
   {
    "x": -0.4,
-   "y": -3.62,
+   "y": -3.558,
    "z": 6.6,
    "dx": 0.5,
    "dy": -3.98,
@@ -1480,71 +1480,71 @@
   },
   {
    "x": -0.4,
-   "y": -3.62,
+   "y": -3.558,
    "z": 7.8,
    "dx": 0.5,
    "dy": -3.98,
    "dz": 7.8
   },
   {
-   "x": 3.0,
+   "x": 2.8,
    "y": -3.558,
    "z": 8.9,
-   "dx": 2.1,
+   "dx": 2.0,
    "dy": -3.98,
    "dz": 8.4
   },
   {
-   "x": 2.9,
-   "y": -3.62,
+   "x": 2.6,
+   "y": -3.558,
    "z": 3.65,
-   "dx": 1.9,
+   "dx": 1.6,
    "dy": -3.98,
    "dz": 3.6
   },
   {
-   "x": 2.9,
-   "y": -3.62,
+   "x": 2.6,
+   "y": -3.558,
    "z": 5.55,
-   "dx": 1.9,
+   "dx": 1.6,
    "dy": -3.98,
    "dz": 5.6
   },
   {
-   "x": 4.45,
+   "x": 3.95,
    "y": -3.7,
    "z": -4.5,
-   "dx": 3.65,
+   "dx": 3.15,
    "dy": -3.98,
    "dz": -4.5
   },
   {
-   "x": 4.45,
+   "x": 3.95,
    "y": -3.7,
    "z": -3.5,
-   "dx": 3.65,
+   "dx": 3.15,
    "dy": -3.98,
    "dz": -3.5
   },
   {
-   "x": 4.45,
+   "x": 3.95,
    "y": -3.7,
    "z": -2.5,
-   "dx": 3.65,
+   "dx": 3.15,
    "dy": -3.98,
    "dz": -2.5
   },
   {
-   "x": 4.45,
+   "x": 3.95,
    "y": -3.7,
    "z": -1.5,
-   "dx": 3.65,
+   "dx": 3.15,
    "dy": -3.98,
    "dz": -1.5
   },
   {
    "x": 1.0,
-   "y": -3.62,
+   "y": -3.558,
    "z": -3.7,
    "dx": 0.1,
    "dy": -3.98,
@@ -1552,7 +1552,7 @@
   },
   {
    "x": 1.0,
-   "y": -3.62,
+   "y": -3.558,
    "z": -2.3,
    "dx": 0.1,
    "dy": -3.98,
@@ -1591,66 +1591,66 @@
    "dz": -9.5
   },
   {
-   "x": -4.7824,
+   "x": -4.7616,
    "y": 0.442,
    "z": -5.0,
-   "dx": -3.8824,
+   "dx": -3.8616,
    "dy": 0.02,
    "dz": -5.0
   },
   {
-   "x": -4.7895,
+   "x": -4.7689,
    "y": 0.442,
    "z": -4.0,
-   "dx": -3.8895,
+   "dx": -3.8689,
    "dy": 0.02,
    "dz": -4.0
   },
   {
-   "x": -4.7528,
+   "x": -4.7332,
    "y": 0.442,
    "z": 3.0,
-   "dx": -3.8528,
+   "dx": -3.8332,
    "dy": 0.02,
    "dz": 3.0
   },
   {
-   "x": -4.7168,
+   "x": -4.6974,
    "y": 0.442,
    "z": 4.0,
-   "dx": -3.8168,
+   "dx": -3.7974,
    "dy": 0.02,
    "dz": 4.0
   },
   {
-   "x": 4.7824,
+   "x": 4.7616,
    "y": 0.442,
    "z": -5.0,
-   "dx": 3.8824,
+   "dx": 3.8616,
    "dy": 0.02,
    "dz": -5.0
   },
   {
-   "x": 4.7895,
+   "x": 4.7689,
    "y": 0.442,
    "z": -4.0,
-   "dx": 3.8895,
+   "dx": 3.8689,
    "dy": 0.02,
    "dz": -4.0
   },
   {
-   "x": 4.7528,
+   "x": 4.7332,
    "y": 0.442,
    "z": 3.0,
-   "dx": 3.8528,
+   "dx": 3.8332,
    "dy": 0.02,
    "dz": 3.0
   },
   {
-   "x": 4.7168,
+   "x": 4.6974,
    "y": 0.442,
    "z": 4.0,
-   "dx": 3.8168,
+   "dx": 3.7974,
    "dy": 0.02,
    "dz": 4.0
   }
@@ -1658,7 +1658,7 @@
  "paintings": [
   {
    "motive": "wanderer",
-   "x": -4.96,
+   "x": -4.46,
    "y": 1.3,
    "z": -20.0,
    "nx": 1.0,
@@ -1668,7 +1668,7 @@
   },
   {
    "motive": "sea",
-   "x": 5.46,
+   "x": 4.96,
    "y": -2.0,
    "z": -6.5,
    "nx": -1.0,
