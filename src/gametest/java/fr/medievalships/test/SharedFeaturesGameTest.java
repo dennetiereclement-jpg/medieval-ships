@@ -146,6 +146,21 @@ public final class SharedFeaturesGameTest {
 		shot.accept(name);
 	}
 
+	/** The preview seen from behind the player, with a wide field of view: the whole ghost is in the picture. */
+	private static void previewShot(ClientGameTestContext context, Consumer<String> shot, String name) {
+		int fov = context.computeOnClient((MinecraftClient c) -> c.options.getFov().getValue());
+		context.runOnClient(c -> {
+			c.options.setPerspective(Perspective.THIRD_PERSON_BACK);
+			c.options.getFov().setValue(110);
+		});
+		context.waitTicks(5);
+		shot(context, shot, name);
+		context.runOnClient(c -> {
+			c.options.setPerspective(Perspective.FIRST_PERSON);
+			c.options.getFov().setValue(fov);
+		});
+	}
+
 	private static void lookLocal(TestServerContext server, ShipPose pose, double ex, double ey, double ez, double tx, double ty, double tz) {
 		double[] e = pose.toWorld(ex, ey, ez), t = pose.toWorld(tx, ty, tz);
 		double dx = t[0] - e[0], dy = t[1] - e[1], dz = t[2] - e[2];
@@ -182,10 +197,7 @@ public final class SharedFeaturesGameTest {
 		double agree = sv == null ? 99 : Math.hypot(Math.hypot(sv.pose().x() - st.pose().x(), sv.pose().y() - st.pose().y()), sv.pose().z() - st.pose().z());
 		check.accept(sv != null && sv.valid() == st.valid() && agree < 1e-6,
 				String.format(Locale.ROOT, "preview: the server's space check gives the same spot (%.6f blocks apart)", agree));
-		context.runOnClient(c -> c.options.setPerspective(Perspective.THIRD_PERSON_BACK));
-		context.waitTicks(5);
-		shot(context, shot, "partage_1_apercu_vert");
-		context.runOnClient(c -> c.options.setPerspective(Perspective.FIRST_PERSON));
+		previewShot(context, shot, "partage_1_apercu_vert");
 
 		// placement still works, where the ghost was
 		List<UUID> before = near(server, type, X, Z, 60);
@@ -205,17 +217,16 @@ public final class SharedFeaturesGameTest {
 		});
 		check.accept(ghostGone, "preview: once placed, the spot is no longer shown free");
 
-		// red where it cannot fit: aiming at the ground just before a stone cliff higher than the airship can be
-		// placed above it; a right click places nothing
+		// red where it cannot fit: in a corridor between two stone walls too close together for the balloon (and higher
+		// than it can be placed above them); a right click places nothing
 		server.runCommand(String.format(Locale.ROOT, "tp @p %.1f %d %.1f 180 20", X + 0.5, ground, Z - 29.5));
-		server.runCommand(String.format(Locale.ROOT, "fill %d %d %d %d %d %d stone", X - 9, ground, Z - 62, X + 9, ground + 36, Z - 36));
+		server.runCommand(String.format(Locale.ROOT, "fill %d %d %d %d %d %d stone", X - 6, ground, Z - 75, X - 3, ground + 36, Z - 20));
+		server.runCommand(String.format(Locale.ROOT, "fill %d %d %d %d %d %d stone", X + 4, ground, Z - 75, X + 7, ground + 36, Z - 20));
 		context.waitTicks(25);
 		PlacementPreview.State red = context.computeOnClient((MinecraftClient c) -> PlacementPreview.current());
-		check.accept(red != null && !red.valid(), "preview: in front of a stone cliff the ghost is red (" + (red == null ? "none" : red.pose()) + ")");
-		context.runOnClient(c -> c.options.setPerspective(Perspective.THIRD_PERSON_BACK));
-		context.waitTicks(5);
-		shot(context, shot, "partage_2_apercu_rouge");
-		context.runOnClient(c -> c.options.setPerspective(Perspective.FIRST_PERSON));
+		check.accept(red != null && !red.valid(), "preview: between two walls too close for the balloon the ghost is red ("
+				+ (red == null ? "none" : red.pose()) + ")");
+		previewShot(context, shot, "partage_2_apercu_rouge");
 		List<UUID> b2 = near(server, type, X, Z - 40, 40);
 		context.getInput().pressKey(o -> o.useKey);
 		context.waitTicks(15);
@@ -223,7 +234,8 @@ public final class SharedFeaturesGameTest {
 		a2.removeAll(b2);
 		mine.addAll(a2);
 		check.accept(a2.isEmpty(), "preview: where it is red, a right click places nothing");
-		server.runCommand(String.format(Locale.ROOT, "fill %d %d %d %d %d %d air", X - 9, ground, Z - 62, X + 9, ground + 36, Z - 36));
+		server.runCommand(String.format(Locale.ROOT, "fill %d %d %d %d %d %d air", X - 6, ground, Z - 75, X - 3, ground + 36, Z - 20));
+		server.runCommand(String.format(Locale.ROOT, "fill %d %d %d %d %d %d air", X + 4, ground, Z - 75, X + 7, ground + 36, Z - 20));
 
 		// the permission: an airship reserved to the admins (placeAdminOnly)
 		boolean admin = server.computeOnServer(srv -> ShipPermissions.isAdmin(srv.getPlayerManager().getPlayerList().get(0)));
