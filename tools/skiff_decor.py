@@ -159,6 +159,12 @@ def wall_lantern(side, y, z, arm=0.3, x_from=0.0):
     block(FD + "kerosene_lantern", w - side * arm, y + 0.12, z, "stern", solid=False)
 
 
+def wall_barrel(name, side, y, z, h=0.9, r=0.32):
+    """An upright barrel standing against a side wall."""
+    w = wall_min(y, y + h, z, side)
+    barrel(name, w - side * (r + 0.03), y, z, h=h, r=r)
+
+
 def barrel(name, x, y, z, h=0.95, r=0.36):
     custom("barrel", solid=(x - r, x + r, y, y + h, z - r, z + r), name=name, p=(x, y, z), h=h, r=r)
 
@@ -184,9 +190,7 @@ def common_room():
     block(FD + "pile_of_books", -2.7, f + 1.0, -7.0, "bow", solid=False)
     crate("common_crate", -3.05, f, -3.95, s=0.7)
     barrel("common_barrel_door", 2.95, f, -3.95, h=0.85, r=0.32)
-    against(FD + "kitchen_wall_shelf", 1, f + 1.35, -5.0, solid=False)
-    for k, z in enumerate((-5.3, -4.75)):
-        block(IC + ("storage_vase" if k else "brown_storage_vase"), 3.05, f + 1.73, z, "starboard", solid=False, scale=0.3)
+    wall_lantern(1, f + 1.75, -6.6)
     custom("rug", name="common_runner", p=(-0.5, f, -5.5), w=0.9, l=3.8, region="carpet")
     wall_lantern(-1, f + 1.75, -6.4)
 
@@ -206,7 +210,7 @@ def bedroom():
     chair(FU + "spruce_chair", -1.6, f, -10.2, "starboard", -0.7, -10.2)
     against(FD + "dresser", -1, f, -8.55, facing="port")
     block(FD + "wine_bottle", -2.95, f + 1.02, -8.4, "port", solid=False)
-    block(FD + "rug_3x_3", 0.15, f, -10.6, "stern", solid=False)
+    custom("rug", name="bedroom_rug", p=(0.1, f, -10.4), w=1.9, l=2.6, region="rug")
     hanging(0.2, CEIL_C, -10.4)
     wall_lantern(1, f + 1.75, -8.6)
     against(FD + "wall_shelf", 1, f + 1.15, -12.1, solid=False)
@@ -219,23 +223,21 @@ def hold():
     for k, (z0, z1) in enumerate(((-9.9, -7.2), (-3.6, 0.9), (2.9, 4.0))):
         custom("rug", name="hold_runner_%d" % k, p=(-0.15, f, (z0 + z1) / 2), w=0.8, l=z1 - z0, region="carpet")
     # port side (the stair lands between z -6 and -7)
-    against(IC + "cypress_barrel", 1, f, 3.55, facing="starboard")
+    at(IC + "cypress_barrel", 0.0, f, 3.95, "stern", scale=0.8)
     against(FD + "workbench", 1, f, -0.3, facing="starboard")
     against(FD + "tool_board", 1, f + 0.95, -0.3, facing="starboard", solid=False)
     against(FU + "spruce_crate", 1, f, -2.6)
-    crate("hold_crate_top", 1.55, f + 1.0, -2.6, s=0.6, solid=False)
-    barrel("hold_barrel_p1", 1.55, f, -8.1, h=0.9, r=0.34)
-    against(FR + "rice_bag", 1, f, -9.6, scale=0.8)
+    crate("hold_crate_top", wall_min(f + 1.0, f + 1.6, -2.6, 1) - 0.35, f + 1.0, -2.6, s=0.6, solid=False)
+    wall_barrel("hold_barrel_p1", 1, f, -8.75, h=0.85, r=0.3)
+    against(FR + "rice_bag", 1, f, -9.6, scale=0.55)
     # starboard side
-    against(FU + "small_locker", -1, f, 3.5, facing="port")
     against(FU + "spruce_crate", -1, f, 0.2)
     against(FU + "spruce_crate", -1, f, -0.85, scale=0.8)
     against(FU + "small_locker", -1, f, -2.6, facing="port")
-    against(FU + "small_locker", -1, f, -3.65, facing="port")
-    barrel("hold_barrel_s1", -1.55, f, -5.3, h=0.9, r=0.34)
-    barrel("hold_barrel_s2", -1.6, f, -6.15, h=0.85, r=0.32)
+    wall_barrel("hold_barrel_s1", -1, f, -5.3, h=0.85, r=0.3)
+    wall_barrel("hold_barrel_s2", -1, f, -6.0, h=0.8, r=0.28)
     against(FU + "dark_oak_crate", -1, f, -8.3)
-    against(FR + "rice_bag", -1, f, -9.6, scale=0.8)
+    against(FR + "rice_bag", -1, f, -9.6, scale=0.55)
     # shelves of jars along both walls, lanterns on brackets
     for side, zs in ((1, (-4.2, -9.0)), (-1, (2.3, -7.2))):
         for z in zs:

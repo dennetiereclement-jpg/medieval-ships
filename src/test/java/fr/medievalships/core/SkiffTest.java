@@ -25,25 +25,25 @@ class SkiffTest {
 	@Test
 	void matchesModelGenerator() {
 		double[][] hull = {
-				{-12.5, -2.0, 1.818701, -2.736921, 3.000000},
-				{-8.0, -3.0, 1.345893, -3.350000, 3.000000},
-				{0.0, -2.5, 2.238245, -3.400000, 1.000000},
-				{0.0, 0.5, 3.955774, -3.400000, 1.000000},
-				{5.0, -2.0, 1.919403, -2.898133, 1.023929},
-				{9.0, 0.5, 1.906060, -1.735156, 1.848315},
+				{-12.5, -2.0, 1.682478, -2.693601, 3.000000},
+				{-8.0, -3.0, 0.866384, -3.150000, 3.000000},
+				{0.0, -2.5, 1.860516, -3.150000, 1.000000},
+				{0.0, 0.5, 3.936498, -3.150000, 1.000000},
+				{5.0, -2.0, 1.726493, -2.775600, 1.023929},
+				{9.0, 0.5, 1.893886, -1.737500, 1.848315},
 				{12.0, 1.5, 1.094155, 0.121875, 2.666164},
-				{-5.0, 2.0, 4.095274, -3.442969, 3.000000}};
+				{-5.0, 2.0, 4.095274, -3.195600, 3.000000}};
 		for (double[] r : hull) {
 			assertEquals(r[2], SkiffLayout.hullX(r[0], r[1]), 1e-5, "hull half width at " + r[0] + ", " + r[1]);
 			assertEquals(r[3], SkiffLayout.keelY(r[0]), 1e-5, "keel at " + r[0]);
 			assertEquals(r[4], SkiffLayout.sheerY(r[0]), 1e-5, "sheer at " + r[0]);
 		}
 		double[][] roof = {
-				{0.0, 1.0, 5.900000, 7.900000, -8.500000},
-				{1.0, 0.5, 2.231945, 9.755626, -5.023952},
-				{2.5, 1.0, -5.640527, 8.570663, -4.286401},
-				{4.0, 0.8, -4.089211, 8.996967, -13.234575},
-				{5.5, 0.95, 5.081568, 8.778849, -13.559128}};
+				{0.0, 1.0, 5.152000, 7.900000, -9.000000},
+				{1.0, 0.5, 2.419898, 9.791472, -5.231232},
+				{2.5, 1.0, -5.398341, 8.514799, -4.967319},
+				{4.0, 0.8, -4.254914, 8.995451, -13.926430},
+				{5.5, 0.95, 5.127594, 8.730965, -14.104950}};
 		for (double[] r : roof) {
 			double[] p = SkiffLayout.roofPoint(r[0], r[1]);
 			for (int i = 0; i < 3; i++) {
@@ -175,12 +175,15 @@ class SkiffTest {
 		area("pilot deck (starboard)", -2.6, -1.0, P, -11.6, -5.6);
 		area("pilot deck (front)", -2.6, 2.6, P, -3.4, -3.3);
 		area("pilot deck (behind the wheel)", -0.6, 0.6, P, -6.4, -5.0);
-		area("common room (aisle)", -0.8, -0.4, 0.0, -7.1, -3.9);
-		area("common room (to the bedroom door)", -1.6, -0.4, 0.0, -7.1, -6.9);
+		area("common room (aisle)", -1.15, -0.85, 0.0, -7.1, -3.9);
+		area("common room (inside the door)", -0.8, 0.8, 0.0, -4.1, -3.9);
+		area("common room (to the bedroom door)", -1.6, -0.85, 0.0, -7.1, -6.9);
 		area("bedroom", -0.8, 0.6, 0.0, -12.0, -8.4);
-		area("hold", -0.6, 0.1, HO, -7.1, 2.6);
-		area("hold (bow end)", -0.15, 0.15, HO, 2.6, 4.0);
-		area("hold (aft end, between the crates)", -0.15, 0.15, HO, -9.9, -7.1);
+		area("hold", -0.15, 0.15, HO, -4.1, 2.6);
+		area("hold (beside the stair)", -0.55, -0.35, HO, -6.4, -4.1);
+		area("hold (foot of the stair)", -0.15, 1.0, HO, -7.4, -6.9);
+		area("hold (bow end)", -0.15, 0.15, HO, 2.6, 3.3);
+		area("hold (aft end, between the crates)", -0.15, 0.15, HO, -9.9, -6.9);
 		assertFalse(fits(-2.2, 0.0, -5.2), "the common room's table is solid");
 		assertFalse(fits(0.0, P, SkiffLayout.CANOPY_Z), "the king post is solid");
 		assertFalse(fits(0.0, P, -4.25), "the helm is solid");
@@ -241,7 +244,7 @@ class SkiffTest {
 	@Test
 	void stairsAndLadder() {
 		walk("crate stair up to the pilot deck", -2.75, 0.0, 0.5, -0.5, 6, P);
-		walk("hold stair from the common room", 1.25, 0.0, -3.75, -0.5, 5, HO);
+		walk("hold stair from the common room", 0.75, 0.0, -4.25, -0.5, 5, HO);
 		for (double y = HO + 0.25; y < -0.5; y += 0.5) {
 			assertTrue(GRID.ladderAt(0, y, 2.0), "ladder under the grated hatch at " + y);
 		}

@@ -5,6 +5,8 @@ avant, arrière et quatre vues intérieures : pont avant, façade de la cabine e
 cale / couloir de stockage). Une vieille barque de bois faite main, transformée en engin volant : petite,
 agile, rapiécée, médiévale-fantastique (jamais un avion moderne).
 
+Comparaison planche / rendu du modèle (5 vues et 4 pièces) : [`preview_rustic_skiff.png`](preview_rustic_skiff.png).
+
 Les sessions de jeu ne passent **pas** par Valkyrien Skies : comme le Nautilus, le Vieux Corsaire et le
 Léviathan, le navire décrit ses pièces par une **grille intérieure** (cellules de 0,5 bloc) que le mod lit pour
 les collisions, les portes, l'échelle et le volume où l'on est transporté. On marche, on s'assoit et on
@@ -22,22 +24,22 @@ vue de côté et la perspective, puis prend un compromis avec les vues de dessus
 | Poutre de proue (beaupré court) | x 20 → 70 | jusqu'à z +18 |
 | Tubes de poupe | x 330 → 437 | 7,9 (8,4 pour le tube central) |
 | Longueur totale | x 20 → 437 | **39** (poutre → bouches des tubes) |
-| Fond de coque au milieu | y 178 | −3,0 mesuré, **−3,4** retenu (place pour la cale) |
+| Fond de coque au milieu | y 178 | −3,0 mesuré, **−3,15** retenu (place pour la cale) |
 | Bastingage du pont avant / tête de proue | y 135 / 122 | +1,0 / +2,8 (proue relevée en banane) |
 | Cabine (façade → poupe), toit = poste de pilotage | x 228 → 330, y 116 | z −3 → −13, **+3,0** |
 | Balustrade du poste de pilotage | y 92–100 | **1,5** au-dessus du poste (hauteur de poitrine) |
-| Toile du toit : avant-toits / faîte | y 58–80 / 8–14 | **8,9** (pans affaissés à 7,9) / **12,5**, mât central 13,4 |
-| Étendue du toit (côté / dessus) | x 215 → 395 | compromis : z −0,1 → −16,9, 11,8 de large |
+| Toile du toit : avant-toits / faîte | y 58–80 / 8–14 | **8,9** (pans affaissés à 7,9) / **11,8**, mât central 12,6 |
+| Étendue du toit (côté / dessus) | x 215 → 395 | compromis : z −0,4 → −17,6, 11,2 de large |
 | Ailes avant : racine, coin haut, pointe | (207,178) (277,200) (267,238) | (z −0,6, y −2,2) (−7,4, −4,6) (−6,4, −9,0) |
 | Ailes arrière : racine, coin haut, pointe | (320,160) (400,160) (343,268) | (−11,9, −1,2) (−18,6, −1,7) (−14,2, −11,0) |
 
 Vue de dessus : **proue étroite** (≈ 4 blocs) puis un **épaulement** brusque vers z ≈ +5 et un corps large
 (8 blocs) jusqu'à la poupe — le modèle mélange les deux plans entre z +3,5 et +6,5. Vue avant : le poste de
 pilotage **déborde** de la coque (4,9 de demi-largeur contre 4,0), le toit a à peu près la largeur du poste,
-la coque est en V et une **pique de quille** descend au centre (sous le caisson de poupe), les ailes
+la coque est en V évasé (fond assez plat pour la cale) et une **pique de quille** descend au centre (sous le caisson de poupe), les ailes
 pendent presque verticalement. Vue arrière : quatre gros tubes (2 × 2) et un tube central plus mince.
 
-Proportions : 26 × 8 blocs de coque, 39 de long hors tout, 13 de large ailes comprises, 25 de haut (du fleuron
+Proportions : 26 × 8 blocs de coque, 39 de long hors tout, 13 de large ailes comprises, 24 de haut (du fleuron
 du mât central à la pointe des ailes arrière). Petit à côté du Léviathan (65 blocs) et du Vieux Corsaire
 (53), plus grand que le dirigeable steampunk (22), mais **plus maniable** que lui.
 
@@ -51,13 +53,13 @@ du mât central à la pointe des ailes arrière). Petit à côté du Léviathan 
 * **Appentis de proue** en planches claires délavées (faîtage, chevalet en A, toile roulée) : le **coin de
   stockage**.
 * **Pont avant ouvert** (deux marches sous l'appentis), **caillebotis de fer** au-dessus de l'échelle de la cale.
-* **Cabine** centrale-arrière : murs de planches verticales sur poteaux, **fenêtre à croisillons éclairée**
-  de chaque bord, façade avec porte à deux battants et deux lanternes, **escalier de caisses** à tribord jusqu'au
+* **Cabine** centrale-arrière : murs de planches verticales sur poteaux, **deux fenêtres à croisillons éclairées**
+  de chaque bord (salle commune et chambre), façade avec porte à deux battants et deux lanternes, **escalier de caisses** à tribord jusqu'au
   poste de pilotage.
 * **Poste de pilotage** sur le toit de la cabine : plancher, poutres de rive en débord sur consoles,
   **balustrade rustique** à poteaux moussus, **roue** sur sa colonne, bancs, lanternes.
-* **Grand toit de toile beige usée** sur quatre **perches écartées** (pointes de fer au-dessus de la toile) et un
-  mât central : toile tachée et rapiécée, coutures, pans affaissés entre les perches, **lanières déchirées**
+* **Grand toit de toile beige usée** sur deux **piliers** de bois coiffés (avant et arrière du poste), quatre
+  **perches écartées** (pointes de fer au-dessus de la toile) et un mât central : toile tachée et rapiécée, coutures, pans affaissés entre les perches, **lanières déchirées**
   pendant des avant-toits (et quelques-unes sous la toile).
 * **Deux longues perches inclinées** à la poupe (mâts de charge) avec cordages jusqu'aux tubes et au toit.
 * **Cordes de fanions déchirés** (beige, rouge, noir) de la poutre de proue aux perches avant du toit.
@@ -83,8 +85,8 @@ du tube central (plus fortes en marche) et bourdonnement des tubes (effets commu
 | Cale | −2,5 | **couloir de stockage** bas (2 blocs) de z +4,5 à −10,5 |
 
 Accès : porte de cabine (0) à deux battants dans la façade ; porte de la chambre (1) dans la cloison, à tribord
-de la rambarde de l'escalier ; **trappe à caillebotis** (2) du pont avant au-dessus de l'**échelle** de la cale ;
-**escalier** de la salle commune vers la cale (ouverture bordée de rambardes) ; **escalier de caisses** du pont
+de l'ouverture de l'escalier de la cale ; **trappe à caillebotis** (2) du pont avant au-dessus de l'**échelle** de la cale ;
+**escalier** de la salle commune vers la cale (à bâbord, ouverture bordée de rambardes) ; **escalier de caisses** du pont
 avant au poste de pilotage (passage dans la balustrade). Toutes les pièces sont reliées et fermées (aucune
 cellule de pièce ne touche l'air extérieur ; `SkiffTest`).
 
@@ -115,8 +117,9 @@ même taille (le navire reste complet et utilisable).
   terrain** couvrent tout le volume (coque, poutre, toit, perches, tubes, ailes, pique : ~250 points) : le
   pilote automatique aérien et la pose les respectent ; la pose vérifie toute la place (au-dessus du sol, de
   l'eau ou d'un toit).
-* Modèle ~4 100 cubes (coque en panneaux inclinés entre stations, toile en éventail, ailes en lamelles le long
-  des nervures), une texture 512 × 512.
+* Modèle ~4 600 cubes (coque en panneaux inclinés entre stations, toile en éventail de 28 pans, ailes en
+  lamelles le long des nervures), une texture 512 × 512. Les os des pièces, meubles et ferrures sont masqués au-delà
+  de 48 blocs, les petits détails au-delà de 80 (moteur de rendu commun).
 
 ## 5. Pilotage
 

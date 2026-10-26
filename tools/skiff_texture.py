@@ -154,7 +154,7 @@ def _fringe(px, region, rng):
     """Torn strips of canvas hanging from the eaves: vertical strips of uneven length, ragged ends, gaps."""
     u, v, w, h = region
     x = 0
-    tones = [_rgb(c) for c in ("7a6a56", "6a5a48", "86745e", "5a4a3a", "92806a", "4e4236")]
+    tones = [_rgb(c) for c in ("5e5246", "4e4338", "6a5c4c", "443a30", "766654", "3a322a", "8a7a64")]
     for y in range(h):
         for xx in range(w):
             px[u + xx, v + y] = (0, 0, 0, 0)
@@ -277,11 +277,11 @@ def make_texture(path):
     px = img.load()
     R = REGIONS
     # the hull: old brown planks of uneven tones, replaced lengths, iron plates, nails
-    _planks(px, R["hull"], ("6e4a2a", "5e3e22", "7a5230", "654426", "835a34", "553820"), "24160a", rng, plank_h=4, joints=3, grain=0.08)
+    _planks(px, R["hull"], ("8e6236", "78522e", "9a6c3e", "835a32", "a47644", "6c4a2a"), "2e1c0c", rng, plank_h=4, joints=3, grain=0.08)
     _replaced(px, R["hull"], rng, 4, 5, ("9a7448", "4a301a", "86603c", "a07c50"), seam="24160a")
     _iron_patch(px, R["hull"], rng, 0.3, 0.4, 5, 4)
     _iron_patch(px, R["hull"], rng, 0.8, 0.7, 4, 5)
-    _planks(px, R["hull_low"], ("4a3220", "553a24", "3e2a1a", "5a4028"), "1a1008", rng, plank_h=4, joints=3, grain=0.07, worn=0.05,
+    _planks(px, R["hull_low"], ("5a3e26", "65462a", "4e3620", "6a4a2e"), "1e1208", rng, plank_h=4, joints=3, grain=0.07, worn=0.05,
             worn_col="4a5030")
     _replaced(px, R["hull_low"], rng, 4, 4, ("6a4a2c", "33241a", "5e4a32"), seam="1a1008")
     _moss(px, R["hull_low"], random.Random(31), top=0.6, amount=0.05)
@@ -296,12 +296,12 @@ def make_texture(path):
     _planks(px, R["light_wood"], ("a8906c", "9a8262", "b29a74", "8e7658"), "5a4630", rng, plank_h=4, joints=2, grain=0.07)
     _planks(px, R["pole"], ("6a4e34", "5e442c", "735638"), "3a2818", rng, plank_h=4, joints=0, grain=0.12)
     _planks(px, R["rib"], ("3e2816", "35220f", "46301c"), "1c1006", rng, plank_h=4, joints=0, grain=0.1)
-    _planks(px, R["deck"], ("7a5636", "6a4a2c", "856040", "5e4228", "70502f"), "2e1e10", rng, plank_h=4, joints=2)
-    _replaced(px, R["deck"], rng, 4, 4, ("9a7650", "4e3420", "8a6a48"), seam="2e1e10")
+    _planks(px, R["deck"], ("86603c", "7c5836", "8c6640", "74522f", "80603a"), "4a3018", rng, plank_h=4, joints=2)
+    _replaced(px, R["deck"], rng, 4, 2, ("94704a", "6a4a2c"), seam="4a3018")
     _wall_rough(px, R["cabin_wall"], rng, ("5e3e22", "6a4628", "553820", "73502e"))
     _replaced_boards(px, R["cabin_wall"], rng, 2, ("8a6a48", "3e2a18"), board_w=4)
-    _planks(px, R["lean"], ("a8906c", "b29c7a", "9a8262", "c0a884", "8e7a5c"), "5e4a34", rng, plank_h=4, joints=3, grain=0.06, worn=0.05,
-            worn_col="d8c8a8")
+    _planks(px, R["lean"], ("98805e", "a28a68", "8a7456", "ae9672", "806a50"), "4e3c2a", rng, plank_h=4, joints=3, grain=0.06, worn=0.05,
+            worn_col="c4b494")
     _fill(px, R["end_grain"], "8a6a42", rng, 10)
     _rope(px, R["rope"], "b09468", "6e5a3a", rng)
     _rope(px, R["rope_dark"], "7a6446", "4a3a26", rng)
@@ -328,7 +328,7 @@ def make_texture(path):
     _canvas(px, R["canvas"], random.Random(41), "b09a78", "7e6a50", "cdbd9c", patches=6)
     _canvas(px, R["canvas_under"], random.Random(42), "7a6650", "54463a", "8e7a62", patches=2)
     _fringe(px, R["fringe"], random.Random(43))
-    _canvas(px, R["wing"], random.Random(44), "a67c4e", "7a5634", "c09868", patches=9, alpha_holes=5, seams=False)
+    _canvas(px, R["wing"], random.Random(44), "b08452", "82603a", "c8a272", patches=9, alpha_holes=5, seams=False)
     _pennant(px, R["pennant_beige"], random.Random(45), "c0a884", "8a7656")
     _pennant(px, R["pennant_red"], random.Random(46), "8e2a1e", "5a1810")
     _pennant(px, R["pennant_black"], random.Random(47), "2c2826", "141210")

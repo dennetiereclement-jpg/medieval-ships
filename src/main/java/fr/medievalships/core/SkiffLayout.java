@@ -29,10 +29,9 @@ public final class SkiffLayout {
 	public static final double SHEER_WAIST = 1.0;
 	public static final double BOW_SHEER = 2.8;
 	private static final double BOW_RISE_Z = 4.0;
-	private static final double[] SECTION = {0.08, 1.8, 0.6};
+	private static final double[] SECTION = {0.07, 1.7, 0.62};
 	private static final double FLARE = 0.03;
-	private static final double[][] KEEL_PTS = {{-13.0, -2.3}, {-12.4, -2.8}, {-11.0, -3.15}, {-8.0, -3.35}, {-4.0, -3.45}, {0.0, -3.4},
-			{3.0, -3.2}, {5.5, -2.8}, {7.5, -2.3}, {9.5, -1.5}, {11.0, -0.6}, {12.2, 0.3}, {13.0, 1.2}, {13.4, 2.0}};
+	private static final double[][] KEEL_PTS = {{-13.0, -2.3}, {-12.4, -2.75}, {-11.0, -3.05}, {-8.0, -3.15}, {-4.0, -3.2}, {0.0, -3.15}, {3.0, -3.0}, {5.5, -2.7}, {7.5, -2.3}, {9.5, -1.5}, {11.0, -0.6}, {12.2, 0.3}, {13.0, 1.2}, {13.4, 2.0}};
 	private static final double[] KEEL_SLOPES = keelSlopes();
 	private static final double[][] BOW_STEPS = {{10.0, 0.5}, {11.5, 1.0}};
 	public static final double BOWSPRIT_TIP_Y = 2.05;
@@ -53,17 +52,18 @@ public final class SkiffLayout {
 	public static final double RAIL_H = 1.5;
 
 	// ---- the canvas roof
-	public static final double CANOPY_Z = -8.5;
-	public static final double APEX_Y = 12.5;
-	public static final double KING_TOP = 13.4;
+	public static final double CANOPY_Z = -9.0;
+	public static final double APEX_Y = 11.8;
+	public static final double KING_TOP = 12.6;
 	/** (|x|, y, z) of the corner poles' tops. */
-	private static final double[][] POLE_TOPS = {{5.2, 9.5, -1.4}, {5.2, 9.5, -15.6}};
-	private static final double POLE_TIP = 0.9;
-	private static final double[] EAVE_HALF = {5.9, 8.4};
-	private static final double EAVE_N = 3.0;
+	private static final double[][] POLE_TOPS = {{4.869, 8.9, -1.5}, {4.869, 8.9, -16.5}};
+	private static final double POLE_TIP = 1.4;
+	private static final double[] EAVE_HALF = {5.6, 8.6};
+	private static final double EAVE_N = 5.0;
 	public static final double EAVE_Y = 8.9;
 	private static final double EAVE_SAG = 1.0;
-	private static final double ROOF_POW = 2.0;
+	private static final double EAVE_PINCH = 0.08;
+	private static final double ROOF_POW = 1.7;
 	/** The derricks at the stern: foot and tip (port side). */
 	private static final double[][] DERRICK = {{2.9, PILOT_Y, -12.9}, {4.3, 11.6, -18.6}};
 
@@ -76,8 +76,8 @@ public final class SkiffLayout {
 	/** The wings (port side; starboard mirrored): root on the hull, top corner, tip. */
 	public static final String[] WING_NAMES = {"wing_fore", "wing_aft"};
 	private static final double[][][] WINGS = {
-			{{2.6, -2.2, -0.6}, {6.2, -4.6, -7.4}, {4.9, -9.0, -6.4}},
-			{{2.75, -1.2, -11.9}, {5.8, -1.7, -18.6}, {5.0, -11.0, -14.2}}};
+			{{2.75, -1.8, -0.6}, {6.2, -4.6, -7.4}, {4.9, -9.0, -6.4}},
+			{{2.6, -1.2, -11.9}, {5.8, -1.7, -18.6}, {5.0, -11.0, -14.2}}};
 	/** The point of the keel spike under the stern box (y, z). */
 	public static final double[] SKID_TIP = {-8.3, -11.75};
 
@@ -217,7 +217,8 @@ public final class SkiffLayout {
 
 	static double eaveRadius(double theta) {
 		double c = Math.abs(Math.cos(theta)), s = Math.abs(Math.sin(theta));
-		return 1.0 / Math.pow(Math.pow(c / EAVE_HALF[0], EAVE_N) + Math.pow(s / EAVE_HALF[1], EAVE_N), 1.0 / EAVE_N);
+		double r = 1.0 / Math.pow(Math.pow(c / EAVE_HALF[0], EAVE_N) + Math.pow(s / EAVE_HALF[1], EAVE_N), 1.0 / EAVE_N);
+		return r * (1.0 - EAVE_PINCH * Math.pow(Math.sin(Math.PI * edgeFraction(theta)), 1.5));
 	}
 
 	static double[] cornerAngles() {
@@ -232,6 +233,11 @@ public final class SkiffLayout {
 	}
 
 	static double eaveDrop(double theta) {
+		return EAVE_SAG * Math.pow(Math.sin(Math.PI * edgeFraction(theta)), 1.5);
+	}
+
+	/** Where the azimuth theta falls on the edge between two corner poles: 0 at a pole, 1 at the next one. */
+	static double edgeFraction(double theta) {
 		double two = 2 * Math.PI;
 		double[] angs = cornerAngles();
 		for (int i = 0; i < angs.length; i++) {
@@ -244,8 +250,7 @@ public final class SkiffLayout {
 			double a1 = angs[(i + 1) % angs.length] + (i == angs.length - 1 ? two : 0.0);
 			double tt = t >= a0 ? t : t + two;
 			if (a0 <= tt && tt <= a1) {
-				double f = (tt - a0) / (a1 - a0);
-				return EAVE_SAG * Math.pow(Math.sin(Math.PI * f), 1.5);
+				return (tt - a0) / (a1 - a0);
 			}
 		}
 		return 0.0;

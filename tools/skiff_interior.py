@@ -122,10 +122,10 @@ LADDERS = {
 # 0.5 deep, the first step's top at y_start + 0.5 (going up) or y_start - 0.5 (going down)
 STAIRS = (
     ("pilot", -3.5, -2.0, 0.0, -1, M0, +6),       # fore deck -> pilot deck, crate steps climbing aft along the starboard side
-    ("hold", 0.5, 2.0, -4.0, -1, M0, -4),          # common room -> hold, going down aft
+    ("hold", 0.0, 1.5, -4.5, -1, M0, -4),          # common room -> hold, going down aft
 )
-HOLD_HOLE = (0.5, 2.0, -7.0, -4.0)      # opening in the cabin floor over the hold stair (x0, x1, z0, z1)
-WINDOWS = ((-11.0, -9.5, 1.0, 2.0),)    # (z0, z1, y0, y1) of the bedroom's windows, in both side walls
+HOLD_HOLE = (0.0, 1.5, -7.5, -4.5)      # opening in the cabin floor over the hold stair (x0, x1, z0, z1)
+WINDOWS = ((-11.0, -9.5, 1.0, 2.0), (-6.0, -4.5, 1.0, 2.0))   # (z0, z1, y0, y1): the bedroom's and the common room's windows, both sides
 HELM_BOX = (-0.5, 0.5, PY, PY + 1.0, -4.5, -4.0)
 KING_POST = (-0.5, 0.5, PY, PY + 3.5, ss.CANOPY_Z - 0.5, ss.CANOPY_Z + 0.5)
 POLE_H = 3.5            # the corner poles' feet are solid this high above the pilot deck
@@ -207,13 +207,17 @@ def build():
     # rails round the hold stair's opening in the common room (not at its fore end, where one goes down)
     g.set(FURNITURE, hole[0] - 0.5, hole[0], M0, M0 + 1.0, hole[2] - 0.5, hole[3])
     g.set(FURNITURE, hole[1], hole[1] + 0.5, M0, M0 + 1.0, hole[2] - 0.5, hole[3], where=inner)
-    g.set(FURNITURE, hole[0] - 0.5, hole[1] + 0.5, M0, M0 + 1.0, hole[2] - 0.5, hole[2], where=inner)
+    if hole[2] - 0.5 > PART + 0.25 - 1e-6:   # (when the opening reaches the partition, the partition closes it)
+        g.set(FURNITURE, hole[0] - 0.5, hole[1] + 0.5, M0, M0 + 1.0, hole[2] - 0.5, hole[2], where=inner)
     # ---- the pilot deck's fittings: the corner poles' feet, the king post of the canvas roof, the helm
     for fx, fz in ss.POLE_FEET:
         for sx in (1, -1):
             x = sx * fx
             g.set(FURNITURE, x - 0.25, x + 0.25, PY, PY + POLE_H, fz - 0.25, fz + 0.25)
     g.set(FURNITURE, *KING_POST)
+    for fx, fz in ss.PILLARS:
+        for sx in (1, -1):
+            g.set(FURNITURE, sx * fx - 0.25, sx * fx + 0.25, PY, PY + POLE_H, fz - 0.25, fz + 0.25)
     (fx, fy, fz), _ = ss.DERRICKS[0]
     for sx in (1, -1):
         g.set(FURNITURE, sx * fx - 0.25, sx * fx + 0.25, PY, PY + 1.5, fz - 0.25, fz + 0.25)

@@ -287,8 +287,9 @@ def chains(detail, lanterns_root):
         pts = []
         for k, z in enumerate(RINGS_Z):
             p, n = hull_pt(z, ring_y(z), side, 0.05)
-            ring(detail, "ring_bolt_%s%d" % (sn, k), p + n * 0.06, n, 0.13, 0.05, "iron", n=6)
-            pts.append(p + n * 0.1 - v3(0, 0.13, 0))
+            ring(detail, "ring_bolt_%s%d" % (sn, k), p + n * 0.08, n, 0.2, 0.08, "iron", n=8)
+            disc(detail, "ring_plate_%s%d" % (sn, k), p + n * 0.03, n, 0.17, 0.06, "iron", sides=8)
+            pts.append(p + n * 0.14 - v3(0, 0.2, 0))
         # from the bow beam down to the first ring
         y1, z1 = ss.BOWSPRIT[1]
         tip = v3(0, ss.BOWSPRIT[0][0] + (y1 - ss.BOWSPRIT[0][0]) * 0.55, ss.BOWSPRIT[0][1] + (z1 - ss.BOWSPRIT[0][1]) * 0.55)
@@ -302,7 +303,7 @@ def chains(detail, lanterns_root):
                     hx = ss.hull_x(q[2], q[1]) + 0.08
                     if abs(q[0]) < hx and q[1] > ss.keel_y(q[2]):
                         q[0] = side * hx
-                chain(detail, "festoon_%s%d_%d" % (sn, k, j), a, b, link=0.2, th=0.045)
+                chain(detail, "festoon_%s%d_%d" % (sn, k, j), a, b, link=0.28, th=0.065)
         for k, (z, drop) in enumerate(HULL_LANTERNS):
             i = RINGS_Z.index(z)
             top = pts[i + 1]
@@ -445,6 +446,10 @@ def pilot_deck(bone, detail, lanterns_root):
     for k, p in enumerate((ring_pts[1], ring_pts[2], ring_pts[3], ring_pts[4], ring_pts[0], ring_pts[5])):
         tube(bone, "pilot_newel_%d" % k, p, p + v3(0, ss.RAIL_H + 0.2, 0), 0.24, "dark_wood", sides=4)
         box(bone, "pilot_newel_cap_%d" % k, p + v3(0, ss.RAIL_H + 0.27, 0), (0.3, 0.14, 0.3), "moss")
+    # lanterns hanging under the overhang at the front corners of the pilot deck (the reference's front view)
+    for side, sn in SIDES:
+        hook = v3(side * (hw - 0.35), PY - 0.5, zf - 0.45)
+        hanging_lantern(lanterns_root, "under_" + sn, hook, drop=0.35, w=0.38, h=0.52)
     # lanterns on the front corner posts (iron arms) and at the stair
     for k, p in enumerate((ring_pts[1], ring_pts[4])):
         side = 1 if p[0] > 0 else -1
@@ -455,43 +460,46 @@ def pilot_deck(bone, detail, lanterns_root):
 
 
 # ================================================================ the cabin
-WINDOW_Z = si.WINDOWS[0][:2]
 WINDOW_Y = si.WINDOWS[0][2:]
 
 
+def in_window(z):
+    return any(w[0] <= z <= w[1] for w in si.WINDOWS)
+
+
 def cabin(bone, detail, lanterns_root):
-    """The cabin's outer walls (vertical planks on frame posts) from the mossy ledge up to the pilot deck, a framed
-    window in each side; the front wall round the door, a lantern on each side of it."""
+    """The cabin's outer walls (vertical planks on frame posts) from the mossy ledge up to the pilot deck, two framed
+    windows in each side (the common room's, the bedroom's); the front wall round the door, a lantern each side of it."""
     y0, y1 = ss.SHEER_WAIST + 0.1, PY - 0.5
-    zz = sorted(set(list(np.linspace(ss.HULL_STERN_Z, CF, 11)) + list(WINDOW_Z)))
+    zz = sorted(set(list(np.linspace(ss.HULL_STERN_Z, CF, 11)) + [z for w in si.WINDOWS for z in w[:2]]))
     ys = [y0, WINDOW_Y[0], WINDOW_Y[1], y1]
     for side, sn in SIDES:
         for i in range(len(zz) - 1):
             za, zb = zz[i], zz[i + 1]
             for j in range(len(ys) - 1):
                 ya, yb = ys[j], ys[j + 1]
-                if WINDOW_Z[0] <= (za + zb) / 2 <= WINDOW_Z[1] and j == 1:
-                    continue   # the window
+                if in_window((za + zb) / 2) and j == 1:
+                    continue   # a window
                 p = [v3(side * (ss.hull_x(z, y) + 0.01), y, z) for z, y in ((za, ya), (zb, ya), (za, yb), (zb, yb))]
                 quad(bone, "cabin_wall_%s%d_%d" % (sn, i, j), p[0], p[1], p[2], p[3], 0.1, "cabin_wall", v3(side, 0, 0), u_dir=v3(0, 0, 1),
                      v_dir=v3(0, -1, 0), stretch=False)
-        # frame posts and a middle rail
-        for k, z in enumerate((ss.HULL_STERN_Z + 0.2, -10.3 + 0.0 if False else WINDOW_Z[0] - 0.12, WINDOW_Z[1] + 0.12, ss.PARTITION_Z,
-                               -5.4, CF - 0.12)):
+        # frame posts
+        posts = [ss.HULL_STERN_Z + 0.2, ss.PARTITION_Z, CF - 0.12] + [z for w in si.WINDOWS for z in (w[0] - 0.12, w[1] + 0.12)]
+        for k, z in enumerate(posts):
             pts = [v3(side * (ss.hull_x(z, y) + 0.08), y, z) for y in (y0 - 0.1, y1 + 0.1)]
             beam(detail, "cabin_post_%s%d" % (sn, k), pts[0], pts[1], 0.22, "dark_wood", width=0.2, up=v3(0, 0, 1), extend=0.02)
-        # the window: lit glass with its cross bars, a frame through the wall's thickness, a sill
-        zc, yc = sum(WINDOW_Z) / 2, sum(WINDOW_Y) / 2
-        wz, wy = WINDOW_Z[1] - WINDOW_Z[0], WINDOW_Y[1] - WINDOW_Y[0]
-        xo = ss.hull_x(zc, yc)
-        xi = xo - 0.5
-        add_cube(bone, "glow_window_" + sn, v3(side * (xo - 0.2), yc, zc), EYE, (0.03, wy, wz), {"all": None, "+1": "window", "-1": "window"},
-                 stretch=True, u_dir=v3(0, 0, side), v_dir=v3(0, -1, 0))
-        for k, (dy, dz, sy, sz) in enumerate(((wy / 2 + 0.06, 0, 0.12, wz + 0.24), (-wy / 2 - 0.06, 0, 0.12, wz + 0.24),
-                                              (0, wz / 2 + 0.06, wy, 0.12), (0, -wz / 2 - 0.06, wy, 0.12))):
-            box(bone, "window_frame_%s%d" % (sn, k), (side * (xo - 0.22), yc + dy, zc + dz), (0.62, sy, sz), "dark_wood")
-        box(detail, "window_sill_" + sn, (side * (xo + 0.1), WINDOW_Y[0] - 0.1, zc), (0.3, 0.1, wz + 0.4), "moss")
-        box(detail, "window_lintel_" + sn, (side * (xo + 0.08), WINDOW_Y[1] + 0.12, zc), (0.22, 0.14, wz + 0.3), "dark_wood")
+        # the windows: lit glass with its cross bars, a frame through the wall's thickness, a sill, a lintel
+        for w_i, (wz0, wz1, wy0, wy1) in enumerate(si.WINDOWS):
+            zc, yc = (wz0 + wz1) / 2, (wy0 + wy1) / 2
+            wz, wy = wz1 - wz0, wy1 - wy0
+            xo = ss.hull_x(zc, yc)
+            add_cube(bone, "glow_window_%s%d" % (sn, w_i), v3(side * (xo - 0.2), yc, zc), EYE, (0.03, wy, wz),
+                     {"all": None, "+1": "window", "-1": "window"}, stretch=True, u_dir=v3(0, 0, side), v_dir=v3(0, -1, 0))
+            for k, (dy, dz, sy, sz) in enumerate(((wy / 2 + 0.06, 0, 0.12, wz + 0.24), (-wy / 2 - 0.06, 0, 0.12, wz + 0.24),
+                                                  (0, wz / 2 + 0.06, wy, 0.12), (0, -wz / 2 - 0.06, wy, 0.12))):
+                box(bone, "window_frame_%s%d_%d" % (sn, w_i, k), (side * (xo - 0.22), yc + dy, zc + dz), (0.62, sy, sz), "dark_wood")
+            box(detail, "window_sill_%s%d" % (sn, w_i), (side * (xo + 0.1), wy0 - 0.1, zc), (0.3, 0.1, wz + 0.4), "moss")
+            box(detail, "window_lintel_%s%d" % (sn, w_i), (side * (xo + 0.08), wy1 + 0.12, zc), (0.22, 0.14, wz + 0.3), "dark_wood")
     # the front wall: planks round the door, posts, a lintel
     z = CF + 0.01
     x_of = lambda y: ss.hull_x(CF, y) - 0.02  # noqa: E731
@@ -520,6 +528,7 @@ def cabin(bone, detail, lanterns_root):
 
 
 # ================================================================ the canvas roof and its poles
+lanterns_root_ref = [None]
 ROOF_NTH = 28
 ROOF_T = (0.0, 0.18, 0.36, 0.54, 0.7, 0.84, 0.94, 1.0)
 
@@ -536,17 +545,45 @@ def canopy(bone, detail, fringe_root):
             foot, tp = pole_foot_top(fx, fz, top, side)
             d = norm(tp - foot)
             tube(bone, "pole_%s%d" % (sn, k), foot, tp + d * ss.POLE_TIP, 0.34, "pole", sides=6)
-            spike(detail, "pole_finial_%s%d" % (sn, k), tp + d * ss.POLE_TIP, d, 0.55, r=0.1)
+            spike(detail, "pole_finial_%s%d" % (sn, k), tp + d * ss.POLE_TIP, d, 0.7, r=0.11)
             ring(detail, "pole_band_%s%d" % (sn, k), foot + d * 1.2, d, 0.21, 0.07, "iron", n=6)
             box(bone, "pole_foot_%s%d" % (sn, k), foot + v3(0, 0.12, 0), (0.5, 0.24, 0.5), "dark_wood")
+    # the four thick posts of the pilot post, stacked blocks of dark wood, up through the canvas to their caps
+    for side, sn in SIDES:
+        for k, (fx, fz) in enumerate(ss.PILLARS):
+            x = side * fx
+            top = ss.pillar_top(fx, fz) + 0.35
+            w = ss.PILLAR_W
+            ys = list(np.linspace(PY, top, 6))
+            for j in range(len(ys) - 1):
+                ww = w if j % 2 == 0 else w - 0.08
+                box(bone, "pillar_%s%d_%d" % (sn, k, j), (x, (ys[j] + ys[j + 1]) / 2, fz), (ww, ys[j + 1] - ys[j] + 0.01, ww),
+                    {"all": "dark_wood" if j % 2 == 0 else "pole", "+2": "end_grain"})
+            box(bone, "pillar_base_%s%d" % (sn, k), (x, PY + 0.12, fz), (w + 0.16, 0.24, w + 0.16), "moss")
+            box(bone, "pillar_cap_%s%d" % (sn, k), (x, top + 0.1, fz), (w + 0.14, 0.2, w + 0.14), "dark_wood")
+            spike(detail, "pillar_finial_%s%d" % (sn, k), v3(x, top + 0.2, fz), v3(0, 1, 0), 0.6, r=0.11)
+            if k == 0:
+                # a lantern on an iron arm on the outer face of each front pillar (as on the reference's pilot post)
+                arm0 = v3(x + side * w / 2, PY + 2.2, fz)
+                arm1 = arm0 + v3(side * 0.45, 0.1, 0.0)
+                beam(detail, "pillar_lamp_arm_" + sn, arm0, arm1, 0.06, "iron", extend=0.02)
+                hanging_lantern(lanterns_root_ref[0], "pillar_" + sn, arm1, drop=0.25)
+            # a lintel between the fore and aft pillars just under the canvas (the frame the canvas rests on)
+        zs = [z for _, z in ss.PILLARS]
+        y = min(ss.pillar_top(fx, fz) for fx, fz in ss.PILLARS) - 0.45
+        beam(bone, "pillar_beam_" + sn, v3(side * ss.PILLARS[0][0], y, zs[0]), v3(side * ss.PILLARS[1][0], y, zs[1]), 0.3, "dark_wood", width=0.3,
+             extend=0.2)
+    for k, (_, z) in enumerate(ss.PILLARS):
+        y = ss.pillar_top(ss.PILLARS[k][0], z) - 0.45
+        beam(bone, "pillar_cross_%d" % k, v3(-ss.PILLARS[k][0], y, z), v3(ss.PILLARS[k][0], y, z), 0.3, "dark_wood", width=0.3, extend=0.2)
     kz = ss.CANOPY_Z
     tube(bone, "king_post", v3(0, PY, kz), v3(0, ss.KING_TOP, kz), 0.42, "pole", sides=8)
-    spike(detail, "king_finial", v3(0, ss.KING_TOP, kz), v3(0, 1, 0), 0.8, r=0.13)
+    spike(detail, "king_finial", v3(0, ss.KING_TOP, kz), v3(0, 1, 0), 1.1, r=0.14)
     box(bone, "king_post_foot", (0, PY + 0.2, kz), (0.7, 0.4, 0.7), "dark_wood")
     for k, h in enumerate((PY + 1.1, ss.APEX_Y - 1.2)):
         ring(detail, "king_band_%d" % k, v3(0, h, kz), v3(0, 1, 0), 0.25, 0.08, "iron", n=6)
     # the canvas
-    ths = [2 * math.pi * i / ROOF_NTH for i in range(ROOF_NTH + 1)]
+    ths = ss.roof_azimuths(ROOF_NTH)
     for i in range(ROOF_NTH):
         for j in range(len(ROOF_T) - 1):
             a0, a1 = ths[i], ths[i + 1]
@@ -646,7 +683,7 @@ def tubes(bone, detail, fans_root):
         tube(bone, "tube_%d" % k, a, b, 2 * r, "tube", sides=8)
         for j, t in enumerate((0.12, 0.45, 0.78)):
             p = a + (b - a) * t
-            ring(detail, "tube_band_%d_%d" % (k, j), p, v3(0, 0, 1), r + 0.03, 0.12, "iron", n=8)
+            ring(detail, "tube_band_%d_%d" % (k, j), p, v3(0, 0, 1), r + 0.06, 0.2, "iron", n=8)
         # the flared mouth
         ring(bone, "tube_lip_%d" % k, b - v3(0, 0, 0.1), v3(0, 0, 1), r * 1.12, 0.22, "bronze", n=10)
         disc(bone, "glow_tube_throat_%d" % k, b + v3(0, 0, 0.35), v3(0, 0, 1), r * 0.82, 0.04, "tube_mouth", sides=10)
@@ -684,6 +721,12 @@ def wing(root, wing_def, side, sn):
     tube(b, "%s_spar_lead_%s" % (name, sn), R, P, 0.32, "rib", sides=6, extend=0.08)
     spike(b, "%s_spike_top_%s" % (name, sn), T, norm(T - R), 0.6, r=0.1)
     spike(b, "%s_spike_tip_%s" % (name, sn), P, norm(P - R), 0.8, r=0.11)
+    # rope lashings along the spars (the pale dots of the reference)
+    for j, (A_, B_) in enumerate(((R, T), (R, P))):
+        L_ = np.linalg.norm(B_ - A_)
+        for q in range(1, int(L_ / 1.3) + 1):
+            c = A_ + (B_ - A_) * (q * 1.3 / L_)
+            ring(b, "%s_lashing_%s%d_%d" % (name, sn, j, q), c, B_ - A_, 0.2, 0.09, "rope", n=6)
     for k, E in enumerate(rays[1:-1]):
         mid = R + (E - R) * 0.5 + n * ss.WING_BILLOW * 0.5
         polyline(b, "%s_rib_%s%d" % (name, sn, k), [R, mid, E], 0.18, "rib", sides=4)
@@ -886,10 +929,17 @@ def stairs(outside, inside):
             else:
                 # crate steps: light planked boxes with dark edges (as on the reference)
                 add_cube(bone, "%sstair_%s_%d" % (pre, name, k), c, EYE, (sx1 - sx0, top - bottom, sz1 - sz0),
-                         {"all": "light_wood", "+2": "deck"}, u_dir=v3(1, 0, 0))
+                         {"all": "wood", "+2": "deck"}, u_dir=v3(1, 0, 0))
                 for j, dx in enumerate((-0.5, 0.5)):
                     box(outside, "stair_%s_%d_edge_%d" % (name, k, j), (c[0] + dx * (sx1 - sx0), top - 0.04, c[2]), (0.08, 0.08, sz1 - sz0 + 0.02),
                         "dark_wood")
+        if interior:
+            # the rails round the opening in the cabin floor (open at its fore end, where one goes down)
+            hx0, hx1, hz0, hz1 = si.HOLD_HOLE
+            for k, xr in enumerate((hx0 - 0.25, hx1 + 0.25)):
+                balustrade(inside, "hold_rail_%d" % k, [(xr, 0.0, hz1), (xr, 0.0, hz0)], h=0.95, step=0.5, post="dark_wood", rail="wood",
+                           lit=True)
+            continue
         if not interior:
             # a hand rope on posts along the open (inboard) side
             steps = si.stair_steps(st_)
@@ -1008,6 +1058,7 @@ def build(g):
     decks(deck_b, detail, g)
     pilot_deck(pilot_b, detail, lanterns)
     cabin(cabin_b, detail, lanterns)
+    lanterns_root_ref[0] = lanterns
     canopy(canopy_b, detail, fringe_b)
     derricks(canopy_b, detail)
     pennants(root)

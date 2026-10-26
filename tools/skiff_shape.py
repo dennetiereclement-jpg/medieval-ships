@@ -29,12 +29,12 @@ SHOULDER = (3.5, 6.5)     # the body blends into the narrow bow between these z 
 SHEER_WAIST = 1.0         # top of the bulwark of the fore deck (its rail cap above)
 BOW_SHEER = 2.8           # the sheer sweeps up to the bow head
 BOW_RISE_Z = 4.0          # ... from here
-SECTION = (0.08, 1.8, 0.6)  # section: hw * (a + (1 - a) (1 - (1 - eta)^p)^q) from the keel (eta 0) to the waist (1)
+SECTION = (0.07, 1.7, 0.62)  # section: hw * (a + (1 - a) (1 - (1 - eta)^p)^q) from the keel (eta 0) to the waist (1)
 FLARE = 0.03              # the sides flare out a little above the waist
 SHELL = 0.4               # thickness of the planking (interior grid)
 # the keel line (z, y): deep amidships, rising in a long curve to the raised bow head; aft, a little rise
 # under the transom; monotone cubic through these
-KEEL_PTS = ((-13.0, -2.3), (-12.4, -2.8), (-11.0, -3.15), (-8.0, -3.35), (-4.0, -3.45), (0.0, -3.4), (3.0, -3.2), (5.5, -2.8),
+KEEL_PTS = ((-13.0, -2.3), (-12.4, -2.75), (-11.0, -3.05), (-8.0, -3.15), (-4.0, -3.2), (0.0, -3.15), (3.0, -3.0), (5.5, -2.7),
             (7.5, -2.3), (9.5, -1.5), (11.0, -0.6), (12.2, 0.3), (13.0, 1.2), (13.4, 2.0))
 BOW_STEPS = ((10.0, 0.5), (11.5, 1.0))   # the bow's floor steps up (z from which, height): the lean-to's raised floor
 BOW_HEAD = (2.95, 13.55)  # (y, z) of the top of the stem head
@@ -54,18 +54,21 @@ PILOT_STAND_Z = -5.1      # where the pilot stands behind it
 RAIL_H = 1.5              # balustrade of the pilot deck (chest high: no jumping over it in flight)
 
 # ---------------------------------------------------------------- the canvas roof (a tent on splayed poles)
-CANOPY_Z = -8.5           # its centre (the king post)
-APEX_Y = 12.5             # top of the canvas at the king post (its finial above)
-KING_TOP = 13.4
+CANOPY_Z = -9.0           # its centre (the king post)
+APEX_Y = 11.8             # top of the canvas at the king post (its finial above)
+KING_TOP = 12.6
 POLE_FEET = ((4.25, -3.35), (4.25, -12.75))       # (|x|, z) of the corner poles' feet on the pilot deck
-POLE_TOPS = ((5.2, 9.5, -1.4), (5.2, 9.5, -15.6))  # (|x|, y, z) of their tops (they splay outwards)
-POLE_TIP = 0.9            # the poles stick out above the canvas
-EAVE_HALF = (5.9, 8.4)    # half width and half length of the roof at its eaves (superellipse plan)
-EAVE_N = 3.0
+POLE_TOPS = ((4.869, 8.9, -1.5), (4.869, 8.9, -16.5))  # (|x|, y, z) of their tops: the roof's corners (they splay out)
+POLE_TIP = 1.4            # the poles stick out beyond the canvas (the roof's corner peaks)
+PILLARS = ((2.75, -4.25), (2.75, -12.25))  # (|x|, z) of the four thick posts of the pilot post, up through the canvas
+PILLAR_W = 0.62
+EAVE_HALF = (5.6, 8.6)    # half width and half length of the roof at its eaves (superellipse plan)
+EAVE_N = 5.0
 EAVE_Y = 8.9              # height of the eaves at the corner poles
 EAVE_SAG = 1.0            # the edges droop between the poles
-ROOF_POW = 2.0            # profile of the roof from the apex to the eaves: steep at the top, flat at the eaves
-FRINGE = (0.7, 2.9)       # length range of the torn strips hanging from the eaves
+EAVE_PINCH = 0.08         # ... and are drawn in between them (the cloth pulled to the pole tops: a concave plan)
+ROOF_POW = 1.7            # profile of the roof from the apex to the eaves: steep at the top, flat at the eaves
+FRINGE = (0.8, 3.3)       # length range of the torn strips hanging from the eaves
 # the long inclined derricks at the stern (foot on the pilot deck's aft corners, tip beyond the stern)
 DERRICKS = (((2.9, PILOT_Y, -12.9), (4.3, 11.6, -18.6)),)
 
@@ -78,8 +81,8 @@ TUBE_CENTRE_END = -21.1
 # each: name, root (x, y, z) on the hull, top corner (end of the upper spar), tip (lowest point); the canvas
 # is stretched between the upper spar and the leading spar (root -> tip), its free edge scalloped between ribs
 WINGS = (
-    ("wing_fore", (2.6, -2.2, -0.6), (6.2, -4.6, -7.4), (4.9, -9.0, -6.4)),
-    ("wing_aft", (2.75, -1.2, -11.9), (5.8, -1.7, -18.6), (5.0, -11.0, -14.2)),
+    ("wing_fore", (2.75, -1.8, -0.6), (6.2, -4.6, -7.4), (4.9, -9.0, -6.4)),
+    ("wing_aft", (2.6, -1.2, -11.9), (5.8, -1.7, -18.6), (5.0, -11.0, -14.2)),
 )
 WING_RIBS = (0.3, 0.55, 0.78)   # rib tips along the free edge (fraction from the top corner to the tip)
 WING_SCALLOP = 0.32             # depth of the hollows of the free edge between two ribs (fraction of their distance)
@@ -199,10 +202,12 @@ def inside_hull(x, y, z, inset=0.0):
 
 # ---------------------------------------------------------------- canvas roof
 def eave_radius(theta):
-    """Distance from the roof's axis to its eaves in the direction theta (0 = port, pi/2 = bow), superellipse plan."""
+    """Distance from the roof's axis to its eaves in the direction theta (0 = port, pi/2 = bow): a superellipse
+    plan drawn in between the corner poles."""
     a, b = EAVE_HALF
     c, s = abs(math.cos(theta)), abs(math.sin(theta))
-    return 1.0 / ((c / a) ** EAVE_N + (s / b) ** EAVE_N) ** (1.0 / EAVE_N)
+    r = 1.0 / ((c / a) ** EAVE_N + (s / b) ** EAVE_N) ** (1.0 / EAVE_N)
+    return r * (1.0 - EAVE_PINCH * math.sin(math.pi * edge_fraction(theta)) ** 1.5)
 
 
 def corner_angles():
@@ -214,8 +219,8 @@ def corner_angles():
     return out
 
 
-def eave_drop(theta):
-    """How far the eave hangs below EAVE_Y in direction theta: 0 at the poles, EAVE_SAG midway between them."""
+def edge_fraction(theta):
+    """Where the azimuth theta falls on the edge between two corner poles: 0 at a pole, 1 at the next one."""
     angs = sorted(a % (2 * math.pi) for a in corner_angles())
     t = theta % (2 * math.pi)
     for i in range(len(angs)):
@@ -223,9 +228,25 @@ def eave_drop(theta):
         a1 = angs[(i + 1) % len(angs)] + (2 * math.pi if i == len(angs) - 1 else 0.0)
         tt = t if t >= a0 else t + 2 * math.pi
         if a0 <= tt <= a1:
-            f = (tt - a0) / (a1 - a0)
-            return EAVE_SAG * math.sin(math.pi * f) ** 1.5
+            return (tt - a0) / (a1 - a0)
     return 0.0
+
+
+def eave_drop(theta):
+    """How far the eave hangs below EAVE_Y in direction theta: 0 at the poles, EAVE_SAG midway between them."""
+    return EAVE_SAG * math.sin(math.pi * edge_fraction(theta)) ** 1.5
+
+
+def roof_azimuths(n):
+    """n azimuths around the roof, the four corner poles among them, the edges divided by their angular spans."""
+    angs = sorted(a % (2 * math.pi) for a in corner_angles())
+    spans = [(angs[(i + 1) % 4] - angs[i]) % (2 * math.pi) for i in range(4)]
+    counts = [max(2, round(n * sp / (2 * math.pi))) for sp in spans]
+    counts[counts.index(max(counts))] += n - sum(counts)
+    out = []
+    for i in range(4):
+        out += [angs[i] + spans[i] * k / counts[i] for k in range(counts[i])]
+    return out + [out[0] + 2 * math.pi]
 
 
 def roof_point(theta, t):
@@ -256,6 +277,13 @@ def wing_edge(wing, side, f):
 
 
 SKID_TIP = (-8.3, -11.75)   # (y, z) of the point of the iron-shod spike under the stern box (the reference's keel spike)
+
+
+def pillar_top(fx, fz):
+    """Height of the canvas over a pillar (the pillar goes on through it to its cap)."""
+    th = math.atan2(fz - CANOPY_Z, fx)
+    r = math.hypot(fx, fz - CANOPY_Z)
+    return roof_point(th, min(1.0, r / eave_radius(th)))[1]
 
 
 def lowest_y():
