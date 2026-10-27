@@ -74,12 +74,22 @@ public final class CrystalLayout {
 	private static final double[] CASTLE1_ROUND = {STERN_ROUND[0] + 0.15, 2.2};
 	/** Storey 2 rounds off over this length before STERN2_Z (a superellipse of this exponent): a round stern. */
 	private static final double[] CASTLE2_ROUND = {5.0, 2.1};
+	/** Storey 2's round back is tucked in by up to this much more towards its stern (the tiers step). */
+	private static final double CASTLE2_TUCK = 0.45;
 	/** The stern of storey 1 (inside the hull's rounded stern) and of storey 2 (overhanging it). */
 	public static final double STERN1_END = -22.75;
 	public static final double STERN2_Z = -23.9;
-	/** Top of the roof deck's rail (under the model's green mansard roof) and of the crest. */
-	public static final double ROOF_TOP = 7.3;
-	public static final double CREST_Y = 8.4;
+	/**
+	 * The green mansard roof over storey 2 (solid in the grid): its eave's overhang past the walls, its inset at the top, the
+	 * height of the eave (the cornice) and of its flat top (railed, walkable).
+	 */
+	public static final double MANSARD_OVERHANG = 0.2;
+	public static final double MANSARD_INSET = 1.0;
+	public static final double MANSARD_EAVE = 5.85;
+	public static final double MANSARD_TOP = 8.0;
+	/** Top of the castle's roof and of the gilded scroll crest at its gable's top. */
+	public static final double ROOF_TOP = MANSARD_TOP;
+	public static final double CREST_Y = 9.5;
 	private static final double DECK_SLAB = 0.5;
 	public static final double HELM_Z = -15.9;
 	public static final double PILOT_Z = -16.8;
@@ -91,24 +101,25 @@ public final class CrystalLayout {
 
 	// ---- engines and crystals
 	/** Side engines: x (both sides), y, z0 (the end of the iron cap), z1 (the helmet's nose), radius of the drum. */
-	public static final double[] NACELLE = {8.3, -2.3, -24.4, -9.6, 3.1};
+	public static final double[] NACELLE = {7.5, -2.3, -24.4, -9.6, 3.1};
 	private static final double[] NACELLE_NOSE = {2.4, -13.6, -15.0};
-	private static final double[] NACELLE_TAIL = {-20.4, -23.0, 1.75};
+	/** The taper's start, the small iron drum's start, its radius, the radius of its flat end (the grille). */
+	private static final double[] NACELLE_TAIL = {-20.4, -23.0, 1.2, 0.75};
 	public static final double NACELLE_EYE_Z = -18.0;
-	/** The brass gear medallion on the stern: y, z of its face, radius. */
-	public static final double[] MEDALLION = {-3.5, -23.0, 3.0};
+	/** The gear medallion on the stern, tucked under the stern gallery: y, z of its face, radius (its dark rim). */
+	public static final double[] MEDALLION = {-2.5, -23.0, 2.25};
 	/** Propeller pods under the stern: x (both sides), root (y, z), hub (y, z), blade length. */
 	public static final double[] PROP_PODS = {7.0, -6.6, -5.0, -10.0, -10.4, 4.0};
 	/** The crystal platform under the keel: z, platform y, radius, tip y. */
 	public static final double[] BOTTOM_CRYSTAL = {0.3, -12.0, 3.1, -15.0};
 	public static final double[] FRONT_POD = {0.0, 7.2, 24.4};
-	public static final double[] REAR_POD = {0.0, 10.9, -24.4};
+	public static final double[] REAR_POD = {0.0, 12.9, -25.4};
 	public static final double POD_R = 2.0;
 	/** The crystal engine in the engine room (x, z), as tools/crystal_interior.py ENGINE (the tests check it is solid). */
 	public static final double ENGINE_X = 0.0;
 	public static final double ENGINE_Z = -16.6;
-	/** The ensign spar over the stern: its tip (y, z), with its cap. */
-	public static final double[] ENSIGN_TIP = {ROOF_TOP - 0.2 + 4.6 * Math.sin(Math.toRadians(15)), STERN2_Z + 1.2 - 4.6 * Math.cos(Math.toRadians(15)) - 0.2};
+	/** The ensign boom aft from storey 2's stern at the cornice's height: its tip (y, z), with its gilded scroll. */
+	public static final double[] ENSIGN_TIP = {MANSARD_EAVE, STERN2_Z - 4.3 - 0.3};
 
 	// ---- interior
 	public static final String GRID = "/assets/medievalships/interiors/crystal_airship.grid";
@@ -281,12 +292,13 @@ public final class CrystalLayout {
 		return Math.max(0.0, (planHalfWidth(z) - CASTLE_INSET[0]) * sternRound(z, STERN1_END, CASTLE1_ROUND[0], CASTLE1_ROUND[1]));
 	}
 
-	/** Half width of the outside of storey 2's walls: narrower, overhanging the stern. */
+	/** Half width of the outside of storey 2's walls: nearly as wide as storey 1, round at the stern (tucked in a little), overhanging it. */
 	public static double castle2X(double z) {
 		if (z > L2_Z || z < STERN2_Z) {
 			return 0.0;
 		}
-		return Math.max(0.0, (planHalfWidth(z) - CASTLE_INSET[1]) * sternRound(z, STERN2_Z, STERN2_Z + CASTLE2_ROUND[0], CASTLE2_ROUND[1]));
+		double tuck = CASTLE2_TUCK * smooth((STERN2_Z + CASTLE2_ROUND[0] - z) / CASTLE2_ROUND[0]);
+		return Math.max(0.0, (planHalfWidth(z) - CASTLE_INSET[1] - tuck) * sternRound(z, STERN2_Z, STERN2_Z + CASTLE2_ROUND[0], CASTLE2_ROUND[1]));
 	}
 
 	/** Half width of the outside of the stern castle's walls at z and height y (storey 1, its floor slab, storey 2). */
@@ -308,11 +320,11 @@ public final class CrystalLayout {
 		return z > L2_Z ? L1_TOP : L2_TOP;
 	}
 
-	/** Radius of a side engine at z: a brass helmet, its neck, the drum round the eye, a taper, an ogive iron cap. */
+	/** Radius of a side engine at z: a brass helmet, its neck, the drum round the eye, a taper, a small iron drum narrowing to its flat end. */
 	public static double nacelleR(double z) {
 		double z0 = NACELLE[2], z1 = NACELLE[3], r = NACELLE[4];
 		double rn = NACELLE_NOSE[0], zb = NACELLE_NOSE[1], zd = NACELLE_NOSE[2];
-		double za = NACELLE_TAIL[0], zc = NACELLE_TAIL[1], rc = NACELLE_TAIL[2];
+		double za = NACELLE_TAIL[0], zc = NACELLE_TAIL[1], rc = NACELLE_TAIL[2], re = NACELLE_TAIL[3];
 		if (z > z1 || z < z0) {
 			return 0.0;
 		}
@@ -333,7 +345,7 @@ public final class CrystalLayout {
 			return r - (r - rc) * smooth((za - z) / (za - zc));
 		}
 		double t = (zc - z) / (zc - z0);
-		return rc * Math.pow(1.0 - Math.pow(t, 1.6), 0.8) * 0.94 + 0.06 * rc * (1 - t);
+		return rc + (re - rc) * Math.pow(t, 1.5);
 	}
 
 	/** Lowest point: the tip of the crystal under the keel. */
@@ -410,9 +422,10 @@ public final class CrystalLayout {
 	}
 
 	/**
-	 * Terrain probes over the whole volume: rings round every balloon lobe, the mast, the ring, the hull's sections, the
-	 * castle's tiers and its roof deck, the engines (their wings, fins and eyes), the stern medallion, the ensign spar, the
-	 * propeller pods and their blades, the crystals and the floating pods.
+	 * Terrain probes over the whole volume: rings round every balloon lobe and the crystal finials at the side lobes' ends,
+	 * the mast, the ring, the hull's sections, the castle's tiers and its green mansard roof (eave, railed top, crest,
+	 * pennant poles and flags, the quarter lanterns), the engines (their wings, fins and eyes), the stern medallion, the
+	 * ensign boom, the propeller pods and their blades, the crystals and the floating pods.
 	 */
 	static List<double[]> probes() {
 		List<double[]> probes = new ArrayList<>();
@@ -428,6 +441,12 @@ public final class CrystalLayout {
 			}
 			probes.add(new double[] {lb[0], lb[1], lb[2] + lb[5] - 0.1});
 			probes.add(new double[] {lb[0], lb[1], lb[2] - lb[5] + 0.1});
+		}
+		// the crystal finials at the side lobes' outer ends (fore for fp/fs, aft for rp/rs)
+		for (int k = 3; k < LOBES.length; k++) {
+			double[] lb = LOBES[k];
+			double end = k < 5 ? 1.0 : -1.0;
+			probes.add(new double[] {lb[0], lb[1], lb[2] + end * (0.93 * lb[5] + 1.6)});
 		}
 		probes.add(new double[] {0, MAST_TOP + 0.5, MAST_Z});
 		for (double x : new double[] {-1.7, 1.7}) {
@@ -453,25 +472,33 @@ public final class CrystalLayout {
 		}
 		probes.add(new double[] {0, 1.3, BEAK_TIP_Z});
 		probes.add(new double[] {0, 4.6, 26.0});   // the stem head
-		// the castle's tiers: storey 1 round its rounded stern, storey 2 overhanging it, the roof deck's balustrade, the
-		// crest, the pennant poles, the ensign spar
+		// the castle's tiers: storey 1 round its rounded stern, storey 2 overhanging it, the green mansard roof (its eave and
+		// its railed top), the lanterns on the quarter posts, the crest, the pennant poles and their flags, the ensign boom
 		for (double z = STERN1_END + 0.15; z <= CASTLE_Z - 0.2 + 1e-6; z += 1.5) {
 			double x = castle1X(z) - 0.05;
 			probes.add(new double[] {x, L1_TOP - 0.1, z});
 			probes.add(new double[] {-x, L1_TOP - 0.1, z});
 		}
 		for (double z = STERN2_Z + 0.1; z <= L2_Z - 0.2 + 1e-6; z += 1.5) {
-			double x = castle2X(z) - 0.05;
-			for (double y : new double[] {L1_TOP - 0.4, L2_TOP + 0.6}) {
-				probes.add(new double[] {x, y, z});
-				probes.add(new double[] {-x, y, z});
+			double x = castle2X(z);
+			for (double sx : new double[] {-1, 1}) {
+				probes.add(new double[] {sx * (x - 0.05), L1_TOP - 0.4, z});
+				probes.add(new double[] {sx * (x + MANSARD_OVERHANG + 0.05), MANSARD_EAVE + 0.1, z});
+				if (x - MANSARD_INSET > 0.2) {
+					probes.add(new double[] {sx * (x - MANSARD_INSET), MANSARD_TOP + 0.4, z});
+				}
 			}
 		}
 		probes.add(new double[] {0, L1_TOP - 0.4, STERN2_Z + 0.05});
-		probes.add(new double[] {0, L2_TOP + 0.6, STERN2_Z + 0.05});
-		probes.add(new double[] {0, CREST_Y, L2_Z - 1.3});
-		for (double x : new double[] {-1, 1}) {
-			probes.add(new double[] {x * (castle2X(L2_Z - 1.4) - 0.6), L2_TOP + 3.1, L2_Z - 1.65});
+		probes.add(new double[] {0, MANSARD_EAVE + 0.1, STERN2_Z - MANSARD_OVERHANG});
+		probes.add(new double[] {0, MANSARD_TOP + 0.4, STERN2_Z + MANSARD_INSET + 0.1});
+		probes.add(new double[] {0, CREST_Y, L2_Z - 0.3});
+		double qx = castle1X(CASTLE1_ROUND[0]) + 0.21;
+		double px = castle2X(L2_Z - 1.4) - MANSARD_INSET - 0.25;
+		for (double sx : new double[] {-1, 1}) {
+			probes.add(new double[] {sx * qx, MANSARD_EAVE + 1.3, CASTLE1_ROUND[0]});        // the quarter lanterns
+			probes.add(new double[] {sx * px, MANSARD_TOP + 3.1, L2_Z - 1.65});              // the pennant poles' tops
+			probes.add(new double[] {sx * px, MANSARD_TOP + 2.6, L2_Z - 4.2});               // the pennants' tips
 		}
 		probes.add(new double[] {0, ENSIGN_TIP[0], ENSIGN_TIP[1] + 0.05});
 		// the engines: rings of probes along them, the tips of their wings and fins, the bezels of their eyes, the tanks

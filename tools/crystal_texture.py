@@ -86,7 +86,7 @@ REGIONS = {
     "engine_brass": (96, 128, 32, 32),  # riveted warm brass plates (the engines' helmet and drum)
     "petal":        (128, 128, 16, 32), # green-bronze petal plate of the turbine cowl (pointed, transparent outside)
     "louver":       (144, 128, 32, 16), # louvered grille slat: dark gap, brass lip
-    "coaming":      (176, 128, 64, 16), # green panel of the roof deck's coaming with a gilded scroll, gilded frame
+    "coaming":      (176, 128, 64, 16), # green panel with a gilded scroll, a gilded frame (the green roof's gable)
     "stern_panel":  (240, 128, 32, 32), # carved green panel in a gilded frame with a rosette (the castle's back)
     "cap_iron":     (272, 128, 32, 32), # dark ribbed iron (the engines' tail caps): ribs along v, rivets
     "medal_glass":  (304, 128, 32, 32), # the medallion's porthole: blue-grey glass, a glowing blue heart (lit)
@@ -98,8 +98,13 @@ REGIONS = {
     "window_tall":  (0, 160, 16, 32),   # tall arched stern window lit from inside: gilded frame, dark glazing bars, amber panes
     "stern_tall":   (16, 160, 24, 40),  # tall carved green panel of the stern: gilded frame, gilded vine scrolls, a jewelled rosette
     "roof_mansard": (40, 160, 32, 24),  # the green roof's slope: green boards down the slope, a gilded eave, a dark top edge
-    "roof_top":     (72, 160, 32, 32),  # the green roof's flat top: green boards under a gilded lattice with blue jewels
+    "roof_top":     (72, 160, 32, 32),  # the green roof's flat top: plain green boards along u
     "frieze":       (104, 160, 64, 8),  # carved gilded frieze (running scrolls) on dark wood, along u
+    "window_loggia": (168, 160, 24, 32), # the stern gallery's window into the lit officers' mess: an arched head, warm lamp light
+                                         # at the top, a hanging lamp, a darker interior below, thin glazing bars
+    "roof_panel":   (192, 160, 48, 32), # gilded frame round a green panel with a big gilded S-scroll (the roof's slopes)
+    "plate_patina": (240, 160, 16, 16), # one riveted plate of olive-green bronze patina (the engines' sides and tapers)
+    "slate":        (256, 160, 16, 16), # dark blue-grey slate (the medallion's outer dish)
 }
 
 
@@ -559,7 +564,7 @@ def _louver(px, region, rng):
 
 
 def _coaming(img, region, rng):
-    """Green panel of the roof deck's coaming with a gilded scroll in the middle and a gilded frame (along u)."""
+    """Green panel with a gilded scroll in the middle and a gilded frame (along u): the green roof's gable."""
     u, v, w, h = region
     _green(img, region, rng)
     px = img.load()
@@ -627,14 +632,16 @@ def _medal_glass(px, region):
             if r > 1.0:
                 _put(px, u, v, x, y, (0, 0, 0), 0)
                 continue
-            if r > 0.88:
-                c = _ramp(BRASS_STOPS, 0.8)
-            elif r < 0.35:
-                c = _mix((235, 250, 255), (70, 160, 240), r / 0.35)
+            if r > 0.9:
+                c = _ramp(BRASS_STOPS, 0.7)
+            elif r < 0.16:
+                c = _mix((220, 240, 255), (90, 150, 220), r / 0.16)
+            elif r < 0.3:
+                c = _mix((90, 150, 220), (70, 96, 128), (r - 0.16) / 0.14)
             else:
-                c = _mix((96, 136, 176), (60, 84, 120), (r - 0.35) / 0.53)
-                if abs(dx - dy) < 0.06 and r > 0.45:
-                    c = (170, 200, 220)
+                c = _mix((74, 96, 124), (44, 56, 76), (r - 0.3) / 0.6)
+                if abs(dx - dy) < 0.05 and 0.4 < r < 0.7:
+                    c = (120, 146, 170)
             _put(px, u, v, x, y, c)
 
 
@@ -753,19 +760,100 @@ def _roof_mansard(img, region, rng):
 
 
 def _roof_top(img, region, rng):
-    """The green roof's flat top: green boards under a gilded diamond lattice with a blue jewel at each crossing."""
+    """The green roof's flat top: plain painted green boards along u (the strips across the roof stretch along the
+    boards, so nothing shows the stretch), a dark seam every board, a little wear."""
     u, v, w, h = region
     fine_wood(img, region, _rgb("4a6a38"), _rgb("22301a"), 4, rng, knots=0.0)
     px = img.load()
+    nz = _noise(w, h, 5, rng)
     for y in range(h):
         for x in range(w):
-            a, b = (x + y) % 16, (x - y) % 16
-            if a in (0, 1) or b in (0, 1):
-                _put(px, u, v, x, y, _ramp(GOLD_STOPS, 0.45 + 0.3 * ((x + y) % 2)))
-            if (x % 16, y % 16) in ((8, 8), (0, 0)):
-                for dx, dy in ((0, 0), (1, 0), (0, 1), (1, 1), (-1, 0), (0, -1)):
-                    xx, yy = (x + dx) % w, (y + dy) % h
-                    _put(px, u, v, xx, yy, (90, 170, 240) if (dx, dy) != (0, 0) else (210, 240, 255))
+            c = px[u + x, v + y][:3]
+            c = _scale(_mix(c, (74, 100, 60), 0.35), 1.0 + 0.08 * nz[y][x])
+            if y % 4 == 3:
+                c = _scale(c, 0.7)
+            _put(px, u, v, x, y, c)
+
+
+def _window_loggia(px, region):
+    """The stern gallery's window seen from outside, deep in its loggia: an arched head, the lit room behind (warm lamp
+    light at the top, a hanging lamp, the room darker towards the floor, the back of a chair and the table's edge in
+    shadow), thin dark glazing bars, a dark wooden reveal round it."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            fx, fy = (x + 0.5) / w, (y + 0.5) / h
+            ax = abs(fx - 0.5) / 0.5
+            top = 0.2
+            if fy < top and ax ** 2 + ((top - fy) / top) ** 2 > 1.0:
+                _put(px, u, v, x, y, _rgb("2a190c"))       # the reveal's dark head over the arch
+                continue
+            if x in (0, w - 1) or y == h - 1 or (fy < top and ax ** 2 + ((top - fy) / top) ** 2 > 0.7):
+                _put(px, u, v, x, y, _rgb("3a2414"))
+                continue
+            # the room: warm at the top, falling to a dark brown at the floor
+            g = max(0.0, min(1.0, (fy - 0.15) / 0.8))
+            c = _mix((255, 214, 130), (70, 40, 20), g ** 0.8)
+            # the hanging lamp: a halo
+            d = math.hypot((fx - 0.5) * 1.4, fy - 0.33)
+            if d < 0.2:
+                c = _mix(c, (255, 226, 150), 0.7 * (1 - d / 0.2))
+            # furniture in shadow: the table's edge, a chair's back
+            if 0.72 < fy < 0.76 and 0.12 < fx < 0.88:
+                c = _rgb("2c1a0c")
+            if 0.6 < fy < 0.95 and (abs(fx - 0.2) < 0.05 or abs(fx - 0.32) < 0.03):
+                c = _rgb("34200f")
+            # the glazing bars: one mullion, two transoms, lead lines
+            if x == w // 2 or y in (int(h * 0.36), int(h * 0.68)):
+                c = _rgb("3a2414")
+            elif (x - 1) % 6 == 0 and fy > top:
+                c = _scale(c, 0.8)
+            if d < 0.07:          # the lamp's bright core, in front of the bars
+                c = (255, 246, 214)
+            _put(px, u, v, x, y, c)
+
+
+def _roof_panel(img, region, rng):
+    """A gilded frame (a dark inner line) round a green panel with one big gilded S-scroll and leaves (the roof's
+    slopes: one panel a bay)."""
+    u, v, w, h = region
+    _green(img, region, rng)
+    px = img.load()
+    S = 4
+    m = Image.new("L", (w * S, h * S), 0)
+    d = ImageDraw.Draw(m)
+    # the S: two spirals curling the opposite ways, joined by a long sweep
+    for cx, cy, sgn, rot in ((w * 0.27, h * 0.56, 1, 0.0), (w * 0.73, h * 0.44, 1, math.pi)):
+        pts = []
+        for i in range(140):
+            t = i / 139
+            a = rot + sgn * t * 1.75 * 2 * math.pi
+            r = (1 - 0.86 * t) * h * 0.3
+            pts.append(((cx + math.cos(a) * r * 1.15) * S, (cy + math.sin(a) * r) * S))
+        d.line(pts, fill=255, width=int(2.0 * S))
+    sweep = [((w * (0.27 + 0.46 * t)) * S, (h * (0.56 + 0.3 - 0.6 * t - 0.12 * math.sin(math.pi * t) + 0.0)) * S) for t in (i / 29 for i in range(30))]
+    d.line(sweep, fill=255, width=int(1.8 * S))
+    for lx, ly, sg in ((0.5, 0.36, 1), (0.42, 0.62, -1)):     # two leaves on the sweep
+        d.ellipse(((w * lx - 2.2) * S, (h * ly - 1.2) * S, (w * lx + 2.2) * S, (h * ly + 1.2) * S), fill=200)
+    m = m.resize((w, h), Image.BILINEAR)
+    mp = m.load()
+    for y in range(h):
+        for x in range(w):
+            if x < 2 or y < 2 or x > w - 3 or y > h - 3:
+                _put(px, u, v, x, y, _ramp(GOLD_STOPS, 0.4 + 0.4 * ((x + y) % 3) / 2))
+            elif x < 3 or y < 3 or x > w - 4 or y > h - 4:
+                _put(px, u, v, x, y, _rgb("26341c"))
+            elif mp[x, y] > 90:
+                _put(px, u, v, x, y, _ramp(GOLD_STOPS, 0.35 + 0.5 * mp[x, y] / 255.0))
+
+
+def _slate(px, region, rng):
+    """Dark blue-grey slate: a soft mottle, faint layers."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            k = 1.0 + 0.08 * math.sin(y * 1.3 + 0.4 * math.sin(x * 0.7)) + (0.06 if (x * 5 + y * 3) % 11 == 0 else 0.0)
+            _put(px, u, v, x, y, _jitter(_scale((62, 68, 78), k), rng, 4))
 
 
 def _frieze(img, region, rng):
@@ -780,8 +868,8 @@ def _frieze(img, region, rng):
             else:
                 t = (x % 16) / 16.0 * 2 * math.pi
                 yc = h / 2 - 0.5 + (h / 2 - 1.6) * math.sin(t)
-                if abs(y - yc) < 0.9 or ((x % 16) in (4, 12) and abs(y - h / 2 + 0.5) < 1.2):
-                    c = _ramp(GOLD_STOPS, 0.55 + 0.3 * math.cos(t))
+                if abs(y - yc) < 0.55 or ((x % 16) in (4, 12) and abs(y - h / 2 + 0.5) < 0.8):
+                    c = _mix(_ramp(GOLD_STOPS, 0.4 + 0.25 * math.cos(t)), _rgb("3a2414"), 0.25)
             _put(px, u, v, x, y, _jitter(c, rng, 2))
 
 
@@ -889,9 +977,13 @@ def make_texture(path):
     _roof_mansard(img, R["roof_mansard"], rng)
     _roof_top(img, R["roof_top"], rng)
     _frieze(img, R["frieze"], rng)
+    _window_loggia(px, R["window_loggia"])
+    _roof_panel(img, R["roof_panel"], rng)
+    _slate(px, R["slate"], rng)
     for name, stops in (("plate_brass", [(0.0, (66, 54, 26)), (0.35, (118, 98, 50)), (0.7, (164, 136, 72)), (1.0, (204, 176, 106))]),
                         ("plate_bronze", [(0.0, (46, 34, 20)), (0.35, (84, 62, 34)), (0.7, (122, 92, 52)), (1.0, (160, 124, 76))]),
-                        ("plate_helmet", [(0.0, (92, 70, 30)), (0.35, (150, 118, 54)), (0.7, (198, 164, 86)), (1.0, (236, 214, 150))])):
+                        ("plate_helmet", [(0.0, (92, 70, 30)), (0.35, (150, 118, 54)), (0.7, (198, 164, 86)), (1.0, (236, 214, 150))]),
+                        ("plate_patina", [(0.0, (40, 50, 30)), (0.35, (74, 92, 56)), (0.7, (108, 124, 80)), (1.0, (150, 160, 110))])):
         _plate(px, R[name], stops, rng)
     lt._round(px, R["fairy"], lambda r, dx, dy: (255, 236, 170) if r < 0.45 else (255, 196, 96) if r < 0.85 else (220, 150, 70))
     u, v, w, h = R["turret"]

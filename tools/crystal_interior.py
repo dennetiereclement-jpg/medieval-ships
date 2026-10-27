@@ -179,6 +179,35 @@ def ring_cells(g):
     return ring | ped
 
 
+def plan_distance(xfn, z_end, z_front, g):
+    """Signed horizontal distance of the cells' (x, z) from a plan |x| <= xfn(z) between z_end (its round stern) and
+    z_front (+ outside, - inside; the front is left open), the same for every height."""
+    zs = np.linspace(z_end, z_front, 400)
+    zs = np.unique(np.concatenate([zs, z_end + (z_front - z_end) * np.linspace(0.0, 0.02, 60)]))   # dense round the stern's tip
+    pts = np.array([(xfn(z), z) for z in zs])
+    xs, zc = g.X[:, 0, :], g.Z[:, 0, :]
+    ax = np.abs(xs)
+    d = np.full(xs.shape, np.inf)
+    for (xa, za), (xb, zb) in zip(pts[:-1], pts[1:]):
+        ex, ez = xb - xa, zb - za
+        L2 = ex * ex + ez * ez
+        if L2 < 1e-12:
+            continue
+        t = np.clip(((ax - xa) * ex + (zc - za) * ez) / L2, 0.0, 1.0)
+        d = np.minimum(d, np.hypot(ax - (xa + t * ex), zc - (za + t * ez)))
+    w = np.vectorize(xfn)(zc)
+    inside = (ax <= w) & (zc >= z_end) & (zc <= z_front)
+    d = np.where(inside, -d, d)
+    return d[:, None, :]
+
+
+def pennant_poles():
+    """(x, z) of the two pennant poles on the green roof's top, near its front corners."""
+    zc = cs.L2_Z - 1.4
+    x = cs.castle2_x(zc) - cs.MANSARD[1] - 0.25
+    return ((x, zc - 0.25), (-x, zc - 0.25))
+
+
 def build():
     g = Grid()
     X, Y, Z = g.X, g.Y, g.Z
@@ -232,16 +261,23 @@ def build():
             walled &= np.roll(st, o, axis=(0, 1, 2))
         g.set(DRY, *ROOMS[room], where=walled)
     # the terrace on storey 1's roof in front of the cockpit: its rail; the ledges beside storey 2 (railed, too narrow
-    # to walk on), the balustrade round the roof deck
+    # to walk on)
     roof1 = (Z > cs.STERN_Z) & (Z < cs.CASTLE_Z) & (np.abs(X) <= c1) & (Y > cs.L1_TOP) & (Y < cs.L1_TOP + cs.RAIL_H)
     terrace = roof1 & (Z > cs.L2_Z)
     g.k[terrace & ((np.abs(X) > c1 - 0.5) | (Z > cs.CASTLE_Z - 0.5))] = FURNITURE
     g.k[roof1 & (Z <= cs.L2_Z) & (g.k == OUT)] = FURNITURE
-    roof2 = (Z > cs.STERN2_Z) & (Z < cs.L2_Z) & (np.abs(X) <= c2) & (Y > cs.L2_TOP) & (Y < cs.ROOF_Y[1])
-    inner2 = roof2.copy()
-    for o in ((1, 0, 0), (-1, 0, 0), (0, 0, 1), (0, 0, -1)):
-        inner2 &= np.roll(roof2, o, axis=(0, 1, 2))
-    g.k[roof2 & ~inner2] = FURNITURE
+    # the green mansard roof over storey 2 (solid, as drawn: its slopes from the eave in to its top on every side), a low
+    # rail round its flat top (walkable), the pennants' poles on it
+    eave, inset, ytop, yev = cs.MANSARD
+    yeave = yev + 0.2                       # the eave: the top of the cornice (tools/generate_crystal.py)
+    d2 = plan_distance(cs.castle2_x, cs.STERN2_Z, cs.L2_Z, g)   # signed distance (x, z) outside storey 2's walls
+    off = eave - np.clip((Y - yeave) / (ytop - yeave), 0.0, 1.0) * (eave + inset)
+    roof2 = (Z > cs.STERN2_Z - eave) & (Z < cs.L2_Z) & (Y > cs.L2_TOP - 0.01) & (Y < ytop) & (d2 <= off)
+    g.k[roof2 & (g.k == OUT)] = SOLID
+    top2 = (Z < cs.L2_Z - 0.25) & (Y > ytop) & (Y < ytop + 0.5) & (d2 <= -inset) & (d2 > -inset - CELL)
+    g.k[top2 & (g.k == OUT)] = FURNITURE
+    for x, z in pennant_poles():
+        g.set(FURNITURE, x - 0.25, x + 0.25, ytop, ytop + 3.0, z - 0.25, z + 0.25, where=g.k == OUT)
     # the stern balcony round storey 1's stern, at the main deck's level (its floor and balusters)
     bx = _vec(cs.balcony_x, Z)
     yb = cs.sheer_y(cs.STERN_Z)

@@ -79,7 +79,7 @@ DECK_SLAB = 0.5
 TURRET = (1.5, 10.0, 13.3, 4.0)        # half width, z0, z1, top of the lookout on the main deck (a moulded cap)
 
 # stern castle in tiers, round at the stern: storey 1 (on the main deck, inset from the hull's sides), storey 2 (the cockpit,
-# overhanging the stern), a green mansard roof over it (drawn by the model; the grid keeps a railed roof deck), a crest
+# overhanging the stern), a green mansard roof over it (solid in the grid, its flat top walkable), the crest on its gable
 CASTLE_Z = -10.1           # front of storey 1
 L1_Y, L1_TOP = 0.0, 3.0
 L2_Z = -14.0               # front of storey 2 (storey 1's roof in front of it is a terrace)
@@ -88,11 +88,15 @@ CASTLE_INSET = (0.3, 0.45) # storeys 1 and 2: inset of their walls from the hull
                            # the sheet's back view)
 CASTLE1_ROUND = (STERN_ROUND[0] + 0.15, 2.2)   # storey 1 rounds off in plan from this z to STERN1_END (exponent)
 CASTLE2_ROUND = (5.0, 2.1)                     # storey 2: over this length before STERN2_Z (exponent): a round stern
+CASTLE2_TUCK = 0.45        # storey 2's round back is tucked in by up to this much more towards its stern (the tiers step)
 STERN1_END = -22.75        # the stern of storey 1 (inside the hull's rounded stern)
 STERN2_Z = -23.9           # the stern of storey 2 (it overhangs the hull's stern)
-ROOF_Z = (STERN2_Z - 0.35, L2_Z - 0.3)   # the roof deck's cornice
-ROOF_Y = (L2_TOP, 7.3)     # the roof deck and the top of its rail in the grid (the model's mansard rises to 7.55)
-CREST_Y = 8.4              # top of the gilded crest and volutes
+# the green mansard roof over storey 2: its eave's overhang past the walls, its inset at the top (from the walls), its
+# flat top's height, the eave's height (the cornice, under the cockpit's ceiling: a tall roof sloping in on every side)
+MANSARD = (0.2, 1.0, 8.0, 5.85)
+ROOF_Y = (L2_TOP, MANSARD[2])   # the roof over the cockpit's ceiling (solid in the grid) and its top
+CREST_Y = 9.5              # top of the gilded scroll crest at the gable's top
+ENSIGN = (MANSARD[3], 4.3)  # the ensign boom aft from storey 2's stern at the cornice's height: its height, its length
 DECK_SLAB_C = 0.5
 BALCONY = (0.35, 0.8)      # the stern balcony round storey 1's stern: its overhang on the sides, aft
 
@@ -102,15 +106,16 @@ HELM_Z = -15.9
 PILOT_Z = -16.8
 
 # ---------------------------------------------------------------- engines and crystals
-NACELLE = (8.3, -2.3, -24.4, -9.6, 3.1)       # x (both sides), y, z0 (the end of the iron cap), z1 (the helmet's nose), radius
+NACELLE = (7.5, -2.3, -24.4, -9.6, 3.1)       # x (both sides), y, z0 (the end of the iron cap), z1 (the helmet's nose), radius
 NACELLE_EYE = (-18.0, 1.7)                     # z, radius of the glowing crystal eye on the outer face
-MEDALLION = (-3.5, -23.0, 3.0)                 # y, z of its face, radius: the brass gear medallion on the stern
+MEDALLION = (-2.5, -23.0, 2.25)                # y, z of its face, radius (its dark rim): the gear medallion on the stern,
+                                               # tucked under the stern gallery
 PROP_PODS = (7.0, (-6.6, -5.0), (-10.0, -10.4))   # x (both sides), (y, z) of the root, (y, z) of the hub
 PROP_BLADE = 4.0
 BOTTOM_CRYSTAL = (0.3, -12.0, 3.1, -15.0)     # z, platform y, platform radius, tip y
 HANGING_CRYSTALS = ((2.0, -5.8, 20.4), (-2.0, -5.8, 20.4), (0.0, -10.2, 10.0))
 FRONT_POD = (0.0, 7.2, 24.4)
-REAR_POD = (0.0, 10.9, -24.4)
+REAR_POD = (0.0, 12.9, -25.4)    # high over the stern, well aft of the roof
 POD_R = 2.0
 CASTLE_CRYSTALS = ((4.6, 2.2, -9.0), (-4.6, 2.2, -9.0))   # crystal lamps on the rail at the castle's front corners
 
@@ -310,10 +315,12 @@ def castle1_x(z):
 
 
 def castle2_x(z):
-    """Half width of the outside of storey 2's walls: narrower, rounded off further aft (it overhangs the stern)."""
+    """Half width of the outside of storey 2's walls: nearly as wide as storey 1, round at the stern (its round back tucked
+    in a little, so the tiers step), rounded off further aft (it overhangs storey 1's stern)."""
     if z > L2_Z or z < STERN2_Z:
         return 0.0
-    return max(0.0, (plan_hw(z) - CASTLE_INSET[1]) * stern_round(z, STERN2_Z, STERN2_Z + CASTLE2_ROUND[0], CASTLE2_ROUND[1]))
+    tuck = CASTLE2_TUCK * _smooth((STERN2_Z + CASTLE2_ROUND[0] - z) / CASTLE2_ROUND[0])
+    return max(0.0, (plan_hw(z) - CASTLE_INSET[1] - tuck) * stern_round(z, STERN2_Z, STERN2_Z + CASTLE2_ROUND[0], CASTLE2_ROUND[1]))
 
 
 def castle_x(z, y):
@@ -344,15 +351,16 @@ def castle_top(z):
 
 # ---------------------------------------------------------------- engines
 NACELLE_NOSE = (2.4, -13.6, -15.0)   # radius of the brass helmet and its neck, z where the neck ends, z where the drum is full
-NACELLE_TAIL = (-20.4, -23.0, 1.75)  # z where the drum starts tapering aft, z where the iron cap starts, its radius
+NACELLE_TAIL = (-20.4, -23.0, 1.2, 0.75)  # z where the drum starts tapering aft, z where the iron drum starts, its radius,
+                                          # the radius of its flat end (the grille)
 
 
 def nacelle_r(z):
     """Radius of a side nacelle at z: a domed brass helmet on a neck, flaring into the big drum round the crystal eye,
-    a domed iron cap at the tail."""
+    tapering aft into a small iron drum narrowing to its flat end (the grille)."""
     x, y, z0, z1, r = NACELLE
     rn, zb, zd = NACELLE_NOSE
-    za, zc, rc = NACELLE_TAIL
+    za, zc, rc, re = NACELLE_TAIL
     if z > z1 or z < z0:
         return 0.0
     if z > z1 - rn:   # the helmet's dome
@@ -366,8 +374,8 @@ def nacelle_r(z):
         return r
     if z > zc:        # its aft edge, rounded
         return r - (r - rc) * _smooth((za - z) / (za - zc))
-    t = (zc - z) / (zc - z0)   # the iron cap: an ogive tail
-    return rc * (1.0 - t ** 1.6) ** 0.8 * 0.94 + 0.06 * rc * (1 - t)
+    t = (zc - z) / (zc - z0)   # the iron drum, narrowing to its flat end
+    return rc + (re - rc) * t ** 1.5
 
 
 def inside_nacelle(x, y, z, inset=0.0):
@@ -400,3 +408,4 @@ if __name__ == "__main__":
         print("{%s, %.6f}," % (z, nacelle_r(z)))
     for z, y in ((-12.0, 1.0), (-20.0, 4.0), (-22.5, 1.0), (-23.5, 4.0), (-18.0, 2.7)):
         print("{%s, %s, %.6f}," % (z, y, castle_x(z, y)))
+    print("mansard {%s, %s, %s, %s}, crest %s, ensign {%s, %s}" % (MANSARD + (CREST_Y,) + ENSIGN))

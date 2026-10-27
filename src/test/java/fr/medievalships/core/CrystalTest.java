@@ -1,5 +1,6 @@
 package fr.medievalships.core;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -51,14 +52,19 @@ class CrystalTest {
 			assertEquals(r[3], CrystalLayout.keelY(r[0]), 1e-5, "keel at " + r[0]);
 			assertEquals(r[4], CrystalLayout.sheerY(r[0]), 1e-5, "sheer at " + r[0]);
 		}
-		assertEquals(0.845990, CrystalLayout.nacelleR(-24.0), 1e-5);
-		assertEquals(2.195494, CrystalLayout.nacelleR(-22.0), 1e-5);
+		assertEquals(0.928343, CrystalLayout.nacelleR(-24.0), 1e-5);
+		assertEquals(1.826991, CrystalLayout.nacelleR(-22.0), 1e-5);
 		assertEquals(3.100000, CrystalLayout.nacelleR(-15.0), 1e-5);
 		assertEquals(1.326650, CrystalLayout.nacelleR(-10.0), 1e-5);
-		double[][] castle = {{-12.0, 1.0, 5.550246}, {-20.0, 4.0, 4.893873}, {-22.5, 1.0, 1.908902}, {-23.5, 4.0, 1.965620}, {-18.0, 2.7, 5.277609}};
+		double[][] castle = {{-12.0, 1.0, 5.550246}, {-20.0, 4.0, 4.839233}, {-22.5, 1.0, 1.908902}, {-23.5, 4.0, 1.780665}, {-18.0, 2.7, 5.277609}};
 		for (double[] r : castle) {
 			assertEquals(r[2], CrystalLayout.castleX(r[0], r[1]), 1e-5, "castle half width at " + r[0] + ", " + r[1]);
 		}
+		// the green mansard roof (overhang, inset, top, eave), the crest, the ensign boom (height, length)
+		assertArrayEquals(new double[] {0.2, 1.0, 8.0, 5.85, 9.5}, new double[] {CrystalLayout.MANSARD_OVERHANG, CrystalLayout.MANSARD_INSET,
+				CrystalLayout.MANSARD_TOP, CrystalLayout.MANSARD_EAVE, CrystalLayout.CREST_Y}, 1e-9);
+		assertEquals(5.85, CrystalLayout.ENSIGN_TIP[0], 1e-9);
+		assertEquals(CrystalLayout.STERN2_Z - 4.3 - 0.3, CrystalLayout.ENSIGN_TIP[1], 1e-9);
 	}
 
 	@Test
@@ -75,17 +81,21 @@ class CrystalTest {
 		double height = G.topY() - G.lowestY();
 		assertTrue(height > 40 && height < 46, "overall height (mast and the crystal under the keel) " + height);
 		// the balloon floats low over the ring (its top runs a little into the belly, as on the sheet), the ring over the
-		// deck; the castle's roof deck, its crest and the floating pods clear the lobes
+		// deck; the castle's green roof, its crest, its pennant poles and the floating pods clear the lobes
 		double belly = CrystalLayout.CY - CrystalLayout.LOBES[0][4];
 		double ringTop = CrystalLayout.RING_Y + CrystalLayout.RING_R;
 		assertTrue(CrystalLayout.RING_Y - CrystalLayout.RING_R > CrystalLayout.SHEER_WAIST, "the ring stands over the rail");
 		assertTrue(ringTop > belly && ringTop - belly < 2.5, "the ring's top runs into the belly: " + ringTop + " / " + belly);
 		for (double z = CrystalLayout.STERN2_Z; z <= CrystalLayout.L2_Z; z += 0.5) {
 			for (double x : new double[] {0, CrystalLayout.castle2X(z), -CrystalLayout.castle2X(z)}) {
-				assertFalse(CrystalLayout.insideBalloon(x, CrystalLayout.ROOF_TOP + 0.6, z), "the roof deck clears the balloon at " + x + ", " + z);
+				assertFalse(CrystalLayout.insideBalloon(x, CrystalLayout.ROOF_TOP + 0.6, z), "the roof clears the balloon at " + x + ", " + z);
 			}
 		}
-		assertFalse(CrystalLayout.insideBalloon(0, CrystalLayout.CREST_Y + 0.3, CrystalLayout.L2_Z - 1.3), "the crest clears the balloon");
+		assertFalse(CrystalLayout.insideBalloon(0, CrystalLayout.CREST_Y + 0.3, CrystalLayout.L2_Z - 0.3), "the crest clears the balloon");
+		double px = CrystalLayout.castle2X(CrystalLayout.L2_Z - 1.4) - CrystalLayout.MANSARD_INSET - 0.25;
+		for (double x : new double[] {-px, px}) {
+			assertFalse(CrystalLayout.insideBalloon(x, CrystalLayout.MANSARD_TOP + 3.3, CrystalLayout.L2_Z - 1.65), "the pennant pole clears the balloon");
+		}
 		for (double[] pod : new double[][] {CrystalLayout.FRONT_POD, CrystalLayout.REAR_POD}) {
 			assertFalse(CrystalLayout.insideBalloon(pod[0], pod[1] + 2.6, pod[2]), "the floating pod clears the balloon");
 		}
