@@ -16,6 +16,11 @@ public final class GotoRoutes {
 	public static final String PREFIX = "goto-";
 	/** A player's destination is cancelled once nobody has been aboard for this long (10 s). */
 	public static final int UNATTENDED_TICKS = 200;
+	/**
+	 * A destination the autopilot gives up on this close (blocks, horizontally) is reported as reached as near as
+	 * possible rather than unreachable.
+	 */
+	public static final double CLOSE_ENOUGH = 12.0;
 
 	private GotoRoutes() {
 	}

@@ -74,7 +74,7 @@ pleine inclinaison à chaque cellule praticable et aux bords du pont de chaque a
 bouge de plus d'un demi-bloc — ce test a trouvé que l'ancienne borne `asin(0,5/r)` laissait 0,50002
 bloc sur le Léviathan, corrigée en `2 asin(0,5/2r)` ; tribord vers le bas dans un virage à droite ;
 `bankAngle: 0` la coupe) ; tableau de bord (aéronef, navire, sous-marin, pilote automatique, pluriels
-français, touches d'un clavier QWERTY, limite de vitesse) ; destinations (itinéraire d'un point,
+français, touches d'un clavier QWERTY, limite de vitesse et moteur « bridé à la limite ») ; destinations (itinéraire d'un point,
 préfixe réservé, chaque refus de `/pilote` : ferry en route ou arrêté, autre pilote, distance,
 Nautilus ; vol du dirigeable par-dessus un mur de 20 blocs jusqu'au point puis atterrissage à sa
 garde, sans jamais toucher le relief ; navigation d'une galère jusqu'à son point ; une galère envoyée

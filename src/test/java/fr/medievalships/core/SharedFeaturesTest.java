@@ -297,6 +297,17 @@ class SharedFeaturesTest {
 			s.speed = c[0];
 			assertEquals(names[(int) c[1]], PilotHud.engineState(s), "at " + c[0] + " blocks/s");
 		}
+		// held at an administrator's limit: neither "slow" nor "cruising", the panel says why it goes no faster
+		s.speedLimit = 2.0;
+		s.speed = 1.95;
+		assertEquals("bridé à la limite", PilotHud.engineState(s));
+		s.speed = 1.2;
+		assertEquals("ralenti", PilotHud.engineState(s), "below the limit: the gait it is in");
+		s.speed = -1.95;
+		assertEquals("marche arrière", PilotHud.engineState(s));
+		s.speedLimit = 50;
+		s.speed = 6.6;
+		assertEquals("plein régime", PilotHud.engineState(s), "a limit above full speed changes nothing");
 	}
 
 	// ------------------------------------------------------------------ goto

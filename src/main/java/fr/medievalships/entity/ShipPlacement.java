@@ -29,18 +29,24 @@ public final class ShipPlacement {
 	/**
 	 * What a placement starts from, the same for the preview (client) and the click (server): the point of the aimed
 	 * block face, its two in-face coordinates moved to the middle of the face (the coordinate across the face is the
-	 * face's own, the same anywhere on it), and the heading rounded to {@link #YAW_STEP} degrees. While the player aims
-	 * at the same face with the same rounded heading, both sides compute exactly the same spot.
+	 * face's own, the same anywhere on it, rounded to 1/4096 block so the rounding error of the ray does not move it),
+	 * and the heading rounded to {@link #YAW_STEP} degrees. While the player aims at the same face with the same
+	 * rounded heading, both sides compute exactly the same spot.
 	 */
 	public record Aim(double x, double y, double z, float yaw) {
 		public static Aim of(net.minecraft.util.hit.BlockHitResult hit, float yaw) {
 			net.minecraft.util.math.BlockPos b = hit.getBlockPos();
 			net.minecraft.util.math.Vec3d p = hit.getPos();
 			net.minecraft.util.math.Direction.Axis across = hit.getSide().getAxis();
-			double x = across == net.minecraft.util.math.Direction.Axis.X ? p.x : b.getX() + 0.5;
-			double y = across == net.minecraft.util.math.Direction.Axis.Y ? p.y : b.getY() + 0.5;
-			double z = across == net.minecraft.util.math.Direction.Axis.Z ? p.z : b.getZ() + 0.5;
+			double x = across == net.minecraft.util.math.Direction.Axis.X ? onFace(p.x) : b.getX() + 0.5;
+			double y = across == net.minecraft.util.math.Direction.Axis.Y ? onFace(p.y) : b.getY() + 0.5;
+			double z = across == net.minecraft.util.math.Direction.Axis.Z ? onFace(p.z) : b.getZ() + 0.5;
 			return new Aim(x, y, z, snapYaw(yaw));
+		}
+
+		/** The face's coordinate, without the ray's rounding error (block faces are on 1/16 steps). */
+		static double onFace(double v) {
+			return Math.round(v * 4096.0) / 4096.0;
 		}
 	}
 

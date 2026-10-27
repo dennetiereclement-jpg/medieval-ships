@@ -947,6 +947,9 @@ public abstract class ShipEntity extends Entity {
 		if (GotoRoutes.isGoto(routeName) && !routeName.equals(route.name) && getEntityWorld() instanceof ServerWorld sw) {
 			ShipData.get(sw.getServer()).removeRoute(routeName); // an administrator's route replaces the destination
 		}
+		if (!GotoRoutes.isGoto(route.name)) {
+			gotoByAdmin = false; // only a destination has an issuer (startGoto sets it)
+		}
 		routeName = route.name;
 		aiEnabled = true;
 		autopilot.start(route, pose(), config(), geometry());
@@ -1023,9 +1026,15 @@ public abstract class ShipEntity extends Entity {
 	private void gotoChecks(ServerWorld world) {
 		if (gotoUnreachable) {
 			gotoUnreachable = false;
+			Route route = ShipData.get(world.getServer()).route(routeName);
+			double left = route == null || route.size() == 0 ? Double.NaN : Math.hypot(route.get(0).x - getX(), route.get(0).z - getZ());
 			if (cancelGoto()) {
-				tellAround(world, Text.literal(vesselName() + " : destination inaccessible, le pilote automatique rend la main.")
-						.formatted(Formatting.RED));
+				// stalled right by the point (a ship against the quay, an aircraft over a crowded spot): as good as there
+				tellAround(world, Text.literal(left <= GotoRoutes.CLOSE_ENOUGH
+						? String.format(java.util.Locale.ROOT, "%s : arrivé au plus près de la destination (à %.0f blocs), le pilote automatique rend la main.",
+								vesselName(), left)
+						: vesselName() + " : destination inaccessible, le pilote automatique rend la main.")
+						.formatted(left <= GotoRoutes.CLOSE_ENOUGH ? Formatting.AQUA : Formatting.RED));
 			}
 		}
 		if (!onGoto() || gotoByAdmin || age % 20 != 0) {

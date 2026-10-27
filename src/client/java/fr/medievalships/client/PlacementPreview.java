@@ -52,7 +52,12 @@ public final class PlacementPreview {
 	/** Translucent tints (ARGB) of the ghost. */
 	public static final int FITS_COLOR = 0x8C59FF6A;
 	public static final int BLOCKED_COLOR = 0x8CFF3B3B;
-	public static final int FORBIDDEN_COLOR = 0x8C9A9A9A;
+	public static final int FORBIDDEN_COLOR = 0x8C808080;
+	/**
+	 * Not allowed: the ghost is also washed toward white by the entity overlay (the creeper's flash; u = 8 of 15 mixes
+	 * 40 % white in), so it reads as a greyed-out vessel rather than a real one in the shade.
+	 */
+	private static final int FORBIDDEN_OVERLAY = OverlayTexture.packUv(8, OverlayTexture.getV(false));
 	private static final String[] HIDDEN_BONES = {"rooms", "furniture", "fittings", "detail"};
 
 	@Nullable
@@ -100,7 +105,8 @@ public final class PlacementPreview {
 		}
 		ShipPlacement.Aim aim = ShipPlacement.Aim.of(hit, player.getYaw());
 		boolean allowed = SyncedConfig.mayPlace(player, type);
-		String key = type.id() + ":" + hit.getBlockPos().asLong() + ":" + hit.getSide().ordinal() + ":" + aim.yaw() + ":" + allowed;
+		// keyed on the rounded aim itself: two faces of one block on the same side (stairs, slabs) are two spots
+		String key = type.id() + ":" + aim + ":" + allowed;
 		if (key.equals(lastKey) && ++age < REFRESH_TICKS && current != null) {
 			return;
 		}
@@ -150,6 +156,7 @@ public final class PlacementPreview {
 		matrices.translate(pose.x() - cam.x, pose.y() - cam.y, pose.z() - cam.z);
 		matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float) -pose.yaw()));
 		int color = !s.allowed() ? FORBIDDEN_COLOR : s.valid() ? FITS_COLOR : BLOCKED_COLOR;
+		int overlay = !s.allowed() ? FORBIDDEN_OVERLAY : OverlayTexture.DEFAULT_UV;
 		int light = LightmapTextureManager.MAX_LIGHT_COORDINATE;
 		InteriorDecor decor = s.type().geometry().decor();
 		int textures = Math.min(model.textureCount(), visual.textures().size());
@@ -171,7 +178,7 @@ public final class PlacementPreview {
 						vertices.vertex(entry, p[k * 3], p[k * 3 + 1], p[k * 3 + 2])
 								.color(color)
 								.texture(uv[k * 2], uv[k * 2 + 1])
-								.overlay(OverlayTexture.DEFAULT_UV)
+								.overlay(overlay)
 								.light(light)
 								.normal(entry, n[0], n[1], n[2]);
 					}

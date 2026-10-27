@@ -115,7 +115,8 @@ vaisseau à un autre), enregistré avec le monde.
   refusée. Si les chunks du point ne sont pas chargés, il ne peut pas être vérifié : il est accepté.
 * **Destination inaccessible** : si le pilote automatique se déclare bloqué (aucun progrès pendant
   50 s, ou échecs répétés), la destination est abandonnée, ses chunks sont libérés et les joueurs à
-  bord et autour lisent « destination inaccessible, le pilote automatique rend la main ».
+  bord et autour lisent « destination inaccessible, le pilote automatique rend la main » (ou, s'il
+  s'est arrêté à moins de 12 blocs du point, « arrivé au plus près de la destination »).
 
 | Commande | Effet |
 |---|---|
@@ -240,7 +241,8 @@ Commandes* si un autre mod les utilise déjà.
 (les passagers et les autres joueurs ne voient rien) : nom du vaisseau, **vitesse** (blocs/s et
 km/h, « en arrière »), pour un aéronef **altitude** du pont et hauteur sous la quille, **montée /
 descente / palier**, pour le Nautilus la **profondeur**, l'état du **moteur** (vol stationnaire,
-ralenti, croisière, plein régime, marche arrière) et l'**allure**, l'état du **pilote automatique**
+ralenti, croisière, plein régime, marche arrière, « bridé à la limite » quand une limite
+d'administrateur le retient) et l'**allure**, l'état du **pilote automatique**
 et les touches. Quand le pilote automatique emmène le vaisseau vers une destination, le joueur resté
 près de la barre voit « Pilote auto : en route vers … (… blocs) » et « Clic droit sur la barre :
 reprendre la main » (en visant la barre : « Clic droit : reprendre la barre (annule la

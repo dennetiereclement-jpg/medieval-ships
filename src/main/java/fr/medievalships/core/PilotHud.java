@@ -106,7 +106,10 @@ public final class PilotHud {
 		return out;
 	}
 
-	/** Engine (or oars and sails) from the speed: stopped, astern, slow, cruising, full speed. */
+	/**
+	 * Engine (or oars and sails) from the speed: stopped, astern, held at an administrator's limit, slow, cruising,
+	 * full speed.
+	 */
 	public static String engineState(Status s) {
 		double v = s.speed;
 		if (Math.abs(v) < 0.15) {
@@ -114,6 +117,9 @@ public final class PilotHud {
 		}
 		if (v < 0) {
 			return "marche arrière";
+		}
+		if (s.speedLimit > 0 && s.speedLimit < s.fastSpeed && v >= s.speedLimit - 0.15) {
+			return "bridé à la limite"; // the pilot asks for more, the limit holds it
 		}
 		if (v <= (s.slowSpeed + s.normalSpeed) / 2) {
 			return "ralenti";
