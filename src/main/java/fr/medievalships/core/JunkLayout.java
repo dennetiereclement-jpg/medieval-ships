@@ -8,9 +8,9 @@ import java.util.List;
  * transom (42 with the pale beak pointing forwards low down under the bow, 44 with the short bowsprit), 8.8 wide, about
  * 30 high from the anchor to the masthead. A long dark hull in a rounded V, narrowing forwards to a square bow half as wide,
  * its counter sweeping up aft in a V to a small raked transom; a white band of plaster blocks along the bulwarks, red
- * lacquered panels aft under a carved frieze; the stern gallery round the multi-level stern house (white plaster, dark
- * beams) under a tall red roof of four stacked tiers, the porch's lower gable in front of it, the companion house's lean-to
- * at the break; one mast stepped far forward and raked aft carries the great red sail with the black dragon: two battened
+ * lacquered panels aft under a carved frieze; the stern gallery round the multi-level stern house (cream boards in a
+ * grid of dark beams) under a tall red roof of four stacked tiers, its front gable leaning out over the porch, the
+ * companion house's lean-to at the break; one mast stepped far forward and raked aft carries the great red sail with the black dragon: two battened
  * panels spread in a V from a short yard under the masthead. It flies like the other airships ({@link Flight}), with a
  * handling between the slow Crystal Airship and the agile Rustic Skiff, and can hover low over the water; its rooms are
  * described by an interior grid (tools/junk_interior.py): players walk on its decks and in its rooms (main room, storage,
@@ -59,19 +59,18 @@ public final class JunkLayout {
 	// ---- stern house and its roofs, the stern gallery, the companion house
 	public static final double HOUSE_FRONT_Z = -8.0;
 	public static final double EAVE_Y = 6.15;
-	public static final double RIDGE_Y = 12.5;
+	public static final double RIDGE_Y = 11.5;
+	public static final double RIDGE_RISE = 0.8;
 	public static final double TIER_LIFT = 0.3;
 	public static final double ROOF_HW = 5.2;
-	public static final double ROOF_FRONT_Z = -8.6;
-	public static final double GABLE_LEAN = 0.08;
+	public static final double ROOF_FRONT_Z = -5.45;
+	public static final double GABLE_LEAN = 0.33;
 	public static final double ROOF_BACK_Z = -20.9;
 	public static final int ROOF_TIERS = 4;
 	private static final double[] ROOF_EDGES = {0.0, 1.45, 2.25, 3.35};
 	private static final double[] ROOF_CURVE = {0.32, 1.8};
-	public static final double PORCH_FRONT_Z = -5.6;
-	public static final double PORCH_RIDGE_Y = 10.1;
-	private static final double[] PORCH_CURVE = {0.55, 1.6};
-	public static final double[][] STERN_POLE = {{0.0, 13.6, -10.5}, {0.0, 16.6, -13.9}};
+	public static final double PORCH_FRONT_Z = -5.55;
+	public static final double[][] STERN_POLE = {{0.0, 13.0, -10.5}, {0.0, 16.0, -13.9}};
 	public static final double GALLERY_OUT = 0.9;
 	public static final double GALLERY_AFT = 1.05;
 	public static final double GALLERY_RAIL_H = 1.0;
@@ -281,11 +280,14 @@ public final class JunkLayout {
 		return ROOF_FRONT_Z + GABLE_LEAN * Math.max(0.0, d);
 	}
 
-	/** Height of the porch's lower gable roof at a distance d from its eaves. */
-	public static double porchY(double d) {
-		d = Math.max(0.0, Math.min(ROOF_HW, d));
-		double t = d / ROOF_HW;
-		return EAVE_Y + (PORCH_RIDGE_Y - EAVE_Y) * (PORCH_CURVE[0] * t + (1.0 - PORCH_CURVE[0]) * Math.pow(t, PORCH_CURVE[1]));
+	/**
+	 * How much the main roof is lifted at a distance d from its eaves and at z: nothing at the eaves, up to RIDGE_RISE at
+	 * the ridge's back end (the ridge rises aft from the gable to the hip).
+	 */
+	public static double roofRise(double d, double z) {
+		double zf = roofFrontZ(ROOF_HW), zb = ROOF_BACK_Z + ROOF_HW;
+		double f = Math.max(0.0, Math.min(1.0, (zf - z) / (zf - zb)));
+		return RIDGE_RISE * f * Math.pow(Math.max(0.0, Math.min(1.0, d / ROOF_HW)), 1.5);
 	}
 
 	/** Point of the raked mast's axis at height y. */
@@ -402,8 +404,8 @@ public final class JunkLayout {
 
 	/**
 	 * Terrain probes over the whole volume: sections of the hull (keel, bilge, sides, bulwark) from the transom to the beak,
-	 * the counter and the rudder, the stern gallery, the stern house and its roofs (eaves, tiers, ridge, the staff, the
-	 * porch's gable), the companion house's roof, the mast, the yard, the sail's corners and its middle, the booms, the
+	 * the counter and the rudder, the stern gallery, the stern house and its roofs (eaves, tiers, the hipped back over the
+	 * gallery, ridge, the staff, the gable over the porch), the companion house's roof, the mast, the yard, the sail's corners and its middle, the booms, the
 	 * bowsprit, the bow sail, the anchor, the outside stair.
 	 */
 	static List<double[]> probes() {
@@ -440,7 +442,7 @@ public final class JunkLayout {
 			probes.add(new double[] {w, EAVE_Y, z});
 			probes.add(new double[] {-w, EAVE_Y, z});
 		}
-		for (double z : new double[] {PORCH_FRONT_Z - 0.2, ROOF_FRONT_Z, -11.0, -13.0, -17.0, ROOF_BACK_Z + 0.2}) {
+		for (double z : new double[] {ROOF_FRONT_Z, -8.0, -11.0, -13.0, -15.0, -17.0, ROOF_BACK_Z + 0.2}) {
 			probes.add(new double[] {ROOF_HW + 0.3, EAVE_Y + 0.2, z});
 			probes.add(new double[] {-ROOF_HW - 0.3, EAVE_Y + 0.2, z});
 		}
@@ -448,22 +450,31 @@ public final class JunkLayout {
 			if (d <= 0) {
 				continue;
 			}
-			for (double z : new double[] {roofFrontZ(d), -12.0, ROOF_BACK_Z + d}) {
-				probes.add(new double[] {ROOF_HW - d, roofTop(d) + 0.2, z});
-				probes.add(new double[] {-(ROOF_HW - d), roofTop(d) + 0.2, z});
+			for (double z : new double[] {roofFrontZ(d), -8.5, -12.0, -15.5, ROOF_BACK_Z + d}) {
+				probes.add(new double[] {ROOF_HW - d, roofTop(d) + roofRise(d, z) + 0.2, z});
+				probes.add(new double[] {-(ROOF_HW - d), roofTop(d) + roofRise(d, z) + 0.2, z});
 			}
 		}
 		for (double z = roofFrontZ(ROOF_HW); z >= ROOF_BACK_Z + ROOF_HW - 1e-6; z -= 2.2) {
-			probes.add(new double[] {0, ridgeTop() + 1.0, z});
+			probes.add(new double[] {0, ridgeTop() + roofRise(ROOF_HW, z) + 1.0, z});
 		}
-		probes.add(new double[] {0, ridgeTop() + 1.0, ROOF_BACK_Z + ROOF_HW});
+		probes.add(new double[] {0, ridgeTop() + RIDGE_RISE + 1.0, ROOF_BACK_Z + ROOF_HW});
+		// the hipped back over the stern gallery: the eave beam and the lips, the back wall over the gallery's rail, the
+		// middle of the lower tiers
+		for (double x : new double[] {-2.6, 0.0, 2.6}) {
+			probes.add(new double[] {x, EAVE_Y + 0.3, ROOF_BACK_Z - 0.1});
+			probes.add(new double[] {x, EAVE_Y - 0.6, STERN_Z - 0.3});
+		}
+		for (double x : new double[] {-1.8, 0.0, 1.8}) {
+			probes.add(new double[] {x, roofTop(1.5) + roofRise(1.5, ROOF_BACK_Z + 1.5) + 0.2, ROOF_BACK_Z + 1.5});
+		}
+		probes.add(new double[] {0, roofTop(3.0) + roofRise(3.0, ROOF_BACK_Z + 3.0) + 0.2, ROOF_BACK_Z + 3.0});
 		// the spire on the ridge's back end, the upturned corners of the lowest eaves (their knobbed corner posts)
-		probes.add(new double[] {0, ridgeTop() + 2.6, ROOF_BACK_Z + ROOF_HW});
+		probes.add(new double[] {0, ridgeTop() + RIDGE_RISE + 2.6, ROOF_BACK_Z + ROOF_HW});
 		for (int side = -1; side <= 1; side += 2) {
 			probes.add(new double[] {side * (ROOF_HW + 0.4), EAVE_Y + 1.4, ROOF_BACK_Z - 0.3});
 			probes.add(new double[] {side * (ROOF_HW + 0.4), EAVE_Y + 1.2, ROOF_FRONT_Z + 0.3});
 		}
-		probes.add(new double[] {0, PORCH_RIDGE_Y + 1.0, PORCH_FRONT_Z - 0.3});
 		probes.add(new double[] {0, 0.0, ROOF_BACK_Z});
 		probes.add(STERN_POLE[1].clone());
 		// the companion house's lean-to roof (its high edge inboard)

@@ -27,9 +27,8 @@ d'abord la vue de côté et la perspective, puis prend un compromis avec les vue
 | Fond de coque | y 280 | quille **−5,1** au milieu, relevée vers l'avant (−4,3 à z +14) et en voûte vers l'arrière |
 | Bande blanche (bordé de plâtre) avant : haut / bas | y 230 / 245 (perspective : ~1,6 bloc sur une coque sombre deux fois plus haute) | +1,0 (relevé à +1,75 à la proue) / −0,5, préceinte sombre −0,9 → −0,5 |
 | Gaillard (dunette) après la coupure | y 215–217 | **+2,5** |
-| Maison de poupe : murs, avant-toit, faîte | x 342 → 465, y 217 / 195 / 135 | z −8 → −19,5 ; avant-toit +6,15 (≈2,6 de mur blanc au-dessus de la galerie, vues arrière et de côté) ; faîte **+13,4**, flèche +16,1 (vue arrière) |
-| Toit principal : 4 rangs superposés, débord | x 330 → 474 ; vue arrière : rangs larges de 1 / 0,73 / 0,63 / 0,37 × l'avant-toit, coins relevés d'environ 1 bloc | z −8,6 (pignon avant) → −20,9 (croupe au-dessus de la galerie) ; ±5,2 (+0,3 aux coins) ; bords des rangs à 1,0 / 1,8 / 2,9 de l'avant-toit |
-| Toit du porche (pignon avant plus bas) | x 325 → 342 | z −5,6 → −8,6, faîte +10,1 (~38°) |
+| Maison de poupe : murs, avant-toit, faîte | x 342 → 465, y 217 / 195 / 135 | z −8 → −19,5 ; avant-toit +6,15 (≈2,6 de mur crème au-dessus de la galerie, vues arrière et de côté) ; faîte **+12,4** au pignon, **+13,2** au bout arrière (il monte vers l'arrière, vue de côté), flèche +15,8 (vue arrière) |
+| Toit principal : 4 rangs superposés, débord | x 325 → 474 ; vue arrière : rangs larges de 1 / 0,73 / 0,63 / 0,37 × l'avant-toit, coins relevés d'environ 1 bloc ; vue de côté : une seule pente, le pignon penché vers l'avant au-dessus du porche | z −5,45 (pignon avant, au-dessus du porche ; il penche de 0,33 par bloc, sommet à −3,7) → −20,9 (croupe au-dessus de la galerie) ; ±5,2 (+0,16 aux coins) ; bords des rangs à 1,0 / 1,8 / 2,9 de l'avant-toit |
 | Galerie de poupe (balcon) | vue arrière (galerie ≈ 1,24 × le mur, avant-toit ≈ 1,34 ×) | au niveau du gaillard, +0,9 hors bord, +1,05 derrière le tableau |
 | Maison du capot (abri de l'escalier) | x 230 → 280 | z −1,5 → +4, toit en appentis +4,6 → +2,4, côté bâbord |
 | Mât : pied, inclinaison, tête | (100, 233) → (207, 17) | pied z +16,5 ; **incliné vers l'arrière de 26°** ; tête y +22 |
@@ -43,12 +42,14 @@ d'abord la vue de côté et la perspective, puis prend un compromis avec les vue
 bagues dorées au bout du faîtage ; le **toit à quatre rangs empilés**, chacun une jupe de tuiles rouges dont le bord
 **se relève vers chaque angle** (le bord pend entre les angles), des **perches de bambou** posées sur chaque rang, croisées
 aux angles et terminées par de **gros nœuds**, une **perche centrale** qui descend le long de la croupe ; sous le rang du bas
-une **lourde poutre d'avant-toit** sur deux **poteaux d'angle à pommeau** (les « oreilles » de la vue arrière) d'où pendent
-deux lanternes ; le mur de planches crème à **trois grandes fenêtres en arc** qui remplissent le mur entre la lisse de la
-galerie et l'avant-toit (arcs et montants de bois sombre en saillie, clé sculptée, appui sur consoles) ; la **galerie**
+une **lourde poutre d'avant-toit** entre deux **poteaux d'angle à pommeau** (les « oreilles » de la vue arrière) d'où
+pendent deux lanternes ; le mur de planches crème à **trois fenêtres en arc sombres** (croisillons sombres, quelques
+carreaux éclairés), des **trumeaux crème** entre elles et de chaque côté (arcs et montants de bois sombre en saillie, clé
+sculptée, appui sur consoles) ; la **galerie**
 dont le garde-corps est, autour de la poupe, fait de **panneaux pleins de planches claires** (un losange sculpté sombre
 chacun) et le **poteau central clair** qui prolonge l'étambot ; le **bandeau rouge** de panneaux laqués entre des
-**montants clairs** ; la **large lisse claire** posée sur des **consoles sombres** ; puis la **voûte** sombre en V, l'**étambot
+**montants clairs** ; une **lisse sombre** presque à fleur du tableau avec deux **petits cartouches clairs sculptés** de
+part et d'autre de l'étambot, un **montant d'angle clair** à chaque hanche ; puis la **voûte** sombre en V, l'**étambot
 clair** au milieu, le grand **gouvernail** dessous.
 
 **Voile** : vues de dessus et de face, la grande voile forme un **V** (une tente vue de l'avant) : deux pans lattés
@@ -76,26 +77,31 @@ tribord le voit en miroir).
   haut à +2,5 et 0,4 plus en arrière), l'**étambot clair** cerclé de fer le long de son milieu. Préceintes sombres qui
   remontent avec la voûte ; à l'avant une **bande de blocs de plâtre blancs** (≈1,5 de haut) entre des montants sombres,
   sur une coque sombre deux fois plus haute ; à l'arrière
-  des **panneaux laqués rouges** entre des montants serrés (leur pied remonte vers la poupe) sous une **frise claire à
-  anneaux sombres**. Grand **gouvernail** sous la voûte (z −16 → −17,9, jusqu'à −5,2), bord de fuite clair.
+  des **panneaux laqués rouges** droits entre des montants serrés (leur pied, rogné, suit la lisse qui remonte vers la poupe)
+  sous une **frise claire à anneaux sombres**, un panneau de frise par travée (la même taille tout du long). Grand **gouvernail** sous la voûte (z −16 → −17,9, jusqu'à −5,2), bord de fuite clair.
 * **Gaillard** à +2,5 : balustrade de **balustres clairs** entre lisses et poteaux sombres, **barre** (roue) devant le
   porche. La **galerie de poupe** (balcon décoratif) fait le tour de la maison au même niveau, sur des consoles sombres.
 * **Maison de poupe** : murs de **planches crème** (leurs lignes se voient sur les vues de côté et arrière) **dans une grille de
   poteaux et de lisses sombres**, de petites **fenêtres à croisillons par paires**, hautes dans les murs latéraux, **frise
   sombre à consoles** sous l'avant-toit ; mur arrière à **trois grandes fenêtres en arc** (voir la vue arrière) ; façade :
   porte à deux battants laqués dans un cadre sombre, crête sculptée, **deux lanternes** de part et d'autre.
-* **Porche** sous son **propre pignon, plus bas** (~38°) : poteaux sur dés de pierre, consoles, poutre d'avant-toit,
-  **tympan de planches crème entre des bois sombres** (poinçon, entrait, contrefiches), **médaillon** rond (disque beige,
-  nœud sombre), lanternes ; **bardeaux de rive lourds en bois clair** terminés en **volutes**, crête sculptée au sommet.
-* **Toit principal rouge à quatre rangs empilés** (pagode) : chaque rang est une **jupe** de tuiles presque plate à son
-  bord et plus raide sous le rang suivant, son bord posé au-dessus du haut du rang inférieur (une ligne d'ombre sous chaque
-  bord, rangée de bouts de tuiles ronds, ligne de chevrons sombre) ; les **avant-toits se relèvent et s'écartent vers chaque
-  angle** (jusqu'à ~1 bloc pour le rang du bas, de moins en moins vers le haut, un peu moins aux angles du pignon), les
-  arêtiers finissent en **pointe recourbée** ; **perches de bambou** autour de chaque rang (croisées aux angles, gros
-  nœuds), perches dans la pente, **perche centrale** sur la croupe ; faîtage, épi recourbé au pignon, **flèche** au bout
-  arrière ; pignon avant en **planches crème entre des bois sombres** derrière le toit du porche, **bardeaux de rive clairs
-  et lourds** qui suivent les rangs en escalier ; **poutre d'avant-toit** sur poteaux d'angle à pommeau, lanternes aux
-  angles ; **hampe** penchée vers l'arrière sur le faîtage avec sa flamme rouge.
+* **Porche** sous le **pignon avant du toit principal** (un seul pignon, comme sur la perspective et la vue de côté) :
+  poteaux sur dés de pierre, consoles, poutre d'avant-toit qui porte le **tympan de planches crème verticales entre des bois
+  sombres** (entrait, faux-entrait, poteaux, poinçon, contrefiches), en retrait sous le pignon penché, **médaillon** rond
+  (disque beige, nœud sombre) au milieu, lanternes.
+* **Toit principal rouge à quatre rangs empilés** (pagode) : sur la **croupe** (vue arrière) chaque rang est une **jupe**
+  de tuiles presque plate à son bord et plus raide sous le rang suivant, son bord posé au-dessus du haut du rang inférieur
+  (une ligne d'ombre sous chaque bord, rangée de bouts de tuiles ronds, ligne de chevrons sombre) ; sur les **longs pans**
+  (vue de côté) les rangs sont presque à fleur, **une seule pente** qui ne se découpe en gradins que vers la croupe ; les
+  **avant-toits se relèvent vers chaque angle** (jusqu'à ~1 bloc pour le rang du bas, de moins en moins vers le haut, un
+  peu moins aux angles du pignon), les bords restent presque droits en plan ; le **faîtage monte un peu vers l'arrière** ;
+  des **arêtiers sombres** continus de l'avant-toit au faîtage, chaque angle de rang fini par **un bout de chevron
+  relevé** et effilé terminé par **un pommeau rond** ; **pannes sombres** autour de chaque rang (à chaque joint), **côtes
+  claires** dans la pente, **perche centrale** sur la croupe et une **perche en diagonale** par rang de la perche centrale
+  jusqu'à chaque angle ; épi recourbé au pignon, **flèche** au bout arrière ; **pignon avant penché vers l'avant**
+  au-dessus du porche sous de **lourds bardeaux de rive clairs** en escalier sur une sous-planche sombre, volutes au pied ;
+  **poutre d'avant-toit** autour des pans et de la croupe entre des **poteaux d'angle courts à pommeau** qui la traversent
+  (lanternes accrochées aux angles) ; **hampe** penchée vers l'arrière sur le faîtage avec sa flamme rouge.
 * **Maison du capot** (bâbord, à la coupure) : murs de panneaux laqués rouges, porte vers la proue, **toit en appentis**
   qui descend vers le bordé depuis un faîtage de plâtre blanc côté axe, **poteau d'angle blanc** au médaillon sculpté.
 * **Gréement** : mât sombre cerclé de fer et de cordage, chouque, croisillon, poulie et chaîne de la vergue, haubans,
@@ -157,8 +163,9 @@ mods et sièges), `tools/junk_texture.py` (atlas, voile, intérieur, icône), `t
 * **Rendus de comparaison** (`docs/preview_dragon_junk.png`) : les 5 vues de la planche à côté du modèle (rendu logiciel
   du `.bbmodel`), puis les pièces vues depuis les points de vue des vues intérieures de la planche, avec les **meubles des
   mods dessinés comme le jeu les dessine** (modèles de blocs des mods, état par défaut).
-* **JUnit** (`JunkTest`, 16 tests) : formes = générateur Python, forme de la coque (proue, rocker, voûte, tableau incliné,
-  V de l'arrière), dimensions, sondes du pilote automatique sur tout le volume, sièges (assis et descente libre), sols et
+* **JUnit** (`JunkTest`, 17 tests) : formes = générateur Python, forme de la coque (proue, rocker, voûte, tableau incliné,
+  V de l'arrière), dimensions, sondes du pilote automatique sur tout le volume (et à moins de 2,5 blocs de chaque sommet du
+  dehors de la poupe), sièges (assis et descente libre), sols et
   hauteur sous plafond pièce par pièce, portes qui ferment, escaliers et échelle, aucune pièce ouverte sur le vide, toutes
   les pièces atteintes depuis le pont, **aucun piège** hors des pièces (retour au pont depuis partout, bec compris), rase-
   mottes au-dessus de l'eau, secours et chutes, fichier de grille, maniabilité (bornes fixes ; l'ordre Dirigeable de Cristal < Jonque < Navire
@@ -172,9 +179,12 @@ mods et sièges), `tools/junk_texture.py` (atlas, voile, intérieur, icône), `t
 
 **Limites** : les vues de la planche ne sont pas cohérentes entre elles (image générée) ; la vue arrière montre une coque
 en ogive plus pointue que ce que permettent les pièces du pont inférieur (il leur faut leur largeur à −3) : le fond est en
-V arrondi, la voûte en V franc ; la vue arrière montre aussi un toit plus haut que la vue de côté : le toit (faîte +13,4,
-flèche +16,1) prend un compromis entre les deux ; la galerie de poupe et l'escalier extérieur sont décoratifs (sans
-collisions), comme les angles relevés du toit et sa flèche (hors de la grille, couverts par les sondes du pilote
-automatique). Les
+V arrondi, la voûte en V franc ; la vue arrière montre aussi un toit plus haut que la vue de côté : le toit (faîte +12,4
+au pignon, +13,2 au bout arrière, flèche +15,8) prend un compromis entre les deux ; la vue arrière montre aussi la grande
+voile qui dépasse de part et d'autre du toit (gardée : vue de biais en jeu, elle se cache presque toute derrière la
+poupe) ; la galerie de poupe et l'escalier extérieur sont décoratifs (sans collisions), comme le toit, ses angles
+relevés et sa flèche (hors de la grille, couverts par les sondes du pilote automatique : `JunkTest` vérifie que chaque
+sommet du dehors de la poupe — galerie, tuiles, avant-toits, poutres, poteaux d'angle, croupe, pignon — est à moins de
+2,5 blocs d'une sonde). Les
 sculptures sont plus simples que sur la perspective. Les pièces sont un peu plus grandes que sur les vues intérieures (il
 faut 2 blocs de hauteur sous plafond et des passages de 1 bloc pour marcher).

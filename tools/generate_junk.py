@@ -18,16 +18,19 @@ a pale beak, sweeping up aft in a V-shaped counter to a small raked transom (the
 rudder under it); a white band of plaster blocks with dark posts along the bulwarks, red lacquered panels between dark
 posts under a carved frieze along the quarterdeck; the stern gallery round the stern house at the quarterdeck's level
 (pale balusters along the sides, solid panels of pale boards round the stern, knobbed dark posts, brackets, the pale
-post on the sternpost's line); under it the red panels between pale posts and the broad pale wale on dark brackets
-across the transom; the stern house of cream boards in a grid of dark beams (pairs of small lattice windows in its sides,
-three big arched windows in heavy dark frames in its back wall) under a tall red roof of four stacked tiers, each a
-skirt of tiles whose eaves sweep up and out towards every corner, bamboo poles round each tier crossing at the corners
-with big knobs, a spine pole down the hipped back, a spire on the ridge's back end, a heavy eave beam on knobbed corner
-posts; in front of it the lower gable of the porch (heavy pale bargeboards ending in scrolls, a tympanum of cream boards
-between dark timbers, the round medallion); the companion house's lean-to with its white plaster ridge; one mast stepped far forward and raked aft, the
-great red sail with the black stencilled dragon: two battened panels hung from a short yard under the masthead and
-spread in a V, their clews held out by long pale booms; a small cream sail under the short bowsprit, a rope ladder down
-the bow face, lanterns on posts, an outside stair on the hull side, balustrades, the anchor hanging on its chain.
+post on the sternpost's line); under it the red panels between pale posts, the dark wale with two small pale carved
+plaques across the transom, pale corner posts on the quarters; the stern house of cream boards in a grid of dark beams
+(pairs of small lattice windows in its sides, three dark arched windows with a few lit panes in heavy dark frames in its
+back wall, cream piers between them) under a tall red roof of four stacked tiers, standing proud on the hipped back (each
+a skirt of tiles whose eaves sweep up towards the corners) and nearly flush along the sides (one sweeping slope, the ridge
+rising aft), dark hip rafters ending in upturned tips with round knobs at every tier's corner, dark purlins round the
+tiers, pale ribs down the slopes, a spine and diagonal poles on the back, a spire on the ridge's back end, a heavy eave
+beam between short knobbed corner posts; the front gable leaning out over the porch (heavy pale bargeboards stepped with
+the tiers, a tympanum of upright cream boards between dark timbers on the porch's eave beam, the round medallion); the
+companion house's lean-to with its white plaster ridge; one mast stepped far forward and raked aft, the great red sail
+with the black stencilled dragon: two battened panels hung from a short yard under the masthead and spread in a V, their
+clews held out by long pale booms; a small cream sail under the short bowsprit, a rope ladder down the bow face, lanterns
+on posts, an outside stair on the hull side, balustrades, the anchor hanging on its chain.
 
 The hull is a body of boards between 40 stations (no staircase). The decks, the walls, floors and ceilings of the
 rooms are drawn on the boundaries of the interior grid (tools/junk_interior.py): what is drawn is what collides.
@@ -162,8 +165,8 @@ def hull_rows(z):
     ya = cl(dark_top(z), yt)
     yb = cl(WALE_TOP + (js.RED_BAND[1] - WALE_TOP) * af, ya)
     rows.append((yt, "hull"))
-    rows.append((ya, "red_panel"))
-    rows.append((yb, "frieze" if af > 0.5 else "plaster"))
+    rows.append((ya, "red_dark"))                # under the upright red panels (hull_dressing)
+    rows.append((yb, "plank_light" if af > 0.5 else "plaster"))   # under the carved frieze's panels
     rows.append((sh, None))
     return k, rows
 
@@ -212,7 +215,7 @@ def hull(bone, detail):
                     region = reg
                     back = "plank_light" if above_deck else "hull"
                     q = quad(bone, "hull_%s%s%d_%d" % (tag, sn, i, r), a0, b0, a1, b1, 0.12, region, outward, back=back,
-                             u_dir=v3(0, 0, 1), v_dir=v3(0, -1, 0), stretch=region in ("red_panel", "frieze"), overlap=(1.03, 1.04))
+                             u_dir=v3(0, 0, 1), v_dir=v3(0, -1, 0), stretch=False, overlap=(1.03, 1.04))
                     if q is not None:
                         n += 1
     # the keel: a dark timber along the bottom, rising into the beak; aft, the broad pale sternpost along the counter's
@@ -309,14 +312,15 @@ WALE_AFT = (TF_Y, 1.3)        # the pale wale across the transom's foot (the red
 
 
 def transom(bone, detail, lights):
-    """The raked transom (its top aft of its foot): dark planks narrowing in a V down to its foot, a pale wale across,
-    the red lacquered strip between dark posts under the stern gallery, the broad pale sternpost with iron bands down its
-    middle (the rudder hangs on it under the foot)."""
+    """The raked transom (its top aft of its foot): dark planks narrowing in a V down to its foot, a dark wale across
+    with two small pale carved plaques either side of the sternpost, the red lacquered strip between pale posts under the
+    stern gallery, a pale corner post on each quarter over a dark quarter board, the broad pale sternpost with iron bands
+    down its middle (the rudder hangs on it under the foot)."""
     ya, yb = TF_Y + 0.02, WALE_AFT[1]
     wa, wb = tw(ya, 0.02), tw(yb, 0.02)
-    quad(bone, "transom_foot", tp(wa, ya), tp(-wa, ya), tp(wb, yb), tp(-wb, yb), 0.14, "plank_light", TRANSOM_N, back="hull",
+    quad(bone, "transom_foot", tp(wa, ya), tp(-wa, ya), tp(wb, yb), tp(-wb, yb), 0.14, "hull", TRANSOM_N, back="hull",
          u_dir=v3(-1, 0, 0), v_dir=v3(0, -1, 0), stretch=False)
-    # the red strip: panels between dark posts
+    # the red strip: panels between pale posts, the corner posts along the quarters' edges
     y0, y1 = WALE_AFT[1], js.QUARTERDECK_Y - 0.08
     w = min(tw(y0), tw(y1))
     xs = np.linspace(-w, w, 8)
@@ -324,17 +328,27 @@ def transom(bone, detail, lights):
         xa, xb = xs[k], xs[k + 1]
         quad(bone, "transom_red_%d" % k, tp(xb, y0), tp(xa, y0), tp(xb, y1), tp(xa, y1), 0.12, "red_panel", TRANSOM_N, back="hull",
              u_dir=v3(-1, 0, 0), v_dir=v3(0, -1, 0))
-    for k, x in enumerate(xs):
-        xx = max(-w + 0.1, min(w - 0.1, x))
-        beam(bone, "transom_post_%d" % k, tp(xx, y0 - 0.05, 0.08), tp(xx, y1 + 0.02, 0.08), 0.2, "plank_light", width=0.18, up=TRANSOM_N)
-    # the broad pale wale across the transom's foot (the pale band of the back view), on dark brackets
-    wy = (WALE_AFT[0] + WALE_AFT[1]) / 2 - 0.05
-    beam(bone, "transom_wale", tp(-tw(1.05) - 0.12, wy, 0.1), tp(tw(1.05) + 0.12, wy, 0.1), 0.24, "plank_light", width=0.62, up=TRANSOM_N)
-    beam(bone, "transom_wale_bead", tp(-tw(1.05) - 0.14, wy + 0.3, 0.2), tp(tw(1.05) + 0.14, wy + 0.3, 0.2), 0.08, "dark_wood", width=0.08,
-         up=TRANSOM_N)
-    for k, x in enumerate((-2.6, -1.1, 1.1, 2.6)):
-        box(detail, "transom_bracket_%d" % k, tp(x, wy - 0.42, 0.16), (0.24, 0.34, 0.26), "dark_wood")
-        box(detail, "transom_bracket_tip_%d" % k, tp(x, wy - 0.62, 0.12), (0.16, 0.14, 0.18), "dark_wood")
+    for k, x in enumerate(xs[1:-1]):
+        beam(bone, "transom_post_%d" % k, tp(x, y0 - 0.05, 0.08), tp(x, y1 + 0.02, 0.08), 0.2, "plank_light", width=0.18, up=TRANSOM_N)
+    for side, sn in SIDES:
+        ys = np.linspace(WALE_AFT[1] - 0.15, js.QUARTERDECK_Y - 0.02, 2)
+        for j in range(len(ys) - 1):
+            beam(bone, "transom_quarter_post_%s%d" % (sn, j), tp(side * (tw(ys[j]) - 0.04), ys[j], 0.07), tp(side * (tw(ys[j + 1]) - 0.04), ys[j + 1], 0.07),
+                 0.22, "plank_light", width=0.28, up=TRANSOM_N, extend=0.03)
+        # the dark quarter board down the transom's edge to its foot, over the ends of the counter's planks
+        yq = np.linspace(TF_Y + 0.12, WALE_AFT[1] - 0.1, 3)
+        for j in range(len(yq) - 1):
+            beam(bone, "transom_quarter_board_%s%d" % (sn, j), tp(side * (tw(yq[j]) + 0.0), yq[j], 0.05), tp(side * (tw(yq[j + 1]) + 0.0), yq[j + 1], 0.05),
+                 0.12, "dark_wood", width=0.3, up=TRANSOM_N, extend=0.04)
+    # the dark wale across the transom's foot, nearly flush, wrapping round the quarters, two pale carved plaques on it
+    wy = WALE_AFT[1] - 0.17
+    ww = tw(wy) + 0.1
+    beam(bone, "transom_wale", tp(-ww, wy, 0.05), tp(ww, wy, 0.05), 0.12, "dark_wood", width=0.3, up=TRANSOM_N)
+    for k, x in enumerate((-0.95, 0.95)):
+        quad(detail, "transom_plaque_%d" % k, tp(x + 0.42, wy - 0.11, 0.115), tp(x - 0.42, wy - 0.11, 0.115), tp(x + 0.42, wy + 0.11, 0.115),
+             tp(x - 0.42, wy + 0.11, 0.115), 0.03, "plaque", TRANSOM_N, u_dir=v3(-1, 0, 0), v_dir=v3(0, -1, 0))
+    for k, x in enumerate((-2.6, 2.6)):
+        box(detail, "transom_bracket_%d" % k, tp(x, wy - 0.27, 0.08), (0.2, 0.24, 0.16), "dark_wood")
     beam(bone, "transom_red_rail", tp(-w - 0.1, y1, 0.1), tp(w + 0.1, y1, 0.1), 0.14, "dark_wood", width=0.2, up=TRANSOM_N)
     # the sternpost: a broad pale timber from the gallery down the middle of the transom to its foot
     top, foot = tp(0, js.QUARTERDECK_Y - 0.1, 0.13), tp(0, TF_Y, 0.13)
@@ -393,19 +407,20 @@ def stern_gallery(bone, detail):
     for k in range(n - 1):
         quad(bone, "gallery_floor_%d" % k, I[k], O[k], I[k + 1], O[k + 1], 0.16, "deck", v3(0, 1, 0), back="roof_under", side="dark_wood",
              u_dir=O[k] - I[k], v_dir=I[k + 1] - I[k], stretch=False)
-        beam(bone, "gallery_fascia_%d" % k, O[k] - v3(0, 0.12, 0), O[k + 1] - v3(0, 0.12, 0), 0.26, "dark_wood", width=0.14, extend=0.06)
+        beam(bone, "gallery_fascia_%d" % k, O[k] + D[k] * 0.035 - v3(0, 0.12, 0), O[k + 1] + D[k + 1] * 0.035 - v3(0, 0.12, 0), 0.26, "dark_wood",
+             width=0.14, extend=0.06)
         a, b = R[k], R[k + 1]
         on = norm(D[k] + D[k + 1])
         aft = max(a[2], b[2]) < js.STERN_Z + 0.35       # round the stern: solid panels of pale boards, as on the back view
-        beam(bone, "gallery_rail_top_%d" % k, a + v3(0, rail_h, 0), b + v3(0, rail_h, 0), 0.14, "rail", width=0.22, extend=0.08)
-        beam(bone, "gallery_rail_mid_%d" % k, a + v3(0, rail_h - 0.2, 0), b + v3(0, rail_h - 0.2, 0), 0.08, "dark_wood", width=0.12, extend=0.04)
-        beam(bone, "gallery_rail_low_%d" % k, a + v3(0, 0.16, 0), b + v3(0, 0.16, 0), 0.12, "dark_wood", width=0.16, extend=0.05)
-        quad(bone, "gallery_balusters_%d" % k, a + v3(0, 0.21, 0), b + v3(0, 0.21, 0), a + v3(0, rail_h - 0.26, 0), b + v3(0, rail_h - 0.26, 0),
-             0.05 if aft else 0.04, "parapet" if aft else "baluster", on, u_dir=b - a, v_dir=v3(0, -1, 0), stretch=False)
+        beam(bone, "gallery_rail_top_%d" % k, a + v3(0, rail_h, 0), b + v3(0, rail_h, 0), 0.14, "rail", width=0.18, extend=0.14)
+        beam(bone, "gallery_rail_mid_%d" % k, a + v3(0, rail_h - 0.2, 0), b + v3(0, rail_h - 0.2, 0), 0.08, "dark_wood", width=0.12, extend=0.07)
+        beam(bone, "gallery_rail_low_%d" % k, a + v3(0, 0.08, 0), b + v3(0, 0.08, 0), 0.14, "dark_wood", width=0.16, extend=0.08)
+        quad(bone, "gallery_balusters_%d" % k, a + v3(0, 0.12, 0), b + v3(0, 0.12, 0), a + v3(0, rail_h - 0.26, 0), b + v3(0, rail_h - 0.26, 0),
+             0.05 if aft else 0.04, "parapet" if aft else "baluster", on, u_dir=b - a, v_dir=v3(0, -1, 0), stretch=False, overlap=(1.05, 1.0))
     for k in range(n):
         p = R[k]
-        tube(bone, "gallery_post_%d" % k, p - v3(0, 0.05, 0), p + v3(0, rail_h + 0.12, 0), 0.2, "dark_wood", sides=4)
-        box(detail, "gallery_post_cap_%d" % k, p + v3(0, rail_h + 0.22, 0), (0.26, 0.2, 0.26), "post")
+        tube(bone, "gallery_post_%d" % k, p - v3(0, 0.05, 0), p + v3(0, rail_h + 0.12, 0), 0.26, "dark_wood", sides=4)
+        finial(detail, "gallery_post_cap_%d" % k, p + v3(0, rail_h + 0.12, 0), 0.22)
         if k % 2 == 0:
             # a bracket (knee) under the floor, down to the hull's side or the transom
             foot = I[k] - v3(0, 0.95, 0) + D[k] * 0.04
@@ -413,7 +428,7 @@ def stern_gallery(bone, detail):
     # the pale post in the middle of the back (the sternpost's line, up from the counter to the rail)
     pc = v3(0, ft, js.STERN_Z - js.GALLERY_AFT - 0.02)
     tube(bone, "gallery_sternpost", pc - v3(0, 0.3, 0), pc + v3(0, rail_h + 0.2, 0), 0.3, "sternpost", sides=4)
-    box(detail, "gallery_sternpost_cap", pc + v3(0, rail_h + 0.3, 0), (0.36, 0.2, 0.36), "post")
+    finial(detail, "gallery_sternpost_cap", pc + v3(0, rail_h + 0.2, 0), 0.3, "plank_light")
 
 
 # ================================================================ hull dressing: wales, posts, rails, the gallery
@@ -445,9 +460,11 @@ def hull_dressing(bone, detail):
         # the cap rail on the bulwark, along the sheer
         side_line(bone, "cap_rail_" + sn, lambda z: js.sheer_y(z) + 0.06, js.HOUSE_FRONT_Z, BZ - 0.05, side, -0.2, 0.16, 0.56, "rail")
         # dark posts on the hull side: through the white band forward, between the red panels aft
-        z = BZ - 1.4
-        k = 0
+        zs, z = [], BZ - 1.4
         while z > js.STERN_Z + 0.6:
+            zs.append(z)
+            z -= 2.55 if aft_f(z) <= 0.5 else 1.3
+        for k, z in enumerate(zs):
             aft = aft_f(z) > 0.5
             y0 = js.WALE_Y + 0.1 if not aft else js.red_bottom(z) - 0.05
             y1 = js.sheer_y(z) + 0.1 if not aft else js.RED_BAND[1]
@@ -456,8 +473,21 @@ def hull_dressing(bone, detail):
             if not aft and k % 2 == 0:
                 for j, y in enumerate((-0.6, 0.4)):
                     box(detail, "hull_bolt_%s%d_%d" % (sn, k, j), hp(z, y, side, 0.17), (0.08, 0.08, 0.08), "iron")
-            z -= 2.55 if not aft else 1.3
-            k += 1
+        # aft, between the posts: upright red lacquered panels (their foot over the band's foot as it sweeps up), the
+        # carved frieze above them in one panel a bay (the same size all along)
+        bays = [(a, b) for a, b in zip(zs[:-1], zs[1:]) if aft_f(a) > 0.5 and aft_f(b) > 0.5]
+        bays.append((zs[-1], js.transom_z(js.RED_BAND[1]) + 0.12))
+        for j, (a, b) in enumerate(bays):
+            za, zb_ = a - 0.1, b + 0.1
+            ylo = max(js.red_bottom(za), js.red_bottom(zb_)) + 0.07
+            yhi = js.RED_BAND[1] - 0.07
+            if zb_ < za - 0.3 and yhi > ylo + 0.3:
+                quad(bone, "red_panel_%s%d" % (sn, j), hp(za, ylo, side, 0.03), hp(zb_, ylo, side, 0.03), hp(za, yhi, side, 0.03), hp(zb_, yhi, side, 0.03),
+                     0.04, "red_panel", v3(side, 0, 0), u_dir=v3(0, 0, -side), v_dir=v3(0, -1, 0), stretch=True)
+            fa, fb = a, max(b, js.transom_z(js.QUARTERDECK_Y) + 0.04)
+            y0f, y1f = js.RED_BAND[1] + 0.03, js.QUARTERDECK_Y - 0.03
+            quad(bone, "frieze_%s%d" % (sn, j), hp(fa, y0f, side, 0.025), hp(fb, y0f, side, 0.025), hp(fa, y1f, side, 0.025), hp(fb, y1f, side, 0.025),
+                 0.04, "frieze", v3(side, 0, 0), u_dir=v3(0, 0, -side), v_dir=v3(0, -1, 0), stretch=True)
         # the dark lower posts / frames on the dark hull (the reference's vertical dark battens), every other station
         for j, z in enumerate((14.2, 9.2, 3.6, -2.7, -8.3, -13.6)):
             ks = js.keel_y(z)
@@ -630,7 +660,7 @@ def timber(bone, name, a, b, w=0.22, region="post"):
     beam(bone, name, a, b, w, region, width=w)
 
 
-def wall_panels(bone, detail, lights, name, p0, p1, y0, y1, normal, windows=(), region="plaster_wall", post_every=1.9):
+def wall_panels(bone, detail, lights, name, p0, p1, y0, y1, normal, windows=(), region="plaster_wall", post_every=1.9, skip_z=()):
     """A white plaster wall in a grid of dark posts and rails from p0 to p1 (bottom corners) between heights y0 and y1, its
     outer face along `normal`: a sill, a head beam, a rail at mid height, posts, lattice windows (lit) at the given
     fractions."""
@@ -648,6 +678,8 @@ def wall_panels(bone, detail, lights, name, p0, p1, y0, y1, normal, windows=(), 
     xs = [L * k / m for k in range(m + 1)]
     for k, s_ in enumerate(xs):
         p = p0 + u * min(max(s_, 0.11), L - 0.11)
+        if any(abs(p[2] - z) < 0.45 for z in skip_z):
+            continue                     # a pair of windows there: their frames stand in for the post
         timber(bone, "%s_post_%d" % (name, k), p + v3(0, y0, 0) + out, p + v3(0, y1, 0) + out, 0.22)
     for k in range(m):
         a = xs[k]
@@ -671,12 +703,9 @@ def wall_panels(bone, detail, lights, name, p0, p1, y0, y1, normal, windows=(), 
 def roof_under(x, z):
     """Height of the main roof's underside over (x, z): under the lowest tier there (where a wall closes against it)."""
     d = max(0.0, min(js.ROOF_HW - abs(x), z - js.ROOF_BACK_Z))
-    ys = [tier_y(k, d) for k in range(js.ROOF_TIERS) if tier_span(k)[0] - 1e-9 <= d <= tier_span(k)[1] + 1e-9]
-    return (min(ys) if ys else js.roof_top(d)) - 0.15
-
-
-def porch_under(x):
-    return js.porch_y(js.ROOF_HW - abs(x)) - 0.1
+    a = plan_weight(x, z)
+    ys = [tier_y(k, d, a) for k in range(js.ROOF_TIERS) if tier_span(k)[0] - 1e-9 <= d <= tier_span(k)[1] + 1e-9]
+    return (min(ys) if ys else js.roof_top(d)) - 0.15 + js.roof_rise(d, z)
 
 
 HOUSE_HEAD_Y = 6.6           # the plaster walls end here, the dark carved eave frieze above closes up to the roofs
@@ -691,6 +720,9 @@ def eave_frieze(bone, name, pa, pb, ya_top, yb_top, normal):
 
 
 # ================================================================ the stern house, its roof and the porch
+SIDE_WINDOWS_Z = (-12.5, -15.5, -18.23)    # the pairs of small windows high in the side walls (on the walls' middle posts)
+
+
 def house(bone, detail, lights, root):
     """The stern house's walls (the stern cabin inside): white plaster in a grid of dark posts and rails, lit windows,
     the dark eave frieze up to the roof; the back wall over the transom with its three arched windows; the front wall
@@ -705,22 +737,28 @@ def house(bone, detail, lights, root):
             pb = v3(side * (js.hull_x(b, QD - 0.1) - 0.02), 0, b)
             if side < 0:
                 pa, pb = pb, pa
-            wall_panels(bone, detail, lights, "house_side_%s%d" % (sn, k), pa, pb, y0, y1, v3(side, 0, 0), windows=(), post_every=1.5)
+            wall_panels(bone, detail, lights, "house_side_%s%d" % (sn, k), pa, pb, y0, y1, v3(side, 0, 0), windows=(), post_every=1.5,
+                        skip_z=SIDE_WINDOWS_Z)
             eave_frieze(bone, "house_side_frieze_%s%d" % (sn, k), pa, pb, roof_under(pa[0], pa[2]), roof_under(pb[0], pb[2]), v3(side, 0, 0))
         # small lattice windows in pairs, high in the side walls (as on the side and perspective views)
-        for j, zc in enumerate((-12.5, -15.5, -18.3)):
+        for j, zc in enumerate(SIDE_WINDOWS_Z):
+            # both windows of a pair in one plane, just proud of the wall (its plane between the posts at zz)
+            i = max(k for k in range(len(zz) - 1) if zz[k] >= zc)
+            f = (zc - zz[i]) / (zz[i + 1] - zz[i])
+            xw = (1 - f) * js.hull_x(zz[i], QD - 0.1) + f * js.hull_x(zz[i + 1], QD - 0.1) - 0.04
             for q, dz in enumerate((-0.36, 0.36)):
                 z = zc + dz
-                x = side * (js.hull_x(z, QD - 0.1) + 0.03)
+                x = side * (xw + 0.05)
                 n = v3(side, 0, 0)
                 c = v3(x, 5.15, z)
                 quad(lights, "glow_house_side_window_%s%d_%d" % (sn, j, q), c + v3(0, -0.32, -0.25), c + v3(0, -0.32, 0.25), c + v3(0, 0.32, -0.25),
                      c + v3(0, 0.32, 0.25), 0.02, "window", n, u_dir=v3(0, 0, side), v_dir=v3(0, -1, 0))
                 for m, (a, b) in enumerate(((v3(0, -0.38, -0.31), v3(0, -0.38, 0.31)), (v3(0, 0.38, -0.31), v3(0, 0.38, 0.31)),
                                             (v3(0, -0.38, -0.29), v3(0, 0.38, -0.29)), (v3(0, -0.38, 0.29), v3(0, 0.38, 0.29)))):
-                    timber(detail, "house_side_window_frame_%s%d_%d_%d" % (sn, j, q, m), c + a + n * 0.07, c + b + n * 0.07, 0.11, "dark_wood")
-            beam(detail, "house_side_window_sill_%s%d" % (sn, j), v3(x, 4.74, zc - 0.8) + n * 0.12, v3(x, 4.74, zc + 0.8) + n * 0.12, 0.1, "dark_wood",
-                 width=0.18)
+                    timber(detail, "house_side_window_frame_%s%d_%d_%d" % (sn, j, q, m), c + a + n * 0.09, c + b + n * 0.09, 0.09 if m < 2 else 0.13,
+                           "dark_wood")
+            beam(detail, "house_side_window_sill_%s%d" % (sn, j), v3(x, 4.74, zc - 0.8) + n * 0.1, v3(x, 4.74, zc + 0.8) + n * 0.1, 0.1, "dark_wood",
+                 width=0.2)
     back_wall(bone, detail, lights)
     # the front wall, the double door in it (the door's leaves are drawn by doors()), up to the porch roof
     w = js.hull_x(zf, QD - 0.1)
@@ -730,8 +768,8 @@ def house(bone, detail, lights, root):
     quad(bone, "house_front_over_door", v3(-1.0, QD + 2.0, zf), v3(1.0, QD + 2.0, zf), v3(-1.0, y1, zf), v3(1.0, y1, zf), 0.12, "plaster_wall",
          v3(0, 0, 1), back="plank_light", u_dir=v3(1, 0, 0), v_dir=v3(0, -1, 0), stretch=False)
     timber(bone, "house_front_head_mid", v3(-1.0, y1 - 0.12, zf + 0.08), v3(1.0, y1 - 0.12, zf + 0.08), 0.24)
-    # its gable under the porch roof: carved dark panels between the posts
-    gable_panel(bone, "house_gable", -w, w, y1 - 0.05, zf - 0.02, porch_under, v3(0, 0, 1))
+    # its gable up under the main roof (seen from under the porch): cream boards between dark posts
+    gable_panel(bone, "house_gable", -w, w, y1, zf - 0.05, lambda x: gable_top(x, zf - 0.05), v3(0, 0, 1), posts_at=(-2.4, -1.2, 1.2, 2.4))
     # the carved door frame and its lintel crest, lanterns either side of the door
     for side, sn in SIDES:
         timber(bone, "door_frame_post_" + sn, v3(side * 1.12, QD, zf + 0.1), v3(side * 1.12, QD + 2.25, zf + 0.1), 0.24, "dark_wood")
@@ -744,34 +782,66 @@ def house(bone, detail, lights, root):
          0.05, "carved", v3(0, 0, 1), u_dir=v3(1, 0, 0), v_dir=v3(0, -1, 0))
 
 
-def gable_panel(bone, name, x0, x1, y0, z, top_fn, normal, n=6, region="carved", posts=True):
-    """A gable's infill from y0 up to top_fn(x), in vertical strips with dark posts between them."""
+def gable_panel(bone, name, x0, x1, bottom, z, top_fn, normal, region="gable_boards", posts_at=(), strip=0.3):
+    """A gable's infill of upright boards from bottom (a height, or a function of x) up to top_fn(x) (highest in the middle),
+    its outer face in the plane z: narrow unrotated strips, each up to the lower of its two top corners (narrower where the
+    top is steep), a dark rake board along the top over their stepped ends, dark posts at the given x."""
     nrm = norm(v3(*normal))
-    for k in range(n):
-        xa, xb = x0 + (x1 - x0) * k / n, x0 + (x1 - x0) * (k + 1) / n
-        ta, tb = top_fn(xa), top_fn(xb)
-        if max(ta, tb) <= y0 + 0.05:
+    sg = 1.0 if nrm[2] > 0 else -1.0
+    bot = bottom if callable(bottom) else (lambda x, b=bottom: b)
+    faces = {"all": region, "-3" if sg > 0 else "+3": "roof_under"}
+    xs = [x0]
+    while xs[-1] < x1 - 1e-6:
+        x = xs[-1]
+        slope = abs(top_fn(min(x + 0.05, x1)) - top_fn(x)) / 0.05
+        xs.append(min(x1, x + max(0.12, min(strip, 0.24 / max(slope, 1e-3)))))
+    k = 0
+    for xa, xb in zip(xs[:-1], xs[1:]):
+        yb = min(bot(xa), bot(xb))
+        yt = min(top_fn(xa), top_fn(xb)) - 0.02
+        if yt <= yb + 0.05:
             continue
-        ta, tb = max(ta, y0 + 0.02), max(tb, y0 + 0.02)
-        quad(bone, "%s_%d" % (name, k), v3(xa, y0, z), v3(xb, y0, z), v3(xa, ta, z), v3(xb, tb, z), 0.1, region, nrm, back="roof_under",
-             u_dir=v3(1, 0, 0), v_dir=v3(0, -1, 0), stretch=False)
-        if 0 < k and posts:
-            timber(bone, "%s_post_%d" % (name, k), v3(xa, y0, z) + nrm * 0.06, v3(xa, ta - 0.02, z) + nrm * 0.06, 0.16, "dark_wood")
+        box(bone, "%s_%d" % (name, k), ((xa + xb) / 2, (yb + yt) / 2, z - sg * 0.05), (xb - xa + 0.004, yt - yb, 0.1), faces,
+            u_dir=v3(sg, 0, 0), v_dir=v3(0, -1, 0))
+        k += 1
+    # the rake board along the top, over the strips' stepped ends
+    m = max(2, int(math.ceil(max(abs(x0), abs(x1)) / 0.45)))
+    rk = [x0 + (0.0 - x0) * i / m for i in range(m)] + [x1 * i / m for i in range(m + 1)]
+    for i in range(len(rk) - 1):
+        a, b = rk[i], rk[i + 1]
+        beam(bone, "%s_rake_%d" % (name, i), v3(a, top_fn(a) - 0.12, z + sg * 0.045), v3(b, top_fn(b) - 0.12, z + sg * 0.045), 0.28,
+             "dark_wood", width=0.09, extend=0.03)
+    for j, x in enumerate(posts_at):
+        if x0 + 0.2 < x < x1 - 0.2 and top_fn(x) - 0.2 > bot(x) + 0.2:
+            timber(bone, "%s_post_%d" % (name, j), v3(x, bot(x), z + sg * 0.07), v3(x, top_fn(x) - 0.2, z + sg * 0.07), 0.16, "dark_wood")
 
 
-ARCH_X = (-2.45, 0.0, 2.45)
-ARCH_W, ARCH_H = 1.7, 2.3       # each arched window's opening (its carved frame round it), as wide as on the back view
+ARCH_X = (-2.3, 0.0, 2.3)
+ARCH_W, ARCH_H = 1.3, 1.9       # each arched window's opening (its dark frame round it): cream piers between and outside them
+ARCH_SILL = 0.35                # the openings' sill over the gallery's rail
+# the panes lit warm from inside in each window's dark lattice: (column 0..2, row 0..3 from the arch's head)
+ARCH_LIT = (((0, 3),), ((1, 2), (1, 3), (2, 3)), ((2, 2),))
 
 
-def arch_window(bone, detail, lights, name, xc, y0, z, n):
-    """A big arched lattice window in the back wall: the lit lattice, the carved dark frame, heavy jambs and a round arch
-    of dark timber standing out of the wall, a keystone, a sill on two small brackets."""
+def arch_window(bone, detail, lights, name, xc, y0, z, n, lit=()):
+    """An arched window in the back wall: a dark lattice over dark panes (a few lit warm from inside), the carved dark frame
+    round it, heavy jambs and a round arch of dark timber standing out of the wall, a keystone, a sill on two small
+    brackets."""
     hw = ARCH_W / 2
     a1 = y0 + ARCH_H
     u = v3(-1, 0, 0) if n[2] < 0 else v3(1, 0, 0)
     zp = z + n[2] * 0.025
-    quad(lights, "glow_%s" % name, v3(xc + hw - 0.06, y0 + 0.04, zp), v3(xc - hw + 0.06, y0 + 0.04, zp), v3(xc + hw - 0.06, a1 - 0.04, zp),
-         v3(xc - hw + 0.06, a1 - 0.04, zp), 0.02, "window_arch", n, u_dir=u, v_dir=v3(0, -1, 0))
+    xl, xr, yl, yh = xc - hw + 0.06, xc + hw - 0.06, y0 + 0.04, a1 - 0.04
+    quad(bone, name + "_lattice", v3(xr, yl, zp), v3(xl, yl, zp), v3(xr, yh, zp), v3(xl, yh, zp), 0.02, "window_arch_dark", n, u_dir=u,
+         v_dir=v3(0, -1, 0))
+    # the lit panes (the lattice's texture: 16 x 24 pixels, bars at x 0, 5, 10, 15 and y 8, 13, 18, 23, the arch's head over y 8)
+    W, H = xr - xl, yh - yl
+    for j, (c, r) in enumerate(lit):
+        pa, pb = xl + W * (1 + 5 * c) / 16, xl + W * (5 + 5 * c) / 16
+        ya, yb_ = yh - H * (4 + 5 * r) / 24 + 0.0, yh - H * (8 + 5 * r) / 24
+        zl = zp + n[2] * 0.02
+        quad(lights, "glow_%s_pane_%d" % (name, j), v3(pb, yb_, zl), v3(pa, yb_, zl), v3(pb, ya, zl), v3(pa, ya, zl), 0.015, "pane_lit", n,
+             u_dir=u, v_dir=v3(0, -1, 0))
     r = hw + 0.1
     yc = a1 - hw
     out = n * 0.16
@@ -782,17 +852,17 @@ def arch_window(bone, detail, lights, name, xc, y0, z, n):
     pts = [v3(xc + r * math.cos(math.pi * i / N), yc + r * math.sin(math.pi * i / N), z) + out for i in range(N + 1)]
     for i in range(N):
         beam(bone, "%s_arch_%d" % (name, i), pts[i], pts[i + 1], 0.24, "dark_wood", width=0.22, up=n, extend=0.07)
-    box(detail, "%s_keystone" % name, v3(xc, yc + r + 0.05, z) + n * 0.2, (0.3, 0.36, 0.2), "carved")
-    beam(bone, "%s_sill" % name, v3(xc - r - 0.2, y0 - 0.1, z) + n * 0.2, v3(xc + r + 0.2, y0 - 0.1, z) + n * 0.2, 0.2, "dark_wood", width=0.16,
+    box(detail, "%s_keystone" % name, v3(xc, yc + r + 0.05, z) + n * 0.2, (0.28, 0.32, 0.2), "carved")
+    beam(bone, "%s_sill" % name, v3(xc - r - 0.16, y0 - 0.1, z) + n * 0.2, v3(xc + r + 0.16, y0 - 0.1, z) + n * 0.2, 0.2, "dark_wood", width=0.16,
          up=v3(0, 1, 0))
     for sgn in (-1, 1):
         box(detail, "%s_sill_bracket_%d" % (name, sgn > 0), v3(xc + sgn * (r - 0.05), y0 - 0.3, z) + n * 0.14, (0.16, 0.26, 0.2), "dark_wood")
 
 
 def back_wall(bone, detail, lights):
-    """The stern house's back wall over the transom: cream boards in a frame of dark posts and rails, three big arched
-    lattice windows in heavy carved dark frames (as on the back view: they fill the wall between the gallery's rail and
-    the eaves), carved panels at the ends, the dark eave frieze up to the roof."""
+    """The stern house's back wall over the transom: cream boards between dark corner posts and rails, three arched
+    windows (dark lattices, a few panes lit) in heavy dark frames, cream piers between and outside them (as on the back
+    view), the dark eave frieze up to the roof."""
     z = SZ - 0.02
     w = TOP_HW - 0.02
     y0, y1 = QD, HOUSE_HEAD_Y
@@ -800,28 +870,30 @@ def back_wall(bone, detail, lights):
     quad(bone, "house_back_wall", v3(w, y0, z), v3(-w, y0, z), v3(w, y1, z), v3(-w, y1, z), 0.12, "plaster_wall", n, back="plank_light",
          u_dir=v3(-1, 0, 0), v_dir=v3(0, -1, 0), stretch=False)
     eave_frieze(bone, "house_back_frieze", v3(w, 0, z), v3(-w, 0, z), roof_under(w, z), roof_under(-w, z), n)
-    out = n * 0.07
-    wy0 = QD + js.GALLERY_RAIL_H + 0.25           # the windows' sill, over the gallery's rail
-    for k, (y, th) in enumerate(((y0 + 0.11, 0.22), (wy0 - 0.3, 0.14), (y1 - 0.12, 0.3))):
-        timber(bone, "house_back_rail_%d" % k, v3(w, y, z) + out, v3(-w, y, z) + out, th)
-    for k, x in enumerate((w - 0.11, 1.225, -1.225, -(w - 0.11))):
-        timber(bone, "house_back_post_%d" % k, v3(x, y0, z) + out, v3(x, y1, z) + out, 0.24)
+    wy0 = QD + js.GALLERY_RAIL_H + ARCH_SILL      # the windows' sill, over the gallery's rail
+    for k, (y, th) in enumerate(((y0 + 0.11, 0.22), (wy0 - 0.38, 0.14), (y1 - 0.13, 0.26))):
+        timber(bone, "house_back_rail_%d" % k, v3(w - 0.06, y, z) + n * 0.05, v3(-(w - 0.06), y, z) + n * 0.05, th)
+    for k, x in enumerate((w - 0.1, -(w - 0.1))):
+        timber(bone, "house_back_post_%d" % k, v3(x, y0, z) + n * 0.09, v3(x, y1 - 0.03, z) + n * 0.09, 0.26)
     for k, xc in enumerate(ARCH_X):
-        arch_window(bone, detail, lights, "house_back_window_%d" % k, xc, wy0, z, n)
-    for side, sn in SIDES:
-        quad(detail, "house_back_carving_end_" + sn, v3(side * (w - 0.2), wy0 + 0.1, z - 0.05), v3(side * (w - 0.5), wy0 + 0.1, z - 0.05),
-             v3(side * (w - 0.2), wy0 + ARCH_H - 0.2, z - 0.05), v3(side * (w - 0.5), wy0 + ARCH_H - 0.2, z - 0.05), 0.04, "carved", n,
-             u_dir=v3(-side, 0, 0), v_dir=v3(0, -1, 0))
+        arch_window(bone, detail, lights, "house_back_window_%d" % k, xc, wy0, z, n, ARCH_LIT[k])
+
+
+def gable_top(x, z):
+    """Top of a gable's infill in the plane z: just under the main roof's tiles."""
+    return tile_y(x, z + 0.01) - 0.18
 
 
 def porch(bone, detail, lights):
-    """The porch in front of the house under its own lower gable roof: two posts on stone bases at the front corners, the
-    eave beam across with carved brackets, the gable filled with dark carved panels, the round carved medallion and a
-    hanging lantern under its apex."""
+    """The porch in front of the house's door, under the main roof's front gable: two posts on stone bases at the front
+    corners, the eave beam across with carved brackets, on it the gable's tympanum of cream boards in a frame of dark
+    timbers (a tie beam, a collar, posts, a king post, braces) with the round carved medallion, a lantern hanging under the
+    eave beam's middle."""
     zf = js.HOUSE_FRONT_Z
-    zp = js.PORCH_FRONT_Z + 0.3              # the front of the porch's frame (the roof overhangs it)
+    zp = js.PORCH_FRONT_Z                    # the porch's frame, under the gable (the roof overhangs it)
     w = js.hull_x(zp, QD - 0.1) - 0.3
     ey = js.EAVE_Y
+    xe = js.ROOF_HW + 0.1 - 0.17             # the eave beams along the sides end on this one
     for side, sn in SIDES:
         x = side * w
         timber(bone, "porch_post_" + sn, v3(x, QD, zp), v3(x, ey + 0.05, zp), 0.28, "dark_wood")
@@ -830,28 +902,33 @@ def porch(bone, detail, lights):
         beam(bone, "porch_bracket_" + sn, v3(x, ey - 0.9, zp + 0.05), v3(x - side * 0.8, ey - 0.12, zp + 0.05), 0.16, "dark_wood", width=0.18)
         beam(bone, "porch_bracket2_" + sn, v3(x, ey - 0.75, zp + 0.05), v3(x + side * 0.55, ey - 0.12, zp + 0.05), 0.14, "dark_wood", width=0.16)
         gl.hanging_lantern(lights, "porch_" + sn, (x - side * 0.25, ey - 0.25, zp + 0.25), drop=0.2, w=0.32, h=0.44)
-    timber(bone, "porch_eave_beam", v3(-w - 0.4, ey - 0.08, zp), v3(w + 0.4, ey - 0.08, zp), 0.3, "dark_wood")
-    timber(bone, "porch_eave_beam2", v3(-w - 0.2, ey + 0.18, zp - 0.05), v3(w + 0.2, ey + 0.18, zp - 0.05), 0.18, "post")
-    # the gable's tympanum: cream boards in a frame of dark timbers (a king post, a collar, struts), as on the perspective
-    gable_panel(bone, "porch_gable", -js.ROOF_HW + 0.6, js.ROOF_HW - 0.6, ey + 0.27, zp - 0.02, porch_under, v3(0, 0, 1), n=8, region="plaster_wall",
-                posts=False)
-    gz = zp + 0.06
-    top = porch_under(0.0)
-    yc = ey + 1.05
-    timber(bone, "porch_gable_collar", v3(-(js.ROOF_HW - 1.6), yc, gz), v3(js.ROOF_HW - 1.6, yc, gz), 0.2, "dark_wood")
+    timber(bone, "porch_eave_beam", v3(-xe - 0.15, ey - 0.08, zp), v3(xe + 0.15, ey - 0.08, zp), 0.3, "dark_wood")
+    timber(bone, "porch_eave_beam2", v3(-w - 0.4, ey + 0.17, zp - 0.04), v3(w + 0.4, ey + 0.17, zp - 0.04), 0.18, "post")
+    # the tympanum, set back under the leaning gable
+    gz = js.ROOF_FRONT_Z + 0.05
+    top = lambda x: gable_top(x, gz)                 # noqa: E731
+    y0 = ey + 0.26
+    gable_panel(bone, "porch_gable", -js.ROOF_HW + 0.55, js.ROOF_HW - 0.55, y0, gz, top, v3(0, 0, 1), posts_at=(-3.3, 3.3))
+    tz = gz + 0.1
+    y1, y2 = ey + 1.3, ey + 3.5                      # the tie beam, the collar
+    x1, x2 = (x_at(lambda x: top(x) - 0.3, y, 0.0, js.ROOF_HW) for y in (y1, y2))
+    timber(bone, "porch_gable_tie", v3(-x1, y1, tz), v3(x1, y1, tz), 0.22, "dark_wood")
+    timber(bone, "porch_gable_collar", v3(-x2, y2, tz), v3(x2, y2, tz), 0.2, "dark_wood")
+    timber(bone, "porch_gable_king", v3(0, y2, tz), v3(0, top(0.0) - 0.15, tz), 0.2, "dark_wood")
+    ym = (y1 + y2) / 2
     for side, sn in SIDES:
-        x0 = side * (js.ROOF_HW - 0.9)
-        timber(bone, "porch_gable_strut_" + sn, v3(x0, ey + 0.3, gz), v3(side * 0.75, top - 0.25, gz), 0.18, "dark_wood")
-        timber(bone, "porch_gable_post_" + sn, v3(side * 2.3, ey + 0.3, gz), v3(side * 2.3, porch_under(2.3) - 0.05, gz), 0.18, "dark_wood")
-    timber(bone, "porch_gable_king", v3(0, ey + 2.4, gz), v3(0, top - 0.05, gz), 0.2, "dark_wood")
-    # the round carved medallion on the gable, a lantern hanging from its apex
-    disc(detail, "porch_medallion_rim", (0, ey + 1.75, zp + 0.06), (0, 0, 1), 0.62, 0.1, "dark_wood", sides=16)
-    quad(detail, "porch_medallion", v3(-0.56, ey + 1.19, zp + 0.13), v3(0.56, ey + 1.19, zp + 0.13), v3(-0.56, ey + 2.31, zp + 0.13),
-         v3(0.56, ey + 2.31, zp + 0.13), 0.02, "medallion", v3(0, 0, 1), u_dir=v3(1, 0, 0), v_dir=v3(0, -1, 0))
-    gl.hanging_lantern(lights, "porch_apex", (0.0, ey + 0.1, zp + 0.35), drop=0.35, w=0.36, h=0.5)
+        timber(bone, "porch_gable_post_" + sn, v3(side * 1.25, y1, tz), v3(side * 1.25, y2, tz), 0.18, "dark_wood")
+        timber(bone, "porch_gable_strut_" + sn, v3(side * x2 * 0.8, y2, tz), v3(side * 0.12, top(0.12) - 0.4, tz), 0.16, "dark_wood")
+        timber(bone, "porch_gable_brace_" + sn, v3(side * x1 * 0.85, y1, tz), v3(side * 1.25, y2 - 0.3, tz), 0.14, "dark_wood")
+    # the round carved medallion between the tie and the collar, a lantern hanging under the eave beam
+    disc(detail, "porch_medallion_rim", (0, ym, gz + 0.07), (0, 0, 1), 0.86, 0.1, "dark_wood", sides=16)
+    quad(detail, "porch_medallion", v3(-0.78, ym - 0.78, gz + 0.14), v3(0.78, ym - 0.78, gz + 0.14), v3(-0.78, ym + 0.78, gz + 0.14),
+         v3(0.78, ym + 0.78, gz + 0.14), 0.02, "medallion", v3(0, 0, 1), u_dir=v3(1, 0, 0), v_dir=v3(0, -1, 0))
+    gl.hanging_lantern(lights, "porch_apex", (0.0, ey - 0.23, zp + 0.2), drop=0.25, w=0.36, h=0.5)
 
 
 LIP = 0.45           # each upper tier's lip laps over the tier below by this much (in plan)
+R45 = np.array([[math.cos(math.pi / 4), 0, math.sin(math.pi / 4)], [0, 1, 0], [-math.sin(math.pi / 4), 0, math.cos(math.pi / 4)]])
 
 
 def horn(bone, detail, name, base, out, up=0.55, size=0.24):
@@ -864,20 +941,52 @@ def horn(bone, detail, name, base, out, up=0.55, size=0.24):
     box(detail, name + "_tip", pts[-1] - out * 0.06 + v3(0, 0.02, 0), (size * 0.62, size * 0.5, size * 0.62), "dark_wood")
 
 
+def knob(bone, name, c, axis, size=0.22, region="dark_wood"):
+    """A small round knob (a short octagonal prism) centred on c, along axis."""
+    axis = norm(v3(*axis))
+    c = v3(*c)
+    tube(bone, name, c - axis * size * 0.42, c + axis * size * 0.42, size, region, sides=8)
+
+
+def finial(bone, name, base, size=0.26, region="dark_wood"):
+    """A small turned finial standing on base: a broad turned body, a neck, a little cap (no iron band)."""
+    base = v3(*base)
+    box(bone, name + "_0", base + v3(0, size * 0.32, 0), (size, size * 0.64, size), region, R=R45)
+    box(bone, name + "_1", base + v3(0, size * 0.78, 0), (size * 0.6, size * 0.3, size * 0.6), region)
+    box(bone, name + "_2", base + v3(0, size * 1.02, 0), (size * 0.34, size * 0.2, size * 0.34), region, R=R45)
+
+
+def rafter_tip(bone, detail, name, base, out, up=0.45, size=0.24):
+    """An upturned rafter end: three dark segments, thinner and thinner, curling up and out from base (along the
+    horizontal out), ending in one small round knob on their axis."""
+    out = norm(v3(out[0], 0, out[2]))
+    pts = [base, base + out * 0.38 + v3(0, 0.06, 0), base + out * 0.64 + v3(0, 0.24, 0), base + out * 0.74 + v3(0, up, 0)]
+    for j in range(3):
+        sz = size * (1.0 - 0.2 * j)
+        beam(bone, "%s_%d" % (name, j), pts[j], pts[j + 1], sz, "dark_wood", width=sz, extend=0.05)
+    tip = norm(pts[-1] - pts[-2])
+    knob(detail, name + "_knob", pts[-1] + tip * 0.1, tip, size * 0.92)
+
+
 # ================================================================ the main roof
-# Four stacked tiers, as on the back view: each tier a skirt of red tiles, nearly flat at its lip and steepening under the
-# tier above, its lip resting over the top of the tier below (a dark shadow under it); the eaves of every tier sweep up and
-# out towards each corner (the upturned eaves); thick bamboo poles laid round each tier, crossing at the corners with
-# chunky knobs, poles down the slopes, a central spine pole down the hipped back; the hips curling up at their feet,
-# the ridge, a tall spire at its back end; a heavy dark eave beam on short corner posts under the lowest lip.
+# Four stacked tiers of red tiles. On the hipped back (the back view) each tier is a skirt resting over the one below,
+# nearly flat at its lip and steepening under the next (a dark shadow under each lip), the eaves sweeping up and out
+# towards the corners; along the sides (the side view) the tiers lie almost flush, one long sweeping surface with a dark
+# purlin at each joint and pale ribs down the slope, the overhangs growing only towards the hips. The ridge rises a little
+# aft; the front gable leans forwards over the porch under heavy stepped bargeboards. Dark hip rafters run continuous
+# from the eaves to the ridge, each tier's corner ending in one upturned rafter tip with a round knob; diagonal poles on
+# the back from the spine down to each corner; a tall spire on the ridge's back end; a heavy dark eave beam round the
+# sides and the back between short knobbed corner posts (the "ears" of the back view), lanterns hanging at the corners.
 ROOF_OVER = 0.1          # the lowest lip juts past the eave line (and forwards past the gable)
-TIER_GAP = 0.12          # each lip rests this high over the top of the tier below
-TIER_SAG = 1.15          # a tier's profile: y = y_lip + (y_top - y_lip) s^TIER_SAG (s: 0 at the lip, 1 at its top)
+TIER_GAP = 0.12          # on the back, each lip rests this high over the top of the tier below
+TIER_SAG = 1.15          # a tier's profile there: y = y_lip + (y_top - y_lip) s^TIER_SAG (s: 0 at the lip, 1 at its top)
 LIP_KICK = 0.14          # the very edge of each lip turns up
+FLUSH_GAP = 0.07         # along the sides, each lip lies only this high over the tier below
+ART_L = 2.8              # along a side the tiers' overhang (gap, kick) grows over this length towards the hip
 CORNER_L = (4.2, 3.3, 2.7, 2.1)   # the eaves sweep up over this length from each corner (a sag between the corners)
 CORNER_UP = (0.9, 0.65, 0.55, 0.45)    # rise of each tier's corners at its lip
-CORNER_OUT = (0.3, 0.26, 0.22, 0.18)   # and how far they jut out (plan, along the diagonal)
-FRONT_UP = 0.75          # the gable's lower corners rise a little less
+CORNER_OUT = (0.16, 0.14, 0.12, 0.1)   # and how far they jut out (plan, along the diagonal): the eaves stay nearly straight
+FRONT_UP = 0.6           # the gable's lower corners rise less
 T_SIDE = (0.0, 0.035, 0.08, 0.14, 0.22, 0.33, 0.46, 0.6, 0.72, 0.82, 0.9, 0.955, 1.0)   # along a side: gable (0) -> hip (1)
 T_BACK = (0.0, 0.05, 0.12, 0.22, 0.35, 0.5, 0.65, 0.78, 0.88, 0.95, 1.0)              # across the back: port hip -> starboard
 S_TIER = (0.0, 0.12, 0.3, 0.55, 1.0)                                                   # across a tier: lip (0) -> top (1)
@@ -890,24 +999,62 @@ def tier_span(k):
 
 
 def tier_ends(k):
-    """Heights of tier k at its lip and at its top (the top tier's top is the ridge)."""
+    """Heights of tier k at its lip (on the back) and at its top (the top tier's top is the ridge)."""
     top = js.roof_y(tier_span(k)[1]) + js.TIER_LIFT * k
     return (js.EAVE_Y if k == 0 else tier_ends(k - 1)[1] + TIER_GAP), top
 
 
-def tier_y(k, d):
-    """Height of tier k's tiles at a distance d from the eave line (without the corners' sweep)."""
+def art_y(k, d):
+    """Height of tier k at a distance d from the eave line where it stands proud (the back): a skirt with a kicked lip."""
     dl, d1 = tier_span(k)
     s = max(0.0, min(1.0, (d - dl) / (d1 - dl)))
     y0, y1 = tier_ends(k)
     return y0 + (y1 - y0) * s ** TIER_SAG + LIP_KICK * (1.0 - s) ** 8
 
 
+_FLUSH_LIP = {}
+
+
+def flush_lip(k):
+    """Height of tier k's lip where it lies flush (the sides): just over the tier below."""
+    if k not in _FLUSH_LIP:
+        _FLUSH_LIP[k] = js.EAVE_Y if k == 0 else flush_y(k - 1, tier_span(k)[0]) + FLUSH_GAP
+    return _FLUSH_LIP[k]
+
+
+def flush_y(k, d):
+    """Height of tier k where it lies flush: from its lip to its top along the roof's envelope (one sweeping surface)."""
+    dl, d1 = tier_span(k)
+    e0, e1 = js.roof_y(dl), js.roof_y(d1)
+    f = max(0.0, min(1.0, (js.roof_y(d) - e0) / (e1 - e0)))
+    y0, y1 = flush_lip(k), tier_ends(k)[1]
+    return y0 + (y1 - y0) * f
+
+
+def art_weight(r_h):
+    """How much the tiers stand proud at a distance r_h (along z) from the hip: fully at the hip, flush beyond ART_L."""
+    return sm(1.0 - r_h / ART_L)
+
+
+def tier_y(k, d, a=1.0):
+    """Height of tier k's tiles at a distance d from the eave line (without the corners' sweep nor the ridge's rise), a the
+    articulation (1 on the back, 0 flush along the sides)."""
+    f = flush_y(k, d)
+    return f + a * (art_y(k, d) - f)
+
+
+def plan_weight(x, z):
+    """The tiers' articulation over (x, z) in plan: 1 over the hipped back, fading out along the sides."""
+    d_side, d_back = js.ROOF_HW - abs(x), z - js.ROOF_BACK_Z
+    return 1.0 if d_back <= d_side else art_weight(d_back - d_side)
+
+
 def tile_y(x, z):
     """Top of the main roof's tiles over (x, z) in plan (the highest tier there): where walls and gables close under it."""
     d = min(js.ROOF_HW - abs(x), z - js.ROOF_BACK_Z)
-    ys = [tier_y(k, d) for k in range(js.ROOF_TIERS) if tier_span(k)[0] - 1e-9 <= d <= tier_span(k)[1] + 1e-9]
-    return max(ys) if ys else js.roof_y(d)
+    a = plan_weight(x, z)
+    ys = [tier_y(k, d, a) for k in range(js.ROOF_TIERS) if tier_span(k)[0] - 1e-9 <= d <= tier_span(k)[1] + 1e-9]
+    return (max(ys) if ys else js.roof_y(d)) + js.roof_rise(max(d, 0.0), z)
 
 
 def front_edge_z(d):
@@ -918,7 +1065,8 @@ def front_edge_z(d):
 def tier_point(k, band, t, s, lift=0.0):
     """Point of tier k's tiles (raised by lift along the vertical): band +1 / -1 a side, from the gable (t 0) to the hip
     (t 1); band 0 the back, from the port hip (t 0) to the starboard hip (t 1); s from the lip (0) to the tier's top (1).
-    The eaves sweep up and out towards each corner, less and less up the tier."""
+    The eaves sweep up and out towards each corner, less and less up the tier; the tiers stand proud on the back and near
+    the hips, flush along the sides; the whole roof rises a little aft towards the ridge's back end."""
     dl, d1 = tier_span(k)
     d = dl + (d1 - dl) * s
     w = js.ROOF_HW - d
@@ -928,18 +1076,20 @@ def tier_point(k, band, t, s, lift=0.0):
         z = zf + (zh - zf) * t
         x = band * w
         r_h, r_g = z - zh, zf - z
+        a = art_weight(r_h)
     else:
         x = w * (1.0 - 2.0 * t)
         z = zh
         r_h, r_g = w - abs(x), 1e9
-    y0, y1 = tier_ends(k)
-    y = y0 + (y1 - y0) * s ** TIER_SAG + LIP_KICK * (1.0 - s) ** 8
+        a = 1.0
+    y = tier_y(k, d, a)
     e = (1.0 - s) ** 1.3
     wh = max(0.0, 1.0 - r_h / CORNER_L[k]) ** 1.7 * e
     wg = max(0.0, 1.0 - r_g / CORNER_L[k]) ** 1.7 * e
     sx = 1.0 if x > 1e-6 else -1.0 if x < -1e-6 else 0.0
     o = CORNER_OUT[k]
-    return v3(x + sx * o * (wh + wg), y + CORNER_UP[k] * (wh + FRONT_UP * wg) + lift, z - o * wh + o * wg)
+    return v3(x + sx * o * (wh + wg), y + CORNER_UP[k] * (wh + FRONT_UP * wg) + lift + js.roof_rise(max(d, 0.0), z),
+              z - o * wh + o * wg)
 
 
 def band_grid(k, band, ss=S_TIER, lift=0.0):
@@ -951,27 +1101,50 @@ def band_normal(band):
     return v3(band, 1.2, 0) if band else v3(0, 1.2, -1)
 
 
+def lip_proud(k, band, t):
+    """Does tier k's lip stand proud at t (worth its course of tile ends and rafter line)? All round the lowest tier; the
+    upper tiers on the back and near the hips."""
+    if band == 0 or k == 0:
+        return True
+    dl = tier_span(k)[0]
+    zh, zf = js.ROOF_BACK_Z + dl, front_edge_z(dl)
+    return art_weight((zf + (zh - zf) * t) - zh) > 0.3
+
+
 def polyline_on(bone, name, pts, d, region, sides=4, ext=(0.0, 0.0), knobs=None):
-    """A pole through pts, carried on past its ends by ext, with a knob (size) at each carried end."""
+    """A pole through pts, carried on past its ends by ext, with a small round knob (size, or a pair of sizes for its two
+    ends) on its axis at each carried end."""
     pts = list(pts)
     a = pts[0] + norm(pts[0] - pts[1]) * ext[0]
     b = pts[-1] + norm(pts[-1] - pts[-2]) * ext[1]
     pts = [a] + pts[1:-1] + [b]
     for i in range(len(pts) - 1):
         tube(bone, "%s_%d" % (name, i), pts[i], pts[i + 1], d, region, sides=sides, extend=d * 0.3)
-    if knobs:
-        for j, (p, e) in enumerate(((a, ext[0]), (b, ext[1]))):
-            if e > 0:
-                box(bone, "%s_knob_%d" % (name, j), p, (knobs, knobs, knobs), "post")
+    ks = knobs if isinstance(knobs, tuple) else (knobs, knobs)
+    for j, (p, q, e) in enumerate(((a, pts[1], ext[0]), (b, pts[-2], ext[1]))):
+        if ks[j] and e > 0:
+            knob(bone, "%s_knob_%d" % (name, j), p + norm(p - q) * ks[j] * 0.3, p - q, ks[j])
+
+
+def x_at(fn, y, x0, x1):
+    """x in [x0, x1] where fn (decreasing from x0 to x1) comes down to y (bisection)."""
+    for _ in range(40):
+        xm = (x0 + x1) / 2
+        if fn(xm) > y:
+            x0 = xm
+        else:
+            x1 = xm
+    return (x0 + x1) / 2
 
 
 def roof(bone, detail, lights):
-    """The stern house's main roof (see above): a gable at the front (behind the porch roof) with stepped heavy dark
+    """The stern house's main roof (see above): a gable at the front (over the porch roof) with stepped heavy dark
     bargeboards, hipped over the stern."""
     zb, hw = js.ROOF_BACK_Z, js.ROOF_HW
     for k in range(js.ROOF_TIERS):
         for band, bn in ((1, "p"), (0, "back"), (-1, "s")):
             G = band_grid(k, band)
+            T = T_BACK if band == 0 else T_SIDE
             n_out = band_normal(band)
             along = v3(0, 0, 1) if band else v3(1, 0, 0)
             down = v3(band, -1.0, 0) if band else v3(0, -1.0, -1.0)
@@ -979,115 +1152,116 @@ def roof(bone, detail, lights):
                 for j in range(len(S_TIER) - 1):
                     quad(bone, "roof_t%d_%s_%d_%d" % (k, bn, i, j), G[i][j], G[i + 1][j], G[i][j + 1], G[i + 1][j + 1], 0.12, "roof", n_out,
                          back="roof_under", u_dir=along, v_dir=down, stretch=False, overlap=(1.04, 1.06))
-            # the lip: a course of round tile ends along its edge, the dark rafter line under it
+            # where the lip stands proud: a course of round tile ends along its edge, the dark rafter line under it
             for i in range(len(G) - 1):
+                if not lip_proud(k, band, (T[i] + T[i + 1]) / 2):
+                    continue
                 a, b = G[i][0], G[i + 1][0]
                 quad(detail, "roof_ends_t%d_%s_%d" % (k, bn, i), a - v3(0, 0.16, 0), b - v3(0, 0.16, 0), a + v3(0, 0.03, 0), b + v3(0, 0.03, 0),
                      0.06, "tile_end", v3(band, 0, 0) if band else v3(0, 0, -1), u_dir=along, v_dir=v3(0, -1, 0), stretch=False, overlap=(1.05, 1.0))
             inward = v3(-band, 0, 0) if band else v3(0, 0, 1)
-            rl = [G[i][0] + inward * 0.18 - v3(0, 0.24, 0) for i in range(0, len(G), 2)] + ([G[-1][0] + inward * 0.18 - v3(0, 0.24, 0)]
-                                                                                         if (len(G) - 1) % 2 else [])
-            for i in range(len(rl) - 1):
-                beam(bone, "roof_rafter_line_t%d_%s_%d" % (k, bn, i), rl[i], rl[i + 1], 0.16, "dark_wood", width=0.18, extend=0.08)
-        # the hips: dark ridge tiles from the tier's lip up to its top, the foot curling up and out at the corner
-        for side, sn in SIDES:
-            pts = [tier_point(k, side, 1.0, s, 0.13) for s in (0.0, 0.2, 0.45, 0.7, 1.0)]
-            for j in range(len(pts) - 1):
-                beam(bone, "roof_hip_t%d_%s%d" % (k, sn, j), pts[j], pts[j + 1], 0.24, "ridge", width=0.3, extend=0.08)
-            foot, nxt = pts[0], pts[1]
-            out = norm(v3(foot[0] - nxt[0], 0, foot[2] - nxt[2]))
-            tip = foot + out * 0.45 + v3(0, 0.3, 0)
-            beam(detail, "roof_hip_tip_t%d_%s" % (k, sn), foot, tip, 0.2, "ridge", width=0.24, extend=0.04)
-            # the gable's corner: the same curl at the foot of the bargeboard
-            gf, gn_ = tier_point(k, side, 0.0, 0.0, 0.13), tier_point(k, side, 0.0, 0.2, 0.13)
-            out = norm(v3(gf[0] - gn_[0], 0, 0.35))
-            beam(detail, "roof_gable_tip_t%d_%s" % (k, sn), gf, gf + out * 0.4 + v3(0, 0.26, 0), 0.2, "ridge", width=0.24, extend=0.04)
-    # the ridge, its cap, the curled finial at the gable, the spire at its back end
+            idx = list(range(0, len(G), 2)) + ([len(G) - 1] if (len(G) - 1) % 2 else [])
+            for i in range(len(idx) - 1):
+                if not lip_proud(k, band, (T[idx[i]] + T[idx[i + 1]]) / 2):
+                    continue
+                pa, pb = (G[q][0] + inward * 0.18 - v3(0, 0.24, 0) for q in (idx[i], idx[i + 1]))
+                beam(bone, "roof_rafter_line_t%d_%s_%d" % (k, bn, i), pa, pb, 0.16, "dark_wood", width=0.18, extend=0.08)
+    # the hip rafters: one dark line each from the lowest corner up to the ridge's back end, passing under each lip; at each
+    # tier's corner an upturned rafter tip with a round knob
+    for side, sn in SIDES:
+        pts = []
+        for k in range(js.ROOF_TIERS):
+            dl, d1 = tier_span(k)
+            s_end = 1.0 if k == js.ROOF_TIERS - 1 else (tier_span(k + 1)[0] - dl) / (d1 - dl)
+            pts += [tier_point(k, side, 1.0, s, 0.14) for s in np.linspace(0.0, s_end, 4)]
+            foot, nxt = tier_point(k, side, 1.0, 0.0, 0.14), tier_point(k, side, 1.0, 0.25, 0.14)
+            rafter_tip(bone, detail, "roof_hip_tip_t%d_%s" % (k, sn), foot, foot - nxt, up=0.42 - 0.05 * k, size=0.24 - 0.02 * k)
+        for j in range(len(pts) - 1):
+            if np.linalg.norm(pts[j + 1] - pts[j]) < 0.02:
+                continue
+            beam(bone, "roof_hip_%s%d" % (sn, j), pts[j], pts[j + 1], 0.22, "dark_wood", width=0.26, extend=0.06)
+    # the ridge (rising aft), its cap, the curled finial at the gable, the spire at its back end
     ry = js.ridge_top() + 0.12
     zr, zh = front_edge_z(hw), zb + hw
-    beam(bone, "roof_ridge", (0, ry, zr - 0.2), (0, ry, zh), 0.4, "ridge", width=0.46, extend=0.15)
-    beam(bone, "roof_ridge_cap", (0, ry + 0.22, zr - 0.1), (0, ry + 0.22, zh - 0.1), 0.12, "dark_wood", width=0.3)
+    r0, r1 = v3(0, ry, zr - 0.2), v3(0, ry + js.RIDGE_RISE, zh)
+    beam(bone, "roof_ridge", r0, r1, 0.4, "ridge", width=0.46, extend=0.15)
+    beam(bone, "roof_ridge_cap", r0 + v3(0, 0.22, 0.1), r1 + v3(0, 0.22, -0.1), 0.12, "dark_wood", width=0.3)
     base = v3(0, ry + 0.1, zr - 0.35)
     pts = [base, base + v3(0, 0.45, 0.12), base + v3(0, 0.85, 0.42), base + v3(0, 1.0, 0.75)]
     for j in range(3):
         beam(detail if j else bone, "roof_finial_0_%d" % j, pts[j], pts[j + 1], 0.3 - 0.06 * j, "dark_wood", width=0.3 - 0.06 * j, extend=0.06)
     box(detail, "roof_finial_tip_0", pts[-1] + v3(0, 0.05, 0.08), (0.2, 0.2, 0.2), "gold")
-    sp = v3(0, ry + 0.1, zh)
+    sp = v3(0, ry + 0.1 + js.RIDGE_RISE, zh)
     box(bone, "roof_spire_base", sp + v3(0, 0.15, 0), (0.62, 0.3, 0.62), "dark_wood")
     tube(bone, "roof_spire_post", sp + v3(0, 0.3, 0), sp + v3(0, 1.45, 0), 0.32, "dark_wood", sides=6)
     for j, y in enumerate((0.55, 1.1)):
         tube(detail, "roof_spire_ring_%d" % j, sp + v3(0, y - 0.05, 0), sp + v3(0, y + 0.05, 0), 0.42, "gold", sides=6)
     box(bone, "roof_spire_knob", sp + v3(0, 1.6, 0), (0.4, 0.34, 0.4), "dark_wood")
-    tube(bone, "roof_spire_spike", sp + v3(0, 1.75, 0), sp + v3(0, 2.45, 0), 0.16, "dark_wood", sides=4)
-    box(detail, "roof_spire_tip", sp + v3(0, 2.5, 0), (0.12, 0.14, 0.12), "gold")
+    tube(bone, "roof_spire_spike", sp + v3(0, 1.75, 0), sp + v3(0, 2.42, 0), 0.16, "dark_wood", sides=4)
+    box(detail, "roof_spire_tip", sp + v3(0, 2.47, 0), (0.1, 0.18, 0.1), "gold")
     for side, sn in SIDES:
         c = [sp + v3(side * 0.2, 0.25, 0), sp + v3(side * 0.48, 0.32, 0), sp + v3(side * 0.6, 0.55, 0), sp + v3(side * 0.5, 0.75, 0)]
         for j in range(3):
             beam(detail, "roof_spire_curl_%s%d" % (sn, j), c[j], c[j + 1], 0.13, "dark_wood", width=0.13, extend=0.03)
-    # the heavy bargeboards of the front gable: stepped with the tiers, a scroll at the foot
+    # the heavy bargeboards of the front gable: a broad pale board stepped with the tiers over a dark under-board, a
+    # scroll at the foot
     for side, sn in SIDES:
         for k in range(js.ROOF_TIERS):
-            pts = [tier_point(k, side, 0.0, s, 0.22) + v3(0, 0, 0.12) for s in (0.0, 0.25, 0.55, 1.0)]
+            pts = [tier_point(k, side, 0.0, s, 0.24) + v3(0, 0, 0.14) for s in (0.0, 0.25, 0.55, 1.0)]
             for j in range(len(pts) - 1):
-                beam(bone, "roof_bargeboard_t%d_%s%d" % (k, sn, j), pts[j], pts[j + 1], 0.36, "bargeboard", width=0.22, extend=0.1)
+                beam(bone, "roof_bargeboard_t%d_%s%d" % (k, sn, j), pts[j], pts[j + 1], 0.46, "bargeboard", width=0.3, extend=0.1)
+                beam(bone, "roof_bargeboard_low_t%d_%s%d" % (k, sn, j), pts[j] - v3(0, 0.38, 0.05), pts[j + 1] - v3(0, 0.38, 0.05), 0.26, "dark_wood",
+                     width=0.24, extend=0.08)
         scroll(bone, detail, "roof_bargeboard_scroll_" + sn, tier_point(0, side, 0.0, 0.0, 0.1) + v3(side * 0.05, -0.1, 0.12), side)
-    # the main gable's face over the porch roof: cream boards between dark timbers from the porch roof up under the tiers
-    zf = js.ROOF_FRONT_Z
-    gable_panel(bone, "roof_gable", -hw + 0.3, hw - 0.3, js.EAVE_Y, zf + 0.05, lambda x: tile_y(x, zf + 0.06) - 0.18, v3(0, 0, 1), n=10,
-                region="plaster_wall")
-    for side, sn in SIDES:
-        timber(bone, "roof_gable_strut_" + sn, v3(side * 3.2, js.PORCH_RIDGE_Y - 0.6, zf + 0.12), v3(side * 0.4, tile_y(0.4, zf + 0.06) - 0.4, zf + 0.12),
-               0.18, "dark_wood")
-    timber(bone, "roof_gable_tie", v3(-2.6, js.PORCH_RIDGE_Y + 0.55, zf + 0.12), v3(2.6, js.PORCH_RIDGE_Y + 0.55, zf + 0.12), 0.2, "dark_wood")
-    box(detail, "roof_gable_crest", (0, js.PORCH_RIDGE_Y + 1.35, zf + 0.12), (0.7, 0.7, 0.08), "carved")
-    # bamboo poles: round each tier (crossing at the corners, knobbed ends), down the slopes, the spine down the back
+    # poles: dark purlins round each tier (at its lip, the joint with the tier below), crossing at the corners; pale ribs
+    # down the slopes; on the back the spine and a diagonal pole from it down to each corner
     for k in range(js.ROOF_TIERS):
-        s = 0.16 if k < 3 else 0.2
-        knob = 0.36 - 0.04 * k
         for band, bn in ((1, "p"), (0, "back"), (-1, "s")):
-            T = T_BACK if band == 0 else T_SIDE
-            pts = [tier_point(k, band, t, s, 0.19) for t in T]
             if band == 0 and k == 3:
                 continue                             # the top tier's back is a small triangle: its spine is enough
-            polyline_on(bone, "roof_pole_t%d_%s" % (k, bn), pts[::2] + ([pts[-1]] if (len(pts) - 1) % 2 else []), 0.24, "bamboo",
-                        ext=(0.42, 0.42), knobs=knob)
+            T = T_BACK if band == 0 else T_SIDE
+            pts = [tier_point(k, band, t, 0.16, 0.19) for t in T]
+            sel = pts[::2] + ([pts[-1]] if (len(pts) - 1) % 2 else [])
+            if band == 0:
+                polyline_on(bone, "roof_pole_t%d_%s" % (k, bn), sel, 0.22, "purlin", ext=(0.3, 0.3))
+            else:                                    # a small knob on its end at the gable (the lowest one ends in the scroll)
+                polyline_on(bone, "roof_pole_t%d_%s" % (k, bn), sel[::-1], 0.22, "purlin", ext=(0.3, 0.3 if k else 0.05),
+                            knobs=(None, 0.2))
     for side, sn in SIDES:
-        for j, z in enumerate((-10.9, -13.9, -16.9)):
+        for j, z in enumerate((-7.4, -10.4, -13.4, -16.4)):
             for k in range(js.ROOF_TIERS):
                 dl, d1 = tier_span(k)
                 pts = []
                 for s in (0.04, 0.3, 0.6, 0.96):
                     d = dl + (d1 - dl) * s
-                    zh, zf_ = zb + d, front_edge_z(d)
-                    if z < zh + 0.3 or z > zf_ - 0.3:
+                    zh_, zf_ = zb + d, front_edge_z(d)
+                    if z < zh_ + 0.3 or z > zf_ - 0.3:
                         continue
-                    pts.append(tier_point(k, side, (z - zf_) / (zh - zf_), s, 0.2))
+                    pts.append(tier_point(k, side, (z - zf_) / (zh_ - zf_), s, 0.2))
                 for i in range(len(pts) - 1):
-                    tube(bone, "roof_batten_%s%d_t%d_%d" % (sn, j, k, i), pts[i], pts[i + 1], 0.22, "bamboo", sides=4, extend=0.07)
+                    tube(bone, "roof_batten_%s%d_t%d_%d" % (sn, j, k, i), pts[i], pts[i + 1], 0.2, "bamboo", sides=4, extend=0.07)
     for k in range(js.ROOF_TIERS):
         pts = [tier_point(k, 0, 0.5, s, 0.2) for s in (0.0, 0.3, 0.65, 1.0)]
-        polyline_on(bone, "roof_spine_t%d" % k, pts, 0.26, "bamboo", ext=(0.3 if k == 0 else 0.0, 0.0), knobs=0.34 if k == 0 else None)
-    # the heavy eave beam under the lowest lip, round the sides and the back, on short corner posts whose knobbed heads
-    # stand above the upturned corners (the "ears" of the back view); lanterns hang from the corners
-    for band, bn in ((1, "p"), (0, "back"), (-1, "s")):
-        T = T_BACK if band == 0 else T_SIDE
-        inward = v3(-band, 0, 0) if band else v3(0, 0, 1)
-        pts = [tier_point(0, band, t, 0.3) for t in T]
-        ys = js.EAVE_Y - 0.05
-        line = [v3(p[0], ys, p[2]) + inward * 0.05 for p in (pts[0], pts[len(pts) // 2], pts[-1])]
-        if band:
-            line = [line[0], line[-1]]
-        for i in range(len(line) - 1):
-            beam(bone, "roof_eave_beam_%s_%d" % (bn, i), line[i], line[i + 1], 0.34, "dark_wood", width=0.3, extend=0.3)
+        polyline_on(bone, "roof_spine_t%d" % k, pts, 0.24, "bamboo", ext=(0.25 if k == 0 else 0.0, 0.0), knobs=0.24 if k == 0 else None)
+        for j, tc in enumerate((0.0, 1.0)):
+            q = [tier_point(k, 0, 0.5 + (tc - 0.5) * f, 0.9 - 0.84 * f, 0.2) for f in (0.0, 0.33, 0.66, 1.0)]
+            for i in range(len(q) - 1):
+                tube(bone, "roof_diag_t%d_%d_%d" % (k, j, i), q[i], q[i + 1], 0.17, "bamboo", sides=4, extend=0.05)
+    # the heavy eave beam under the lowest lip, round the back and along the sides, between the short corner posts that
+    # stand through its back corners, their knobbed heads over the upturned corners; a lantern hangs at each corner
+    yb = js.EAVE_Y - 0.05
+    xc, zc = hw + ROOF_OVER - 0.17, zb - ROOF_OVER + 0.17
+    beam(bone, "roof_eave_beam_back", v3(xc, yb, zc), v3(-xc, yb, zc), 0.34, "dark_wood", width=0.3, extend=0.15)
     for side, sn in SIDES:
-        for c, (t, band) in enumerate(((1.0, side), (0.0, side))):
-            p = tier_point(0, band, t, 0.0)
-            foot = v3(p[0], js.EAVE_Y - 0.2, p[2])
-            head = v3(p[0], p[1] + 0.45, p[2])
-            tube(bone, "roof_corner_post_%s%d" % (sn, c), foot, head, 0.26, "dark_wood", sides=4)
-            box(bone, "roof_corner_knob_%s%d" % (sn, c), head + v3(0, 0.12, 0), (0.4, 0.34, 0.4), "post")
-            gl.hanging_lantern(lights, "eave_%s%d" % (sn, c), (p[0] - side * 0.1, js.EAVE_Y - 0.3, p[2] + (0.15 if c == 0 else -0.15)), drop=0.25,
-                               w=0.32, h=0.44)
+        c = v3(side * xc, yb, zc)
+        beam(bone, "roof_eave_beam_" + sn, c, v3(side * xc, yb, js.PORCH_FRONT_Z), 0.34, "dark_wood", width=0.3, extend=0.15)
+        head = v3(side * xc, tier_point(0, side, 1.0, 0.0)[1] + 0.4, zc)
+        tube(bone, "roof_corner_post_" + sn, c - v3(0, 0.42, 0), head, 0.26, "dark_wood", sides=4)
+        finial(detail, "roof_corner_finial_" + sn, head, 0.3)
+        knob(detail, "roof_corner_drop_" + sn, c - v3(0, 0.5, 0), (0, 1, 0), 0.2)
+        arm = c + v3(side * 0.13, -0.1, -0.13)
+        beam(detail, "eave_lantern_arm_" + sn, arm, arm + v3(side * 0.2, 0, -0.2), 0.06, "iron", width=0.06)
+        gl.hanging_lantern(lights, "eave_" + sn, arm + v3(side * 0.2, -0.02, -0.2), drop=0.18, w=0.32, h=0.44)
 
 
 def scroll(bone, detail, name, base, side):
@@ -1095,48 +1269,6 @@ def scroll(bone, detail, name, base, side):
     pts = [base, base + v3(side * 0.3, -0.18, 0.05), base + v3(side * 0.5, 0.0, 0.08), base + v3(side * 0.42, 0.22, 0.08)]
     for j in range(3):
         beam(bone, "%s_%d" % (name, j), pts[j], pts[j + 1], 0.22 - 0.03 * j, "bargeboard", width=0.2, extend=0.05)
-
-
-def porch_roof(bone, detail, lights):
-    """The porch's own roof: a lower gable (about 38 degrees, gently concave) in front of the main roof, red tiles with a
-    kicked-up lip at the eaves, heavy dark bargeboards ending in scrolls, a carved crest at the apex, bamboo battens."""
-    z0, z1 = js.PORCH_FRONT_Z, js.ROOF_FRONT_Z - 0.45      # its front gable, its back end under the main roof
-    hw = js.ROOF_HW
-    ds = list(np.linspace(0.0, hw, 7))
-    for side, sn in SIDES:
-        P = lambda d, z: v3(side * (hw - d), js.porch_y(d), z)  # noqa: E731
-        for j in range(len(ds) - 1):
-            da, db = ds[j], ds[j + 1]
-            quad(bone, "porch_roof_%s%d" % (sn, j), P(da, z1), P(da, z0), P(db, z1), P(db, z0), 0.12, "roof", v3(side, 1.2, 0), back="roof_under",
-                 u_dir=v3(0, 0, 1), v_dir=v3(-side, -0.6, 0), stretch=False)
-        # the lip at the eaves, kicked up
-        zl = js.ROOF_FRONT_Z + 0.05
-        la, lb = v3(side * (hw + 0.22), js.EAVE_Y + js.TIER_FLARE * 0.6, z0 - 0.15), v3(side * (hw + 0.22), js.EAVE_Y + js.TIER_FLARE * 0.6, zl)
-        quad(bone, "porch_roof_lip_" + sn, lb, la, P(0.02, zl), P(0.02, z0 - 0.15), 0.12, "roof", v3(side, 1.2, 0), back="roof_under",
-             u_dir=v3(0, 0, 1), v_dir=v3(-side, -0.3, 0), stretch=False)
-        quad(detail, "porch_roof_ends_" + sn, lb - v3(0, 0.12, 0), la - v3(0, 0.12, 0), lb + v3(0, 0.02, 0), la + v3(0, 0.02, 0), 0.05, "tile_end",
-             v3(side, 0, 0), u_dir=v3(0, 0, 1), v_dir=v3(0, -1, 0), stretch=False)
-        beam(bone, "porch_roof_purlin_" + sn, la - v3(side * 0.14, 0.24, 0), lb - v3(side * 0.14, 0.24, 0), 0.3, "dark_wood", width=0.3, extend=0.2)
-        horn(bone, detail, "porch_roof_horn_" + sn, la - v3(side * 0.0, 0.2, 0.0) + v3(0, 0, -0.05), v3(side, 0, 0.7), up=0.55, size=0.26)
-        # the heavy bargeboards along the front gable, a scroll at the foot
-        pts = [P(d, z0 - 0.14) + v3(0, 0.2, 0) for d in np.linspace(0.0, hw, 8)]
-        for j in range(len(pts) - 1):
-            beam(bone, "porch_bargeboard_%s%d" % (sn, j), pts[j], pts[j + 1], 0.4, "bargeboard", width=0.24, extend=0.08)
-        scroll(bone, detail, "porch_bargeboard_scroll_" + sn, pts[0] + v3(side * 0.1, -0.12, 0), side)
-        # battens down the slope
-        for j, z in enumerate((z0 - 1.15, z1 + 0.6)):
-            q = [P(d, z) + v3(0, 0.16, 0) for d in np.linspace(0.1, hw - 0.15, 6)]
-            for i in range(len(q) - 1):
-                tube(bone, "porch_batten_%s%d_%d" % (sn, j, i), q[i], q[i + 1], 0.22, "bamboo", sides=4, extend=0.05)
-        q = [P(hw * 0.45, z0 - 0.1), P(hw * 0.45, z1 + 0.2)]
-        tube(bone, "porch_batten_long_" + sn, q[0] + v3(0, 0.17, 0), q[1] + v3(0, 0.17, 0), 0.22, "bamboo", sides=4, extend=0.05)
-    ry = js.PORCH_RIDGE_Y + 0.12
-    beam(bone, "porch_ridge", (0, ry, z0 - 0.25), (0, ry, z1), 0.34, "ridge", width=0.4, extend=0.1)
-    # the carved crest at the apex
-    for j, (a, b, w_) in enumerate((((0, ry + 0.05, z0 - 0.3), (0, ry + 0.7, z0 - 0.45), 0.3), ((0, ry + 0.7, z0 - 0.45), (0, ry + 1.05, z0 - 0.2), 0.22))):
-        beam(bone, "porch_crest_%d" % j, a, b, w_, "bargeboard", width=0.18, extend=0.05)
-    for side, sn in SIDES:
-        beam(detail, "porch_crest_wing_" + sn, (0, ry + 0.35, z0 - 0.38), (side * 0.45, ry + 0.62, z0 - 0.4), 0.14, "bargeboard", width=0.14, extend=0.04)
 
 
 def stern_pole(bone, pennants):
@@ -1755,7 +1887,6 @@ def build(g):
     house(house_b, detail, lights, root)
     porch(house_b, detail, lights)
     roof(roof_b, detail, lights)
-    porch_roof(roof_b, detail, lights)
     stern_pole(roof_b, pennants)
     companion_house(mid_b, detail, lights)
     mast(spars, detail)
@@ -1846,8 +1977,8 @@ def check_axes(root):
 
 
 def main():
+    import zfight
     if os.environ.get("JUNK_FAST"):   # quick previews: no z-fighting pass
-        import zfight
         zfight.fix = lambda root: 0
     g = ji.build()
     jd.build()

@@ -75,6 +75,12 @@ REGIONS = {
     "void":         (256, 176, 16, 16), # the dark hold seen through the grating
     # the stern (third round)
     "parapet":      (272, 176, 32, 16), # the stern gallery's solid parapet: pale boards in dark frames, a carved lozenge
+    # the stern (fourth round)
+    "gable_boards": (304, 176, 32, 32), # the gables' infill: upright cream boards (one strip of the infill a board)
+    "window_arch_dark": (336, 176, 16, 24),  # the back wall's arched window: a dark lattice over dark panes (not lit)
+    "pane_lit":     (352, 176, 8, 8),   # one pane of paper lit warm from inside
+    "purlin":       (368, 176, 32, 16), # dark bamboo purlins round the roof's tiers (along u, nodes)
+    "plaque":       (400, 176, 32, 16), # a small pale carved plaque (a scroll) on the transom's dark wale
 }
 # small regions copied from the Sky Leviathan's atlas (same names, same look)
 COPIED = ("iron", "steel", "brass", "gold", "copper", "chain", "rope", "rope_dark", "glow", "lantern", "glass", "gauge", "wax", "pearl",
@@ -175,9 +181,9 @@ def _red_panel(px, region, rng):
             elif e == 3:
                 c = _rgb("5a1e14")
             elif e == 4:
-                c = _rgb("c4523c")                                               # bevel highlight
+                c = _rgb("aa5a46")                                               # bevel highlight
             else:
-                c = _scale(_rgb("9a2e22"), 1.0 + 0.07 * nz[y, x] - 0.1 * (y / h))
+                c = _scale(_rgb("8a3a2e"), 1.0 + 0.07 * nz[y, x] - 0.1 * (y / h))
                 if (x + 2 * y) % 17 == 0:
                     c = _scale(c, 0.85)
             _put(px, u, v, x, y, _jitter(c, rng, 3))
@@ -202,21 +208,21 @@ def _roof(px, region, rng):
             if key not in tones:
                 r = rng.random()
                 tones[key] = 0.82 if r < 0.12 else 1.1 if r < 0.2 else 1.0 + rng.uniform(-0.05, 0.05)
-            base = _scale(_rgb("8e3e2c"), tones[key])
+            base = _scale(_rgb("844434"), tones[key])
             edge = course - 1.6 * math.sqrt(max(0.0, 1.0 - ((lx - tw / 2) / (tw / 2)) ** 2))   # the rounded lower end
             crown = math.cos((lx / tw - 0.5) * math.pi) ** 1.2
             k = 0.86 + 0.16 * crown - 0.1 * (ly / course) + 0.04 * nz[y, x]
             c = _scale(base, k)
             if ly > edge:
-                c = _scale(_rgb("8e3e2c"), 0.55)          # the shadow under the next course's edge
+                c = _scale(_rgb("844434"), 0.45)          # the shadow under the next course's edge
             elif ly > edge - 1.0:
                 c = _scale(base, 0.75)
             if lx < 0.9:
-                c = _scale(base, 0.7)                     # the joint between two tiles
+                c = _scale(base, 0.6)                     # the joint between two tiles
             _put(px, u, v, x, y, _jitter(c, rng, 3))
 
 
-def _bamboo(px, region, rng, base="bc9862"):
+def _bamboo(px, region, rng, base="bc9862", node="8a6a3a"):
     u, v, w, h = region
     for y in range(h):
         for x in range(w):
@@ -224,7 +230,7 @@ def _bamboo(px, region, rng, base="bc9862"):
             k = 0.72 + 0.4 * math.sin(ny * math.pi) ** 0.6
             c = _scale(_rgb(base), k)
             if x % 12 in (0, 1):
-                c = _scale(_rgb("8a6a3a"), k)          # the nodes
+                c = _scale(_rgb(node), k)          # the nodes
             _put(px, u, v, x, y, _jitter(c, rng, 3))
 
 
@@ -429,25 +435,85 @@ def _parapet(px, region, rng):
 
 
 def _wall_boards(px, region, rng):
-    """The stern house's walls: cream boards laid along u (the back and side views show the boards' lines), each board
-    its own tone, thin darker seams, a little grain, weathering low down."""
+    """The stern house's walls: warm cream boards laid along u (the back and side views show the boards' lines), long
+    boards (a butt joint now and then), each board its own tone, a darker seam under each, a little grain, weathering low
+    down."""
     u, v, w, h = region
     nz = _noise(w, h, 6, rng)
     bh = 5
     for y in range(h):
         board = y // bh
         tone = 1.0 + 0.045 * math.sin(board * 2.7 + 0.4) + 0.02 * math.sin(board * 7.1)
-        joint = (board * 23) % 40 + 8
+        joint = (board * 23) % 40 + 8 if board % 3 == 1 else -1
         for x in range(w):
-            c = _scale(_rgb("e2d4b2"), tone + 0.04 * nz[y, x] - 0.06 * (y / h) + 0.02 * math.sin(x * 0.45 + board * 1.3))
+            c = _scale(_rgb("d2b282"), tone + 0.04 * nz[y, x] - 0.06 * (y / h) + 0.02 * math.sin(x * 0.45 + board * 1.3))
             if y % bh == bh - 1:
-                c = _scale(c, 0.8)
+                c = _scale(c, 0.74)
             elif y % bh == 0:
-                c = _scale(c, 1.03)
-            if x == joint % w:
-                c = _scale(c, 0.82)
+                c = _scale(c, 1.04)
+            if x == joint:
+                c = _scale(c, 0.8)
             if nz[y, x] < -0.62:
-                c = _mix(c, (150, 128, 98), 0.25)
+                c = _mix(c, (140, 112, 80), 0.25)
+            _put(px, u, v, x, y, _jitter(c, rng, 3))
+
+
+def _gable_boards(px, region, rng):
+    """The gables' infill: upright cream boards five pixels wide (a seam on each side), grain along v, weathered."""
+    u, v, w, h = region
+    nz = _noise(w, h, 5, rng)
+    for x in range(w):
+        board = x // 5
+        tone = 1.0 + 0.05 * math.sin(board * 2.3 + 0.7)
+        for y in range(h):
+            c = _scale(_rgb("ccac7c"), tone + 0.04 * nz[y, x] + 0.02 * math.sin(y * 0.5 + board * 1.7))
+            if x % 5 == 4:
+                c = _scale(c, 0.72)
+            elif x % 5 == 0:
+                c = _scale(c, 1.04)
+            if nz[y, x] < -0.6:
+                c = _mix(c, (138, 112, 82), 0.25)
+            _put(px, u, v, x, y, _jitter(c, rng, 3))
+
+
+def _window_arch_dark(px, region):
+    """The back wall's arched window seen from outside: dark slate-brown panes behind a dark lattice (bars at x 0, 5, 10,
+    15 and y 8, 13, 18, 23, the arch's head over y 8), transparent outside the arch; the lit panes are separate glowing
+    quads."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            if not _arch_shape(x, y, w, h):
+                px[u + x, v + y] = (0, 0, 0, 0)
+                continue
+            if x % 5 == 0 or (y >= 8 and (y - 8) % 5 == 0) or not _arch_shape(x, y, w, h, inset=0.9):
+                c = (40, 26, 15)
+            else:
+                g = 0.85 + 0.25 * ((y + 0.5) / h) + 0.06 * math.sin(x * 1.7 + y)
+                c = _scale((58, 60, 54), g)
+            _put(px, u, v, x, y, c)
+
+
+def _plaque(px, region, rng):
+    """A small pale carved plaque: a cream board in a thin dark frame, a dark scroll (two curls) carved in it."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            e = min(x, y, w - 1 - x, h - 1 - y)
+            c = _scale(_rgb("cdb486"), 1.0 + 0.05 * math.sin(x * 0.7 + y * 0.3))
+            if e == 0:
+                c = _rgb("2e1d10")
+            elif e == 1:
+                c = _rgb("8a6a44")
+            else:
+                cx, cy = (x + 0.5) / w - 0.5, (y + 0.5) / h - 0.5
+                for sx in (-1, 1):
+                    dx, dy = (cx - sx * 0.22) * w / h, cy
+                    r = math.hypot(dx, dy)
+                    if abs(r - 0.26) < 0.06 and (sx * dx < 0.05 or dy < 0):
+                        c = _rgb("5a3e22")
+                if abs(cy) < 0.07 and abs(cx) < 0.12:
+                    c = _rgb("5a3e22")
             _put(px, u, v, x, y, _jitter(c, rng, 3))
 
 
@@ -578,7 +644,7 @@ def make_texture(path):
     _blocks(px, R["plaster"], _rgb("ddd0b2"), _rgb("8a7a60"), rng, bw=16, bh=8, stains=0.18)
     _wall_boards(px, R["plaster_wall"], rng)
     _red_panel(px, R["red_panel"], rng)
-    for name, col in (("red", "a2301f"), ("red_dark", "6a1e14")):
+    for name, col in (("red", "8e3a2c"), ("red_dark", "5c241a")):
         u, v, w, h = R[name]
         for y in range(h):
             for x in range(w):
@@ -598,7 +664,7 @@ def make_texture(path):
             cx = (x % 8 + 0.5) / 8 - 0.5
             cy = (y + 0.5) / h - 0.5
             r = math.hypot(cx * 1.0, cy * 0.9)
-            c = _rgb("3a1410") if r > 0.48 else _scale(_rgb("b04a36"), 1.1 - r) if r > 0.24 else _rgb("c46a4a")
+            c = _rgb("3a1410") if r > 0.48 else _scale(_rgb("9c4c3c"), 1.1 - r) if r > 0.24 else _rgb("b06e58")
             _put(px, u, v, x, y, c)
     u, v, w, h = R["ridge"]
     for y in range(h):
@@ -623,6 +689,14 @@ def make_texture(path):
     _frieze(px, R["frieze"], rng)
     _baluster(px, R["baluster"], rng)
     _parapet(px, R["parapet"], rng)
+    _gable_boards(px, R["gable_boards"], rng)
+    _window_arch_dark(px, R["window_arch_dark"])
+    u, v, w, h = R["pane_lit"]
+    for y in range(h):
+        for x in range(w):
+            _put(px, u, v, x, y, _scale((255, 206, 128), 1.0 - 0.25 * abs((y + 0.5) / h - 0.5) - 0.15 * (x in (0, w - 1))))
+    _bamboo(px, R["purlin"], rng, base="5e4028", node="34200f")
+    _plaque(px, R["plaque"], rng)
     _window_arch(px, R["window_arch"])
     _arch_frame(px, R["arch_frame"], rng)
     _carved(px, R["carved"], rng)

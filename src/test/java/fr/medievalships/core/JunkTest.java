@@ -46,16 +46,26 @@ class JunkTest {
 		for (double[] r : hull) {
 			assertEquals(r[2], JunkLayout.hullX(r[0], r[1]), 1e-5, "hull half width at " + r[0] + ", " + r[1]);
 		}
-		double[] roof = {6.15, 8.324065, 10.053633, 11.35729, 12.5};
+		double[] roof = {6.15, 7.981692, 9.438888, 10.537245, 11.5};
 		double[] d = {0.0, 1.25, 2.45, 3.6, 5.2};
 		for (int i = 0; i < d.length; i++) {
 			assertEquals(roof[i], JunkLayout.roofY(d[i]), 1e-5, "roof at " + d[i]);
 		}
-		assertEquals(7.918918, JunkLayout.roofTop(1.0), 1e-5);
-		assertEquals(11.322319, JunkLayout.roofTop(3.0), 1e-5);
-		assertEquals(13.309591, JunkLayout.roofTop(5.0), 1e-5);
-		assertEquals(7.822606, JunkLayout.porchY(2.6), 1e-5);
-		assertEquals(10.1, JunkLayout.porchY(5.2), 1e-9);
+		assertEquals(7.640348, JunkLayout.roofTop(1.0), 1e-5);
+		assertEquals(10.602269, JunkLayout.roofTop(3.0), 1e-5);
+		assertEquals(12.323828, JunkLayout.roofTop(5.0), 1e-5);
+		// either side of each tier's lower edge (ROOF_EDGES), as tools/junk_shape.py prints them
+		double[][] top = {{1.35, 8.114656}, {1.5, 8.610242}, {2.2, 9.460624}, {2.3, 9.873565}, {3.3, 10.880425}, {3.4, 11.268436}};
+		for (double[] r : top) {
+			assertEquals(r[1], JunkLayout.roofTop(r[0]), 1e-5, "roof top at " + r[0]);
+		}
+		assertEquals(-5.45, JunkLayout.roofFrontZ(0.0), 1e-9);
+		assertEquals(-4.79, JunkLayout.roofFrontZ(2.0), 1e-9);
+		assertEquals(-3.734, JunkLayout.roofFrontZ(5.2), 1e-9);
+		double[][] rise = {{5.2, -8.0, 0.285208}, {5.2, -12.0, 0.552632}, {2.6, -18.3, 0.282843}, {5.2, -15.7, 0.8}};
+		for (double[] r : rise) {
+			assertEquals(r[2], JunkLayout.roofRise(r[0], r[1]), 1e-5, "roof rise at " + r[0] + ", " + r[1]);
+		}
 		assertEquals(-2.206452, JunkLayout.beakTop(21.0), 1e-5);
 		double[] head = JunkLayout.mastHead();
 		assertEquals(22.0, head[1], 1e-9);
@@ -127,6 +137,55 @@ class JunkTest {
 			assertTrue(G.probes().stream().anyMatch(p -> Math.abs(p[2] - zz) < 1.1 && p[0] > 0.5), "port side probed at " + z);
 			assertTrue(G.probes().stream().anyMatch(p -> Math.abs(p[2] - zz) < 1.1 && p[0] < -0.5), "starboard side probed at " + z);
 		}
+	}
+
+	/**
+	 * Every vertex of the stern's outside parts (as the mod reads the model: src/test/resources/dragon_junk_reference_quads.json,
+	 * written by tools/reference_quads.py) lies within 2.5 blocks of a terrain probe: the stern gallery, the roof's tiles,
+	 * eaves, eave beams and corner posts, the hipped back over the gallery, the gable over the porch. Left out: the hull
+	 * (probed by sections), the inside of the stern house and of its roof, what stands over the ridge (the spire and the
+	 * staff have their own probes).
+	 */
+	@Test
+	void sternWithinReachOfProbes() throws Exception {
+		com.google.gson.JsonObject ref;
+		try (java.io.Reader r = new java.io.InputStreamReader(JunkTest.class.getResourceAsStream("/dragon_junk_reference_quads.json"),
+				java.nio.charset.StandardCharsets.UTF_8)) {
+			ref = com.google.gson.JsonParser.parseReader(r).getAsJsonObject();
+		}
+		double ytop = JunkLayout.ridgeTop() + JunkLayout.RIDGE_RISE + 0.6, zmax = JunkLayout.roofFrontZ(JunkLayout.ROOF_HW) + 0.6;
+		double worst = 0;
+		double[] at = null;
+		int n = 0;
+		for (com.google.gson.JsonElement q : ref.getAsJsonArray("quads")) {
+			com.google.gson.JsonArray c = q.getAsJsonArray().get(0).getAsJsonArray();
+			for (int i = 0; i < 12; i += 3) {
+				double x = c.get(i).getAsDouble(), y = c.get(i + 1).getAsDouble(), z = c.get(i + 2).getAsDouble();
+				if (z > zmax || y > ytop || y < JunkLayout.QUARTERDECK_Y) {
+					continue;
+				}
+				double sh = JunkLayout.sheerY(z);
+				if (z >= JunkLayout.STERN_Z && Math.abs(x) <= JunkLayout.hullX(z, Math.min(y, sh)) + 0.2 && y <= sh + JunkLayout.RAIL_H) {
+					continue;                     // the hull
+				}
+				double d = Math.min(JunkLayout.ROOF_HW - Math.abs(x), z - JunkLayout.ROOF_BACK_Z);
+				if (Math.abs(x) < JunkLayout.ROOF_HW - 0.4 && z > JunkLayout.ROOF_BACK_Z + 0.4 && z < JunkLayout.roofFrontZ(d) - 0.4
+						&& y < JunkLayout.roofTop(d) + JunkLayout.roofRise(d, z) - 0.7) {
+					continue;                     // inside the stern house and its roof
+				}
+				n++;
+				double best = 1e9;
+				for (double[] p : G.probes()) {
+					best = Math.min(best, Math.hypot(Math.hypot(p[0] - x, p[1] - y), p[2] - z));
+				}
+				if (best > worst) {
+					worst = best;
+					at = new double[] {x, y, z};
+				}
+			}
+		}
+		assertTrue(n > 5000, "stern vertices checked " + n);
+		assertTrue(worst <= 2.5, "farthest from a probe: " + worst + " at " + java.util.Arrays.toString(at));
 	}
 
 	@Test

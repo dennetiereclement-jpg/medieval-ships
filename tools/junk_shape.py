@@ -11,8 +11,8 @@ docs/JUNK_PLAN.md): a long dark hull of 39 blocks from the square bow to the top
 the short bowsprit), 8.8 wide, its sections a rounded V, its plan narrowing over the forward third to a square bow half
 as wide, the keel rising a little forwards into the pale beak and aft sweeping up in the V-shaped counter to a small
 raked transom; the main deck open from the bow to the break, a quarterdeck 2.5 blocks higher aft with the multi-level
-stern house (white plaster walls, dark beams, the stern gallery round it, a tall red roof of four stacked tiers and the
-lower gable of the porch in front of it), the companion house's lean-to on the port side at the break, one big mast
+stern house (cream board walls, dark beams, the stern gallery round it, a tall red roof of four stacked tiers whose
+front gable leans out over the porch), the companion house's lean-to on the port side at the break, one big mast
 stepped far forward and raked aft, carrying the great red sail with the black dragon: two battened panels hanging from a
 short yard under the masthead, spread in a V (top view) like a tent (front view), their clews held out by long pale
 booms.
@@ -68,23 +68,21 @@ KEEL_PTS = (TRANSOM_FOOT, (-18.3, -0.45), (-17.2, -1.85), (-15.8, -3.15), (-14.0
 # ---------------------------------------------------------------- stern house (on the quarterdeck) and roofs
 HOUSE_FRONT_Z = -8.0        # outer face of its front wall (the door in it)
 EAVE_Y = 6.15               # lowest edge of the roofs (about 2.6 of white wall over the gallery's rail, as on the back view)
-RIDGE_Y = 12.5              # the main roof's ridge (its tiers' lifts add ROOF_TIERS - 1 times TIER_LIFT on top)
+RIDGE_Y = 11.5              # the main roof's ridge at the gable (its tiers' lifts add ROOF_TIERS - 1 times TIER_LIFT on top)
+RIDGE_RISE = 0.8            # the ridge rises aft by this much from the gable to the hip (the side view's sweep)
 TIER_LIFT = 0.3             # each tier stands proud of the one below
 ROOF_HW = 5.2               # half width at the eaves (the roof overhangs the hull and the gallery)
-ROOF_FRONT_Z = -8.6         # the main roof's front gable (at the eaves; it leans forwards up to the ridge), just aft of the
-#                             house's front wall: the lower porch roof stands in front of it
-GABLE_LEAN = 0.08           # the gable's edge comes forwards by this much a block of distance from the eaves
+ROOF_FRONT_Z = -5.45        # the main roof's front gable (at the eaves; it leans forwards up to the ridge): over the porch,
+#                             its tympanum standing on the porch's eave beam (one gable, as on the side and perspective views)
+GABLE_LEAN = 0.33           # the gable's edge comes forwards by this much a block of distance from the eaves (its apex
+#                             juts out over the porch, as on the perspective)
 ROOF_BACK_Z = -20.9         # the hipped back overhangs the stern gallery
 ROOF_TIERS = 4
 ROOF_EDGES = (0.0, 1.45, 2.25, 3.35)  # distance from the eaves of each tier's lower edge (the last one runs to the ridge)
 ROOF_CURVE = (0.32, 1.8)    # the tiers' envelope (see roof_y): steep at the eaves, easing towards the ridge, as the stacked
 #                             tiers on the back view
-TIER_FLARE = 0.35           # each tier's lip kicks up by this much (more at the corners)
-# the porch roof: a lower gable in front of the main roof, over the porch and the double door (about 38 degrees)
-PORCH_FRONT_Z = -5.6
-PORCH_RIDGE_Y = 10.1
-PORCH_CURVE = (0.55, 1.6)
-STERN_POLE = ((0.0, 13.6, -10.5), (0.0, 16.6, -13.9))   # the short staff on the ridge, raked aft (forward of the spire)
+PORCH_FRONT_Z = -5.55       # the porch in front of the house's door: its posts and eave beam, under the main roof's gable
+STERN_POLE = ((0.0, 13.0, -10.5), (0.0, 16.0, -13.9))   # the short staff on the ridge, raked aft (forward of the spire)
 # the stern gallery: a balcony round the house at the quarterdeck's level, projecting from the hull's sides and aft of the
 # transom, carried on dark brackets, its balustrade of pale turned balusters between dark rails
 GALLERY_OUT = 0.9           # outboard of the hull's side
@@ -297,19 +295,19 @@ def ridge_top():
     return RIDGE_Y + TIER_LIFT * (ROOF_TIERS - 1)
 
 
+def roof_rise(d, z):
+    """How much the main roof is lifted at (d, z): nothing at the eaves, up to RIDGE_RISE at the ridge's back end (the
+    ridge rising aft from the gable to the hip)."""
+    zf, zb = roof_front_z(ROOF_HW), ROOF_BACK_Z + ROOF_HW
+    f = max(0.0, min(1.0, (zf - z) / (zf - zb)))
+    return RIDGE_RISE * f * max(0.0, min(1.0, d / ROOF_HW)) ** 1.5
+
+
 def mid_roof_y(x):
     """Height of the companion house's lean-to roof at x: from its high edge inboard down to its eave over the bulwark."""
     xa, xb = MID_X[0] - 0.35, hull_x(1.0, 0.5) + 0.55
     t = max(0.0, min(1.0, (x - xa) / (xb - xa)))
     return MID_HIGH_Y + (MID_EAVE_Y - MID_HIGH_Y) * t
-
-
-def porch_y(d):
-    """Height of the porch roof at a distance d from its eaves (a lower gable, gently concave)."""
-    d = max(0.0, min(ROOF_HW, d))
-    t = d / ROOF_HW
-    a, p = PORCH_CURVE
-    return EAVE_Y + (PORCH_RIDGE_Y - EAVE_Y) * (a * t + (1.0 - a) * t ** p)
 
 
 # ---------------------------------------------------------------- mast and sail
@@ -397,5 +395,8 @@ if __name__ == "__main__":
         print("sail", side, [round(c, 6) for c in sail_point(side, 0.5, 0.5)], [round(c, 6) for c in sail_point(side, 1.0, 1.0)],
               [round(c, 6) for c in sail_point(side, 0.3, 0.8)])
     print("roof", [round(roof_y(d), 6) for d in (0.0, 1.25, 2.45, 3.6, 5.2)], "top", [round(roof_top(d), 6) for d in (1.0, 3.0, 5.0)])
-    print("porch", [round(porch_y(d), 6) for d in (0.0, 2.6, 5.2)], "mid roof", [round(mid_roof_y(x), 6) for x in (0.5, 2.5, 4.5)])
+    print("roof top either side of each tier's edge", [(d, round(roof_top(d), 6)) for d in (1.35, 1.5, 2.2, 2.3, 3.3, 3.4)])
+    print("roof front", [round(roof_front_z(d), 6) for d in (0.0, 2.0, 5.2)], "rise", [round(roof_rise(d, z), 6) for d, z in
+                                                                                    ((5.2, -8.0), (5.2, -12.0), (2.6, -18.3), (5.2, -15.7))])
+    print("mid roof", [round(mid_roof_y(x), 6) for x in (0.5, 2.5, 4.5)])
     print("beak top", round(beak_top(21.0), 6))
