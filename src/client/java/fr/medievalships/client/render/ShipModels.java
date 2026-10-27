@@ -102,8 +102,12 @@ public final class ShipModels {
 	public static final Visual CRYSTAL_AIRSHIP = new Visual(Ships.CRYSTAL_AIRSHIP, model("crystal_airship"),
 			List.of(texture("crystal_airship"), texture("crystal_airship_interior")), 0.25f, 42, 42,
 			false, null, null, 0.09f);
+	/** The Rustic Skyskiff: the hum of its tubes and puffs of smoke from an upper tube's mouth; a light bob in the air. */
+	public static final Visual RUSTIC_SKIFF = new Visual(Ships.RUSTIC_SKIFF, model("rustic_skiff"), List.of(texture("rustic_skiff")), 0.8f, 26, 22,
+			false, null, new Propeller(fr.medievalships.core.SkiffLayout.TUBE_HUB, fr.medievalships.core.SkiffLayout.TUBE_EXHAUST), 0.06f);
 	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT,
-			STEAMPUNK_AIRSHIP, NAUTILUS, OLD_CORSAIR, SKY_LEVIATHAN, CRYSTAL_AIRSHIP);
+			STEAMPUNK_AIRSHIP, NAUTILUS, OLD_CORSAIR, SKY_LEVIATHAN, CRYSTAL_AIRSHIP,
+			RUSTIC_SKIFF);
 
 	@Nullable
 	public static Visual of(ShipType type) {

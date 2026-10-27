@@ -55,7 +55,11 @@ class NewShipModelsTest {
 							"pod_front", "pod_front_ring", "pod_rear", "engine_gear_0", "door_0_a", "door_3", "door_4_a", "balloon", "straps", "gems",
 							"hull", "castle", "rooms", "furniture", "fittings", "engines", "crystals"},
 					new String[] {"propeller", "engine", "steer", "elevator", "flag_wave", "streamer_wave", "lantern_sway", "door_0", "door_3",
-							"door_4"}));
+							"door_4"}),
+			new Expected("rustic_skiff",
+					new String[] {"helm_wheel", "wing_fore_p", "wing_fore_s", "wing_aft_p", "wing_aft_s", "tube_fan_0", "tube_fan_3", "pennants_p",
+							"pennant_p0", "fringe_0", "lantern_door_p", "door_0_a", "door_1_b", "door_2", "hull", "canopy", "rooms", "furniture", "fittings"},
+					new String[] {"steer", "elevator", "engine", "lantern_sway", "streamer_wave", "door_0", "door_1", "door_2"}));
 
 	private static BbModel load(String name) throws Exception {
 		try (Reader r = Files.newBufferedReader(Path.of("src/main/resources/assets/medievalships/models/entity/" + name + ".bbmodel"),

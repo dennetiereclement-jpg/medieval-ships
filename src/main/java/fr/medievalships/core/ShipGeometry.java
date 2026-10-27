@@ -43,6 +43,11 @@ public final class ShipGeometry {
 		public LocalBox helm;
 		public List<Mast> masts = List.of();
 		public List<LocalBox> solids = List.of();
+		/**
+		 * Vessels with rooms: boxes of the parts outside the interior grid that a player outside may click to board the
+		 * ship or pick it up (never solid; empty: only the grid's cells are picked).
+		 */
+		public List<LocalBox> pickBoxes = List.of();
 		/** Probe spacing along the hull. */
 		public double probeStep = 1.0;
 		/** Heights (above the waterline) of the side probes; castles need higher ones. */
@@ -583,7 +588,17 @@ public final class ShipGeometry {
 			boolean outside = interior.kindAt(o[0], o[1], o[2]) == InteriorGrid.OUT
 					&& (spec.submarine || !interior.carryAt(o[0], o[1], o[2]));
 			double limit = best == null ? maxDist : Math.min(maxDist, best.distance());
-			for (double tt = 0.05; tt <= limit; tt += 0.05) {
+			double tPick = -1;
+			if (outside) {
+				for (LocalBox b : spec.pickBoxes) {
+					t = rayBox(o, d, b.minX(), b.minY(), b.minZ(), b.maxX(), b.maxY(), b.maxZ());
+					if (t >= 0 && t <= limit && (tPick < 0 || t < tPick)) {
+						tPick = t;
+					}
+				}
+			}
+			double gridLimit = tPick >= 0 ? tPick : limit;
+			for (double tt = 0.05; tt <= gridLimit; tt += 0.05) {
 				byte k = interior.kindAt(o[0] + d[0] * tt, o[1] + d[1] * tt, o[2] + d[2] * tt);
 				if (k >= InteriorGrid.DOOR) {
 					return hit(PickKind.DOOR, k - InteriorGrid.DOOR, tt, o, d);
@@ -591,6 +606,9 @@ public final class ShipGeometry {
 				if (k == InteriorGrid.SOLID) {
 					return hit(outside ? PickKind.HULL : PickKind.DECK, -1, tt, o, d);
 				}
+			}
+			if (tPick >= 0) {
+				return hit(PickKind.HULL, -1, tPick, o, d);
 			}
 			return best;
 		}

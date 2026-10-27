@@ -1278,8 +1278,12 @@ public final class Ships {
 	/** The Crystal Airship: a huge luxurious steampunk airship with rooms (see {@link CrystalLayout}). */
 	public static final ShipType CRYSTAL_AIRSHIP = CrystalLayout.type();
 
+	/** The Rustic Skyskiff: a small, agile flying boat with rooms (see {@link SkiffLayout}). */
+	public static final ShipType RUSTIC_SKIFF = SkiffLayout.type();
+
 	public static final List<ShipType> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT, STEAMPUNK_AIRSHIP, NAUTILUS,
-			OLD_CORSAIR, SKY_LEVIATHAN, CRYSTAL_AIRSHIP);
+			OLD_CORSAIR, SKY_LEVIATHAN, CRYSTAL_AIRSHIP,
+			RUSTIC_SKIFF);
 
 	/**
 	 * Other names accepted by the commands (the ids used in saves and configs never change):
