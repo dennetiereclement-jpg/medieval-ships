@@ -46,14 +46,14 @@ class JunkTest {
 		for (double[] r : hull) {
 			assertEquals(r[2], JunkLayout.hullX(r[0], r[1]), 1e-5, "hull half width at " + r[0] + ", " + r[1]);
 		}
-		double[] roof = {6.15, 8.187116, 9.807735, 11.029272, 12.1};
+		double[] roof = {6.15, 8.324065, 10.053633, 11.35729, 12.5};
 		double[] d = {0.0, 1.25, 2.45, 3.6, 5.2};
 		for (int i = 0; i < d.length; i++) {
 			assertEquals(roof[i], JunkLayout.roofY(d[i]), 1e-5, "roof at " + d[i]);
 		}
-		assertEquals(7.80749, JunkLayout.roofTop(1.0), 1e-5);
-		assertEquals(11.034299, JunkLayout.roofTop(3.0), 1e-5);
-		assertEquals(12.915286, JunkLayout.roofTop(5.0), 1e-5);
+		assertEquals(7.918918, JunkLayout.roofTop(1.0), 1e-5);
+		assertEquals(11.322319, JunkLayout.roofTop(3.0), 1e-5);
+		assertEquals(13.309591, JunkLayout.roofTop(5.0), 1e-5);
 		assertEquals(7.822606, JunkLayout.porchY(2.6), 1e-5);
 		assertEquals(10.1, JunkLayout.porchY(5.2), 1e-9);
 		assertEquals(-2.206452, JunkLayout.beakTop(21.0), 1e-5);

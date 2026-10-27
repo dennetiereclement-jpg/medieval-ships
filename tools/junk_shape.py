@@ -68,7 +68,7 @@ KEEL_PTS = (TRANSOM_FOOT, (-18.3, -0.45), (-17.2, -1.85), (-15.8, -3.15), (-14.0
 # ---------------------------------------------------------------- stern house (on the quarterdeck) and roofs
 HOUSE_FRONT_Z = -8.0        # outer face of its front wall (the door in it)
 EAVE_Y = 6.15               # lowest edge of the roofs (about 2.6 of white wall over the gallery's rail, as on the back view)
-RIDGE_Y = 12.1              # the main roof's ridge (its tiers' lifts add ROOF_TIERS - 1 times TIER_LIFT on top)
+RIDGE_Y = 12.5              # the main roof's ridge (its tiers' lifts add ROOF_TIERS - 1 times TIER_LIFT on top)
 TIER_LIFT = 0.3             # each tier stands proud of the one below
 ROOF_HW = 5.2               # half width at the eaves (the roof overhangs the hull and the gallery)
 ROOF_FRONT_Z = -8.6         # the main roof's front gable (at the eaves; it leans forwards up to the ridge), just aft of the
@@ -76,7 +76,7 @@ ROOF_FRONT_Z = -8.6         # the main roof's front gable (at the eaves; it lean
 GABLE_LEAN = 0.08           # the gable's edge comes forwards by this much a block of distance from the eaves
 ROOF_BACK_Z = -20.9         # the hipped back overhangs the stern gallery
 ROOF_TIERS = 4
-ROOF_EDGES = (0.0, 1.25, 2.45, 3.6)  # distance from the eaves of each tier's lower edge (the last one runs to the ridge)
+ROOF_EDGES = (0.0, 1.45, 2.25, 3.35)  # distance from the eaves of each tier's lower edge (the last one runs to the ridge)
 ROOF_CURVE = (0.32, 1.8)    # the tiers' envelope (see roof_y): steep at the eaves, easing towards the ridge, as the stacked
 #                             tiers on the back view
 TIER_FLARE = 0.35           # each tier's lip kicks up by this much (more at the corners)
@@ -84,10 +84,10 @@ TIER_FLARE = 0.35           # each tier's lip kicks up by this much (more at the
 PORCH_FRONT_Z = -5.6
 PORCH_RIDGE_Y = 10.1
 PORCH_CURVE = (0.55, 1.6)
-STERN_POLE = ((0.0, 12.9, -14.0), (0.0, 15.9, -17.4))   # the short staff on the ridge, raked aft
+STERN_POLE = ((0.0, 13.6, -10.5), (0.0, 16.6, -13.9))   # the short staff on the ridge, raked aft (forward of the spire)
 # the stern gallery: a balcony round the house at the quarterdeck's level, projecting from the hull's sides and aft of the
 # transom, carried on dark brackets, its balustrade of pale turned balusters between dark rails
-GALLERY_OUT = 0.6           # outboard of the hull's side
+GALLERY_OUT = 0.9           # outboard of the hull's side
 GALLERY_AFT = 1.05          # aft of the transom's top
 GALLERY_Z0 = -8.3           # its forward end on the sides (the quarterdeck's balustrade continues forwards)
 GALLERY_RAIL_H = 1.0

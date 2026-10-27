@@ -59,20 +59,20 @@ public final class JunkLayout {
 	// ---- stern house and its roofs, the stern gallery, the companion house
 	public static final double HOUSE_FRONT_Z = -8.0;
 	public static final double EAVE_Y = 6.15;
-	public static final double RIDGE_Y = 12.1;
+	public static final double RIDGE_Y = 12.5;
 	public static final double TIER_LIFT = 0.3;
 	public static final double ROOF_HW = 5.2;
 	public static final double ROOF_FRONT_Z = -8.6;
 	public static final double GABLE_LEAN = 0.08;
 	public static final double ROOF_BACK_Z = -20.9;
 	public static final int ROOF_TIERS = 4;
-	private static final double[] ROOF_EDGES = {0.0, 1.25, 2.45, 3.6};
+	private static final double[] ROOF_EDGES = {0.0, 1.45, 2.25, 3.35};
 	private static final double[] ROOF_CURVE = {0.32, 1.8};
 	public static final double PORCH_FRONT_Z = -5.6;
 	public static final double PORCH_RIDGE_Y = 10.1;
 	private static final double[] PORCH_CURVE = {0.55, 1.6};
-	public static final double[][] STERN_POLE = {{0.0, 12.9, -14.0}, {0.0, 15.9, -17.4}};
-	public static final double GALLERY_OUT = 0.6;
+	public static final double[][] STERN_POLE = {{0.0, 13.6, -10.5}, {0.0, 16.6, -13.9}};
+	public static final double GALLERY_OUT = 0.9;
 	public static final double GALLERY_AFT = 1.05;
 	public static final double GALLERY_RAIL_H = 1.0;
 	public static final double[] MID_Z = {-1.5, 4.0};
@@ -457,6 +457,12 @@ public final class JunkLayout {
 			probes.add(new double[] {0, ridgeTop() + 1.0, z});
 		}
 		probes.add(new double[] {0, ridgeTop() + 1.0, ROOF_BACK_Z + ROOF_HW});
+		// the spire on the ridge's back end, the upturned corners of the lowest eaves (their knobbed corner posts)
+		probes.add(new double[] {0, ridgeTop() + 2.6, ROOF_BACK_Z + ROOF_HW});
+		for (int side = -1; side <= 1; side += 2) {
+			probes.add(new double[] {side * (ROOF_HW + 0.4), EAVE_Y + 1.4, ROOF_BACK_Z - 0.3});
+			probes.add(new double[] {side * (ROOF_HW + 0.4), EAVE_Y + 1.2, ROOF_FRONT_Z + 0.3});
+		}
 		probes.add(new double[] {0, PORCH_RIDGE_Y + 1.0, PORCH_FRONT_Z - 0.3});
 		probes.add(new double[] {0, 0.0, ROOF_BACK_Z});
 		probes.add(STERN_POLE[1].clone());

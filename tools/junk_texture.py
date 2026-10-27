@@ -36,7 +36,7 @@ REGIONS = {
     "hull_low":     (0, 32, 64, 32),    # the bottom, darker, tarred
     "beak":         (64, 0, 64, 32),    # pale planks of the beak (along u)
     "plaster":      (64, 32, 64, 32),   # cream-white plaster blocks of the bulwarks (rows along u)
-    "plaster_wall": (128, 0, 64, 64),   # the stern house's white plaster walls
+    "plaster_wall": (128, 0, 64, 64),   # the stern house's walls: cream boards
     "red_panel":    (192, 0, 32, 32),   # red lacquered panel in a dark frame
     "red":          (224, 0, 16, 16),   # red lacquer
     "red_dark":     (240, 0, 16, 16),
@@ -73,6 +73,8 @@ REGIONS = {
     "medallion":    (160, 176, 32, 32), # the round carved medallion: a beige disc with a dark interlaced knot
     "eave_frieze":  (192, 176, 64, 16), # the dark band under the eaves with carved brackets (along u)
     "void":         (256, 176, 16, 16), # the dark hold seen through the grating
+    # the stern (third round)
+    "parapet":      (272, 176, 32, 16), # the stern gallery's solid parapet: pale boards in dark frames, a carved lozenge
 }
 # small regions copied from the Sky Leviathan's atlas (same names, same look)
 COPIED = ("iron", "steel", "brass", "gold", "copper", "chain", "rope", "rope_dark", "glow", "lantern", "glass", "gauge", "wax", "pearl",
@@ -214,7 +216,7 @@ def _roof(px, region, rng):
             _put(px, u, v, x, y, _jitter(c, rng, 3))
 
 
-def _bamboo(px, region, rng, base="c8a46a"):
+def _bamboo(px, region, rng, base="bc9862"):
     u, v, w, h = region
     for y in range(h):
         for x in range(w):
@@ -402,6 +404,53 @@ def _baluster(px, region, rng):
             _put(px, u, v, x, y, _jitter(c, rng, 3))
 
 
+def _parapet(px, region, rng):
+    """The stern gallery's parapet round the stern: panels of pale boards (one a block) in dark frames, each with a small
+    carved dark lozenge, worn and stained like the back view's."""
+    u, v, w, h = region
+    nz = _noise(w, h, 4, rng)
+    for y in range(h):
+        for x in range(w):
+            xx = x % 16
+            board = y // 4
+            c = _scale(_rgb("d4c09a"), 1.0 + 0.05 * math.sin(board * 2.1 + 1.0) + 0.06 * nz[y, x])
+            if y % 4 == 3:
+                c = _scale(c, 0.84)                    # the seams between the boards
+            if nz[y, x] < -0.5:
+                c = _mix(c, (130, 108, 78), 0.3)        # weathering
+            dx, dy = abs(xx + 0.5 - 8), abs(y + 0.5 - h / 2)
+            if dx / 2.6 + dy / 2.6 <= 1.0:
+                c = _scale(_rgb("6a4a2c"), 1.0 + 0.12 * (dx + dy < 1.2))
+            if xx in (0, 15):
+                c = _scale(_rgb("4a3020"), 1.0 + 0.06 * math.sin(x + y))
+            elif xx in (1, 14) or y in (0, h - 1):
+                c = _scale(c, 0.86)
+            _put(px, u, v, x, y, _jitter(c, rng, 3))
+
+
+def _wall_boards(px, region, rng):
+    """The stern house's walls: cream boards laid along u (the back and side views show the boards' lines), each board
+    its own tone, thin darker seams, a little grain, weathering low down."""
+    u, v, w, h = region
+    nz = _noise(w, h, 6, rng)
+    bh = 5
+    for y in range(h):
+        board = y // bh
+        tone = 1.0 + 0.045 * math.sin(board * 2.7 + 0.4) + 0.02 * math.sin(board * 7.1)
+        joint = (board * 23) % 40 + 8
+        for x in range(w):
+            c = _scale(_rgb("e2d4b2"), tone + 0.04 * nz[y, x] - 0.06 * (y / h) + 0.02 * math.sin(x * 0.45 + board * 1.3))
+            if y % bh == bh - 1:
+                c = _scale(c, 0.8)
+            elif y % bh == 0:
+                c = _scale(c, 1.03)
+            if x == joint % w:
+                c = _scale(c, 0.82)
+            if nz[y, x] < -0.62:
+                c = _mix(c, (150, 128, 98), 0.25)
+            _put(px, u, v, x, y, _jitter(c, rng, 3))
+
+
 def _arch_shape(x, y, w, h, inset=0.0):
     """Is (x, y) inside the arched opening (a rectangle with a round top) of a w x h panel, shrunk by inset pixels?"""
     r = w / 2 - inset
@@ -527,16 +576,7 @@ def make_texture(path):
     _planks(px, R["beak"], _rgb("a88a62"), _rgb("4a3622"), rng, plank_w=4, repairs=0.2, lengths=(8, 20), tone_var=12,
             patch_cols=[_rgb("bea078"), _rgb("8e7050"), _rgb("9a8a6a")])
     _blocks(px, R["plaster"], _rgb("ddd0b2"), _rgb("8a7a60"), rng, bw=16, bh=8, stains=0.18)
-    u, v, w, h = R["plaster_wall"]
-    nz = _noise(w, h, 6, rng)
-    for y in range(h):
-        for x in range(w):
-            c = _scale(_rgb("e2d8c0"), 1.0 + 0.05 * nz[y, x] - 0.08 * (y / h))
-            if nz[y, x] < -0.6:
-                c = _mix(c, (150, 132, 104), 0.25)
-            if (x * 7 + y * 13) % 97 == 0:
-                c = _scale(c, 0.9)
-            _put(px, u, v, x, y, _jitter(c, rng, 3))
+    _wall_boards(px, R["plaster_wall"], rng)
     _red_panel(px, R["red_panel"], rng)
     for name, col in (("red", "a2301f"), ("red_dark", "6a1e14")):
         u, v, w, h = R[name]
@@ -558,7 +598,7 @@ def make_texture(path):
             cx = (x % 8 + 0.5) / 8 - 0.5
             cy = (y + 0.5) / h - 0.5
             r = math.hypot(cx * 1.0, cy * 0.9)
-            c = _rgb("3a1410") if r > 0.48 else _scale(_rgb("b04a36"), 1.1 - r) if r > 0.3 else _rgb("d0a050")
+            c = _rgb("3a1410") if r > 0.48 else _scale(_rgb("b04a36"), 1.1 - r) if r > 0.24 else _rgb("c46a4a")
             _put(px, u, v, x, y, c)
     u, v, w, h = R["ridge"]
     for y in range(h):
@@ -569,17 +609,20 @@ def make_texture(path):
     u, v, w, h = R["bargeboard"]
     for y in range(h):
         for x in range(w):
-            c = _scale(_rgb("3c2614"), 1.0 + 0.08 * math.sin(x * 0.6) * math.sin(y * 0.9))
+            c = _scale(_rgb("8a6440"), 1.0 + 0.08 * math.sin(x * 0.6) * math.sin(y * 0.9) + 0.05 * math.sin(x * 2.1))
             if y in (1, h - 2):
-                c = _rgb("6a4a2a")                      # carved beads along both edges
+                c = _rgb("a88458")                      # beads along both edges
             if y in (0, h - 1):
-                c = _rgb("1e120a")
+                c = _rgb("3a2614")
+            if x % 16 == 0:
+                c = _rgb("4a3220")                      # the joints between the heavy blocks
             if 4 <= y <= h - 5 and (x % 8 in (3, 4)) and abs(y - h / 2) < 3:
-                c = _rgb("7a5634")                      # carved rosettes
+                c = _rgb("5a3e24")                      # carved rosettes
             _put(px, u, v, x, y, _jitter(c, rng, 3))
     _emblem(px, R["emblem"])
     _frieze(px, R["frieze"], rng)
     _baluster(px, R["baluster"], rng)
+    _parapet(px, R["parapet"], rng)
     _window_arch(px, R["window_arch"])
     _arch_frame(px, R["arch_frame"], rng)
     _carved(px, R["carved"], rng)
