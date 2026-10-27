@@ -137,6 +137,36 @@ Pour tous :
   vaisseau vole ou navigue grâce au système du mod (grille intérieure de collisions qui suit la coque,
   transport des joueurs et des entités à bord), **pas** Valkyrien Skies, qui n'est ni requis ni utilisé.
 
+La version 1.9.0 ajoute trois véhicules volants, reproduits d'après leurs planches de référence, et les fonctions
+communes décrites ci-dessus :
+
+* **Le Grand Dirigeable de Cristal** (`crystal_airship`) : immense dirigeable steampunk de luxe (≈ 56 × 25 × 41 blocs) ;
+  ballon en grappe de sept lobes crème cerclés de sangles dorées, grand anneau doré, coque vert et brun à filets dorés,
+  château arrière en gradins, moteurs latéraux à œil de cristal, nacelles flottantes et cristaux bleus lumineux
+  (étincelles bleues). On marche en vol dans le poste de pilotage, le carré des officiers, le salon, la réserve, la
+  salle des machines (machine à cœur de cristal animée) et la cale ; 40 places assises en plus de la barre. Le plus lent
+  et le plus lourd des aéronefs du mod (3,8 blocs/s en allure normale, 5°/s en virage). Guide :
+  [docs/CRYSTAL_PLAN.md](docs/CRYSTAL_PLAN.md).
+* **Le Navire Volant Rustique** (`rustic_skiff`) : vieille barque de bois rapiécée devenue engin volant (coque de
+  26 × 8 blocs, 38 hors tout) ; toit de toile en pagode, quatre ailes de toile à nervures sous les flancs, quatre tubes
+  télescopiques à la poupe, chaînes et lanternes. Pont avant, salle commune, chambre, cale de stockage et poste de
+  pilotage sur le toit de la cabine ; 8 places assises en plus de la barre. Le plus agile (6,2 blocs/s, 20°/s, montée
+  2,4 blocs/s) ; un joueur au sol monte à bord en cliquant la pointe d'une aile ou la pique. Guide :
+  [docs/SKIFF_PLAN.md](docs/SKIFF_PLAN.md).
+* **La Jonque du Dragon** (`dragon_junk`) : jonque à coque sombre (39 blocs, 44 hors tout), maison de poupe aux murs de
+  plâtre crème et poutres sombres sous un toit rouge à rangs superposés, grande voile rouge lattée dont le dragon noir est
+  peint dans la texture, voile blanche d'étrave, ancre pendue à sa chaîne. Pont principal, cabine de poupe, salle
+  principale, réserve et chambre ; 22 places assises en plus de la barre. Maniement intermédiaire (5 blocs/s, 11°/s) ;
+  en pilotage manuel, elle plane au ras de l'eau. Guide : [docs/JUNK_PLAN.md](docs/JUNK_PLAN.md).
+
+Pour les trois : objet avec son icône, pose avec contrôle de la place, intérieurs praticables en vol (grille intérieure
+du mod), portes, escaliers et échelles, mobilier des mods de décoration du joueur (boîtes de remplacement sans les mods),
+animations, pilote automatique aérien (itinéraires `air` et destinations). Fonctions communes à tous les vaisseaux :
+aperçu de placement (vert, rouge ou gris), tableau de bord du pilote, inclinaison visuelle en virage des aéronefs
+(par défaut ≈ 3,7° pour le dirigeable de cristal, ≈ 4,2° pour la jonque, 6° pour le navire rustique), permissions de
+placement (`placeAdminOnly`, `placeAllowedPlayers`), destinations du pilote automatique (`/ship goto`,
+`/ship destination`, `/pilote goto`).
+
 La version 1.8.2 embellit le navire suspendu du Léviathan des Cieux : poupe bombée qui monte en surplomb avec deux galeries superposées à balustres, onze fenêtres plombées éclairées, ornements et engrenages de laiton, lanternons ; ventre profond et arrondi, tonture relevée, proue ronde à longue poulaine ajourée, préceintes courbes, hublots cerclés de laiton, garde-corps à balustres tournés ; on peut marcher sur la dunette prolongée.
 
 La version 1.8.1 corrige le Léviathan des Cieux : le pilote qui lâche la barre est bien déposé sur le château arrière, et l'échelle de la tour mène de nouveau au pont d'observation même quand le dirigeable tourne (les parois de la coque ne se laissent plus traverser pendant un virage) ; documentation et planches comparatives des deux nouveaux véhicules.
@@ -294,6 +324,8 @@ pour 1.21.11 sur <https://fabricmc.net/develop>.
 
 * [Guide des commandes administrateur](docs/COMMANDES.md)
 * [Le Nautilus : salles, équipements, commandes, itinéraires sous-marins](docs/NAUTILUS.md)
+* [Le Grand Dirigeable de Cristal](docs/CRYSTAL_PLAN.md), [le Navire Volant Rustique](docs/SKIFF_PLAN.md),
+  [la Jonque du Dragon](docs/JUNK_PLAN.md) : plans, pièces, pilotage, réglages, limites
 * [Créer un ferry automatique](docs/FERRY.md)
 * [Modèle Blockbench, textures et animations](docs/MODELE.md)
 * [Architecture technique (marche sur le pont, collisions, IA, performances)](docs/ARCHITECTURE.md)

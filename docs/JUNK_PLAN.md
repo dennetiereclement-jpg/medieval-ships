@@ -149,8 +149,8 @@ mods et sièges), `tools/junk_texture.py` (atlas, voile, intérieur, icône), `t
   V de l'arrière), dimensions, sondes du pilote automatique sur tout le volume, sièges (assis et descente libre), sols et
   hauteur sous plafond pièce par pièce, portes qui ferment, escaliers et échelle, aucune pièce ouverte sur le vide, toutes
   les pièces atteintes depuis le pont, **aucun piège** hors des pièces (retour au pont depuis partout, bec compris), rase-
-  mottes au-dessus de l'eau, secours et chutes, fichier de grille, maniabilité (bornes fixes entre les valeurs du Dirigeable
-  de Cristal et du Navire Rustique, qui ne sont pas sur cette branche), vol ; plus `NewShipModelsTest` (os, animations, quads Java = quads Python) et
+  mottes au-dessus de l'eau, secours et chutes, fichier de grille, maniabilité (bornes fixes ; l'ordre Dirigeable de Cristal < Jonque < Navire
+  Rustique est vérifié par `ThreeFlyersTest`), vol ; plus `NewShipModelsTest` (os, animations, quads Java = quads Python) et
   `NoZFightingTest`.
 * **En jeu** (`JunkGameTest`, appelé par `ShipClientGameTest`, CI « In-game test », variantes vanilla / lithium / décor) :
   pose au-dessus d'un bassin, rien dans la coque, vol stationnaire, marche sur le pont et entrée dans la cabine de poupe par
