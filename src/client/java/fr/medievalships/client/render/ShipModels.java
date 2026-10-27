@@ -105,9 +105,12 @@ public final class ShipModels {
 	/** The Rustic Skyskiff: the hum of its tubes and puffs of smoke from an upper tube's mouth; a light bob in the air. */
 	public static final Visual RUSTIC_SKIFF = new Visual(Ships.RUSTIC_SKIFF, model("rustic_skiff"), List.of(texture("rustic_skiff")), 0.8f, 26, 22,
 			false, null, new Propeller(fr.medievalships.core.SkiffLayout.TUBE_HUB, fr.medievalships.core.SkiffLayout.TUBE_EXHAUST), 0.06f);
+	/** The Dragon Junk: its rooms' atlas and its great sail are textures of their own; a light bob in the air. */
+	public static final Visual DRAGON_JUNK = new Visual(Ships.DRAGON_JUNK, model("dragon_junk"),
+			List.of(texture("dragon_junk"), texture("dragon_junk_interior"), texture("dragon_junk_sail")), 0.45f, 30, 26, false, null, null, 0.06f);
 	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT,
 			STEAMPUNK_AIRSHIP, NAUTILUS, OLD_CORSAIR, SKY_LEVIATHAN, CRYSTAL_AIRSHIP,
-			RUSTIC_SKIFF);
+			RUSTIC_SKIFF, DRAGON_JUNK);
 
 	@Nullable
 	public static Visual of(ShipType type) {

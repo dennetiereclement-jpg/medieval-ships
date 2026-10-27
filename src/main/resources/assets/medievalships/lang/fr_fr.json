@@ -23,5 +23,7 @@
   "item.medievalships.crystal_airship": "Le Grand Dirigeable de Cristal",
   "entity.medievalships.crystal_airship": "Le Grand Dirigeable de Cristal",
   "item.medievalships.rustic_skiff": "Le Navire Volant Rustique",
-  "entity.medievalships.rustic_skiff": "Le Navire Volant Rustique"
+  "entity.medievalships.rustic_skiff": "Le Navire Volant Rustique",
+  "item.medievalships.dragon_junk": "La Jonque du Dragon",
+  "entity.medievalships.dragon_junk": "La Jonque du Dragon"
 }

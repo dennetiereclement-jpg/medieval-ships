@@ -23,5 +23,7 @@
   "item.medievalships.crystal_airship": "The Crystal Airship",
   "entity.medievalships.crystal_airship": "The Crystal Airship",
   "item.medievalships.rustic_skiff": "The Rustic Skyskiff",
-  "entity.medievalships.rustic_skiff": "The Rustic Skyskiff"
+  "entity.medievalships.rustic_skiff": "The Rustic Skyskiff",
+  "item.medievalships.dragon_junk": "The Dragon Junk",
+  "entity.medievalships.dragon_junk": "The Dragon Junk"
 }

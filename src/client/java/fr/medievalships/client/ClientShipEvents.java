@@ -85,6 +85,7 @@ public final class ClientShipEvents {
 				submarine(world, ship, player);
 				LeviathanEffects.tick(world, ship, player);
 				CrystalEffects.tick(world, ship, player);
+				JunkEffects.tick(world, ship, player);
 			}
 		}
 		rescue(world, player);

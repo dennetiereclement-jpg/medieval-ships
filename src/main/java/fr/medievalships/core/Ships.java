@@ -1281,9 +1281,12 @@ public final class Ships {
 	/** The Rustic Skyskiff: a small, agile flying boat with rooms (see {@link SkiffLayout}). */
 	public static final ShipType RUSTIC_SKIFF = SkiffLayout.type();
 
+	/** The Dragon Junk: a flying junk with rooms, its great red sail painted with a black dragon (see {@link JunkLayout}). */
+	public static final ShipType DRAGON_JUNK = JunkLayout.type();
+
 	public static final List<ShipType> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT, STEAMPUNK_AIRSHIP, NAUTILUS,
 			OLD_CORSAIR, SKY_LEVIATHAN, CRYSTAL_AIRSHIP,
-			RUSTIC_SKIFF);
+			RUSTIC_SKIFF, DRAGON_JUNK);
 
 	/**
 	 * Other names accepted by the commands (the ids used in saves and configs never change):

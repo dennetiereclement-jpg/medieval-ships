@@ -57,6 +57,7 @@ import fr.medievalships.entity.OldCorsairEntity;
 import fr.medievalships.entity.SkyLeviathanEntity;
 import fr.medievalships.entity.CrystalAirshipEntity;
 import fr.medievalships.entity.RusticSkiffEntity;
+import fr.medievalships.entity.DragonJunkEntity;
 import fr.medievalships.entity.SteampunkAirshipEntity;
 import fr.medievalships.entity.SteamPaddleboatEntity;
 import fr.medievalships.entity.WarshipEntity;
@@ -94,6 +95,8 @@ public final class MedievalShips implements ModInitializer {
 	public static Item CRYSTAL_AIRSHIP_ITEM;
 	public static EntityType<RusticSkiffEntity> RUSTIC_SKIFF;
 	public static Item RUSTIC_SKIFF_ITEM;
+	public static EntityType<DragonJunkEntity> DRAGON_JUNK;
+	public static Item DRAGON_JUNK_ITEM;
 
 	private static final Map<ShipType, EntityType<? extends ShipEntity>> ENTITY_TYPES = new LinkedHashMap<>();
 	private static final Map<ShipType, Item> ITEMS = new LinkedHashMap<>();
@@ -144,6 +147,8 @@ public final class MedievalShips implements ModInitializer {
 		CRYSTAL_AIRSHIP_ITEM = ITEMS.get(Ships.CRYSTAL_AIRSHIP);
 		RUSTIC_SKIFF = registerShip(Ships.RUSTIC_SKIFF, RusticSkiffEntity::new, 4.0f, 0.4f, 20);
 		RUSTIC_SKIFF_ITEM = ITEMS.get(Ships.RUSTIC_SKIFF);
+		DRAGON_JUNK = registerShip(Ships.DRAGON_JUNK, DragonJunkEntity::new, 5.0f, 0.4f, 22);
+		DRAGON_JUNK_ITEM = ITEMS.get(Ships.DRAGON_JUNK);
 
 		RegistryKey<ItemGroup> groupKey = RegistryKey.of(RegistryKeys.ITEM_GROUP, id("ships"));
 		Registry.register(Registries.ITEM_GROUP, groupKey, FabricItemGroup.builder()

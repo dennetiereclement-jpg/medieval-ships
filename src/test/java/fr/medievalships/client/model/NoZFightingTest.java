@@ -24,7 +24,7 @@ import com.google.gson.JsonParser;
  */
 class NoZFightingTest {
 	private static final String[] MODELS = {"galley", "galleon", "warship", "medieval_galley", "steam_paddleboat", "elven_sailboat", "steampunk_airship", "old_corsair", "sky_leviathan", "crystal_airship",
-			"rustic_skiff"};
+			"rustic_skiff", "dragon_junk"};
 	private static final float TOL = 0.005f;
 
 	private record Face(float[] p, float[] n, float d) {
