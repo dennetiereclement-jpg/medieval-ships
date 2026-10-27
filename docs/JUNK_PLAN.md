@@ -25,16 +25,16 @@ d'abord la vue de côté et la perspective, puis prend un compromis avec les vue
 | Beaupré (court, montant de 13°) | x 30 | jusqu'à z +23,4 ; **44,3** hors tout (beaupré → arrière du toit) |
 | Largeur (vue de dessus) ; face carrée de la proue | 88 px ; ~50 % de la largeur | **8,8** (pleine de z −5 à +4) ; **4,8** |
 | Fond de coque | y 280 | quille **−5,1** au milieu, relevée vers l'avant (−4,3 à z +14) et en voûte vers l'arrière |
-| Bande blanche (bordé de plâtre) avant : haut / bas | y 230 / 255 | +1,0 (relevé à +1,75 à la proue) / −1,5 |
+| Bande blanche (bordé de plâtre) avant : haut / bas | y 230 / 245 (perspective : ~1,6 bloc sur une coque sombre deux fois plus haute) | +1,0 (relevé à +1,75 à la proue) / −0,5, préceinte sombre −0,9 → −0,5 |
 | Gaillard (dunette) après la coupure | y 215–217 | **+2,5** |
-| Maison de poupe : murs, avant-toit, faîte | x 342 → 465, y 217 / 195 / 135 | z −8 → −19,5 ; avant-toit +5,45 ; faîte **+12,2** |
+| Maison de poupe : murs, avant-toit, faîte | x 342 → 465, y 217 / 195 / 135 | z −8 → −19,5 ; avant-toit +6,15 (≈2,6 de mur blanc au-dessus de la galerie, vues arrière et de côté) ; faîte **+13** |
 | Toit principal : 4 rangs superposés, débord | x 330 → 474 | z −8,6 (pignon avant) → −20,9 (croupe au-dessus de la galerie) ; ±5,2 |
-| Toit du porche (pignon avant plus bas) | x 325 → 342 | z −5,6 → −8,6, faîte +9,4 (~38°) |
+| Toit du porche (pignon avant plus bas) | x 325 → 342 | z −5,6 → −8,6, faîte +10,1 (~38°) |
 | Galerie de poupe (balcon) | vue arrière | au niveau du gaillard, +0,6 hors bord, +1,05 derrière le tableau |
 | Maison du capot (abri de l'escalier) | x 230 → 280 | z −1,5 → +4, toit en appentis +4,6 → +2,4, côté bâbord |
 | Mât : pied, inclinaison, tête | (100, 233) → (207, 17) | pied z +16,5 ; **incliné vers l'arrière de 26°** ; tête y +22 |
-| Vergue de tête de la voile | y 80, x 157 → 203 | y +16, z +11,4 → +6,6 |
-| Point d'amure / point d'écoute (vues de côté, dessus, avant) | (67, 207) / (250, 240) | z +19,6 y +3,3 / z +3 y +1,2, **±7** |
+| Vergue de tête de la voile | y 80, x 157 → 203 (vues avant et perspective : à ~4 blocs sous la tête du mât) | y +18, z +10,4 → +5,6 |
+| Point d'amure / point d'écoute (vues de côté, dessus, avant) | (67, 207) / (250, 240) ; vue de dessus ±1,45 × la demi-largeur | z +19,6 y +3,3 / z +3 y +1,2, **±6,4** |
 | Voile d'étrave (blanche) | x 30 → 72, y 227 → 262 | sous une courte vergue juste devant la proue, 2,3 de chute |
 | Ancre (bâbord) | x 197, y 242 → 300 | z +7,3, bossoir saillant de 1,2 ; ancre de −5,3 à −7,6 (bien sous la quille) |
 | Escalier extérieur (bâbord) | x 325 → 350, y 242 → 270 | z −8,3 → −4,6, y +2,3 → −2,6 |
@@ -46,13 +46,16 @@ en V qui descend vers la quille, l'**étambot clair** au milieu, le grand **gouv
 
 **Voile** : vues de dessus et de face, la grande voile forme un **V** (une tente vue de l'avant) : deux pans lattés
 pendent de la courte vergue sous la tête du mât, leur ralingue avant près de l'axe jusqu'au bout du gui avant, leurs
-points d'écoute écartés à ±7 et tenus par de **longues perches claires** qui descendent vers l'arrière le long des
+points d'écoute écartés à ±6,4 et tenus par de **longues perches claires** qui descendent vers l'arrière le long des
 flancs. Le bas de chaque pan est échancré en **arche** autour du mât (vues de côté et perspective). Le **dragon noir**
-est peint dans la texture de la voile (pochoir vectoriel dessiné par `tools/junk_dragon.py`) : grande tête à gauche
-(vers la proue), gueule ouverte, crocs, deux bois rejetés en arrière, crinière de longues mèches, moustaches enroulées ;
-corps en S fait d'**écailles noires séparées par de fines bandes de toile rouge** (l'effet pochoir), touffes de flammes
-courbes le long du dos, quatre pattes à trois griffes, queue terminée par une touffe de flammes, dans la moitié arrière
-du pan. Rouge de la toile éclairci (le jeu l'assombrit d'environ moitié), coutures discrètes, échancrure en arche plus
+est peint dans la texture de la voile (pochoir vectoriel dessiné par `tools/junk_dragon.py`, d'après la perspective) :
+une haute colonne deux fois plus haute que large, du cinquième supérieur du pan jusqu'au-dessus de la bordure, un peu en
+arrière du milieu ; la tête à gauche (vers la proue) au quart de la hauteur, gueule ouverte, crocs, petits bois,
+moustaches, une **crête de longues mèches** qui monte au-dessus d'elle ; un corps épais en S fait d'**écailles noires
+séparées par de fines bandes de toile rouge** et d'une fine coupe le long du ventre (l'effet pochoir), des flammes en
+feuilles le long du dos, quatre pattes à trois griffes, la queue qui descend vers l'arrière et finit en **éventail de
+flammes**. Les lattes sont de fines perches sombres (le dragon reste lisible). Rouge de la toile éclairci (le jeu
+l'assombrit d'environ moitié), coutures discrètes, échancrure en arche plus
 petite qui laisse un pied de toile d'un cinquième de la bordure. Chaque pan le montre tourné vers la proue (le pan
 tribord le voit en miroir).
 
@@ -61,9 +64,10 @@ tribord le voit en miroir).
 * **Coque** : bordé de planches sombres sur 39 couples, **sections en V arrondi** (fond en V sous le pont inférieur,
   bouchains fermes, flancs qui rentrent dès +1), plan qui s'affine régulièrement sur le tiers avant jusqu'à la **proue
   carrée** (moitié de la largeur), **quille relevée** vers l'avant, **lisse relevée** à la proue ; **bec** de planches
-  claires cerclé de fer sous la proue ; à l'arrière la **voûte** remonte en V jusqu'au petit tableau incliné (pied à +0,9,
+  claires cerclé de fer qui sort de la proue sombre ; à l'arrière la **voûte** remonte en V jusqu'au petit tableau incliné (pied à +0,9,
   haut à +2,5 et 0,4 plus en arrière), l'**étambot clair** cerclé de fer le long de son milieu. Préceintes sombres qui
-  remontent avec la voûte ; à l'avant une **bande de blocs de plâtre blancs** entre des montants sombres ; à l'arrière
+  remontent avec la voûte ; à l'avant une **bande de blocs de plâtre blancs** (≈1,5 de haut) entre des montants sombres,
+  sur une coque sombre deux fois plus haute ; à l'arrière
   des **panneaux laqués rouges** entre des montants serrés (leur pied remonte vers la poupe) sous une **frise claire à
   anneaux sombres**. Grand **gouvernail** sous la voûte (z −16 → −17,9, jusqu'à −5,2), bord de fuite clair.
 * **Gaillard** à +2,5 : balustrade de **balustres clairs** entre lisses et poteaux sombres, **barre** (roue) devant le

@@ -441,6 +441,14 @@ def decks():
             chair(FU + "dark_oak_bench", xs, f, z, "stern", xs - side * 0.85, z)
     custom("rope_coil", name="deck_rope_0", p=(1.25, f, 17.3), r=0.4)
     custom("rope_coil", name="deck_rope_1", p=(-1.3, f, 14.2), r=0.34)
+    # more stores along the bulwarks in the waist (the reference's top view shows them all along both sides)
+    x = js.hull_x(6.6, 0.3) - 1.0
+    at(FU + "spruce_crate", x, f, 6.6, "starboard")
+    at(FU + "spruce_crate", x, f + 1.0, 6.6, "bow", scale=0.7)
+    for k, z in enumerate((5.0, 5.95)):
+        xb = -(js.hull_x(z, 0.3) - 0.9)
+        custom("barrel", solid=(xb - 0.4, xb + 0.4, f, f + 0.95, z - 0.4, z + 0.4), name="deck_barrel_waist_%d" % k, p=(xb, f, z))
+    custom("rope_coil", name="deck_rope_2", p=(-(js.hull_x(7.0, 0.3) - 0.8), f, 7.0), r=0.3)
     # the quarterdeck: crates and barrels either side of the stern house's door (reference panel 2), a sea chest
     q = QD
     for side in (1, -1):

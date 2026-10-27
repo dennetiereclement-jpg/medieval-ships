@@ -831,14 +831,15 @@ def make_sail_texture(path, ppb=40):
             arr[y0_:y1_, x0_:x1_] *= 0.965
     cloth = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8)).convert("RGBA")
     # the dragon, painted in black ink, its head towards the luff (forwards); placed after the side and
-    # perspective views: from just under the yard down to the middle of the foot, in the aft half of the panel
+    # perspective views: a tall column from a fifth of the way down the panel to just above the foot, its middle a
+    # little aft of the panel's middle
     ink = Image.new("RGBA", (Wc, Hc), (0, 0, 0, 0))
     di = ImageDraw.Draw(ink)
     h0, h1, tack, clew = c
-    box_w = 8.4                         # blocks; the design is about 1.33 widths high
-    ox, oy = -2.3, 0.9
+    box_w = 5.7                         # blocks; the design is jd.DESIGN_H widths high
+    ox, oy = -1.85, 3.6
     x0_, y0_ = C((ox, oy))
-    x1_, y1_ = C((ox + box_w, oy + box_w * 1.33))
+    x1_, y1_ = C((ox + box_w, oy + box_w * jd.DESIGN_H))
     jd.draw_dragon(di, (x0_, y0_, x1_, y1_), ink=(20, 12, 10, 255), gap=None)
     ink_a = np.asarray(ink, dtype=float)[..., 3] / 255.0
     # worn paint: the cloth's weave shows a little through the ink

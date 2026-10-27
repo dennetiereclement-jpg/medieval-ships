@@ -46,7 +46,7 @@ public final class JunkLayout {
 	private static final double[] BOW_SHEER = {10.0, 0.75};
 	public static final double BREAK_Z = -1.5;
 	private static final double[] BREAK_RISE = {1.2, -1.5};
-	public static final double WALE_Y = -1.5;
+	public static final double WALE_Y = -0.9;
 	public static final double BEAK_TIP_Z = 22.6;
 	public static final double BEAK_TIP_Y = -3.6;
 	private static final double PINCH_Z = 12.5;
@@ -58,8 +58,8 @@ public final class JunkLayout {
 
 	// ---- stern house and its roofs, the stern gallery, the companion house
 	public static final double HOUSE_FRONT_Z = -8.0;
-	public static final double EAVE_Y = 5.45;
-	public static final double RIDGE_Y = 11.4;
+	public static final double EAVE_Y = 6.15;
+	public static final double RIDGE_Y = 12.1;
 	public static final double TIER_LIFT = 0.3;
 	public static final double ROOF_HW = 5.2;
 	public static final double ROOF_FRONT_Z = -8.6;
@@ -69,9 +69,9 @@ public final class JunkLayout {
 	private static final double[] ROOF_EDGES = {0.0, 1.25, 2.45, 3.6};
 	private static final double[] ROOF_CURVE = {0.32, 1.8};
 	public static final double PORCH_FRONT_Z = -5.6;
-	public static final double PORCH_RIDGE_Y = 9.4;
+	public static final double PORCH_RIDGE_Y = 10.1;
 	private static final double[] PORCH_CURVE = {0.55, 1.6};
-	public static final double[][] STERN_POLE = {{0.0, 12.2, -14.0}, {0.0, 15.2, -17.4}};
+	public static final double[][] STERN_POLE = {{0.0, 12.9, -14.0}, {0.0, 15.9, -17.4}};
 	public static final double GALLERY_OUT = 0.6;
 	public static final double GALLERY_AFT = 1.05;
 	public static final double GALLERY_RAIL_H = 1.0;
@@ -84,9 +84,9 @@ public final class JunkLayout {
 	public static final double[] MAST_FOOT = {0.0, 0.0, 16.5};
 	public static final double MAST_RAKE_DEG = 26.0;
 	public static final double MAST_HEAD_Y = 22.0;
-	public static final double[][] YARD = {{0.0, 16.0, 11.4}, {0.0, 16.0, 6.6}};
+	public static final double[][] YARD = {{0.0, 18.0, 10.42}, {0.0, 18.0, 5.62}};
 	public static final double[] SAIL_TACK = {0.45, 3.3, 19.6};
-	public static final double[] SAIL_CLEW = {7.0, 1.2, 3.0};
+	public static final double[] SAIL_CLEW = {6.4, 1.2, 3.0};
 	public static final double SAIL_BILLOW = 0.85;
 	public static final double[][] FORE_BOOM = {{0.0, 3.35, 12.2}, {0.0, 3.5, 19.9}};
 	public static final double[] CLEW_BOOM_END = {4.75, -1.25, -5.0};

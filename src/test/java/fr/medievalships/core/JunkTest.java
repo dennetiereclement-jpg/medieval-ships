@@ -42,24 +42,25 @@ class JunkTest {
 		}
 		double[][] hull = {{0.0, -3.5, 2.554174}, {0.0, -2.0, 4.004976}, {-16.0, -1.0, 3.118936}, {15.0, -3.0, 1.413054}, {18.5, -2.5, 0.690274},
 				{20.5, -2.8, 0.217629}, {19.0, 0.5, 2.489307}, {-18.0, 1.5, 3.998098}, {-12.0, -4.0, 0.840632}, {-18.8, 0.5, 0.882938},
-				{-19.3, 2.0, 3.913698}};
+				{-19.3, 2.0, 3.913698}, {18.0, -1.2, 1.866352}};
 		for (double[] r : hull) {
 			assertEquals(r[2], JunkLayout.hullX(r[0], r[1]), 1e-5, "hull half width at " + r[0] + ", " + r[1]);
 		}
-		double[] roof = {5.45, 7.487116, 9.107735, 10.329272, 11.4};
+		double[] roof = {6.15, 8.187116, 9.807735, 11.029272, 12.1};
 		double[] d = {0.0, 1.25, 2.45, 3.6, 5.2};
 		for (int i = 0; i < d.length; i++) {
 			assertEquals(roof[i], JunkLayout.roofY(d[i]), 1e-5, "roof at " + d[i]);
 		}
-		assertEquals(7.10749, JunkLayout.roofTop(1.0), 1e-5);
-		assertEquals(10.334299, JunkLayout.roofTop(3.0), 1e-5);
-		assertEquals(12.215286, JunkLayout.roofTop(5.0), 1e-5);
-		assertEquals(7.122606, JunkLayout.porchY(2.6), 1e-5);
-		assertEquals(9.4, JunkLayout.porchY(5.2), 1e-9);
+		assertEquals(7.80749, JunkLayout.roofTop(1.0), 1e-5);
+		assertEquals(11.034299, JunkLayout.roofTop(3.0), 1e-5);
+		assertEquals(12.915286, JunkLayout.roofTop(5.0), 1e-5);
+		assertEquals(7.822606, JunkLayout.porchY(2.6), 1e-5);
+		assertEquals(10.1, JunkLayout.porchY(5.2), 1e-9);
+		assertEquals(-2.206452, JunkLayout.beakTop(21.0), 1e-5);
 		double[] head = JunkLayout.mastHead();
 		assertEquals(22.0, head[1], 1e-9);
 		assertEquals(5.769883, head[2], 1e-5);
-		double[][] sail = {{0.5, 0.5, 2.716265, 9.27904, 10.383081}, {1.0, 1.0, 7.0, 1.2, 3.0}, {0.3, 0.8, 2.228373, 11.691825, 7.419153}};
+		double[][] sail = {{0.5, 0.5, 2.579854, 10.246145, 9.877791}, {1.0, 1.0, 6.4, 1.2, 3.0}, {0.3, 0.8, 2.091713, 13.074056, 6.724894}};
 		for (double[] r : sail) {
 			for (int side = -1; side <= 1; side += 2) {
 				double[] p = JunkLayout.sailPoint(side, r[0], r[1]);

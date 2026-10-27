@@ -929,12 +929,30 @@
   },
   {
    "block": "furnish:spruce_crate",
+   "x": 3.2344,
+   "y": 0.0,
+   "z": 6.6,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_103"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": 3.2344,
+   "y": 1.0,
+   "z": 6.6,
+   "yaw": 180.0,
+   "scale": 0.7,
+   "fallback": "fallback_104"
+  },
+  {
+   "block": "furnish:spruce_crate",
    "x": 2.4,
    "y": 2.5,
    "z": -7.4,
    "yaw": 180.0,
    "scale": 1.0,
-   "fallback": "fallback_103"
+   "fallback": "fallback_105"
   },
   {
    "block": "furnish:spruce_crate",
@@ -943,7 +961,7 @@
    "z": -7.4,
    "yaw": 180.0,
    "scale": 1.0,
-   "fallback": "fallback_104"
+   "fallback": "fallback_106"
   }
  ],
  "seats": [

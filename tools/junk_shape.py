@@ -48,7 +48,8 @@ SHEER_FORE = 1.0            # top of the white bulwark of the main deck
 BOW_SHEER = (10.0, 0.75)    # forward of z 10 the bulwark sweeps up by 0.75 to the bow face (a raised bow)
 BREAK_Z = -1.5              # the break: the quarterdeck from here aft
 BREAK_RISE = (1.2, -1.5)    # the white band rises from SHEER_FORE at z 1.2 to QUARTERDECK_Y at z -1.5
-WALE_Y = -1.5               # the dark wale under the white band (the top of the beak at the bow face)
+WALE_Y = -0.9               # the dark wale under the white band (the top of the beak at the bow face): the white band of
+#                             the bulwark is about 1.5 high over a deep dark hull, as on the side and perspective views
 RED_BAND = (-0.4, 1.9)      # aft: the red lacquered panels between dark posts on the hull side (the carved frieze above)
 RED_SWEEP = (-12.0, 1.2)    # aft of z -12 the red band's foot sweeps up with the counter to y 1.2 at the transom
 # the beak: a wedge of pale planks pointing forwards under the square bow, its top sloping down from the wale
@@ -66,8 +67,8 @@ KEEL_PTS = (TRANSOM_FOOT, (-18.3, -0.45), (-17.2, -1.85), (-15.8, -3.15), (-14.0
 
 # ---------------------------------------------------------------- stern house (on the quarterdeck) and roofs
 HOUSE_FRONT_Z = -8.0        # outer face of its front wall (the door in it)
-EAVE_Y = 5.45               # lowest edge of the roofs
-RIDGE_Y = 11.4              # the main roof's ridge (its tiers' lifts add ROOF_TIERS - 1 times TIER_LIFT on top)
+EAVE_Y = 6.15               # lowest edge of the roofs (about 2.6 of white wall over the gallery's rail, as on the back view)
+RIDGE_Y = 12.1              # the main roof's ridge (its tiers' lifts add ROOF_TIERS - 1 times TIER_LIFT on top)
 TIER_LIFT = 0.3             # each tier stands proud of the one below
 ROOF_HW = 5.2               # half width at the eaves (the roof overhangs the hull and the gallery)
 ROOF_FRONT_Z = -8.6         # the main roof's front gable (at the eaves; it leans forwards up to the ridge), just aft of the
@@ -81,9 +82,9 @@ ROOF_CURVE = (0.32, 1.8)    # the tiers' envelope (see roof_y): steep at the eav
 TIER_FLARE = 0.35           # each tier's lip kicks up by this much (more at the corners)
 # the porch roof: a lower gable in front of the main roof, over the porch and the double door (about 38 degrees)
 PORCH_FRONT_Z = -5.6
-PORCH_RIDGE_Y = 9.4
+PORCH_RIDGE_Y = 10.1
 PORCH_CURVE = (0.55, 1.6)
-STERN_POLE = ((0.0, 12.2, -14.0), (0.0, 15.2, -17.4))   # the short staff on the ridge, raked aft
+STERN_POLE = ((0.0, 12.9, -14.0), (0.0, 15.9, -17.4))   # the short staff on the ridge, raked aft
 # the stern gallery: a balcony round the house at the quarterdeck's level, projecting from the hull's sides and aft of the
 # transom, carried on dark brackets, its balustrade of pale turned balusters between dark rails
 GALLERY_OUT = 0.6           # outboard of the hull's side
@@ -104,11 +105,11 @@ MAST_FOOT = (0.0, 0.0, 16.5)
 MAST_RAKE_DEG = 26.0        # raked aft
 MAST_HEAD_Y = 22.0
 MAST_D = (0.72, 0.46)       # diameter at the deck, at the head
-YARD = ((0.0, 16.0, 11.4), (0.0, 16.0, 6.6))   # the short head yard of the sail (fore end, aft end)
+YARD = ((0.0, 18.0, 10.42), (0.0, 18.0, 5.62))  # the short head yard of the sail (fore end, aft end), 4 under the masthead
 # the two sail panels (port +1, starboard -1): head on the yard, luff down to the tack near the centre line
 # forward, leech down to the clew spread out aft (a V in plan, a tent from ahead)
 SAIL_TACK = (0.45, 3.3, 19.6)
-SAIL_CLEW = (7.0, 1.2, 3.0)
+SAIL_CLEW = (6.4, 1.2, 3.0)
 SAIL_BILLOW = 0.85
 SAIL_BATTENS = (0.2, 0.37, 0.53, 0.68, 0.82)   # battens across the panels (s, from the head down)
 FORE_BOOM = ((0.0, 3.35, 12.2), (0.0, 3.5, 19.9))  # the spar along the foot forward (the tacks lashed to its end)
@@ -389,7 +390,7 @@ if __name__ == "__main__":
     print("sheer", [round(sheer_y(z), 6) for z in (3.0, 0.5, -0.4, -1.2, -5.0, 14.0, 19.0)])
     print("transom", [round(transom_z(y), 6) for y in (0.5, 1.5, 2.4)])
     for z, y in ((0.0, -3.5), (0.0, -2.0), (-16.0, -1.0), (15.0, -3.0), (18.5, -2.5), (20.5, -2.8), (19.0, 0.5), (-18.0, 1.5),
-                 (-12.0, -4.0), (-18.8, 0.5), (-19.3, 2.0)):
+                 (-12.0, -4.0), (-18.8, 0.5), (-19.3, 2.0), (18.0, -1.2)):
         print("hull_x", z, y, round(hull_x(z, y), 6))
     print("mast head", [round(c, 6) for c in mast_head()])
     for side in (1, -1):
@@ -397,3 +398,4 @@ if __name__ == "__main__":
               [round(c, 6) for c in sail_point(side, 0.3, 0.8)])
     print("roof", [round(roof_y(d), 6) for d in (0.0, 1.25, 2.45, 3.6, 5.2)], "top", [round(roof_top(d), 6) for d in (1.0, 3.0, 5.0)])
     print("porch", [round(porch_y(d), 6) for d in (0.0, 2.6, 5.2)], "mid roof", [round(mid_roof_y(x), 6) for x in (0.5, 2.5, 4.5)])
+    print("beak top", round(beak_top(21.0), 6))

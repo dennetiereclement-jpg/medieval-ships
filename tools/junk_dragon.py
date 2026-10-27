@@ -1,14 +1,19 @@
 """The black dragon painted on the Dragon Junk's great red sail (tools/junk_texture.py), drawn as a stencil with PIL,
-after the reference sheet: a Chinese dragon rising up the sail, its big head at the top turned forwards (towards the
-luff) with open jaws and fangs, two antlers swept back, a mane of long strands flowing back along the neck and long
-curling whiskers; its body a chain of black scale bars with thin gaps of red cloth between them (the stencil look),
-coiling in an S down the sail; short curved flame tufts along its back, four legs with three hooked talons each, the
-tail coiling at the bottom into a tuft of flames.
+after the reference sheet (its perspective view): a Chinese dragon rising up the sail in a tall narrow column, about
+twice as high as wide; its head on the left at a quarter of the height, turned forwards (towards the luff), jaws open
+with fangs, the whiskers trailing; above it a crest of long mane strands sweeping up and back; the body a thick coil of
+black scale bars with thin cuts of red cloth between them and a thin cut along the belly (the stencil look), coiling in
+an S down the middle; brush-stroke flames along its back, four legs reaching out with three hooked talons each; the tail
+sweeping down and aft into a big fan of flames at the bottom.
 
-draw_dragon(draw, box, ink) paints it in the box (x0, y0, x1, y1) of a PIL ImageDraw (its head at the top left, facing
-left); the lengths follow the box's width, so the same design serves any resolution.
+draw_dragon(draw, box, ink) paints it in the box (x0, y0, x1, y1) of a PIL ImageDraw (its head on the left, facing
+left); the design is scaled to fit the box (one unit = the box's width, or half its height if that is smaller) and
+centred in it, so the same design serves any resolution.
 """
 import math
+
+# the design's size in its units (x right = towards the leech, y down)
+DESIGN_H = 2.0
 
 
 def _catmull(pts, n=12):
@@ -47,27 +52,30 @@ def _resample(pts, n):
     return out, total
 
 
-# the spine in the box's width units (x right = towards the leech, y down; the box is about 1.4 widths high), from the
-# back of the head to the tail's tip: the neck arches up and right, the body swings back left, then right again with
-# the hind legs, the tail sweeps left then curls right into its tuft (as on the reference sheet's sail)
-SPINE = [(0.4, 0.28), (0.51, 0.3), (0.62, 0.36), (0.68, 0.46), (0.63, 0.56), (0.5, 0.62), (0.43, 0.71), (0.5, 0.79), (0.64, 0.82),
-         (0.72, 0.9), (0.66, 0.98), (0.53, 1.02), (0.46, 1.1), (0.52, 1.18), (0.64, 1.23), (0.76, 1.27)]
+# the spine, from the back of the head to the tail's tip (as on the reference's sail): the neck runs right from the head,
+# the body swings down round the right, back left across the middle, down and right again with the hind legs; the tail
+# drops, then sweeps aft (right) to its fan of flames at the bottom
+SPINE = [(0.31, 0.53), (0.43, 0.46), (0.57, 0.44), (0.7, 0.5), (0.77, 0.62), (0.72, 0.75), (0.58, 0.83), (0.44, 0.9), (0.37, 1.01),
+         (0.41, 1.13), (0.54, 1.2), (0.65, 1.27), (0.62, 1.37), (0.51, 1.43), (0.48, 1.52), (0.56, 1.59), (0.69, 1.64), (0.79, 1.7)]
 
 
 def _width(t):
-    """Half thickness of the body along the spine (0 at the neck, 1 at the tail's tip), in box widths."""
-    if t < 0.1:
-        return 0.06 + 0.035 * t / 0.1
-    if t < 0.5:
-        return 0.095 - 0.01 * (t - 0.1) / 0.4
-    return max(0.014, 0.085 * (1.0 - (t - 0.5) / 0.5) ** 0.85)
+    """Half thickness of the body along the spine (0 at the neck, 1 at the tail's tip), in units."""
+    if t < 0.12:
+        return 0.085 + 0.045 * t / 0.12
+    if t < 0.55:
+        return 0.13 - 0.02 * (t - 0.12) / 0.43
+    return max(0.02, 0.11 * (1.0 - (t - 0.55) / 0.45) ** 0.85)
 
 
 def draw_dragon(d, box, ink=(16, 12, 12, 255), gap=None, eye=(190, 40, 26, 255)):
-    """Paints the dragon in the box. gap: the colour of the cloth showing through the stencil's cuts (the eye's white,
-    the lines inside the head), None for transparent (the caller composites the ink over the cloth)."""
-    x0, y0, x1, y1 = box
-    S = x1 - x0                                   # the unit: the box's width
+    """Paints the dragon in the box. gap: the colour of the cloth showing through the stencil's cuts (the eye, the lines
+    in the head and along the belly, between the scale bars), None for transparent (the caller composites the ink over
+    the cloth)."""
+    bx0, by0, bx1, by1 = box
+    S = min(bx1 - bx0, (by1 - by0) / DESIGN_H)          # the unit
+    x0 = (bx0 + bx1) / 2 - S / 2
+    y0 = (by0 + by1) / 2 - S * DESIGN_H / 2
     hole = gap if gap is not None else (0, 0, 0, 0)
 
     def P(u, v):
@@ -77,8 +85,8 @@ def draw_dragon(d, box, ink=(16, 12, 12, 255), gap=None, eye=(190, 40, 26, 255))
         d.polygon([P(u, v) for u, v in pts], fill=fill)
 
     def flame(base, direction, length, width, curl, fill=ink, n=10):
-        """A brush-stroke flame / claw: a tongue thick near its root, tapering to a point, its middle line curling
-        sideways (by curl, in box widths) like an S at the tip."""
+        """A brush-stroke flame / strand / claw: thick near its root, tapering to a point, its middle line curling
+        sideways (by curl, in units) towards the tip."""
         dx, dy = direction
         ln = math.hypot(dx, dy) or 1.0
         dx, dy = dx / ln, dy / ln
@@ -86,9 +94,9 @@ def draw_dragon(d, box, ink=(16, 12, 12, 255), gap=None, eye=(190, 40, 26, 255))
         left, right = [], []
         for i in range(n + 1):
             t = i / n
-            bend = curl * (t ** 1.8) - 0.25 * curl * math.sin(math.pi * t) * t
+            bend = curl * t * t
             c = (base[0] + dx * length * t + ox * bend, base[1] + dy * length * t + oy * bend)
-            w = width * (0.55 + 0.9 * math.sin(math.pi * min(1.0, 0.25 + t))) * (1.0 - t) ** 1.1
+            w = width * math.sin(math.pi * (0.18 + 0.82 * t)) ** 0.75     # a leaf: broadest a third of the way out
             left.append((c[0] + ox * w, c[1] + oy * w))
             right.append((c[0] - ox * w, c[1] - oy * w))
         poly(left + right[::-1], fill)
@@ -100,8 +108,11 @@ def draw_dragon(d, box, ink=(16, 12, 12, 255), gap=None, eye=(190, 40, 26, 255))
         poly([(a[0] + ox * wa, a[1] + oy * wa), (b[0] + ox * wb, b[1] + oy * wb), (b[0] - ox * wb, b[1] - oy * wb),
               (a[0] - ox * wa, a[1] - oy * wa)], fill)
 
+    def dot(c, r, fill=ink):
+        d.ellipse([*P(c[0] - r, c[1] - r), *P(c[0] + r, c[1] + r)], fill=fill)
+
     spine = _catmull(SPINE, 16)
-    N = 240
+    N = 320
     samples, total = _resample(spine, N)
     pts = []
     for k, ((u, v), (tx, ty)) in enumerate(samples):
@@ -111,45 +122,57 @@ def draw_dragon(d, box, ink=(16, 12, 12, 255), gap=None, eye=(190, 40, 26, 255))
     def at(t):
         return pts[max(0, min(N, int(round(t * N))))]
 
-    # ---- flame tufts along the back (curved, swept towards the tail), smaller ones along the belly
-    for k in range(8, N - 16, 11):
+    # ---- the crest: long mane strands rising from the back of the head and the neck, sweeping up and back (right)
+    for k in range(9):
+        f = k / 8
+        (u, v), (nx, ny), (tx, ty), w, t = at(0.01 + 0.2 * f)
+        base = (u + nx * w * 0.4, v + ny * w * 0.4)
+        up = (0.2 + 0.6 * f, -1.0)
+        flame(base, up, 0.2 + 0.1 * math.sin(math.pi * (0.25 + 0.6 * f)) + 0.025 * math.sin(k * 2.3), 0.03, 0.1 + 0.03 * f)
+    # ---- flames along the back: broad curved tongues swept towards the tail; smaller ones under the belly
+    for k in range(int(0.22 * N), int(0.84 * N), 20):
         (u, v), (nx, ny), (tx, ty), w, t = pts[k]
-        big = 1.0 if t < 0.55 else max(0.4, 1.0 - (t - 0.55) / 0.45)
-        base = (u + nx * w * 0.6, v + ny * w * 0.6)
-        flame(base, (nx * 0.85 + tx * 0.6, ny * 0.85 + ty * 0.6), (0.1 + 0.025 * math.sin(k * 1.7)) * big + w * 0.4, 0.024 * big, 0.07 * big)
-        if 0.12 < t < 0.8 and k % 22 == 8:
-            base = (u - nx * w * 0.6, v - ny * w * 0.6)
-            flame(base, (-nx * 0.7 + tx * 0.8, -ny * 0.7 + ty * 0.8), 0.06 * big + w * 0.3, 0.022 * big, -0.03 * big)
-    # ---- the legs: (t along the body, the side (+1 dorsal, -1 ventral), the upper leg's and the forearm's directions)
-    legs = ((0.1, -1, (-0.9, 0.35), (-0.8, 0.55)), (0.16, 1, (0.8, -0.5), (0.9, 0.25)),
-            (0.47, -1, (-0.85, 0.4), (-0.55, 0.85)), (0.52, 1, (0.9, 0.15), (0.55, 0.8)))
-    for t, side, d1, d2 in legs:
+        big = 1.0 if t < 0.6 else max(0.45, 1.0 - (t - 0.6) / 0.35)
+        base = (u + nx * w * 0.55, v + ny * w * 0.55)
+        flame(base, (nx * 0.8 + tx * 0.6, ny * 0.8 + ty * 0.6), (0.1 + 0.025 * math.sin(k * 1.3)) * big + w * 0.4, 0.04 * big,
+              0.06 * big)
+    for k in range(int(0.3 * N), int(0.7 * N), 30):
+        (u, v), (nx, ny), (tx, ty), w, t = pts[k]
+        base = (u - nx * w * 0.6, v - ny * w * 0.6)
+        flame(base, (-nx * 0.7 + tx * 0.7, -ny * 0.7 + ty * 0.7), 0.06 + w * 0.3, 0.03, -0.035)
+    # ---- the legs: (t along the body, the side (+1 dorsal, -1 ventral), the upper leg's and the forearm's directions,
+    # their lengths)
+    legs = ((0.13, -1, (-0.95, 0.2), (-0.7, 0.75), 0.17, 0.12), (0.2, 1, (0.85, -0.35), (0.85, 0.3), 0.13, 0.1),
+            (0.5, -1, (-0.8, 0.45), (-0.45, 0.9), 0.17, 0.13), (0.56, 1, (0.9, 0.05), (0.55, 0.8), 0.13, 0.1))
+    for t, side, d1, d2, l1, l2 in legs:
         (u, v), (nx, ny), (tx, ty), w, _ = at(t)
         a = (u - nx * w * 0.1 * side, v - ny * w * 0.1 * side)
         n1, n2 = math.hypot(*d1), math.hypot(*d2)
-        knee = (a[0] + d1[0] / n1 * 0.15, a[1] + d1[1] / n1 * 0.15)
-        foot = (knee[0] + d2[0] / n2 * 0.12, knee[1] + d2[1] / n2 * 0.12)
-        band(a, knee, w * 0.55, 0.034)
-        band(knee, foot, 0.032, 0.024)
-        d.ellipse([*P(knee[0] - 0.034, knee[1] - 0.034), *P(knee[0] + 0.034, knee[1] + 0.034)], fill=ink)
+        knee = (a[0] + d1[0] / n1 * l1, a[1] + d1[1] / n1 * l1)
+        foot = (knee[0] + d2[0] / n2 * l2, knee[1] + d2[1] / n2 * l2)
+        band(a, knee, w * 0.6, 0.05)
+        band(knee, foot, 0.045, 0.034)
+        dot(knee, 0.05)
         # flame tufts at the elbow, streaming back
         bx, by = -d1[0] / n1, -d1[1] / n1
-        flame(knee, (bx * 0.6 + d2[1] / n2 * side, by * 0.6 - d2[0] / n2 * side), 0.11, 0.022, 0.05 * side)
+        for j in range(2):
+            flame(knee, (bx * 0.5 + d2[1] / n2 * side * (1.0 + 0.4 * j), by * 0.5 - d2[0] / n2 * side * (1.0 + 0.4 * j)), 0.11 - 0.02 * j,
+                  0.032, 0.045 * side)
         # three hooked talons spread from the foot, a spur behind
         base_a = math.atan2(d2[1], d2[0])
-        d.ellipse([*P(foot[0] - 0.026, foot[1] - 0.026), *P(foot[0] + 0.026, foot[1] + 0.026)], fill=ink)
+        dot(foot, 0.038)
         for c in range(3):
             ang = base_a + (c - 1) * 0.62
-            flame((foot[0] + math.cos(ang) * 0.015, foot[1] + math.sin(ang) * 0.015), (math.cos(ang), math.sin(ang)), 0.085, 0.016,
-                  0.05 * (-side if c != 1 else -side * 0.5))
-        flame(foot, (-math.cos(base_a + 0.5 * side), -math.sin(base_a + 0.5 * side)), 0.04, 0.012, 0.015)
-    # ---- the body: a chain of black scale bars (crescents bowed towards the head), thin gaps of cloth between them
-    pitch = 6
+            flame((foot[0] + math.cos(ang) * 0.025, foot[1] + math.sin(ang) * 0.025), (math.cos(ang), math.sin(ang)), 0.09, 0.024,
+                  -0.04 * side)
+        flame(foot, (-math.cos(base_a + 0.6 * side), -math.sin(base_a + 0.6 * side)), 0.05, 0.018, 0.012)
+    # ---- the body: a chain of black scale bars (crescents bowed towards the head), thin cuts of cloth between them
+    pitch, bar = 8, 5
     for k in range(0, N - 2, pitch):
         (u, v), (nx, ny), (tx, ty), w, t = pts[k]
-        k2 = min(N, k + pitch - 2)
+        k2 = min(N, k + bar)
         (u2, v2), (nx2, ny2), (tx2, ty2), w2, _ = pts[k2]
-        lead = w * 0.55                         # the crescent's middle leads its tips by this much
+        lead = w * 0.5                          # the crescent's middle leads its tips by this much
         front = [(u + nx * w, v + ny * w), (u + nx * w * 0.5 - tx * lead * 0.75, v + ny * w * 0.5 - ty * lead * 0.75),
                  (u - tx * lead, v - ty * lead), (u - nx * w * 0.5 - tx * lead * 0.75, v - ny * w * 0.5 - ty * lead * 0.75),
                  (u - nx * w, v - ny * w)]
@@ -158,63 +181,62 @@ def draw_dragon(d, box, ink=(16, 12, 12, 255), gap=None, eye=(190, 40, 26, 255))
                 (u2 + nx2 * w2 * 0.5 - tx2 * lead * 0.7, v2 + ny2 * w2 * 0.5 - ty2 * lead * 0.7), (u2 + nx2 * w2, v2 + ny2 * w2)]
         poly(front + back)
     # the dorsal ridge joining the scale bars, so the body reads as one
-    left = [(u + nx * w * 1.02, v + ny * w * 1.02) for (u, v), (nx, ny), _, w, t in pts[:-4]]
-    inner = [(u + nx * w * 0.74, v + ny * w * 0.74) for (u, v), (nx, ny), _, w, t in pts[:-4]]
-    poly(left + inner[::-1])
-    # ---- the tail's tuft: a fan of long curved flames sweeping down and out at the end
-    (u, v), (nx, ny), (tx, ty), w, t = pts[-1]
-    base_a = math.atan2(ty, tx)
+    rim = pts[:-6]
+    poly([(u + nx * w * 1.04, v + ny * w * 1.04) for (u, v), (nx, ny), _, w, t in rim]
+         + [(u + nx * w * 0.84, v + ny * w * 0.84) for (u, v), (nx, ny), _, w, t in rim][::-1])
+    # the belly's cut: a thin line of cloth along the body, a third of the way from the belly
+    cut = [p for p in pts[4:int(0.8 * N)]]
+    for i in range(len(cut) - 1):
+        (u, v), (nx, ny), _, w, _ = cut[i]
+        (u2, v2), (nx2, ny2), _, w2, _ = cut[i + 1]
+        band((u - nx * w * 0.42, v - ny * w * 0.42), (u2 - nx2 * w2 * 0.42, v2 - ny2 * w2 * 0.42), 0.006, 0.006, hole)
+    # ---- the tail's fan: long curved flames hanging down and spreading at the end
     for c in range(6):
-        ang = base_a + 0.45 + (c - 2.5) * 0.33
-        flame((u, v), (math.cos(ang), math.sin(ang)), 0.17 * (1.15 - 0.1 * abs(c - 2.5)), 0.026, 0.08 * (1 if c < 3 else -1))
-    # ---- the head (facing left): the mane's crown, antlers, a heavy skull and snout, open jaws with fangs, whiskers
+        (u, v), (nx, ny), (tx, ty), w, t = pts[N - 14 + 2 * c]
+        base_a = math.atan2(ty, tx)
+        ang = base_a + 0.85 + (c - 2.5) * 0.42
+        flame((u, v), (math.cos(ang), math.sin(ang)), 0.23 * (1.1 - 0.1 * abs(c - 2.5)), 0.036, 0.08 * (1 if c < 3 else -1))
+    # ---- the head (facing left): a heavy skull and snout, open jaws with fangs, a beard, whiskers, small antlers
     (hu, hv), (nx, ny), _, w, _ = pts[0]
-    hx, hy = hu - 0.06, hv + 0.01
-    # mane: a crown of long strands from the back of the head, flowing up and back
-    for k in range(9):
-        ang = math.radians(-120 + k * 13)
-        base = (hx + 0.02 + 0.012 * k, hy - 0.05 + 0.006 * k)
-        flame(base, (math.cos(ang) + 0.45, math.sin(ang) - 0.35), 0.17 + 0.05 * math.sin(k * 1.9 + 0.5), 0.026, 0.07)
-    # antlers: two swept back and up, each with a branch
-    for k, (dx, dy) in enumerate(((0.55, -1.0), (0.95, -0.75))):
-        root = (hx - 0.04 + 0.03 * k, hy - 0.08)
-        flame(root, (dx, dy), 0.19, 0.022, 0.06, n=10)
+    hx, hy = hu - 0.04, hv + 0.01
+    sc = 0.85                                   # the head's size
+
+    def H(a, b):
+        return (hx + a * sc, hy + b * sc)
+    for k, (dx, dy) in enumerate(((0.45, -1.0), (0.9, -0.8))):
+        root = H(-0.04 + 0.04 * k, -0.08)
+        flame(root, (dx, dy), 0.17 * sc + 0.02, 0.022, 0.05, n=10)
         ln = math.hypot(dx, dy)
-        mid = (root[0] + dx / ln * 0.09, root[1] + dy / ln * 0.09)
-        flame(mid, (dx - 0.9, dy - 0.1), 0.07, 0.014, -0.02)
-    # skull and upper jaw: a heavy head, the snout pointing forwards (left), the nose turned up
-    upper = [(hx + 0.08, hy - 0.06), (hx + 0.02, hy - 0.1), (hx - 0.06, hy - 0.1), (hx - 0.13, hy - 0.08), (hx - 0.2, hy - 0.075),
-             (hx - 0.23, hy - 0.095), (hx - 0.26, hy - 0.075), (hx - 0.255, hy - 0.035), (hx - 0.19, hy - 0.015), (hx - 0.1, hy - 0.005),
-             (hx - 0.03, hy + 0.02), (hx + 0.05, hy + 0.06), (hx + 0.11, hy + 0.01)]
-    poly(upper)
-    # lower jaw, wide open, a beard of flames under it
-    lower = [(hx - 0.0, hy + 0.04), (hx - 0.08, hy + 0.06), (hx - 0.17, hy + 0.09), (hx - 0.205, hy + 0.12), (hx - 0.17, hy + 0.135),
-             (hx - 0.08, hy + 0.115), (hx + 0.02, hy + 0.1), (hx + 0.07, hy + 0.07)]
-    poly(lower)
+        mid = (root[0] + dx / ln * 0.07, root[1] + dy / ln * 0.07)
+        flame(mid, (dx - 0.9, dy - 0.1), 0.06, 0.013, -0.02)
+    upper = [(0.08, -0.06), (0.02, -0.1), (-0.06, -0.105), (-0.13, -0.085), (-0.2, -0.08), (-0.23, -0.1), (-0.265, -0.08),
+             (-0.26, -0.035), (-0.19, -0.015), (-0.1, -0.005), (-0.03, 0.02), (0.05, 0.06), (0.11, 0.01)]
+    poly([H(a, b) for a, b in upper])
+    lower = [(0.0, 0.04), (-0.08, 0.06), (-0.17, 0.09), (-0.21, 0.125), (-0.17, 0.14), (-0.08, 0.12), (0.02, 0.105), (0.07, 0.07)]
+    poly([H(a, b) for a, b in lower])
     for k in range(4):
-        flame((hx - 0.1 + 0.04 * k, hy + 0.11), (0.3, 1.0), 0.09 + 0.015 * k, 0.02, 0.04)
-    # fangs, up and down
-    for fx, fy, dn in ((-0.235, -0.04, 1), (-0.18, -0.017, 1), (-0.11, -0.008, 1), (-0.17, 0.1, -1), (-0.11, 0.085, -1)):
-        poly([(hx + fx - 0.013, hy + fy), (hx + fx + 0.002, hy + fy + dn * 0.038), (hx + fx + 0.014, hy + fy)])
+        flame(H(-0.1 + 0.045 * k, 0.11), (0.25, 1.0), 0.08 + 0.012 * k, 0.018, 0.035)
+    for fx, fy, dn in ((-0.24, -0.04, 1), (-0.185, -0.017, 1), (-0.115, -0.008, 1), (-0.175, 0.105, -1), (-0.115, 0.09, -1)):
+        poly([H(fx - 0.013, fy), H(fx + 0.002, fy + dn * 0.04), H(fx + 0.014, fy)])
     # the stencil's cuts in the head: the eye, the brow, the cheek's line, the nostril
-    d.ellipse([*P(hx - 0.09, hy - 0.075), *P(hx - 0.035, hy - 0.04)], fill=hole)
+    d.ellipse([*P(*H(-0.085, -0.075)), *P(*H(-0.04, -0.045))], fill=hole)
     if eye is not None:
-        d.ellipse([*P(hx - 0.074, hy - 0.068), *P(hx - 0.05, hy - 0.047)], fill=eye if gap is not None else ink)
-    band((hx - 0.12, hy - 0.088), (hx - 0.01, hy - 0.08), 0.006, 0.004, hole)
-    band((hx - 0.02, hy - 0.02), (hx + 0.06, hy + 0.025), 0.006, 0.005, hole)
-    band((hx - 0.16, hy - 0.03), (hx - 0.06, hy - 0.025), 0.004, 0.004, hole)
-    d.ellipse([*P(hx - 0.245, hy - 0.075), *P(hx - 0.22, hy - 0.055)], fill=hole)
-    # whiskers: two long curling lines trailing from the snout
-    lw = max(1, int(round(S * 0.012)))
-    for pts_w in (((-0.25, -0.05), (-0.31, -0.03), (-0.34, 0.04), (-0.31, 0.11), (-0.25, 0.12)),
-                  ((-0.22, -0.02), (-0.27, 0.05), (-0.27, 0.14), (-0.22, 0.2), (-0.16, 0.19))):
-        wp = _catmull([(hx + a, hy + b) for a, b in pts_w], 6)
+        d.ellipse([*P(*H(-0.07, -0.067)), *P(*H(-0.052, -0.051))], fill=eye if gap is not None else ink)
+    band(H(-0.13, -0.09), H(-0.01, -0.082), 0.006, 0.004, hole)
+    band(H(-0.02, -0.02), H(0.06, 0.025), 0.006, 0.005, hole)
+    band(H(-0.17, -0.03), H(-0.06, -0.025), 0.005, 0.004, hole)
+    d.ellipse([*P(*H(-0.25, -0.075)), *P(*H(-0.225, -0.055))], fill=hole)
+    # whiskers: two curling lines trailing from the snout
+    lw = max(1, int(round(S * 0.01)))
+    for pts_w in (((-0.255, -0.05), (-0.3, -0.03), (-0.31, 0.02), (-0.29, 0.06)),
+                  ((-0.22, -0.02), (-0.25, 0.04), (-0.24, 0.1), (-0.21, 0.13))):
+        wp = _catmull([H(a, b) for a, b in pts_w], 6)
         d.line([P(*p) for p in wp], fill=ink, width=lw)
 
 
 if __name__ == "__main__":
     import sys
     from PIL import Image, ImageDraw
-    im = Image.new("RGBA", (800, 1150), (178, 72, 56, 255))
-    draw_dragon(ImageDraw.Draw(im), (40, 40, 760, 1110), gap=(178, 72, 56, 255))
+    im = Image.new("RGBA", (600, 1150), (178, 72, 56, 255))
+    draw_dragon(ImageDraw.Draw(im), (30, 30, 570, 1120), gap=(178, 72, 56, 255))
     im.save(sys.argv[1] if len(sys.argv) > 1 else "/tmp/dragon.png")

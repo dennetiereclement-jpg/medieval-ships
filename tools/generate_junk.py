@@ -135,8 +135,8 @@ def hull_rows(z):
     k = js.keel_y(z)
     beak = z > BZ + 1e-6
     rows = []
-    low_reg = "beak" if z > 15.6 else "hull_low"
-    mid_reg = "beak" if z > 15.6 else "hull"
+    low_reg = "beak" if beak else "hull_low"     # the pale beak juts out of the dark bow
+    mid_reg = "beak" if beak else "hull"
     if beak:
         yw = max(js.beak_top(z), k)
         for f in LOW_F:
@@ -650,7 +650,7 @@ def porch_under(x):
     return js.porch_y(js.ROOF_HW - abs(x)) - 0.1
 
 
-HOUSE_HEAD_Y = 6.0           # the plaster walls end here, the dark carved eave frieze above closes up to the roofs
+HOUSE_HEAD_Y = 6.6           # the plaster walls end here, the dark carved eave frieze above closes up to the roofs
 
 
 def eave_frieze(bone, name, pa, pb, ya_top, yb_top, normal):
@@ -1174,7 +1174,8 @@ def sail_panel(root, side, sn, lights):
             q = quad(sb, "sail_%s_%d_%d" % (sn, i, j), p00, p10, p01, p11, 0.04, "sail", N, u_dir=p10 + p11 - p00 - p01,
                      v_dir=p01 + p11 - p00 - p10, overlap=(1.04, 1.04), sub=sub)
             count += 1 if q is not None else 0
-    # battens: bamboo poles across the panel on its outer face, clipped to the cloth
+    # battens: thin dark poles across the panel on its outer face (the reference shows them as dark lines, the dragon
+    # stays clear), clipped to the cloth
     for k, s in enumerate(js.SAIL_BATTENS):
         ts = np.linspace(0.0, 1.0, 41)
         inside = jt.sail_inside(np.full(ts.shape, s), ts)
@@ -1192,7 +1193,7 @@ def sail_panel(root, side, sn, lights):
                 continue
             pts = [v3(*js.sail_point(side, s, t)) + N * 0.07 for t in np.linspace(run[0], run[-1], 6)]
             for m in range(len(pts) - 1):
-                tube(sb, "sail_batten_%s%d_%d_%d" % (sn, k, r, m), pts[m], pts[m + 1], 0.13, "bamboo", sides=4, extend=0.06)
+                tube(sb, "sail_batten_%s%d_%d_%d" % (sn, k, r, m), pts[m], pts[m + 1], 0.1, "dark_wood", sides=4, extend=0.06)
             for e, p in enumerate((pts[0], pts[-1])):
                 box(sb, "sail_batten_end_%s%d_%d_%d" % (sn, k, r, e), p, (0.18, 0.18, 0.18), "rope")
     return sb, count
