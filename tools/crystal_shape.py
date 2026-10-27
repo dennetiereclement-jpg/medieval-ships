@@ -9,8 +9,8 @@ Measured on the reference sheet (side view: 0.13 block per pixel, see docs/CRYST
 blocks (51 with the bowsprit, 56 with the aft spar and the floating crystal pods) and 12 wide, a banana keel, a
 sheer sweeping up to a tall carved stem, a rounded stern; a cluster of seven cream balloon lobes (a big central
 egg, a fore and an aft lobe on the axis, higher, four side lobes at the corners) low over the big golden ring,
-whose top runs into its belly; a stern castle in tiers (storey 1 inset from the hull's sides, storey 2 narrower and
-overhanging the stern, a flat roof deck behind a green coaming), ornate brass engines on the aft sides, a brass
+whose top runs into its belly; a round stern castle in tiers (storey 1 inset from the hull's sides, storey 2 nearly as
+wide and overhanging the stern, under a green mansard roof), ornate brass engines on the aft sides, a brass
 gear medallion on the stern, two slanted propeller pods under the stern, glowing blue crystals.
 """
 import math
@@ -18,7 +18,7 @@ import math
 CELL = 0.5
 
 # ---------------------------------------------------------------- balloon: a cluster of lobes
-CY = 14.6                  # axis of the central lobe
+CY = 14.0                  # axis of the central lobe (its top level with the sheet's, its belly just over the ring)
 # (name, cx, cy, cz, half width, half height, half length, a, b): sections are ellipses scaled by (1 - |t|^a)^b
 LOBES = (
     ("c", 0.0, CY, -0.3, 7.6, 6.9, 15.8, 2.4, 0.5),
@@ -56,7 +56,7 @@ BOW_Z = 25.6               # the stem at the forecastle
 STERN_Z = -23.0            # the transom
 BOW_PLAN = (26.6, 2.0, 0.6)     # plan: hw = HULL_HW * (1 - (z / s)^a)^b ahead of the middle
 STERN_PLAN = (40.0, 2.5, 0.5)   # behind it
-STERN_ROUND = (-19.0, 3.0)      # the stern rounds off in plan from this z to STERN_Z: hw *= (1 - u^p)^(1/p)
+STERN_ROUND = (-18.6, 2.5)      # the stern rounds off in plan from this z to STERN_Z: hw *= (1 - u^p)^(1/p)
 SHEER_WAIST = 1.0          # top of the bulwark of the main deck
 SHEER_FWD = (8.5, 14.0, 1.45)   # the sheer sweeps up to the forecastle between these z, by this much...
 SHEER_BOW = 0.85                # ... and on up to the stem
@@ -78,17 +78,20 @@ RAIL_H = 1.0
 DECK_SLAB = 0.5
 TURRET = (1.5, 10.0, 13.3, 4.0)        # half width, z0, z1, top of the lookout on the main deck (a moulded cap)
 
-# stern castle in tiers: storey 1 (on the main deck, inset from the hull's sides), storey 2 (the cockpit, narrower,
-# overhanging the stern), a flat roof deck behind a balustrade and a green coaming, gilded volutes and a crest
+# stern castle in tiers, round at the stern: storey 1 (on the main deck, inset from the hull's sides), storey 2 (the cockpit,
+# overhanging the stern), a green mansard roof over it (drawn by the model; the grid keeps a railed roof deck), a crest
 CASTLE_Z = -10.1           # front of storey 1
 L1_Y, L1_TOP = 0.0, 3.0
 L2_Z = -14.0               # front of storey 2 (storey 1's roof in front of it is a terrace)
 L2_Y, L2_TOP = 3.0, 6.4
-CASTLE_INSET = (0.3, 1.1)  # storeys 1 and 2: inset of their walls from the hull's side
+CASTLE_INSET = (0.3, 0.45) # storeys 1 and 2: inset of their walls from the hull's side (storey 2 nearly as wide, as on
+                           # the sheet's back view)
+CASTLE1_ROUND = (STERN_ROUND[0] + 0.15, 2.2)   # storey 1 rounds off in plan from this z to STERN1_END (exponent)
+CASTLE2_ROUND = (5.0, 2.1)                     # storey 2: over this length before STERN2_Z (exponent): a round stern
 STERN1_END = -22.75        # the stern of storey 1 (inside the hull's rounded stern)
 STERN2_Z = -23.9           # the stern of storey 2 (it overhangs the hull's stern)
 ROOF_Z = (STERN2_Z - 0.35, L2_Z - 0.3)   # the roof deck's cornice
-ROOF_Y = (L2_TOP, 7.3)     # the roof deck and the top of its coaming
+ROOF_Y = (L2_TOP, 7.3)     # the roof deck and the top of its rail in the grid (the model's mansard rises to 7.55)
 CREST_Y = 8.4              # top of the gilded crest and volutes
 DECK_SLAB_C = 0.5
 BALCONY = (0.35, 0.8)      # the stern balcony round storey 1's stern: its overhang on the sides, aft
@@ -303,14 +306,14 @@ def castle1_x(z):
     """Half width of the outside of storey 1's walls: the hull's plan, inset (0 aft of its stern)."""
     if z > CASTLE_Z or z < STERN_Z:
         return 0.0
-    return max(0.0, (plan_hw(z) - CASTLE_INSET[0]) * stern_round(z, STERN1_END, STERN_ROUND[0] + 0.15))
+    return max(0.0, (plan_hw(z) - CASTLE_INSET[0]) * stern_round(z, STERN1_END, CASTLE1_ROUND[0], CASTLE1_ROUND[1]))
 
 
 def castle2_x(z):
     """Half width of the outside of storey 2's walls: narrower, rounded off further aft (it overhangs the stern)."""
     if z > L2_Z or z < STERN2_Z:
         return 0.0
-    return max(0.0, (plan_hw(z) - CASTLE_INSET[1]) * stern_round(z, STERN2_Z, STERN2_Z + 4.4))
+    return max(0.0, (plan_hw(z) - CASTLE_INSET[1]) * stern_round(z, STERN2_Z, STERN2_Z + CASTLE2_ROUND[0], CASTLE2_ROUND[1]))
 
 
 def castle_x(z, y):

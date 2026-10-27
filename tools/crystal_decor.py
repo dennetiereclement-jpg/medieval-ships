@@ -17,6 +17,8 @@ default state's model bounds (x east, z south, front north), from the mods' file
 import json
 import math
 
+import numpy as np
+
 import crystal_interior as ci
 import crystal_shape as cs
 import leviathan_decor as ld
@@ -78,7 +80,6 @@ PAINTINGS = []
 SWITCHES = []
 
 M0, LO, HO, L2 = ci.M0, ci.LO, ci.HO, ci.L2
-MESS_BACK = -22.0          # the mess's back wall behind its middle (the stern is rounded)
 CEIL_L1, CEIL_L2, CEIL_LO, CEIL_HO = ci.CEIL_L1, ci.CEIL_L2, ci.CEIL_LO, ci.CEIL_HO
 
 _GRID = []
@@ -101,6 +102,21 @@ def wall_x(y, z, side, x_from=0.0):
         if g.k[i, j, l] in (ci.SOLID, ci.OUT, ci.WINDOW):
             return ci.X0 + (i if side > 0 else i + 1) * ci.CELL
         i += side
+    return None
+
+
+def back_wall_z(y0, y1, x0, x1, z_from):
+    """Inner face of the wall aft of a piece spanning x0..x1 and y0..y1, scanning aft from z_from (the stern is round:
+    the back wall comes forward towards the sides)."""
+    g = grid()
+    l = int(math.floor((z_from - ci.Z0) / ci.CELL))
+    i0, i1 = int(math.floor((x0 + 0.05 - ci.X0) / ci.CELL)), int(math.floor((x1 - 0.05 - ci.X0) / ci.CELL))
+    j0, j1 = int(math.floor((y0 + 0.05 - ci.Y0) / ci.CELL)), int(math.floor((y1 - 0.05 - ci.Y0) / ci.CELL))
+    while l > 0:
+        cells = g.k[i0:i1 + 1, j0:j1 + 1, l]
+        if np.isin(cells, (ci.SOLID, ci.OUT, ci.WINDOW)).any():
+            return ci.Z0 + (l + 1) * ci.CELL
+        l -= 1
     return None
 
 
@@ -223,10 +239,12 @@ def cockpit():
            facing=(0, 0, -1))
     custom("instrument_column", solid=(1.15, 1.85, f, f + 1.6, -15.65, -14.95), name="cockpit_column_1", p=(1.5, f, -15.3), top="globe",
            facing=(0, 0, -1))
-    custom("crystal_lamp", solid=(-3.45, -2.85, f, f + 2.0, -21.05, -20.45), name="cockpit_crystal_lamp", p=(-3.15, f, -20.75))
+    xl = wall_x(f + 0.5, -20.75, -1) + 0.45
+    custom("crystal_lamp", solid=(xl - 0.3, xl + 0.3, f, f + 2.0, -21.05, -20.45), name="cockpit_crystal_lamp", p=(xl, f, -20.75))
     custom("wall_gauge", name="cockpit_clock", center=(-3.7, f + 1.5, ci.ROOMS["cockpit"][5] + 0.0), normal=(0, 0, -1), r=0.55)
     custom("wall_gauge", name="cockpit_gauge_1", center=(-3.7, f + 0.6, ci.ROOMS["cockpit"][5] + 0.0), normal=(0, 0, -1), r=0.28)
-    custom("lever_bank", solid=(-3.98, -3.3, f, f + 0.9, -18.4, -17.4), name="cockpit_levers", p=(-3.64, f, -17.9), normal=(1, 0, 0))
+    xv = wall_x(f + 0.5, -17.9, -1) + 0.02
+    custom("lever_bank", solid=(xv, xv + 0.68, f, f + 0.9, -18.4, -17.4), name="cockpit_levers", p=(xv + 0.34, f, -17.9), normal=(1, 0, 0))
     custom("speaking_tube", name="cockpit_tube", foot=(0.9, f, -15.2), top=(0.9, f + 1.3, -15.2), normal=(-1, 0, 0))
     # the chart table aft: two Furnish dark oak tables, two chairs, the charts and instruments on it
     for x in (-0.5, 0.5):
@@ -241,11 +259,13 @@ def cockpit():
     chair(FU + "mangrove_chair", 1.55, f, -20.3, "starboard", 2.45, -20.3)
     # bookcases against the rounded back wall (under the overhang), the globe, a telescope at a side window
     for x in (-1.5, 1.5):
-        against_z(FD + "tall_bookshelf", x, f, ci.STERN_IN2 - 0.1, +1)
-    custom("globe", solid=(3.0, 3.8, f, f + 1.3, -21.0, -20.2), name="cockpit_globe", p=(3.4, f, -20.6))
-    custom("telescope", name="cockpit_telescope", p=(-3.5, f, -19.5), facing="starboard")
+        against_z(FD + "tall_bookshelf", x, f, back_wall_z(f, f + 2.0, x - 0.5, x + 0.5, -20.0), +1)
+    xg = min(3.4, wall_x(f + 0.5, -20.6, 1) - 0.5)
+    custom("globe", solid=(xg - 0.4, xg + 0.4, f, f + 1.3, -21.0, -20.2), name="cockpit_globe", p=(xg, f, -20.6))
+    custom("telescope", name="cockpit_telescope", p=(wall_x(f + 0.5, -19.5, -1) + 0.6, f, -19.5), facing="starboard")
     # a co-pilot's chair by the starboard window, lanterns
-    chair(FU + "mangrove_chair", -3.0, f, -16.4, "bow", -2.1, -16.4)
+    xc = wall_x(f + 0.5, -16.4, -1) + 0.75
+    chair(FU + "mangrove_chair", xc, f, -16.4, "bow", xc + 0.9, -16.4)
     for x, z in ((-2.6, -16.0), (2.6, -19.0), (0.0, -21.3)):
         hanging(x, CEIL_L2, z)
     custom("rug", name="cockpit_rug", p=(0.0, f, -17.2), w=2.2, l=1.8, region="in_rug_red")
@@ -272,9 +292,11 @@ def mess():
     block(FR + "roast_chicken_block", 0.0, t, -19.6, "stern", solid=False, scale=0.6)
     for z in (-20.5, -18.5):
         hanging(0.0, CEIL_L1, z, drop=-0.3)
-    against_z(FD + "liquor_cabinet", -2.45, f, MESS_BACK, +1)
-    against_z(FD + "wall_shelf", 2.2, f, MESS_BACK, +1)
-    block(FD + "pile_of_books", 2.2, f + 1.22, MESS_BACK + 0.3, "bow", solid=False)
+    zc = back_wall_z(f, f + 1.0, -3.45, -1.45, -20.0)
+    against_z(FD + "liquor_cabinet", -2.45, f, zc, +1)
+    zs = back_wall_z(f, f + 1.5, 1.5, 2.5, -20.0)
+    against_z(FD + "wall_shelf", 2.0, f, zs, +1)
+    block(FD + "pile_of_books", 2.0, f + 1.22, zs + 0.3, "bow", solid=False)
     # by the door: a coat hanger, a chest of drawers with the gramophone
     at(FD + "coat_hanger", -3.9, f, -11.3, "port")
     i = against(FU + "dark_oak_cabinet", 1, f, -11.4)

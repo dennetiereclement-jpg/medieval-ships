@@ -95,6 +95,11 @@ REGIONS = {
     "plate_brass":  (384, 128, 16, 16), # one riveted plate of warm brass with an olive patina (drawn whole on a panel)
     "plate_bronze": (400, 128, 16, 16), # the same in dark bronze (the engines' undersides and tapers)
     "plate_helmet": (416, 128, 16, 16), # the same, bright polished brass (the engines' helmets)
+    "window_tall":  (0, 160, 16, 32),   # tall arched stern window lit from inside: gilded frame, dark glazing bars, amber panes
+    "stern_tall":   (16, 160, 24, 40),  # tall carved green panel of the stern: gilded frame, gilded vine scrolls, a jewelled rosette
+    "roof_mansard": (40, 160, 32, 24),  # the green roof's slope: green boards down the slope, a gilded eave, a dark top edge
+    "roof_top":     (72, 160, 32, 32),  # the green roof's flat top: green boards under a gilded lattice with blue jewels
+    "frieze":       (104, 160, 64, 8),  # carved gilded frieze (running scrolls) on dark wood, along u
 }
 
 
@@ -663,6 +668,123 @@ def _ring_bronze(px, region, rng):
             _put(px, u, v, x, y, _jitter(c, rng, 2))
 
 
+def _window_tall(px, region):
+    """Tall arched stern window lit from inside: a gilded frame, dark glazing bars (two lights, four tiers), warm amber
+    panes brighter at the top, a lit fan in the arch."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            fx, fy = (x + 0.5) / w, (y + 0.5) / h
+            ax = abs(fx - 0.5) / 0.5
+            top = 0.18
+            if fy < top and ax ** 2 + ((top - fy) / top) ** 2 > 1.0:
+                _put(px, u, v, x, y, (0, 0, 0), 0)
+                continue
+            if x in (0, w - 1) or y in (h - 1, h - 2) or (fy < top and ax ** 2 + ((top - fy) / top) ** 2 > 0.6):
+                _put(px, u, v, x, y, _ramp(GOLD_STOPS, 0.5 + 0.35 * ((x + y) % 2)))
+                continue
+            if x in (1, w - 2) or x == w // 2 or y in (int(h * 0.2), int(h * 0.42), int(h * 0.62), int(h * 0.81)):
+                _put(px, u, v, x, y, _rgb("3a2414"))
+                continue
+            g = 1.0 - 0.32 * fy + 0.06 * math.sin(x * 1.3 + y * 0.7)
+            c = _scale((255, 204, 112), g)
+            if fy < top + 0.02:
+                c = _mix(c, (255, 236, 170), 0.5)
+            _put(px, u, v, x, y, c)
+
+
+def _stern_tall(img, region, rng):
+    """Tall carved green panel: a gilded frame and a dark inner line, gilded vine scrolls at the top and the bottom, a
+    gilded rosette with a blue jewel in the middle."""
+    u, v, w, h = region
+    _green(img, region, rng)
+    px = img.load()
+    S = 4
+    m = Image.new("L", (w * S, h * S), 0)
+    d = ImageDraw.Draw(m)
+    for cy, sgn in ((h * 0.2, 1), (h * 0.8, -1)):
+        for sx in (-1, 1):
+            pts = []
+            for i in range(60):
+                t = i / 59
+                a = sx * sgn * t * 1.6 * 2 * math.pi
+                r = (1 - 0.8 * t) * w * 0.17
+                pts.append(((w * 0.5 + sx * w * 0.17 + math.cos(a) * r) * S, (cy + math.sin(a) * r) * S))
+            d.line(pts, fill=255, width=int(1.4 * S))
+        d.line([(w * 0.5 * S, (cy - 2) * S), (w * 0.5 * S, (cy + 2) * S)], fill=255, width=int(1.2 * S))
+    d.line([(w * 0.5 * S, h * 0.3 * S), (w * 0.5 * S, h * 0.7 * S)], fill=160, width=int(1.0 * S))
+    m = m.resize((w, h), Image.BILINEAR)
+    mp = m.load()
+    for y in range(h):
+        for x in range(w):
+            if x < 2 or y < 2 or x > w - 3 or y > h - 3:
+                _put(px, u, v, x, y, _ramp(GOLD_STOPS, 0.4 + 0.4 * ((x + y) % 3) / 2))
+                continue
+            if x < 3 or y < 3 or x > w - 4 or y > h - 4:
+                _put(px, u, v, x, y, _rgb("26341c"))
+                continue
+            r = math.hypot(x + 0.5 - w / 2, (y + 0.5 - h / 2) * 0.9)
+            a = math.atan2(y + 0.5 - h / 2, x + 0.5 - w / 2)
+            if r < 1.8:
+                _put(px, u, v, x, y, _mix((210, 240, 255), (50, 130, 230), r / 1.8))
+            elif r < 2.6 or (r < 6.0 and abs(math.sin(a * 4)) > 0.72):
+                _put(px, u, v, x, y, _ramp(GOLD_STOPS, 0.75 - 0.05 * r))
+            elif mp[x, y] > 90:
+                _put(px, u, v, x, y, _ramp(GOLD_STOPS, 0.4 + 0.4 * mp[x, y] / 255.0))
+
+
+def _roof_mansard(img, region, rng):
+    """The green roof's slope: green boards running down it (v), a gilded eave at the bottom, a dark top edge."""
+    u, v, w, h = region
+    fine_wood(img, region, _rgb("4e6e3c"), _rgb("22301a"), 4, rng, vertical=True, knots=0.0)
+    px = img.load()
+    for y in range(h):
+        for x in range(w):
+            c = px[u + x, v + y][:3]
+            if y < 2:
+                c = _rgb("2e2010")
+            elif y >= h - 4:
+                c = _ramp(GOLD_STOPS, 0.35 + 0.15 * (y - h + 4) + 0.1 * (x % 2))
+            elif y == h - 5:
+                c = _rgb("2a3a1c")
+            elif x % 8 == 7:
+                c = _scale(c, 0.72)
+            _put(px, u, v, x, y, c)
+
+
+def _roof_top(img, region, rng):
+    """The green roof's flat top: green boards under a gilded diamond lattice with a blue jewel at each crossing."""
+    u, v, w, h = region
+    fine_wood(img, region, _rgb("4a6a38"), _rgb("22301a"), 4, rng, knots=0.0)
+    px = img.load()
+    for y in range(h):
+        for x in range(w):
+            a, b = (x + y) % 16, (x - y) % 16
+            if a in (0, 1) or b in (0, 1):
+                _put(px, u, v, x, y, _ramp(GOLD_STOPS, 0.45 + 0.3 * ((x + y) % 2)))
+            if (x % 16, y % 16) in ((8, 8), (0, 0)):
+                for dx, dy in ((0, 0), (1, 0), (0, 1), (1, 1), (-1, 0), (0, -1)):
+                    xx, yy = (x + dx) % w, (y + dy) % h
+                    _put(px, u, v, xx, yy, (90, 170, 240) if (dx, dy) != (0, 0) else (210, 240, 255))
+
+
+def _frieze(img, region, rng):
+    """Carved gilded frieze on dark wood: running scrolls between two gilded beads (along u)."""
+    u, v, w, h = region
+    px = img.load()
+    for y in range(h):
+        for x in range(w):
+            c = _scale(_rgb("3a2414"), 1.0 + 0.08 * math.sin(x * 0.7))
+            if y in (0, h - 1):
+                c = _ramp(GOLD_STOPS, 0.7 if x % 3 else 0.4)
+            else:
+                t = (x % 16) / 16.0 * 2 * math.pi
+                yc = h / 2 - 0.5 + (h / 2 - 1.6) * math.sin(t)
+                if abs(y - yc) < 0.9 or ((x % 16) in (4, 12) and abs(y - h / 2 + 0.5) < 1.2):
+                    c = _ramp(GOLD_STOPS, 0.55 + 0.3 * math.cos(t))
+            _put(px, u, v, x, y, _jitter(c, rng, 2))
+
+
 def make_texture(path):
     rng = random.Random(11)
     img = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
@@ -762,6 +884,11 @@ def make_texture(path):
     _cap_iron(px, R["cap_iron"], rng)
     _medal_glass(px, R["medal_glass"])
     _ring_bronze(px, R["ring_bronze"], rng)
+    _window_tall(px, R["window_tall"])
+    _stern_tall(img, R["stern_tall"], rng)
+    _roof_mansard(img, R["roof_mansard"], rng)
+    _roof_top(img, R["roof_top"], rng)
+    _frieze(img, R["frieze"], rng)
     for name, stops in (("plate_brass", [(0.0, (66, 54, 26)), (0.35, (118, 98, 50)), (0.7, (164, 136, 72)), (1.0, (204, 176, 106))]),
                         ("plate_bronze", [(0.0, (46, 34, 20)), (0.35, (84, 62, 34)), (0.7, (122, 92, 52)), (1.0, (160, 124, 76))]),
                         ("plate_helmet", [(0.0, (92, 70, 30)), (0.35, (150, 118, 54)), (0.7, (198, 164, 86)), (1.0, (236, 214, 150))])):

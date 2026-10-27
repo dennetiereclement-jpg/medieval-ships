@@ -18,8 +18,9 @@ central egg, a fore and an aft lobe on the axis, higher, four side lobes at the 
 and a girdle hung with gold chain swags and blue jewels, a mast and a red pennant on top; ropes down to a luxurious hull
 of warm brown wood above and dark olive green planks below with gilded mouldings and scrolls, a row of big windows,
 fan windows at the bow, a carved beak, a forecastle with turned balusters and a crenellated turret; the big golden ring
-on its pillar amidships; a three-storey stern castle (lit arched windows, a green roof with a gilded eave, a brass
-scroll and two pennant poles, the cockpit's great arched window facing the bow); bronze engine nacelles on the aft
+on its pillar amidships; a round stern in tiers (a gallery of tall lit windows round the officers' mess, a lower gallery of
+small lit windows over the medallion, the cockpit's round back of carved green panels and lit windows, a green mansard
+roof with gilded scrolls, a crest, two pennant poles, the cockpit's great arched window facing the bow); bronze engine nacelles on the aft
 sides with a glowing crystal eye, brass feathers, copper pipes and a rotor; a round stern engine with a propeller and a
 crystal core; two slanted propeller pods with golden leaf blades under the stern; glowing blue crystals: a platform of
 crystals under the keel, crystal lanterns under the bow and on the castle, two floating crystal pods held by ropes.
@@ -218,6 +219,31 @@ def straps(bone, gems):
             nrm = norm(LP(name, z, az, 1.0) - LP(name, z, az))
             disc(gems, "glow_gem_s%d_%d" % (k, side > 0), p, nrm, 0.4, 0.14, "gem", sides=10)
             disc(bone, "gem_s_setting_%d_%d" % (k, side > 0), p - nrm * 0.07, nrm, 0.55, 0.1, "brass", sides=10)
+    # more jewels on the straps, high on the flanks (the sheet's straps are studded with blue jewels in brass settings)
+    for k, (name, t) in enumerate(cs.STRAPS):
+        lb = cs.lobe(name)
+        z = lb[3] + lb[6] * t
+        for side in (1, -1):
+            for az0 in ((48.0, 150.0) if name == "c" else (48.0,)):
+                az = side * az0
+                p = LP(name, z, az, 0.22)
+                if hidden(p, name, 0.2):
+                    continue
+                nrm = norm(LP(name, z, az, 1.0) - LP(name, z, az))
+                disc(gems, "glow_gem_h%d_%d_%d" % (k, side > 0, int(az0)), p, nrm, 0.32, 0.12, "gem", sides=8)
+                disc(bone, "gem_h_setting_%d_%d_%d" % (k, side > 0, int(az0)), p - nrm * 0.06, nrm, 0.46, 0.08, "brass", sides=8)
+    # crystal finials at the outer ends of the four side lobes (the corners of the cluster, seen from above)
+    for name, end in (("fp", 1), ("fs", 1), ("rp", -1), ("rs", -1)):
+        lb = cs.lobe(name)
+        zt = lb[3] + end * lb[6] * 0.93
+        tip = v3(lb[1], lb[2], zt)
+        d = v3(0, 0, end)
+        out = v3(math.copysign(1.0, lb[1]), 0, 0)
+        disc(bone, "lobe_finial_cup_%s" % name, tip, d, 0.7, 0.3, "brass", sides=10)
+        ring(bone, "lobe_finial_ring_%s" % name, tip + d * 0.12, d, 0.78, 0.16, "gold", n=10)
+        crystal(gems, "lobe_finial_%s" % name, tip + d * 0.1, d, 1.5, 0.34)
+        for e in (-1, 1):
+            crystal(gems, "lobe_finial_%s_%d" % (name, e > 0), tip + d * 0.1 + v3(0, e * 0.35, 0), d * 0.8 + out * 0.35 + v3(0, e * 0.45, 0), 0.9, 0.2)
     # meridian straps from nose to tail (they read as a net of gilded bands from the ends)
     for name, azs in cs.MERIDIANS.items():
         lb = cs.lobe(name)
@@ -611,7 +637,6 @@ def decks(bone, detail, g):
     n = grid_floor(bone, g, cs.MAIN_DECK_Y, "deck", "main_deck", lit=False, zrange=(cs.CASTLE_Z, cs.FORECASTLE_Z + 0.3))
     n += grid_floor(bone, g, cs.FORECASTLE_Y, "deck", "forecastle_deck", lit=False, zrange=(cs.FORECASTLE_Z - 0.3, 30))
     n += grid_floor(bone, g, cs.L1_TOP, "deck", "terrace", lit=False, zrange=(cs.STERN_Z, cs.CASTLE_Z + 0.2))
-    n += grid_floor(bone, g, cs.L2_TOP, "deck", "roof_deck", lit=False, zrange=(cs.STERN2_Z - 0.5, cs.L2_Z + 0.2))
     # balustrades: along the waist's bulwark, round the forecastle, across its front (gaps at the stairs)
     for side, sn in SIDES:
         zz = np.linspace(cs.CASTLE_Z + 0.4, cs.FORECASTLE_Z - 1.6, 26)
@@ -634,6 +659,8 @@ def decks(bone, detail, g):
     # the terrace on the castle's first storey: its balustrade
     y = cs.L1_TOP
     za, zb = cs.STERN_Z + 1.2, cs.CASTLE_Z - 0.25
+    while za < cs.L2_Z and cs.castle1_x(za) - cs.castle2_x(za) < 0.5:   # the ledge beside storey 2 starts where it is wide enough
+        za += 0.1
     zz = list(np.linspace(za, zb, 18))
     port = [(cs.castle1_x(z) - 0.25, y, z) for z in zz]
     gl.balustrade(bone, "terrace_rail", port + [(-x, yy, z) for x, yy, z in reversed(port)], h=0.85, step=0.42, turned=True, newel=6)
@@ -692,18 +719,25 @@ def turret(bone, detail, lights, lanterns_bone):
 
 
 # ================================================================ the stern castle
-def plan_outline(cxf, z_end, z_round, z_front, extra=(), n_round=14, step=1.0):
+def plan_outline(cxf, z_end, z_round, z_front, extra=(), n_round=14, step=1.0, p=None):
     """Port half of a rounded plan, (x, z) from its stern end on the centreline round the quarter and forward to z_front
-    (points dense round the stern, where the outline turns)."""
-    p = cs.STERN_ROUND[1]
+    (points dense round the stern, where the outline turns; p: the exponent of the rounding)."""
+    p = cs.STERN_ROUND[1] if p is None else p
     pts = []
     for k in range(n_round + 1):
         th = (math.pi / 2) * k / n_round
         u = math.cos(th) ** (2.0 / p)
         z = z_round - u * (z_round - z_end)
         pts.append((0.0 if k == 0 else cxf(z), z))
-    zs = sorted(set([float(z) for z in np.arange(z_round + step, z_front, step)] + [z for z in extra if z_round < z < z_front] + [z_front]))
-    pts += [(cxf(z), z) for z in zs]
+    zs = sorted(set([round(float(z), 6) for z in np.arange(z_round + step, z_front, step)] + [z for z in extra if z_round < z < z_front]
+                    + [z_front]))
+    keep = []
+    for z in zs:   # no sliver segments (a step falling next to an extra point)
+        if keep and z - keep[-1] < 0.12 and z != z_front and keep[-1] not in extra:
+            keep[-1] = z
+        elif not keep or z - keep[-1] > 1e-6:
+            keep.append(z)
+    pts += [(cxf(z), z) for z in keep]
     return pts
 
 
@@ -768,84 +802,212 @@ def plan_fill(bone, name, half, y, region, normal, z_max=None, th=0.12):
              u_dir=v3(1, 0, 0), stretch=False)
 
 
+def outline_normals(half):
+    """Outward horizontal normals (nx, nz) at the vertices of a port half outline (its first point, on the centreline at
+    the stern, faces aft)."""
+    out = [(0.0, -1.0)]
+    for k in range(1, len(half)):
+        a = half[k - 1]
+        b = half[k + 1] if k + 1 < len(half) else half[k]
+        dx, dz = b[0] - a[0], b[1] - a[1]
+        L = max(1e-9, math.hypot(dx, dz))
+        out.append((dz / L, -dx / L))
+    return out
+
+
+def offset_outline(half, d):
+    """The half outline pushed out along its normals by d (in by -d)."""
+    return [(max(0.0, x + nx * d) if k else 0.0, z + nz * d) for k, ((x, z), (nx, nz)) in enumerate(zip(half, outline_normals(half)))]
+
+
+def arc_length_at(half, z):
+    """Arc length along a half outline from the stern's centreline to where it reaches z."""
+    s = 0.0
+    for (xa, za), (xb, zb) in zip(half, half[1:]):
+        if zb >= z:
+            t = (z - za) / max(1e-9, zb - za)
+            return s + t * math.hypot(xb - xa, zb - za)
+        s += math.hypot(xb - xa, zb - za)
+    return s
+
+
+def arc_panel(bone, name, half, side, s0, s1, y0, y1, out, region, n=3, th=0.05, sub=None):
+    """A flat decoration (panel, window) laid on a curved wall between the arc lengths s0 and s1, in n facets following
+    the outline, pushed out by `out`; the region is spread over the facets (u from s0 to s1, v downwards)."""
+    ss = list(np.linspace(s0, s1, n + 1))
+    pts, _ = arc_points(half, side, 0.0, ss)
+    u0, v0, u1, v1 = sub if sub is not None else (0.0, 0.0, 1.0, 1.0)
+    for j in range(n):
+        (a, na), (b, nb) = pts[j], pts[j + 1]
+        nrm = norm(na + nb) if np.linalg.norm(na + nb) > 1e-6 else na
+        a, b = a + nrm * out, b + nrm * out
+        qa, qb = u0 + (u1 - u0) * j / n, u0 + (u1 - u0) * (j + 1) / n
+        quad(bone, "%s_%d" % (name, j), a + v3(0, y0, 0), b + v3(0, y0, 0), a + v3(0, y1, 0), b + v3(0, y1, 0), th, region, nrm,
+             u_dir=b - a, v_dir=v3(0, -1, 0), sub=(qa, v0, qb, v1), overlap=(1.02, 1.0))
+
+
+def pilaster(bone, name, p, n, y0, y1, w=0.24, d=0.12, region="gold", cap=True):
+    """A flat pilaster on a wall (outward normal n) from y0 to y1, a capital and a base."""
+    R = gl.wall_frame(n)
+    box(bone, name, p + n * (d / 2) + v3(0, (y0 + y1) / 2, 0), (w, y1 - y0, d), region, R=R)
+    if cap:
+        box(bone, name + "_cap", p + n * (d / 2 + 0.04) + v3(0, y1 - 0.08, 0), (w + 0.14, 0.16, d + 0.08), "gold", R=R)
+        box(bone, name + "_base", p + n * (d / 2 + 0.04) + v3(0, y0 + 0.08, 0), (w + 0.14, 0.16, d + 0.08), "gold", R=R)
+
+
+MANSARD = (0.12, 0.85, 7.55, 5.95)   # the green roof over storey 2: its eave's overhang, its inset at the top, the top's height,
+                                     # the eave's height (under the cockpit's ceiling's level outside the walls: a tall roof)
+
+
 def castle(bone, detail, lights, roof_bone, lanterns_bone):
-    """The stern castle in tiers. Storey 1 (the officers' mess) inset from the hull's sides, rounded at the stern with a
-    gallery of tall lit windows round it and a balcony on the hull's stern bulwark; storey 2 (the cockpit) narrower,
-    overhanging the stern on carved brackets, its back of green panels in gilded frames, see-through windows on its
-    sides, the great arch and the terrace door in its front; a flat roof deck behind a balustrade, a green coaming with
-    gilded scrolls, a crest and volutes, brass portholes with blue jewels, an ensign spar aft."""
+    """The stern castle in tiers, round at the stern like the sheet's (back, side and perspective views). Storey 1 (the
+    officers' mess) inset from the hull's sides: a gallery of tall lit windows all round its round stern between gilded
+    pilasters, pairs of small lit arched windows along its sides, a light balcony on the hull's stern bulwark; storey 2
+    (the cockpit) narrower and overhanging the stern on carved brackets: a round back of carved green panels in gilded
+    frames between gilded pilasters, lit windows on its quarters, the cockpit's see-through windows on its sides, the
+    great arch and the terrace door in its front, a deep cornice with dentils; over it a green roof sloping in on every
+    side (a mansard of green boards with a gilded eave and gilded scrolls), a jewelled flat top with a gilded rim, the
+    crest, volutes and brass portholes at its front, brass lanterns on the quarters, an ensign spar aft; a gilded
+    carving down the middle of the stern from the roof to the medallion."""
     y1top, y2top = cs.L1_TOP, cs.L2_TOP
-    half1 = plan_outline(cs.castle1_x, cs.STERN1_END, cs.STERN_ROUND[0] + 0.15, cs.CASTLE_Z, step=0.9)
+    z_r1 = cs.CASTLE1_ROUND[0]
+    half1 = plan_outline(cs.castle1_x, cs.STERN1_END, z_r1, cs.CASTLE_Z, step=0.9, p=cs.CASTLE1_ROUND[1], n_round=18)
     win2 = [z for w in ci.COCKPIT_WINDOWS for z in w]
-    half2 = plan_outline(cs.castle2_x, cs.STERN2_Z, cs.STERN2_Z + 4.4, cs.L2_Z, extra=win2, step=0.8)
-    stern2_z = cs.STERN2_Z + 4.4
+    z_r2 = cs.STERN2_Z + cs.CASTLE2_ROUND[0]
+    z_split = min(z_r2, min(win2) - 0.3)            # storey 2's round back ends here, its side walls (windows) begin
+    half2 = plan_outline(cs.castle2_x, cs.STERN2_Z, z_r2, cs.L2_Z, extra=win2 + [z_split], step=0.8, p=cs.CASTLE2_ROUND[1], n_round=18)
+    S1 = arc_length_at(half1, z_r1)
+    S2 = arc_length_at(half2, z_split)
     for side, sn in SIDES:
-        # ---- storey 1: walls, a dark plinth, the cornice; tall lit windows round the stern, arched ones along the sides
+        # ---- storey 1: walls, a cornice and a gilded bead; the stern gallery of tall lit windows between gilded pilasters
         plan_wall(bone, "castle1_wall", half1, side, cs.L1_Y, y1top, "wall_wood")
-        plan_beam(bone, "castle1_cornice", half1, side, y1top - 0.12, 0.1, 0.24, 0.3, "cornice")
-        plan_beam(detail, "castle1_bead", half1, side, y1top - 0.3, 0.06, 0.08, 0.12, "trim_gold")
-        stern_len = arc_points(half1, side, 0.0, [0.0])[1]
-        marks, _ = arc_points(half1, side, 1.95, [0.55, 1.65, 2.75] + [stern_len - (cs.CASTLE_Z - z) for z in (-11.7, -13.3, -14.9, -16.5, -18.1)])
-        for k, (p, n) in enumerate(marks):
-            tall = k < 3
-            size = (0.78, 1.55, 0.03) if tall else (0.62, 1.25, 0.03)
-            p = p if tall else p - v3(0, 0.12, 0)
-            add_cube(lights, "glow_castle1_window_%s%d" % (sn, k), p + n * 0.03, gl.wall_frame(n), size,
-                     {"all": None, "+3": "window_lit", "-3": "window_lit"}, stretch=True)
-            box(detail, "castle1_window_frame_%s%d" % (sn, k), p + n * 0.05 + v3(0, -size[1] / 2 - 0.02, 0), (size[0] + 0.2, 0.1, 0.12), "gold",
-                R=gl.wall_frame(n))
-            box(detail, "castle1_window_hood_%s%d" % (sn, k), p + n * 0.06 + v3(0, size[1] / 2 + 0.12, 0), (size[0] + 0.24, 0.12, 0.16), "gold",
-                R=gl.wall_frame(n))
-        posts, _ = arc_points(half1, side, 1.5, [0.0, 1.1, 2.2, 3.3] + [stern_len - (cs.CASTLE_Z - z) for z in (-10.4, -12.5, -14.1, -15.7, -17.3)])
-        for k, (p, n) in enumerate(posts):
-            if k == 0 and side < 0:
-                continue
-            box(detail, "castle1_pilaster_%s%d" % (sn, k), p + n * 0.05, (0.2, 2.6, 0.1), "gold", R=gl.wall_frame(n))
-        # ---- storey 2: the side walls (open at the see-through windows), the green panelled stern
+        plan_beam(bone, "castle1_cornice", half1, side, y1top - 0.12, 0.12, 0.26, 0.34, "cornice")
+        plan_beam(detail, "castle1_bead", half1, side, y1top - 0.34, 0.07, 0.08, 0.12, "trim_gold")
+        nwin = max(4, int(round(S1 / 1.22)))
+        step1 = S1 / nwin
+        wy0, wy1 = 1.12, 2.66
+        for k in range(nwin):
+            s = step1 * (k + 0.5)
+            arc_panel(lights, "glow_stern_window_%s%d" % (sn, k), half1, side, s - 0.4, s + 0.4, wy0, wy1, 0.04, "window_tall", n=2, th=0.03)
+            (p, n), = arc_points(half1, side, 0.0, [s])[0]
+            box(detail, "stern_window_sill_%s%d" % (sn, k), p + n * 0.1 + v3(0, wy0 - 0.06, 0), (0.98, 0.1, 0.18), "gold", R=gl.wall_frame(n))
+            box(detail, "stern_window_hood_%s%d" % (sn, k), p + n * 0.1 + v3(0, wy1 + 0.1, 0), (1.0, 0.12, 0.2), "gold", R=gl.wall_frame(n))
+            disc(detail, "stern_window_key_%s%d" % (sn, k), p + n * 0.12 + v3(0, wy1 + 0.3, 0), n, 0.12, 0.08, "gold", sides=6)
+        for k in range(1, nwin + 1):
+            (p, n), = arc_points(half1, side, 0.0, [step1 * k])[0]
+            pilaster(detail, "stern_pilaster_%s%d" % (sn, k), p, n, 0.95, 2.86, w=0.2, d=0.12)
+        # the sides: pairs of small lit arched windows under a gilded hood
+        for k, z in enumerate((-11.7, -13.3, -14.9, -16.6)):
+            s = S1 + (z - z_r1)
+            (p, n), = arc_points(half1, side, 1.85, [s])[0]
+            t = np.cross(v3(0, 1, 0), n)
+            for e in (-1, 1):
+                add_cube(lights, "glow_castle1_window_%s%d_%d" % (sn, k, e > 0), p + n * 0.03 + t * (e * 0.24), gl.wall_frame(n), (0.36, 1.2, 0.03),
+                         {"all": None, "+3": "window_lit", "-3": "window_lit"}, stretch=True)
+            box(detail, "castle1_window_frame_%s%d" % (sn, k), p + n * 0.05 + v3(0, -0.64, 0), (1.06, 0.1, 0.12), "gold", R=gl.wall_frame(n))
+            box(detail, "castle1_window_hood_%s%d" % (sn, k), p + n * 0.06 + v3(0, 0.72, 0), (1.1, 0.12, 0.16), "gold", R=gl.wall_frame(n))
+            box(detail, "castle1_window_mullion_%s%d" % (sn, k), p + n * 0.05, (0.1, 1.2, 0.08), "gold", R=gl.wall_frame(n))
+        for k, z in enumerate((-10.45, -12.5, -14.1, -15.75, -17.5)):
+            (p, n), = arc_points(half1, side, 0.0, [S1 + (z - z_r1)])[0]
+            pilaster(detail, "castle1_pilaster_%s%d" % (sn, k), p, n, 0.2, 2.86, w=0.2, d=0.1, cap=False)
+
+        # ---- storey 2: the round back (dark green boards under carved panels), the side walls (open at the see-through
+        # windows)
         holes = [(z0, z1) + tuple(ci.COCKPIT_WIN_Y) for z0, z1 in ci.COCKPIT_WINDOWS]
-        aft2 = [(x, z) for x, z in half2 if z <= stern2_z + 1e-6]
-        fwd2 = [(x, z) for x, z in half2 if z >= stern2_z - 1e-6]
-        plan_wall(bone, "castle2_stern", aft2, side, cs.L1_TOP - cs.DECK_SLAB_C, y2top, "stern_panel")
-        plan_wall(bone, "castle2_wall", fwd2, side, cs.L1_TOP - cs.DECK_SLAB_C, y2top, "wall_wood", holes=holes)
+        aft2 = [(x, z) for x, z in half2 if z <= z_split + 1e-6]
+        fwd2 = [(x, z) for x, z in half2 if z >= z_split - 1e-6]
+        yev = MANSARD[3]
+        plan_wall(bone, "castle2_stern", aft2, side, cs.L1_TOP - cs.DECK_SLAB_C, yev + 0.05, "hull_green")
+        plan_wall(bone, "castle2_wall", fwd2, side, cs.L1_TOP - cs.DECK_SLAB_C, yev + 0.05, "wall_wood", holes=holes)
         for z0, z1 in ci.COCKPIT_WINDOWS:
-            wy0, wy1 = ci.COCKPIT_WIN_Y
+            wy0_, wy1_ = ci.COCKPIT_WIN_Y
             x = side * (cs.castle2_x((z0 + z1) / 2) + 0.01)
-            add_cube(bone, "cockpit_window_%s%d" % (sn, int(-z0)), v3(x, (wy0 + wy1) / 2, (z0 + z1) / 2), EYE, (0.06, wy1 - wy0, z1 - z0),
+            add_cube(bone, "cockpit_window_%s%d" % (sn, int(-z0)), v3(x, (wy0_ + wy1_) / 2, (z0 + z1) / 2), EYE, (0.06, wy1_ - wy0_, z1 - z0),
                      {"all": None, "+1": "window_arch", "-1": "window_arch"}, stretch=True, u_dir=v3(0, 0, -side), v_dir=v3(0, -1, 0))
-            box(detail, "cockpit_window_sill_%s%d" % (sn, int(-z0)), (x + side * 0.06, wy0 - 0.06, (z0 + z1) / 2), (0.14, 0.1, z1 - z0 + 0.3), "gold")
-        plan_beam(bone, "castle2_cornice", half2, side, y2top - 0.12, 0.12, 0.26, 0.34, "cornice")
-        plan_beam(detail, "castle2_bead", half2, side, y2top - 0.32, 0.06, 0.08, 0.12, "trim_gold")
-        plan_beam(bone, "castle2_plinth", half2, side, cs.L1_TOP + 0.08, 0.06, 0.16, 0.16, "trim_gold")
-        for k, z in enumerate((-14.3, -17.25, -19.4)):
+            box(detail, "cockpit_window_sill_%s%d" % (sn, int(-z0)), (x + side * 0.06, wy0_ - 0.06, (z0 + z1) / 2), (0.14, 0.1, z1 - z0 + 0.3), "gold")
+            box(detail, "cockpit_window_hood_%s%d" % (sn, int(-z0)), (x + side * 0.07, wy1_ + 0.1, (z0 + z1) / 2), (0.16, 0.12, z1 - z0 + 0.36), "gold")
+        # the round back: four bays a side between gilded pilasters; carved green panels in the two middle bays, tall lit
+        # windows in the two on the quarter
+        nb = 4
+        sb = S2 / nb
+        py0, py1 = 3.42, yev - 0.5
+        for k in range(nb):
+            s0, s1 = sb * k + 0.16, sb * (k + 1) - 0.16
+            if k < 2:
+                arc_panel(detail, "stern_panel_%s%d" % (sn, k), half2, side, s0, s1, py0, py1, 0.05, "stern_tall", n=3)
+            else:
+                sm = (s0 + s1) / 2
+                arc_panel(detail, "stern2_panel_%s%d" % (sn, k), half2, side, s0, s1, py0, py1, 0.03, "panel_green", n=3)
+                arc_panel(lights, "glow_stern2_window_%s%d" % (sn, k), half2, side, sm - 0.36, sm + 0.36, 3.7, yev - 0.7, 0.06, "window_tall", n=2,
+                          th=0.03)
+        for k in range(1, nb + 1):
+            (p, n), = arc_points(half2, side, 0.0, [sb * k])[0]
+            pilaster(detail, "stern2_pilaster_%s%d" % (sn, k), p, n, cs.L1_TOP + 0.2, yev - 0.32, w=0.26, d=0.14)
+        for k, z in enumerate((-14.3, -17.25, z_split + 0.2)):
             x = side * (cs.castle2_x(z) + 0.05)
-            box(detail, "castle2_pilaster_%s%d" % (sn, k), (x, (y1top + y2top) / 2, z), (0.1, y2top - y1top - 0.4, 0.22), "gold")
+            box(detail, "castle2_pilaster_%s%d" % (sn, k), (x, (y1top + yev) / 2, z), (0.1, yev - y1top - 0.4, 0.22), "gold")
+        # a deep cornice with gilded dentils under it, a gilded bead, the plinth
+        plan_beam(bone, "castle2_cornice", half2, side, yev, 0.2, 0.3, 0.5, "cornice")
+        plan_beam(bone, "castle2_plinth", half2, side, cs.L1_TOP + 0.08, 0.06, 0.16, 0.16, "trim_gold")
+        S2all = arc_length_at(half2, cs.L2_Z - 0.2)
+        dents, _ = arc_points(half2, side, yev - 0.25, list(np.arange(0.2, S2all, 0.42)))
+        for k, (p, n) in enumerate(dents):
+            box(detail, "castle2_dentil_%s%d" % (sn, k), p + n * 0.14, (0.16, 0.18, 0.2), "gold", R=gl.wall_frame(n))
         # ---- the soffit under storey 2's overhang, carved brackets under it, lanterns at the quarters
-        brk, _ = arc_points(half2, side, cs.L1_TOP - cs.DECK_SLAB_C, [0.4, 1.6, 2.8])
+        brk, _ = arc_points(half2, side, cs.L1_TOP - cs.DECK_SLAB_C, [0.3, 1.3, 2.3, 3.3])
         for k, (p, n) in enumerate(brk):
             if cs.castle1_x(p[2]) > abs(p[0]) + 0.3:
                 continue
             for j in range(3):
                 q = p - n * (0.25 + 0.2 * j) - v3(0, 0.15 + 0.22 * j, 0)
                 box(detail, "castle2_bracket_%s%d_%d" % (sn, k, j), q, (0.24, 0.3, 0.6 - 0.18 * j), "dark_wood", R=gl.wall_frame(n))
-        q, n = arc_points(half2, side, cs.L1_TOP - cs.DECK_SLAB_C, [2.2])[0][0]
+            box(detail, "castle2_bracket_gilt_%s%d" % (sn, k), p - n * 0.2 - v3(0, 0.28, 0) + n * 0.02, (0.28, 0.08, 0.5), "gold", R=gl.wall_frame(n))
+        q, n = arc_points(half2, side, cs.L1_TOP - cs.DECK_SLAB_C, [2.8])[0][0]
         gl.hanging_lantern(lanterns_bone, "stern_%s" % sn, q - n * 0.2, drop=0.25, w=0.3, h=0.42)
-        # ---- the stern balcony on the hull's stern bulwark: a floor, gilded balusters
+        # brass lanterns on scrolled brackets at the roof's aft quarters (the sheet's back view)
+        (p, n), = arc_points(half2, side, 0.0, [sb * 3.0])[0]
+        base = p + n * 0.25 + v3(0, yev - 1.25, 0)
+        arm = [base + n * (0.55 * t) + v3(0, 0.25 * math.sin(math.pi * t), 0) for t in np.linspace(0, 1, 5)]
+        polyline(detail, "quarter_lamp_arm_%s" % sn, arm, 0.12, "brass", sides=4)
+        disc(detail, "quarter_lamp_rose_%s" % sn, base - n * 0.08, n, 0.22, 0.1, "gold", sides=8)
+        lp = arm[-1] + v3(0, 0.08, 0)
+        disc(detail, "quarter_lamp_foot_%s" % sn, lp, (0, 1, 0), 0.2, 0.1, "gold", sides=8)
+        add_cube(lights, "glow_quarter_lamp_%s" % sn, lp + v3(0, 0.32, 0), EYE, (0.34, 0.48, 0.34), {"all": "lantern", "+2": None, "-2": None}, stretch=True)
+        disc(detail, "quarter_lamp_cap_%s" % sn, lp + v3(0, 0.62, 0), (0, 1, 0), 0.24, 0.12, "brass", sides=8)
+        tube(detail, "quarter_lamp_finial_%s" % sn, lp + v3(0, 0.66, 0), lp + v3(0, 0.95, 0), 0.08, "gold", sides=4)
+        # ---- the stern balcony on the hull's stern bulwark: a floor, light gilded balusters
         yb = cs.sheer_y(cs.STERN_Z)
         halfb = plan_outline(cs.balcony_x, cs.STERN_Z - cs.BALCONY[1], cs.STERN_ROUND[0] - 0.3, cs.STERN_ROUND[0] + 0.5, step=0.5, n_round=12)
         rail = [v3(side * (x - 0.12), yb + 0.1, z) for x, z in halfb]
-        gl.balustrade(detail, "balcony_rail_" + sn, rail, h=0.55, step=0.4, post="brass", rail="rail", turned=True, newel=7)
-        plan_beam(detail, "balcony_edge", halfb, side, yb - 0.02, -0.1, 0.16, 0.3, "cornice")
+        gl.balustrade(detail, "balcony_rail_" + sn, rail, h=0.46, step=0.36, post="brass", rail="rail", turned=True, newel=9)
+        plan_beam(detail, "balcony_edge", halfb, side, yb - 0.02, -0.1, 0.18, 0.3, "cornice")
+        plan_beam(detail, "balcony_edge_gilt", halfb, side, yb - 0.16, -0.06, 0.08, 0.14, "trim_gold")
     plan_fill(bone, "castle2_soffit", half2, cs.L1_TOP - cs.DECK_SLAB_C - 0.01, "dark_wood", (0, -1, 0), z_max=-20.8)
     halfb = plan_outline(cs.balcony_x, cs.STERN_Z - cs.BALCONY[1], cs.STERN_ROUND[0] - 0.3, cs.STERN_ROUND[0] + 0.5, step=0.5, n_round=12)
     plan_fill(bone, "balcony_floor", halfb, cs.sheer_y(cs.STERN_Z) + 0.06, "deck", (0, 1, 0))
     plan_fill(bone, "balcony_under", halfb, cs.sheer_y(cs.STERN_Z) - 0.12, "dark_wood", (0, -1, 0))
+    # ---- the carving down the middle of the stern: a gilded pilaster on each storey, a cartouche with a blue jewel
+    # between them, a gilded post with a lamp on storey 1's cornice
+    z1c = cs.STERN1_END
+    box(detail, "stern_carving_1", v3(0, 1.85, z1c - 0.08), (0.34, 1.9, 0.14), "gold")
+    box(detail, "stern_carving_1_in", v3(0, 1.85, z1c - 0.16), (0.14, 1.5, 0.06), "trim_dark", stretch=True)
+    z2c = cs.STERN2_Z
+    box(detail, "stern_carving_2", v3(0, 4.6, z2c - 0.1), (0.4, 2.6, 0.16), "gold")
+    box(detail, "stern_carving_2_in", v3(0, 4.6, z2c - 0.19), (0.16, 2.2, 0.06), "trim_dark", stretch=True)
+    disc(detail, "stern_cartouche", v3(0, 3.05, z2c - 0.2), (0, 0, -1), 0.46, 0.16, "gold", sides=10)
+    disc(lights, "glow_stern_cartouche_gem", v3(0, 3.05, z2c - 0.3), (0, 0, -1), 0.24, 0.08, "gem", sides=8)
+    for sx in (-1, 1):
+        pts = [v3(sx * (0.4 + 0.5 * t), 3.05 + 0.25 * math.sin(math.pi * t), z2c - 0.18) for t in np.linspace(0, 1, 5)]
+        end = pts[-1]
+        pts += [end + v3(sx * 0.2 * (1 - a / 9) * math.cos(a), 0.2 * (1 - a / 9) * math.sin(a), 0) for a in np.linspace(0.6, 7.0, 8)]
+        polyline(detail, "stern_cartouche_volute_%d" % (sx > 0), pts, 0.1, "gold", sides=4)
     # ---- fronts: storey 1 at CASTLE_Z (the door: see doors()), storey 2 at L2_Z (the great arch, the terrace door)
     z = cs.CASTLE_Z
     w = cs.castle1_x(z)
     for k, (a_, b_, ya, yb_) in enumerate(((-w, -1.0, cs.L1_Y, y1top), (1.0, w, cs.L1_Y, y1top), (-1.0, 1.0, cs.L1_Y + 2.0, y1top))):
         quad(bone, "castle_front1_%d" % k, v3(a_, ya, z), v3(b_, ya, z), v3(a_, yb_, z), v3(b_, yb_, z), 0.14, "wall_wood", v3(0, 0, 1),
              u_dir=v3(1, 0, 0), stretch=False, back="dark_wood")
-    beam(bone, "castle_front1_cornice", v3(-w - 0.1, y1top - 0.12, z + 0.08), v3(w + 0.1, y1top - 0.12, z + 0.08), 0.24, "cornice", width=0.3,
+    beam(bone, "castle_front1_cornice", v3(-w - 0.12, y1top - 0.12, z + 0.08), v3(w + 0.12, y1top - 0.12, z + 0.08), 0.26, "cornice", width=0.34,
          u_dir=v3(1, 0, 0))
     z = cs.L2_Z
     w = cs.castle2_x(z)
@@ -863,7 +1025,7 @@ def castle(bone, detail, lights, roof_bone, lanterns_bone):
                 continue
             quad(bone, "cockpit_front_%d_%d" % (i, j), v3(x0, ya, z), v3(x1, ya, z), v3(x0, yb_, z), v3(x1, yb_, z), 0.14, "wall_wood",
                  v3(0, 0, 1), u_dir=v3(1, 0, 0), stretch=False, back="dark_wood")
-    beam(bone, "castle_front2_cornice", v3(-w - 0.12, y2top - 0.12, z + 0.1), v3(w + 0.12, y2top - 0.12, z + 0.1), 0.26, "cornice", width=0.34,
+    beam(bone, "castle_front2_cornice", v3(-w - 0.2, y2top - 0.14, z + 0.14), v3(w + 0.2, y2top - 0.14, z + 0.14), 0.3, "cornice", width=0.5,
          u_dir=v3(1, 0, 0))
     add_cube(bone, "cockpit_arch_frame", v3(0, (sill + crown) / 2, z + 0.02), EYE, (2 * ax, crown - sill, 0.06),
              {"all": None, "+3": "window_arch", "-3": "window_arch"}, stretch=True, u_dir=v3(-1, 0, 0), v_dir=v3(0, -1, 0))
@@ -873,51 +1035,81 @@ def castle(bone, detail, lights, roof_bone, lanterns_bone):
         beam(detail, "cockpit_arch_jamb_%d" % (sx > 0), v3(sx * (ax + 0.14), sill, z + 0.1), v3(sx * (ax + 0.14), spring, z + 0.1), 0.22, "gold")
     beam(detail, "cockpit_arch_sill", v3(-ax - 0.25, sill - 0.05, z + 0.12), v3(ax + 0.25, sill - 0.05, z + 0.12), 0.14, "gold", width=0.28)
     disc(detail, "cockpit_arch_keystone", v3(0, crown + 0.2, z + 0.14), (0, 0, 1), 0.28, 0.12, "gold", sides=8)
-    # ---- the roof deck: a balustrade round its edge, the green coaming with gilded scrolls, its cap, the crest, volutes,
-    # brass portholes with blue jewels at the coaming's front corners, pennant poles
-    rail2 = []
-    for x, zz in half2:
-        if zz < cs.L2_Z - 0.3:
-            rail2.append((max(0.0, x - 0.22), zz))
+    # ---- the green roof: a mansard of green boards sloping in from the cornice on every side, gilded scrolls on it, a flat
+    # jewelled top with a gilded rim; its front a green gable with the crest
+    eave, inset, ytop, yev = MANSARD
+    yeave = yev + 0.16
+    bot = offset_outline(half2, eave)
+    top = offset_outline(half2, -inset)
     for side, sn in SIDES:
-        gl.balustrade(roof_bone, "roof_rail_" + sn, [v3(side * x, y2top, zz) for x, zz in rail2 if x > 0.05 or zz < -23], h=0.55, step=0.42,
-                      turned=True, newel=8)
-    zc_front = cs.L2_Z - 1.4
-    c3 = lambda zz: max(0.0, (cs.plan_hw(zz) - cs.CASTLE_INSET[1] - 0.75) * cs.stern_round(zz, cs.STERN2_Z + 0.75, cs.STERN2_Z + 4.6))  # noqa: E731
-    half3 = plan_outline(c3, cs.STERN2_Z + 0.75, cs.STERN2_Z + 4.6, zc_front, step=1.0)
-    ycap = cs.ROOF_Y[1]
-    for side, sn in SIDES:
-        plan_wall(roof_bone, "coaming", half3, side, y2top, ycap, "coaming", back="dark_wood")
-        plan_beam(roof_bone, "coaming_cap", half3, side, ycap, 0.08, 0.14, 0.3, "cornice")
-        plan_beam(detail, "coaming_foot", half3, side, y2top + 0.06, 0.05, 0.1, 0.12, "trim_gold")
-    w3 = c3(zc_front)
-    quad(roof_bone, "coaming_front", v3(-w3, y2top, zc_front), v3(w3, y2top, zc_front), v3(-w3, ycap, zc_front), v3(w3, ycap, zc_front), 0.14,
-         "coaming", v3(0, 0, 1), u_dir=v3(1, 0, 0), stretch=False, back="dark_wood")
-    beam(roof_bone, "coaming_front_cap", v3(-w3 - 0.08, ycap, zc_front + 0.08), v3(w3 + 0.08, ycap, zc_front + 0.08), 0.14, "cornice", width=0.3)
-    plan_fill(roof_bone, "coaming_top", half3, ycap + 0.07, "roof_green", (0, 1, 0))
-    # the crest: a gilded cartouche with a blue jewel between two volutes, on the coaming's front
-    cz = zc_front + 0.12
-    disc(detail, "crest_plate", v3(0, ycap + 0.5, cz), (0, 0, 1), 0.5, 0.14, "gold", sides=10)
-    disc(lights, "glow_crest_gem", v3(0, ycap + 0.5, cz + 0.08), (0, 0, 1), 0.24, 0.08, "gem", sides=8)
-    tube(detail, "crest_finial", v3(0, ycap + 0.95, cz), v3(0, cs.CREST_Y, cz), 0.14, "gold", sides=6)
-    disc(detail, "crest_ball", v3(0, cs.CREST_Y, cz), (0, 1, 0), 0.16, 0.2, "gold", sides=8)
+        for k in range(len(half2) - 1):
+            B0, B1 = v3(side * bot[k][0], yeave, bot[k][1]), v3(side * bot[k + 1][0], yeave, bot[k + 1][1])
+            T0, T1 = v3(side * top[k][0], ytop, top[k][1]), v3(side * top[k + 1][0], ytop, top[k + 1][1])
+            if np.linalg.norm(B1 - B0) < 1e-3:
+                continue
+            nrm = norm(np.cross(B1 - B0, T0 - B0))
+            if nrm[1] < 0:
+                nrm = -nrm
+            quad(roof_bone, "mansard_%s%d" % (sn, k), B0, B1, T0, T1, 0.12, "roof_mansard", nrm, u_dir=B1 - B0, v_dir=B0 - T0,
+                 back="dark_wood", overlap=(1.04, 1.0))
+        # gilded scrolls on the slope (every 1.6 along it), a gilded rim along the top
+        Sb = arc_length_at(bot, cs.L2_Z - 0.6)
+        St = arc_length_at(top, cs.L2_Z - 0.6)
+        for k, s in enumerate(np.arange(0.85, Sb - 0.4, 1.7)):
+            (pb_, nb_), = arc_points(bot, side, yeave, [s])[0]
+            (pt_, _), = arc_points(top, side, ytop, [s * St / max(1e-6, Sb)])[0]
+            t = norm(np.cross(v3(0, 1, 0), nb_))
+            up = pt_ - pb_
+            up = norm(up - np.dot(up, t) * t)
+            n2 = norm(np.cross(t, up))
+            if np.dot(n2, nb_) < 0:
+                t, n2 = -t, -n2
+            c = (pb_ + pt_) / 2 + n2 * 0.08
+            add_cube(detail, "mansard_scroll_%s%d" % (sn, k), c, np.column_stack([t, up, n2]), (1.15, 0.68, 0.03),
+                     {"all": None, "+3": "scroll", "-3": "scroll"}, stretch=True, u_dir=t, v_dir=-up)
+        plan_beam(roof_bone, "mansard_rim", top, side, ytop + 0.04, 0.02, 0.18, 0.26, "cornice")
+        plan_beam(detail, "mansard_eave_gilt", bot, side, yeave + 0.05, 0.0, 0.08, 0.14, "trim_gold")
+    plan_fill(roof_bone, "mansard_top", top, ytop - 0.02, "roof_top", (0, 1, 0))
+    zf = cs.L2_Z + 0.02
+    wt = top[-1][0]
+    yg = y2top                            # the gable stands on the front wall (its cornice)
+    wb = bot[-1][0] + (wt - bot[-1][0]) * (yg - yeave) / (ytop - yeave)
+    quad(roof_bone, "mansard_gable", v3(-wb, yg, zf), v3(wb, yg, zf), v3(-wt, ytop, zf), v3(wt, ytop, zf), 0.14, "coaming", v3(0, 0, 1),
+         u_dir=v3(1, 0, 0), v_dir=v3(0, -1, 0), back="dark_wood")
+    beam(roof_bone, "mansard_gable_cap", v3(-wt - 0.1, ytop + 0.02, zf + 0.06), v3(wt + 0.1, ytop + 0.02, zf + 0.06), 0.16, "cornice", width=0.28)
     for sx in (-1, 1):
-        base = v3(sx * 0.55, ycap + 0.05, cz)
-        pts = [base + v3(sx * (0.15 + 0.85 * t), 0.15 + 0.95 * math.sin(math.pi * t) * (1 - 0.3 * t), 0) for t in np.linspace(0, 1, 8)]
+        beam(detail, "mansard_gable_edge_%d" % (sx > 0), v3(sx * wb, yg, zf + 0.08), v3(sx * wt, ytop, zf + 0.08), 0.14, "gold", width=0.14,
+             up=v3(0, 0, 1))
+    # the crest: a gilded cartouche with a blue jewel between two big volutes, on the gable
+    cz = zf + 0.12
+    yc = (yg + ytop) / 2
+    disc(detail, "crest_plate", v3(0, yc, cz), (0, 0, 1), 0.5, 0.14, "gold", sides=10)
+    disc(lights, "glow_crest_gem", v3(0, yc, cz + 0.08), (0, 0, 1), 0.24, 0.08, "gem", sides=8)
+    tube(detail, "crest_finial", v3(0, yc + 0.45, cz), v3(0, cs.CREST_Y + 0.1, cz), 0.14, "gold", sides=6)
+    disc(detail, "crest_ball", v3(0, cs.CREST_Y + 0.1, cz), (0, 1, 0), 0.16, 0.2, "gold", sides=8)
+    for sx in (-1, 1):
+        base = v3(sx * 0.5, ytop + 0.05, cz)
+        pts = [base + v3(sx * (0.12 + 0.9 * t), 0.12 + 0.85 * math.sin(math.pi * t) * (1 - 0.3 * t), 0) for t in np.linspace(0, 1, 8)]
         end = pts[-1]
-        pts += [end + v3(sx * 0.32 * (1 - a / 9) * math.cos(a), 0.32 * (1 - a / 9) * math.sin(a) - 0.0, 0) for a in np.linspace(0.6, 8.0, 12)]
+        pts += [end + v3(sx * 0.32 * (1 - a / 9) * math.cos(a), 0.32 * (1 - a / 9) * math.sin(a), 0) for a in np.linspace(0.6, 8.0, 12)]
         polyline(detail, "crest_volute_%d" % (sx > 0), pts, 0.16, "gold", sides=6)
-        # brass portholes with a blue jewel at the coaming's front corners
-        pc = v3(sx * (w3 - 0.45), (y2top + ycap) / 2 + 0.05, zc_front + 0.1)
-        disc(detail, "roof_porthole_%d" % (sx > 0), pc, (0, 0, 1), 0.36, 0.14, "brass", sides=12)
-        disc(lights, "glow_roof_porthole_gem_%d" % (sx > 0), pc + v3(0, 0, 0.08), (0, 0, 1), 0.2, 0.06, "gem", sides=8)
-        # the aft volutes over the stern
-        base = v3(sx * 0.9, ycap + 0.05, cs.STERN2_Z + 1.4)
+        # brass portholes with a blue jewel at the gable's corners
+        pc = v3(sx * (wt + 0.1), yc - 0.05, cz)
+        disc(detail, "roof_porthole_%d" % (sx > 0), pc, (0, 0, 1), 0.34, 0.14, "brass", sides=12)
+        disc(lights, "glow_roof_porthole_gem_%d" % (sx > 0), pc + v3(0, 0, 0.08), (0, 0, 1), 0.19, 0.06, "gem", sides=8)
+        # the aft volutes over the stern, on the roof's top
+        base = v3(sx * 0.9, ytop + 0.03, cs.STERN2_Z + 1.6)
         pts = [base + v3(sx * 0.2 * t, 0.5 * math.sin(math.pi * t / 2), -0.6 * t) for t in np.linspace(0, 1, 5)]
         end = pts[-1]
         pts += [end + v3(0, 0.28 * (1 - a / 9) * math.sin(a), -0.28 * (1 - a / 9) * math.cos(a)) for a in np.linspace(0.6, 8.0, 10)]
         polyline(detail, "aft_volute_%d" % (sx > 0), pts, 0.14, "gold", sides=6)
+    # a gilded finial with a blue jewel on the roof's aft edge, over the carving
+    fz = top[0][1] + 0.1
+    tube(detail, "aft_finial", v3(0, ytop, fz), v3(0, ytop + 0.7, fz), 0.18, "gold", sides=6)
+    disc(detail, "aft_finial_ball", v3(0, ytop + 0.78, fz), (0, 1, 0), 0.18, 0.22, "gold", sides=8)
+    disc(lights, "glow_aft_finial_gem", v3(0, ytop + 0.4, fz - 0.1), (0, 0, -1), 0.14, 0.06, "gem", sides=6)
     # the ensign spar aft over the overhang, a rope stay down to the stern
+    ycap = cs.ROOF_Y[1]
     s0 = v3(0, ycap - 0.2, cs.STERN2_Z + 1.2)
     s1 = s0 + v3(0, math.sin(math.radians(15)), -math.cos(math.radians(15))) * 4.6
     beam(roof_bone, "ensign_spar", s0, s1, 0.28, "dark_wood", width=0.28, extend=0.05, u_dir=s1 - s0)
@@ -927,6 +1119,53 @@ def castle(bone, detail, lights, roof_bone, lanterns_bone):
     disc(detail, "ensign_spar_cap", s1, norm(s1 - s0), 0.2, 0.2, "gold", sides=8)
     rope(detail, "ensign_stay", s1, v3(0, cs.L1_TOP + 0.2, cs.STERN2_Z + 0.02), d=0.07, region="rope_dark", sag=0.25)
     return s1
+
+
+def stern_counter(bone, detail, lights):
+    """The hull's round stern under the balcony (the part seen between the engines): a lower gallery of small lit windows
+    between gilded mullions under a dark cornice, a gilded frieze and mouldings following the curve, green panels in
+    gilded frames on the quarters each side of the medallion."""
+    for side, sn in SIDES:
+        def outline(y, z_front=-15.5):
+            n = 22
+            pts = [(0.0, cs.STERN_Z)]
+            for k in range(1, n + 1):
+                th = (math.pi / 2) * k / n
+                u = math.cos(th) ** (2.0 / cs.STERN_ROUND[1])
+                z = cs.STERN_ROUND[0] - u * (cs.STERN_ROUND[0] - cs.STERN_Z)
+                pts.append((cs.hull_x(z, y), z))
+            pts += [(cs.hull_x(z, y), z) for z in np.arange(cs.STERN_ROUND[0] + 0.8, z_front, 0.8)]
+            return pts
+        # the lower stern gallery under the balcony: small lit windows between gilded mullions round the stern (the
+        # sheet's back view: a second tier of lit windows down to the medallion), a dark cornice over them, a gilded sill
+        hw = outline(0.36)
+        Sw = arc_length_at(hw, -21.4)
+        nw_ = max(3, int(Sw / 0.78))
+        sw = Sw / nw_
+        for k in range(nw_):
+            sc = sw * (k + 0.5)
+            arc_panel(lights, "glow_counter_window_%s%d" % (sn, k), hw, side, sc - 0.25, sc + 0.25, 0.02, 0.74, 0.05, "window_tall", n=1, th=0.03,
+                      sub=(0.0, 0.0, 1.0, 0.62))
+        for k in range(nw_ + 1):
+            (p, n), = arc_points(hw, side, 0.0, [sw * k])[0]
+            if k == 0 and side < 0:
+                continue
+            box(detail, "counter_mullion_%s%d" % (sn, k), p + n * 0.08 + v3(0, 0.38, 0), (0.14, 0.82, 0.12), "gold", R=gl.wall_frame(n))
+        plan_beam(detail, "counter_cornice_%s" % sn, [q for q in outline(0.84) if q[1] <= -21.2], side, 0.84, 0.08, 0.14, 0.22, "cornice")
+        # the gilded frieze under them, following the stern's curve
+        hf = outline(-0.3)
+        Sf = arc_length_at(hf, -21.3)
+        arc_panel(detail, "counter_frieze_%s" % sn, hf, side, 0.0, Sf, -0.5, -0.06, 0.06, "frieze", n=12)
+        # mouldings round the stern
+        for k, y in enumerate((-0.56, -0.02)):
+            ho = outline(y)
+            plan_beam(detail, "counter_moulding_%s%d" % (sn, k), [q for q in ho if q[1] <= -21.2], side, y, 0.06, 0.1, 0.12, "trim_gold")
+        # green panels in gilded frames on the quarters beside the medallion (between it and the engines' fairings)
+        hp = outline(-2.6)
+        s_end = arc_length_at(hp, -21.5)
+        s_beg = 3.5
+        if s_end - s_beg > 0.6:
+            arc_panel(detail, "counter_panel_%s" % sn, hp, side, s_beg, s_end, -4.1, -1.15, 0.05, "panel_green", n=3)
 
 
 # ================================================================ engines
@@ -1077,6 +1316,21 @@ def nacelles(bone, detail, lights, root):
             nn = norm(nacelle_pt(side, zz, az, 1.0) - p)
             disc(detail, "nacelle_crystal_cup_%s%d" % (sn, k), p + nn * 0.08, nn, 0.3, 0.16, "brass", sides=8)
             crystal(lights, "nacelle_crystal_%s%d" % (sn, k), p + nn * 0.1, nn * d_out + v3(0, 0, d_z), 0.75, 0.2)
+        # the tail seen from behind (the sheet's back view): a gilded collar set with glowing blue crystals round the drum's
+        # aft edge, a glowing crystal ring round the iron cap, a blue rim proud of the side eye
+        zr = zc + 0.15
+        rr = cs.nacelle_r(zr) + 0.1
+        ring(detail, "nacelle_tail_collar_%s" % sn, v3(cx, y, zr), (0, 0, 1), rr, 0.26, "gold", n=20)
+        for k in range(10):
+            a = 2 * math.pi * (k + 0.5) / 10
+            d = v3(side * math.sin(a), math.cos(a), 0)
+            p = v3(cx, y, zr) + d * (rr + 0.05)
+            disc(detail, "nacelle_tail_cup_%s%d" % (sn, k), p, norm(d + v3(0, 0, -0.6)), 0.2, 0.12, "brass", sides=6)
+            crystal(lights, "nacelle_tail_crystal_%s%d" % (sn, k), p, d * 0.6 + v3(0, 0, -0.8), 0.6, 0.15, sides=4)
+        zg = z0 + 0.85
+        ring(lights, "glow_nacelle_tail_ring_%s" % sn, v3(cx, y, zg), (0, 0, 1), cs.nacelle_r(zg) + 0.06, 0.16, "crystal", n=14)
+        ring(detail, "nacelle_tail_ring_rim_%s" % sn, v3(cx, y, zg + 0.16), (0, 0, 1), cs.nacelle_r(zg + 0.16) + 0.08, 0.1, "brass", n=14)
+        ring(lights, "glow_nacelle_eye_rim_%s" % sn, c + n * 0.42, n, re + 0.26, 0.14, "crystal", n=22)
         rc_ = v3(cx, y, z0 + 0.1)
         rb = Bone("rotor_" + sn, origin=tuple(rc_), parent=root)
         tube(rb, "rotor_spike_%s" % sn, rc_, rc_ - v3(0, 0, 0.7), 0.22, "brass", sides=6)
@@ -1335,8 +1589,8 @@ def pennants(root, tail, ensign):
     pb = Bone("pennants", parent=root)
     zc = cs.L2_Z - 1.4
     for side, sn in SIDES:
-        x = side * (cs.castle2_x(zc) - 0.6)
-        base = v3(x, cs.L2_TOP, zc - 0.25)
+        x = side * (cs.castle2_x(zc) - MANSARD[1] - 0.25)
+        base = v3(x, MANSARD[2], zc - 0.25)
         top = base + v3(0, 3.0, 0)
         tube(pb, "pennant_pole_%s" % sn, base, top, 0.14, "dark_wood", sides=6)
         disc(pb, "pennant_pole_ball_%s" % sn, top + v3(0, 0.08, 0), (0, 1, 0), 0.12, 0.16, "gold", sides=6)
@@ -1614,6 +1868,7 @@ def build(g, decor=None):
     stairs(deck_b, fittings)
     turret(turret_b, detail, lights, lanterns_b)
     ensign = castle(castle_b, detail, lights, roof_b, lanterns_b)
+    stern_counter(hull_b, detail, lights)
     nacelles(eng, detail, lights, root)
     stern_medallion(eng, detail, lights, root)
     prop_pods(eng, detail, lights, root)

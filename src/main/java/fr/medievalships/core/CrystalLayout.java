@@ -18,7 +18,7 @@ import java.util.List;
  */
 public final class CrystalLayout {
 	// ---- balloon lobes: centre x, y, z, half width, half height, half length, a, b (sections scaled by (1 - |t|^a)^b)
-	public static final double CY = 14.6;
+	public static final double CY = 14.0;
 	public static final String[] LOBE_NAMES = {"c", "f", "r", "fp", "fs", "rp", "rs"};
 	static final double[][] LOBES = {
 			{0.0, CY, -0.3, 7.6, 6.9, 15.8, 2.4, 0.5},
@@ -45,7 +45,7 @@ public final class CrystalLayout {
 	private static final double[] BOW_PLAN = {26.6, 2.0, 0.6};
 	private static final double[] STERN_PLAN = {40.0, 2.5, 0.5};
 	/** The stern rounds off in plan from this z to STERN_Z (a superellipse of this exponent). */
-	private static final double[] STERN_ROUND = {-19.0, 3.0};
+	private static final double[] STERN_ROUND = {-18.6, 2.5};
 	public static final double SHEER_WAIST = 1.0;
 	/** The sheer sweeps up to the forecastle between these z by this much, and on up to the stem by SHEER_BOW. */
 	private static final double[] SHEER_FWD = {8.5, 14.0, 1.45};
@@ -69,11 +69,15 @@ public final class CrystalLayout {
 	public static final double L2_Y = 3.0;
 	public static final double L2_TOP = 6.4;
 	/** Storeys 1 and 2: inset of their walls from the hull's side. */
-	private static final double[] CASTLE_INSET = {0.3, 1.1};
+	private static final double[] CASTLE_INSET = {0.3, 0.45};
+	/** Storey 1 rounds off in plan from this z to STERN1_END (a superellipse of this exponent). */
+	private static final double[] CASTLE1_ROUND = {STERN_ROUND[0] + 0.15, 2.2};
+	/** Storey 2 rounds off over this length before STERN2_Z (a superellipse of this exponent): a round stern. */
+	private static final double[] CASTLE2_ROUND = {5.0, 2.1};
 	/** The stern of storey 1 (inside the hull's rounded stern) and of storey 2 (overhanging it). */
 	public static final double STERN1_END = -22.75;
 	public static final double STERN2_Z = -23.9;
-	/** Top of the roof deck's coaming and of the crest on it. */
+	/** Top of the roof deck's rail (under the model's green mansard roof) and of the crest. */
 	public static final double ROOF_TOP = 7.3;
 	public static final double CREST_Y = 8.4;
 	private static final double DECK_SLAB = 0.5;
@@ -274,7 +278,7 @@ public final class CrystalLayout {
 		if (z > CASTLE_Z || z < STERN_Z) {
 			return 0.0;
 		}
-		return Math.max(0.0, (planHalfWidth(z) - CASTLE_INSET[0]) * sternRound(z, STERN1_END, STERN_ROUND[0] + 0.15, STERN_ROUND[1]));
+		return Math.max(0.0, (planHalfWidth(z) - CASTLE_INSET[0]) * sternRound(z, STERN1_END, CASTLE1_ROUND[0], CASTLE1_ROUND[1]));
 	}
 
 	/** Half width of the outside of storey 2's walls: narrower, overhanging the stern. */
@@ -282,7 +286,7 @@ public final class CrystalLayout {
 		if (z > L2_Z || z < STERN2_Z) {
 			return 0.0;
 		}
-		return Math.max(0.0, (planHalfWidth(z) - CASTLE_INSET[1]) * sternRound(z, STERN2_Z, STERN2_Z + 4.4, STERN_ROUND[1]));
+		return Math.max(0.0, (planHalfWidth(z) - CASTLE_INSET[1]) * sternRound(z, STERN2_Z, STERN2_Z + CASTLE2_ROUND[0], CASTLE2_ROUND[1]));
 	}
 
 	/** Half width of the outside of the stern castle's walls at z and height y (storey 1, its floor slab, storey 2). */

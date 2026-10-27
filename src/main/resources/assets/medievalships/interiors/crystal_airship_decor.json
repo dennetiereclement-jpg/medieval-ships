@@ -49,7 +49,7 @@
    "block": "farmhouse_decorations:tall_bookshelf",
    "x": -1.5,
    "y": 3.0,
-   "z": -22.98,
+   "z": -22.48,
    "yaw": 180.0,
    "scale": 1.0,
    "fallback": "fallback_5"
@@ -58,14 +58,14 @@
    "block": "farmhouse_decorations:tall_bookshelf",
    "x": 1.5,
    "y": 3.0,
-   "z": -22.98,
+   "z": -22.48,
    "yaw": 180.0,
    "scale": 1.0,
    "fallback": "fallback_6"
   },
   {
    "block": "furnish:mangrove_chair",
-   "x": -3.0,
+   "x": -3.75,
    "y": 3.0,
    "z": -16.463,
    "yaw": 180.0,
@@ -346,14 +346,14 @@
    "block": "farmhouse_decorations:liquor_cabinet",
    "x": -2.95,
    "y": 0.0,
-   "z": -21.48,
+   "z": -20.98,
    "yaw": 180.0,
    "scale": 1.0,
    "fallback": "fallback_38"
   },
   {
    "block": "farmhouse_decorations:wall_shelf",
-   "x": 2.2,
+   "x": 2.0,
    "y": 0.0,
    "z": -21.48,
    "yaw": 180.0,
@@ -362,7 +362,7 @@
   },
   {
    "block": "farmhouse_decorations:pile_of_books",
-   "x": 2.2,
+   "x": 2.0,
    "y": 1.22,
    "z": -21.7,
    "yaw": 180.0,
@@ -407,7 +407,7 @@
   },
   {
    "block": "farmhouse_decorations:kerosene_lantern",
-   "x": 4.16,
+   "x": 3.66,
    "y": 1.38,
    "z": -21.0,
    "yaw": 0.0,
@@ -1351,10 +1351,10 @@
    "dz": -20.3
   },
   {
-   "x": -3.0,
+   "x": -3.75,
    "y": 3.442,
    "z": -16.4,
-   "dx": -2.1,
+   "dx": -2.85,
    "dy": 3.02,
    "dz": -16.4
   },
