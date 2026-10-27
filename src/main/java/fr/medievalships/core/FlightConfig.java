@@ -20,6 +20,12 @@ public final class FlightConfig {
 	public double aiLandingClearance = 1.2;
 	/** Visual sway of the gondola (multiplier, 0 disables it). */
 	public double sway = 1.0;
+	/**
+	 * Largest bank (roll into the turn) the vessel is drawn with, in degrees; 0 disables it. The bank is visual only
+	 * (the collisions stay level) and is further limited by {@link Flight#bankLimit} so that the decks and rooms of a
+	 * large vessel never look more than half a block away from where one walks.
+	 */
+	public double bankAngle = 6.0;
 
 	public void sanitize() {
 		climbSpeed = clamp(climbSpeed, 0.1, 10);
@@ -30,6 +36,7 @@ public final class FlightConfig {
 		aiApproachDistance = clamp(aiApproachDistance, 4, 200);
 		aiLandingClearance = clamp(aiLandingClearance, 0.2, 16);
 		sway = clamp(sway, 0, 5);
+		bankAngle = Double.isNaN(bankAngle) ? 0 : Math.max(0, Math.min(20, bankAngle));
 	}
 
 	private static double clamp(double v, double lo, double hi) {

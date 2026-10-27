@@ -29,13 +29,22 @@ final class ShipWorld implements ShipMover.Obstacles, Autopilot.Navigator, Fligh
 	private final ShipGeometry[] otherGeometries;
 
 	ShipWorld(World world, ShipEntity self) {
+		this(world, self, self.getX(), self.getY(), self.getZ());
+	}
+
+	/**
+	 * The world around a point, for a vessel that is not there yet (placement, and its preview on the client): the
+	 * other hulls within 80 blocks of it are obstacles. Only {@link #blocked} and {@link #waterSurface} may be used
+	 * without a vessel.
+	 */
+	ShipWorld(World world, @org.jetbrains.annotations.Nullable ShipEntity self, double x, double y, double z) {
 		this.world = world;
 		this.self = self;
 		ShipEntity[] all = ShipTracker.ships(world); // shared array: never write into it
 		ShipEntity[] near = new ShipEntity[all.length];
 		int n = 0;
 		for (ShipEntity s : all) {
-			if (s != self && !s.isRemoved() && s.squaredDistanceTo(self) < 80 * 80) {
+			if (s != self && !s.isRemoved() && s.squaredDistanceTo(x, y, z) < 80 * 80) {
 				near[n++] = s;
 			}
 		}
@@ -50,6 +59,11 @@ final class ShipWorld implements ShipMover.Obstacles, Autopilot.Navigator, Fligh
 
 	private boolean loaded(double x, double z) {
 		return world.isChunkLoaded(((int) Math.floor(x)) >> 4, ((int) Math.floor(z)) >> 4);
+	}
+
+	/** Is the chunk of this column loaded (nothing is known about an unloaded one)? */
+	boolean isLoaded(double x, double z) {
+		return loaded(x, z);
 	}
 
 	@Override

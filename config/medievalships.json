@@ -6,7 +6,11 @@
     "chunkLoadAutopilotShips": true,
     "chunkLoadRadius": 2,
     "adminPermissionLevel": 2,
-    "placeRequiresAdmin": false
+    "placeRequiresAdmin": false,
+    "placeAdminOnly": [],
+    "placeAllowedPlayers": [],
+    "playerDestinations": true,
+    "playerDestinationMaxDistance": 1000.0
   },
   "ships": {
     "galley": {
@@ -184,7 +188,8 @@
         "aiClearance": 5.0,
         "aiApproachDistance": 26.0,
         "aiLandingClearance": 1.2,
-        "sway": 1.0
+        "sway": 1.0,
+        "bankAngle": 6.0
       }
     },
     "nautilus": {

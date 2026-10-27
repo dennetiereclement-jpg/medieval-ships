@@ -3,8 +3,10 @@ package fr.medievalships.entity;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.world.World;
 
 import fr.medievalships.MedievalShips;
+import fr.medievalships.core.FlightConfig;
 import fr.medievalships.core.ShipMover;
 import fr.medievalships.core.ShipPose;
 import fr.medievalships.core.ShipType;
@@ -15,6 +17,45 @@ public final class ShipPlacement {
 	}
 
 	/**
+	 * Where a vessel would be placed: {@code pose} and whether it fits ({@code valid}). When it does not fit, the
+	 * pose is the first one that was tried (for the red preview).
+	 */
+	public record Spot(ShipPose pose, boolean valid) {
+	}
+
+	/** Heading steps (degrees) of a placement: the preview and the click use the same rounded heading. */
+	public static final float YAW_STEP = 2f;
+
+	/**
+	 * What a placement starts from, the same for the preview (client) and the click (server): the point of the aimed
+	 * block face, its two in-face coordinates moved to the middle of the face (the coordinate across the face is the
+	 * face's own, the same anywhere on it, rounded to 1/4096 block so the rounding error of the ray does not move it),
+	 * and the heading rounded to {@link #YAW_STEP} degrees. While the player aims at the same face with the same
+	 * rounded heading, both sides compute exactly the same spot.
+	 */
+	public record Aim(double x, double y, double z, float yaw) {
+		public static Aim of(net.minecraft.util.hit.BlockHitResult hit, float yaw) {
+			net.minecraft.util.math.BlockPos b = hit.getBlockPos();
+			net.minecraft.util.math.Vec3d p = hit.getPos();
+			net.minecraft.util.math.Direction.Axis across = hit.getSide().getAxis();
+			double x = across == net.minecraft.util.math.Direction.Axis.X ? onFace(p.x) : b.getX() + 0.5;
+			double y = across == net.minecraft.util.math.Direction.Axis.Y ? onFace(p.y) : b.getY() + 0.5;
+			double z = across == net.minecraft.util.math.Direction.Axis.Z ? onFace(p.z) : b.getZ() + 0.5;
+			return new Aim(x, y, z, snapYaw(yaw));
+		}
+
+		/** The face's coordinate, without the ray's rounding error (block faces are on 1/16 steps). */
+		static double onFace(double v) {
+			return Math.round(v * 4096.0) / 4096.0;
+		}
+	}
+
+	/** The heading rounded to {@link #YAW_STEP} degrees. */
+	public static float snapYaw(float yaw) {
+		return Math.round(yaw / YAW_STEP) * YAW_STEP;
+	}
+
+	/**
 	 * Spawns a ship of the given type near (x, z) facing {@code yaw}. When {@code ahead} is true the ship is pushed
 	 * forward so its stern starts at the clicked point (the player is not inside the hull).
 	 *
@@ -22,18 +63,48 @@ public final class ShipPlacement {
 	 */
 	@Nullable
 	public static ShipEntity place(ServerWorld world, ShipType type, double x, double y, double z, float yaw, boolean ahead) {
+		Spot spot = find(world, type, x, y, z, yaw, ahead);
+		if (spot == null || !spot.valid()) {
+			return null;
+		}
 		ShipEntity ship = MedievalShips.entityType(type).create(world, net.minecraft.entity.SpawnReason.COMMAND);
 		if (ship == null) {
 			return null;
 		}
-		ship.refreshPositionAndAngles(x, y, z, yaw, 0f); // the obstacle scan looks around the ship's position
-		ShipWorld shipWorld = new ShipWorld(world, ship);
+		ShipPose p = spot.pose();
+		ship.refreshPositionAndAngles(p.x(), p.y(), p.z(), yaw, 0f);
+		ship.setShipYaw(yaw);
+		world.spawnEntity(ship);
+		return ship;
+	}
+
+	/**
+	 * The space check of the placement, the same on the server (item, {@code /ship spawn}) and on the client (the
+	 * preview of the item): the first pose near (x, z) facing {@code yaw} where the whole vessel is inside nothing
+	 * (terrain, buildings, other hulls) — a ship floating on open water, an aircraft above whatever was clicked.
+	 *
+	 * @return the pose and whether it fits, or null for a ship when there is no water at all to show it on
+	 */
+	@Nullable
+	public static Spot find(World world, ShipType type, double x, double y, double z, float yaw, boolean ahead) {
+		FlightConfig flight = fr.medievalships.data.ConfigManager.ship(type).flight;
+		return find(world, type, x, y, z, yaw, ahead, flight == null ? Double.POSITIVE_INFINITY : flight.maxAltitude);
+	}
+
+	/**
+	 * {@link #find(World, ShipType, double, double, double, float, boolean)} with the aircraft's altitude ceiling given
+	 * (the client's preview passes the server's, see {@link fr.medievalships.data.SyncedConfig}).
+	 */
+	@Nullable
+	public static Spot find(World world, ShipType type, double x, double y, double z, float yaw, boolean ahead, double maxAltitude) {
+		ShipWorld shipWorld = new ShipWorld(world, null, x, y, z);
 		if (type.geometry().flying()) {
-			return placeInTheAir(world, ship, shipWorld, type, x, y, z, yaw, ahead);
+			return findInTheAir(shipWorld, type, x, y, z, yaw, ahead, maxAltitude);
 		}
 		double fx = -Math.sin(Math.toRadians(yaw)), fz = Math.cos(Math.toRadians(yaw));
 		double h = type.hull().halfLength;
 		double[] offsets = ahead ? new double[] {h + 2, h - 2, h + 6, h - 6, 0} : new double[] {0, 0.4 * h, -0.4 * h, 0.8 * h, -0.8 * h};
+		ShipPose first = null;
 		for (double off : offsets) {
 			double cx = x + fx * off, cz = z + fz * off;
 			double surface = shipWorld.waterSurface(cx, cz, y);
@@ -42,14 +113,14 @@ public final class ShipPlacement {
 			}
 			double sy = surface - type.hull().waterlineY;
 			ShipPose pose = new ShipPose(cx, sy, cz, yaw);
-			if (ShipMover.countCollisions(type.geometry(), pose, shipWorld) == 0) {
-				ship.refreshPositionAndAngles(cx, sy, cz, yaw, 0f);
-				ship.setShipYaw(yaw);
-				world.spawnEntity(ship);
-				return ship;
+			if (!ShipMover.collides(type.geometry(), pose, shipWorld)) {
+				return new Spot(pose, true);
+			}
+			if (first == null) {
+				first = pose;
 			}
 		}
-		return null;
+		return first == null ? null : new Spot(first, false);
 	}
 
 	/**
@@ -57,25 +128,57 @@ public final class ShipPlacement {
 	 * fins, propeller), its keel a block above the clicked surface or higher, never inside a hill
 	 * or a building.
 	 */
-	@Nullable
-	private static ShipEntity placeInTheAir(ServerWorld world, ShipEntity ship, ShipWorld shipWorld, ShipType type, double x, double y,
-			double z, float yaw, boolean ahead) {
+	private static Spot findInTheAir(ShipWorld shipWorld, ShipType type, double x, double y, double z, float yaw, boolean ahead,
+			double ceiling) {
 		double fx = -Math.sin(Math.toRadians(yaw)), fz = Math.cos(Math.toRadians(yaw));
 		double h = type.hull().halfLength;
 		double[] offsets = ahead ? new double[] {h + 2, h + 6, h - 2, 0} : new double[] {0, 0.5 * h, -0.5 * h};
 		double base = y + 1.0 - type.geometry().lowestY();
+		ShipPose first = new ShipPose(x + fx * offsets[0], base, z + fz * offsets[0], yaw);
 		for (double off : offsets) {
 			double cx = x + fx * off, cz = z + fz * off;
 			for (double dy = 0; dy <= 16; dy += 1.0) {
 				ShipPose pose = new ShipPose(cx, base + dy, cz, yaw);
-				if (pose.y() + type.geometry().topY() > fr.medievalships.data.ConfigManager.ship(type).flight.maxAltitude) {
+				if (pose.y() + type.geometry().topY() > ceiling) {
 					break;
 				}
-				if (ShipMover.countCollisions(type.geometry(), pose, shipWorld) == 0) {
-					ship.refreshPositionAndAngles(cx, pose.y(), cz, yaw, 0f);
-					ship.setShipYaw(yaw);
-					world.spawnEntity(ship);
-					return ship;
+				if (!ShipMover.collides(type.geometry(), pose, shipWorld)) {
+					return new Spot(pose, true);
+				}
+			}
+		}
+		return new Spot(first, false);
+	}
+
+	/**
+	 * Where a ship given a destination at (x, z) would stop: {@code known} false when the chunk there is not loaded
+	 * (nothing can be checked; the point is kept), else the nearest point to (x, z) whose water is open around the
+	 * hull's half width, at the ship's own water level.
+	 */
+	public record WaterSpot(boolean known, double x, double z) {
+	}
+
+	/**
+	 * The open water nearest to (x, z) within {@code radius} blocks for this ship (the point itself if it is open
+	 * water), or null if there is none: the column and four columns the hull's half width around it are navigable
+	 * (open water two blocks deep at the ship's waterline, nothing solid above, no other hull). Only loaded chunks are
+	 * read; a few thousand block reads at most, once per command.
+	 */
+	@Nullable
+	public static WaterSpot openWaterNear(ShipEntity ship, double x, double z, int radius) {
+		ShipWorld w = new ShipWorld(ship.getEntityWorld(), ship, x, ship.getY(), z);
+		if (!w.isLoaded(x, z)) {
+			return new WaterSpot(false, x, z);
+		}
+		double hw = ship.geometry().hull().maxHalfWidth;
+		for (int r = 0; r <= radius; r += 2) {
+			int n = r == 0 ? 1 : Math.max(8, (int) Math.ceil(Math.PI * r));
+			for (int k = 0; k < n; k++) {
+				double a = 2 * Math.PI * k / n;
+				double cx = x + r * Math.cos(a), cz = z + r * Math.sin(a);
+				if (w.navigable(cx, cz) && w.navigable(cx + hw, cz) && w.navigable(cx - hw, cz) && w.navigable(cx, cz + hw)
+						&& w.navigable(cx, cz - hw)) {
+					return new WaterSpot(true, cx, cz);
 				}
 			}
 		}

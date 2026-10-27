@@ -14,12 +14,13 @@ import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateType;
 
 import fr.medievalships.MedievalShips;
+import fr.medievalships.core.Destination;
 import fr.medievalships.core.Route;
 
 /**
  * World-level data, stored in the overworld's {@code data/medievalships.dat}:
  * routes, the last known position of autopilot ships (so their chunks are loaded again after a
- * restart) and the ship each player was aboard when disconnecting.
+ * restart), the ship each player was aboard when disconnecting and the saved destinations.
  */
 public final class ShipData extends PersistentState {
 	private static final Gson GSON = new GsonBuilder().create();
@@ -29,6 +30,8 @@ public final class ShipData extends PersistentState {
 		Map<String, Route> routes = new TreeMap<>();
 		Map<String, FerryRecord> ferries = new HashMap<>();
 		Map<String, String> playerShips = new HashMap<>();
+		/** Saved destinations ({@code /ship destination add}), by name. */
+		Map<String, Destination> destinations = new TreeMap<>();
 	}
 
 	public static final class FerryRecord {
@@ -63,6 +66,9 @@ public final class ShipData extends PersistentState {
 						}
 						if (c.playerShips == null) {
 							c.playerShips = new HashMap<>();
+						}
+						if (c.destinations == null) {
+							c.destinations = new TreeMap<>();
 						}
 					}
 				} catch (Exception e) {
@@ -136,5 +142,24 @@ public final class ShipData extends PersistentState {
 		} catch (IllegalArgumentException e) {
 			return null;
 		}
+	}
+
+	public Map<String, Destination> destinations() {
+		return contents.destinations;
+	}
+
+	public Destination destination(String name) {
+		return name == null ? null : contents.destinations.get(name);
+	}
+
+	public void putDestination(Destination destination) {
+		contents.destinations.put(destination.name, destination);
+		markDirty();
+	}
+
+	public boolean removeDestination(String name) {
+		boolean removed = contents.destinations.remove(name) != null;
+		markDirty();
+		return removed;
 	}
 }

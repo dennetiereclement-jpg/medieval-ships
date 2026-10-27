@@ -32,6 +32,17 @@ public final class ShipMover {
 		return n;
 	}
 
+	/** Is any probe of the hull inside an obstacle? Same as {@code countCollisions(...) > 0}, stopping at the first one. */
+	public static boolean collides(ShipGeometry geometry, ShipPose pose, Obstacles obstacles) {
+		double c = pose.cos(), s = pose.sin();
+		for (double[] p : geometry.probes()) {
+			if (obstacles.blocked(pose.x() + p[0] * c - p[2] * s, pose.y() + p[1], pose.z() + p[0] * s + p[2] * c)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public static Result move(ShipGeometry geometry, ShipPose from, double forward, double dyaw, double dy, Obstacles obstacles) {
 		double midYaw = Math.toRadians(from.yaw() + dyaw / 2);
 		double dx = -Math.sin(midYaw) * forward;

@@ -60,9 +60,19 @@ public final class ShipInteractions {
 		}
 	}
 
-	private static void takeHelm(ShipEntity ship, ServerPlayerEntity player) {
+	/** A player takes the helm (right click on it); it also cancels a destination given with {@code goto}. */
+	public static void takeHelm(ShipEntity ship, ServerPlayerEntity player) {
+		boolean cancelled = false;
+		if (ship.onGoto()) {
+			// the autopilot only flies there for the crew: whoever takes the helm takes back control
+			cancelled = ship.cancelGoto();
+		}
 		if (ship.isAutopilotEnabled()) {
 			player.sendMessage(Text.literal("Le pilote automatique tient la barre (/ship ai disable).").formatted(Formatting.YELLOW), true);
+			return;
+		}
+		if (cancelled && ship.seat(player, ShipGeometry.PILOT_SEAT)) {
+			player.sendMessage(Text.literal("Vous reprenez la barre : destination annulée.").formatted(Formatting.GOLD), true);
 			return;
 		}
 		if (player.getVehicle() == ship && ship.seatOf(player) == ShipGeometry.PILOT_SEAT) {

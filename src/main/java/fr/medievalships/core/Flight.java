@@ -123,7 +123,10 @@ public final class Flight {
 		Plan plan = null;
 		if (wp != null && ap.phase == Autopilot.Phase.SAILING) {
 			double dist = Math.hypot(wp.x - pose.x(), wp.z - pose.z());
-			plan = plan(wp, dist, pose, physics.speed, g, f, t);
+			// look ahead as far as at cruising speed, not just at the current one: an aircraft that slows down to
+			// climb over a wall must not lose sight of it (it would come down again, speed up, see it, stop... forever)
+			double look = Math.max(Math.abs(physics.speed), cfg.gaitSpeed(gait));
+			plan = plan(wp, dist, pose, look, g, f, t);
 			ap.altitudeError = plan.targetY() - pose.y();
 		} else {
 			ap.altitudeError = 0;
@@ -202,5 +205,97 @@ public final class Flight {
 			}
 		}
 		return new Result(pose, moved.forwardBlocked(), vBlocked);
+	}
+
+	// ------------------------------------------------------------------ banking (visual roll into the turns)
+
+	/** Farthest the walkable decks and rooms may look from their (level) collisions because of the bank, in blocks. */
+	public static final double BANK_TOLERANCE = 0.5;
+	/** "Gravity" (blocks/s^2) of the coordinated turn: tan(bank) = speed * turn rate / BANK_GRAVITY. */
+	public static final double BANK_GRAVITY = 9.8;
+	/** Time constant (s) with which the drawn bank follows the turn: an airship leans in slowly. */
+	public static final double BANK_RESPONSE = 0.8;
+	private static final java.util.Map<ShipGeometry, Double> WALK_RADIUS = java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
+
+	/**
+	 * Largest bank (degrees) the vessel is drawn with: the configured {@link FlightConfig#bankAngle}, but never so
+	 * much that a point where one walks (the deck from rail to rail up to head height, every room of a vessel with
+	 * rooms) moves more than {@link #BANK_TOLERANCE} away from its collisions. The roll is about the fore-and-aft axis
+	 * at the height of the main deck. A small airship banks fully, a huge one with rooms many blocks above and below
+	 * its deck only by a fraction of a degree.
+	 */
+	public static double bankLimit(ShipGeometry g, FlightConfig f) {
+		return f == null ? 0 : bankLimit(g, f.bankAngle);
+	}
+
+	/** {@link #bankLimit(ShipGeometry, FlightConfig)} for a given {@code bankAngle} (the server's, on a client). */
+	public static double bankLimit(ShipGeometry g, double bankAngle) {
+		if (!(bankAngle > 0)) {
+			return 0;
+		}
+		// a point at r from the roll axis moves along the chord 2 r sin(bank / 2)
+		double r = Math.max(BANK_TOLERANCE, walkRadius(g));
+		return Math.min(bankAngle, Math.toDegrees(2 * Math.asin(BANK_TOLERANCE / (2 * r))));
+	}
+
+	/**
+	 * Where the renderer draws a point of the vessel (local x, y; z, along the keel, does not change) once banked by
+	 * {@code bankDegrees}: the drawing is rotated about the fore-and-aft axis at the height {@code pivotY} of the main
+	 * deck, exactly as {@code ShipRenderer} does it (translate to the pivot, {@code RotationAxis.POSITIVE_Z} by the
+	 * bank, translate back). Local +x is the port side, so a positive bank lowers the starboard side: the right side
+	 * goes down in a right turn ({@link #bankTarget} is positive while the yaw increases).
+	 */
+	public static double[] bankPoint(double x, double y, double pivotY, double bankDegrees) {
+		double a = Math.toRadians(bankDegrees), c = Math.cos(a), s = Math.sin(a);
+		double dy = y - pivotY;
+		return new double[] {x * c - dy * s, pivotY + x * s + dy * c};
+	}
+
+	/**
+	 * Distance from the roll axis (x = 0, y = main deck) of the farthest point where a player walks: the deck edge
+	 * at head height, and the walkable cells (rooms, ladders, doors) of the interior grid. Computed once per vessel.
+	 */
+	public static double walkRadius(ShipGeometry g) {
+		Double cached = WALK_RADIUS.get(g);
+		if (cached != null) {
+			return cached;
+		}
+		double pivot = g.hull().mainDeckY;
+		double r = Math.hypot(g.hull().maxHalfWidth, 2.0);
+		InteriorGrid grid = g.interior();
+		if (grid != null) {
+			for (int i = 0; i < grid.nx; i++) {
+				for (int k = 0; k < grid.nz; k++) {
+					for (int j = 0; j < grid.ny; j++) {
+						byte kind = grid.kind(i, j, k);
+						if (kind == InteriorGrid.DRY || kind == InteriorGrid.LADDER || kind == InteriorGrid.AIRLOCK || kind >= InteriorGrid.DOOR) {
+							double x = grid.x0 + (i + 0.5) * grid.cell, y = grid.y0 + (j + 0.5) * grid.cell;
+							r = Math.max(r, Math.hypot(x, y - pivot));
+						}
+					}
+				}
+			}
+		}
+		WALK_RADIUS.put(g, r);
+		return r;
+	}
+
+	/**
+	 * Bank (degrees, positive = rolling to starboard, the right side down, as into a right turn) of a coordinated
+	 * turn at this speed (blocks/s, negative going astern) and turn rate (degrees/s, positive = turning right),
+	 * within +-{@code limit}. Nothing when hovering or turning on the spot.
+	 */
+	public static double bankTarget(double speed, double yawRateDegrees, double limit) {
+		if (!(limit > 0)) {
+			return 0;
+		}
+		double bank = Math.toDegrees(Math.atan(speed * Math.toRadians(yawRateDegrees) / BANK_GRAVITY));
+		return Math.max(-limit, Math.min(limit, bank));
+	}
+
+	/** Drawn bank after {@code dt} seconds, easing towards the target with {@link #BANK_RESPONSE}. */
+	public static double bankStep(double current, double target, double dt) {
+		double next = current + (target - current) * (1 - Math.exp(-dt / BANK_RESPONSE));
+		return Math.abs(next) < 1e-3 && target == 0 ? 0 : next;
 	}
 }

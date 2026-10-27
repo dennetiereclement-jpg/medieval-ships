@@ -216,12 +216,66 @@ suivre chaque mise à jour. Notre approche ne touche qu'une méthode de collisio
   60 archipels aléatoires (57 réussis ; les 3 échecs étaient des ports encombrés d'îlots à
   7 blocs, où l'administrateur doit ajouter un point de passage — le navire l'a signalé).
 
+## Fonctions communes à tous les vaisseaux
+
+* **Aperçu de placement** (`client/PlacementPreview`) : à chaque tick où le joueur local tient
+  l'objet d'un vaisseau, la visée (`ShipItem.placementTarget`, celle du clic droit), le point de
+  départ (`ShipPlacement.Aim` : milieu de la face visée, cap arrondi à 2°, **le même que celui du
+  clic** dans `ShipItem.use`) et le contrôle d'espace (`ShipPlacement.find`, celui du serveur : sondes
+  de la coque contre le relief, les blocs et les autres coques, arrêt à la première sonde bloquée)
+  sont refaits sur le monde du client, mais seulement quand la face visée ou le cap arrondi change,
+  et au plus toutes les 10 ticks sinon. Tant que la visée reste sur la même face au même cap arrondi,
+  client et serveur calculent exactement le même emplacement.
+  Le modèle Blockbench du vaisseau est dessiné translucide (calque `entityTranslucent`, couleur
+  verte ou rouge, pleine lumière) par l'évènement `WorldRenderEvents.BEFORE_ENTITIES` de Fabric,
+  sans les os `rooms`, `furniture`, `fittings`, `detail` ni les meubles de remplacement.
+* **Tableau de bord du pilote** (`core/PilotHud`, texte pur testé ; `client/PilotHudOverlay`,
+  élément de HUD Fabric `HudElementRegistry`) : construit à chaque tick client à partir de l'état
+  synchronisé (vitesse, vitesse verticale, profondeur, allure, pilote automatique) ; une seule valeur
+  synchronisée de plus : `"phase;itinéraire;point;x;y;z"` du pilote automatique, mise à jour deux
+  fois par seconde et seulement quand elle change, et la limite de vitesse d'un administrateur
+  (`/ship speed`). Les touches affichées sont lues dans les options du joueur. Il remplace le message
+  périodique de la barre d'action.
+* **Réglages du serveur côté client** (`network/ServerConfigPayload`, `data/SyncedConfig`) : à la
+  connexion et après `/ship reload`, le serveur envoie à chaque joueur les règles de placement
+  (`adminPermissionLevel`, `placeRequiresAdmin`, `placeAdminOnly`, `placeAllowedPlayers` : le client
+  les compare à son propre niveau de permission, que le jeu tient à jour) et, par vaisseau, le plafond
+  d'altitude, `bankAngle` et les trois vitesses d'allure. L'aperçu, l'inclinaison et le tableau de
+  bord les utilisent ; avant réception (et en solo, où ce sont les mêmes) la configuration locale
+  sert.
+* **Inclinaison en virage** (`Flight.bankTarget`, `bankLimit`, `bankStep`) : virage coordonné
+  `tan φ = v·ω / g` (g = 9,8 blocs/s²) calculé par chaque client à partir de la vitesse
+  synchronisée et du cap, lissé (constante de temps 0,8 s) et dessiné par une rotation autour de
+  l'axe longitudinal à la hauteur du pont principal. Les collisions ne la voient pas. Borne :
+  `min(bankAngle, 2 asin(0,5 / 2r))`, `r` étant la plus grande distance à cet axe d'un endroit où l'on
+  marche (bord du pont à hauteur de tête, toutes les cellules praticables de la grille intérieure) :
+  aucun plancher, mur ou meuble ne paraît à plus d'un demi-bloc de sa collision (exactement :
+  un point à `r` de l'axe se déplace de la corde `2 r sin(φ/2)`, d'où la borne
+  `2 asin(0,5 / 2r)` ; `Flight.bankPoint` reproduit la transformation du rendu et le test unitaire
+  l'applique à toutes les cellules praticables). Pour les aéronefs,
+  elle remplace la gîte à la barre des navires.
+* **Destinations** (`core/GotoRoutes`, `command/DestinationCommands`) : une destination est un
+  itinéraire d'un seul point (`goto-<UUID>`, mode `once`) suivi par le pilote automatique existant ;
+  rien de nouveau dans la navigation elle-même. Celle d'un administrateur est menée comme un ferry
+  (tickets de chunks, enregistrement pour le redémarrage) jusqu'à l'arrivée ; celle d'un joueur
+  (`gotoByAdmin = false`, sauvegardé avec l'entité) ne pose aucun ticket ni enregistrement, et est
+  annulée après 10 s sans joueur à bord (passager, ou pieds dans le volume transporté de la coque).
+  Quand le pilote automatique signale qu'il est bloqué (`Autopilot.Listener.stuck`), une destination
+  est annulée au tick suivant. La destination d'un navire doit être de l'eau libre :
+  `ShipPlacement.openWaterNear` cherche, en anneaux de 2 blocs jusqu'à 32, un point dont la colonne et
+  quatre colonnes à une demi-largeur de coque sont navigables (au plus quelques milliers de lectures
+  de blocs, une fois par commande, chunks chargés seulement). Les refus de `/pilote` sont décidés par
+  une fonction pure testée (`GotoRoutes.vesselRefusal`, `destinationRefusal`). Le pilote automatique
+  aérien regarde devant lui à la distance de sa vitesse de croisière (et non de sa vitesse du moment) :
+  un dirigeable qui ralentit pour monter au-dessus d'un mur ne le perd plus de vue.
+
 ## Persistance
 
 Sauvegardé avec l'entité : position, cap, vitesse, vitesse de rotation, barre, allure, limite
 de vitesse, mode automatique, itinéraire, point visé, sens, phase (en mer / à quai), temps
 d'attente restant, nom. Sauvegardé dans le monde (`data/medievalships.dat`) : itinéraires,
-dernière position des navires automatiques, navire de chaque joueur déconnecté à bord.
+dernière position des navires automatiques, navire de chaque joueur déconnecté à bord,
+destinations enregistrées (`/ship destination add`).
 
 ## Performances
 

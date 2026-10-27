@@ -113,6 +113,10 @@ public final class ConfigManager {
 			server = new ServerSettings();
 		}
 		server.sanitize();
+		for (String unknown : server.unknownVessels()) {
+			MedievalShips.LOGGER.warn("medievalships.json: placeAdminOnly names no vessel: \"{}\" (ids: {})", unknown,
+					Ships.ALL.stream().map(ShipType::id).toList());
+		}
 		for (ShipType t : Ships.ALL) {
 			ship(t);
 		}
