@@ -1,0 +1,27 @@
+[00:00:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] shared features: sky_leviathan banking: turned 76 deg, bank up to 1.01 deg (limit 1.01), player aboard, worst deck offset 0.000
+[00:00:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan banking: the autopilot turns all the time on the loop (76 deg)
+[00:00:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan banking: it banks into the turns, within its limit (1.01 of 1.01 deg)
+[00:00:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan banking: on the client it leans into the turn, the inside (starboard in this right turn) down (33 samples the right way, 0 the wrong way)
+[00:00:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] sky_leviathan banking: the bank is drawn only, the deck one stands and walks on stays level and carries the player (worst 0.000 blocks off the deck)
+[00:00:00] [Server thread/INFO]: Player872 is not riding any vehicle
+[00:00:00] [Server thread/INFO]: Set Player872's game mode to Spectator Mode
+[00:00:00] [Server thread/INFO]: Teleported Player872 to 111.940000, -26.386000, -683.558000
+[00:00:00] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[00:00:01] [Server thread/INFO]: Pilote automatique désactivé, le navire s'arrête.
+[00:00:01] [Server thread/INFO]: Itinéraire virage_sky_leviathan supprimé.
+[00:00:01] [Server thread/INFO]: Player872 is not riding any vehicle
+[00:00:01] [Server thread/INFO]: Player872 is not riding any vehicle
+[00:00:01] [Server thread/INFO]: No items were found on player Player872
+[00:00:01] [Server thread/INFO]: Stopping server
+[00:00:01] [Server thread/INFO]: Saving players
+[00:00:01] [Server thread/INFO]: Player872 lost connection: Disconnected
+[00:00:01] [Server thread/INFO]: Player872 left the game
+[00:00:01] [Server thread/INFO]: Saving worlds
+[00:00:02] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:overworld
+[00:00:02] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_end
+[00:00:02] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_nether
+[00:00:02] [Server thread/INFO]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[00:00:02] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[00:00:02] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[00:00:02] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[00:00:02] [Render thread/INFO]: Stopping!
