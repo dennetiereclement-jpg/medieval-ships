@@ -1015,11 +1015,16 @@ def make_texture(path):
 # ================================================================ interior atlas
 SIZE_IN = lt.SIZE_IN
 REGIONS_IN_EXTRA = {
-    "in_stone":        (0, 192, 32, 48),   # cockpit: grey stone blocks between timber posts, a beam on top
-    "in_wall_lounge":  (32, 192, 32, 48),  # lounge: carved dark panelling, a gilded frieze, red fabric
-    "in_wall_store":   (64, 192, 32, 48),  # storeroom: rough planks and cross braces
-    "in_wall_works":   (96, 192, 32, 48),  # engine room: stone blocks, riveted plates, a pipe
-    "in_floor_grate":  (128, 192, 32, 32), # engine room: planks with iron grates
+    "in_stone":        (0, 192, 32, 48),   # cockpit: warm stone blocks between timber posts, a beam on top, a plank dado
+    "in_wall_lounge":  (0, 256, 32, 56),   # lounge: carved dark panelling (raised panels, gilded rail), a gilded frieze
+    "in_wall_store":   (64, 256, 32, 56),  # storeroom: stone blocks, a heavy timber post, a beam on top, a plank skirting
+    "in_wall_works":   (32, 256, 32, 88),  # engine room: stone blocks (half a block high), a copper pipe, riveted skirting
+    "in_floor_grate":  (128, 192, 32, 32), # (former engine room floor: planks with iron grates)
+    "in_floor_works":  (96, 256, 32, 32),  # engine room: heavy dark planks with iron straps (the grates are separate pieces)
+    "in_grate_iron":   (128, 256, 32, 32), # a floor grate: dark iron lattice in a riveted brass frame
+    "in_frieze_gold":  (160, 256, 64, 8),  # carved gilded running scroll on dark wood (beams, cornices)
+    "in_panel_carved": (160, 264, 32, 32), # a carved raised panel in a gilded frame (cabinets, the curio wall)
+    "in_ceil_beams":   (192, 264, 32, 32), # dark ceiling boards between joists (lounge: between the carved beams)
     "in_floor_lounge": (160, 192, 32, 32), # polished parquet
     "in_ceil_lounge":  (192, 192, 32, 32), # coffered ceiling with gilded beads
     "in_crystal":      (224, 192, 16, 32), # glowing crystal (lit)
@@ -1058,6 +1063,53 @@ def _stone(px, region, rng, base=(120, 116, 108), mortar=(70, 66, 60), bh=6, bw=
             _put(px, u, v, x, y, _jitter(c, rng, 2))
 
 
+def _lounge_panels(img, region, rng):
+    """The lounge's walls (reference panel 2): dark carved wood panelling to the ceiling, a gilded carved frieze under
+    it, tall raised panels with a thin gilded inner bead, a gilded chair rail, lower wainscot panels, a skirting."""
+    px = img.load()
+    u, v, w, h = region
+    fine_wood(img, region, _rgb("5a3418"), _rgb("2a160a"), 4, rng, vertical=True, knots=0.0)
+    for y in range(h):
+        for x in range(w):
+            gx = x % 16
+            if y < 7:       # the carved frieze: a running scroll between two gilded beads
+                c = _scale(_rgb("2e180a"), 1.0 + 0.06 * math.sin(x * 0.9))
+                yy = 3.0 + 1.6 * math.sin(x * 2 * math.pi / 16)
+                if y == 6:
+                    c = _scale(_ramp(GOLD_STOPS, 0.45), 0.9)
+                elif y == 0:
+                    c = _scale(_ramp(GOLD_STOPS, 0.25), 0.8)
+                elif abs(y - yy) < 0.7:
+                    c = _scale(_ramp(GOLD_STOPS, 0.3 + 0.2 * (y < 3)), 0.8)
+            elif y < 9:
+                c = _scale(_rgb("24120a"), 1.0 - 0.15 * (y == 8))
+            elif y < 36:    # tall raised panels
+                e = min(gx - 1, 14 - gx, y - 10, 34 - y)
+                if gx in (0, 15) or y in (9, 35):
+                    c = _scale(_rgb("2a160a"), 1.0)
+                elif e < 0:
+                    c = _scale(_rgb("3a2010"), 1.0 + 0.06 * math.sin(y))
+                elif e == 0:
+                    c = _scale(_rgb("7a4c26"), 1.0)          # lit bevel
+                elif e == 1:
+                    c = _ramp(GOLD_STOPS, 0.45 if (x + y) % 4 else 0.7)
+                else:
+                    continue        # the panel's own grain
+            elif y < 39:    # gilded chair rail
+                c = _ramp(GOLD_STOPS, (0.3, 0.7, 0.45)[y - 36])
+            elif y < h - 3:  # lower wainscot: small panels
+                e = min(gx - 2, 13 - gx, y - 40, h - 5 - y)
+                if gx in (0, 1, 14, 15) or y in (39, h - 4):
+                    c = _scale(_rgb("2e180a"), 1.0)
+                elif e == 0:
+                    c = _scale(_rgb("6a4020"), 1.0)
+                else:
+                    continue
+            else:
+                c = _scale(_rgb("1e0e06"), 1.0 + 0.2 * (y == h - 3))
+            _put(px, u, v, x, y, _jitter(c, rng, 2))
+
+
 def make_interior_texture(path, tmp_base):
     """The Sky Leviathan's room atlas (drawn to tmp_base first), then the rooms of the Crystal Airship below it."""
     lt.make_interior_texture(tmp_base)
@@ -1065,49 +1117,104 @@ def make_interior_texture(path, tmp_base):
     px = img.load()
     rng = random.Random(23)
     R = REGIONS_IN_EXTRA
-    _stone(px, R["in_stone"], rng)
-    # lounge panelling: dark carved wainscot below, red fabric panels, a gilded frieze under the ceiling
-    u, v, w, h = R["in_wall_lounge"]
-    fine_wood(img, R["in_wall_lounge"], _rgb("5a3418"), _rgb("2a160a"), 4, rng, vertical=True, knots=0.0)
-    for y in range(h):
-        for x in range(w):
-            if y < 4:
-                c = _ramp(GOLD_STOPS, 0.35 + 0.4 * ((x // 2 + y) % 3) / 2)
-            elif 8 <= y < 26 and 3 <= x % 16 < 13:
-                c = _scale(_rgb("7a1a18"), 1.0 + 0.08 * math.sin(x * 0.8 + y * 0.3))
-                if x % 16 in (3, 12) or y in (8, 25):
-                    c = _ramp(GOLD_STOPS, 0.6)
-            elif y in (27, 28):
-                c = _ramp(GOLD_STOPS, 0.5)
-            elif y > 30 and (x % 16 in (2, 13) or y in (31, h - 3)):
-                c = _rgb("2a160a")
+    # cockpit (reference panel 1): warm grey-brown stone blocks between a timber post and a beam, a plank dado below
+    _stone(px, R["in_stone"], rng, base=(108, 100, 92), mortar=(48, 40, 34), bh=7, bw=12)
+    u, v, w, h = R["in_stone"]
+    for y in range(36, h):
+        for x in range(3, w - 3):
+            if y in (36, 37):
+                c = _ramp(GOLD_STOPS, 0.35 if y == 36 else 0.55)
             else:
-                continue
+                c = _scale(_rgb("6a4424"), 1.0 + 0.06 * math.sin(x * 0.45 + (y // 4) * 2.1) - (0.25 if y % 4 == 3 else 0.0))
             _put(px, u, v, x, y, _jitter(c, rng, 3))
-    # storeroom: rough planks and braces
-    fine_wood(img, R["in_wall_store"], _rgb("6e4a2a"), _rgb("2e1c0e"), 4, rng, knots=0.2)
+    _lounge_panels(img, R["in_wall_lounge"], rng)
+    # storeroom (reference panel 4): stone blocks, a heavy timber post at one side, a beam on top, a plank skirting
+    _stone(px, R["in_wall_store"], rng, base=(124, 90, 58), mortar=(40, 27, 16), bh=8, bw=14, post=False)
     u, v, w, h = R["in_wall_store"]
     for y in range(h):
         for x in range(w):
-            if x < 3 or x > w - 4 or y < 3:
-                _put(px, u, v, x, y, _scale(_rgb("4a2e18"), 1.0 + 0.05 * math.sin(y + x)))
-            elif abs((x - 3) - (y - 3) * (w - 6) / (h - 6)) < 1.5 and y > 6:
-                _put(px, u, v, x, y, _rgb("553620"))
-    # engine room: stone blocks below, riveted plates above, a copper pipe along it
-    _stone(px, R["in_wall_works"], rng, base=(110, 104, 96), post=False)
+            if x < 5:
+                c = _scale(_rgb("4e3018"), 1.0 + 0.07 * math.sin(y * 0.5 + x) - (0.2 if x == 4 else 0.0))
+            elif y < 5:
+                c = _scale(_rgb("44291a"), 1.0 + 0.06 * math.sin(x * 0.7) - (0.25 if y == 4 else 0.0))
+            elif y >= h - 6:
+                c = _scale(_rgb("5e3c20"), 1.0 + 0.05 * math.sin(x * 0.6) - (0.25 if y in (h - 6, h - 1) else 0.0))
+            else:
+                continue
+            _put(px, u, v, x, y, _jitter(c, rng, 3))
+    # engine room (reference panel 3): stone blocks half a block high, a copper pipe under the beam, a riveted iron skirting
+    _stone(px, R["in_wall_works"], rng, base=(116, 98, 76), mortar=(42, 32, 22), bh=8, bw=14, post=False)
     u, v, w, h = R["in_wall_works"]
-    for y in range(0, 18):
+    for y in range(h):
         for x in range(w):
-            c = _ramp([(0.0, (50, 46, 42)), (0.5, (96, 88, 76)), (1.0, (140, 126, 100))], 0.4 + 0.3 * math.sin(x * 0.3 + y * 0.2))
-            if y % 9 == 0 or x % 16 == 0:
-                c = _scale(c, 0.6)
-            elif y % 9 in (2, 7) and x % 4 == 2:
-                c = (170, 150, 110)
+            if y < 5:
+                c = _scale(_rgb("3e2614"), 1.0 + 0.06 * math.sin(x * 0.7) - (0.25 if y == 4 else 0.0))
+            elif 8 <= y < 13:
+                c = _ramp(COPPER_STOPS, 0.15 + 0.2 * (y - 8))
+                if x % 16 in (0, 1):
+                    c = _ramp(BRASS_STOPS, 0.7)
+            elif y >= h - 10:
+                c = _ramp([(0.0, (46, 42, 38)), (0.5, (86, 80, 70)), (1.0, (122, 112, 96))], 0.45 + 0.2 * math.sin(x * 0.3))
+                if y == h - 10 or x % 16 == 0:
+                    c = _scale(c, 0.6)
+                elif y in (h - 8, h - 3) and x % 4 == 2:
+                    c = (176, 150, 104)
+            else:
+                continue
+            _put(px, u, v, x, y, _jitter(c, rng, 2))
+    # engine room floor: heavy dark planks with iron straps; its grates are separate pieces (crystal_furniture.floor_grate)
+    fine_wood(img, R["in_floor_works"], _rgb("5e4028"), _rgb("24160c"), 4, rng, knots=0.1)
+    u, v, w, h = R["in_floor_works"]
+    for y in range(h):
+        for x in range(w):
+            if x in (7, 8, 23, 24) and y % 4 != 3:
+                _put(px, u, v, x, y, _scale(_rgb("2e2a26"), 1.0 + 0.1 * (x in (7, 23))))
+            elif x in (6, 9, 22, 25) and y % 8 == 1:
+                _put(px, u, v, x, y, (150, 132, 100))
+    u, v, w, h = R["in_grate_iron"]
+    for y in range(h):
+        for x in range(w):
+            e = min(x, y, w - 1 - x, h - 1 - y)
+            if e < 3:
+                c = _ramp(BRASS_STOPS, 0.3 + 0.18 * e)
+                if e == 1 and (x + y) % 6 == 0:
+                    c = _ramp(BRASS_STOPS, 0.95)
+            elif (x - 3) % 4 == 0 or (y - 3) % 4 == 0:
+                c = _ramp(STEEL_STOPS, 0.2 + 0.1 * ((x + y) % 3))
+            else:
+                c = _scale((22, 18, 16), 1.0 + 0.3 * ((x * 3 + y) % 4 == 0))
             _put(px, u, v, x, y, c)
-    for y in range(20, 24):
+    # the gilded running scroll (carved beams, cornices) and the carved panel (cabinets)
+    u, v, w, h = R["in_frieze_gold"]
+    for y in range(h):
         for x in range(w):
-            _put(px, u, v, x, y, _ramp(COPPER_STOPS, 0.2 + 0.25 * (y - 20)))
-    # engine room floor: planks with square iron grates
+            c = _scale(_rgb("3a1e0c"), 1.0 + 0.06 * math.sin(x * 0.9))
+            yy = h / 2 - 0.5 + 1.6 * math.sin(x * 2 * math.pi / 16)
+            if y == h - 1:
+                c = _scale(_ramp(GOLD_STOPS, 0.35), 0.8)
+            elif y == 0:
+                c = _rgb("1e0e06")
+            elif abs(y - yy) < 0.6:
+                c = _scale(_rgb("6a4020"), 1.1 - 0.15 * (y > h / 2))       # carved relief, lit from above
+            elif abs(y - yy - 1) < 0.6:
+                c = _rgb("24120a")
+            _put(px, u, v, x, y, _jitter(c, rng, 2))
+    u, v, w, h = R["in_panel_carved"]
+    fine_wood(img, R["in_panel_carved"], _rgb("5a3418"), _rgb("2a160a"), 4, rng, vertical=True, knots=0.0)
+    for y in range(h):
+        for x in range(w):
+            e = min(x, y, w - 1 - x, h - 1 - y)
+            if e < 2:
+                c = _scale(_rgb("2a160a"), 1.0 + 0.1 * (e == 1))
+            elif e == 2:
+                c = _ramp(GOLD_STOPS, 0.6 if (x + y) % 3 else 0.35)
+            elif e < 5:
+                c = _scale(_rgb("6a4020"), 1.15 - 0.08 * (e - 3) - 0.18 * (x > w / 2 and y > h / 2))
+            else:
+                continue
+            _put(px, u, v, x, y, _jitter(c, rng, 2))
+    fine_wood(img, R["in_ceil_beams"], _rgb("4a2c16"), _rgb("1e1008"), 4, rng, knots=0.05)
+    # former engine room floor (kept for older references)
     fine_wood(img, R["in_floor_grate"], _rgb("6a4a2c"), _rgb("2e1e10"), 4, rng)
     u, v, w, h = R["in_floor_grate"]
     for y in range(h):
@@ -1119,14 +1226,22 @@ def make_interior_texture(path, tmp_base):
             elif gx in (2, 13) and 2 <= gy <= 13 or gy in (2, 13) and 2 <= gx <= 13:
                 _put(px, u, v, x, y, _rgb("6a5a40"))
     fine_wood(img, R["in_floor_lounge"], _rgb("8a5a30"), _rgb("3a2210"), 4, rng, knots=0.0, grain=0.06)
+    # the lounge's coffered ceiling: one coffer every two blocks, dark boards in a moulded frame with a gilded bead
+    fine_wood(img, R["in_ceil_lounge"], _rgb("4e2e16"), _rgb("22120a"), 4, rng, knots=0.0)
     u, v, w, h = R["in_ceil_lounge"]
     for y in range(h):
         for x in range(w):
-            gx, gy = x % 16, y % 16
-            if gx < 2 or gy < 2:
-                c = _scale(_ramp(GOLD_STOPS, 0.3), 0.8) if (gx == 1 or gy == 1) else _rgb("2a160a")
+            e = min(x, y, w - 1 - x, h - 1 - y)
+            if e < 3:
+                c = _scale(_rgb("2a160a"), 1.0 + 0.12 * (e == 1))
+            elif e == 3:
+                c = _scale(_ramp(GOLD_STOPS, 0.3 if (x + y) % 3 else 0.15), 0.8)
+            elif e == 4:
+                c = _scale(_rgb("6a4020"), 0.85)
+            elif 15 <= x <= 16 and 15 <= y <= 16:
+                c = _scale(_ramp(GOLD_STOPS, 0.4), 0.85)       # a small gilded boss in the middle
             else:
-                c = _scale(_rgb("5a3418"), 0.9 + 0.1 * math.sin(gx * 0.5) + 0.08 * (gy > 12))
+                continue
             _put(px, u, v, x, y, _jitter(c, rng, 3))
     _crystal(px, R["in_crystal"], rng)
     _core(px, R["in_core"])
@@ -1137,7 +1252,7 @@ def make_interior_texture(path, tmp_base):
             if (x % 8 == 4 and y % 8 == 4) or (x % 8 == 0 and y % 8 == 0):
                 _put(px, u, v, x, y, _rgb("4a0e0c"))
     fine_wood(img, R["in_sofa_wood"], _rgb("4a2a14"), _rgb("1e1008"), 4, rng)
-    lt._rug_big(px, R["in_rug_red"], rng, field="8a1c18", border="c89a48", dark="3a0e0b", accent="6a1410")
+    lt._rug_big(px, R["in_rug_red"], rng, field="761510", border="b08838", dark="2e0a08", accent="561008")
     u, v, w, h = R["in_map_world"]
     nz = _noise(w, h, 5, rng)
     for y in range(h):
@@ -1156,7 +1271,7 @@ def make_interior_texture(path, tmp_base):
         for y in (1, h - 2):
             _put(px, u, v, x, y, _ramp(GOLD_STOPS, 0.6 if x % 3 else 0.3))
     polished_metal(img, R["in_brass_pol"], BRASS_STOPS, rng, seed=3.3)
-    woven(img, R["in_cloth_sack"], _rgb("a08a62"), rng)
+    woven(img, R["in_cloth_sack"], _rgb("8c7350"), rng)
     fine_wood(img, R["in_ceil_store"], _rgb("5e3e22"), _rgb("2a1a0c"), 4, rng)
     u, v, w, h = R["in_ceil_store"]
     for y in range(h):

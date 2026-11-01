@@ -55,6 +55,10 @@ BOUNDS.update({
     FU + "spruce_bench": (0.0, 1.0, 0.0, 0.562, 0.25, 0.75),
     IC + "loaded_fir_barrel": (0.047, 0.953, 0.0, 0.906, 0.0, 1.0),
     FD + "radiator": (-0.391, 1.25, 0.0, 0.828, 0.625, 0.938),
+    FD + "standing_lamp": (0.188, 0.812, -0.048, 2.0, 0.188, 0.812),
+    FU + "oak_crate": (0.0, 1.0, 0.0, 1.0, 0.0, 1.0),
+    FR + "tomato_crate": (0.0, 1.0, 0.0, 1.0, 0.0, 1.0),
+    IC + "brown_storage_vase": (0.062, 0.938, 0.0, 1.0, 0.062, 0.938),
 })
 SEAT_H = dict(ld.SEAT_H)
 SEAT_H.update({FD + "sofa_left": 0.344, FD + "sofa_middle": 0.344, FD + "sofa_right": 0.344, FU + "crimson_chair": 0.5,
@@ -69,8 +73,10 @@ FALLBACK_REGION.update({
     FU + "dark_oak_pedestal_table": "in_wood_carved", FU + "dark_oak_cabinet": "in_wood_carved", FU + "dark_oak_stool": "in_sofa_wood",
     FU + "mangrove_chair": "in_sofa",
     FD + "dining_chair": "in_wood_carved", FU + "dark_oak_chair": "in_sofa", FD + "tall_bookshelf": "in_books", FD + "workbench": "in_plank",
+    FD + "standing_lamp": "in_lamp", FU + "oak_crate": "crate", FR + "tomato_crate": "crate", IC + "cypress_rack": "in_beam",
+    FD + "night_stand": "in_wood_carved", FD + "cuckoo_clock": "in_wood_carved", IC + "brown_storage_vase": "in_brick",
 })
-GLOWING_FALLBACK = ld.GLOWING_FALLBACK + (FD + "lamp",)
+GLOWING_FALLBACK = ld.GLOWING_FALLBACK + (FD + "lamp", FD + "standing_lamp")
 nd.BOUNDS = BOUNDS   # nd.to_ship does not read it, footprints below do
 
 BLOCKS = []    # dicts: block, x, y, z, yaw, solid, scale
@@ -231,21 +237,67 @@ def sofa(side, y, z0, n, name):
 
 
 # ---------------------------------------------------------------- rooms
+def beams_across(name, y_ceil, zs, side_y=None, carved=False, w=0.3, h=0.3):
+    """Ceiling beams across a room at each z (from wall to wall, under the ceiling at y_ceil)."""
+    yy = y_ceil - 0.2 if side_y is None else side_y
+    for k, z in enumerate(zs):
+        a, b = wall_x(yy, z, -1), wall_x(yy, z, 1)
+        if a is None or b is None:
+            continue
+        custom("ceiling_beam", name="%s_beam_%d" % (name, k), x0=a + 0.01, x1=b - 0.01, y=y_ceil, z=z, w=w, h=h, carved=carved)
+
+
 def cockpit():
-    """Poste de pilotage (reference panel 1): the great wheel facing the arched window, brass instrument columns, a big
-    gauge on the wall, a blue crystal lamp, lanterns; the chart table aft, bookcases, the globe, a telescope."""
+    """Poste de pilotage (reference panel 1): the great wheel facing the arched window between brass instrument columns (a
+    big chronometer on the port one, a green glass dome on the starboard one), the tall blue crystal lamp beside it,
+    lanterns flanking the arch and hanging under it, a big wall clock, gauge boards and brass pipes on the stone walls,
+    timber posts and ceiling beams, sills under the side windows; the chart table aft, bookcases, the globe, a telescope."""
     f = L2
-    custom("instrument_column", solid=(-1.85, -1.15, f, f + 1.6, -15.65, -14.95), name="cockpit_column_0", p=(-1.5, f, -15.3), top="dial",
-           facing=(0, 0, -1))
-    custom("instrument_column", solid=(1.15, 1.85, f, f + 1.6, -15.65, -14.95), name="cockpit_column_1", p=(1.5, f, -15.3), top="globe",
-           facing=(0, 0, -1))
-    xl = wall_x(f + 0.5, -20.75, -1) + 0.45
-    custom("crystal_lamp", solid=(xl - 0.3, xl + 0.3, f, f + 2.0, -21.05, -20.45), name="cockpit_crystal_lamp", p=(xl, f, -20.75))
-    custom("wall_gauge", name="cockpit_clock", center=(-3.7, f + 1.5, ci.ROOMS["cockpit"][5] + 0.0), normal=(0, 0, -1), r=0.55)
-    custom("wall_gauge", name="cockpit_gauge_1", center=(-3.7, f + 0.6, ci.ROOMS["cockpit"][5] + 0.0), normal=(0, 0, -1), r=0.28)
+    zf = ci.ROOMS["cockpit"][5]          # the front wall's face (the arch)
+    custom("instrument_column", solid=(1.1, 1.8, f, f + 1.6, -15.6, -14.9), name="cockpit_column_0", p=(1.45, f, -15.25), top="clock",
+           facing=(0, 0, -1), h=1.15)
+    custom("instrument_column", solid=(-1.7, -1.0, f, f + 1.6, -15.75, -15.05), name="cockpit_column_1", p=(-1.35, f, -15.4), top="gem",
+           facing=(0, 0, -1), h=1.2)
+    custom("crystal_lamp", solid=(-2.45, -1.85, f, f + 2.1, -15.1, -14.55), name="cockpit_crystal_lamp", p=(-2.15, f, -14.85), h=1.55, r=0.2)
+    # the big wall clock over the stair's opening (port of the arch), a gauge under it
+    custom("wall_gauge", name="cockpit_clock", center=(3.3, f + 1.85, zf), normal=(0, 0, -1), r=0.5)
+    custom("wall_gauge", name="cockpit_gauge_1", center=(3.3, f + 1.05, zf), normal=(0, 0, -1), r=0.24)
+    # lanterns flanking the arch (on the front wall) and hanging in it
+    wall_lantern_z("cockpit_lantern_arch_p", 2.75, f + 2.45, zf, -1)
+    wall_lantern_z("cockpit_lantern_arch_s", -2.72, f + 2.45, zf, -1)
+    hanging(0.0, CEIL_L2, -14.95, drop=0.05)
+    # the starboard wall: the lever bank under a gauge board, a pipe along the wall into it
     xv = wall_x(f + 0.5, -17.9, -1) + 0.02
     custom("lever_bank", solid=(xv, xv + 0.68, f, f + 0.9, -18.4, -17.4), name="cockpit_levers", p=(xv + 0.34, f, -17.9), normal=(1, 0, 0))
-    custom("speaking_tube", name="cockpit_tube", foot=(0.9, f, -15.2), top=(0.9, f + 1.3, -15.2), normal=(-1, 0, 0))
+    xg = wall_x(f + 1.6, -17.9, -1)
+    custom("gauge_board", name="cockpit_gauges_s", center=(xg + 0.02, f + 1.55, -17.9), normal=(1, 0, 0), w=1.0, h=0.7)
+    xp = wall_x(f + 2.5, -18.0, -1) + 0.16
+    custom("pipe", name="cockpit_pipe_s", pts=[(xp, f + 2.55, -21.0), (xp, f + 2.55, -16.9), (xp, f + 1.95, -16.9)], d=0.16,
+           region="in_brass_pol", flange="in_gold")
+    # the port wall aft of the stair: the speaking tube, a gauge board, a pipe
+    xs = wall_x(f + 0.5, -19.2, 1) - 0.12
+    custom("speaking_tube", name="cockpit_tube", foot=(xs, f, -19.2), top=(xs, f + 1.4, -19.2), normal=(-1, 0, 0))
+    xq = wall_x(f + 2.5, -18.4, 1) - 0.16
+    custom("pipe", name="cockpit_pipe_p", pts=[(xq, f + 2.55, -21.0), (xq, f + 2.55, -18.7), (xs, f + 1.6, -19.2)], d=0.16,
+           region="in_brass_pol", flange="in_gold")
+    # sills under the side windows, an hourglass and a compass on them
+    for side in (-1, 1):
+        for k, (z0, z1) in enumerate(ci.COCKPIT_WINDOWS):
+            w = wall_x(ci.COCKPIT_WIN_Y[0] + 0.3, (z0 + z1) / 2, side)
+            custom("timber", name="cockpit_sill_%d_%d" % (side > 0, k), a=(w - side * 0.14, ci.COCKPIT_WIN_Y[0] - 0.06, z0 - 0.1),
+                   b=(w - side * 0.14, ci.COCKPIT_WIN_Y[0] - 0.06, z1 + 0.1), w=0.12, d=0.3, region="in_wood_carved")
+    ws = wall_x(ci.COCKPIT_WIN_Y[0] + 0.3, -15.75, -1)
+    custom("hourglass", name="cockpit_hourglass", p=(ws + 0.16, ci.COCKPIT_WIN_Y[0], -15.5))
+    # timber posts at the corners and between the side windows, beams across the ceiling
+    for side in (-1, 1):
+        for k, z in enumerate((-14.75, -17.25, -19.75)):
+            if side > 0 and z > -18.0:
+                continue          # the stair's opening
+            w = wall_x(f + 1.0, z, side)
+            custom("wall_post", name="cockpit_post_%d_%d" % (side > 0, k), p=(w, f, z), h=CEIL_L2 - f, normal=(-side, 0, 0), w=0.28, d=0.16,
+                   collars=True, region="in_beam")
+    beams_across("cockpit", CEIL_L2, (-16.1, -18.2, -20.2, -22.0), w=0.32, h=0.26)
+    custom("helm_dais", name="cockpit_dais", p=(0.0, f, cs.HELM_Z), r=0.72)
     # the chart table aft: two Furnish dark oak tables, two chairs, the charts and instruments on it
     for x in (-0.5, 0.5):
         at(FU + "dark_oak_table", x, f, -20.3, "stern")
@@ -266,9 +318,8 @@ def cockpit():
     # a co-pilot's chair by the starboard window, lanterns
     xc = wall_x(f + 0.5, -16.4, -1) + 0.75
     chair(FU + "mangrove_chair", xc, f, -16.4, "bow", xc + 0.9, -16.4)
-    for x, z in ((-2.6, -16.0), (2.6, -19.0), (0.0, -21.3)):
+    for x, z in ((-2.6, -18.5), (2.6, -18.6), (0.0, -21.0)):
         hanging(x, CEIL_L2, z)
-    custom("rug", name="cockpit_rug", p=(0.0, f, -17.2), w=2.2, l=1.8, region="in_rug_red")
 
 
 def mess():
@@ -307,105 +358,174 @@ def mess():
     painting("mess_painting_s", "wanderer", (wall_x(f + 1.3, -20.0, -1) + 0.02, f + 1.3, -20.0), (1, 0, 0), 1.0, 1.0)
 
 
-def lounge():
-    """Salon (reference panel 2): red sofas round a low table on a red rug under the curio shelves, armchairs, the framed
-    map, a card table, the piano, a second group of sofas aft, a liquor cabinet, lanterns; the big windows on both sides."""
-    f = LO
-    # forward: the long sofa against the bulkhead (starboard of the storeroom's door) under shelves of curios, a sofa along
-    # the starboard wall, the low table on the rug, two armchairs facing the sofas
-    zb = 10.0
-    w = wall_x(f + 0.4, 9.5, -1)
-    xs = [x for x in (-3.5, -2.5, -1.5, -0.5) if x - 0.5 > w - 0.05]
-    for k, x in enumerate(xs):
-        piece = "sofa_left" if k == 0 else "sofa_right" if k == len(xs) - 1 else "sofa_middle"
+def sofa_z(y, zw, x0, n, nz, name):
+    """A Farmhouse sofa of n pieces with its back to a transverse wall at z = zw (facing nz: -1 aft, +1 forward), from x0
+    towards +x, its seats."""
+    facing = "stern" if nz < 0 else "bow"
+    for k in range(n):
+        x = x0 + 0.5 + k
+        if n == 1:
+            piece = "sofa_middle"
+        elif k == 0:
+            piece = "sofa_left" if nz < 0 else "sofa_right"
+        elif k == n - 1:
+            piece = "sofa_right" if nz < 0 else "sofa_left"
+        else:
+            piece = "sofa_middle"
         bid = FD + piece
-        x0, x1, _, _, z0, z1 = _footprint(bid, 0.0, 0.0, 0.0, FACING["stern"])
-        at(bid, x, f, zb - 0.02 - (z1 - z0) / 2, "stern", solid=False)
-        seat(x, f + 0.3, zb - 0.5, x, f + 0.02, zb - 1.35)
-    for k, x in enumerate(xs[:3]):
-        against_z(FD + "wall_shelf", x, f + 1.0, zb, -1, solid=False)
-    sofa(-1, f, 5.0, 3, "lounge_sofa_s")
-    custom("rug", name="lounge_rug_fwd", p=(-1.8, f, 7.1), w=4.6, l=4.4, region="in_rug_red")
-    at(FD + "coffee_table", -2.1, f, 7.2, "stern")
-    block(FD + "kerosene_lantern", -2.3, f + 0.5, 7.0, "stern", solid=False)
-    block(FU + "book_pile", -1.9, f + 0.5, 7.5, "stern", solid=False, scale=0.6)
-    chair(FU + "mangrove_chair", -0.4, f, 6.6, "starboard", 0.5, 6.6)
-    chair(FU + "mangrove_chair", -0.4, f, 7.8, "starboard", 0.5, 7.8)
-    custom("world_map", name="lounge_map", center=(wall_x(f + 1.9, 9.1, -1) + 0.02, f + 1.95, 9.1), normal=(1, 0, 0), w=1.2, h=0.9)
-    # port, forward: the piano against the wall, its stool; the card table and its chairs
-    against(FD + "piano", 1, f, 9.0)
-    chair(FU + "dark_oak_stool", 2.8, f, 8.9, "port", 2.0, 8.4)
-    at(FU + "dark_oak_pedestal_table", 2.6, f, 4.6, "stern")
-    block(FU + "chess_board", 2.6, f + 1.0, 4.6, "stern", solid=False, scale=0.8)
-    chair(FU + "mangrove_chair", 2.6, f, 3.65, "bow", 1.6, 3.6)
-    chair(FU + "mangrove_chair", 2.6, f, 5.55, "stern", 1.6, 5.6)
-    # aft: a sofa of four pieces along the port wall, its low table and armchairs on a rug
-    sofa(1, f, -5.0, 4, "lounge_sofa_p")
-    custom("rug", name="lounge_rug_aft", p=(2.0, f, -3.0), w=3.4, l=4.6, region="in_rug_red")
-    at(FD + "coffee_table", 2.05, f, -3.0, "stern")
-    block(FD + "wine_bottle", 1.9, f + 0.5, -3.2, "stern", solid=False)
-    block(FD + "wine_glass", 2.2, f + 0.5, -2.8, "stern", solid=False, scale=0.85)
-    chair(FU + "mangrove_chair", 1.0, f, -3.7, "port", 0.1, -3.7)
-    chair(FU + "mangrove_chair", 1.0, f, -2.3, "port", 0.1, -2.3)
-    # starboard, aft: the liquor cabinet on the aft bulkhead, bookcases, a rocking chair by the window, a lamp
-    against_z(FD + "liquor_cabinet", -3.0, f, -7.0, +1)
-    against(FD + "tall_bookshelf", -1, f, -6.5)
-    chair(FD + "rocking_chair", -3.2, f, -2.6, "port", -2.0, -2.6)
-    against(FD + "night_stand", -1, f, -4.4)
-    block(FD + "lamp", wall_x(f + 0.3, -4.4, -1) + 0.4, f + 0.63, -4.4, "stern", solid=False, scale=0.8)
-    # the middle: a round table with two chairs on the starboard side, the aisle along the port side of it
-    at(FD + "round_table", -2.6, f, 1.0, "stern")
-    block(FD + "pile_of_books", -2.6, f + 1.0, 1.0, "stern", solid=False)
-    chair(FD + "dining_chair", -3.6, f, 1.0, "port", -3.6, 2.2)
-    chair(FD + "dining_chair", -1.6, f, 1.0, "starboard", -1.6, 2.2)
-    # lanterns hanging from the ceiling, on the walls between the windows
-    for x, z in ((-2.0, 7.0), (2.4, -3.0), (0.0, 1.0), (2.8, 4.6), (-2.6, -3.0), (-2.6, 1.0)):
-        hanging(x, CEIL_LO, z, drop=-0.25)
-    for side in (-1, 1):
-        for z in (-0.5, 2.5):
-            wall_lantern("lounge_lantern_%d_%d" % (side > 0, int(z * 10)), side, f + 2.6, z)
-    painting("lounge_painting_p", "sea", (wall_x(f + 2.0, -6.5, 1) - 0.02, f + 2.0, -6.5), (-1, 0, 0), 0.9, 0.9)
+        _, _, _, _, z0, z1 = _footprint(bid, 0.0, 0.0, 0.0, FACING[facing])
+        at(bid, x, y, zw + nz * (0.02 + (z1 - z0) / 2), facing, solid=False)
+        seat(x, y + 0.3, zw + nz * 0.5, x, y + 0.02, zw + nz * 1.35)
+
+
+def armchair(x, f, z, facing, dx, dz, name):
+    """The lounge's tufted red velvet armchair (crystal_furniture.armchair) and its seat."""
+    custom("armchair", name=name, p=(x, f, z), facing=facing)
+    seat(x, f + 0.33, z, dx, f + 0.02, dz)
+
+
+def lounge():
+    """Salon (reference panel 2): the forward salon in the starboard bow corner, as on the sheet: a long red sofa under the
+    carved curio wall (shelves of books, bottles and curios), a red sofa along the windows, crimson armchairs, the low
+    table on the red rug under a hanging lantern, the framed map; along the port side bookcases between the windows, the
+    piano, a card table; aft a second group of sofas round a low table, a bar (liquor cabinet, stools), a rocking chair by
+    a window, a gramophone; carved beams with gilded scrolls across the coffered ceiling, lanterns between the windows."""
+    f = LO
+    zb = 10.0
+    # ---- forward salon (starboard): long sofa against the bulkhead, the curio wall over it
+    xs = [x for x in (-4.5, -3.5, -2.5, -1.5) if x - 0.0 > wall_x(f + 0.4, 9.5, -1) + 0.05]
+    sofa_z(f, zb, xs[0] - 0.5, len(xs), -1, "lounge_sofa_fwd")
+    for row, y in enumerate((f + 0.95, f + 2.12)):
+        for k, x in enumerate((-3.5, -2.5, -1.5)):
+            against_z(FD + "wall_shelf", x, y, zb, -1, solid=False)
+    custom("curio_frame", name="lounge_curio", p=(-2.5, f + 0.92, zb), normal=(0, 0, -1), w=3.05, h=2.42, crest=False)
+    block(FD + "cuckoo_clock", -4.42, f + 1.85, zb - 0.6, "stern", solid=False)
+    # along the starboard windows: a sofa of four pieces, lanterns between the windows, the framed map forward
+    sofa(-1, f, 4.6, 4, "lounge_sofa_s")
+    custom("world_map", name="lounge_map", center=(wall_x(f + 2.2, 9.25, -1) + 0.02, f + 2.15, 9.25), normal=(1, 0, 0), w=0.95, h=0.8)
+    custom("rug", name="lounge_rug_fwd", p=(-2.6, f, 6.9), w=4.0, l=4.6, region="in_rug_red")
+    at(FD + "coffee_table", -2.7, f, 7.3, "stern")      # clear of the sofas' dismount places
+    block(FD + "kerosene_lantern", -2.9, f + 0.5, 7.15, "stern", solid=False)
+    block(FU + "book_pile", -2.45, f + 0.5, 7.55, "stern", solid=False, scale=0.6)
+    block(FD + "wine_glass", -2.8, f + 0.5, 7.7, "stern", solid=False, scale=0.85)
+    armchair(-4.0, f, 3.75, math.pi / 4, -3.3, 3.0, "lounge_armchair_0")
+    hanging(-2.7, CEIL_LO, 7.2, drop=0.15)
+    # ---- port, forward: bookcases between the windows, the piano, a card table with its chairs, a globe
+    for z in (4.0, 6.5):
+        against(FD + "tall_bookshelf", 1, f, z)
+    against(FD + "piano", 1, f, 8.6)
+    chair(FU + "dark_oak_stool", 3.9, f, 8.6, "port", 3.1, 8.0)
+    at(FU + "dark_oak_pedestal_table", 2.75, f, 5.3, "stern")
+    block(FU + "chess_board", 2.75, f + 1.0, 5.3, "stern", solid=False, scale=0.8)
+    chair(FU + "mangrove_chair", 2.75, f, 4.4, "bow", 1.75, 4.4)
+    chair(FU + "mangrove_chair", 2.75, f, 6.2, "stern", 1.75, 6.2)
+    hanging(2.75, CEIL_LO, 5.3, drop=0.1)
+    # ---- the middle (kept free for the aisle): a round table with books on the starboard side, the bar on the port side
+    at(FD + "round_table", -2.9, f, 1.5, "stern")
+    block(FD + "pile_of_books", -2.9, f + 1.0, 1.4, "stern", solid=False)
+    block(FD + "kerosene_lantern", -2.65, f + 1.0, 1.75, "stern", solid=False)
+    chair(FD + "dining_chair", -3.9, f, 1.5, "port", -3.9, 2.6)
+    chair(FD + "dining_chair", -1.9, f, 1.5, "starboard", -1.9, 2.6)
+    against(FD + "tall_bookshelf", 1, f, 1.5)
+    against(FD + "liquor_cabinet", 1, f, -0.5)
+    block(FD + "red_wine_bottle", wall_x(f + 0.5, -0.5, 1) - 0.4, f + 1.0, -0.95, "stern", solid=False)
+    block(FD + "wine_glass", wall_x(f + 0.5, -0.5, 1) - 0.4, f + 1.0, -0.6, "stern", solid=False, scale=0.85)
+    for z in (-1.0, 0.0):
+        chair(FU + "dark_oak_stool", 3.3, f, z, "port", 2.5, z)
+    # ---- aft: a second group of sofas round a low table (starboard), armchairs; a rocking chair, the gramophone (port)
+    sofa(-1, f, -5.5, 3, "lounge_sofa_aft")
+    custom("rug", name="lounge_rug_aft", p=(-2.7, f, -4.0), w=3.8, l=3.8, region="in_rug_red")
+    at(FD + "coffee_table", -2.15, f, -4.0, "stern")    # clear of the sofa's dismount places
+    block(FD + "wine_bottle", -2.25, f + 0.5, -4.2, "stern", solid=False)
+    block(FU + "chess_board", -2.05, f + 0.5, -3.8, "stern", solid=False, scale=0.6)
+    armchair(-1.0, f, -4.75, "starboard", -0.1, -4.75, "lounge_armchair_2")
+    armchair(-1.0, f, -3.25, "starboard", -0.1, -3.25, "lounge_armchair_3")
+    hanging(-2.15, CEIL_LO, -4.0, drop=0.15)
+    against_z(FD + "tall_bookshelf", -3.4, f, -7.0, +1)
+    against_z(FD + "tall_bookshelf", -2.4, f, -7.0, +1)
+    against_z(FD + "tall_bookshelf", 3.4, f, -7.0, +1)
+    at(FD + "standing_lamp", -4.45, f, -6.4, "stern", solid=False)
+    chair(FD + "rocking_chair", 3.6, f, -3.0, "starboard", 2.4, -3.0)
+    against(FD + "night_stand", 1, f, -4.6)
+    block(FD + "gramophone", wall_x(f + 0.3, -4.6, 1) - 0.36, f + 0.62, -4.6, "starboard", solid=False, scale=0.65)
+    painting("lounge_painting_p", "sea", (wall_x(f + 2.2, -6.0, 1) - 0.02, f + 2.2, -6.0), (-1, 0, 0), 0.9, 0.9)
+    # ---- lanterns between the windows (both walls), carved beams across the ceiling
+    for side, zs in ((-1, (-3.5, -1.0, 1.5, 4.0, 6.5)), (1, (-3.5, -1.0))):     # the piers between the windows without a bookcase
+        for z in zs:
+            wall_lantern("lounge_lantern_%d_%d" % (side > 0, int(round(z * 10))), side, f + 2.75, z)
+    beams_across("lounge", CEIL_LO, (-5.5, -2.5, 0.5, 3.5, 5.75, 8.5), carved=True, w=0.3, h=0.32)
+    for x, z in ((0.0, -1.0), (0.0, 2.0)):
+        hanging(x, CEIL_LO, z, drop=-0.1)
 
 
 def storeroom():
-    """Réserve (reference panel 4), in the round bow: crates under its four windows, stacks of crates and barrels, sacks and
-    baskets, shelves on the walls between and forward of the windows, a workbench in the middle under a lantern, chains
-    hanging from the ceiling, barrels and sacks against the curved forward wall."""
+    """Réserve (reference panel 4), in the round bow: stone walls between timber posts, beams overhead; crates of
+    vegetables under its four windows, stacks of crates two high between and forward of them, upright and lying barrels,
+    plump sacks and sacks of rice, shelves of jars and bottles, a big crate in the middle and a workbench, chains with
+    hooks hanging from the beams, lanterns."""
     f = LO
     # under the windows (the windows run from f + 1 to f + 3): one crate high
-    for z in (11.5, 12.5):
-        against(FU + "spruce_crate", -1, f, z)
-    against(FR + "potato_crate", 1, f, 11.5)
-    against(FR + "carrot_crate", 1, f, 12.5)
+    against(FR + "potato_crate", 1, f, 11.1)
+    against(FR + "carrot_crate", 1, f, 12.1)
+    against(FU + "spruce_crate", -1, f, 11.1)
+    against(FR + "cabbage_crate", -1, f, 12.1)
     against(FR + "onion_crate", 1, f, 13.5)
-    against(FR + "cabbage_crate", -1, f, 13.5)
-    # forward of the windows: stacks of crates, barrels, shelves over them
-    against(FU + "dark_oak_crate", -1, f, 14.8)
-    against(FU + "spruce_crate", -1, f + 1.0, 14.8)
-    against(FU + "spruce_crate", 1, f, 14.8)
-    against(FR + "beetroot_crate", 1, f + 1.0, 14.8)
-    against(IC + "cypress_barrel", -1, f, 15.9, facing="port")
-    against(IC + "loaded_cypress_barrel", 1, f, 15.9, facing="starboard")
-    against(FR + "rice_bag", -1, f, 16.9)
-    against(FR + "wooden_basket", 1, f, 16.9)
+    against(FR + "beetroot_crate", -1, f, 13.5)
+    # forward of the windows: stacks of crates two high, a small crate on top, then barrels
     for side in (-1, 1):
-        for z in (15.3, 16.6):
-            w = wall_x(f + 2.2, z, side)
-            block(FU + "spruce_shelf", w - side * 0.17, f + 2.0, z, "starboard" if side > 0 else "port", solid=False)
-    # the curved forward wall: barrels, sacks
-    for k, (x, z) in enumerate(((-1.7, 18.0), (1.6, 18.0), (-0.6, 18.6), (0.6, 18.6))):
+        against(FU + "dark_oak_crate", side, f, 14.75)
+        against(FU + "spruce_crate", side, f + 1.0, 14.75)
+        against(FR + "tomato_crate" if side > 0 else FR + "potato_crate", side, f, 15.75)
+        against(FU + "oak_crate", side, f + 1.0, 15.75, scale=0.75)
+    # lying barrels on their racks against the curved bow
+    for side, z in ((-1, 16.85), (1, 16.85)):
+        w = wall_min(f, f + 1.2, z, side)
+        x = w - side * 0.55
+        at(IC + "cypress_rack", x, f, z, "stern", solid=False)
+        at(IC + "loaded_fir_barrel" if side > 0 else IC + "cypress_barrel", x, f + 0.12, z, "stern")
+    # upright barrels, sacks along the curved forward wall
+    for k, (x, z) in enumerate(((-2.4, 18.05), (2.35, 18.05), (-1.4, 18.75), (1.35, 18.75))):
         custom("barrel", solid=(x - 0.38, x + 0.38, f, f + 0.95, z - 0.38, z + 0.38), name="store_barrel_%d" % k, p=(x, f, z))
-    custom("barrel", solid=(-0.38, 0.38, f + 0.95, f + 1.9, 18.22, 18.98), name="store_barrel_top", p=(0.0, f + 0.95, 18.6))
-    for k, (x, z, yaw) in enumerate(((-2.4, 17.4, 0.3), (2.3, 17.5, -0.4), (-1.2, 17.2, 1.0), (1.3, 13.6, 0.6))):
-        custom("sack", name="store_sack_%d" % k, p=(x, f, z), yaw=yaw)
-    # the middle: a workbench under a hanging lantern, a crate and a stool beside it
-    at(FD + "workbench", 0.0, f, 15.4, "stern")
-    at(FU + "spruce_crate", 1.25, f, 15.4, "stern", scale=0.7)
-    for k, (x, z, L) in enumerate(((-1.0, 12.6, 1.4), (-0.6, 13.0, 1.0), (1.2, 16.9, 1.2), (0.9, 11.9, 0.8), (-1.4, 16.4, 1.1))):
+    custom("barrel", solid=(-1.78, -1.02, f + 0.95, f + 1.9, 18.37, 19.13), name="store_barrel_top", p=(-1.4, f + 0.95, 18.75), r=0.33, h=0.85)
+    at(FR + "rice_bag", -0.35, f, 19.0, "stern")
+    at(FR + "rice_bag", 0.45, f, 19.05, "stern", scale=0.8)
+    for k, (x, z, yaw, s) in enumerate(((-3.1, 17.45, 0.3, 1.35), (3.05, 17.5, -0.4, 1.3), (0.55, 18.2, 1.0, 1.0), (-0.6, 18.25, -0.6, 1.1),
+                                        (3.15, 10.95, 0.6, 1.3), (-2.15, 11.05, 0.2, 1.2), (2.75, 14.4, -0.3, 1.25))):
+        custom("plump_sack", name="store_sack_%d" % k, p=(x, f, z), yaw=yaw, s=s)
+    # shelves of jars and bottles on the walls over the crate stacks, a jar shelf unit by the door
+    for side in (-1, 1):
+        for k, (z, y) in enumerate(((15.75, f + 2.1), (16.75, f + 2.1), (15.75, f + 2.7), (16.75, f + 2.7))):
+            w = wall_x(y + 0.15, z, side)
+            block(FU + "spruce_shelf", w - side * 0.17, y, z, "starboard" if side > 0 else "port", solid=False)
+            if k < 2:
+                block(FD + "wine_bottle", w - side * 0.2, y + 0.25, z - 0.25, "stern", solid=False)
+                block(FD + "red_wine_bottle", w - side * 0.2, y + 0.25, z + 0.05, "stern", solid=False)
+                block(FD + "pile_of_books", w - side * 0.2, y + 0.25, z + 0.3, "stern", solid=False, scale=0.8)
+            else:
+                block(IC + "brown_storage_vase", w - side * 0.24, y + 0.25, z, "stern", solid=False, scale=0.42)
+    custom("jar_shelf", solid=(-3.8, -2.6, f, f + 1.9, 10.5, 10.9), name="store_jars", p=(-3.2, f, 10.5), normal=(0, 0, 1), w=1.2, h=1.85, rows=4)
+    # the middle: a big crate under a lantern (as on the sheet), stacks of crates either side of it, the workbench
+    # forward, upright barrels and plump sacks by the windows
+    at(FU + "spruce_crate", 0.0, f, 15.9, "stern")
+    for side in (-1, 1):
+        at(FU + "dark_oak_crate", side * 2.1, f, 15.6, "stern")
+        at(FU + "spruce_crate", side * 2.1, f + 1.0, 15.6, "stern", scale=0.8)
+        custom("plump_sack", name="store_sack_mid_%d" % (side > 0), p=(side * 2.15, f, 16.7), yaw=0.4 * side, s=1.25)
+    at(FD + "workbench", 0.0, f, 17.45, "stern")
+    for k, (x, z) in enumerate(((3.3, 13.45), (-3.3, 13.45))):
+        custom("barrel", solid=(x - 0.4, x + 0.4, f, f + 1.05, z - 0.4, z + 0.4), name="store_barrel_win_%d" % k, p=(x, f, z), r=0.4, h=1.05)
+    # timber posts between the windows and at the bow, beams across, chains with hooks, lanterns
+    for side in (-1, 1):
+        for k, z in enumerate((12.75, 14.25, 16.3)):
+            w = wall_x(f + 2.6, z, side)
+            custom("wall_post", name="store_post_%d_%d" % (side > 0, k), p=(w, f, z), h=CEIL_LO - f, normal=(-side, 0, 0), w=0.3, d=0.18)
+    beams_across("store", CEIL_LO, (12.75, 14.25, 16.3, 18.4), w=0.32, h=0.3)
+    for k, (x, z, L) in enumerate(((-1.6, 13.4, 1.3), (-1.2, 11.8, 0.9), (1.7, 17.3, 1.1), (1.4, 11.9, 0.8), (-1.6, 15.3, 1.2), (2.3, 15.2, 1.0))):
         custom("hanging_chain", name="store_chain_%d" % k, top=(x, CEIL_LO, z), length=L)
-    hanging(0.0, CEIL_LO, 12.0, drop=-0.25)
-    hanging(0.0, CEIL_LO, 15.4, drop=-0.25)
-    hanging(0.0, CEIL_LO, 17.9, drop=-0.25)
+    hanging(0.0, CEIL_LO, 13.5, drop=0.05)
+    hanging(0.0, CEIL_LO, 15.6, drop=0.05)
+    hanging(-2.6, CEIL_LO, 17.4, drop=-0.1)
+    hanging(2.7, CEIL_LO, 11.5, drop=-0.1)
 
 
 def hold():
@@ -424,9 +544,12 @@ def hold():
 
 
 def engine_room():
-    """Salle des machines (reference panel 3): the crystal engine (generate_crystal.crystal_engine), pipes of bronze from
-    the dwarven automatons' mod along the walls, metal boxes, the workbench, gauges, lanterns, crystal lamps."""
+    """Salle des machines (reference panel 3): the crystal engine (generate_crystal.crystal_engine) behind a polished brass
+    guard rail, iron grates in the floor in front of it, pressure tanks and a dwarven metal chest at its sides, bronze pipes
+    of the dwarven automatons' mod along the walls, copper pipes and beams under the ceiling, gauge boards, lanterns on the
+    stone walls, crystal lamps; on the landing the workbench and its tool board, lockers, metal boxes."""
     f = LO
+    h = ci.EF
     # the landing: the workbench on the bulkhead (starboard), lockers and dwarven metal boxes (port), a stool
     against_z(FD + "workbench", -3.0, f, -7.5, -1)
     block(FD + "tool_board", -3.0, f + 1.25, -7.6, "stern", solid=False)
@@ -435,21 +558,45 @@ def engine_room():
     against_z(MB + "dwemer_metal_pipe_gear", 3.1, f + 1.0, -7.5, -1, solid=False)
     chair(FU + "spruce_stool", -1.6, f, -8.6, "stern", -1.6, -9.5)
     custom("crystal_lamp", solid=(1.45, 2.05, f, f + 2.0, -8.6, -8.0), name="engine_crystal_lamp_0", p=(1.75, f, -8.3))
-    # the floor: dwarven pipes along both walls, crates in the corners, gauges, crystal lamps
-    h = ci.EF
-    for z in (-12.0, -13.0):          # the starboard wall (the stair down runs along the port wall)
-        w = max(wall_x(h + 0.1, z - 0.4, -1), wall_x(h + 0.1, z + 0.4, -1))
-        block(MB + "dwemer_metal_pipe", w + 0.42, h, z, "bow", solid=True)
-    w = wall_x(h + 1.6, -12.5, -1)
-    block(MB + "dwemer_metal_pipe_gear", w + 0.42, h + 1.0, -12.5, "bow", solid=False)
-    at(FU + "dark_oak_crate", -2.15, ci.PLINTH[2], -19.6, "stern")
-    at(FU + "small_locker", 2.15, ci.PLINTH[2], -19.6, "stern")
-    custom("gauge_board", name="engine_gauges_s", center=(wall_x(h + 2.4, -15.5, -1) + 0.02, h + 2.4, -15.5), normal=(1, 0, 0), w=1.2, h=0.8)
-    custom("gauge_board", name="engine_gauges_p", center=(wall_x(h + 2.4, -16.8, 1) - 0.02, h + 2.4, -16.8), normal=(-1, 0, 0), w=1.2, h=0.8)
+    # the guard rail in front of the engine (solid), the floor grates in front of it and along the side passages
+    zr = -14.55
+    custom("brass_rail", solid=(-2.0, 2.0, h, h + 1.0, -15.4, -14.4), name="engine_rail", pts=[(-1.95, h, zr - 0.6), (-1.6, h, zr), (1.6, h, zr),
+                                                                                              (1.95, h, zr - 0.6)], h=1.0, step=0.8)
+    for k, (x, z, w, l) in enumerate(((-0.75, -13.4, 1.4, 1.6), (0.75, -13.4, 1.4, 1.6), (-0.75, -11.8, 1.4, 1.2), (-2.75, -17.0, 0.9, 1.6),
+                                      (2.75, -17.0, 0.9, 1.6))):
+        custom("floor_grate", name="engine_grate_%d" % k, p=(x, h, z), w=w, l=l)
+    # the starboard side (under the stair from the mess): a pressure tank, the dwarven chest, bronze pipes on the wall
+    custom("pressure_tank", solid=(-3.45, -2.55, h, h + 2.0, -13.95, -13.05), name="engine_tank_s", p=(-3.0, h, -13.5), r=0.42, h=1.6)
+    at(MB + "dwemer_chest", -2.85, h, -12.05, "port")
+    for side in (-1, 1):       # brass and copper pipes up the walls beside the engine, valves on them
+        for k, (z, d, reg) in enumerate(((-18.0, 0.22, "in_brass_pol"), (-18.4, 0.16, "in_copper"))):
+            x0 = min(wall_x(h + 0.3, z, side), wall_x(h + 1.6, z, side), key=abs) - side * 0.16
+            x1 = min(wall_x(-1.2, z, side), wall_x(CEIL_LO - 0.1, z, side), key=abs) - side * 0.16
+            custom("pipe", name="engine_wall_pipe_%d_%d" % (side > 0, k), pts=[(x0, h + 0.05, z), (x0, h + 1.6, z), (x1, -1.2, z), (x1, CEIL_LO - 0.02, z)],
+                   d=d, region=reg, flange="in_gold")
+        xv = min(wall_x(h + 0.3, -18.0, side), wall_x(h + 1.6, -18.0, side), key=abs) - side * 0.16
+        custom("valve", name="engine_wall_valve_%d" % (side > 0), p=(xv, h + 1.0, -18.0), normal=(-side, 0, 0), r=0.2)
+    # the port side (beside the stair down from the landing): a pressure tank, pipes on the wall
+    custom("pressure_tank", solid=(2.6, 3.4, h, h + 1.8, -14.4, -13.6), name="engine_tank_p", p=(3.0, h, -14.0), r=0.38, h=1.4)
+    # aft, on the raised floor: a crate and a locker, pressure tanks in the corners
+    at(FU + "dark_oak_crate", -1.6, ci.PLINTH[2], -19.6, "stern")
+    at(FU + "small_locker", 1.6, ci.PLINTH[2], -19.6, "stern")
+    for s in (-1, 1):
+        custom("pressure_tank", name="engine_tank_aft_%d" % (s > 0), p=(s * 2.45, ci.PLINTH[2], -19.0), r=0.3, h=1.1, region="in_copper")
     for side in (-1, 1):
-        wall_lantern("engine_lantern_%d" % (side > 0), side, f + 2.2, -14.0)
+        w = wall_x(h + 2.8, -14.9, side)
+        custom("gauge_board", name="engine_gauges_%d" % (side > 0), center=(w - side * 0.02, h + 2.8, -14.9), normal=(-side, 0, 0), w=1.1, h=0.75)
+    # copper and brass pipes under the ceiling, beams across, lanterns on the walls, a crystal lamp
+    yc = CEIL_LO - 0.2
+    for k, (x, d, reg) in enumerate(((-2.2, 0.26, "in_copper"), (2.3, 0.22, "in_brass_pol"), (-2.65, 0.16, "in_brass"))):
+        custom("pipe", name="engine_ceil_pipe_%d" % k, pts=[(x, yc - 0.05 * k, -20.2), (x, yc - 0.05 * k, -11.3), (x, yc - 0.05 * k - 0.6, -10.9)],
+               d=d, region=reg, flange="in_gold" if reg != "in_copper" else "in_brass")
+    beams_across("engine", CEIL_LO, (-12.0, -19.0), w=0.3, h=0.3)
+    for side in (-1, 1):
+        wall_lantern("engine_lantern_%d" % (side > 0), side, f + 2.0, -13.6)
+        wall_lantern("engine_lantern_aft_%d" % (side > 0), side, f + 1.6, -19.6)
     hanging(0.0, CEIL_LO, -9.3, drop=-0.25)
-    hanging(0.0, CEIL_LO, -12.8, drop=0.6)
+    hanging(0.0, CEIL_LO, -12.9, drop=0.5)
 
 
 def main_deck():

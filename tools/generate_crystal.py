@@ -850,9 +850,18 @@ def stairs(outside, inside):
             bottom = top - 0.5 if interior else y0
             c = v3((sx0 + sx1) / 2, (top + bottom) / 2, (sz0 + sz1) / 2)
             add_cube(bone, "%sstair_%s_%d" % (pre, name, k), c, EYE, (sx1 - sx0, top - bottom, sz1 - sz0),
-                     {"all": "dark_wood", "+2": "deck"}, u_dir=v3(1, 0, 0))
+                     {"all": "in_beam", "+2": "in_floor_capt"} if interior else {"all": "dark_wood", "+2": "deck"}, u_dir=v3(1, 0, 0))
             nose_z = sz1 if (d > 0) == (n > 0) else sz0
             add_cube(bone, "%sstair_%s_%d_nose" % (pre, name, k), v3(c[0], top - 0.04, nose_z), EYE, (sx1 - sx0 + 0.02, 0.08, 0.08), "trim_gold")
+        if interior:
+            # closed sides: a sloping stringer on each side of the treads (no floating zig-zag of steps)
+            steps = ci.stair_steps(st)
+            ca = v3(0, steps[0][4] - 0.25, (steps[0][2] + steps[0][3]) / 2)
+            cb = v3(0, steps[-1][4] - 0.25, (steps[-1][2] + steps[-1][3]) / 2)
+            dd = norm(cb - ca)
+            for k, xs in enumerate((x0 - 0.05, x1 + 0.05)):
+                beam(inside, "lit_stair_%s_stringer_%d" % (name, k), v3(xs, 0, 0) + ca - dd * 0.36, v3(xs, 0, 0) + cb + dd * 0.36, 0.8, "in_beam",
+                     width=0.1, up=v3(0, 1, 0))
         if not interior:
             steps = ci.stair_steps(st)
             xin = x0 if abs(x0) < abs(x1) else x1
@@ -1942,12 +1951,13 @@ def lanterns(lanterns_bone, detail):
 
 # ================================================================ rooms (grid surfaces), ladders, doors
 OPEN_KINDS = (ci.DRY, ci.LADDER)
-ROOM_MATERIALS = {
-    "mess": ("in_wall_lounge", "in_floor_lounge", "in_ceil"),
+ROOM_MATERIALS = {   # walls, floor, ceiling (reference panels: stone and timber cockpit, carved panelled lounge with a coffered
+                     # ceiling, stone engine room on heavy planks, stone and timber storeroom)
+    "mess": ("in_wall_lounge", "in_floor_lounge", "in_ceil_lounge"),
     "cockpit": ("in_stone", "in_floor_capt", "in_ceil"),
-    "lounge": ("in_wall_lounge", "in_floor_lounge", "in_ceil"),
+    "lounge": ("in_wall_lounge", "in_floor_lounge", "in_ceil_lounge"),
     "storeroom": ("in_wall_store", "in_floor_hold", "in_ceil_store"),
-    "engine_room": ("in_wall_works", "in_floor_grate", "in_ceil_soot"),
+    "engine_room": ("in_wall_works", "in_floor_works", "in_ceil_soot"),
     "hold": ("in_wall_store", "in_floor_hold", "in_ceil_store"),
 }
 SHAFT_MAT = ("in_wall", "in_floor", "in_ceil")
@@ -2108,25 +2118,43 @@ def helm(root, bone):
 
 
 def crystal_engine(root, bone):
-    """The engine room's great machine (reference panel 3): a riveted brass drum on its bed with a glowing crystal core in a
-    round bezel facing the landing, gears turning on its sides (engine_gear_*), pistons, a dome, pipes to the walls."""
+    """The engine room's great machine (reference panel 3): a riveted drum lying fore and aft on its iron bed, the glowing
+    crystal core facing the landing inside a toothed brass bezel, a brass bell dome with gilded ribs and a crystal finial
+    on top, a copper stack and two big brass pipes up into the ceiling, drive shafts out to both sides of the hull overhead (gilded
+    flanges, a coupling studded with blue crystals, a bearing), gears turning on its sides (engine_gear_*),
+    pistons (engine_piston_*), valves, a gauge board aft."""
     ex, ez, er, e0, e1 = ci.ENGINE
     pz0, pz1, ptop = ci.PLINTH
     fitted = bone
     eb = Bone("engine_body", origin=(ex, e0, ez), parent=fitted)
     c = v3(ex, e0 + 2.3, ez)
-    box(eb, "lit_engine_bed", (ex, e0 + 0.3, ez), (3.9, 0.6, 3.8), {"all": "in_rivets", "+2": "in_iron"})
+    Z = v3(0, 0, 1)
+    box(eb, "lit_engine_bed", (ex, e0 + 0.25, ez), (4.0, 0.5, 3.9), {"all": "in_rivets", "+2": "in_iron"})
+    box(eb, "lit_engine_bed_lip", (ex, e0 + 0.535, ez + 0.02), (4.12, 0.07, 4.0), "in_brass")
     for sx in (-1, 1):
-        box(eb, "lit_engine_foot_%d" % (sx > 0), (ex + sx * 1.0, e0 + 0.9, ez), (0.5, 0.7, 3.2), "in_iron")
-    tube(eb, "lit_engine_drum", c - v3(0, 0, 1.6), c + v3(0, 0, 1.4), 3.5, "in_boiler", sides=14)
-    for k, dz in enumerate((-1.5, -0.4, 0.6, 1.3)):
-        tube(eb, "lit_engine_drum_band_%d" % k, c + v3(0, 0, dz - 0.08), c + v3(0, 0, dz + 0.08), 3.66, "in_gold", sides=14)
-    disc(eb, "lit_engine_bezel", c + v3(0, 0, 1.45), (0, 0, 1), 1.5, 0.3, "in_brass_pol", sides=18)
-    add_cube(eb, "glow_engine_core", c + v3(0, 0, 1.62), EYE, (2.3, 2.3, 0.02), {"all": None, "+3": "in_core", "-3": "in_core"}, stretch=True)
-    ring(eb, "lit_engine_bezel_ring", c + v3(0, 0, 1.64), (0, 0, 1), 1.28, 0.16, "in_gold", n=18)
-    tube(eb, "lit_engine_dome", c + v3(0, 1.45, -0.2), c + v3(0, 2.3, -0.2), 1.9, "in_brass_pol", sides=12)
-    tube(eb, "lit_engine_dome_top", c + v3(0, 2.3, -0.2), c + v3(0, 2.7, -0.2), 1.1, "in_gold", sides=12)
-    tube(eb, "lit_engine_stack", c + v3(0, 2.7, -0.2), v3(ex, ci.CEIL_LO - 0.02, ez - 0.2), 0.6, "in_copper", sides=8)
+        box(eb, "lit_engine_foot_%d" % (sx > 0), (ex + sx * 1.0, e0 + 0.95, ez), (0.5, 0.8, 3.2), "in_iron")
+        box(eb, "lit_engine_foot_cap_%d" % (sx > 0), (ex + sx * 1.0, e0 + 1.38, ez), (0.62, 0.08, 3.3), "in_gold")
+    tube(eb, "lit_engine_drum", c - Z * 1.6, c + Z * 1.3, 3.5, "in_boiler", sides=16)
+    for k, dz in enumerate((-1.5, -0.4, 0.6)):
+        tube(eb, "lit_engine_drum_band_%d" % k, c + Z * (dz - 0.08), c + Z * (dz + 0.08), 3.66, "in_gold", sides=16)
+    # the front: a brass collar, the toothed bezel, the glowing core, a gilded ring and rivets
+    tube(eb, "lit_engine_collar", c + Z * 1.22, c + Z * 1.42, 3.8, "in_brass_pol", sides=16)
+    lf.gear(eb, "lit_engine_bezel_teeth", c + Z * 1.5, Z, 1.62, 0.14, teeth=24, region="in_brass_pol", spokes=0, rim="in_gold", hub="in_iron")
+    disc(eb, "lit_engine_bezel", c + Z * 1.47, Z, 1.42, 0.12, "in_brass_pol", sides=18)
+    # the core and its gilded ring well in front of the bezel (tools/zfight.py pushes the bezel's coplanar boxes out)
+    add_cube(eb, "glow_engine_core", c + Z * 1.74, EYE, (2.3, 2.3, 0.02), {"all": None, "+3": "in_core", "-3": "in_core"}, stretch=True)
+    ring(eb, "lit_engine_bezel_ring", c + Z * 1.78, Z, 1.28, 0.16, "in_gold", n=18)
+    for k in range(12):
+        a = 2 * math.pi * (k + 0.5) / 12
+        box(eb, "lit_engine_rivet_%d" % k, c + Z * 1.44 + v3(math.cos(a) * 1.78, math.sin(a) * 1.78, 0), (0.1, 0.1, 0.06), "in_gold")
+    # the bell dome on top: stacked rounds, six gilded ribs, a glowing crystal finial
+    for k, (y0, y1, r) in enumerate(((1.4, 1.85, 1.05), (1.85, 2.15, 0.88), (2.15, 2.38, 0.66), (2.38, 2.52, 0.42))):
+        tube(eb, "lit_engine_dome_%d" % k, c + v3(0, y0, -0.2), c + v3(0, y1, -0.2), 2 * r, "in_brass_pol" if k % 2 == 0 else "in_gold", sides=12)
+    for k in range(6):
+        a = 2 * math.pi * k / 6
+        d = v3(math.cos(a), 0, math.sin(a))
+        beam(eb, "lit_engine_dome_rib_%d" % k, c + v3(0, 1.45, -0.2) + d * 1.08, c + v3(0, 2.45, -0.2) + d * 0.45, 0.07, "in_gold")
+    cf.crystal(eb, "engine_finial", c + v3(0, 2.52, -0.2), (0, 1, 0), 0.55, 0.13)
     for s in (1, -1):
         gb = Bone("engine_gear_%d" % (s > 0), origin=tuple(c + v3(s * 1.85, 0.2, -0.3)), parent=root)
         lf.gear(gb, "lit_engine_gear_%d" % (s > 0), c + v3(s * 1.85, 0.2, -0.3), (1, 0, 0), 1.25, 0.18, teeth=18, region="in_brass", spokes=6)
@@ -2135,18 +2163,38 @@ def crystal_engine(root, bone):
             tube(eb, "lit_engine_cyl_%d_%d" % (s > 0, k), c + v3(s * 1.05, 1.05, dz), c + v3(s * 1.05, 1.75, dz), 0.5, "in_copper", sides=8)
             tube(pb, "lit_engine_rod_%d_%d" % (s > 0, k), c + v3(s * 1.05, 1.75, dz), c + v3(s * 1.05, 2.5, dz), 0.12, "in_iron", sides=4)
             box(pb, "lit_engine_crosshead_%d_%d" % (s > 0, k), c + v3(s * 1.05, 2.55, dz), (0.28, 0.14, 0.28), "in_brass")
-    # pipes from the machine to the nacelles through the side walls, and up into the ceiling
-    for s in (1, -1):
-        lf.pipe(fitted, "engine_pipe_side_%d" % (s > 0), [c + v3(s * 1.2, 0.8, 0.4), c + v3(s * 2.6, 1.6, 0.4), v3(s * 4.6, c[1] + 1.6, ez + 0.4)], d=0.34)
-        lf.pipe(fitted, "engine_pipe_up_%d" % (s > 0), [c + v3(s * 0.5, 1.6, -1.0), c + v3(s * 0.5, 3.5, -1.0), v3(s * 0.5, ci.CEIL_LO - 0.05, ez - 1.0)],
-                d=0.26, region="in_brass")
-        lf.valve(fitted, "engine_valve_%d" % (s > 0), c + v3(s * 2.0, 1.4, 0.4), (0, 0, 1), r=0.22)
+        # the drive shaft out to the hull's side (to the nacelle), overhead: gilded flanges, a coupling studded with blue
+        # crystals, a bearing on the side
+        xw = s * (cs.hull_x(ez, c[1]) - cs.SHELL - 0.05)
+        sc = c + v3(0, 0.2, -0.3)
+        tube(fitted, "lit_engine_shaft_%d" % (s > 0), sc + v3(s * 1.95, 0, 0), v3(xw, sc[1], sc[2]), 0.5, "in_brass_pol", sides=8)
+        for k, xx in enumerate((2.35, 3.25)):
+            tube(fitted, "lit_engine_shaft_fl_%d_%d" % (s > 0, k), sc + v3(s * (xx - 0.06), 0, 0), sc + v3(s * (xx + 0.06), 0, 0), 0.78, "in_gold",
+                 sides=8)
+        cp = sc + v3(s * 2.8, 0, 0)
+        tube(fitted, "lit_engine_coupling_%d" % (s > 0), cp - v3(0.32, 0, 0), cp + v3(0.32, 0, 0), 0.95, "in_iron", sides=10)
+        for k in range(4):
+            a = math.pi / 2 * k + math.pi / 4
+            cf.crystal(fitted, "engine_stud_%d_%d" % (s > 0, k), cp + v3(0, math.cos(a), math.sin(a)) * 0.44, (0, math.cos(a), math.sin(a)), 0.22, 0.07,
+                       sides=4)
+        # its bearing on the hull's side: a riveted plate, a brass housing (the side passage stays free under the shaft)
+        box(fitted, "lit_engine_bearing_plate_%d" % (s > 0), (xw - s * 0.05, sc[1], sc[2]), (0.1, 1.3, 1.3), "in_rivets")
+        tube(fitted, "lit_engine_bearing_%d" % (s > 0), v3(xw - s * 0.45, sc[1], sc[2]), v3(xw - s * 0.08, sc[1], sc[2]), 0.9, "in_brass", sides=8)
+        # big brass pipes up from the bed to the ceiling at the front corners, a valve on each
+        lf.pipe(fitted, "engine_riser_%d" % (s > 0), [c + v3(s * 1.6, -1.75, 1.05), c + v3(s * 1.6, 0.9, 1.05), c + v3(s * 1.6, 2.1, 0.6),
+                                                     v3(ex + s * 1.6, ci.CEIL_LO - 0.05, ez + 0.6)], d=0.36, region="in_brass_pol", flange="in_gold")
+        lf.valve(fitted, "engine_valve_%d" % (s > 0), c + v3(s * 1.6, 0.4, 1.3), (0, 0, 1), r=0.22)
+        lf.pipe(fitted, "engine_pipe_up_%d" % (s > 0), [c + v3(s * 0.5, 1.6, -1.0), c + v3(s * 0.5, 3.0, -1.0), v3(s * 0.5, ci.CEIL_LO - 0.05, ez - 1.0)],
+                d=0.26, region="in_copper")
+    tube(eb, "lit_engine_stack", c + v3(0, 2.7, -0.2), v3(ex, ci.CEIL_LO - 0.02, ez - 0.2), 0.6, "in_copper", sides=8)
     lf.gauge_board(fitted, "engine_gauges", v3(0, c[1] + 0.8, pz0 + 0.05), (0, 0, 1), w=1.6, h=0.9)
 
 
 FURNITURE_BUILDERS = dict(gl.FURNITURE_BUILDERS)
 FURNITURE_BUILDERS.update({name: gl._named(getattr(cf, name)) for name in ("instrument_column", "crystal_lamp", "wall_gauge", "world_map",
-                                                                       "hanging_chain", "speaking_tube")})
+                                                                       "hanging_chain", "speaking_tube", "floor_grate", "ceiling_beam",
+                                                                       "wall_post", "curio_frame", "brass_rail", "side_machine",
+                                                                       "armchair", "helm_dais", "plump_sack")})
 FURNITURE_BUILDERS["painting_frame"] = gl._named(lf.painting_frame)
 FURNITURE_BUILDERS["gauge_board"] = gl._named(lf.gauge_board)
 

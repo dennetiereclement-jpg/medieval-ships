@@ -109,11 +109,11 @@ de chaînes à joyaux bleus, câbles vers la coque.
 | Niveau | Pièces |
 |---|---|
 | Toit du château (+5,85 → +8,0, cimier +9,5) | toit rond, plein dans la grille ; sa terrasse (+8,0) a un garde-corps, deux lanternes, le mât de pavillon et deux mâtereaux à flammes : on peut s'y poser (perle de l'Ender, élytres), il n'y a pas d'accès ; la galerie courbe au pied de l'étage 2 est du décor (pleine, sans accès) |
-| Château, étage 2 (+3) | **poste de pilotage** (murs de pierre et poutres) : grande baie cintrée vitrée face à la proue, grande roue de barre (le pilote debout derrière), colonnes d'instruments en laiton, lampes, lampe de cristal ; table des cartes et bibliothèques à l'arrière, sous l'encorbellement ; **porte vers la terrasse** (sur le toit de l'étage 1) à tribord de la baie |
+| Château, étage 2 (+3) | **poste de pilotage** (vue intérieure 1 : murs de pierre chaude entre poteaux de bois cerclés de laiton, lambris bas, poutres au plafond) : grande baie cintrée vitrée face à la proue, grande roue de barre sur une estrade ronde (le pilote debout derrière), deux colonnes de laiton (chronomètre à bâbord, dôme de verre vert à tribord), grande lampe de cristal bleu, lanternes de part et d'autre de la baie et suspendue devant, horloge murale et manomètre, tableau de manomètres et leviers, tuyaux de laiton le long des murs, porte-voix, appuis sous les fenêtres de côté ; table des cartes et bibliothèques à l'arrière, sous l'encorbellement ; **porte vers la terrasse** (sur le toit de l'étage 1) à tribord de la baie |
 | Château, étage 1 (0) | **carré des officiers** (table, chaises) ; escalier vers le poste de pilotage (bâbord) et vers la salle des machines (tribord) ; porte double sur le pont |
 | Pont principal (0) et gaillard (+2) | pont ouvert, anneau doré sur son pilier, tourelle, lampes de cristal, bancs ; escaliers extérieurs vers le gaillard ; gaillard large et arrondi (longue-vue, quatre bancs le long du pavois à l'avant) |
-| Pont du salon (−4) | **salon** luxueux (canapés rouges, tapis, table basse, bibliothèques et vitrines, carte murale, lanternes, grandes fenêtres) ; **réserve** dans la proue ronde, élargie (environ 9,5 × 9 blocs : caisses de légumes sous ses quatre fenêtres, piles de caisses et tonneaux, étagères, établi au milieu sous une lanterne, tonneaux et sacs contre la paroi courbe de l'avant, chaînes et lanternes) |
-| Salle des machines (−6 → −0,5, deux niveaux) | palier au niveau du salon (plein dessous), passerelle tribord, escalier de 4 marches vers le fond (relevé à −6 : la coque se resserre vers la quille), **grande machine à cœur de cristal bleu**, tuyaux, engrenages, grilles au sol |
+| Pont du salon (−4) | **salon** luxueux (vue intérieure 2 : lambris sombre à panneaux et filets dorés, frise sculptée, plafond à caissons et poutres sculptées) : à l'avant tribord, comme sur la planche, un grand canapé rouge sous le **mur de curiosités** (étagères de livres, flacons et bibelots dans un encadrement sculpté à pilastres et corniche), un canapé le long des fenêtres, un fauteuil de velours, la table basse sur le tapis rouge à bordure dorée sous une lanterne, la carte encadrée ; à bâbord des bibliothèques entre les fenêtres, le piano, une table de jeu ; au milieu un guéridon, le bar (buffet, tabourets) ; à l'arrière un second salon (canapé, table basse, deux fauteuils, lampadaire), bibliothèques, fauteuil à bascule, gramophone ; lanternes entre les fenêtres ; **réserve** dans la proue ronde (vue intérieure 4 : murs de pierre entre poteaux, poutres) : caisses de légumes sous ses quatre fenêtres, piles de caisses de deux de haut, grande caisse au milieu entre deux piles, tonneaux debout et couchés sur leurs berceaux, gros sacs de toile, étagères de bouteilles et de jarres, établi, chaînes à crochets et lanternes |
+| Salle des machines (−6 → −0,5, deux niveaux) | palier au niveau du salon (plein dessous), passerelle tribord, escalier de 4 marches vers le fond (relevé à −6 : la coque se resserre vers la quille) ; murs de pierre, tuyau de cuivre, plinthe rivetée (vue intérieure 3) ; **grande machine à cœur de cristal bleu** dans une lunette dentée de laiton, dôme en cloche à nervures dorées et cristal au sommet, arbres de transmission vers les flancs (accouplements sertis de cristaux, paliers), engrenages et pistons animés, grosses colonnes de laiton jusqu'au plafond, **garde-corps de laiton** devant, **grilles de fer** dans le plancher, réservoirs sous pression, coffre nain, tuyaux de laiton et de cuivre le long des murs et sous le plafond, tableaux de manomètres, lanternes |
 | Cale (−7,5) | sous le salon, échelle et trappe (à bâbord du milieu, x 1 → 2) : stockage ; ses flancs suivent la coque en œuf |
 
 Portes (grille) : 0 château (porte double sur le pont), 1 salon ↔ salle des machines, 2 salon ↔ réserve,
@@ -144,21 +144,24 @@ dessus, avant, arrière, perspective) et [comparaison_crystal_airship_pieces.png
 | `tools/crystal_shape.py` | formes (lobes du ballon, coque, château, nacelles, cristaux), source unique des mesures |
 | `tools/crystal_interior.py` | grille intérieure (cellules de 0,5 bloc) : pièces, portes, escaliers, échelle, vitres |
 | `tools/crystal_decor.py` | ameublement : blocs des mods de décoration, meubles faits sur mesure, sièges, tableaux |
-| `tools/crystal_furniture.py` | meubles sur mesure (colonnes d'instruments, lampes de cristal, horloge murale, carte du monde, chaînes, porte-voix) |
+| `tools/crystal_furniture.py` | meubles sur mesure (colonnes d'instruments, lampes de cristal, horloge murale, carte du monde, chaînes, porte-voix, grilles de plancher, poutres et poteaux, encadrement du mur de curiosités, garde-corps de laiton, fauteuils, sacs, estrade de la barre) |
 | `tools/crystal_texture.py` | les deux textures (extérieur 512², pièces) et l'icône |
 | `tools/generate_crystal.py` | modèle Blockbench (≈ 18 500 cubes, 12 animations) ; réutilise les outils du Léviathan et du Corsaire |
 | `core/CrystalLayout.java` | type, géométrie, sondes, sièges, barre, réglages de vol (miroir de `crystal_shape.py`) |
 | `entity/CrystalAirshipEntity.java`, `client/CrystalEffects.java` | entité, particules (étincelles bleues des cristaux et du médaillon, vapeur des moteurs) |
 | `CrystalTest` (JUnit), `CrystalGameTest` (en jeu) | tests |
 
-Ameublement (157 blocs de mods, 44 places assises) : `farmhouse_decorations` (77 : canapés, fauteuils,
-tables, piano, gramophone, bibliothèques, vitrines, lampes, établis), `furnish` (60 : caisses, étagères,
-tabourets, bancs, casiers, tableaux), `farmersdelight` (12 : caisses de légumes, sacs, paniers), `landsoficaria`
-(2 tonneaux), `mebahelcreaturesdwarven` (6 : tuyaux et blocs de métal nain de la salle des machines).
-Faits sur mesure (aucun mod n'a la pièce) : roue de barre, colonnes d'instruments, lampes de cristal,
-machine à cœur de cristal (engrenages et pistons animés), horloge et manomètres muraux, carte du monde,
-chaînes de la réserve, tonneaux et sacs, lanternes. Sans les mods, des boîtes de remplacement texturées
-prennent leur place (même encombrement).
+Ameublement (205 blocs de mods, 45 places assises) : `farmhouse_decorations` (110 : canapés, chaises,
+tables basses, guéridon, piano, gramophone, bibliothèques, étagères garnies, buffet-bar, horloge, lampadaire,
+lanternes, établi), `furnish` (69 : caisses, étagères, tabourets, chaises, bancs, tables, casiers, échiquier),
+`farmersdelight` (14 : caisses de légumes, sacs de riz), `landsoficaria` (8 : tonneaux couchés sur leurs
+berceaux, jarres), `mebahelcreaturesdwarven` (4 : blocs et tuyau à engrenage du palier, coffre nain).
+Faits sur mesure (aucun mod n'a la pièce, ou pas assez proche de la planche) : roue de barre et son estrade,
+colonnes d'instruments (chronomètre, dôme de verre), lampes de cristal, machine à cœur de cristal (engrenages et
+pistons animés), garde-corps de laiton, grilles de plancher, réservoirs, tuyaux et vannes, horloge et
+manomètres muraux, carte du monde, encadrement sculpté du mur de curiosités, fauteuils de velours rouge
+(assortis aux canapés du mod), poutres sculptées et poteaux, chaînes, tonneaux debout et sacs de toile.
+Sans les mods, des boîtes de remplacement texturées prennent leur place (même encombrement).
 
 ## 6. Animations et effets
 
@@ -195,7 +198,7 @@ nacelles flottantes, yeux de cristal des moteurs, hublot du médaillon), nuages 
 * **Portes** (clic droit) : 0 porte double du château sur le pont, 1 salon ↔ salle des machines, 2 salon ↔
   réserve, 3 trappe de la cale, 4 poste de pilotage ↔ terrasse. Les vitres (baie du poste de pilotage, grandes fenêtres du salon,
   fenêtres de la réserve) laissent voir dehors.
-* **Sièges** : canapés, fauteuils, chaises, tabourets, bancs du pont et du gaillard (44 places) ; Maj pour se lever.
+* **Sièges** : canapés, fauteuils, chaises, tabourets, bancs du pont et du gaillard (45 places) ; Maj pour se lever.
 
 ### Piloter
 
@@ -246,3 +249,8 @@ quille au-dessus du relief et descend à l'escale dans les 52 derniers blocs.
   debout), alors que la planche montre un disque vu de chant dans les deux vues.
 * Les vitres sont des cellules pleines transparentes : on ne passe pas par les fenêtres.
 * Les tonneaux, sacs et caisses de la réserve et de la cale sont du décor (pas d'inventaire).
+* Éclairage des pièces : le mod éclaire les pièces d'une lumière intérieure uniforme (lumière de bloc chaude de
+  Minecraft) et les lanternes brillent, mais il n'y a pas de pénombre ni de halo autour de chaque lanterne comme
+  sur les vues intérieures de la planche (rendus « cinéma ») : les couleurs chaudes viennent des textures
+  (bois, pierre, laiton, velours). Pour garder les passages, escaliers, portes et sorties des sièges libres, la
+  réserve et le salon gardent une allée au milieu ; ils sont donc un peu moins encombrés que sur la planche.
