@@ -214,6 +214,10 @@ def seats(bone):
         hw = inner_x(z, rs.THWART_TOP) + 0.05
         beam(bone, "thwart_%d" % j, v3(-hw, y, z), v3(hw, y, z), rs.THWART_TH, "thwart", width=rs.THWART_W, up=v3(0, 1, 0), extend=0.0,
              u_dir=v3(1, 0, 0))
+        # a knee under each end of the thwart, against the ribs (the brackets of the reference)
+        for side, sn in SIDES:
+            xk = side * (inner_x(z, rs.THWART_TOP - 0.2) - 0.09)
+            box(bone, "knee_%d_%s" % (j, sn), (xk, rs.THWART_TOP - rs.THWART_TH - 0.12, z), (0.16, 0.24, 0.1), "rib")
     # the small triangular seat board at the stern: two boards narrowing towards the stern post
     z0, z1 = rs.STERN_SEAT_Z
     for j, (za, zb) in enumerate(((z1, z1 - 0.3), (z1 - 0.3, z0))):
@@ -256,6 +260,12 @@ def mooring_rope(bone):
     ring(bone, "rope_coil_2", v3(-0.02, yf + 0.2, zc - 0.02), v3(0, 1, 0), 0.19, 0.08, "rope", n=6, phase=0.5)
     polyline(bone, "rope_lead", [v3(0.1, yf + 0.22, zc + 0.2), v3(0.1, yb - 0.45, zs - 0.28), v3(0.08, yb - 0.02, zs - 0.12)], 0.085, "rope",
              sides=4)
+    # a second line over the port gunwale abaft the rower, hanging down the side to the water (the reference's rope)
+    zr = -0.45
+    xo = side_x(zr, rs.rail_y(zr)) + 5 * LAP + 0.06
+    pts = [v3(inner_x(zr, 0.3) - 0.15, rs.THWART_TOP - 0.25, zr + 0.3), v3(xo - 0.2, rs.rail_y(zr) + rs.GUNWALE_H + 0.06, zr + 0.05),
+           v3(xo + 0.02, rs.rail_y(zr) - 0.1, zr - 0.1), v3(xo + 0.06, 0.25, zr - 0.3), v3(xo + 0.3, 0.02, zr - 0.5)]
+    polyline(bone, "rope_side", catmull(pts, 2), 0.085, "rope", sides=4)
 
 
 # ================================================================ model

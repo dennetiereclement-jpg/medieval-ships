@@ -30,7 +30,7 @@ apparente au banc avant).
 | Fond intérieur | planches sombres entre les membrures | 3 planches de fond longitudinales à y −0,16 |
 | Cordage | 2 tours sur le montant d'étrave, pend le long de l'étrave, lové | 2 tours, une ganse pendante, glène de 2 spires sur le plancher avant |
 
-## 2. Structure du modèle (`tools/generate_rowboat.py`, ~300 cubes)
+## 2. Structure du modèle (`tools/generate_rowboat.py`, 386 cubes)
 
 * **Coque** : 6 virures à clins par bord (chaque virure déborde de 0,02 sur celle du dessous : les laps font
   l'ombre horizontale de la référence), 12 tronçons entre 13 couples de construction, section ronde (profil
@@ -69,4 +69,4 @@ apparente au banc avant).
 * Pas de pont où marcher : le fond est sous la flottaison ; monter à bord assoit directement (la zone de
   « barre » couvre toute la coque).
 * Pas de gouvernail : la direction vient des rames, aucune animation `steer`.
-* Coût : ~300 cubes, une texture de 128 px, deux os animés.
+* Coût : 386 cubes, une texture de 128 px, deux os animés.
