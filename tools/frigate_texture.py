@@ -67,14 +67,16 @@ REGIONS = {
     "painting":    (480, 64, 32, 24),
     "stern_lily":  (320, 160, 48, 48),  # gold fleur-de-lis on a blue field (stern and bow emblems)
     "wall_stone":  (416, 64, 64, 32),
-    # the hull strakes (one plank each, stretched on its board: the planking follows the sheer instead of
-    # tiling little bricks), a darker one low, a brighter one high, the dark wood of the bottom
-    "strake_lo":   (0, 160, 64, 16),
-    "strake_mid":  (64, 160, 64, 16),
-    "strake_hi":   (128, 160, 64, 16),
+    # the hull strakes: the dark wood of the bottom (one plank each, stretched on its board: the planking
+    # follows the sheer instead of tiling little bricks); the blue topsides are a tiled mosaic of blocks
+    # (16 px a block, 4 x 2 blocks a region) as on the reference's hull, a darker mix low, a brighter one high
+    "strake_lo":   (192, 64, 64, 32),
+    "strake_mid":  (448, 112, 64, 32),
+    "strake_hi":   (384, 128, 64, 32),
     "strake_brown": (192, 160, 64, 16),
     "strake_brown2": (256, 160, 64, 16),
-    "rope_dark":   (368, 160, 16, 16),  # tarred shrouds and ratlines (near black, as on the reference)
+    "rope_dark":   (368, 160, 16, 16),  # shrouds and ratlines (warm brown hemp, as on the reference)
+    "flag_red":    (128, 64, 64, 32),   # the red flag with a white cross of the mizzen, swallow-tailed
     "gunport_open": (0, 176, 32, 32),   # the open port: gold frame round a dark opening
     "gunport_lid": (32, 176, 32, 16),   # the red lid, raised (outside face)
     "castle_panel": (64, 176, 64, 32),  # the stern castle: royal blue panel in a thin gold frame
@@ -122,28 +124,29 @@ _mix, _scale, _planks, _blocks, _fill = ct._mix, ct._scale, ct._planks, ct._bloc
 
 
 # ---------------------------------------------------------------- the fleur-de-lis
-# The heraldic fleur-de-lis, drawn by hand in 16 x 18 cells (the blocky emblem of the reference): a pointed
-# central petal, two side petals rising from the band, bending outward and drooping at their tips, the band,
-# the stem and its two curled feet.
+# The heraldic fleur-de-lis, drawn by hand in 16 x 18 cells (the blocky emblem of the reference): a narrow
+# pointed central petal widening towards the band, two side petals rising from the band and curling outward
+# and up (their tips above the band, clear of the centre), a thin band, and a compact base under it (a
+# central spike between two small curls turning inward). Nothing touches the outer columns.
 LILY = [
+    ".......XX.......",
     ".......XX.......",
     "......XXXX......",
     "......XXXX......",
     ".....XXXXXX.....",
+    ".XX..XXXXXX..XX.",
+    ".XXX.XXXXXX.XXX.",
+    ".XXX.XXXXXX.XXX.",
+    "..XX..XXXX..XX..",
+    "..XXX.XXXX.XXX..",
+    "...XXXXXXXXXX...",
     ".....XXXXXX.....",
-    "..XX.XXXXXX.XX..",
-    ".XXXX.XXXX.XXXX.",
-    "XXXXX.XXXX.XXXXX",
-    "XX.XX.XXXX.XX.XX",
-    "X..XX.XXXX.XX..X",
-    "X..XX..XX..XX..X",
-    "...XX..XX..XX...",
-    "..XXXXXXXXXXXX..",
     "..XXXXXXXXXXXX..",
     "......XXXX......",
     ".....XXXXXX.....",
-    "...XX.XXXX.XX...",
-    "..XX..XXXX..XX..",
+    "....XX.XX.XX....",
+    ".....X.XX.X.....",
+    ".......XX.......",
 ]
 
 
@@ -169,34 +172,37 @@ def fleur_de_lis_mask(w, h, cell=None):
 
 # ---------------------------------------------------------------- painters
 def _sail(px, region, cols, rows, rng, emblem=False, tri=None, whiter=0.0):
-    """Pale blue blocky sail: one tone per cloth block (the light blue, white and pale wool blocks of
-    the reference), a soft lighter sheen, darker worn edges, seams; the fleur-de-lis in navy on the
-    middle; tri = triangle mask (region fractions) for the jibs."""
+    """Pale ice-blue blocky sail: one tone per cloth block (the light blue and white wool blocks of the
+    reference), shaded by column (lighter towards the belly in the middle, darker towards both leeches)
+    with a soft vertical gradient so the blocks read as a lit curved surface, darker worn edges, seams;
+    the fleur-de-lis in navy on the middle; tri = triangle mask (region fractions) for the jibs."""
     u, v, w, h = region
-    blues = [_rgb(c) for c in ("9cc1ea", "a6c8ee", "92b9e6", "b2d0f1", "8db5e3", "a0c4ec", "bcd6f3")]
-    white = _rgb("e6eff9")
-    dark = _rgb("5a7fb4")
+    blues = [_rgb(c) for c in ("d4e0ef", "c3d4e8", "e4ecf6", "b4c8e2", "cdd9ea")]
+    white = _rgb("ecf2f9")
+    dark = _rgb("7f9cc4")
     cw, ch = w / cols, h / rows
-    tone = [[_scale(rng.choice(blues), rng.uniform(0.96, 1.04)) for _ in range(cols)] for _ in range(rows)]
-    # whole white cloths among the blue ones (the reference mixes white and light blue wool), and the
-    # middle of the sail catches the light: whiter towards the centre, bluer in the shadowed edges
+    tone = []
     for r in range(rows):
+        row = []
         for c in range(cols):
-            if rng.random() < 0.16:
-                tone[r][c] = _mix(white, rng.choice(blues), rng.uniform(0.1, 0.4))
-            dx, dy = (c + 0.5) / cols - 0.5, (r + 0.5) / rows - 0.45
-            dd = math.hypot(dx * 1.3, dy * 1.1)
-            tone[r][c] = _mix(tone[r][c], white, max(0.0, 0.42 - dd * 0.9))
-            if whiter:
-                tone[r][c] = _mix(tone[r][c], white, whiter)
-            tone[r][c] = _mix(tone[r][c], dark, max(0.0, dd - 0.42) * 0.5)
+            base = rng.choice(blues)
+            if rng.random() < 0.25:
+                base = _mix(white, rng.choice(blues), rng.uniform(0.0, 0.3))   # whole white cloths
+            # column shading: the belly catches the light, the leeches fall into shadow; the head is a
+            # little lighter than the foot
+            dx = abs((c + 0.5) / cols - 0.5) * 2          # 0 at the middle, 1 at the leeches
+            dy = (r + 0.5) / rows                         # 0 at the head, 1 at the foot
+            k = 1.0 + 0.06 * (1 - dx * dx) - 0.14 * dx * dx - 0.06 * dy
+            row.append(_scale(_mix(base, white, whiter), k * rng.uniform(0.975, 1.025)))
+        tone.append(row)
     mask = None
     if emblem:
-        # the emblem (16 x 18 cells of the LILY) about a third of the width, 4/5 of the height at most
+        # the emblem (16 x 18 cells of the LILY) about a third of the width, 4/5 of the height at most,
+        # a little above the middle so it never touches the foot bolt rope
         cell = max(2, min(int(w * 0.38) // 16, int(h * 0.82) // 18))
         ew, eh = 16 * cell, 18 * cell
         mask = fleur_de_lis_mask(ew, eh, cell)
-        mx, my = (w - ew) // 2, int(h * 0.47 - eh / 2)
+        mx, my = (w - ew) // 2, int(h * 0.43 - eh / 2)
     navy = _rgb("141f44")
     for y in range(h):
         for x in range(w):
@@ -229,14 +235,17 @@ def _sail(px, region, cols, rows, rng, emblem=False, tri=None, whiter=0.0):
                     px[u + x, v + y] = _jitter(dark, rng, 3) + (255,)
 
 
-def _tricolour(px, region, rng):
-    """The French tricolour (blue at the hoist), swallow-tailed at the fly (transparent notch)."""
+def _tricolour(px, region, rng, red_cross=False):
+    """The French tricolour (blue at the hoist), swallow-tailed at the fly (transparent notch);
+    red_cross: a red flag with a white cross instead (the mizzen flag of the reference)."""
     u, v, w, h = region
     cols = [_rgb("1f3f9e"), _rgb("f0ede6"), _rgb("c8262a")]
     for y in range(h):
         for x in range(w):
             k = min(2, int(3 * x / w))
             c = cols[k]
+            if red_cross:
+                c = cols[1] if abs(x - w * 0.42) < w * 0.055 or abs(y - h / 2 + 0.5) < h * 0.09 else cols[2]
             fx = x / w
             notch = fx > 0.72 and abs(y - h / 2 + 0.5) < (fx - 0.72) / 0.28 * (h / 2 - 1)
             if notch:
@@ -271,25 +280,36 @@ def _gold_band(px, region, rng):
     u, v, w, h = region
     for y in range(h):
         for x in range(w):
-            c = _mix(_rgb("e0ad2a"), _rgb("c28f18"), 0.5 + 0.5 * math.sin(x * 0.5 + y))
+            c = _mix(_rgb("dcaa38"), _rgb("b8872a"), 0.5 + 0.5 * math.sin(x * 0.5 + y))
             if y in (0, h - 1):
                 c = _rgb("6e5210")
             elif y in (1, h - 2):
-                c = _rgb("f2c64a")
+                c = _rgb("f0cc5c")
             px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
 
 
-def _strake(px, region, tones, seam, rng, grain=0.05, nails=True):
+def _strake(px, region, tones, seam, rng, grain=0.05, nails=True, block=0):
     """One hull strake (stretched on each board): a dark seam along the top and the bottom, a light
-    edge under the upper seam, the grain along the plank, a few nail heads."""
+    edge under the upper seam, the grain along the plank, a few nail heads. block > 0: a mosaic of
+    blocks `block` px long, one tone each drawn from `tones` (repeat a tone to weight it), with a 1 px
+    darker seam between them (the lapis / light blue / sky blue block mix of the reference's hull)."""
     u, v, w, h = region
     seam = _rgb(seam)
     tones = [_rgb(t) for t in tones]
     base = rng.choice(tones)
     f1, p1 = rng.uniform(0.1, 0.25), rng.uniform(0, 6.28)
+    blocks = [[_scale(rng.choice(tones), rng.uniform(0.96, 1.04)) for _ in range(w // block + 1)] for _ in range(h // block + 1)] \
+        if block else None
     for y in range(h):
         for x in range(w):
-            if y == 0 or y == h - 1:
+            if blocks is not None:
+                b = blocks[y // block][x // block]
+                if x % block == 0 or y % block == 0:
+                    c = _mix(b, seam, 0.55)
+                else:
+                    k = 1.0 + grain * math.sin(x * 0.7 + y * 1.1 + p1) + (0.06 if y % block == 1 else 0) - (0.05 if y % block == block - 1 else 0)
+                    c = _scale(b, k)
+            elif y == 0 or y == h - 1:
                 c = seam
             else:
                 k = 1.0 + grain * math.sin(x * f1 + p1 + y * 1.3) + (0.07 if y == 1 else 0) - (0.06 if y == h - 2 else 0)
@@ -353,7 +373,7 @@ def _taffrail(px, region, rng):
     u, v, w, h = region
     for y in range(h):
         for x in range(w):
-            c = _mix(_rgb("e2ae2a"), _rgb("c08c18"), abs(y - h / 2) / (h / 2))
+            c = _mix(_rgb("dcaa38"), _rgb("b8872a"), abs(y - h / 2) / (h / 2))
             fx, fy = (x % 16) / 16.0, y / h
             # an S scroll every 16 px
             s = math.sin(fx * 2 * math.pi) * 0.28 + 0.5
@@ -367,12 +387,15 @@ def _taffrail(px, region, rng):
 
 
 def _gold(px, region, rng):
+    """Warm ochre gold (the gold blocks of the reference), a darker shadow tone and a few highlights."""
     u, v, w, h = region
     for y in range(h):
         for x in range(w):
-            c = _mix(_rgb("dcaa26"), _rgb("c6931c"), 0.5 + 0.5 * math.sin(x * 0.7 + y * 0.4))
+            c = _mix(_rgb("d8a63a"), _rgb("b8872a"), 0.5 + 0.5 * math.sin(x * 0.7 + y * 0.4))
             if (x * 3 + y * 5) % 17 == 0:
-                c = _rgb("f0c84e")
+                c = _rgb("f0cc5c")
+            elif (x * 5 + y * 3) % 23 == 0:
+                c = _rgb("9c6f22")
             px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
 
 
@@ -381,7 +404,7 @@ def _carving(px, region, rng):
     u, v, w, h = region
     for y in range(h):
         for x in range(w):
-            c = _mix(_rgb("dcaa26"), _rgb("b8861a"), abs(y - h / 2) / (h / 2))
+            c = _mix(_rgb("d8a63a"), _rgb("b8872a"), abs(y - h / 2) / (h / 2))
             k = (x % 8)
             if 4 <= y <= h - 5 and k in (0, 1) or (y in (3, h - 4) and k < 4):
                 c = _rgb("7a5a12")
@@ -449,15 +472,19 @@ def make_texture(path, tris=None):
     _planks(px, R["wood_dark"], ("5a3a20", "4e321c", "634126", "553620"), "24170c", rng)
     _planks(px, R["wood_mid"], ("7a5130", "6e482a", "855a36", "73502e"), "33210f", rng)
     _planks(px, R["wood_light"], ("9a6a3e", "a87644", "8e6038", "b07e4a"), "4a2f17", rng)
-    _planks(px, R["rail"], ("d9a521", "c8941c"), "7a5a12", rng, plank_h=8, joints=1)
+    _planks(px, R["rail"], ("d8a63a", "c08f2c"), "7a5a12", rng, plank_h=8, joints=1)
     _planks(px, R["mast"], ("a87a3a", "9a6e32", "b48542"), "5a401c", rng, plank_h=4, joints=0, grain=0.1)
     _planks(px, R["deck"], ("8a6340", "7d5838", "936a44", "80603e", "6f5234"), "3a2716", rng, plank_h=4, joints=2)
     _planks(px, R["dark_wood"], ("4a2f1a", "40281a"), "1e140a", rng, plank_h=4, joints=1)
     _planks(px, R["cloth_roll"], ("8db4e2", "7fa9dc", "98bce6"), "5f82b2", rng, plank_h=4, joints=0)
     _carving(px, R["carving"], rng)
-    _strake(px, R["strake_lo"], ("1b44a4", "1a41a0", "1e49ad"), "0b1f52", rng)
-    _strake(px, R["strake_mid"], ("2152b8", "2354bc", "1f4fb4"), "0d2459", rng)
-    _strake(px, R["strake_hi"], ("2a5ccb", "2858c6", "2d61d0"), "0f2a66", rng)
+    # the blue strakes: a mosaic of blocks a block long (lapis 55 %, light blue 25 %, sky blue 15 %, dark
+    # 5 %), the upper band a little lighter than the lower one
+    lo = ("1e4bb0",) * 11 + ("2f6ad2",) * 5 + ("5a93e0",) * 3 + ("163c90",)
+    hi = ("2558c4",) * 11 + ("3a78dc",) * 5 + ("6aa0e8",) * 3 + ("1a449e",)
+    _strake(px, R["strake_lo"], lo, "0b1f52", rng, grain=0.03, block=16)
+    _strake(px, R["strake_mid"], lo, "0d2459", rng, grain=0.03, block=16)
+    _strake(px, R["strake_hi"], hi, "0f2a66", rng, grain=0.03, block=16)
     _strake(px, R["strake_brown"], ("3e2616", "3a2414"), "160c04", rng, grain=0.07)
     _strake(px, R["strake_brown2"], ("46291a", "402617"), "160c04", rng, grain=0.07)
     _gunport_open(px, R["gunport_open"], rng)
@@ -466,7 +493,7 @@ def make_texture(path, tris=None):
     _taffrail(px, R["taffrail"], rng)
     ct._rope(px, R["rope"], "a88e62", "6e5a3a", rng)
     ct._rope(px, R["rope_light"], "8a7250", "5a4830", rng)
-    ct._rope(px, R["rope_dark"], "3a3028", "1e1812", rng)
+    ct._rope(px, R["rope_dark"], "6b4a2a", "523620", rng)
     _fill(px, R["iron"], "3a3b3e", rng, 6)
     _fill(px, R["bronze"], "b08a2e", rng, 8)
     _fill(px, R["glow"], "ffd27a", rng, 4)
@@ -485,6 +512,7 @@ def make_texture(path, tris=None):
     ct._grating(px, R["grating"], rng)
     _gunport(px, R["gunport"], rng)
     _tricolour(px, R["flag"], rng)
+    _tricolour(px, R["flag_red"], rng, red_cross=True)
     ct._compass(px, R["compass"], rng)
     ct._chart(px, R["chart"], rng)
     ct._books(px, R["books"], rng)
@@ -516,8 +544,8 @@ def make_sail_texture(path, tris=None):
         tri = None
         if name == "jib":
             tri = (tris or {}).get(name) or [(0.0, 0.0), (1.0, 0.0), (0.62, 1.0)]
-        # the jibs are whiter than the square sails on the reference
-        _sail(px, SAIL_REGIONS[name], cols, rows, rng, emblem=name in EMBLEM_SAILS, tri=tri, whiter=0.35 if name == "jib" else 0.0)
+        # the jibs wear the same cloth as the square sails
+        _sail(px, SAIL_REGIONS[name], cols, rows, rng, emblem=name in EMBLEM_SAILS, tri=tri)
     img.save(path)
     return img
 

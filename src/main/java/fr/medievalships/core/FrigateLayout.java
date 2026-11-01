@@ -35,9 +35,14 @@ public final class FrigateLayout {
 	public static final double MIZZEN_Z = -14.0;
 	public static final double MIZZEN_TOP = 21.0;
 	public static final double[] BOWSPRIT_TIP = {0.0, 12.6, 27.5};
-	/** End of the spanker boom, just beyond the stern. */
-	public static final double BOOM_END_Z = -19.6;
+	/** End of the spanker boom, a block before the taffrail (clear of the great stern lantern). */
+	public static final double BOOM_END_Z = -17.0;
 	public static final double BOOM_Y = 11.4;
+	/** How far aft the rudder blade and the stern lanterns reach. */
+	public static final double STERN_REACH_Z = -19.6;
+	/** The gilded lion figurehead and the lowest head rail reach forward of the hull, under the bowsprit. */
+	public static final double[] FIGUREHEAD_PROBE = {0.0, 8.4, 23.6};
+	public static final double[] HEAD_RAIL_PROBE = {0.0, 7.2, 21.8};
 	/** Half span of the longest yard (the fore and main courses). */
 	public static final double YARD_HALF = 8.6;
 	/** The square yards are braced round by this angle (port arms aft), as in the model. */
@@ -49,9 +54,9 @@ public final class FrigateLayout {
 	public static final double[] QD_STAIR_Z = {-6.5, -9.5};
 	public static final double[] COMPANION_X = {2.0, 3.5};
 	public static final double[] COMPANION_Z = {0.5, 4.0};
-	/** The gun ports (red lids, decorative) along each side, and their height. */
-	public static final double[] GUNPORT_Z = {-7.0, -3.5, 0.0, 3.5, 7.0, 10.5};
-	public static final double GUNPORT_Y = 3.7;
+	/** The gun ports (red lids, decorative) along each side, eight at 3 blocks, and their height. */
+	public static final double[] GUNPORT_Z = {-10.5, -7.5, -4.5, -1.5, 1.5, 4.5, 7.5, 10.5};
+	public static final double GUNPORT_Y = 3.9;
 	/** Doors of the interior grid. */
 	public static final int CABIN_DOOR = 0;
 	public static final String GRID = "/assets/medievalships/interiors/blue_frigate.grid";
@@ -119,6 +124,9 @@ public final class FrigateLayout {
 			probes.add(new double[] {0, 7.6 + (BOWSPRIT_TIP[1] - 7.6) * t, 15.5 + (BOWSPRIT_TIP[2] - 15.5) * t});
 		}
 		probes.add(new double[] {0, BOOM_Y, BOOM_END_Z});
+		probes.add(new double[] {0, 1.0, STERN_REACH_Z});
+		probes.add(FIGUREHEAD_PROBE.clone());
+		probes.add(HEAD_RAIL_PROBE.clone());
 		// the ends of the braced yards: the courses, the topsails, the mizzen topsail
 		yardArms(probes, 15.4, FORE_MAST_Z, 0.65, YARD_HALF);
 		yardArms(probes, 16.4, MAIN_MAST_Z, 0.67, YARD_HALF);
@@ -128,7 +136,7 @@ public final class FrigateLayout {
 		spec.extraProbes = List.copyOf(probes);
 		spec.boundingRadius = BOWSPRIT_TIP[2] + 1.0;
 		spec.aiReach = BOWSPRIT_TIP[2];
-		spec.aiBack = -BOOM_END_Z;
+		spec.aiBack = -STERN_REACH_Z;
 		spec.aiHalfWidth = MAX_HALF_WIDTH + 1.0;
 		spec.lowestY = -KEEL_DEPTH;
 		spec.boardMinZ = -7.5;

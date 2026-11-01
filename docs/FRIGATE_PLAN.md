@@ -16,11 +16,11 @@ animations), `tools/frigate_decor.py` (mobilier, sièges), `tools/frigate_textur
 | Mâts (colonnes dorées) | misaine x ≈ 362, grand mât x ≈ 500, artimon court x ≈ 590 ; têtes à y ≈ 15 (misaine et grand mât), y ≈ 170 (artimon) | hauteurs au-dessus de l'eau : misaine 28,5, grand mât 30, artimon 21 ; misaine à 33 % de la coque depuis l'étrave (z = 6), grand mât à 61 % (z = −4), artimon sur le gaillard (z = −14) |
 | Voiles carrées | 3 par grand mât : basse voile y 240–340, hunier y 145–230, perroquet y 65–135 ; largeur de la basse voile ≈ 165 px ≈ 11 blocs à cette distance (≈ 16 avec le gonflement et la perspective) | basse voile 16 × 9, hunier 13 × 7, perroquet 10 × 5 (demi-largeurs 8 / 6,5 / 5) ; artimon : un petit hunier 9 × 4,5 et une brigantine |
 | Fleurs de lys | taches bleu marine de ≈ 45 × 60 px sur le hunier de misaine, le hunier et le perroquet du grand mât, soit ≈ 1/3 de la largeur de la voile | emblème peint dans la texture des voiles (hunier et perroquet des deux grands mâts), ≈ 4,5 × 5,5 blocs |
-| Focs | deux grands triangles blanc-bleuté entre le beaupré et la tête de misaine, têtes (340, 100) et (350, 150) | deux focs sur les étais de perroquet et de hunier de misaine |
-| Coque | bois brun sombre sous la bande dorée de flottaison ; bleu roi entre la bande basse (y ≈ 395) et la lisse dorée ; rangée de **7 sabords rouges** à cadre doré (x ≈ 195 … 575, y ≈ 345) ; balustrade dorée à poteaux au-dessus de la lisse | bande basse à y 1,0–1,5, sabords (couvercles rouges fermés, décoratifs) à y 3,7, planche dorée à la tombée du bordé (y 5,4–5,9), bastingage bleu puis balustrade à poteaux dorés jusqu'à y 7 |
-| Poupe | château haut : rangée de 3 grandes fenêtres à cadre doré sur le tableau, fenêtres latérales, bandes dorées, lanterne pendue à chaque angle arrière | gaillard d'arrière à 8,5 sur la cabine du capitaine (plancher 5,5) ; 3 fenêtres de tableau + 3 latérales éclairées |
+| Focs | deux grands triangles blanc-bleuté entre le beaupré et la tête de misaine, têtes (340, 100) et (350, 150) | deux focs sous la hune de misaine : le grand foc sur l'étai de hunier (point d'amure au cap du beaupré), la trinquette sur l'étai de misaine (amure à mi-beaupré) |
+| Coque | bois brun sombre sous la bande dorée de flottaison ; bleu roi entre la bande basse (y ≈ 395) et la lisse dorée ; rangée de **7 sabords rouges** à cadre doré (x ≈ 195 … 575, y ≈ 345) ; balustrade dorée à poteaux au-dessus de la lisse | bande basse à y 1,0–1,5, huit sabords par bord tous les 3 blocs (z −10,5 … 10,5, couvercles rouges relevés, décoratifs) à y 3,9, bordé bleu en mosaïque de blocs (lapis, bleu clair, bleu ciel), planche dorée à la tombée du bordé (y 5,4–5,9), bastingage bleu puis lisse dorée crénelée (merlons et poteaux à pommeau) jusqu'à y 7 |
+| Poupe | château haut : rangée de 3 grandes fenêtres à cadre doré sur le tableau, fenêtres latérales, bandes dorées, lanterne pendue à chaque angle arrière | gaillard d'arrière à 8,5 sur la cabine du capitaine (plancher 5,5) ; tableau haut (couronnement 2,65 blocs au-dessus du gaillard) à deux rangs de fenêtres éclairées (5 + 4) + 3 latérales ; galeries de quart dorées en saillie à marches d'or ; pilastres dorés et préceinte d'or sur le tableau ; safran en coin à ferrures dorées |
 | Proue | lisse de proue dorée qui s'élève fortement, beaupré doré, lanterne pendue sur le côté de l'étrave | relevé avant de la lisse 2,2 blocs, lisses de tête dorées (courbes) de la tête d'étrave au bastingage |
-| Pavillons | tricolore (bleu-blanc-rouge, à queue d'aronde) en tête de misaine et, plus petit, en tête d'artimon | tricolores aux trois têtes de mât (le plus grand sur la misaine) |
+| Pavillons | tricolore (bleu-blanc-rouge, à queue d'aronde) en tête de misaine et, plus petit, en tête d'artimon | tricolores en tête de misaine (le plus grand) et de grand mât, pavillon rouge à croix blanche en tête d'artimon |
 | Haubans | échelles de corde sombres jusqu'aux hunes des deux grands mâts, galhaubans en échelles | haubans + enfléchures (bas-mâts et mâts de hune), galhaubans |
 
 ## 2. Dimensions retenues
@@ -50,20 +50,23 @@ plancher (vérifié par `FrigateTest.helmAndSeats`).
 
 ## 5. Matériaux, parties mobiles, contraintes
 
-* **Matériaux** : bordé bleu roi en virures (une planche par bordage, du bleu sombre près de l'eau au
-  bleu vif sous la lisse) entre la bande dorée de flottaison et la préceinte dorée, sabords ouverts à
+* **Matériaux** : bordé bleu roi en mosaïque de blocs (lapis, bleu clair, bleu ciel ; bande haute un peu
+  plus claire) entre la bande dorée de flottaison et la préceinte dorée, sabords ouverts à
   couvercle rouge relevé et bouche de canon, fond de coque et pont en bois brun, beaupré doré, mâts en
-  bois doré à cercles d'or, vergues dorées, voiles bleu clair et blanc à cellules de toile (blocs de laine
-  de la référence) avec grandes fleurs de lys bleu nuit (basses voiles, huniers, perroquets), haubans et
-  enfléchures goudronnés (sombres), château arrière à panneaux bleus encadrés d'or : cinq fenêtres
-  éclairées, galeries de côté, couronnement sculpté à fleurs de lys, grand fanal et lanternes d'angle,
-  lion doré en figure de proue, balustres tournés.
+  bois doré à cercles d'or, vergues dorées, voiles bleu glacier et blanc à cellules de toile (blocs de laine
+  de la référence, plus claires au ventre, plus sombres aux chutes) avec grandes fleurs de lys bleu nuit
+  (basses voiles, huniers, perroquets), haubans et enfléchures en chanvre brun, château arrière à panneaux
+  bleus encadrés d'or : deux rangs de fenêtres éclairées (cinq sur le pont de la cabine, quatre sous le
+  couronnement, fleur de lys d'or entre elles), galeries de quart en saillie à marches d'or, couronnement
+  sculpté, grand fanal et lanternes d'angle, proue dorée massive à bandes étagées, lion doré en figure de
+  proue, lisse de bastingage crénelée d'or.
 * **Parties mobiles** (os du modèle) : voiles (`sail_*` : `sail_wind`, `sail_furl`), roue et safran
   (`steer`), pavillons (`flag_wave`), lanternes (`lantern_sway`), cordages lâches (`rope_sway`),
   porte de la cabine (`door_0`).
 * **Contraintes** : coque et pièces dessinées sur la grille (ce qui est dessiné est ce qui collisionne) ;
   grille fermée sous le pont principal (aucune sortie par la coque, vérifié par
-  `FrigateTest`) ; sondes du pilote automatique jusqu'au bout du beaupré, du gui et des vergues ;
+  `FrigateTest`) ; sondes du pilote automatique jusqu'au bout du beaupré, du gui (qui s'arrête un bloc avant le
+  couronnement), du safran, du lion de proue et des vergues ;
   cube count visé : quelques milliers.
 * **Physique** : grand voilier lourd : accélération 0,22 bloc/s², freinage 0,4, virage 6°/s au
   plus, longue erre (`waterDrag` 0,05), roulis 0,7 ; pilote automatique : rayon 14, anticipation

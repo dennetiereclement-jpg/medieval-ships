@@ -47,8 +47,9 @@ MAIN_MAST_Z, MAIN_MAST_TOP = -4.0, 30.0
 MIZZEN_Z, MIZZEN_TOP = -14.0, 21.0
 BOWSPRIT_FOOT = (0.0, 7.6, 15.5)
 BOWSPRIT_TIP = (0.0, 12.6, 27.5)    # the jib-boom end (46 blocks over all)
-BOOM_END_Z = -19.6                  # the spanker boom reaches just beyond the stern
+BOOM_END_Z = -17.0                  # the spanker boom ends a block before the taffrail (clear of the great lantern)
 BOOM_Y = 11.4
+STERN_REACH_Z = -19.6               # how far aft the rudder blade and the stern lanterns reach
 
 # ---- helm and pilot (quarterdeck, between the wheel and the mizzen)
 HELM_Z = -11.5
@@ -60,9 +61,9 @@ QD_STAIR_Z = (CABIN_FRONT_Z + 3.0, CABIN_FRONT_Z)
 COMPANION_X = (2.0, 3.5)                # main deck -> hold (7 steps, going down aft), port side between the masts
 COMPANION_Z = (0.5, 4.0)
 
-# ---- the gun ports (red lids, decorative) along the hull side: z of each, their height
-GUNPORT_Z = (-7.0, -3.5, 0.0, 3.5, 7.0, 10.5)
-GUNPORT_Y = 3.7
+# ---- the gun ports (red lids, decorative) along the hull side: eight a side at 3 blocks, their height
+GUNPORT_Z = tuple(-10.5 + 3.0 * k for k in range(8))
+GUNPORT_Y = 3.9
 
 
 def half_width(z):

@@ -17,9 +17,9 @@ Reference: the picture of the "Grand navire aux voiles bleues" (docs/FRIGATE_PLA
 ship with a royal blue hull between a gold band at the waterline and a gold planksheer, dark wood below the
 water, a row of red gun-port lids in gold frames, a gold balustrade along the waist, a tall stern castle with
 gold-framed lit windows and lanterns at its corners, a raked bow with gold head rails and a long bowsprit,
-two big masts with three pale blue square sails each (navy fleurs-de-lis on the topsails and topgallants), a
-short mizzen with a topsail and a spanker, two jibs, rope ladders to the tops, tricolour flags at the
-mastheads. Inside, the captain's cabin under the quarterdeck and the hold under the main deck; their walls,
+two big masts with three pale blue square sails each (navy fleurs-de-lis on the courses, topsails and
+topgallants), a short mizzen with a topsail and a spanker, two jibs, rope ladders to the tops, tricolour
+flags at the fore and main mastheads and a red flag with a white cross at the mizzen. Inside, the captain's cabin under the quarterdeck and the hold under the main deck; their walls,
 floors and ceilings are drawn on the boundaries of the interior grid (tools/frigate_interior.py): what is
 drawn is what collides.
 
@@ -76,7 +76,7 @@ CF = fs.CABIN_FRONT_Z
 TZ = fs.TRANSOM_Z
 BOW_Z = fs.FORE_SCALE - 0.02   # where the planking closes on the stem
 BRACE = math.radians(32)       # square yards braced round (port arms aft): the sails show their faces on the side view
-TAFF_RISE = 0.5                # the quarterdeck rail rises by this much from the castle front to the taffrail (visual sheer)
+TAFF_RISE = 1.3                # the quarterdeck rail rises by this much from the castle front to the taffrail (the tall stern of the reference)
 
 
 def qd_rail_y(z):
@@ -120,7 +120,8 @@ def hull_rows(z):
     return pts, regs
 
 
-STRETCHED = ("strake_lo", "strake_mid", "strake_hi", "strake_brown", "strake_brown2", "gold_band", "castle_panel", "taffrail", "carving")
+STRETCHED = ("strake_brown", "strake_brown2", "gold_band", "castle_panel", "taffrail", "carving")
+MOSAIC = ("strake_lo", "strake_mid", "strake_hi")   # the blue strakes tile their block mosaic instead (see hull())
 
 
 def strake(bone, name, a0, a1, b0, b1, th, region, outward, overlap=1.03, inner=None):
@@ -184,8 +185,19 @@ def hull(bone):
                 mid = (a0 + a1 + b0 + b1) / 4
                 t = (a1 + b1) - (a0 + b0)
                 outward = norm(v3(side * t[1], -side * t[0], 0) + v3(0, 0, 0.6 * max(0.0, mid[2] - 13) / 6))
-                strake(bone, "hull_%s%d_%d" % (sn, i, k), a0, a1, b0, b1, 0.14, regs[k], outward, overlap=1.03,
-                       inner="hull_brown" if k < 4 else "hold_wall")
+                cube = strake(bone, "hull_%s%d_%d" % (sn, i, k), a0, a1, b0, b1, 0.14, regs[k], outward, overlap=1.03,
+                              inner="hull_brown" if k < 4 else "hold_wall")
+                if regs[k] in MOSAIC:
+                    # the block mosaic runs on from board to board: each board shows the stretch of its
+                    # strake's region (4 blocks long) that its position along the hull falls on
+                    lu = cube.size[0] * 16 / 64
+                    u0 = ((za - TZ) * 16 % 64) / 64
+                    if u0 + lu > 1:
+                        u0 = max(0.0, 1 - lu)
+                    for spec in cube.faces.values():
+                        if spec is not None and spec["region"] == regs[k]:
+                            spec["sub"] = (u0, 0.0, u0 + lu, min(1.0, cube.size[1] * 16 / 32))
+                            spec["u_dir"], spec["v_dir"] = v3(0, 0, 1), v3(0, -1, 0)
                 n += 1
     # keel and its shoe, rising into the stem
     for i in range(len(STATIONS) - 2):
@@ -217,9 +229,10 @@ def gold_rail(bone, name, path, h, posts_every=0.5, big_every=0, post_region="go
 
 
 def stern(bone, castle, lights):
-    """Flat transom below the castle (dark wood, gold band, blue), and the stern of the castle above it:
-    three lit windows of the captain's cabin in gold frames between gold posts, gold fleur-de-lis emblems
-    between them, a gold carved band under the quarterdeck, its balustrade and the corner lanterns."""
+    """The transom below the castle (dark wood, gold band, blue strakes between gold corner pilasters, a
+    gold wale across), and the stern of the castle above it: the five lit windows of the great cabin in
+    gold frames under a carved gold cornice, a second tier of four lit windows under the taffrail with the
+    gold fleur-de-lis between them, the tall carved taffrail and the great stern lantern on it."""
     z = TZ
     pts, regs = hull_rows(z)
     for k in range(len(pts) - 1):
@@ -228,9 +241,18 @@ def stern(bone, castle, lights):
             fa0, fa1 = -1 + j / 2, -1 + (j + 1) / 2
             strake(bone, "transom_%d_%d" % (k, j), v3(fa0 * xa, ya, z), v3(fa0 * xb, yb, z), v3(fa1 * xa, ya, z), v3(fa1 * xb, yb, z),
                    0.16, regs[k], v3(0, 0, -1), overlap=1.02, inner="hull_brown")
+    ys = fs.sheer_y(z)
+    # gold pilasters at the transom corners from the planksheer down to the gold waterline band, and a gold
+    # wale across the transom (the blank blue counter is broken up with gilt work, as on the reference)
+    yb0 = 1.35 + band_lift(z, 0.35)
+    for j, s in enumerate((1, -1)):
+        xp = fs.hull_x(z, (ys + yb0) / 2) - 0.26
+        add_cube(bone, "transom_pilaster_%d" % j, (s * xp, (ys + yb0) / 2, z - 0.14), EYE, (0.36, ys - yb0, 0.16), "gold")
+    yw = 2.9 + band_lift(z, 0.8) * 0.5
+    xw = fs.hull_x(z, yw) - 0.2
+    gn.wale_bar(bone, "transom_wale", v3(-xw, yw, z - 0.1), v3(xw, yw, z - 0.1), 0.2, 0.16, "gold")
     # the stern of the castle, from the sheer to the quarterdeck: a gold band, the blue panelled wall
     # carrying the windows, a carved gold cornice under the quarterdeck
-    ys = fs.sheer_y(z)
     rows = [(ys, ys + 0.3, "gold_band"), (ys + 0.3, Q - 0.45, "castle_panel"), (Q - 0.45, Q - 0.1, "carving"), (Q - 0.1, Q + 0.3, "gold_band")]
     for k, (ya, yb, reg) in enumerate(rows):
         xa, xb = fs.hull_x(z, ya), fs.hull_x(z, yb)
@@ -253,20 +275,23 @@ def stern(bone, castle, lights):
     for j, x in enumerate((-3.35, 3.35)):
         add_cube(castle, "stern_post_%d" % j, (x, (ys + Q) / 2, z - 0.14), EYE, (0.3, Q - ys, 0.16), "gold")
         add_cube(castle, "stern_console_%d" % j, (x * 0.72, ys + 0.5, z - 0.22), EYE, (0.4, 0.5, 0.3), "carving")
-    # the taffrail: a solid carved gold rail across the stern over a blue panel, rising at the stern
-    # (the sheer of the reference's high stern), the gold fleur-de-lis emblem in its middle, the great
-    # stern lantern on it and two hanging lanterns at its corners
+    # the upper tier: the quarterdeck bulwark across the stern (a blue panelled wall rising to the tall
+    # taffrail) carries a second row of four lit windows in gold frames with the gold fleur-de-lis emblem
+    # between the middle pair; the solid carved gold taffrail over it, the great stern lantern on it
     xq = fs.hull_x(z, Q + 0.5)
     tb, tt = Q + 0.3, Q + TAFF_RISE + 1.35
     add_cube(castle, "taffrail_panel", (0, (tb + tt - 0.35) / 2, z + 0.12), EYE, (2 * xq - 0.3, tt - 0.35 - tb, 0.2),
              {"all": "castle_panel", "-3": "castle_panel", "+3": "wall_wood"}, stretch=True)
+    wy2 = (tb + tt - 0.35) / 2
+    for j, x in enumerate((-2.5, -1.1, 1.1, 2.5)):
+        add_cube(castle, "glow_stern_window2_%d" % j, (x, wy2, z - 0.1), EYE, (0.9, 1.0, 0.04), "glow_window", stretch=True)
+        for s in (1, -1):
+            add_cube(castle, "stern_window2_jamb_%d_%d" % (j, s > 0), (x + s * 0.52, wy2, z - 0.13), EYE, (0.14, 1.2, 0.12), "gold")
+    add_cube(castle, "stern_window2_head", (0, wy2 + 0.58, z - 0.16), EYE, (2 * xq - 0.6, 0.14, 0.18), "carving", stretch=True)
+    add_cube(castle, "stern_window2_sill", (0, wy2 - 0.58, z - 0.17), EYE, (2 * xq - 0.6, 0.14, 0.2), "gold")
+    add_cube(castle, "taffrail_emblem", (0, wy2, z - 0.02), EYE, (0.84, 0.84, 0.06), {"all": "navy", "-3": "stern_lily"}, stretch=True)
     add_cube(castle, "taffrail_carved", (0, tt - 0.18, z + 0.1), EYE, (2 * xq - 0.1, 0.34, 0.26), "taffrail", stretch=True)
     add_cube(castle, "taffrail_cap", (0, tt + 0.06, z + 0.1), EYE, (2 * xq + 0.1, 0.14, 0.4), "rail")
-    add_cube(castle, "taffrail_emblem", (0, (tb + tt - 0.35) / 2, z - 0.02), EYE, (1.3, 1.3, 0.06), {"all": "navy", "-3": "stern_lily"},
-             stretch=True)
-    for j, x in enumerate((-2.2, 2.2)):
-        add_cube(castle, "taffrail_emblem_%d" % j, (x, (tb + tt - 0.35) / 2, z - 0.02), EYE, (0.8, 0.8, 0.06), {"all": "navy", "-3": "stern_lily"},
-                 stretch=True)
     gn.g_great_lantern(castle, "great_stern_lantern", (0, tt + 0.13, z + 0.1), 1.25, metal="gold")
 
 
@@ -283,8 +308,8 @@ def waist(bone, detail):
             # solid blue band from the sheer up 0.45, thick (inner face near the collision)
             board(bone, "bulwark_%s%d" % (sn, i), hp(za, ya, side), hp(za, ya + 0.45, side), hp(zb, yb, side), hp(zb, yb + 0.45, side),
                   0.42, "hull_blue", v3(side, 0, 0), overlap=1.03, inner="hull_blue")
-            # gold cap rail at the rail height, a little inboard
-            beam(bone, "rail_cap_%s%d" % (sn, i), hp(za, ra, side, -0.18), hp(zb, rb, side, -0.18), 0.16, "rail", width=0.42, extend=0.08)
+            # solid gold cap rail at the rail height, a little inboard
+            beam(bone, "rail_cap_%s%d" % (sn, i), hp(za, ra, side, -0.18), hp(zb, rb, side, -0.18), 0.3, "rail", width=0.44, extend=0.08)
             # the gold wales: under the sheer and along the lower band
             gn.wale_bar(bone, "wale_%s%d" % (sn, i), hp(za, ya - 0.3, side, 0.06), hp(zb, yb - 0.3, side, 0.06), 0.2, 0.16, "gold", extend=0.05)
             if za < BOW_Z - 0.5:
@@ -297,24 +322,19 @@ def waist(bone, detail):
                 board(bone, "bow_bulwark_%s%d" % (sn, i), hp(za, ya + 0.43, side), hp(za, ra, side), hp(zb, yb + 0.43, side), hp(zb, rb, side),
                       0.3, "hull_blue", v3(side, 0, 0), overlap=1.03, inner="hull_blue")
                 continue
-            nb = max(1, int(round(seg / 0.4)))
-            for j in range(nb):
-                t = (j + 0.5) / nb
-                z = za + (zb - za) * t
-                y0, y1 = fs.sheer_y(z) + 0.45, fs.rail_y(z) - 0.07
-                p0, p1 = hp(z, y0, side, -0.2), hp(z, y1, side, -0.2)
-                # turned gold balusters: a slim shaft with a bulb low down and a collar under the cap
-                add_cube(detail, "baluster_%s%d_%d" % (sn, i, j), (p0 + p1) / 2, EYE, (0.13, y1 - y0, 0.13), "gold")
-                add_cube(detail, "baluster_bulb_%s%d_%d" % (sn, i, j), p0 + (p1 - p0) * 0.3, EYE, (0.24, 0.2, 0.24), "gold")
-                add_cube(detail, "baluster_collar_%s%d_%d" % (sn, i, j), p0 + (p1 - p0) * 0.86, EYE, (0.2, 0.1, 0.2), "gold")
-    # stout gold posts with knobs along the waist (every ~2.4 blocks), as on the reference
+    # the crenellated gold gunwale of the reference: square gold merlons a block apart under the solid cap
+    # rail, every third one a stout gold post with a knob
     for side, sn in SIDES:
-        for j, z in enumerate(np.arange(CF + 1.2, 15.5, 2.4)):
+        for j, z in enumerate(np.arange(CF + 0.4, 15.4, 1.0)):
             r = fs.rail_y(z)
             p = hp(z, r, side, -0.2)
-            add_cube(bone, "rail_post_%s%d" % (sn, j), p + v3(0, -0.3, 0), EYE, (0.32, 1.1, 0.32), "gold")
-            add_cube(bone, "rail_post_cap_%s%d" % (sn, j), p + v3(0, 0.33, 0), EYE, (0.44, 0.16, 0.44), "gold")
-            add_cube(bone, "rail_post_knob_%s%d" % (sn, j), p + v3(0, 0.5, 0), EYE, (0.24, 0.18, 0.24), "gold")
+            if j % 3 == 1:
+                add_cube(bone, "rail_post_%s%d" % (sn, j), p + v3(0, -0.3, 0), EYE, (0.34, 1.1, 0.34), "gold")
+                add_cube(bone, "rail_post_cap_%s%d" % (sn, j), p + v3(0, 0.33, 0), EYE, (0.46, 0.16, 0.46), "gold")
+                add_cube(bone, "rail_post_knob_%s%d" % (sn, j), p + v3(0, 0.5, 0), EYE, (0.26, 0.18, 0.26), "gold")
+            else:
+                y0, y1 = fs.sheer_y(z) + 0.45, r - 0.14
+                add_cube(detail, "merlon_%s%d" % (sn, j), hp(z, (y0 + y1) / 2, side, -0.2), EYE, (0.5, y1 - y0, 0.3), "gold")
     # the stem head: the two rails meet on a gold knighthead carrying the bow emblem
     zt = 22.3
     yt = fs.rail_y(zt) + 0.1
@@ -391,23 +411,26 @@ def castle(bone, lights):
             p, u, v, n = side_frame(z, 6.95, side)
             add_cube(bone, "castle_window_in_%s%d" % (sn, j), p - n * 0.2, np.column_stack([u, v, n]), (1.15, 1.05, 0.03),
                      {"all": None, "-3": "window_in"}, stretch=True)
-        # the quarter gallery: a gilded bay on the castle side aft of the windows, two lit lights in it,
-        # a carved gold cornice and a moulded base (the reference's stern is rich with gilt work)
+        # the quarter gallery: a gilded bay projecting half a block from the castle side aft of the
+        # windows, two lit lights in it, a stepped gold sill under it and a stepped gold roof over it (the
+        # gold "stairs" of the reference's quarter galleries)
         gz0, gz1 = TZ + 0.4, -16.5
-        gy0, gy1 = 6.25, 7.75
+        gy0, gy1 = 6.1, 8.1
         gp0, _, _, gn0 = side_frame((gz0 + gz1) / 2, (gy0 + gy1) / 2, side)
-        out = 0.42
+        out = 0.55
         gc = gp0 + gn0 * (out / 2 + 0.02)
         frame = np.column_stack([v3(0, 0, -side), v3(0, 1, 0), v3(side, 0, 0)])
         add_cube(bone, "gallery_%s" % sn, gc, frame, (gz1 - gz0, gy1 - gy0, out), {"all": "castle_panel", "-3": None}, stretch=True)
-        add_cube(bone, "gallery_cornice_%s" % sn, gc + v3(0, (gy1 - gy0) / 2 + 0.1, 0) + gn0 * 0.06, frame, (gz1 - gz0 + 0.3, 0.22, out + 0.14),
-                 "carving", stretch=True)
-        add_cube(bone, "gallery_base_%s" % sn, gc - v3(0, (gy1 - gy0) / 2 + 0.1, 0) + gn0 * 0.0, frame, (gz1 - gz0 + 0.2, 0.22, out + 0.04),
-                 "gold")
-        for j, gz in enumerate((gz0 + 0.5, gz1 - 0.5)):
-            wc = v3(0, (gy0 + gy1) / 2, gz) + v3(gc[0], 0, 0) + gn0 * (out / 2 + 0.03)
-            add_cube(bone, "glow_gallery_window_%s%d" % (sn, j), wc, frame, (0.7, 0.9, 0.04), "glow_window", stretch=True)
-            add_cube(bone, "gallery_window_frame_%s%d" % (sn, j), wc + gn0 * 0.01, frame, (0.9, 0.12, 0.08), "gold")
+        for k, (dy, dl, do, reg) in enumerate(((0.11, 0.3, 0.14, "carving"), (0.33, 0.1, -0.12, "gold"), (0.53, -0.1, -0.3, "gold"))):
+            add_cube(bone, "gallery_roof_%s%d" % (sn, k), gc + v3(0, (gy1 - gy0) / 2 + dy, 0) + gn0 * (do / 2), frame,
+                     (gz1 - gz0 + dl, 0.22 - 0.02 * k, out + do), reg, stretch=reg == "carving")
+            add_cube(bone, "gallery_sill_%s%d" % (sn, k), gc - v3(0, (gy1 - gy0) / 2 + dy, 0) + gn0 * (do / 2), frame,
+                     (gz1 - gz0 + dl - 0.1, 0.22 - 0.02 * k, out + do), "gold")
+        for j, gz in enumerate((gz0 + 0.45, gz1 - 0.45)):
+            wc = v3(0, (gy0 + gy1) / 2 + 0.1, gz) + v3(gc[0], 0, 0) + gn0 * (out / 2 + 0.03)
+            add_cube(bone, "glow_gallery_window_%s%d" % (sn, j), wc, frame, (0.66, 1.0, 0.04), "glow_window", stretch=True)
+            for s in (1, -1):
+                add_cube(bone, "gallery_window_frame_%s%d_%d" % (sn, j, s > 0), wc + v3(0, s * 0.56, 0) + gn0 * 0.01, frame, (0.86, 0.12, 0.08), "gold")
         # quarterdeck balustrade, rising aft to the taffrail
         path = [hp(z, qd_rail_y(z) + 0.4, side, -0.22) for z in np.linspace(TZ + 0.2, CF - 0.05, 6)]
         gold_rail(bone, "qd_rail_" + sn, path, 0.95, posts_every=0.5, big_every=4)
@@ -471,18 +494,30 @@ def bow(bone, lights):
     beam(bone, "dolphin_striker", cap + v3(0, -0.1, 0), cap + v3(0, -1.6, 0.15), 0.12, "wood_dark")
     # the gilded figurehead on the stem head, under the bowsprit: a rearing crowned lion (galleon helper)
     head = v3(0, fs.rail_y(22.3) + 0.1, 22.3)
-    gn.lion_figurehead(bone, head + v3(0, -0.75, 0.3), 0.85)
+    gn.lion_figurehead(bone, head + v3(0, -1.0, 0.3), 1.1)
     # the gold head rails: from the waist rail, curving down and forward to the stem head and up again
-    # along the bowsprit (the curved gold prow of the reference), four rails one above the other
+    # along the bowsprit (the massive stepped gold prow of the reference): the two upper rails are heavy
+    # bands built of axis-aligned gold blocks stepping along the curve, two thinner moulded rails below;
+    # along the hull side every rail stays outside the planking (clear of the bow bulwark's inner face)
     for side, sn in SIDES:
-        for k, (dy, name, th) in enumerate(((0.0, "head_rail", 0.5), (-0.5, "head_rail_mid", 0.4), (-1.0, "head_rail_low", 0.42),
-                                            (-1.5, "head_rail_cheek", 0.4))):
+        for k, (dy, name, th) in enumerate(((0.0, "head_rail", 0.7), (-0.62, "head_rail_mid", 0.5), (-1.12, "head_rail_low", 0.38),
+                                            (-1.56, "head_rail_cheek", 0.34))):
             p0 = hp(14.8, fs.rail_y(14.8) + dy, side, 0.08)
             c = v3(side * 2.6, fs.rail_y(19.0) + dy - 0.5, 19.4)
             p1 = head + v3(side * 0.32, dy + 0.05, -0.15 - 0.25 * k)
-            pts_ = bezier(p0, c, p1, 8)
+            pts_ = []
+            for p in bezier(p0, c, p1, 8):
+                if p[2] < BOW_Z:
+                    xm = fs.hull_x(p[2], p[1]) + th * 0.5 + 0.03
+                    if abs(p[0]) < xm:
+                        p = v3(side * xm, p[1], p[2])
+                pts_.append(p)
             for q, (a, b) in enumerate(polyline(pts_)):
-                cap_rail(bone, "%s_%s%d" % (name, sn, q), a, b, th, th * 1.2, "gold", extend=0.06)
+                if k < 2:
+                    cmid = (a + b) / 2
+                    add_cube(bone, "%s_%s%d" % (name, sn, q), cmid, EYE, (abs(b[0] - a[0]) + th * 0.9, th, abs(b[2] - a[2]) + 0.04), "gold")
+                else:
+                    cap_rail(bone, "%s_%s%d" % (name, sn, q), a, b, th, th * 1.2, "gold", extend=0.06)
         for q, z in enumerate((16.2, 17.7, 19.2, 20.6, 21.7)):
             a = bezier(hp(14.8, fs.rail_y(14.8), side, 0.08), v3(side * 2.6, fs.rail_y(19.0) - 0.5, 19.4), head + v3(side * 0.32, 0.05, -0.15), 20)
             idx = min(20, max(0, int(round((z - 14.8) / (22.3 - 14.8) * 20))))
@@ -514,13 +549,13 @@ MASTS = {
 MAST_FOOT = {"fore": L - 0.4, "main": L - 0.4, "mizzen": Q}
 # square sails: mast, name, yard y, foot y, half width at the head, at the foot, belly, texture region
 SQUARE_SAILS = [
-    ("fore", "fore_course", 15.4, 8.4, 8.0, 8.6, 1.8, "fore_course"),
-    ("fore", "fore_topsail", 22.6, 16.6, 6.4, 7.2, 1.45, "fore_topsail"),
-    ("fore", "fore_topgallant", 27.6, 23.4, 4.8, 5.6, 1.1, "fore_topgallant"),
-    ("main", "main_course", 16.6, 9.0, 8.2, 8.8, 1.85, "main_course"),
-    ("main", "main_topsail", 24.0, 17.8, 6.6, 7.4, 1.45, "main_topsail"),
-    ("main", "main_topgallant", 29.1, 24.8, 4.9, 5.7, 1.1, "main_topgallant"),
-    ("mizzen", "mizzen_topsail", 19.6, 15.6, 4.4, 5.0, 0.95, "mizzen_topsail"),
+    ("fore", "fore_course", 15.4, 8.4, 8.0, 8.6, 2.3, "fore_course"),
+    ("fore", "fore_topsail", 22.6, 16.6, 6.4, 7.2, 1.8, "fore_topsail"),
+    ("fore", "fore_topgallant", 27.6, 23.4, 4.8, 5.6, 1.35, "fore_topgallant"),
+    ("main", "main_course", 16.6, 9.0, 8.2, 8.8, 2.3, "main_course"),
+    ("main", "main_topsail", 24.0, 17.8, 6.6, 7.4, 1.8, "main_topsail"),
+    ("main", "main_topgallant", 29.1, 24.8, 4.9, 5.7, 1.35, "main_topgallant"),
+    ("mizzen", "mizzen_topsail", 19.6, 15.6, 4.4, 5.0, 1.2, "mizzen_topsail"),
 ]
 
 
@@ -606,7 +641,8 @@ def square_sail(mb, sails_info, name, z, y_top, y_foot, half_top, half_foot, bel
         half = half_top + (half_foot - half_top) * t
         x = (2 * s - 1) * half
         bel = belly * math.sin(math.pi * min(1.0, t * 0.78)) * (0.35 + 0.65 * (1 - (2 * s - 1) ** 2))
-        drop = t * height * (1 - 0.05 * t * t * (1 - (2 * s - 1) ** 2))
+        # the foot hangs lower in the middle than at the clews (the curve of the belly shows in profile)
+        drop = t * height * (1 + 0.08 * t * t * (1 - (2 * s - 1) ** 2))
         return origin + v3(x, -drop, bel)
     patch_sail(sb, name, P, v3(0, 0, 1), region, cols, rows)
     sails_info.append((sb, False))
@@ -677,12 +713,13 @@ def sails_and_spars(root, masts, sails_info, bowsprit):
     quad_sail(sp, "spanker", GAFF[0] + v3(0, -0.15, -0.15), GAFF[1] + v3(0, -0.15, 0.2), BOOM[0] + v3(0, 0.15, -0.15),
               BOOM[1] + v3(0, 0.15, 1.2), 0.8, v3(-1, 0, 0), "spanker")
     sails_info.append((sp, True))
-    # two jibs on the fore topmast and topgallant stays, flying over the bowsprit
+    # two headsails, set no higher than the fore top as on the reference: the jib on the fore topmast stay
+    # (tack at the bowsprit cap) and the fore staysail on the fore stay (tack half way along the bowsprit)
     st_ = stays(bowsprit)
     jb = Bone("sail_jibs", origin=tuple(cap), parent=root)
-    jib_tri, outer_clew = tri_sail(jb, "jib_outer", on(st_["fore_tg_stay"], 0.2), on(st_["fore_tg_stay"], 0.9), v3(0, 14.0, 15.6), 0.95,
-                                   v3(-1, 0, 0), "jib")
-    _, inner_clew = tri_sail(jb, "jib_inner", on(st_["fore_topmast_stay"], 0.18), on(st_["fore_topmast_stay"], 0.9), v3(0, 11.6, 12.8), 0.85,
+    jib_tri, outer_clew = tri_sail(jb, "jib_outer", on(st_["fore_topmast_stay"], 0.3), on(st_["fore_topmast_stay"], 0.9), v3(0, 11.8, 14.0),
+                                   1.2, v3(-1, 0, 0), "jib")
+    _, inner_clew = tri_sail(jb, "jib_inner", on(st_["fore_stay"], 0.15), on(st_["fore_stay"], 0.9), v3(0, 9.4, 11.6), 1.0,
                              v3(-1, 0, 0), "jib")
     sails_info.append((jb, True))
     return {"jib": jib_tri, "jib_clews": (outer_clew, inner_clew)}
@@ -720,7 +757,7 @@ def rigging(bone, hull_bone, masts, bowsprit, sails):
                 disc(bone, "deadeye_low_%s_%s%d" % (mname, sn, k), foot, (side, 0, 0), 0.12, 0.08, "dark_wood")
                 beam(bone, "lanyard_%s_%s%d" % (mname, sn, k), foot + v3(0, 0.05, 0), foot + v3(0, 0.31, 0), 0.05, "rope")
                 beam(bone, "chain_%s_%s%d" % (mname, sn, k), foot - v3(0, 0.06, 0), hp(zz, foot[1] - 1.1, side, 0.04), 0.06, "iron")
-            ladder(bone, "%s_lower_%s" % (mname, sn), tops, feet, step=0.5, region="rope_dark", th=0.095)
+            ladder(bone, "%s_lower_%s" % (mname, sn), tops, feet, step=0.5, region="rope_dark", th=0.06)
             # futtock shrouds under the top
             s = 1.2 + dm * 0.4
             for k in range(2):
@@ -738,7 +775,7 @@ def rigging(bone, hull_bone, masts, bowsprit, sails):
             r2 = dm * 0.33
             t2 = [v3(side * (r2 + 0.04), top2 - 0.1, z + 0.45) for _ in range(3)]
             f2 = [v3(side * (s - 0.08), top1 + 0.32, z - 0.15 - 0.7 * k) for k in range(3)]
-            ladder(bone, "%s_top_%s" % (mname, sn), t2, f2, step=0.45, region="rope_dark", th=0.07)
+            ladder(bone, "%s_top_%s" % (mname, sn), t2, f2, step=0.45, region="rope_dark", th=0.05)
             # topgallant shrouds
             beam(bone, "%s_tg_shroud_%s" % (mname, sn), v3(side * 0.22, head - 1.6, z + 0.75), v3(side * 0.95, top2 + 0.05, z + 0.45), 0.05,
                  "rope")
@@ -746,7 +783,7 @@ def rigging(bone, hull_bone, masts, bowsprit, sails):
             # mast (the diagonal ladders of the reference), and the topgallant backstays
             zb1 = za - (4.2 if mname == "fore" else 2.2)
             ladder(bone, "%s_backstay_%s" % (mname, sn), [v3(side * (r2 + 0.04), top2 + 0.3, z + 0.4), v3(side * (r2 + 0.08), top2 + 0.1, z + 0.3)],
-                   [channel_point(zb1, side, 0.36, 0.0), channel_point(zb1 - 0.7, side, 0.36, 0.0)], step=0.5, region="rope_dark", th=0.07)
+                   [channel_point(zb1, side, 0.36, 0.0), channel_point(zb1 - 0.7, side, 0.36, 0.0)], step=0.5, region="rope_dark", th=0.05)
             beam(bone, "%s_tg_backstay_%s" % (mname, sn), v3(side * 0.22, head - 1.2, z + 0.75), channel_point(zb1 - 1.6, side, 0.4, 0.0),
                  0.05, "rope")
     fz, mz, zz = fs.FORE_MAST_Z, fs.MAIN_MAST_Z, fs.MIZZEN_Z
@@ -780,7 +817,7 @@ def rigging(bone, hull_bone, masts, bowsprit, sails):
         y, half = SQUARE_SAILS[6][2], SQUARE_SAILS[6][4]
         zo = yard_step("mizzen", "mizzen_topsail")[1]
         arm = gn.braced((side * (half + 0.3), y, zz + zo), zz, BRACE)
-        ropes.append(("mizzen_brace_" + sn, arm, hp(-17.5, Q + 1.0, side, -0.25)))
+        ropes.append(("mizzen_brace_" + sn, arm, hp(-17.5, qd_rail_y(-17.5) + 0.6, side, -0.25)))
         # sheets of the courses from their clews down to the rail
         for k, (mname, idx) in enumerate((("fore", 0), ("main", 3))):
             sq = SQUARE_SAILS[idx]
@@ -809,15 +846,41 @@ gc.SLACK = dict(gc.SLACK, **SLACK)   # gc.slack_rope reads nothing from it, but 
 
 
 # ---------------------------------------------------------------- flags
+def frigate_flag(parent, name, root_pt, w, h, region="flag", n=3, fly=(0, 0, -1)):
+    """gc.flag with the texture region as a parameter: two bones (the animation swings the root half and
+    the fly), each half in n strips following a soft wave; the fly points aft."""
+    root_pt = v3(*root_pt)
+    fly = norm(v3(*fly))
+    side = np.cross(v3(0, 1, 0), fly)
+    fb = Bone("flag_" + name, origin=tuple(root_pt), parent=parent)
+    ft_ = Bone("flag_%s_tip" % name, origin=tuple(root_pt + fly * (w / 2)), parent=fb)
+    amp = min(0.16, 0.07 * w)
+
+    def P(s):
+        return root_pt + side * (amp * math.sin(2 * math.pi * s) * (0.35 + s)) + fly * (w * s)
+    for half, bone in enumerate((fb, ft_)):
+        for k in range(n):
+            s0, s1 = (half + k / n) / 2, (half + (k + 1) / n) / 2
+            a, b = P(s0), P(s1)
+            dd = norm(b - a)
+            axes = np.column_stack([np.cross(v3(0, 1, 0), dd), v3(0, 1, 0), dd])
+            c = add_cube(bone, "flag_%s_%s%d" % (name, "ab"[half], k), (a + b) / 2 + v3(0, -h / 2, 0), axes,
+                         (0.03, h, np.linalg.norm(b - a) + 0.015), {"all": None, "+1": region, "-1": region},
+                         stretch=True, u_dir=fly, v_dir=v3(0, -1, 0))
+            gn.set_sub(c, (s0, 0, s1, 1), faces=("west", "east"))
+    return fb
+
+
 def flags(root, masts):
-    """Tricolour flags at the three mastheads (the biggest on the fore mast, as on the reference)."""
-    for name, w, h in (("fore", 3.2, 2.0), ("main", 2.8, 1.8), ("mizzen", 2.4, 1.5)):
+    """Tricolour flags at the fore and main mastheads (the biggest on the fore mast, as on the reference),
+    a red flag with a white cross at the mizzen."""
+    for name, w, h, region in (("fore", 3.2, 2.0, "flag"), ("main", 2.8, 1.8, "flag"), ("mizzen", 2.4, 1.5, "flag_red")):
         mb, mz = masts[name]
         head = MASTS[name][3]
         top = v3(0, head + 0.1, mz)
         beam(mb, "%s_flagstaff" % name, top, top + v3(0, h + 0.4, 0), 0.08, "wood_dark")
         disc(mb, "%s_flagstaff_knob" % name, top + v3(0, h + 0.45, 0), (0, 1, 0), 0.08, 0.1, "gold")
-        flag(mb, name, top + v3(0, h + 0.35, 0), w, h)
+        frigate_flag(mb, name, top + v3(0, h + 0.35, 0), w, h, region)
 
 
 # ---------------------------------------------------------------- helm, rudder
@@ -856,17 +919,19 @@ def rudder(root):
     y_top, y_bot = fs.sheer_y(TZ) - 0.5, fs.keel_y(TZ) - 0.05
     bands = list(np.linspace(y_top, y_bot, 7))
 
+    # a proper blade: a wedge widening downward, 0.4 thick, with gold pintle straps across it
     def back(y):
         t = (y_top - y) / (y_top - y_bot)
-        return zf - 0.5 - 0.6 * t ** 0.8
+        return zf - 0.7 - 0.7 * t ** 0.8
     for k in range(len(bands) - 1):
         y0, y1 = bands[k], bands[k + 1]
-        board(rb, "rudder_blade_%d" % k, v3(0.1, y0, zf), v3(0.1, y0, back(y0)), v3(0.1, y1, zf), v3(0.1, y1, back(y1)), 0.2, "wood_dark",
+        board(rb, "rudder_blade_%d" % k, v3(0.2, y0, zf), v3(0.2, y0, back(y0)), v3(0.2, y1, zf), v3(0.2, y1, back(y1)), 0.4, "wood_dark",
               v3(1, 0, 0), overlap=1.0)
     for k, y in enumerate(np.linspace(y_top - 0.4, y_bot + 0.4, 4)):
         for s in (1, -1):
-            add_cube(rb, "rudder_strap_%d_%d" % (k, s > 0), (s * 0.12, y, (zf + back(y)) / 2 + 0.05), EYE, (0.03, 0.1, abs(back(y) - zf)),
-                     "iron")
+            add_cube(rb, "rudder_strap_%d_%d" % (k, s > 0), (s * 0.215, y, (zf + back(y)) / 2 + 0.05), EYE, (0.03, 0.16, abs(back(y) - zf)),
+                     "gold")
+        disc(rb, "rudder_gudgeon_%d" % k, (0, y, zf - 0.08), (0, 1, 0), 0.25, 0.16, "gold", n=3)
     round_bar(rb, "rudder_stock", (0, y_bot, zf - 0.08), (0, fs.sheer_y(TZ) + 0.3, zf - 0.08), 0.26, "wood_dark")
 
 
@@ -1097,9 +1162,7 @@ def build(g):
     helm(castle_bone)
     rudder(root)
     deck_fittings(deck_bone, detail)
-    # lanterns: under the jib-boom, on the stern corners (hanging from arms, as on the reference)
-    sa, sb, cap = bowsprit
-    lantern(lights, "lantern_jibboom", sb + v3(0, 0.15, -0.5), drop=0.45, s=1.1)
+    # lanterns on the stern corners (hanging from arms, as on the reference)
     for side, sn in SIDES:
         x = side * (fs.hull_x(TZ, Q + 0.5) - 0.25)
         yt = Q + TAFF_RISE + 1.35
