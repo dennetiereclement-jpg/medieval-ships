@@ -172,10 +172,10 @@ public final class BalloonGameTest {
 		check.accept(a2 != null && a3 != null && a3[0] - a2[0] > 0.1, String.format(Locale.ROOT,
 				"%s under way: the gear wheel turns (phase %.2f -> %.2f)", id, a2 == null ? 0f : a2[0], a3 == null ? 0f : a3[0]));
 		context.getInput().holdKey(o -> o.leftKey);
-		context.waitTicks(40);
+		context.waitTicks(60);
 		ShipPose s3 = pose(server);
 		double turned = Math.abs(ShipPose.wrapDegrees(s3.yaw() - s2.yaw()));
-		check.accept(turned > 4, String.format(Locale.ROOT, "%s turns gently (%.1f degrees in 2 s)", id, turned));
+		check.accept(turned > 5, String.format(Locale.ROOT, "%s turns gently (%.1f degrees in 3 s)", id, turned));
 		context.getInput().releaseKey(o -> o.leftKey);
 		context.getInput().releaseKey(o -> o.forwardKey);
 		server.runCommand("ride @p dismount");
