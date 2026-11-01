@@ -28,9 +28,25 @@ public final class MedievalShipsClient implements ClientModInitializer {
 		}
 		ResourceLoader.get(ResourceType.CLIENT_RESOURCES).registerReloader(MedievalShips.id("galley_model"),
 				(SynchronousResourceReloader) ShipModels::reload);
+		// the tents: drawn from their anchor block, their collision boxes known while their chunks are loaded
+		net.minecraft.client.render.block.entity.BlockEntityRendererFactories.register(fr.medievalships.tent.Tents.BLOCK_ENTITY,
+				ctx -> new fr.medievalships.client.render.TentBlockEntityRenderer());
+		ResourceLoader.get(ResourceType.CLIENT_RESOURCES).registerReloader(MedievalShips.id("tent_models"),
+				(SynchronousResourceReloader) fr.medievalships.client.render.TentModels::reload);
+		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientBlockEntityEvents.BLOCK_ENTITY_LOAD.register((be, world) -> {
+			if (be instanceof fr.medievalships.tent.TentBlockEntity tent && tent.tentType() != null) {
+				fr.medievalships.tent.TentCollisions.add(world, be.getPos(), tent.tentType(), tent.quarter());
+			}
+		});
+		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((be, world) -> {
+			if (be instanceof fr.medievalships.tent.TentBlockEntity) {
+				fr.medievalships.tent.TentCollisions.remove(world, be.getPos());
+			}
+		});
 		ClientTickEvents.END_WORLD_TICK.register(ClientShipEvents::endWorldTick);
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
 			ShipTracker.clearClientWorlds();
+			fr.medievalships.tent.TentCollisions.clearClientWorlds();
 			SyncedConfig.clear();
 		});
 		// the server's settings that change what this client shows (preview, bank, pilot's panel)

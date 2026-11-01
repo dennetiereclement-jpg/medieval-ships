@@ -36,6 +36,10 @@ public final class ServerSettings {
 	/** Farthest destination (blocks, horizontally) a player who is not an admin may give with {@code /pilote goto}. */
 	public double playerDestinationMaxDistance = DEFAULT_PLAYER_DESTINATION_MAX_DISTANCE;
 	public static final double DEFAULT_PLAYER_DESTINATION_MAX_DISTANCE = 1000.0;
+	/** Tents (client drawing): the furniture and small details are drawn within this distance (blocks)... */
+	public double tentDecorDistance = 32.0;
+	/** ...and the tent itself within this one; beyond, nothing is drawn. */
+	public double tentRenderDistance = 64.0;
 
 	public void sanitize() {
 		announceRadius = Math.max(0, Math.min(512, Double.isNaN(announceRadius) ? 40 : announceRadius));
@@ -43,6 +47,8 @@ public final class ServerSettings {
 		adminPermissionLevel = Math.max(0, Math.min(4, adminPermissionLevel));
 		placeAdminOnly = canonicalVessels(clean(placeAdminOnly));
 		placeAllowedPlayers = clean(placeAllowedPlayers);
+		tentDecorDistance = Double.isNaN(tentDecorDistance) ? 32.0 : Math.max(0, Math.min(256, tentDecorDistance));
+		tentRenderDistance = Double.isNaN(tentRenderDistance) ? 64.0 : Math.max(8, Math.min(512, tentRenderDistance));
 		playerDestinationMaxDistance = Double.isNaN(playerDestinationMaxDistance) ? DEFAULT_PLAYER_DESTINATION_MAX_DISTANCE
 				: Math.max(16, Math.min(1_000_000, playerDestinationMaxDistance));
 	}

@@ -33,5 +33,12 @@
   "item.medievalships.rowboat": "Petite barque",
   "entity.medievalships.rowboat": "Petite barque",
   "item.medievalships.trade_sloop": "Petit voilier de commerce",
-  "entity.medievalships.trade_sloop": "Petit voilier de commerce"
+  "entity.medievalships.trade_sloop": "Petit voilier de commerce",
+  "itemGroup.medievalships.tents": "Tentes",
+  "block.medievalships.tent_command": "Grande tente de commandement",
+  "block.medievalships.tent_adventurer": "Petite tente d'aventurier",
+  "block.medievalships.tent_market": "Grand abri de marché",
+  "block.medievalships.tent_camp": "Tente triangulaire de campement",
+  "block.medievalships.tent_dwelling": "Tente d'habitation",
+  "block.medievalships.tent_chief": "Grande tente de chef"
 }
