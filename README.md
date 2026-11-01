@@ -148,6 +148,13 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.12.0 ajoute **huit charrettes médiévales en un seul bloc** (charrette couverte blanche, charrette
+de foin, roulotte de marchand, charrette de marché, charrette de bûcheron, charrette de transport, charrette
+couverte turquoise, charrette à tonneaux) : décors statiques construits comme les tentes (un bloc posé = la
+charrette entière, roues à rayons, bâches arrondies, chargement et lanternes), collisions des roues, plateaux et
+chargements, vérification de place libre, commandes `/cart` (alias de `/tent`), onglet créatif « Charrettes »,
+aucun tick. Voir [Charrettes](#charrettes-un-bloc--une-charrette) et [docs/CHARRETTES.md](docs/CHARRETTES.md).
+
 La version 1.11.0 ajoute **six tentes médiévales en un seul bloc** (grande tente de commandement, petite tente
 d'aventurier, grand abri de marché, tente triangulaire de campement, tente d'habitation, grande tente de chef) :
 un bloc posé = la tente entière dessinée avec ses meubles des mods de décoration, collisions des poteaux et
@@ -344,7 +351,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.11.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.12.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
@@ -371,6 +378,7 @@ pour 1.21.11 sur <https://fabricmc.net/develop>.
 * [Architecture technique (marche sur le pont, collisions, IA, performances)](docs/ARCHITECTURE.md)
 * [Tests effectués et non effectués](docs/TESTS.md)
 * [Les six tentes en un bloc : pose, retrait, commandes, meubles](docs/TENTES.md)
+* [Les huit charrettes en un bloc : ids, pose, retrait, commandes, performances](docs/CHARRETTES.md)
 
 ## Configuration
 
@@ -557,3 +565,25 @@ planchers, rambardes et meubles pleins ont des collisions ; rien ne « tick ».
 Onglet créatif « Tentes », `/tent give|place|remove|list|types` (admin, `/ship give <id>` marche aussi), réglages
 `tentDecorDistance` / `tentRenderDistance`. Détails, liste des meubles par tente et tests dans
 [docs/TENTES.md](docs/TENTES.md).
+
+## Charrettes (un bloc = une charrette)
+
+Huit charrettes médiévales de décor, **statiques** (pas de déplacement, pas d'IA, pas d'animation), chacune étant
+**un seul bloc** à poser comme les tentes : clic droit au sol, l'avant (timon ou brancards) face au joueur, après
+vérification que l'emprise est libre ; la charrette entière est dessinée à partir de ce bloc. Casser le bloc
+d'ancrage (ou `/cart remove`) retire tout.
+
+| id | nom | emprise (l × h × p, blocs) | cubes |
+|----|-----|-----|-----|
+| `cart_covered_white` | Charrette couverte blanche : grand chariot, bâche blanche sur arceaux, deux lanternes, banc et chargement | 3,0 × 3,3 × 6,0 | 431 |
+| `cart_hay` | Charrette de foin : ridelles basses à barreaux, bottes de foin cordées, tonneau | 3,1 × 2,1 × 5,6 | 276 |
+| `cart_merchant_wagon` | Roulotte de marchand : parois rouges à pilastres dorés, toit bombé, volets, jardinières, porte, marches | 2,9 × 3,2 × 4,6 | 323 |
+| `cart_market` | Charrette de marché : auvent rayé rouge et blanc, cagettes de fruits et légumes, lanterne, tonneau | 3,6 × 2,9 × 5,1 | 293 |
+| `cart_logs` | Charrette de bûcheron : plateau robuste, neuf rondins sanglés | 3,0 × 2,6 × 5,7 | 239 |
+| `cart_open` | Charrette de transport : ridelles en barrières, deux grandes roues, brancards | 2,7 × 1,8 × 4,8 | 110 |
+| `cart_covered_teal` | Charrette couverte turquoise : bâche turquoise bordée d'or, lanterne, quatre roues | 2,6 × 2,9 × 4,3 | 371 |
+| `cart_barrels` | Charrette à tonneaux : deux grandes roues, gros tonneaux cerclés, lanterne sur poteau | 2,8 × 2,2 × 4,6 | 280 |
+
+Onglet créatif « Charrettes », `/cart give|place|remove|list|types` (admin ; alias de `/tent`, et `/ship give <id>`
+marche aussi), mêmes réglages de distance que les tentes (`tentDecorDistance` / `tentRenderDistance`). Détails et
+tests dans [docs/CHARRETTES.md](docs/CHARRETTES.md).
