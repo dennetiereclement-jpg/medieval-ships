@@ -28,9 +28,10 @@ import fr.medievalships.core.TentType;
 import fr.medievalships.core.TentTypes;
 
 /**
- * Registration of the tents: one block and one block item per {@link TentType} ({@code medievalships:<id>}), one
- * block entity type for all of them, the creative tab "Tentes", and the collision registry fed by the block
- * entity load / unload events (chunks loading and unloading; placing and breaking go through the block itself).
+ * Registration of the tents and the carts: one block and one block item per {@link TentType} ({@code medievalships:<id>},
+ * {@link TentTypes#PROPS}), one block entity type for all of them, the creative tabs "Tentes" and "Charrettes", and the
+ * collision registry fed by the block entity load / unload events (chunks loading and unloading; placing and
+ * breaking go through the block itself).
  */
 public final class Tents {
 	public static BlockEntityType<TentBlockEntity> BLOCK_ENTITY;
@@ -58,10 +59,11 @@ public final class Tents {
 	}
 
 	public static void register() {
-		for (TentType type : TentTypes.ALL) {
+		for (TentType type : TentTypes.PROPS) {
 			RegistryKey<Block> blockKey = RegistryKey.of(RegistryKeys.BLOCK, MedievalShips.id(type.id()));
 			TentBlock block = Registry.register(Registries.BLOCK, blockKey, new TentBlock(type, AbstractBlock.Settings.create()
-					.registryKey(blockKey).strength(0.6f).sounds(BlockSoundGroup.WOOL).nonOpaque()));
+					.registryKey(blockKey).strength(type.isCart() ? 1.0f : 0.6f).sounds(type.isCart() ? BlockSoundGroup.WOOD : BlockSoundGroup.WOOL)
+					.nonOpaque()));
 			BLOCKS.put(type, block);
 			RegistryKey<Item> itemKey = RegistryKey.of(RegistryKeys.ITEM, MedievalShips.id(type.id()));
 			ITEMS.put(type, Registry.register(Registries.ITEM, itemKey,
@@ -74,7 +76,13 @@ public final class Tents {
 		Registry.register(Registries.ITEM_GROUP, groupKey, FabricItemGroup.builder()
 				.icon(() -> new ItemStack(ITEMS.get(TentTypes.ADVENTURER)))
 				.displayName(Text.translatable("itemGroup.medievalships.tents"))
-				.entries((context, entries) -> ITEMS.values().forEach(entries::add))
+				.entries((context, entries) -> TentTypes.ALL.forEach(t -> entries.add(ITEMS.get(t))))
+				.build());
+		RegistryKey<ItemGroup> cartsKey = RegistryKey.of(RegistryKeys.ITEM_GROUP, MedievalShips.id("carts"));
+		Registry.register(Registries.ITEM_GROUP, cartsKey, FabricItemGroup.builder()
+				.icon(() -> new ItemStack(ITEMS.get(TentTypes.CART_OPEN)))
+				.displayName(Text.translatable("itemGroup.medievalships.carts"))
+				.entries((context, entries) -> TentTypes.CARTS.forEach(t -> entries.add(ITEMS.get(t))))
 				.build());
 
 		// the collision boxes follow the chunks: known while the tent's chunk is loaded, forgotten with it

@@ -40,5 +40,14 @@
   "block.medievalships.tent_market": "Grand abri de marché",
   "block.medievalships.tent_camp": "Tente triangulaire de campement",
   "block.medievalships.tent_dwelling": "Tente d'habitation",
-  "block.medievalships.tent_chief": "Grande tente de chef"
+  "block.medievalships.tent_chief": "Grande tente de chef",
+  "itemGroup.medievalships.carts": "Charrettes",
+  "block.medievalships.cart_covered_white": "Charrette couverte blanche",
+  "block.medievalships.cart_hay": "Charrette de foin",
+  "block.medievalships.cart_merchant_wagon": "Roulotte de marchand",
+  "block.medievalships.cart_market": "Charrette de marché",
+  "block.medievalships.cart_logs": "Charrette de bûcheron",
+  "block.medievalships.cart_open": "Charrette de transport",
+  "block.medievalships.cart_covered_teal": "Charrette couverte turquoise",
+  "block.medievalships.cart_barrels": "Charrette à tonneaux"
 }

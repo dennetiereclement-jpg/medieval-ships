@@ -83,7 +83,7 @@ public class TentBlockEntityRenderer implements BlockEntityRenderer<TentBlockEnt
 		matrices.push();
 		matrices.translate(0.5, 0, 0.5);
 		matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-90f * state.quarter));
-		RenderLayer layer = RenderLayers.entityCutoutNoCull(TentModels.TEXTURES.get(0));
+		RenderLayer layer = RenderLayers.entityCutoutNoCull(TentModels.texture(type));
 		queue.submitCustom(matrices, layer, (entry, vertices) -> {
 			BbModel.Pose pose = model.newPose();
 			if (decor != null) {

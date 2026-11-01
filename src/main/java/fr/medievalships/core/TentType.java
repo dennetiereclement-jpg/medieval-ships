@@ -29,6 +29,11 @@ import com.google.gson.JsonParser;
  * <p>To add a tent: write its generator (the model, the decor JSON and the tents JSON come out of
  * {@code tentlib.export}), then add one {@link #load} line to {@link TentTypes#ALL}, the two names in the lang
  * files, and run the generator (it also paints the item icon).
+ *
+ * <p>The carts are the same kind of prop in a second family ({@link #group()} {@code "carts"}): their files are
+ * {@code assets/medievalships/carts/<id>.json} (written by {@code tools/carts/generate_<id>.py}), their atlas
+ * {@code textures/entity/carts.png} (the JSON's {@code "texture"}), their items in the tab "Charrettes"
+ * ({@link TentTypes#CARTS}). Same block, block entity, renderer, collisions and commands as the tents.
  */
 public final class TentType {
 	/** A box in tent-local blocks: x0, y0, z0, x1, y1, z1. */
@@ -49,6 +54,13 @@ public final class TentType {
 	/** Quarter turns of the horizontal facings, as Minecraft counts them: south 0, west 1, north 2, east 3. */
 	public static final int SOUTH = 0, WEST = 1, NORTH = 2, EAST = 3;
 
+	/** The two families of one-block props: their JSON folder under {@code assets/medievalships/} and their creative tab. */
+	public static final String TENTS = "tents", CARTS = "carts";
+	/** The atlas a prop's model is drawn with when its JSON names none (the tents'). */
+	public static final String DEFAULT_TEXTURE = "textures/entity/tents.png";
+
+	private final String group;
+	private final String texture;
 	private final String id;
 	private final String frenchName;
 	private final String englishName;
@@ -60,7 +72,10 @@ public final class TentType {
 	private final List<List<Box>> rotatedColliders = new ArrayList<>();
 	private final Box[] rotatedExtent = new Box[4];
 
-	TentType(String id, String frenchName, String englishName, String model, String decor, Box extent, List<Box> colliders) {
+	TentType(String group, String texture, String id, String frenchName, String englishName, String model, String decor, Box extent,
+			List<Box> colliders) {
+		this.group = group;
+		this.texture = texture;
 		this.id = id;
 		this.frenchName = frenchName;
 		this.englishName = englishName;
@@ -80,6 +95,20 @@ public final class TentType {
 
 	public String id() {
 		return id;
+	}
+
+	/** {@link #TENTS} or {@link #CARTS}: the JSON folder and the creative tab. */
+	public String group() {
+		return group;
+	}
+
+	public boolean isCart() {
+		return CARTS.equals(group);
+	}
+
+	/** The atlas of the model, relative to {@code assets/medievalships/} ({@code textures/entity/tents.png} or {@code carts.png}). */
+	public String texture() {
+		return texture;
 	}
 
 	public String frenchName() {
@@ -142,13 +171,18 @@ public final class TentType {
 
 	/** Reads {@code /assets/medievalships/tents/<id>.json} from the class path (the mod jar). */
 	public static TentType load(String id, String frenchName, String englishName) {
-		String resource = "/assets/medievalships/tents/" + id + ".json";
+		return load(TENTS, id, frenchName, englishName);
+	}
+
+	/** Reads {@code /assets/medievalships/<group>/<id>.json} from the class path (the mod jar). */
+	public static TentType load(String group, String id, String frenchName, String englishName) {
+		String resource = "/assets/medievalships/" + group + "/" + id + ".json";
 		try (InputStream in = TentType.class.getResourceAsStream(resource)) {
 			if (in == null) {
 				throw new IllegalStateException("missing tent geometry " + resource);
 			}
 			try (Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
-				return parse(id, frenchName, englishName, JsonParser.parseReader(reader).getAsJsonObject());
+				return parse(group, id, frenchName, englishName, JsonParser.parseReader(reader).getAsJsonObject());
 			}
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
@@ -156,6 +190,11 @@ public final class TentType {
 	}
 
 	static TentType parse(String id, String frenchName, String englishName, JsonObject root) {
+		return parse(TENTS, id, frenchName, englishName, root);
+	}
+
+	static TentType parse(String group, String id, String frenchName, String englishName, JsonObject root) {
+		String texture = root.has("texture") && !root.get("texture").isJsonNull() ? root.get("texture").getAsString() : DEFAULT_TEXTURE;
 		String model = root.has("model") && !root.get("model").isJsonNull() ? root.get("model").getAsString() : "models/entity/" + id + ".bbmodel";
 		String decor = root.has("decor") && !root.get("decor").isJsonNull() ? root.get("decor").getAsString() : null;
 		Box extent = box(root.getAsJsonArray("extent"));
@@ -165,7 +204,7 @@ public final class TentType {
 				colliders.add(box(e.getAsJsonArray()));
 			}
 		}
-		return new TentType(id, frenchName, englishName, model, decor, extent, colliders);
+		return new TentType(group, texture, id, frenchName, englishName, model, decor, extent, colliders);
 	}
 
 	private static Box box(JsonArray a) {

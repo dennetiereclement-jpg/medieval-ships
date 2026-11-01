@@ -35,7 +35,8 @@ import fr.medievalships.tent.Tents;
 
 /**
  * {@code /tent give <id> [players]}, {@code /tent place <id> [x y z] [facing]}, {@code /tent remove [nearest|x y z]},
- * {@code /tent list}. Admin only, like {@code /ship}. The ids also work with {@code /ship give}.
+ * {@code /tent list}, {@code /tent types}. Admin only, like {@code /ship}. Every prop id (tents and carts,
+ * {@link TentTypes#PROPS}) is accepted, also by {@code /ship give}; {@code /cart} is the same command under another name.
  */
 public final class TentCommands {
 	private TentCommands() {
@@ -44,10 +45,15 @@ public final class TentCommands {
 	private static final String[] FACINGS = {"south", "west", "north", "east"};
 
 	public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-		LiteralArgumentBuilder<ServerCommandSource> root = CommandManager.literal("tent").requires(ShipPermissions::isAdmin);
+		dispatcher.register(tree("tent"));
+		dispatcher.register(tree("cart"));
+	}
+
+	private static LiteralArgumentBuilder<ServerCommandSource> tree(String name) {
+		LiteralArgumentBuilder<ServerCommandSource> root = CommandManager.literal(name).requires(ShipPermissions::isAdmin);
 		var give = CommandManager.literal("give");
 		var place = CommandManager.literal("place");
-		for (TentType type : TentTypes.ALL) {
+		for (TentType type : TentTypes.PROPS) {
 			give.then(CommandManager.literal(type.id())
 					.executes(ctx -> give(ctx, type, List.of(ctx.getSource().getPlayerOrThrow())))
 					.then(CommandManager.argument("targets", EntityArgumentType.players())
@@ -71,12 +77,12 @@ public final class TentCommands {
 						.executes(ctx -> remove(ctx, BlockPosArgumentType.getLoadedBlockPos(ctx, "pos")))));
 		root.then(CommandManager.literal("list").executes(TentCommands::list));
 		root.then(CommandManager.literal("types").executes(ctx -> {
-			for (TentType t : TentTypes.ALL) {
+			for (TentType t : TentTypes.PROPS) {
 				ok(ctx, t.id() + " : " + t.frenchName());
 			}
-			return TentTypes.ALL.size();
+			return TentTypes.PROPS.size();
 		}));
-		dispatcher.register(root);
+		return root;
 	}
 
 	private static int give(CommandContext<ServerCommandSource> ctx, TentType type, Collection<ServerPlayerEntity> players) {

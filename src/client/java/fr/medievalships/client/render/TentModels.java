@@ -19,12 +19,14 @@ import fr.medievalships.core.TentTypes;
 
 /**
  * The tent models, read from {@code assets/medievalships/<TentType.model()>} like the ships' (reloaded with
- * resource packs); every tent draws the shared atlas {@code textures/entity/tents.png}. A tent whose model is
- * missing (not generated yet) is simply not drawn (logged once).
+ * resource packs); every tent draws the shared atlas {@code textures/entity/tents.png}, every cart
+ * {@code textures/entity/carts.png} ({@link TentType#texture()}). A prop whose model is missing (not generated yet)
+ * is simply not drawn (logged once).
  */
 public final class TentModels {
 	public static final List<Identifier> TEXTURES = List.of(MedievalShips.id("textures/entity/tents.png"));
 	private static final Map<TentType, BbModel> LOADED = new HashMap<>();
+	private static final Map<String, Identifier> ATLASES = new HashMap<>();
 
 	private TentModels() {
 	}
@@ -34,9 +36,14 @@ public final class TentModels {
 		return LOADED.get(type);
 	}
 
+	/** The atlas a prop's model is drawn with. */
+	public static Identifier texture(TentType type) {
+		return ATLASES.computeIfAbsent(type.texture(), MedievalShips::id);
+	}
+
 	public static void reload(ResourceManager manager) {
 		LOADED.clear();
-		for (TentType t : TentTypes.ALL) {
+		for (TentType t : TentTypes.PROPS) {
 			Identifier id = MedievalShips.id(t.model());
 			Optional<Resource> resource = manager.getResource(id);
 			if (resource.isEmpty()) {

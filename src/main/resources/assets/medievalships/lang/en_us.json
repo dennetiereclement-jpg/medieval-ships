@@ -40,5 +40,14 @@
   "block.medievalships.tent_market": "Market Awning",
   "block.medievalships.tent_camp": "Camp Tent",
   "block.medievalships.tent_dwelling": "Dwelling Tent",
-  "block.medievalships.tent_chief": "Chief's Pavilion"
+  "block.medievalships.tent_chief": "Chief's Pavilion",
+  "itemGroup.medievalships.carts": "Carts",
+  "block.medievalships.cart_covered_white": "White Covered Wagon",
+  "block.medievalships.cart_hay": "Hay Cart",
+  "block.medievalships.cart_merchant_wagon": "Merchant Wagon",
+  "block.medievalships.cart_market": "Market Cart",
+  "block.medievalships.cart_logs": "Log Cart",
+  "block.medievalships.cart_open": "Open Cart",
+  "block.medievalships.cart_covered_teal": "Teal Covered Wagon",
+  "block.medievalships.cart_barrels": "Barrel Cart"
 }

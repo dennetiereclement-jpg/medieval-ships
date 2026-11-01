@@ -3,7 +3,11 @@ package fr.medievalships.core;
 import java.util.List;
 
 
-/** The six tents. One line per tent: its id (block, item, model, decor and tents JSON are all named after it) and its names. */
+/**
+ * The six tents and the eight carts. One line per prop: its id (block, item, model, decor and tents / carts JSON are all
+ * named after it) and its names. {@link #ALL} = the tents only (their tab), {@link #CARTS} = the carts (tab
+ * "Charrettes"), {@link #PROPS} = both (registration, commands, models).
+ */
 public final class TentTypes {
 	public static final TentType COMMAND = TentType.load("tent_command", "grande tente de commandement", "Command Tent");
 	public static final TentType ADVENTURER = TentType.load("tent_adventurer", "petite tente d'aventurier", "Adventurer Tent");
@@ -11,7 +15,26 @@ public final class TentTypes {
 	public static final TentType CAMP = TentType.load("tent_camp", "tente triangulaire de campement", "Camp Tent");
 	public static final TentType DWELLING = TentType.load("tent_dwelling", "tente d'habitation", "Dwelling Tent");
 	public static final TentType CHIEF = TentType.load("tent_chief", "grande tente de chef", "Chief's Pavilion");
+	/** The tents only (tab "Tentes"). */
 	public static final List<TentType> ALL = List.of(COMMAND, ADVENTURER, MARKET, CAMP, DWELLING, CHIEF);
+
+	public static final TentType CART_COVERED_WHITE = cart("cart_covered_white", "charrette couverte blanche", "White Covered Wagon");
+	public static final TentType CART_HAY = cart("cart_hay", "charrette de foin", "Hay Cart");
+	public static final TentType CART_MERCHANT_WAGON = cart("cart_merchant_wagon", "roulotte de marchand", "Merchant Wagon");
+	public static final TentType CART_MARKET = cart("cart_market", "charrette de marché", "Market Cart");
+	public static final TentType CART_LOGS = cart("cart_logs", "charrette de bûcheron", "Log Cart");
+	public static final TentType CART_OPEN = cart("cart_open", "charrette de transport", "Open Cart");
+	public static final TentType CART_COVERED_TEAL = cart("cart_covered_teal", "charrette couverte turquoise", "Teal Covered Wagon");
+	public static final TentType CART_BARRELS = cart("cart_barrels", "charrette à tonneaux", "Barrel Cart");
+	public static final List<TentType> CARTS = List.of(CART_COVERED_WHITE, CART_HAY, CART_MERCHANT_WAGON, CART_MARKET, CART_LOGS, CART_OPEN,
+			CART_COVERED_TEAL, CART_BARRELS);
+
+	/** Every one-block prop: the tents, then the carts. */
+	public static final List<TentType> PROPS = java.util.stream.Stream.concat(ALL.stream(), CARTS.stream()).toList();
+
+	private static TentType cart(String id, String frenchName, String englishName) {
+		return TentType.load(TentType.CARTS, id, frenchName, englishName);
+	}
 
 	private TentTypes() {
 	}
@@ -24,8 +47,8 @@ public final class TentTypes {
 		if (s.startsWith("medievalships:")) {
 			s = s.substring("medievalships:".length());
 		}
-		for (TentType t : ALL) {
-			if (t.id().equals(s) || t.id().equals("tent_" + s)) {
+		for (TentType t : PROPS) {
+			if (t.id().equals(s) || t.id().equals("tent_" + s) || t.id().equals("cart_" + s)) {
 				return t;
 			}
 		}

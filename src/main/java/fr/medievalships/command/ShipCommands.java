@@ -125,7 +125,7 @@ public final class ShipCommands {
 			spawn.then(spawnNode(type, e.getKey()));
 		}
 		// /ship give <tent id>: the tents' items too (see TentCommands for /tent)
-		for (fr.medievalships.core.TentType tent : fr.medievalships.core.TentTypes.ALL) {
+		for (fr.medievalships.core.TentType tent : fr.medievalships.core.TentTypes.PROPS) {
 			give.then(CommandManager.literal(tent.id())
 					.executes(ctx -> giveTent(ctx, tent, java.util.List.of(ctx.getSource().getPlayerOrThrow())))
 					.then(CommandManager.argument("targets", EntityArgumentType.players())
