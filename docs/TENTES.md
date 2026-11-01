@@ -48,6 +48,8 @@ compte les cordes et piquets devant et derrière). Les six objets sont dans l'on
 - **Marcher dedans** : la toile et les cordes ne bloquent pas (on entre et sort librement) ; les poteaux, planchers,
   rambardes et meubles pleins ont des boîtes de collision statiques, ajoutées aux collisions des entités proches par
   le mixin de collision des navires (`EntityCollisionMixin` → `ShipCollisions.withHulls` → `TentCollisions`).
+- **Eau** : le bloc d'ancrage est déclaré plein (`solid`) : l'eau qui coule dessus (rive, marée d'un seau) ne
+  l'emporte pas, contrairement à un bloc fin ordinaire.
 - **Meubles** : purement visuels (pas de coffre ouvrable, pas de lit utilisable, pas de siège). Voir la liste
   ci-dessous.
 - **Persistance** : c'est un bloc avec son entité de bloc, dans le chunk. Multijoueur et serveur dédié : rien de

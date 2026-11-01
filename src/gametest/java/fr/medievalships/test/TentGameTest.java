@@ -28,7 +28,8 @@ import fr.medievalships.tent.TentCollisions;
  */
 public final class TentGameTest {
 	private static final TentType TYPE = TentTypes.ADVENTURER;
-	private static final int X = 900;
+	/** Dry ground of the flat world, east of every basin (the sloop's is at x 880-920, the frigate's at 1072-1128). */
+	private static final int X = 1300;
 	/** Top of the stone platform; the anchor block sits on it. */
 	private static final int GROUND = -60;
 
@@ -120,8 +121,9 @@ public final class TentGameTest {
 		server.runCommand("ride @p dismount");
 		server.runCommand("gamemode spectator @a");
 		server.runCommand(String.format(Locale.ROOT, "tp @p %d %d 0 0 40", X, GROUND + 12));
-		context.waitTicks(20);
-		// a flat stone platform of its own, the air cleared above it
+		server.runCommand(String.format(Locale.ROOT, "forceload add %d %d %d %d", X - 16, -16, X + 16, 16));
+		context.waitTicks(30);
+		// a flat stone platform of its own on dry land, the air cleared above it
 		server.runCommand(String.format(Locale.ROOT, "fill %d -63 -14 %d %d 14 stone", X - 14, X + 14, GROUND));
 		server.runCommand(String.format(Locale.ROOT, "fill %d %d -14 %d %d 14 air", X - 14, GROUND + 1, X + 14, GROUND + 12));
 		context.waitTicks(10);
@@ -205,5 +207,6 @@ public final class TentGameTest {
 			}
 		}
 		context.runOnClient((MinecraftClient c) -> c.options.hudHidden = false);
+		server.runCommand(String.format(Locale.ROOT, "forceload remove %d %d %d %d", X - 16, -16, X + 16, 16));
 	}
 }
