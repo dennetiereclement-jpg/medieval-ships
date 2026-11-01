@@ -33,5 +33,12 @@
   "item.medievalships.rowboat": "Rowboat",
   "entity.medievalships.rowboat": "Rowboat",
   "item.medievalships.trade_sloop": "Trade Sloop",
-  "entity.medievalships.trade_sloop": "Trade Sloop"
+  "entity.medievalships.trade_sloop": "Trade Sloop",
+  "itemGroup.medievalships.tents": "Tents",
+  "block.medievalships.tent_command": "Command Tent",
+  "block.medievalships.tent_adventurer": "Adventurer Tent",
+  "block.medievalships.tent_market": "Market Awning",
+  "block.medievalships.tent_camp": "Camp Tent",
+  "block.medievalships.tent_dwelling": "Dwelling Tent",
+  "block.medievalships.tent_chief": "Chief's Pavilion"
 }

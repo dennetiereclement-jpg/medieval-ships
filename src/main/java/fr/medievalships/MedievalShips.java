@@ -171,6 +171,9 @@ public final class MedievalShips implements ModInitializer {
 		TRADE_SLOOP = registerShip(Ships.TRADE_SLOOP, TradeSloopEntity::new, 3.0f, 0.4f, 14);
 		TRADE_SLOOP_ITEM = ITEMS.get(Ships.TRADE_SLOOP);
 
+		// the six tents: one block each, their items in the tab "Tentes"
+		fr.medievalships.tent.Tents.register();
+
 		RegistryKey<ItemGroup> groupKey = RegistryKey.of(RegistryKeys.ITEM_GROUP, id("ships"));
 		Registry.register(Registries.ITEM_GROUP, groupKey, FabricItemGroup.builder()
 				.icon(() -> new ItemStack(GALLEY_ITEM))
@@ -184,7 +187,10 @@ public final class MedievalShips implements ModInitializer {
 		ServerPlayNetworking.registerGlobalReceiver(ShipInteractPayload.ID,
 				(payload, context) -> ShipInteractions.handle(payload, context.player()));
 
-		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> ShipCommands.register(dispatcher));
+		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
+			ShipCommands.register(dispatcher);
+			fr.medievalships.command.TentCommands.register(dispatcher);
+		});
 
 		ServerLifecycleEvents.SERVER_STARTED.register(MedievalShips::reloadFerries);
 		ServerTickEvents.END_SERVER_TICK.register(MedievalShips::processRejoins);

@@ -124,6 +124,13 @@ public final class ShipCommands {
 							.executes(ctx -> give(ctx, type, EntityArgumentType.getPlayers(ctx, "targets")))));
 			spawn.then(spawnNode(type, e.getKey()));
 		}
+		// /ship give <tent id>: the tents' items too (see TentCommands for /tent)
+		for (fr.medievalships.core.TentType tent : fr.medievalships.core.TentTypes.ALL) {
+			give.then(CommandManager.literal(tent.id())
+					.executes(ctx -> giveTent(ctx, tent, java.util.List.of(ctx.getSource().getPlayerOrThrow())))
+					.then(CommandManager.argument("targets", EntityArgumentType.players())
+							.executes(ctx -> giveTent(ctx, tent, EntityArgumentType.getPlayers(ctx, "targets")))));
+		}
 		root.then(give);
 		root.then(spawn);
 		root.then(CommandManager.literal("remove").executes(ShipCommands::remove));
@@ -673,6 +680,14 @@ public final class ShipCommands {
 			p.getInventory().offerOrDrop(new ItemStack(MedievalShips.item(type)));
 		}
 		ok(ctx, capitalize(type.frenchName()) + " donné(e) à " + players.size() + " joueur(s).");
+		return players.size();
+	}
+
+	private static int giveTent(CommandContext<ServerCommandSource> ctx, fr.medievalships.core.TentType type, Collection<ServerPlayerEntity> players) {
+		for (ServerPlayerEntity p : players) {
+			p.getInventory().offerOrDrop(new ItemStack(fr.medievalships.tent.Tents.item(type)));
+		}
+		ok(ctx, capitalize(type.frenchName()) + " donnée à " + players.size() + " joueur(s).");
 		return players.size();
 	}
 

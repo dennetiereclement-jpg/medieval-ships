@@ -29,11 +29,16 @@ public final class ShipCollisions {
 	}
 
 	public static List<VoxelShape> withHulls(List<VoxelShape> collisions, @Nullable Entity entity, Vec3d movement, Box box, World world) {
-		if (!wantsHulls(entity, world)) {
+		boolean hulls = wantsHulls(entity, world);
+		if (!hulls && !fr.medievalships.tent.TentCollisions.any(world)) {
 			return collisions;
 		}
 		List<VoxelShape> out = new ArrayList<>(collisions);
-		return appendHulls(out, entity, box.stretch(movement), world) ? out : collisions;
+		Box query = box.stretch(movement);
+		boolean added = hulls && appendHulls(out, entity, query, world);
+		// the posts, platforms and furniture of the tents (static boxes, see TentCollisions)
+		added |= fr.medievalships.tent.TentCollisions.append(out, entity, query, world);
+		return added ? out : collisions;
 	}
 
 	/**
@@ -43,8 +48,9 @@ public final class ShipCollisions {
 	 * @return true if something was added
 	 */
 	public static boolean appendHulls(List<VoxelShape> out, @Nullable Entity entity, Box query, World world) {
+		boolean tents = fr.medievalships.tent.TentCollisions.append(out, entity, query, world);
 		if (!wantsHulls(entity, world)) {
-			return false;
+			return tents;
 		}
 		int before = out.size();
 		// a collider the entity already overlaps by a hair still stops it (see HullContact)
@@ -62,7 +68,7 @@ public final class ShipCollisions {
 						}
 					});
 		}
-		return out.size() > before;
+		return tents || out.size() > before;
 	}
 
 	private static boolean wantsHulls(@Nullable Entity entity, World world) {

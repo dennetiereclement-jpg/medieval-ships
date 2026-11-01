@@ -522,3 +522,11 @@ src/client/java/...              rendu, visée, transport du joueur sur le pont
 src/test/java/...                tests JUnit
 tools/                           générateurs des modèles et rendu d'aperçu (Python)
 ```
+
+## Tentes (un bloc = une tente)
+
+Six tentes médiévales de décor (commandement, aventurier, marché, campement, habitation, chef), chacune étant **un
+seul bloc** à poser : la tente entière est dessinée à partir de ce bloc comme les navires le sont de leur entité,
+les meubles des mods de décoration sont dessinés en place (visuels), poteaux et planchers ont des collisions, rien ne
+« tick ». Onglet créatif « Tentes », `/tent give|place|remove|list`, détails dans [docs/TENTES.md](docs/TENTES.md).
+Première tente livrée : la petite tente d'aventurier (`tent_adventurer`).
