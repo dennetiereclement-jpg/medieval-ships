@@ -129,7 +129,7 @@ def build():
     pl.floor_knot(det, "floor_seams", ((FX0 + FX1) / 2, 0.042, (FZ0 + FZ1) / 2), size=0.0, frame=2.5, seam=0.08)
     # the fence: entrance in the middle of the front, stone bases at the corners; the front-left corner post gives
     # way to the flower pot on its stone pedestal
-    F = tr.fence_ring(A, -HW, HW, -HD, HD, entrance=("front", 0.0, 1.9), stone="corners", post_every=0.95)
+    F = tr.fence_ring(A, -HW, HW, -HD, HD, entrance=("front", 0.0, 1.6), stone="corners", post_every=0.95)
     drop_post(A, "post_front_left", (-HW, HD))
     pl.flower_pot(sh, det, "flower_pot", (-HW, 0.0, HD), pedestal=1.02, w=0.6, r=0.25, ph=0.78)
     ban = tr.banner_region(atlas, "red", "lotus", w=48, h=96)

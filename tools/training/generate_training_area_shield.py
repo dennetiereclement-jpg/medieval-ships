@@ -77,7 +77,7 @@ def build():
     fl = tr.floor_region(atlas, "t_floor_earth", 2 * HW - 0.3, 2 * HD - 0.3, kind="earth")
     tr.floor(sh, "floor", -HW + 0.15, HW - 0.15, -HD + 0.15, HD - 0.15, fl)
     # the fence: stone pillars at the corners and on both sides of the entrance (middle of the front)
-    tr.fence_ring(A, -HW, HW, -HD, HD, entrance=("front", 0.0, 2.2), stone="pillars", post_every=1.0)
+    tr.fence_ring(A, -HW, HW, -HD, HD, entrance=("front", 0.0, 1.6), stone="pillars", post_every=1.0)
     ban = tr.banner_region(atlas, "blue", "heraldic_shield", w=48, h=96)
     # two banners with the heraldic shield on tall posts in the front fence
     for k, x in enumerate((-2.45, 2.45)):
