@@ -1,0 +1,53 @@
+{
+ "blocks": [
+  {
+   "block": "farmhouse_decorations:kerosene_lantern",
+   "x": 1.72,
+   "y": 1.0,
+   "z": 0.35,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_0",
+   "glow": true
+  },
+  {
+   "block": "farmhouse_decorations:pile_of_books",
+   "x": 2.35,
+   "y": 0.95,
+   "z": -2.12,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_1"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": -1.15,
+   "y": 0.0,
+   "z": 2.5,
+   "yaw": 180.0,
+   "scale": 0.62,
+   "fallback": "fallback_2"
+  },
+  {
+   "block": "farmhouse_decorations:acoustic_guitar",
+   "x": -2.55,
+   "y": 0.0,
+   "z": -2.35,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_3"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": -2.55,
+   "y": 0.0,
+   "z": 0.15,
+   "yaw": 180.0,
+   "scale": 0.7,
+   "fallback": "fallback_4"
+  }
+ ],
+ "seats": [],
+ "paintings": [],
+ "switches": []
+}
