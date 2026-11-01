@@ -148,6 +148,21 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.10.0 ajoute quatre petits véhicules, reproduits d'après leur planche de référence, et les commandes de
+scénarios de quêtes / PNJ décrites ci-dessus ([docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj)) :
+
+* **Montgolfière steampunk** (`hot_air_balloon`) : gros ballon rond à fuseaux vert olive et beige au-dessus d'une
+  nacelle-barque de bois (≈ 10 blocs) suspendue par des chaînes, brûleur central animé, roue dentée, lanternes ;
+  vole lentement. Guide : [docs/BALLOON_PLAN.md](docs/BALLOON_PLAN.md).
+* **Petit voilier de commerce** (`trade_sloop`) : sloop marchand à coque brune et virures bleues (15 blocs de coque,
+  ≈ 20 hors tout), un mât à grand-voile à corne et grand foc, pont chargé de caisses et de tonneaux, barre franche.
+  Guide : [docs/SLOOP_PLAN.md](docs/SLOOP_PLAN.md).
+* **Grand navire aux voiles bleues** (`blue_frigate`) : grand trois-mâts (≈ 46 blocs hors tout, 10 de large) à coque
+  bleu roi et or, sabords rouges, voiles bleues aux fleurs de lys, pavillons tricolores ; cabine du capitaine et cale
+  praticables. Guide : [docs/FRIGATE_PLAN.md](docs/FRIGATE_PLAN.md).
+* **Petite barque** (`rowboat`) : barque de pêche à clins de ≈ 5,5 blocs sur 2, deux places, une paire de rames
+  animées. Guide : [docs/ROWBOAT_PLAN.md](docs/ROWBOAT_PLAN.md).
+
 La version 1.9.2 retravaille le Grand Dirigeable de Cristal d'après sa planche : poupe en œuf (coque ronde aux épaules qui se resserre vers la quille, château arrière rond à trois rangées de fenêtres éclairées et toit-terrasse), proue large et bombée avec ses deux grandes fenêtres en éventail à vitraux, gaillard d'avant à bande verte et volutes dorées, long beaupré cerclé de laiton, lanternes et pendentifs de cristal sous l'étrave ; intérieur remeublé d'après les images (poste de pilotage, salon aux canapés rouges, salle des machines, réserve).
 
 La version 1.9.1 refait l'arrière de deux véhicules d'après leurs planches. Le Grand Dirigeable de Cristal a une poupe ronde en gradins de bois chaud, trois rangées de fenêtres éclairées, une loggia, des panneaux verts sculptés, un toit vert en mansarde à dorures et joyaux, un médaillon et des moteurs ornés de cristaux ; son ballon est un peu plus bas. La Jonque du Dragon a une maison de poupe retravaillée : un pignon au-dessus du porche, des toits aux pentes latérales plus amples, des fenêtres cintrées sombres à l'arrière et une galerie.
@@ -319,7 +334,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.8.2.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.10.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
