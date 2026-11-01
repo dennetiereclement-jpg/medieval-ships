@@ -74,5 +74,17 @@
   "block.medievalships.tente_boulanger": "Tente du boulanger",
   "block.medievalships.tente_poissonnier": "Tente du poissonnier",
   "itemGroup.medievalships.artillery": "Artillerie",
-  "block.medievalships.canon_medieval": "Canon médiéval"
+  "block.medievalships.canon_medieval": "Canon médiéval",
+  "itemGroup.medievalships.training": "Entraînement",
+  "block.medievalships.training_area_dummy": "Aire d'entraînement aux frappes",
+  "block.medievalships.training_area_tatami": "Aire d'entraînement aux tatamis",
+  "block.medievalships.training_area_shield": "Aire d'entraînement épée et bouclier",
+  "itemGroup.medievalships.training": "Entraînement",
+  "block.medievalships.training_area_dummy": "Aire d'entraînement aux frappes",
+  "block.medievalships.training_area_tatami": "Aire d'entraînement aux tatamis",
+  "block.medievalships.training_area_shield": "Aire d'entraînement épée et bouclier",
+  "itemGroup.medievalships.training": "Entraînement",
+  "block.medievalships.training_area_dummy": "Aire d'entraînement aux frappes",
+  "block.medievalships.training_area_tatami": "Aire d'entraînement aux tatamis",
+  "block.medievalships.training_area_shield": "Aire d'entraînement épée et bouclier"
 }

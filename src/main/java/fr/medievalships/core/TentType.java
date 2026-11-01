@@ -44,6 +44,11 @@ import com.google.gson.JsonParser;
  * {@code tools/merchant/generate_<id>.py}), its own atlas, a {@code CannonBlock} and a {@code CannonBlockEntity} (block
  * entity type {@code medievalships:cannon}) that keeps a {@link CannonState}, plus the optional {@code "muzzle"}
  * point and {@code "muzzle_dir"} direction ({@link Muzzle}) where a future shot's smoke and projectile will start.
+ *
+ * <p>The training areas are the fifth family ({@link #group()} {@code "training"}, {@link TentTypes#TRAINING}, tab
+ * "Entraînement"): fenced yards of about 7 x 7 blocks (dummies, punching bag, tatamis, racks) drawn as one static model
+ * like the others, files {@code assets/medievalships/training/<id>.json} (written by
+ * {@code tools/training/generate_<id>.py}), each with its own atlas.
  */
 public final class TentType {
 	/**
@@ -106,6 +111,8 @@ public final class TentType {
 	public static final String TENTS = "tents", CARTS = "carts", WORKSHOPS = "workshops";
 	/** The fourth family: the artillery (the medieval cannon), tab "Artillerie". */
 	public static final String ARTILLERY = "artillery";
+	/** The fifth family: the training areas (1.18.0), tab "Entraînement". */
+	public static final String TRAINING = "training";
 	/** The atlas a prop's model is drawn with when its JSON names none (the tents'). */
 	public static final String DEFAULT_TEXTURE = "textures/entity/tents.png";
 
@@ -161,7 +168,7 @@ public final class TentType {
 		return id;
 	}
 
-	/** {@link #TENTS}, {@link #CARTS}, {@link #WORKSHOPS} or {@link #ARTILLERY}: the JSON folder and the creative tab. */
+	/** {@link #TENTS}, {@link #CARTS}, {@link #WORKSHOPS}, {@link #ARTILLERY} or {@link #TRAINING}: the JSON folder and the creative tab. */
 	public String group() {
 		return group;
 	}
@@ -177,6 +184,11 @@ public final class TentType {
 	/** A piece of artillery (the medieval cannon): a CannonBlock with its own block entity type. */
 	public boolean isCannon() {
 		return ARTILLERY.equals(group);
+	}
+
+	/** A training area (1.18.0): "l'aire d'entraînement", feminine like a tent. */
+	public boolean isTraining() {
+		return TRAINING.equals(group);
 	}
 
 	/** Is the French name masculine ("posé", "le canon", "l'atelier") rather than feminine ("posée", "la tente")? */

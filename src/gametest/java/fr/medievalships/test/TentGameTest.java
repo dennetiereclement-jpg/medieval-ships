@@ -31,7 +31,8 @@ import fr.medievalships.tent.Tents;
  * and block entity, its first collision box answers a collision query, one screenshot, removed. Last the medieval
  * cannon (1.16.0): the same, plus its own block entity type ({@code medievalships:cannon}), its persisted state written
  * and read back through NBT, its muzzle on the far side from the breech, a screenshot from the reference's angle.
- * Called once from {@link ShipClientGameTest}.
+ * The three training areas of 1.18.0 (about 7.5 x 7.5 blocks, 3 high) are placed once each like the tents, before the
+ * cannon. Called once from {@link ShipClientGameTest}.
  */
 public final class TentGameTest {
 	private static final TentType TYPE = TentTypes.ADVENTURER;
@@ -199,8 +200,10 @@ public final class TentGameTest {
 		check.accept(TentTypes.ALL.containsAll(TentTypes.MERCHANTS4) && TentTypes.MERCHANTS4.size() == 2,
 				"the two merchant stalls of 1.17.0 (the baker's, the longer fishmonger's) are placed once each below ("
 						+ TentTypes.MERCHANTS4.size() + ")");
+		check.accept(TentTypes.TRAINING.size() == 3, "the three training areas of 1.18.0 are placed once each below (" + TentTypes.TRAINING.size()
+				+ ")");
 		for (TentType t : java.util.stream.Stream.of(TentTypes.MERCHANTS, TentTypes.MERCHANTS2, TentTypes.MERCHANTS3, TentTypes.MERCHANTS4,
-				TentTypes.ARTILLERY)
+				TentTypes.TRAINING, TentTypes.ARTILLERY)
 				.flatMap(java.util.List::stream).toList()) {
 			TentType.Box e = t.extent(TentType.SOUTH);
 			check.accept(e.x0() > -14 && e.x1() < 14 && e.z0() > -14 && e.z1() < 14 && e.y1() < 12,
@@ -221,6 +224,9 @@ public final class TentGameTest {
 				if (t != TYPE) {
 					quick(t, context, server, world, check, shot);
 				}
+			}
+			for (TentType t : TentTypes.TRAINING) {
+				quick(t, context, server, world, check, shot);
 			}
 			cannon(context, server, world, check, log, shot);
 			return;
@@ -286,6 +292,10 @@ public final class TentGameTest {
 			if (t != TYPE) {
 				quick(t, context, server, world, check, shot);
 			}
+		}
+		// the three training areas (1.18.0): fenced yards of about 7 x 7 blocks, once each
+		for (TentType t : TentTypes.TRAINING) {
+			quick(t, context, server, world, check, shot);
 		}
 		// the medieval cannon (1.16.0)
 		cannon(context, server, world, check, log, shot);
