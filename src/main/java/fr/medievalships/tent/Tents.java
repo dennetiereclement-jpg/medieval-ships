@@ -61,9 +61,11 @@ public final class Tents {
 	public static void register() {
 		for (TentType type : TentTypes.PROPS) {
 			RegistryKey<Block> blockKey = RegistryKey.of(RegistryKeys.BLOCK, MedievalShips.id(type.id()));
+			// solid(): its collision shape is a thin floor, which vanilla would count as "not solid" and let flowing
+			// water wash the prop away; a tent or a cart at the water's edge must stay
 			TentBlock block = Registry.register(Registries.BLOCK, blockKey, new TentBlock(type, AbstractBlock.Settings.create()
 					.registryKey(blockKey).strength(type.isCart() ? 1.0f : 0.6f).sounds(type.isCart() ? BlockSoundGroup.WOOD : BlockSoundGroup.WOOL)
-					.nonOpaque()));
+					.nonOpaque().solid()));
 			BLOCKS.put(type, block);
 			RegistryKey<Item> itemKey = RegistryKey.of(RegistryKeys.ITEM, MedievalShips.id(type.id()));
 			ITEMS.put(type, Registry.register(Registries.ITEM, itemKey,
