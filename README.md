@@ -148,6 +148,13 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.18.0 ajoute **trois aires d'entraînement en un seul bloc** (onglet « Entraînement ») : aire aux
+frappes (trois mannequins de paille, sac de frappe sur potence, râtelier d'épées, bannières rouges), aire aux
+tatamis (tatamis à bordure rouge, échoppe à auvent, banc, armes d'entraînement, bannières au lotus) et aire épée et
+bouclier (trois mannequins casqués avec épée et bouclier rond, râteliers d'épées et de boucliers, bannières bleues).
+`/give @p medievalships:training_area_dummy`, `training_area_tatami`, `training_area_shield`.
+Voir [docs/ENTRAINEMENT.md](docs/ENTRAINEMENT.md).
+
 La version 1.17.0 ajoute **la tente du boulanger** (four à pain en pierre allumé, miches, baguettes, sacs de grain,
 tarte et gâteau) et **la tente du poissonnier** (étal long bleu et blanc, filet de pêche, poissons suspendus, étal de
 glace, nasse à homard, ancre, algues). `/give @p medievalships:tente_boulanger`, `tente_poissonnier`.
@@ -381,7 +388,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.17.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.18.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
