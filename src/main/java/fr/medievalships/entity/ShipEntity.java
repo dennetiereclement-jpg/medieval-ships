@@ -1,11 +1,15 @@
 package fr.medievalships.entity;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
+import net.minecraft.command.permission.LeveledPermissionPredicate;
+import net.minecraft.command.permission.PermissionLevel;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityType;
@@ -17,6 +21,9 @@ import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.packet.s2c.play.PositionFlag;
+import net.minecraft.server.command.CommandOutput;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ChunkTicketType;
 import net.minecraft.server.world.ServerWorld;
@@ -30,11 +37,13 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import net.minecraft.world.rule.GameRules;
 
 import fr.medievalships.MedievalShips;
 import fr.medievalships.core.Autopilot;
 import fr.medievalships.core.Dive;
 import fr.medievalships.core.InteriorGrid;
+import fr.medievalships.core.Landing;
 import fr.medievalships.core.Ships;
 import fr.medievalships.core.Flight;
 import fr.medievalships.core.Gait;
@@ -129,6 +138,11 @@ public abstract class ShipEntity extends Entity {
 	/** The lifeboat once launched (a boat entity), or null. */
 	@Nullable
 	private java.util.UUID lifeboat;
+	/** Commands of the stops reached ({@link Waypoint#onArrive}), run at the next tick (not from inside the autopilot's tick). */
+	private final List<String> pendingCommands = new ArrayList<>();
+	/** The route ended where the vessel vanishes ({@link Route.End#despawns()}): done at the next tick. */
+	@Nullable
+	private Route.End pendingEnd;
 
 	// ---- shared / client state
 	private final PositionInterpolator interpolator = followsServerExactly() ? new ExactInterpolator(this) : new PositionInterpolator(this, 3);
@@ -594,6 +608,13 @@ public abstract class ShipEntity extends Entity {
 			syncSeats();
 		}
 		gotoChecks(world);
+		runPendingCommands(world);
+		if (pendingEnd != null) {
+			Route.End end = pendingEnd;
+			pendingEnd = null;
+			endTrip(world, end);
+			return;
+		}
 		if (age % 10 == 0) {
 			syncAutopilotInfo(world);
 		}
@@ -1052,23 +1073,158 @@ public abstract class ShipEntity extends Entity {
 
 	/** Is a player (not a spectator) aboard: riding a seat, or standing on the decks or in the rooms? */
 	private boolean playerAboard(ServerWorld world) {
-		for (Entity e : getPassengerList()) {
-			if (e instanceof ServerPlayerEntity p && !p.isSpectator()) {
-				return true;
+		return !playersAboard(world).isEmpty();
+	}
+
+	/** The players (not spectators) aboard: riding a seat, or standing on the decks or in the rooms. */
+	public List<ServerPlayerEntity> playersAboard(ServerWorld world) {
+		List<ServerPlayerEntity> out = new ArrayList<>();
+		for (ServerPlayerEntity p : world.getPlayers()) {
+			if (!p.isSpectator() && isAboard(p)) {
+				out.add(p);
 			}
+		}
+		return out;
+	}
+
+	/** Is this entity aboard: riding a seat, or standing on the decks or in the rooms (server side)? */
+	public boolean isAboard(Entity e) {
+		if (e.getVehicle() == this) {
+			return true;
 		}
 		double r = geometry().boundingRadius() + 2;
-		ShipPose pose = pose();
-		for (ServerPlayerEntity p : world.getPlayers()) {
-			if (p.isSpectator() || p.squaredDistanceTo(getX(), getY(), getZ()) > r * r) {
-				continue;
+		if (e.getEntityWorld() != getEntityWorld() || e.squaredDistanceTo(getX(), getY(), getZ()) > r * r) {
+			return false;
+		}
+		double[] l = pose().toLocal(e.getX(), e.getY(), e.getZ());
+		return geometry().inCarryVolume(l[0], l[1], l[2]);
+	}
+
+	// ------------------------------------------------------------------ quest scripts: arrival commands, landing, end of trip
+
+	/** Runs a command as the vessel at the next tick (a stop's {@link Waypoint#onArrive}). */
+	public void queueCommand(String command) {
+		if (command != null && !command.isBlank()) {
+			pendingCommands.add(command);
+		}
+	}
+
+	private void runPendingCommands(ServerWorld world) {
+		if (pendingCommands.isEmpty()) {
+			return;
+		}
+		List<String> commands = new ArrayList<>(pendingCommands);
+		pendingCommands.clear();
+		for (String command : commands) {
+			String c = command.startsWith("/") ? command.substring(1) : command;
+			MedievalShips.LOGGER.info("Ship {} ({}) runs: /{}", vesselName(), getUuid(), c);
+			world.getServer().getCommandManager().parseAndExecute(scriptSource(world), c);
+		}
+	}
+
+	/**
+	 * The command source a scripted command of this vessel runs with: the vessel as the executing entity ({@code @s},
+	 * its position and heading), the permission level of the administrators ({@code adminPermissionLevel}: exactly what
+	 * whoever set the command may do, nothing more), its output in the server log and, like a command block's, sent to
+	 * the operators when the game rule {@code commandBlockOutput} says so.
+	 */
+	public ServerCommandSource scriptSource(ServerWorld world) {
+		CommandOutput output = new CommandOutput() {
+			@Override
+			public void sendMessage(Text message) {
+				MedievalShips.LOGGER.info("[{}] {}", vesselName(), message.getString());
 			}
-			double[] l = pose.toLocal(p.getX(), p.getY(), p.getZ());
-			if (geometry().inCarryVolume(l[0], l[1], l[2])) {
+
+			@Override
+			public boolean shouldReceiveFeedback() {
+				return false;
+			}
+
+			@Override
+			public boolean shouldTrackOutput() {
 				return true;
 			}
+
+			@Override
+			public boolean shouldBroadcastConsoleToOps() {
+				return world.getGameRules().getValue(GameRules.COMMAND_BLOCK_OUTPUT);
+			}
+		};
+		int level = Math.max(0, Math.min(4, ConfigManager.server().adminPermissionLevel));
+		return getCommandSource(world).withOutput(output)
+				.withPermissions(LeveledPermissionPredicate.fromLevel(PermissionLevel.fromLevel(level)));
+	}
+
+	/**
+	 * Where the passengers step off: a quay or the shore beside the hull (see {@link Landing}), null in open water.
+	 */
+	@Nullable
+	public Vec3d landingSpot(ServerWorld world) {
+		BlockPos.Mutable pos = new BlockPos.Mutable();
+		double[] spot = Landing.find(geometry(), pose(), (x, y, z) -> {
+			pos.set(x, y, z);
+			if (!world.getFluidState(pos).isEmpty()) {
+				return Landing.Block.LIQUID;
+			}
+			return world.getBlockState(pos).getCollisionShape(world, pos).isEmpty() ? Landing.Block.FREE : Landing.Block.SOLID;
+		});
+		return spot == null ? null : new Vec3d(spot[0], spot[1], spot[2]);
+	}
+
+	/**
+	 * Lands every player aboard ({@code /ship disembark}, the end of a trip): at {@code where} when given, else on
+	 * the quay or shore beside the hull. In open water, with nowhere to land, the players stay aboard and 0 is
+	 * returned; players on seats are nevertheless stood up on the deck.
+	 *
+	 * @return the number of players landed
+	 */
+	public int disembark(ServerWorld world, @Nullable Vec3d where) {
+		List<ServerPlayerEntity> players = playersAboard(world);
+		if (players.isEmpty()) {
+			return 0;
 		}
-		return false;
+		Vec3d spot = where != null ? where : landingSpot(world);
+		if (spot == null) {
+			for (ServerPlayerEntity p : players) {
+				if (p.getVehicle() == this) {
+					p.stopRiding();
+				}
+			}
+			return 0;
+		}
+		int n = 0;
+		for (ServerPlayerEntity p : players) {
+			if (p.getVehicle() == this) {
+				p.stopRiding();
+			}
+			// side by side rather than in a heap
+			double a = n * 2.1, d = n == 0 ? 0 : 0.35 * Math.sqrt(n);
+			p.teleport(world, spot.x + Math.cos(a) * d, spot.y, spot.z + Math.sin(a) * d, Set.<PositionFlag>of(), p.getYaw(), p.getPitch(), true);
+			n++;
+		}
+		return n;
+	}
+
+	/**
+	 * The end of a {@code once} / {@code return} route whose end makes the vessel vanish: the players are landed
+	 * beside it, the NPC captain goes with it, its item is left on the spot if asked, and it is removed.
+	 */
+	private void endTrip(ServerWorld world, Route.End end) {
+		int landed = disembark(world, null);
+		for (Entity p : new ArrayList<>(getPassengerList())) {
+			p.stopRiding();
+			if (p.getCommandTags().contains("medievalships_captain")) {
+				p.discard();
+			}
+		}
+		if (end == Route.End.DESPAWN_ITEM) {
+			dropStack(world, new ItemStack(item()), (float) geometry().hull().mainDeckY);
+		}
+		MedievalShips.LOGGER.info("Ship {} ({}) reached the end of route {}: {} player(s) landed, removed ({})", vesselName(), getUuid(),
+				routeName, landed, end);
+		tellAround(world, Text.literal(vesselName() + " a terminé son voyage.").formatted(Formatting.AQUA));
+		setAutopilot(false);
+		discard();
 	}
 
 	private String vesselName() {
@@ -1167,8 +1323,21 @@ public abstract class ShipEntity extends Entity {
 		@Override
 		public void arrived(Waypoint stop, int index) {
 			int wait = stop.waitSeconds;
-			say(Text.literal(String.format("%s est arrivé à %s. Départ dans %d s.", shipName(), stop.label(index), wait))
-					.formatted(Formatting.AQUA), false);
+			boolean terminus = route == null || Autopilot.next(route, index, autopilot.direction) == null;
+			String then = terminus ? (route != null && route.end().despawns()
+					? (stop.holds() ? "Terminus : il repartira sur ordre." : String.format("Terminus : il repartira dans %d s.", wait))
+					: "Terminus.")
+					: stop.holds() ? "Départ sur ordre." : String.format("Départ dans %d s.", wait);
+			say(Text.literal(String.format("%s est arrivé à %s. %s", shipName(), stop.label(index), then)).formatted(Formatting.AQUA), false);
+			if (stop.onArrive != null && !stop.onArrive.isBlank() && !GotoRoutes.isGoto(routeName)) {
+				queueCommand(stop.onArrive);
+			}
+		}
+
+		@Override
+		public void countdownToEnd(int secondsLeft) {
+			say(Text.literal(String.format("%s repart dans %d s : tout le monde à terre !", shipName(), secondsLeft)).formatted(Formatting.YELLOW),
+					secondsLeft <= 5);
 		}
 
 		@Override
@@ -1193,6 +1362,9 @@ public abstract class ShipEntity extends Entity {
 		public void finished() {
 			if (GotoRoutes.isGoto(routeName)) {
 				ShipData.get(world.getServer()).removeFerry(getUuid()); // arrived: nothing to reload after a restart
+			} else if (route != null && route.end().despawns()) {
+				pendingEnd = route.end(); // removed at the next tick, not from inside the autopilot's tick
+				return;
 			}
 			say(Text.literal(shipName() + " est arrivé à destination.").formatted(Formatting.AQUA), false);
 		}

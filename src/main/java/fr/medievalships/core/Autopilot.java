@@ -32,7 +32,14 @@ public final class Autopilot {
 
 		default void finished() {
 		}
+
+		/** Last seconds at the end of the route before the vessel vanishes ({@link Route.End#despawns()}). */
+		default void countdownToEnd(int secondsLeft) {
+		}
 	}
+
+	/** {@link #waitTicks} of a vessel moored until it is told to leave ({@link #departNow}). */
+	public static final int HOLD_TICKS = -1;
 
 	private static final int PROBE_INTERVAL = 5;
 	private static final double[] AVOID_STEPS = {15, 30, 45, 60, 80, 100};
@@ -76,6 +83,7 @@ public final class Autopilot {
 		recoverTicks = 0;
 		avoidOffset = 0;
 		stuckReported = false;
+		holdAtNextStop = false;
 		progressX = Double.NaN;
 		resetProgress();
 		if (route == null || route.size() == 0) {
@@ -99,11 +107,33 @@ public final class Autopilot {
 		Waypoint w = route.get(nearest);
 		if (w.isStop() && best < Math.max(16.0, geometry.aiReach() * 1.5)) {
 			phase = Phase.DOCKED;
-			waitTicks = w.waitSeconds * 20;
+			waitTicks = w.dockTicks();
 		} else {
 			phase = Phase.SAILING;
 		}
 	}
+
+	/** Moored at a stop until told to leave? */
+	public boolean holding() {
+		return phase == Phase.DOCKED && waitTicks < 0;
+	}
+
+	/**
+	 * Keeps a moored vessel at its stop until {@link #departNow} (a quest script: "wait until the players are
+	 * ready"), whatever the stop's time. False when the vessel is not moored at a stop: it is then held at the next
+	 * stop it reaches (until the server restarts).
+	 */
+	public boolean hold() {
+		if (phase != Phase.DOCKED) {
+			holdAtNextStop = phase == Phase.SAILING || phase == Phase.RECOVERING;
+			return false;
+		}
+		waitTicks = HOLD_TICKS;
+		return true;
+	}
+
+	/** {@link #hold()} given while sailing: held at the next stop reached (transient). */
+	private boolean holdAtNextStop;
 
 	private void resetProgress() {
 		bestDist = Double.MAX_VALUE;
@@ -122,7 +152,10 @@ public final class Autopilot {
 		}
 	}
 
-	/** Index after {@code i} in travel direction {@code dir}; returns {index, dir} or null at the end of a ONCE route. */
+	/**
+	 * Index after {@code i} in travel direction {@code dir}; returns {index, dir} or null at the end of a ONCE route
+	 * (and of a RETURN route, back at its first point).
+	 */
 	public static int[] next(Route route, int i, int dir) {
 		int n = route.size();
 		if (n <= 1) {
@@ -136,6 +169,7 @@ public final class Autopilot {
 			case ONCE -> null;
 			case LOOP -> new int[] {Math.floorMod(j, n), dir};
 			case PINGPONG -> new int[] {i - dir, -dir};
+			case RETURN -> j >= n ? new int[] {i - 1, -1} : null; // turns round at the far end only
 		};
 	}
 
@@ -169,9 +203,24 @@ public final class Autopilot {
 		Waypoint here = route.get(target);
 		int[] nx = next(route, target, direction);
 		if (nx == null) {
+			// the end of the trip: a vessel that vanishes there first waits the stop's time (the players get off), or the
+			// order to leave; one that stays is finished at once (as before: a destination releases its chunks then)
+			if (route.end().despawns() && waitTicks != 0) {
+				if (waitTicks > 0) {
+					waitTicks--;
+					int s = waitTicks / 20;
+					if (waitTicks % 20 == 0 && (s == 60 || s == 30 || s == 10 || (s <= 5 && s > 0))) {
+						listener.countdownToEnd(s);
+					}
+				}
+				return new ShipPhysics.Controls(0.0, 0.0);
+			}
 			phase = Phase.FINISHED;
 			listener.finished();
 			return new ShipPhysics.Controls(0.0, 0.0);
+		}
+		if (waitTicks < 0) {
+			return new ShipPhysics.Controls(0.0, 0.0); // held until told to leave
 		}
 		if (waitTicks > 0) {
 			waitTicks--;
@@ -246,7 +295,8 @@ public final class Autopilot {
 					return new ShipPhysics.Controls(0.0, 0.0);
 				}
 				phase = Phase.DOCKED;
-				waitTicks = Math.max(1, tgt.waitSeconds) * 20;
+				waitTicks = holdAtNextStop ? HOLD_TICKS : tgt.dockTicks();
+				holdAtNextStop = false;
 				failures = 0;
 				listener.arrived(tgt, target);
 				return new ShipPhysics.Controls(0.0, 0.0);
