@@ -424,7 +424,7 @@ def engine_room():
     chair(FU + "spruce_stool", -1.6, f, -8.6, "stern", -1.6, -9.5)
     custom("crystal_lamp", solid=(1.45, 2.05, f, f + 2.0, -8.6, -8.0), name="engine_crystal_lamp_0", p=(1.75, f, -8.3))
     # the floor: dwarven pipes along both walls, crates in the corners, gauges, crystal lamps
-    h = HO
+    h = ci.EF
     for z in (-12.0, -13.0):          # the starboard wall (the stair down runs along the port wall)
         w = max(wall_x(h + 0.1, z - 0.4, -1), wall_x(h + 0.1, z + 0.4, -1))
         block(MB + "dwemer_metal_pipe", w + 0.42, h, z, "bow", solid=True)

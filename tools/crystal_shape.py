@@ -10,7 +10,7 @@ blocks (51 with the bowsprit, 56 with the aft spar and the floating crystal pods
 sheer sweeping up to a tall carved stem, a rounded stern; a cluster of seven cream balloon lobes (a big central
 egg, a fore and an aft lobe on the axis, higher, four side lobes at the corners) low over the big golden ring,
 whose top runs into its belly; a round stern castle in tiers (storey 1 inset from the hull's sides, storey 2 nearly as
-wide and overhanging the stern, under a green mansard roof), ornate brass engines on the aft sides, a brass
+wide and overhanging the stern, under a round railed roof), ornate brass engines on the aft sides, a brass
 gear medallion on the stern, two slanted propeller pods under the stern, glowing blue crystals.
 """
 import math
@@ -61,7 +61,8 @@ SHEER_WAIST = 1.0          # top of the bulwark of the main deck
 SHEER_FWD = (8.5, 14.0, 1.45)   # the sheer sweeps up to the forecastle between these z, by this much...
 SHEER_BOW = 0.85                # ... and on up to the stem
 SHEER_AFT = 0.0                 # a rise aft, into the castle (z -3 .. -10): none, the castle rises there
-SECTION_P = 1.6            # the bilge's roundness (the sections narrow to the keel)
+SECTION = (2.6, 0.06)      # the sections: round shoulders narrowing in an egg to a narrow keel (the sheet's back and front
+                           # views): half width = hw * (k + (1 - k) * (1 - (1 - eta)^p)), eta from the keel (0) to the waist (1)
 TUMBLE = 0.02
 SHELL = 0.4
 # the keel line (z, y) from the stern to the head of the stem: a banana keel, deepest amidships, a full cut-back forefoot
@@ -79,7 +80,7 @@ DECK_SLAB = 0.5
 TURRET = (1.5, 10.0, 13.3, 4.0)        # half width, z0, z1, top of the lookout on the main deck (a moulded cap)
 
 # stern castle in tiers, round at the stern: storey 1 (on the main deck, inset from the hull's sides), storey 2 (the cockpit,
-# overhanging the stern), a green mansard roof over it (solid in the grid, its flat top walkable), the crest on its gable
+# overhanging the stern), a round roof over it (solid in the grid, its railed top walkable), the crest on its gable
 CASTLE_Z = -10.1           # front of storey 1
 L1_Y, L1_TOP = 0.0, 3.0
 L2_Z = -14.0               # front of storey 2 (storey 1's roof in front of it is a terrace)
@@ -91,14 +92,20 @@ CASTLE2_ROUND = (5.0, 2.1)                     # storey 2: over this length befo
 CASTLE2_TUCK = 0.45        # storey 2's round back is tucked in by up to this much more towards its stern (the tiers step)
 STERN1_END = -22.75        # the stern of storey 1 (inside the hull's rounded stern)
 STERN2_Z = -23.9           # the stern of storey 2 (it overhangs the hull's stern)
-# the green mansard roof over storey 2: its eave's overhang past the walls, its inset at the top (from the walls), its
-# flat top's height, the eave's height (the cornice, under the cockpit's ceiling: a tall roof sloping in on every side)
-MANSARD = (0.2, 1.0, 8.0, 5.85)
+# the round roof over storey 2: its eave's overhang past the walls, its inset at the top (from the walls), its flat top's
+# height, the eave's height (the cornice, under the cockpit's ceiling); between the eave and the top its side bulges like a
+# low dome (ROOF_BULGE: the exponent of its quarter-superellipse profile, rising steeply from the eave, rounding over into
+# the railed terrace on top), round at the stern like the storey under it
+MANSARD = (0.2, 1.5, 8.0, 5.85)
+ROOF_BULGE = 1.7
+ROOF_LAMPS_Z = (-19.6,)    # z of the lanterns on posts on the roof's rail, both sides (the top tier's corners from behind)
+STERN_STAFF = (2.7, 0.35)  # the flag staff at the stern of the roof's top: its height, its distance in from the top's aft end
 ROOF_Y = (L2_TOP, MANSARD[2])   # the roof over the cockpit's ceiling (solid in the grid) and its top
 CREST_Y = 9.5              # top of the gilded scroll crest at the gable's top
 ENSIGN = (MANSARD[3], 4.3)  # the ensign boom aft from storey 2's stern at the cornice's height: its height, its length
 DECK_SLAB_C = 0.5
 BALCONY = (0.35, 0.8)      # the stern balcony round storey 1's stern: its overhang on the sides, aft
+GALLERY2 = (0.5, -19.4, 0.55)   # the curved gallery round storey 2's back: its ledge's depth, the z it wraps aft of, its rail's height
 
 # the cockpit: the arched window facing the bow (x half width, sill, springing of the arch, crown)
 ARCH = (2.4, 3.3, 4.6, 5.85)
@@ -106,10 +113,10 @@ HELM_Z = -15.9
 PILOT_Z = -16.8
 
 # ---------------------------------------------------------------- engines and crystals
-NACELLE = (7.5, -2.3, -24.4, -9.6, 3.1)       # x (both sides), y, z0 (the end of the iron cap), z1 (the helmet's nose), radius
+NACELLE = (7.5, -2.3, -24.2, -9.6, 3.1)       # x (both sides), y, z0 (the end of the tail's iron hub), z1 (the helmet's nose), radius
 NACELLE_EYE = (-18.0, 1.7)                     # z, radius of the glowing crystal eye on the outer face
-MEDALLION = (-2.5, -23.0, 2.25)                # y, z of its face, radius (its dark rim): the gear medallion on the stern,
-                                               # tucked under the stern gallery
+MEDALLION = (-3.0, -23.0, 2.7)                 # y, z of its face, radius (its dark rim): the big gear medallion low on the
+                                               # stern, between the frieze under the balcony and the keel
 PROP_PODS = (7.0, (-6.6, -5.0), (-10.0, -10.4))   # x (both sides), (y, z) of the root, (y, z) of the hub
 PROP_BLADE = 4.0
 BOTTOM_CRYSTAL = (0.3, -12.0, 3.1, -15.0)     # z, platform y, platform radius, tip y
@@ -287,8 +294,8 @@ def band_low(z):
 
 
 def hull_x(z, y):
-    """Half width of the outside of the hull at (z, y): a round bilge from the keel up to the bulwark, a slight
-    tumblehome above it."""
+    """Half width of the outside of the hull at (z, y): an egg-shaped section, round at the shoulders and narrowing to
+    the keel, from the keel up to the bulwark, a slight tumblehome above it."""
     w = hull_hw(z)
     if w <= 0:
         return 0.0
@@ -297,7 +304,8 @@ def hull_x(z, y):
         return 0.0
     if y <= SHEER_WAIST:
         eta = (y - k) / max(0.05, SHEER_WAIST - k)
-        return w * (0.1 + 0.9 * (1.0 - (1.0 - eta) ** SECTION_P) ** 0.5)
+        p, kw = SECTION
+        return w * (kw + (1.0 - kw) * (1.0 - (1.0 - eta) ** p))
     return w * (1.0 - TUMBLE * (y - SHEER_WAIST))
 
 
@@ -333,6 +341,29 @@ def castle_x(z, y):
     return castle2_x(z)
 
 
+def roof_offset(y):
+    """Horizontal offset of the round roof's side from storey 2's walls at height y (+ out, - in): the eave's overhang up to
+    the top of the cornice, then a bulging quarter superellipse rising steeply and rounding over into the flat top, inset
+    by MANSARD[1]."""
+    eave, inset, ytop, yev = MANSARD
+    yeave = yev + 0.2
+    if y <= yeave:
+        return eave
+    s = min(1.0, (y - yeave) / (ytop - yeave))
+    p = ROOF_BULGE
+    return eave - (eave + inset) * (1.0 - (1.0 - s ** p) ** (1.0 / p))
+
+
+def roof_lamp_x(z):
+    """Half width (x) of the lanterns' posts on the roof's rail at z (just inside the rail, on storey 2's round back)."""
+    return castle2_x(z) - MANSARD[1] - 0.2
+
+
+def stern_staff():
+    """(z, top) of the flag staff at the stern of the roof's top (on the centreline)."""
+    return STERN2_Z + MANSARD[1] + STERN_STAFF[1], MANSARD[2] + STERN_STAFF[0]
+
+
 def balcony_x(z):
     """Half width of the stern balcony round storey 1's stern, on the hull's stern bulwark (0 forward of it)."""
     if z > STERN_ROUND[0] + 0.5:
@@ -351,13 +382,13 @@ def castle_top(z):
 
 # ---------------------------------------------------------------- engines
 NACELLE_NOSE = (2.4, -13.6, -15.0)   # radius of the brass helmet and its neck, z where the neck ends, z where the drum is full
-NACELLE_TAIL = (-20.4, -23.0, 1.2, 0.75)  # z where the drum starts tapering aft, z where the iron drum starts, its radius,
-                                          # the radius of its flat end (the grille)
+NACELLE_TAIL = (-20.2, -23.1, 1.35, 1.15)  # z where the drum starts rounding off aft into its dome, z where the dome closes on
+                                            # the tail's dark iron hub, the hub's radius there and at its end (the turning grille)
 
 
 def nacelle_r(z):
     """Radius of a side nacelle at z: a domed brass helmet on a neck, flaring into the big drum round the crystal eye,
-    tapering aft into a small iron drum narrowing to its flat end (the grille)."""
+    rounding off aft in a dome (a round pod seen from behind) that closes on a dark iron hub carrying the turning grille."""
     x, y, z0, z1, r = NACELLE
     rn, zb, zd = NACELLE_NOSE
     za, zc, rc, re = NACELLE_TAIL
@@ -372,10 +403,11 @@ def nacelle_r(z):
         return rn + (r - rn) * _smooth((zb - z) / (zb - zd))
     if z > za:        # the drum
         return r
-    if z > zc:        # its aft edge, rounded
-        return r - (r - rc) * _smooth((za - z) / (za - zc))
-    t = (zc - z) / (zc - z0)   # the iron drum, narrowing to its flat end
-    return rc + (re - rc) * t ** 1.5
+    if z > zc:        # the tail's dome: a quarter ellipse closing on the boss
+        u = (za - z) / (za - zc)
+        return rc + (r - rc) * math.sqrt(max(0.0, 1.0 - u * u))
+    t = (zc - z) / (zc - z0)   # the iron hub, narrowing to its flat end
+    return rc + (re - rc) * t
 
 
 def inside_nacelle(x, y, z, inset=0.0):
@@ -404,7 +436,7 @@ if __name__ == "__main__":
     for z, y in ((-20.0, -3.0), (-10.0, -6.0), (0.0, -8.5), (0.0, 0.5), (8.0, -3.0), (16.0, -2.0), (22.0, 1.5), (-16.0, 2.0),
                  (-22.5, -2.0), (11.0, 0.5), (25.0, 2.0), (-7.0, 1.0)):
         print("{%s, %s, %.6f, %.6f, %.6f}," % (z, y, hull_x(z, y), keel_y(z), sheer_y(z)))
-    for z in (-24.0, -22.0, -15.0, -10.0):
+    for z in (-23.6, -22.0, -15.0, -10.0):
         print("{%s, %.6f}," % (z, nacelle_r(z)))
     for z, y in ((-12.0, 1.0), (-20.0, 4.0), (-22.5, 1.0), (-23.5, 4.0), (-18.0, 2.7)):
         print("{%s, %s, %.6f}," % (z, y, castle_x(z, y)))

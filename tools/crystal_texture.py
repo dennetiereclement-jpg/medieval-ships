@@ -105,6 +105,7 @@ REGIONS = {
     "roof_panel":   (192, 160, 48, 32), # gilded frame round a green panel with a big gilded S-scroll (the roof's slopes)
     "plate_patina": (240, 160, 16, 16), # one riveted plate of olive-green bronze patina (the engines' sides and tapers)
     "slate":        (256, 160, 16, 16), # dark blue-grey slate (the medallion's outer dish)
+    "roof_dome":    (0, 208, 32, 32),   # the round roof's curve: warm brown boards running down it, a dark seam every board
 }
 
 
@@ -387,8 +388,9 @@ def _window_lit(px, region):
             elif x == w // 2 or y == int(h * 0.55):
                 c = _rgb("5a3a1e")
             else:
-                g = 1.0 - 0.3 * abs(fy - 0.6)
-                c = _scale((255, 206, 118), g)
+                g = 1.0 - 0.45 * abs(fy - 0.45)
+                c = _mix((255, 214, 120), (236, 128, 40), min(1.0, abs(fy - 0.4) * 1.6 + abs(fx - 0.5) * 0.8))
+                c = _scale(c, g)
             _put(px, u, v, x, y, c)
 
 
@@ -623,7 +625,7 @@ def _cap_iron(px, region, rng):
 
 
 def _medal_glass(px, region):
-    """The medallion's porthole: blue-grey glass round a glowing blue heart, transparent outside the circle."""
+    """The medallion's porthole: blue glass glowing brighter towards its heart, transparent outside the circle."""
     u, v, w, h = region
     for y in range(h):
         for x in range(w):
@@ -634,14 +636,14 @@ def _medal_glass(px, region):
                 continue
             if r > 0.9:
                 c = _ramp(BRASS_STOPS, 0.7)
-            elif r < 0.16:
-                c = _mix((220, 240, 255), (90, 150, 220), r / 0.16)
-            elif r < 0.3:
-                c = _mix((90, 150, 220), (70, 96, 128), (r - 0.16) / 0.14)
+            elif r < 0.2:
+                c = _mix((225, 245, 255), (110, 190, 255), r / 0.2)
+            elif r < 0.45:
+                c = _mix((110, 190, 255), (50, 120, 215), (r - 0.2) / 0.25)
             else:
-                c = _mix((74, 96, 124), (44, 56, 76), (r - 0.3) / 0.6)
-                if abs(dx - dy) < 0.05 and 0.4 < r < 0.7:
-                    c = (120, 146, 170)
+                c = _mix((50, 120, 215), (30, 66, 130), (r - 0.45) / 0.45)
+                if abs(dx - dy) < 0.05 and 0.5 < r < 0.8:
+                    c = (150, 200, 245)
             _put(px, u, v, x, y, c)
 
 
@@ -791,13 +793,13 @@ def _window_loggia(px, region):
             if x in (0, w - 1) or y == h - 1 or (fy < top and ax ** 2 + ((top - fy) / top) ** 2 > 0.7):
                 _put(px, u, v, x, y, _rgb("3a2414"))
                 continue
-            # the room: warm at the top, falling to a dark brown at the floor
-            g = max(0.0, min(1.0, (fy - 0.15) / 0.8))
-            c = _mix((255, 214, 130), (70, 40, 20), g ** 0.8)
+            # the room: a warm orange-gold glow at the top, falling to an amber brown at the floor
+            g = max(0.0, min(1.0, (fy - 0.2) / 0.8))
+            c = _mix((255, 196, 96), (150, 72, 24), g ** 1.1)
             # the hanging lamp: a halo
             d = math.hypot((fx - 0.5) * 1.4, fy - 0.33)
-            if d < 0.2:
-                c = _mix(c, (255, 226, 150), 0.7 * (1 - d / 0.2))
+            if d < 0.24:
+                c = _mix(c, (255, 228, 150), 0.75 * (1 - d / 0.24))
             # furniture in shadow: the table's edge, a chair's back
             if 0.72 < fy < 0.76 and 0.12 < fx < 0.88:
                 c = _rgb("2c1a0c")
@@ -845,6 +847,20 @@ def _roof_panel(img, region, rng):
                 _put(px, u, v, x, y, _rgb("26341c"))
             elif mp[x, y] > 90:
                 _put(px, u, v, x, y, _ramp(GOLD_STOPS, 0.35 + 0.5 * mp[x, y] / 255.0))
+
+
+def _roof_dome(img, region, rng):
+    """The round roof's curve: warm brown boards running down it (along v), a darker seam every board, a little wear (the
+    green only on its panels)."""
+    u, v, w, h = region
+    fine_wood(img, region, _rgb("8c5a2e"), _rgb("3a2414"), 4, rng, vertical=True, knots=0.04)
+    px = img.load()
+    for y in range(h):
+        for x in range(w):
+            c = px[u + x, v + y][:3]
+            if x % 4 == 3:
+                c = _scale(c, 0.68)
+            _put(px, u, v, x, y, c)
 
 
 def _slate(px, region, rng):
@@ -980,6 +996,7 @@ def make_texture(path):
     _window_loggia(px, R["window_loggia"])
     _roof_panel(img, R["roof_panel"], rng)
     _slate(px, R["slate"], rng)
+    _roof_dome(img, R["roof_dome"], rng)
     for name, stops in (("plate_brass", [(0.0, (66, 54, 26)), (0.35, (118, 98, 50)), (0.7, (164, 136, 72)), (1.0, (204, 176, 106))]),
                         ("plate_bronze", [(0.0, (46, 34, 20)), (0.35, (84, 62, 34)), (0.7, (122, 92, 52)), (1.0, (160, 124, 76))]),
                         ("plate_helmet", [(0.0, (92, 70, 30)), (0.35, (150, 118, 54)), (0.7, (198, 164, 86)), (1.0, (236, 214, 150))]),

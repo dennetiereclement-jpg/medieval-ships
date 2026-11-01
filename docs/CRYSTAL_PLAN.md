@@ -14,7 +14,7 @@ ballon, nacelles) : la disposition retenue, symétrique, reproduit la silhouette
 | Élément | Pixels (côté) | Blocs |
 |---|---|---|
 | Longueur totale (beaupré → poupe) | x 8 → 400 | **51** (57 avec la bôme d'enseigne et la nacelle de cristal arrière) |
-| Coque (étrave → poupe) | x 25 → 398 | **48,6** ; maître-bau 12 (vue avant 76 px) ; poupe **ronde** en plan sur les 4,4 derniers blocs |
+| Coque (étrave → poupe) | x 25 → 398 | **48,6** ; maître-bau 12 (vue avant 76 px) ; poupe **ronde** en plan sur les 4,4 derniers blocs ; sections **en œuf** (vues avant et arrière) : épaules rondes, la coque se resserre vers la quille (demi-largeur 6 → 5,2 à −3 → 3,6 à −6 → 1,5 à −8,5 au milieu) |
 | Pont principal / quille | y 205 / 278 | 0 / quille « banane » : −7,4 à z 15, −9,4 au milieu, −8,2 à z −10, −6,2 à la poupe ; avant à pied coupé remontant à +3,4 |
 | Tonture | rambarde y 197 → 183 → 178 | +1 au milieu, monte en continu vers le gaillard (+2,4 à z 13) et l'étrave (+3,3), tête d'étrave sculptée à +4,6 |
 | Galerie du salon (bandeau brun) | y 205 → 236, fenêtres y 213 → 230, x 150 → 265 | six hautes fenêtres éclairées −3 → −1, z −5,5 → 8,5, pilastres, corniche, appui |
@@ -22,9 +22,9 @@ ballon, nacelles) : la disposition retenue, symétrique, reproduit la silhouette
 | Gaillard d'avant (pont, garde-corps) | rambarde y 183, x 25 → 120 | pont à +2,0, z 13,3 → 25,6 ; panneau vert à volute dorée ; beaupré carré relevé de 12°, bagues de laiton |
 | Vitrail en éventail de l'avant | x 75 → 110, y 208 → 245 | quart de disque, moyeu en haut à l'arrière (z 13,8, y −0,3), rayon 4,6 ; deux fenêtres éclairées derrière |
 | Tourelle (vigie) du pont | x 120 → 145, sommet y 175 | z 10 → 13,3, haut +4,0, chapeau mouluré, lanterne sur poteau |
-| Château arrière, en gradins | façades x 300 / 310 / 320, toits y 186 / 167 / 153 ; vue arrière : bande verte 11,5 de large (+2,9 → +5,7), galerie éclairée (−0,8 → +2,4), toit (+5,7 → +7,8, 8,5 de large) | étage 1 (0 → +3) en retrait de 0,3 sur la coque, **rond** à la poupe (4,3 blocs), loggia éclairée sous l'encorbellement (+1,2 → +2,3) ; étage 2 (+3 → +5,85) presque aussi large (retrait 0,45, rentré jusqu'à 0,9 vers la poupe pour que les gradins se lisent), rond sur 5 blocs, en encorbellement jusqu'à z −23,9 ; **toit vert en mansarde** de +5,85 (corniche) à +8,0 (rentré de 1,0), dessus plat à garde-corps, cimier +9,5 |
-| Moteurs latéraux | x 290 → 400, y 200 → 262, œil de cristal en (366, 225), r 13 | z −9,6 → −24,4, centre y −2,3, rayon 3,1, à ±7,5 (vue arrière : envergure 1,6 × la poupe) ; œil r 1,7 (lunette à dents r 2,6) ; arrière : petit tambour de fer r 1,2 → 0,75 |
-| Médaillon de poupe (vue arrière) | disque Ø 37 px vue arrière, ≈ 45 % de la largeur du ventre | rayon 2,25, centre y −2,5, à fleur de la poupe ronde, juste sous la frise (+0,1 → +0,75) et le balcon |
+| Château arrière, en gradins | façades x 300 / 310 / 320, toits y 186 / 167 / 153 ; vue arrière : bande du milieu 11,5 de large (+2,9 → +5,7), galerie éclairée (−0,8 → +2,4), étage du haut plus étroit (+5,7 → +7,8, 8,5 de large) | étage 1 (0 → +3) en retrait de 0,3 sur la coque, **rond** à la poupe (4,3 blocs), loggia éclairée sous l'encorbellement (+1,2 → +2,3) ; étage 2 (+3 → +5,85) presque aussi large (retrait 0,45, rentré jusqu'à 0,9 vers la poupe), rond sur 5 blocs, en encorbellement jusqu'à z −23,9, **galerie courbe** à son pied (0,5 en saillie, balustres de laiton) ; **toit rond** de +5,85 (corniche) à +8,0 : flancs bombés (quart de superellipse) qui se referment en une terrasse à garde-corps rentrée de 1,5 (7,6 de large vue de l'arrière), lanternes et mât de pavillon, cimier +9,5 |
+| Moteurs latéraux | x 290 → 400, y 200 → 262, œil de cristal en (366, 225), r 13 | z −9,6 → −24,2, centre y −2,3, rayon 3,1, à ±7,5 (vue arrière : envergure 1,6 × la poupe) ; œil r 1,7 (lunette à dents r 2,6) ; arrière : **dôme** (r 3,1 → 1,35 de z −20,2 à −23,1) serti de six cristaux, moyeu de fer r 1,35 → 1,15 |
+| Médaillon de poupe (vue arrière) | disque Ø 37 px vue arrière, ≈ 45 % de la largeur du ventre | rayon 2,7, centre y −3,0, bas sur la poupe ronde, entre la frise (+0,1 → +0,75) et la quille |
 | Hélices sous la poupe (pales dorées) | x 255 → 340, y 255 → 310 ; vue avant à ±45 px | deux nacelles inclinées à x ±7,5, y −7 → −10 |
 | Grand anneau doré | centre (222, 157), r 31 | centre y +5,4, rayon 4,1, dans le plan de symétrie ; son sommet entre de 2,4 blocs dans le ventre du ballon |
 | Lobe central | x 103 → 345, y 50 → 158 | 31,6 de long, 15,2 de large, 13,8 de haut, axe à +14,0 (sommet +20,9 ; planche +20,2), bas à +7,1 |
@@ -50,35 +50,44 @@ de chaînes à joyaux bleus, câbles vers la coque.
   bois brun chaud en haut (galerie de six hautes fenêtres éclairées entre pilastres, corniche et appui), bande
   vert olive qui suit les courbes, filets dorés, virures brunes le long de la quille ; vitrail en éventail de
   chaque côté de l'avant ; panneaux verts du gaillard à volute dorée ; beaupré relevé à bagues de laiton.
-* **Poupe et château arrière** (vues arrière, de côté et perspective de la planche) : une poupe **ronde** en
-  gradins de bois chaud, le vert réservé au toit. Étage 1 rond à la poupe, **loggia éclairée** sous
+* **Poupe et château arrière** (vues arrière, de côté et perspective de la planche) : vue de l'arrière, une
+  silhouette **en œuf** : château en gradins arrondis au-dessus, ventre de poupe qui se resserre vers la quille,
+  moteurs ronds de part et d'autre ; bois brun chaud à filets dorés, le vert seulement en panneaux. Étage 1
+  rond à la poupe, **loggia éclairée** sous
   l'encorbellement de l'étage 2 : hautes fenêtres sur le carré éclairé (lampe suspendue, intérieur plus sombre
   vers le bas) en retrait entre de lourds poteaux de bois sombre à chapiteaux dorés, linteau et appui sombres,
   consoles courtes sous l'encorbellement ; deux **poteaux de hanche** montent jusqu'à la corniche, une lanterne
   de laiton sur chacun ; paires de petites fenêtres éclairées sur les côtés, balcon léger à balustres de laiton
   sur le pavois de poupe (son plancher seulement autour de l'étage 1). Dessous, une **frise sombre sculptée**
-  (rinceaux dorés) entre deux moulures dorées, juste au-dessus du médaillon ; le bordé vert remonte sur les
-  hanches du ventre de poupe, encadré de moulures dorées. Étage 2 presque aussi large, rond (un peu rentré
-  vers la poupe), en encorbellement : **travées de paires de fenêtres cintrées éclairées** (meneau, appui,
-  fronton et clé dorés) entre pilastres de bois sombre à l'arrière, fenêtres vitrées du poste de pilotage
-  sur les côtés, grande baie cintrée et porte vers la terrasse à l'avant, corniche sombre profonde à
-  denticules dorés (l'égout lourd du toit). Au-dessus, un **haut toit vert en mansarde** (planches vertes,
-  un panneau à cadre doré et grand rinceau en S par travée), dessus plat de planches vertes à bord sombre
-  doré et petit garde-corps de laiton ; pignon vert à l'avant avec le **cimier en grand S doré** portant un
-  médaillon bleu et or, hublots de laiton aux angles ; épi doré à joyau à l'arrière, deux mâtereaux à
-  flammes, **bôme d'enseigne** horizontale à la hauteur de la corniche (bagues de laiton, volute dorée au
-  bout, hauban vers le balcon). Une **épine dorée** descend au milieu de la poupe : nervure du toit,
+  (rinceaux dorés) entre deux moulures dorées, juste au-dessus du médaillon ; le ventre de poupe en bordé
+  brun chaud, deux **panneaux verts sculptés** à cadre doré de part et d'autre du médaillon. Étage 2 presque
+  aussi large, rond (un peu rentré vers la poupe), en encorbellement : **travées de paires de fenêtres
+  cintrées éclairées** d'un orange doré (meneau, appui, fronton et clé dorés) entre pilastres de bois chaud,
+  à son pied une **galerie courbe** en saillie (plancher, balustres tournées de laiton, bandeau sombre à filet
+  doré, consoles) qui fait bomber l'étage ; fenêtres vitrées du poste de pilotage sur les côtés, grande baie
+  cintrée et porte vers la terrasse à l'avant, corniche sombre profonde à denticules dorés. Au-dessus, un
+  **toit rond** : ses flancs montent presque droits puis s'arrondissent jusqu'à une **terrasse** plus étroite
+  (planches de bois brun le long de la courbe, nervures dorées entre les travées, un **panneau vert** à cadre
+  doré et rinceau en S par travée, bord sombre à filet doré, **garde-corps** de balustres tournées de laiton,
+  deux **lanternes** sur poteaux aux angles arrière, le **mât de pavillon** et sa flamme rouge à la poupe,
+  deux mâtereaux à flammes à l'avant) ; pignon à l'avant suivant la même courbe, avec le **cimier en grand S
+  doré** portant un médaillon bleu et or, hublots de laiton aux angles ; **bôme d'enseigne** horizontale à
+  la hauteur de la corniche (bagues de laiton, volute dorée au bout, hauban vers le balcon). Une **épine
+  dorée** descend au milieu de la poupe : nervure du toit,
   pilastre à cartouche de l'étage 2, poteau de la loggia, bande sur la frise, médaillon, poteau jusqu'à la
   quille et goutte de cristal ; latte dorée sous la quille à l'arrière.
 * **Moteurs** : deux machines ornées contre les flancs, rapprochées de la coque (casque de laiton à pointe et
   deux ailes de plumes, grille à lames, tambour de plaques rivetées autour d'un grand œil de cristal bleu dans
   une lunette à dents : laiton poli dessus, patine vert-bronze sur les flancs, bronze sombre dessous, bandes de
   fer sombre et de cuivre ; **persiennes de bronze en gradins** sur le cône arrière, deux cheminées,
-  réservoirs de cuivre, tôles de carénage vers la coque) ; vu de derrière, un **petit tambour de fer
-  nervuré** à anneaux d'échappement de cuivre, son bout plat une grille de lames sombres qui tournent avec le
-  moteur, quatre cristaux sertis au bord du tambour ; un **médaillon** à fleur de poupe (bord d'ardoise sombre
-  à filet de laiton, engrenage de laiton tournant lentement, hublot gris-bleu à petit cœur lumineux) ; deux
-  nacelles inclinées sous la poupe à hélice de longues pales dorées en griffe.
+  réservoirs de cuivre, tôles de carénage vers la coque) ; vu de derrière, une **nacelle ronde** : l'arrière
+  du tambour s'arrondit en **dôme** (laiton poli dessus, patine vert-bronze autour, bronze dessous, six
+  nervures dorées) serti d'un anneau de **six cristaux bleus** lumineux dans des coupelles de laiton, refermé
+  sur un **moyeu de fer** sombre (collier doré, anneaux de cuivre) dont la grille de lames tourne avec le
+  moteur ; un grand **médaillon** bas sur la poupe (bord d'ardoise sombre à filet de laiton, engrenage de
+  laiton tournant lentement, hublot **bleu lumineux**) ; deux nacelles inclinées sous la poupe à hélice de
+  longues pales dorées en griffe ; la plateforme de cristaux pend sous la quille au bout de six chaînes
+  accrochées aux flancs qui se resserrent.
 * **Cristaux** : cristaux bleus lumineux (texture « glow ») : plateforme sous la quille, deux lanternes de
   cristal suspendues sous l'avant, lampes de cristal du château, nacelles flottantes avant et arrière (anneau
   en rotation lente), joyaux du ballon. Quelques particules magiques bleues près des cristaux.
@@ -90,13 +99,13 @@ de chaînes à joyaux bleus, câbles vers la coque.
 
 | Niveau | Pièces |
 |---|---|
-| Toit du château (+5,85 → +8,0, cimier +9,5) | toit vert en mansarde, plein dans la grille ; son dessus plat (+8,0) a un petit garde-corps et deux mâtereaux à flammes : on peut s'y poser (perle de l'Ender, élytres), il n'y a pas d'accès |
+| Toit du château (+5,85 → +8,0, cimier +9,5) | toit rond, plein dans la grille ; sa terrasse (+8,0) a un garde-corps, deux lanternes, le mât de pavillon et deux mâtereaux à flammes : on peut s'y poser (perle de l'Ender, élytres), il n'y a pas d'accès ; la galerie courbe au pied de l'étage 2 est du décor (pleine, sans accès) |
 | Château, étage 2 (+3) | **poste de pilotage** (murs de pierre et poutres) : grande baie cintrée vitrée face à la proue, grande roue de barre (le pilote debout derrière), colonnes d'instruments en laiton, lampes, lampe de cristal ; table des cartes et bibliothèques à l'arrière, sous l'encorbellement ; **porte vers la terrasse** (sur le toit de l'étage 1) à tribord de la baie |
 | Château, étage 1 (0) | **carré des officiers** (table, chaises) ; escalier vers le poste de pilotage (bâbord) et vers la salle des machines (tribord) ; porte double sur le pont |
 | Pont principal (0) et gaillard (+2) | pont ouvert, anneau doré sur son pilier, tourelle, lampes de cristal, bancs ; escaliers extérieurs vers le gaillard |
 | Pont du salon (−4) | **salon** luxueux (canapés rouges, tapis, table basse, bibliothèques et vitrines, carte murale, lanternes, grandes fenêtres) ; **réserve** à l'avant (caisses, tonneaux, sacs, étagères, chaînes et lanternes) |
-| Salle des machines (−8 → −0,5, deux niveaux) | palier au niveau du salon, passerelle tribord, escalier vers le fond, **grande machine à cœur de cristal bleu**, tuyaux, engrenages, grilles au sol |
-| Cale (−8) | sous le salon, échelle et trappe : stockage |
+| Salle des machines (−6 → −0,5, deux niveaux) | palier au niveau du salon (plein dessous), passerelle tribord, escalier de 4 marches vers le fond (relevé à −6 : la coque se resserre vers la quille), **grande machine à cœur de cristal bleu**, tuyaux, engrenages, grilles au sol |
+| Cale (−7,5) | sous le salon, échelle et trappe (à bâbord du milieu, x 1 → 2) : stockage ; ses flancs suivent la coque en œuf |
 
 Portes (grille) : 0 château (porte double sur le pont), 1 salon ↔ salle des machines, 2 salon ↔ réserve,
 3 trappe de la cale, 4 poste de pilotage ↔ terrasse. Escaliers de 0,5 bloc (château ↔ poste de pilotage, château ↔ salle des machines, palier
@@ -128,7 +137,7 @@ dessus, avant, arrière, perspective) et [comparaison_crystal_airship_pieces.png
 | `tools/crystal_decor.py` | ameublement : blocs des mods de décoration, meubles faits sur mesure, sièges, tableaux |
 | `tools/crystal_furniture.py` | meubles sur mesure (colonnes d'instruments, lampes de cristal, horloge murale, carte du monde, chaînes, porte-voix) |
 | `tools/crystal_texture.py` | les deux textures (extérieur 512², pièces) et l'icône |
-| `tools/generate_crystal.py` | modèle Blockbench (≈ 18 000 cubes, 12 animations) ; réutilise les outils du Léviathan et du Corsaire |
+| `tools/generate_crystal.py` | modèle Blockbench (≈ 18 200 cubes, 12 animations) ; réutilise les outils du Léviathan et du Corsaire |
 | `core/CrystalLayout.java` | type, géométrie, sondes, sièges, barre, réglages de vol (miroir de `crystal_shape.py`) |
 | `entity/CrystalAirshipEntity.java`, `client/CrystalEffects.java` | entité, particules (étincelles bleues des cristaux et du médaillon, vapeur des moteurs) |
 | `CrystalTest` (JUnit), `CrystalGameTest` (en jeu) | tests |
@@ -212,10 +221,11 @@ quille au-dessus du relief et descend à l'escale dans les 52 derniers blocs.
 * Sur la planche, le haut de l'anneau passe devant le ventre du ballon ; en 3D l'anneau est dans le plan de
   symétrie, son sommet entre donc dans le ventre (2,4 blocs cachés) : compromis entre la hauteur du ballon et un
   anneau entier (le ballon reste 0,7 bloc plus haut que sur la planche pour garder l'anneau presque entier).
-* Vus de l'arrière, les moteurs restent des masses rondes (tambour, corolle, capot), habillées d'un collier
-  doré serti de cristaux, d'un anneau de cristal lumineux autour du capot et d'un liseré bleu autour de l'œil,
-  mais moins « bosselées » que sur la planche ; la vue arrière de la planche n'est pas à la même échelle que
-  la vue de côté (le ballon y est plus gros, les nacelles d'hélices plus courtes) : la vue de côté fait foi.
+* Vus de l'arrière, les moteurs sont des dômes ronds sertis de cristaux, moins « bosselés » que sur la planche ;
+  la vue arrière de la planche n'est pas à la même échelle que la vue de côté (le ballon y est plus gros, les
+  moteurs plus hauts, au niveau de la galerie, le ventre de poupe plus court) : la vue de côté fait foi (les
+  moteurs restent sous le pont, la quille à −9,4 au milieu ; vue de l'arrière, la pointe de l'œuf est donc
+  plus basse que sur la planche).
 * Les fenêtres de la poupe (galeries, hanches de l'étage 2) sont éclairées de l'extérieur seulement : de
   l'intérieur, on voit les murs des pièces ; les vraies vitres sont la baie et les fenêtres de côté du poste
   de pilotage et celles du salon.

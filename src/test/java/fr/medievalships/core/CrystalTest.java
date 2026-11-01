@@ -35,16 +35,16 @@ class CrystalTest {
 			assertEquals(r[2], CrystalLayout.lobeScale((int) r[0], r[1]), 1e-5, "lobe " + (int) r[0] + " at " + r[1]);
 		}
 		double[][] hull = {
-				{-20.0, -3.0, 4.572935, -7.729129, 1.000000},
-				{-10.0, -6.0, 4.039664, -8.851100, 1.000000},
-				{0.0, -8.5, 2.543452, -9.360400, 1.000000},
-				{0.0, 0.5, 5.978818, -9.360400, 1.000000},
-				{8.0, -3.0, 5.029966, -8.900000, 1.000000},
-				{16.0, -2.0, 4.094033, -6.665089, 2.522547},
+				{-20.0, -3.0, 4.660213, -7.729129, 1.000000},
+				{-10.0, -6.0, 3.622119, -8.851100, 1.000000},
+				{0.0, -8.5, 1.498249, -9.360400, 1.000000},
+				{0.0, 0.5, 5.997869, -9.360400, 1.000000},
+				{8.0, -3.0, 5.163235, -8.900000, 1.000000},
+				{16.0, -2.0, 4.206856, -6.665089, 2.522547},
 				{22.0, 1.5, 2.975534, -2.978629, 2.955247},
 				{-16.0, 2.0, 5.574560, -8.350000, 1.000000},
-				{-22.5, -2.0, 2.724222, -6.552315, 1.000000},
-				{11.0, 0.5, 5.339056, -8.333600, 1.626409},
+				{-22.5, -2.0, 2.798039, -6.552315, 1.000000},
+				{11.0, 0.5, 5.358933, -8.333600, 1.626409},
 				{25.0, 2.0, 1.620247, 0.507022, 3.239092},
 				{-7.0, 1.0, 5.961442, -9.050000, 1.000000}};
 		for (double[] r : hull) {
@@ -52,16 +52,16 @@ class CrystalTest {
 			assertEquals(r[3], CrystalLayout.keelY(r[0]), 1e-5, "keel at " + r[0]);
 			assertEquals(r[4], CrystalLayout.sheerY(r[0]), 1e-5, "sheer at " + r[0]);
 		}
-		assertEquals(0.928343, CrystalLayout.nacelleR(-24.0), 1e-5);
-		assertEquals(1.826991, CrystalLayout.nacelleR(-22.0), 1e-5);
+		assertEquals(1.259091, CrystalLayout.nacelleR(-23.6), 1e-5);
+		assertEquals(2.722099, CrystalLayout.nacelleR(-22.0), 1e-5);
 		assertEquals(3.100000, CrystalLayout.nacelleR(-15.0), 1e-5);
 		assertEquals(1.326650, CrystalLayout.nacelleR(-10.0), 1e-5);
 		double[][] castle = {{-12.0, 1.0, 5.550246}, {-20.0, 4.0, 4.839233}, {-22.5, 1.0, 1.908902}, {-23.5, 4.0, 1.780665}, {-18.0, 2.7, 5.277609}};
 		for (double[] r : castle) {
 			assertEquals(r[2], CrystalLayout.castleX(r[0], r[1]), 1e-5, "castle half width at " + r[0] + ", " + r[1]);
 		}
-		// the green mansard roof (overhang, inset, top, eave), the crest, the ensign boom (height, length)
-		assertArrayEquals(new double[] {0.2, 1.0, 8.0, 5.85, 9.5}, new double[] {CrystalLayout.MANSARD_OVERHANG, CrystalLayout.MANSARD_INSET,
+		// the round roof (overhang, inset, top, eave), the crest, the ensign boom (height, length)
+		assertArrayEquals(new double[] {0.2, 1.5, 8.0, 5.85, 9.5}, new double[] {CrystalLayout.MANSARD_OVERHANG, CrystalLayout.MANSARD_INSET,
 				CrystalLayout.MANSARD_TOP, CrystalLayout.MANSARD_EAVE, CrystalLayout.CREST_Y}, 1e-9);
 		assertEquals(5.85, CrystalLayout.ENSIGN_TIP[0], 1e-9);
 		assertEquals(CrystalLayout.STERN2_Z - 4.3 - 0.3, CrystalLayout.ENSIGN_TIP[1], 1e-9);
@@ -99,6 +99,11 @@ class CrystalTest {
 		for (double[] pod : new double[][] {CrystalLayout.FRONT_POD, CrystalLayout.REAR_POD}) {
 			assertFalse(CrystalLayout.insideBalloon(pod[0], pod[1] + 2.6, pod[2]), "the floating pod clears the balloon");
 		}
+		// the flag staff at the stern of the roof clears the balloon and passes under the rear floating pod's forward crystal
+		double staffZ = CrystalLayout.STERN2_Z + CrystalLayout.MANSARD_INSET + CrystalLayout.STERN_STAFF[1];
+		double staffTop = CrystalLayout.MANSARD_TOP + CrystalLayout.STERN_STAFF[0];
+		assertFalse(CrystalLayout.insideBalloon(0, staffTop + 0.3, staffZ), "the stern flag staff clears the balloon");
+		assertTrue(staffTop + 0.5 < CrystalLayout.REAR_POD[1] - 1.0, "the stern flag staff stays under the rear pod's crystals");
 		assertTrue(CrystalLayout.insideBalloon(0, CrystalLayout.CY, 0) && CrystalLayout.insideBalloon(6.4, CrystalLayout.CY + 1.0, 9.6));
 		assertTrue(G.boundingRadius() >= CrystalLayout.BEAK_TIP_Z);
 		assertTrue(G.aiReach() >= CrystalLayout.BEAK_TIP_Z && G.aiBack() >= -CrystalLayout.tailEndZ() - 1e-9);
@@ -237,9 +242,9 @@ class CrystalTest {
 			assertTrue(fits(d[1], d[2], d[3], CLOSED.withDoor(k, true)), "open door " + k);
 		}
 		// the hatch of the hold is walked on when closed
-		assertEquals(CrystalLayout.LOUNGE_Y, floorUnder(2.5, CrystalLayout.LOUNGE_Y, -6.0), 1e-9);
-		assertFalse(fits(2.5, CrystalLayout.LOUNGE_Y - 0.6, -6.0), "hatch closed");
-		assertTrue(fits(2.5, CrystalLayout.LOUNGE_Y - 0.6, -6.0, CLOSED.withDoor(CrystalLayout.HOLD_HATCH, true)), "hatch open");
+		assertEquals(CrystalLayout.LOUNGE_Y, floorUnder(1.5, CrystalLayout.LOUNGE_Y, -6.0), 1e-9);
+		assertFalse(fits(1.5, CrystalLayout.LOUNGE_Y - 0.6, -6.0), "hatch closed");
+		assertTrue(fits(1.5, CrystalLayout.LOUNGE_Y - 0.6, -6.0, CLOSED.withDoor(CrystalLayout.HOLD_HATCH, true)), "hatch open");
 	}
 
 	/** Glass: the cockpit's arched window and side windows, the lounge's windows are solid, but no wall is drawn there. */
@@ -287,12 +292,12 @@ class CrystalTest {
 		walk("forecastle stair (starboard)", -3.35, 0.0, 10.8, 0.5, 4, CrystalLayout.FORECASTLE_Y);
 		walk("mess -> cockpit", 3.15, 0.0, -14.5, -0.5, 7, CrystalLayout.L2_Y);
 		walk("mess -> engine room landing", -3.65, 0.0, -15.6, 0.5, 9, CrystalLayout.LOUNGE_Y);
-		walk("landing -> engine room floor", 1.75, CrystalLayout.LOUNGE_Y, -10.5, -0.5, 7, CrystalLayout.ENGINE_FLOOR_Y);
+		walk("landing -> engine room floor", 1.75, CrystalLayout.LOUNGE_Y, -10.5, -0.5, 4, CrystalLayout.ENGINE_FLOOR_Y);
 		InteriorGrid.State open = CLOSED.withDoor(CrystalLayout.HOLD_HATCH, true);
 		for (double y = CrystalLayout.HOLD_Y + 0.25; y < CrystalLayout.LOUNGE_Y + 0.5; y += 0.5) {
-			assertTrue(GRID.ladderAt(2.5, y, -6.0) || GRID.solidAt(2.5, y, -6.0, CLOSED), "hold ladder at " + y);
+			assertTrue(GRID.ladderAt(1.5, y, -6.0) || GRID.solidAt(1.5, y, -6.0, CLOSED), "hold ladder at " + y);
 		}
-		assertFalse(GRID.solidAt(2.5, CrystalLayout.LOUNGE_Y - 0.25, -6.0, open), "hatch open");
+		assertFalse(GRID.solidAt(1.5, CrystalLayout.LOUNGE_Y - 0.25, -6.0, open), "hatch open");
 	}
 
 	/**

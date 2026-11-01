@@ -33,7 +33,8 @@ Z0, Z1 = -26.5, 28.5
 
 M0 = cs.MAIN_DECK_Y            # main deck, storey 1 of the castle
 LO = -4.0                      # the lounge's deck (and the engine room's landing)
-HO = -7.5                      # the hold's and the engine room's floor
+HO = -7.5                      # the hold's floor
+EF = -6.0                      # the engine room's floor (over the hull's narrowing keel: the sections taper to it)
 FC = cs.FORECASTLE_Y           # 2.0
 L2 = cs.L2_Y                   # 3.0: the cockpit
 SLAB = cs.DECK_SLAB
@@ -51,16 +52,17 @@ ROOMS = {
     "cockpit": (-INF, INF, L2, CEIL_L2, STERN_IN2, cs.L2_Z - 0.5),        # cockpit (castle, storey 2)
     "lounge": (-INF, INF, LO, CEIL_LO, -7.0, 10.0),
     "storeroom": (-INF, INF, LO, CEIL_LO, 10.5, 19.5),
-    "engine_room": (-INF, INF, HO, CEIL_LO, -20.5, -7.5),
+    "engine_room": (-INF, INF, EF, CEIL_LO, -20.5, -7.5),
     "hold": (-INF, INF, HO, CEIL_HO, -6.5, 4.0),
 }
 WALKED = {   # the floors of the rooms (for the reports and the decor)
-    "mess": M0, "cockpit": L2, "lounge": LO, "storeroom": LO, "engine_room": HO, "hold": HO,
+    "mess": M0, "cockpit": L2, "lounge": LO, "storeroom": LO, "engine_room": EF, "hold": HO,
 }
 
 # doors: index -> (name, box): 2 blocks wide (two leaves) and 2 high in the bulkheads; the hatch lies flat
 CASTLE_DOOR, ENGINE_DOOR, STORE_DOOR, HOLD_HATCH, TERRACE_DOOR = 0, 1, 2, 3, 4
-HATCH = (2.0, 3.0, -6.5, -5.5)     # x0, x1, z0, z1 of the hold hatch in the lounge's floor (its ladder under it)
+HATCH = (1.0, 2.0, -6.5, -5.5)     # x0, x1, z0, z1 of the hold hatch in the lounge's floor (its ladder under it, inboard: the
+                                   # hold narrows to the keel)
 DOORS = {
     CASTLE_DOOR: ("castle", (-1.0, 1.0, M0, M0 + 2.0, cs.CASTLE_Z - 0.5, cs.CASTLE_Z)),
     ENGINE_DOOR: ("engine_room", (-1.0, 1.0, LO, LO + 2.0, -7.5, -7.0)),
@@ -80,13 +82,14 @@ STAIRS = (
     ("fc_stbd", -4.1, -2.6, 11.3, +1, M0, +4),
     ("cockpit", 2.4, 3.9, -15.0, -1, M0, +6),          # mess -> cockpit, climbing aft (port side)
     ("engine", -4.4, -2.9, -15.0, +1, M0, -8),         # mess -> engine room landing, going down forward (starboard)
-    ("engine_floor", 1.0, 2.5, -11.0, -1, LO, -7),     # landing -> engine room floor, going down aft (port of the middle)
+    ("engine_floor", 1.0, 2.5, -11.0, -1, LO, -4),     # landing -> engine room floor, going down aft (port of the middle)
 )
-LANDING = (-11.0, -7.5)                       # the engine room's landing at the lounge's level (z)
+LANDING = (-11.0, -7.5)                       # the engine room's landing at the lounge's level (z): a solid mezzanine over
+                                              # the engine room's floor
 ENGINE_HOLE = (-4.4, -2.9, -15.0, -12.5)      # opening in the mess's floor over the engine stair (x0, x1, z0, z1)
 COCKPIT_HOLE = (2.4, 3.9, -18.0, -14.5)       # opening in the cockpit's floor over its stair
-ENGINE = (0.0, -16.6, 2.2, HO, -1.0)          # the crystal engine: x, z, radius (of its cells), bottom, top (the ceiling)
-PLINTH = (-20.5, -18.6, HO + 1.0)             # z0, z1, top of the raised floor aft of the engine
+ENGINE = (0.0, -16.6, 2.2, EF, -1.0)          # the crystal engine: x, z, radius (of its cells), bottom, top (the ceiling)
+PLINTH = (-20.5, -18.6, EF + 1.0)             # z0, z1, top of the raised floor aft of the engine
 HELM_BOX = (-0.6, 0.6, L2, L2 + 1.0, cs.HELM_Z - 0.3, cs.HELM_Z + 0.3)
 # lantern posts on the main deck and the forecastle, the bow pennant's pole (x, floor, z)
 POSTS = ((-2.2, M0, -9.4), (2.2, M0, -9.4), (-1.9, cs.FORECASTLE_Y, 15.2), (1.9, cs.FORECASTLE_Y, 15.2), (0.0, cs.FORECASTLE_Y, 23.4))
@@ -266,18 +269,26 @@ def build():
     terrace = roof1 & (Z > cs.L2_Z)
     g.k[terrace & ((np.abs(X) > c1 - 0.5) | (Z > cs.CASTLE_Z - 0.5))] = FURNITURE
     g.k[roof1 & (Z <= cs.L2_Z) & (g.k == OUT)] = FURNITURE
-    # the green mansard roof over storey 2 (solid, as drawn: its slopes from the eave in to its top on every side), a low
-    # rail round its flat top (walkable), the pennants' poles on it
+    # the round roof over storey 2 (solid, as drawn: its bulging sides from the eave in to its top on every side), a rail
+    # round its flat top (walkable), the pennants' poles on it
     eave, inset, ytop, yev = cs.MANSARD
-    yeave = yev + 0.2                       # the eave: the top of the cornice (tools/generate_crystal.py)
     d2 = plan_distance(cs.castle2_x, cs.STERN2_Z, cs.L2_Z, g)   # signed distance (x, z) outside storey 2's walls
-    off = eave - np.clip((Y - yeave) / (ytop - yeave), 0.0, 1.0) * (eave + inset)
+    off = _vec(cs.roof_offset, Y)
     roof2 = (Z > cs.STERN2_Z - eave) & (Z < cs.L2_Z) & (Y > cs.L2_TOP - 0.01) & (Y < ytop) & (d2 <= off)
     g.k[roof2 & (g.k == OUT)] = SOLID
     top2 = (Z < cs.L2_Z - 0.25) & (Y > ytop) & (Y < ytop + 0.5) & (d2 <= -inset) & (d2 > -inset - CELL)
     g.k[top2 & (g.k == OUT)] = FURNITURE
     for x, z in pennant_poles():
         g.set(FURNITURE, x - 0.25, x + 0.25, ytop, ytop + 3.0, z - 0.25, z + 0.25, where=g.k == OUT)
+    gp, gz, gh = cs.GALLERY2                # the curved gallery round storey 2's back: its ledge and rail (not walkable)
+    gal = (Z < gz) & (Z > cs.STERN2_Z - gp - 0.3) & (d2 > -0.01) & (d2 <= gp) & (Y > cs.L2_Y - 0.3) & (Y < cs.L2_Y + gh + 0.1)
+    g.k[gal & (g.k == OUT)] = FURNITURE
+    zs_, ys_ = cs.stern_staff()             # the flag staff at the stern, the lanterns' posts on the rail
+    g.set(FURNITURE, -0.25, 0.25, ytop, ys_, zs_ - 0.25, zs_ + 0.25, where=g.k == OUT)
+    for zl in cs.ROOF_LAMPS_Z:
+        for sx in (-1, 1):
+            xl = sx * cs.roof_lamp_x(zl)
+            g.set(FURNITURE, xl - 0.25, xl + 0.25, ytop, ytop + 1.9, zl - 0.25, zl + 0.25, where=g.k == OUT)
     # the stern balcony round storey 1's stern, at the main deck's level (its floor and balusters)
     bx = _vec(cs.balcony_x, Z)
     yb = cs.sheer_y(cs.STERN_Z)
@@ -294,10 +305,10 @@ def build():
     g.set(SOLID, -INF, INF, HO, CEIL_LO, -7.5, -7.0, where=inner)
     g.set(SOLID, -INF, INF, HO, CEIL_LO, 10.0, 10.5, where=inner)
     g.set(SOLID, -INF, INF, CEIL_HO, LO, -7.0, 10.0, where=inner)
-    g.set(SOLID, -INF, INF, LO - SLAB, LO, LANDING[0], LANDING[1], where=inner)
+    g.set(SOLID, -INF, INF, EF, LO, LANDING[0], LANDING[1], where=inner)
     # the raised floor aft of the engine, the crystal engine
     pz0, pz1, ptop = PLINTH
-    g.set(FURNITURE, -INF, INF, HO - 0.5, ptop, pz0, pz1, where=inner & (g.k == DRY))
+    g.set(FURNITURE, -INF, INF, EF - 0.5, ptop, pz0, pz1, where=inner & (g.k == DRY))
     ex, ez, er, e0, e1 = ENGINE
     g.k[(np.hypot(X - ex, Z - ez) < er) & (Y > e0) & (Y < e1)] = FURNITURE
 
