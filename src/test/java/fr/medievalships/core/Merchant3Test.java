@@ -40,7 +40,7 @@ public class Merchant3Test {
 			assertEquals(TentType.TENTS, t.group());
 			assertFalse(t.isCart() || t.isWorkshop() || t.isCannon(), t.id());
 			assertFalse(t.masculine(), t.id() + ": une tente");
-			assertFalse(TentTypes.MERCHANTS.contains(t) || TentTypes.MERCHANTS2.contains(t), t.id());
+			assertFalse(TentTypes.MERCHANTS.contains(t) || TentTypes.MERCHANTS2.contains(t) || TentTypes.MERCHANTS4.contains(t), t.id());
 			assertTrue(TentTypes.ALL.contains(t) && TentTypes.PROPS.contains(t), t.id() + " in the tents' tab and the props");
 			assertTrue(t.frenchName().startsWith("tente du "), t.frenchName());
 			assertTrue(t.englishName().endsWith("Tent"), t.englishName());

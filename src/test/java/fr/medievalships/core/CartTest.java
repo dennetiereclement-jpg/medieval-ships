@@ -25,8 +25,8 @@ public class CartTest {
 	@Test
 	void eightCartsLoadBesideTheSixTents() {
 		assertEquals(8, TentTypes.CARTS.size());
-		assertEquals(6 + 6 + 5 + 2, TentTypes.ALL.size(), "the tents' list: six camp tents, merchant tents I (6), II (5) and III (2)");
-		assertEquals(6 + 6 + 5 + 2 + 8 + 7 + 1, TentTypes.PROPS.size()); // tents, merchant tents I, II and III, carts, workshops, the cannon
+		assertEquals(6 + 6 + 5 + 2 + 2, TentTypes.ALL.size(), "the tents' list: six camp tents, merchant tents I (6), II (5), III (2) and IV (2)");
+		assertEquals(6 + 6 + 5 + 2 + 2 + 8 + 7 + 1, TentTypes.PROPS.size()); // tents, merchant tents I to IV, carts, workshops, the cannon
 		Set<String> ids = new HashSet<>();
 		for (TentType t : TentTypes.CARTS) {
 			assertTrue(IDS.contains(t.id()), t.id());
@@ -40,7 +40,8 @@ public class CartTest {
 		}
 		for (TentType t : TentTypes.ALL) {
 			assertEquals(TentType.TENTS, t.group());
-			if (TentTypes.MERCHANTS.contains(t) || TentTypes.MERCHANTS2.contains(t) || TentTypes.MERCHANTS3.contains(t)) {
+			if (TentTypes.MERCHANTS.contains(t) || TentTypes.MERCHANTS2.contains(t) || TentTypes.MERCHANTS3.contains(t)
+					|| TentTypes.MERCHANTS4.contains(t)) {
 				assertTrue(t.texture().startsWith("textures/entity/tente_"), t.id() + ": a merchant tent has its own atlas " + t.texture());
 			} else {
 				assertEquals(TentType.DEFAULT_TEXTURE, t.texture(), t.id());

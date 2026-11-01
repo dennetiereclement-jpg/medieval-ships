@@ -4,10 +4,10 @@ import java.util.List;
 
 
 /**
- * The nineteen tents (six camp tents, thirteen merchant tents), the eight carts, the seven crafting workshops and the
+ * The twenty-one tents (six camp tents, fifteen merchant tents), the eight carts, the seven crafting workshops and the
  * medieval cannon. One line per prop: its id (block, item, model, decor and tents / carts / workshops / artillery JSON
  * are all named after it) and its names. {@link #ALL} = the tents only (their tab "Tentes": the six camp tents, the six
- * {@link #MERCHANTS}, the five {@link #MERCHANTS2}, then the two {@link #MERCHANTS3}),
+ * {@link #MERCHANTS}, the five {@link #MERCHANTS2}, the two {@link #MERCHANTS3}, then the two {@link #MERCHANTS4}),
  * {@link #CARTS} = the carts (tab "Charrettes"), {@link #WORKSHOPS} = the workshops (tab "Ateliers"),
  * {@link #ARTILLERY} = the cannon (tab "Artillerie"), {@link #PROPS} = all four (registration, commands, models).
  */
@@ -43,9 +43,20 @@ public final class TentTypes {
 	/** The merchant tents III (1.16.0): two gabled stalls of tools/merchant/merchantlib.py, group "tents", each with its own atlas. */
 	public static final List<TentType> MERCHANTS3 = List.of(MERCHANT_POISON, MERCHANT_BUTCHER);
 
-	/** The tents only (tab "Tentes"): the six camp tents, the six merchant tents, the five of 1.15.0, then the two of 1.16.0. */
+	public static final TentType MERCHANT_BAKER = TentType.load("tente_boulanger", "tente du boulanger", "Baker's Stall");
+	public static final TentType MERCHANT_FISHMONGER = TentType.load("tente_poissonnier", "tente du poissonnier", "Fishmonger's Stall");
+	/**
+	 * The merchant tents IV (1.17.0): the baker's and the (longer) fishmonger's gabled stalls of
+	 * tools/merchant/merchantlib.py, group "tents", each with its own atlas.
+	 */
+	public static final List<TentType> MERCHANTS4 = List.of(MERCHANT_BAKER, MERCHANT_FISHMONGER);
+
+	/**
+	 * The tents only (tab "Tentes"): the six camp tents, the six merchant tents, the five of 1.15.0, the two of 1.16.0,
+	 * then the two of 1.17.0.
+	 */
 	public static final List<TentType> ALL = java.util.stream.Stream.of(List.of(COMMAND, ADVENTURER, MARKET, CAMP, DWELLING, CHIEF), MERCHANTS,
-			MERCHANTS2, MERCHANTS3).flatMap(List::stream).toList();
+			MERCHANTS2, MERCHANTS3, MERCHANTS4).flatMap(List::stream).toList();
 
 	public static final TentType CART_COVERED_WHITE = cart("cart_covered_white", "charrette couverte blanche", "White Covered Wagon");
 	public static final TentType CART_HAY = cart("cart_hay", "charrette de foin", "Hay Cart");

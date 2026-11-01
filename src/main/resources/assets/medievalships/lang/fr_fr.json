@@ -71,6 +71,8 @@
   "block.medievalships.workshop_enchanter": "Atelier de l'enchanteur",
   "block.medievalships.tente_poison": "Tente du vendeur de poisons",
   "block.medievalships.tente_boucher": "Tente du boucher",
+  "block.medievalships.tente_boulanger": "Tente du boulanger",
+  "block.medievalships.tente_poissonnier": "Tente du poissonnier",
   "itemGroup.medievalships.artillery": "Artillerie",
   "block.medievalships.canon_medieval": "Canon médiéval"
 }

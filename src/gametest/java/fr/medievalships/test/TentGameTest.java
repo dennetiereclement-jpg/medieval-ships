@@ -196,7 +196,11 @@ public final class TentGameTest {
 				"the five merchant tents of 1.15.0 are placed once each below (" + TentTypes.MERCHANTS2.size() + ")");
 		check.accept(TentTypes.ALL.containsAll(TentTypes.MERCHANTS3) && TentTypes.MERCHANTS3.size() == 2,
 				"the two merchant tents of 1.16.0 are placed once each below (" + TentTypes.MERCHANTS3.size() + ")");
-		for (TentType t : java.util.stream.Stream.of(TentTypes.MERCHANTS, TentTypes.MERCHANTS2, TentTypes.MERCHANTS3, TentTypes.ARTILLERY)
+		check.accept(TentTypes.ALL.containsAll(TentTypes.MERCHANTS4) && TentTypes.MERCHANTS4.size() == 2,
+				"the two merchant stalls of 1.17.0 (the baker's, the longer fishmonger's) are placed once each below ("
+						+ TentTypes.MERCHANTS4.size() + ")");
+		for (TentType t : java.util.stream.Stream.of(TentTypes.MERCHANTS, TentTypes.MERCHANTS2, TentTypes.MERCHANTS3, TentTypes.MERCHANTS4,
+				TentTypes.ARTILLERY)
 				.flatMap(java.util.List::stream).toList()) {
 			TentType.Box e = t.extent(TentType.SOUTH);
 			check.accept(e.x0() > -14 && e.x1() < 14 && e.z0() > -14 && e.z1() < 14 && e.y1() < 12,

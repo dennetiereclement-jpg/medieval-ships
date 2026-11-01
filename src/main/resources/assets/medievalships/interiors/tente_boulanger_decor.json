@@ -1,0 +1,44 @@
+{
+ "blocks": [
+  {
+   "block": "farmersdelight:cutting_board",
+   "x": -0.22,
+   "y": 1.05,
+   "z": 1.7,
+   "yaw": 180.0,
+   "scale": 0.62,
+   "fallback": "fallback_0"
+  },
+  {
+   "block": "landsoficaria:cypress_barrel",
+   "x": -1.55,
+   "y": 0.0,
+   "z": -1.85,
+   "yaw": 270.0,
+   "scale": 0.85,
+   "fallback": "fallback_1",
+   "alt": "minecraft:barrel"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": -2.15,
+   "y": 0.0,
+   "z": -1.9,
+   "yaw": 180.0,
+   "scale": 0.7,
+   "fallback": "fallback_2"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": -2.15,
+   "y": 0.7,
+   "z": -1.9,
+   "yaw": 180.0,
+   "scale": 0.55,
+   "fallback": "fallback_3"
+  }
+ ],
+ "seats": [],
+ "paintings": [],
+ "switches": []
+}
