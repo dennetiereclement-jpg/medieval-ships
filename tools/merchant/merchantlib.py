@@ -32,6 +32,16 @@ surfaces], shelf_levels [(x0, x1, y, z_front, z_back) board tops], floor (x0, z0
 front_right (ground points (x, 0, z) beside the front posts, for barrels / crates), rug_box (x0, z0, x1, z1),
 detail (Bone), shell (Bone), atlas, colour, emblem.
 
+1.16.0 (backward compatible: the eleven earlier tents regenerate byte-identically): emblems poison (a skull above a
+flask) and cleavers (two crossed cleavers); pavilion(..., flags=False) drops the flag poles, flags and pennants
+(rug=False already drops the rug); stall(root, atlas, ...) (or pavilion(..., roof="gable")) builds the GABLED market
+stall instead of the pointed pavilion: four squared posts with gold caps above the roof, the ridge along x, two
+slightly sagging roof slopes with stripes running down the slope, striped gable-end triangles, the dagged valance
+edged in gold on all four sides, the big banner hanging from a rod on a front post, lanterns on the front posts, a long
+counter along the front, back shelves, a dark plank back wall, a hanging rail under the eaves (L.hang_y, L.hang_z);
+no flags, no rug by default (see stall()); its own regions stall_roof, stall_valance, stall_valance_end, stall_gable,
+stall_wall are added to the atlas when it is built; icon(..., shape="stall") draws the stall's item icon.
+
 Shell atlas regions (every tent's atlas has them; colour-dependent ones in the tent's colour):
   wood, wood_dark, plank, plank_dark, post (carved dark post, grain along u), beam (carved eave beam), trim_gold,
   leather, leather_dark (64x16 strips); 16x16: end_grain, rope, iron, gold, lantern, glow, brass, steel, white,
@@ -92,10 +102,12 @@ COLOURS = {   # main, dark (shadows, edges), light
 }
 # the paint seed of each colour (the 1.14.0 ones keep their former seeds: their atlases regenerate identically)
 _SEED = {c: k for k, c in enumerate(("blue", "green", "purple", "red", "teal", "yellow", "burgundy", "darkred", "navy", "charcoal"))}
-EMBLEMS = ("swords", "flask", "leaf", "anvil", "cheese", "scroll", "lyre", "muskets", "bow", "star", "shield", "cannon")
+EMBLEMS = ("swords", "flask", "leaf", "anvil", "cheese", "scroll", "lyre", "muskets", "bow", "star", "shield", "cannon", "poison",
+           "cleavers")
 EMBLEM_ICON = {"swords": (220, 222, 228), "flask": (150, 200, 240), "leaf": (230, 226, 200), "anvil": (220, 222, 228),
                "cheese": (246, 210, 80), "scroll": (240, 228, 196), "lyre": (232, 186, 70), "muskets": (220, 222, 228),
-               "bow": (232, 186, 70), "star": (232, 186, 70), "shield": (200, 206, 216), "cannon": (236, 226, 196)}
+               "bow": (232, 186, 70), "star": (232, 186, 70), "shield": (200, 206, 216), "cannon": (236, 226, 196),
+               "poison": (236, 226, 200), "cleavers": (220, 222, 228)}
 GOLD_STOPS = [(0, (120, 84, 26)), (0.5, (214, 170, 72)), (1, (250, 230, 160))]
 STEEL_STOPS = [(0.0, (72, 74, 80)), (0.45, (140, 144, 150)), (0.8, (196, 200, 206)), (1.0, (236, 238, 242))]
 POTIONS = {"red": "c42c2c", "blue": "2e5ed2", "green": "2ea24e", "purple": "9a3ccc", "yellow": "e2c23a", "orange": "e27a2a",
@@ -456,6 +468,67 @@ def _emblem(img, box, kind, colour, scale=1.0, faded=False):
             cx, cy = P(x, y)
             r = 0.085 * W * scale
             d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=pale, outline=pale_d, width=lw)
+    elif kind == "poison":
+        # 1.16.0: a bone-white skull above a round flask of orange poison, a little crossed bone each side of the neck
+        bone, bone_d = (236, 226, 200), (96, 72, 52)
+        hole = COLOURS[colour][1]
+        cx, cy = P(0.5, 0.22)
+        rx_, ry_ = 0.21 * W * scale, 0.19 * H * scale
+        d.ellipse([cx - rx_, cy - ry_, cx + rx_, cy + ry_], fill=bone, outline=bone_d, width=lw)
+        d.rounded_rectangle([*P(0.37, 0.3), *P(0.63, 0.47)], radius=lw * 2, fill=bone, outline=bone_d, width=lw)
+        d.rectangle([*P(0.36, 0.28), *P(0.64, 0.34)], fill=bone)
+        for sx in (0.415, 0.585):
+            ex, ey = P(sx, 0.24)
+            r = 0.062 * W * scale
+            d.ellipse([ex - r, ey - r * 0.95, ex + r, ey + r * 1.05], fill=hole)
+        d.polygon([P(0.5, 0.31), P(0.465, 0.365), P(0.535, 0.365)], fill=hole)
+        for tx in (0.44, 0.5, 0.56):
+            d.line([P(tx, 0.395), P(tx, 0.465)], fill=bone_d, width=max(1, lw // 2 + 1))
+        for sgn in (-1, 1):   # the small crossed bones beside the flask neck
+            bx = 0.5 + sgn * 0.27
+            for a, b in ((P(bx - 0.07, 0.5), P(bx + 0.07, 0.62)), (P(bx - 0.07, 0.62), P(bx + 0.07, 0.5))):
+                d.line([a, b], fill=bone, width=lw * 2)
+                for q in (a, b):
+                    d.ellipse([q[0] - lw * 1.3, q[1] - lw * 1.3, q[0] + lw * 1.3, q[1] + lw * 1.3], fill=bone)
+        glass, liquid = (226, 222, 210), (226, 128, 40)
+        fx, fy = P(0.5, 0.8)
+        r = 0.18 * W * scale
+        d.rectangle([*P(0.45, 0.52), *P(0.55, 0.68)], fill=glass, outline=bone_d, width=lw)
+        d.ellipse([fx - r, fy - r, fx + r, fy + r], fill=glass, outline=bone_d, width=lw)
+        r2 = r - lw * 1.5
+        d.chord([fx - r2, fy - r2, fx + r2, fy + r2], 0, 180, fill=liquid)
+        d.line([(fx - r2 * 0.95, fy), (fx + r2 * 0.95, fy)], fill=(250, 180, 90), width=lw)
+        d.rectangle([*P(0.435, 0.5), *P(0.565, 0.535)], fill=(150, 100, 60))
+        hx, hy = P(0.42, 0.74)
+        d.ellipse([hx - lw * 1.2, hy - lw * 2, hx + lw * 1.2, hy + lw * 2], fill=(255, 255, 255))
+    elif kind == "cleavers":
+        # 1.16.0: two crossed butcher's cleavers: broad steel blades in the two upper corners (edges outwards), the
+        # wooden handles crossing below the middle
+        wood, wood_d = (168, 112, 62), (88, 54, 26)
+        for sgn in (-1, 1):
+            tip = np.array(P(0.5 + sgn * 0.37, 0.08), dtype=float)
+            end = np.array(P(0.5 - sgn * 0.3, 0.93), dtype=float)
+            L = float(np.linalg.norm(end - tip))
+            dd = (end - tip) / L
+            n = np.array([-dd[1], dd[0]])
+            if np.sign(n[0]) != sgn:
+                n = -n
+            bw = 0.27 * W * scale
+
+            def Q(t, o, tip=tip, dd=dd, n=n, L=L):
+                p = tip + dd * (L * t) + n * o
+                return (float(p[0]), float(p[1]))
+            d.line([Q(0.44, bw * 0.12), Q(1.0, bw * 0.12)], fill=wood_d, width=lw * 5)
+            d.line([Q(0.44, bw * 0.12), Q(1.0, bw * 0.12)], fill=wood, width=lw * 3)
+            for t in (0.62, 0.86):
+                c = Q(t, bw * 0.12)
+                d.ellipse([c[0] - lw, c[1] - lw, c[0] + lw, c[1] + lw], fill=silver_d)
+            blade = [Q(0.0, -bw * 0.12), Q(0.46, -bw * 0.12), Q(0.46, bw * 0.55), Q(0.4, bw), Q(0.0, bw)]
+            d.polygon(blade, fill=silver, outline=silver_d)
+            d.line([Q(0.01, bw * 0.94), Q(0.39, bw * 0.94)], fill=(252, 252, 255), width=lw * 2)
+            d.line([Q(0.0, -bw * 0.06), Q(0.46, -bw * 0.06)], fill=silver_d, width=lw)
+            hc = Q(0.09, bw * 0.22)
+            d.ellipse([hc[0] - lw * 1.8, hc[1] - lw * 1.8, hc[0] + lw * 1.8, hc[1] + lw * 1.8], fill=COLOURS[colour][1])
     im = im.resize((w, h), Image.LANCZOS)
     if faded:
         a = im.getchannel("A").point(lambda q: int(q * 0.55))
@@ -1044,9 +1117,21 @@ def _post(bone, det, name, x, z, eave_y, ivy):
 
 
 def pavilion(root, atlas, emblem="swords", flag_corner="back_left", side_banners=0, rug=True, lanterns=2, front_counter=True,
-             back_shelves=True, ivy=False, half_w=3.1, half_d=2.8, eave_y=3.4, apex_y=6.6, roof_rise=None):
+             back_shelves=True, ivy=False, half_w=3.1, half_d=2.8, eave_y=3.4, apex_y=6.6, roof_rise=None, flags=True, roof="pointed",
+             **stall_kw):
     """Builds the shared shell (see the module doc) and returns its Layout. roof_rise (blocks, optional): the apex
-    height above the eaves (overrides apex_y = eave_y + roof_rise; default 3.2), e.g. 2.2 for a lower, flatter roof."""
+    height above the eaves (overrides apex_y = eave_y + roof_rise; default 3.2), e.g. 2.2 for a lower, flatter roof.
+    1.16.0: flags=False drops the flag poles, flags and pennants; roof="gable" builds the gabled market stall instead
+    (stall(): ridge along x, no flags, no rug unless asked; the stall's own options may be passed as keywords)."""
+    if roof == "gable":
+        kw = dict(emblem=emblem, lanterns=lanterns, front_counter=front_counter, back_shelves=back_shelves, ivy=ivy,
+                  half_w=half_w, rug=rug)
+        if roof_rise is not None:
+            kw["roof_rise"] = roof_rise
+        kw.update(stall_kw)
+        return stall(root, atlas, **kw)
+    if roof != "pointed":
+        raise KeyError("roof must be pointed or gable")
     if roof_rise is not None:
         apex_y = eave_y + float(roof_rise)
     if emblem not in EMBLEMS:
@@ -1109,26 +1194,8 @@ def pavilion(root, atlas, emblem="swords", flag_corner="back_left", side_banners
     octo(shell, "apex_ball", (0, apex_y + 0.12, 0), 0.13, 0.22, "gold")
     beam(shell, "apex_spike", (0, apex_y + 0.3, 0), (0, apex_y + 0.75, 0), 0.07, "gold")
     # ---- flag pole (swallow-tail flag) and the small flag at the other back corner
-    side = -1 if flag_corner == "back_left" else 1
-    fx, fz = side * hw, -hd
-    pole_top = apex_y + 1.4
-    beam(shell, "flagpole", (fx, tops[3 if side < 0 else 2], fz), (fx, pole_top, fz), 0.12, {"all": "wood_dark", "+1": "end_grain", "-1": "end_grain"})
-    octo(shell, "flagpole_ball", (fx, pole_top, fz), 0.08, 0.14, "gold")
-    _flag_cloth(shell, "flag", v3(fx, pole_top - 0.12, fz), v3(side, 0, 0.25), 1.35, 0.72)
-    ox = -side * hw
-    small_top = apex_y + 0.5
-    beam(shell, "flagpole_small", (ox, tops[2 if side < 0 else 3], fz), (ox, small_top, fz), 0.09, {"all": "wood_dark", "+1": "end_grain", "-1": "end_grain"})
-    octo(shell, "flagpole_small_ball", (ox, small_top, fz), 0.06, 0.1, "gold")
-    _flag_cloth(shell, "flag_small", v3(ox, small_top - 0.1, fz), v3(-side, 0, 0.3), 0.8, 0.42)
-    # pennants on a rope from the apex spike to the main pole
-    a, b = v3(0, apex_y + 0.62, 0), v3(fx, pole_top - 0.9, fz)
-    tl.rope(det, "pennant_rope", a, b, d=0.03, sag=0.18, segs=3)
-    dirn = norm(b - a)
-    nrm = norm(np.cross(dirn, UP))
-    for i in range(4):
-        t = (i + 0.7) / 5
-        p = a + (b - a) * t - UP * (4 * 0.18 * t * (1 - t))
-        plate(det, "pennant_%d" % i, p - UP * 0.2, 0.22, 0.38, "pennant" if i % 2 == 0 else "pennant_beige", normal=nrm, up=UP, th=0.01)
+    if flags:
+        _flags(shell, det, flag_corner, hw, hd, apex_y, tops)
     # ---- banners
     banner(shell, "banner_front", (0, eave_y + 0.14, D + 0.1), 1.35, 2.0, normal=(0, 0, 1))
     if side_banners >= 1:
@@ -1180,6 +1247,31 @@ def pavilion(root, atlas, emblem="swords", flag_corner="back_left", side_banners
     return L
 
 
+def _flags(shell, det, flag_corner, hw, hd, apex_y, tops):
+    """The pavilion's flag pole (swallow-tail flag) at a back corner, the small flag at the other one, the pennants on
+    a rope from the apex spike to the main pole."""
+    side = -1 if flag_corner == "back_left" else 1
+    fx, fz = side * hw, -hd
+    pole_top = apex_y + 1.4
+    beam(shell, "flagpole", (fx, tops[3 if side < 0 else 2], fz), (fx, pole_top, fz), 0.12, {"all": "wood_dark", "+1": "end_grain", "-1": "end_grain"})
+    octo(shell, "flagpole_ball", (fx, pole_top, fz), 0.08, 0.14, "gold")
+    _flag_cloth(shell, "flag", v3(fx, pole_top - 0.12, fz), v3(side, 0, 0.25), 1.35, 0.72)
+    ox = -side * hw
+    small_top = apex_y + 0.5
+    beam(shell, "flagpole_small", (ox, tops[2 if side < 0 else 3], fz), (ox, small_top, fz), 0.09, {"all": "wood_dark", "+1": "end_grain", "-1": "end_grain"})
+    octo(shell, "flagpole_small_ball", (ox, small_top, fz), 0.06, 0.1, "gold")
+    _flag_cloth(shell, "flag_small", v3(ox, small_top - 0.1, fz), v3(-side, 0, 0.3), 0.8, 0.42)
+    # pennants on a rope from the apex spike to the main pole
+    a, b = v3(0, apex_y + 0.62, 0), v3(fx, pole_top - 0.9, fz)
+    tl.rope(det, "pennant_rope", a, b, d=0.03, sag=0.18, segs=3)
+    dirn = norm(b - a)
+    nrm = norm(np.cross(dirn, UP))
+    for i in range(4):
+        t = (i + 0.7) / 5
+        p = a + (b - a) * t - UP * (4 * 0.18 * t * (1 - t))
+        plate(det, "pennant_%d" % i, p - UP * 0.2, 0.22, 0.38, "pennant" if i % 2 == 0 else "pennant_beige", normal=nrm, up=UP, th=0.01)
+
+
 def _flag_cloth(bone, name, top, direction, length, height):
     """A swallow-tail flag flying from the pole point `top` towards `direction`."""
     d = norm(v3(*direction) * v3(1, 0, 1))
@@ -1188,6 +1280,292 @@ def _flag_cloth(bone, name, top, direction, length, height):
     def P(s, t):
         return top + d * (length * s) - UP * (height * t + 0.08 * s * s) + side * (0.1 * math.sin(2.4 * math.pi * s) * s)
     loft(bone, name, P, 4, 1, "flag", th=0.02, u_hint=d, v_hint=-UP)
+
+
+# ---------------------------------------------------------------- 1.16.0: the gabled market stall
+def _stall_drop(t, a=0.55):
+    """The stall roof's profile: the fraction of the drop from the ridge (t = 0) to the eave (t = 1); steeper at the
+    ridge, flatter at the eave (the cloth sags a little between them)."""
+    return a * t + (1 - a) * (1 - (1 - t) ** 2)
+
+
+def _stripes(img, colour, n, rng, stains=2):
+    """n vertical stripes (tent colour, beige ...) across the whole image (a woven cloth); returns their edges in px."""
+    w, h = img.size
+    main = COLOURS[colour][0]
+    edges = [int(round(k * w / n)) for k in range(n + 1)]
+    for k in range(n):
+        _weave(img, (edges[k], 0, edges[k + 1] - edges[k], h), main if k % 2 == 0 else BEIGE, rng, stains=stains)
+    return edges
+
+
+def _stall_roof_painter(colour, n, seed):
+    """The stall's roof slopes: n stripes running down the slope (u across, v from the ridge down to the eave), dark
+    seams between them, a soft fold in each stripe, a little lighter at the eave."""
+    def paint(img):
+        rng = random.Random(seed)
+        w, h = img.size
+        edges = _stripes(img, colour, n, rng)
+        px = img.load()
+        sw = w / n
+        for y in range(h):
+            for x in range(w):
+                r, g, b, a = px[x, y]
+                k = 0.9 + 0.14 * (y / h)
+                if x in edges or x + 1 in edges:
+                    k *= 0.76
+                fx = (x % sw) / sw
+                k *= 1.0 + 0.05 * math.sin(2 * math.pi * fx)
+                if y < 2:
+                    k *= 0.8
+                px[x, y] = _scale((r, g, b), k) + (255,)
+    return paint
+
+
+def _stall_valance_painter(colour, n, seed):
+    """n dagged tabs (tent colour / beige, as the stripes above them): stepped square dags, edged in gold; cut-out."""
+    def bottom_of(x, w, h):
+        tw = w / n
+        lx = (x % tw) / tw
+        tri = 1.0 - abs(2.0 * ((lx * 2.0) % 1.0) - 1.0)        # two teeth per tab
+        step = math.floor(tri * 3.999) / 3.0                     # in square steps
+        solid = int(h * 0.42)
+        return int(solid + (h - 3 - solid) * step)
+
+    def paint(img):
+        rng = random.Random(seed)
+        w, h = img.size
+        edges = _stripes(img, colour, n, rng, stains=1)
+        px = img.load()
+        for x in range(w):
+            bottom = bottom_of(x, w, h)
+            for y in range(h):
+                if y > bottom:
+                    px[x, y] = (0, 0, 0, 0)
+                elif y >= bottom - 1:
+                    px[x, y] = _jitter(GOLD, rng, 8) + (255,)
+                elif y < 2:
+                    r, g, b, a = px[x, y]
+                    px[x, y] = _scale((r, g, b), 0.78) + (255,)
+            # gold on the vertical risers of the steps
+            for xn in (x - 1, x + 1):
+                if 0 <= xn < w:
+                    b2 = bottom_of(xn, w, h)
+                    if b2 < bottom:
+                        for y in range(b2 - 1, bottom + 1):
+                            px[x, y] = _jitter(GOLD, rng, 8) + (255,)
+            if x in edges:
+                for y in range(2, bottom - 1):
+                    r, g, b, a = px[x, y]
+                    px[x, y] = _scale((r, g, b), 0.8) + (255,)
+    return paint
+
+
+def _stall_gable_painter(colour, n, seed):
+    """A gable end: n vertical stripes, cut out above the roof profile (the apex at the top middle), a dark hem along
+    the two slopes."""
+    def paint(img):
+        rng = random.Random(seed)
+        w, h = img.size
+        _stripes(img, colour, n, rng)
+        px = img.load()
+        for x in range(w):
+            t = abs((x + 0.5) / w * 2.0 - 1.0)
+            top = _stall_drop(t) * h            # px from the top where the roof passes
+            for y in range(h):
+                r, g, b, a = px[x, y]
+                if y + 0.5 < top - 0.5:
+                    px[x, y] = (0, 0, 0, 0)
+                elif y + 0.5 < top + 2.0:
+                    px[x, y] = _scale((r, g, b), 0.72) + (255,)
+                else:
+                    px[x, y] = _scale((r, g, b), 0.84 + 0.12 * (y / h)) + (255,)
+    return paint
+
+
+def _stall_wall_painter(seed):
+    """The stall's back wall: dark vertical planks, a nailed batten across near the top and the bottom."""
+    def paint(img):
+        rng = random.Random(seed)
+        w, h = img.size
+        fine_wood(img, (0, 0, w, h), _rgb("5e4024"), _rgb("281a0c"), 8, rng, joints=False, vertical=True, knots=0.12, grain=0.12,
+                  shade=0.08)
+        px = img.load()
+        for yb in (5, h - 9):
+            for y in range(yb, yb + 4):
+                for x in range(w):
+                    c = _rgb("4a301a") if y in (yb, yb + 3) else _rgb("6a4628")
+                    px[x, y] = _jitter(c, rng, 5) + (255,)
+            for x in range(3, w, 8):
+                px[x, yb + 1] = (150, 150, 156, 255)
+    return paint
+
+
+def _stall_post(bone, det, name, x, z, eave_y, top, ivy=False):
+    """A stall corner post: a big iron-banded foot block, the squared post, iron bands, an iron collar and a gold cap
+    above the roof; collides (the foot's width, up to the eave)."""
+    box(bone, name + "_plinth", (x - 0.29, 0.0, z - 0.29), (x + 0.29, 0.72, z + 0.29), {"all": "wood_dark", "+2": "end_grain"})
+    for k, y in enumerate((0.05, 0.57)):
+        box(det, "%s_pband_%d" % (name, k), (x - 0.3, y, z - 0.3), (x + 0.3, y + 0.09, z + 0.3), "iron")
+    beam(bone, name, (x, 0.72, z), (x, top, z), 0.4, {"all": "wood", "+1": "end_grain", "-1": "end_grain"})
+    for k, y in enumerate((1.5, eave_y - 0.62)):
+        box(det, "%s_band_%d" % (name, k), (x - 0.215, y, z - 0.215), (x + 0.215, y + 0.08, z + 0.215), "iron")
+    box(bone, name + "_collar", (x - 0.23, top - 0.1, z - 0.23), (x + 0.23, top, z + 0.23), "iron")
+    box(bone, name + "_cap", (x - 0.25, top, z - 0.25), (x + 0.25, top + 0.26, z + 0.25), "gold")
+    collide((x - 0.29, 0.0, z - 0.29, x + 0.29, eave_y, z + 0.29))
+    if ivy:
+        for k, (dx, dz) in enumerate(((0.21, 0), (-0.21, 0))):
+            vine(det, "%s_ivy_%d" % (name, k), (x + dx, eave_y - 0.2, z + dz), 1.6 + 0.4 * k, 0.34, normal=(np.sign(dx), 0, 0))
+
+
+def stall(root, atlas, emblem="poison", lanterns=2, front_counter=True, back_shelves=True, banner_side="left", rug=False, ivy=False,
+          half_w=2.65, half_d=2.4, eave_y=3.65, roof_rise=1.5, walls=True, hang_rail=True, stripes=7, end_stripes=5,
+          counter_x=None, counter_h=1.05, hang_z=None, banner_size=(1.2, 1.72), lantern_size=0.42):
+    """1.16.0: the gabled market stall (tente_poison, tente_boucher): 4 squared corner posts with gold caps above the
+    roof, eave beams all round, the ridge along x (ridge pole, king posts and rafters at the ends), two slightly
+    sagging roof slopes front and back with `stripes` stripes running down the slope, striped gable-end triangles
+    (`end_stripes`), a dagged valance edged in gold on all four sides, a big banner with the emblem hanging from a rod
+    on the front `banner_side` post (left / right / None), lanterns on the front posts (lanterns=2; 4 = all posts; 0),
+    a long counter along the front (front_counter: True, or False; counter_x = (x0, x1)), a shelf unit along the back
+    (back_shelves), a dark plank back wall and the back half of the sides (walls), a hanging rail along x under the
+    eaves at hang_z (default half_d - 0.6) for hams, herbs ... (hang_rail). No flags, no pennants; rug=True lays the
+    pavilion's rug in front. Returns the Layout (as pavilion(): half_w, half_d, eave_y, apex_y (= ridge_y), ridge_y,
+    counter_top_y, counter_boxes, shelf_levels, floor, front_left, front_right, rug_box, detail, shell, atlas, colour,
+    emblem; plus hang_y (the rail's underside), hang_z, hang_x (x0, x1), banner_box (x0, y0, x1, y1, z))."""
+    if emblem not in EMBLEMS:
+        raise KeyError("emblem must be one of %s" % ", ".join(EMBLEMS))
+    atlas.emblem = emblem
+    colour = atlas.colour
+    seed = 1160 + _SEED[colour]
+    hw, hd = half_w, half_d
+    ridge_y = eave_y + roof_rise
+    ov, ovx = 0.42, 0.3
+    W, D = hw + ovx, hd + ov
+    ey = eave_y + 0.02
+    atlas.add("stall_roof", 32 * stripes, 96, _stall_roof_painter(colour, stripes, seed))
+    atlas.add("stall_valance", 32 * stripes, 32, _stall_valance_painter(colour, stripes, seed + 1))
+    atlas.add("stall_valance_end", 32 * end_stripes, 32, _stall_valance_painter(colour, end_stripes, seed + 2))
+    atlas.add("stall_gable", 32 * end_stripes, 48, _stall_gable_painter(colour, end_stripes, seed + 3))
+    atlas.add("stall_wall", 64, 64, _stall_wall_painter(seed + 4))
+    L = Layout()
+    L.atlas, L.colour, L.emblem = atlas, colour, emblem
+    L.half_w, L.half_d, L.eave_y, L.apex_y, L.ridge_y = hw, hd, eave_y, ridge_y, ridge_y
+    shell = Bone("shell", parent=root)
+    det = Bone("detail", parent=root)
+    L.shell, L.detail = shell, det
+    # ---- posts, eave beams, braces
+    corners = [(-hw, hd), (hw, hd), (hw, -hd), (-hw, -hd)]
+    top = eave_y + 0.62
+    for k, (x, z) in enumerate(corners):
+        _stall_post(shell, det, "post_%d" % k, x, z, eave_y, top, ivy=ivy and z > 0)
+    by = eave_y - 0.18
+    for k in range(4):
+        (xa, za), (xb, zb) = corners[k], corners[(k + 1) % 4]
+        along_x = k in (0, 2)
+        beam(shell, "eave_%d" % k, (xa, by, za), (xb, by, zb), 0.34, {"all": "wood", "+1": "end_grain", "-1": "end_grain"}, width=0.3,
+             extend=0.34 if along_x else 0.14)
+        if along_x:
+            for s in (-1, 1):
+                box(det, "eave_%d_tip_%d" % (k, (s + 1) // 2), (s * (hw + 0.34) - 0.03, by - 0.18, za - 0.16),
+                    (s * (hw + 0.34) + 0.03, by + 0.18, za + 0.16), "gold")
+                box(det, "eave_%d_strap_%d" % (k, (s + 1) // 2), (s * (hw - 0.3) - 0.05, by - 0.18, za - 0.16),
+                    (s * (hw - 0.3) + 0.05, by + 0.18, za + 0.16), "iron")
+    for k, (p, q) in enumerate((((-hw + 0.2, eave_y - 1.1, hd), (-hw + 0.9, by - 0.12, hd)), ((hw - 0.2, eave_y - 1.1, hd), (hw - 0.9, by - 0.12, hd)),
+                                ((-hw, eave_y - 1.1, hd - 0.2), (-hw, by - 0.12, hd - 0.9)), ((hw, eave_y - 1.1, hd - 0.2), (hw, by - 0.12, hd - 0.9)),
+                                ((-hw, eave_y - 1.1, -hd + 0.2), (-hw, by - 0.12, -hd + 0.9)), ((hw, eave_y - 1.1, -hd + 0.2), (hw, by - 0.12, -hd + 0.9)))):
+        beam(shell, "brace_%d" % k, p, q, 0.15, "wood_dark", extend=0.05)
+    # ---- the ridge: pole, king posts and rafters at the two ends (under the cloth)
+    beam(shell, "ridge_pole", (-W + 0.06, ridge_y - 0.13, 0), (W - 0.06, ridge_y - 0.13, 0), 0.18,
+         {"all": "wood_dark", "+1": "end_grain", "-1": "end_grain"})
+    for k, sx in enumerate((-1, 1)):
+        x = sx * hw
+        beam(shell, "king_post_%d" % k, (x, by + 0.17, 0), (x, ridge_y - 0.2, 0), 0.16, "wood_dark")
+        for j, sz in enumerate((-1, 1)):
+            beam(shell, "rafter_%d_%d" % (k, j), (x, by + 0.1, sz * (hd + 0.05)), (x, ridge_y - 0.16, 0), 0.14, "wood_dark", extend=0.05)
+    # ---- the roof: two sagging slopes, stripes running down the slope
+    droop = 0.07
+
+    def roof_pt(s, t, sgn):
+        x = -W + 2 * W * s
+        y = ridge_y - (ridge_y - ey) * _stall_drop(t) - droop * math.sin(math.pi * s) * math.sin(math.pi * t)
+        return v3(x if sgn > 0 else -x, y, sgn * D * t)
+    loft(shell, "roof_front", lambda s, t: roof_pt(s, t, 1), stripes, 4, "stall_roof", th=0.04)
+    loft(shell, "roof_back", lambda s, t: roof_pt(s, t, -1), stripes, 4, "stall_roof", th=0.04)
+    # the gable-end triangles (cut out to the roof profile)
+    for k, sx in enumerate((-1, 1)):
+        plate(shell, "gable_%d" % k, (sx * (W - 0.03), (ey + ridge_y) / 2, 0), 2 * D, ridge_y - ey, "stall_gable", normal=(sx, 0, 0),
+              th=0.02)
+    # the valance all round: dagged tabs as the stripes above them, flaring out a little
+    vh = 0.62
+    sides = ((v3(-W, ey, D), v3(W, ey, D), Z, "stall_valance"), (v3(W, ey, -D), v3(-W, ey, -D), -Z, "stall_valance"),
+             (v3(-W, ey, -D), v3(-W, ey, D), -X, "stall_valance_end"), (v3(W, ey, D), v3(W, ey, -D), X, "stall_valance_end"))
+    for k, (c0, c1, o, reg) in enumerate(sides):
+        def V(s, t, c0=c0, c1=c1, o=o):
+            e = c0 + (c1 - c0) * s
+            return e + UP * 0.04 - UP * (vh * t) + o * (0.03 + 0.05 * t)
+        loft(shell, "valance_%d" % k, V, 1, 1, reg, th=0.025)
+    # ---- the hanging rail
+    L.hang_z = hd - 0.6 if hang_z is None else hang_z
+    L.hang_y = eave_y - 0.12 - 0.08
+    L.hang_x = (-hw + 0.25, hw - 0.25)
+    if hang_rail:
+        beam(shell, "hang_rail", (-hw - 0.05, eave_y - 0.12, L.hang_z), (hw + 0.05, eave_y - 0.12, L.hang_z), 0.16, "wood_dark")
+    # ---- the banner from a rod on a front post
+    L.banner_box = None
+    if banner_side:
+        sx = -1 if banner_side == "left" else 1
+        x0 = sx * hw
+        zr, yr = D + 0.2, eave_y + 0.02
+        box(det, "banner_arm", (x0 - 0.05, yr - 0.05, hd + 0.18), (x0 + 0.05, yr + 0.05, zr + 0.05), "iron")
+        xa, xb = x0 + sx * 0.12, x0 - sx * (banner_size[0] + 0.75)   # from the post inwards
+        beam(shell, "banner_rod", (xa, yr, zr), (xb, yr, zr), 0.08, "wood_dark")
+        for k, xx in enumerate((xa, xb)):
+            add_cube(shell, "banner_rod_knob_%d" % k, (xx, yr, zr), EYE, (0.12, 0.12, 0.12), "gold")
+        bw, bh = banner_size
+        bx = x0 - sx * (0.45 + bw / 2)
+        banner(shell, "banner_front", (bx, yr - 0.04, zr + 0.01), bw, bh, normal=(0, 0, 1), rod=False)
+        for k, xx in enumerate((bx - bw / 2 + 0.08, bx + bw / 2 - 0.08)):
+            add_cube(det, "banner_ring_%d" % k, (xx, yr, zr), EYE, (0.1, 0.15, 0.13), "gold")
+        L.banner_box = (bx - bw / 2, yr - bh, bx + bw / 2, yr, zr)
+    # ---- the back wall and the back half of the sides (dark planks)
+    if walls:
+        box(shell, "wall_back", (-hw, 0.0, -hd - 0.1), (hw, by - 0.17, -hd - 0.02), {"all": "stall_wall"}, stretch=True)
+        collide((-hw, 0.0, -hd - 0.1, hw, by - 0.17, -hd - 0.02))
+        for k, sx in enumerate((-1, 1)):
+            x = sx * hw
+            box(shell, "wall_side_%d" % k, (x - 0.04, 0.0, -hd), (x + 0.04, by - 0.17, -0.45), {"all": "stall_wall"}, stretch=True)
+            collide((x - 0.04, 0.0, -hd, x + 0.04, by - 0.17, -0.45))
+    # ---- lanterns on the posts (front face)
+    lpost = [(0, 1), (0, 1, 2, 3)][1 if lanterns >= 4 else 0] if lanterns else ()
+    for k in lpost:
+        x, z = corners[k]
+        o = 1 if z > 0 else -1
+        y = 2.45
+        mount = v3(x, y + 0.5, z + o * 0.2)
+        tip = v3(x, y + 0.5, z + o * 0.52)
+        beam(det, "lamp_arm_%d" % k, mount, tip, 0.05, "iron", extend=0.02)
+        beam(det, "lamp_brace_%d" % k, v3(x, y + 0.05, z + o * 0.2), tip - UP * 0.02, 0.04, "iron")
+        lantern(shell, "lamp_%d" % k, (x, y, z + o * 0.52), size=lantern_size, metal="iron", chain_to=tip)
+    # ---- rug (optional)
+    L.rug_box = None
+    if rug:
+        rug_box = (-1.55, hd + 0.55, 1.55, hd + 2.55)
+        globals()["rug"](shell, "rug", rug_box[0], rug_box[2], rug_box[1], rug_box[3], y=0.0)
+        L.rug_box = rug_box
+    # ---- the counter along the front and the shelves along the back
+    L.counter_top_y = counter_h
+    L.counter_boxes = []
+    if front_counter:
+        cx0, cx1 = counter_x or (-0.6, hw - 0.35)
+        L.counter_boxes.append(counter(shell, "counter_front", cx0, cx1, hd - 1.05, hd - 0.35, h=counter_h, detail=det))
+    L.shelf_levels = []
+    if back_shelves:
+        L.shelf_levels = shelf_unit(shell, "shelves", -hw + 0.4, hw - 0.4, -hd + 0.12, -hd + 0.6, levels=(0.55, 1.15, 1.75, 2.35),
+                                    h=2.7, back=not walls, uprights=4, detail=det)
+    L.floor = (-hw + 0.3, (-hd + 0.7) if back_shelves else (-hd + 0.3), hw - 0.3, hd - 0.2)
+    L.front_left = (-hw, 0.0, hd + 0.45)
+    L.front_right = (hw, 0.0, hd + 0.45)
+    return L
 
 
 # ---------------------------------------------------------------- decor, icon, export
@@ -1206,9 +1584,11 @@ class Decor(tl.Decor):
         super().fallbacks(root)
 
 
-def icon(path, colour="red", emblem="swords"):
+def icon(path, colour="red", emblem="swords", shape="pavilion"):
     """16x16 item icon: a striped pointed tent in its colour, dagged valance, dark opening, a banner with the emblem
-    colour."""
+    colour; shape="stall" (1.16.0): the gabled market stall (stall_icon)."""
+    if shape == "stall":
+        return stall_icon(path, colour=colour, emblem=emblem)
     from PIL import Image
     main, dark, light = COLOURS[colour]
     im = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
@@ -1244,6 +1624,52 @@ def icon(path, colour="red", emblem="swords"):
     p[7, 12] = p[8, 12] = _scale(emblem_col, 0.8) + (255,)
     for x in range(2, 14):
         p[x, 15] = _scale(main, 0.8) + (255,)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    im.save(path)
+
+
+def stall_icon(path, colour="red", emblem="poison"):
+    """16x16 item icon of a gabled stall (1.16.0): the striped front slope under its ridge, the dagged valance, two
+    posts with gold caps, the dark inside with a counter, the banner with the emblem colour on the left."""
+    from PIL import Image
+    main, dark, light = COLOURS[colour]
+    im = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    p = im.load()
+    wood, wood_d = (124, 84, 44), (72, 48, 24)
+    for y in range(2, 8):   # the front slope, widening a little downwards, 7 stripes
+        x0, x1 = 2 - (y - 2) // 3, 13 + (y - 2) // 3
+        for x in range(x0, x1 + 1):
+            k = int((x - x0) / (x1 - x0 + 1) * 7)
+            c = main if k % 2 == 0 else BEIGE
+            if y == 2:
+                c = _scale(c, 0.8)
+            p[x, y] = c + (255,)
+    for x in range(1, 15):   # the valance, dagged
+        c = main if int((x - 1) / 14 * 7) % 2 == 0 else BEIGE
+        p[x, 8] = c + (255,)
+        if x % 2 == 1:
+            p[x, 9] = GOLD + (255,)
+    for x in (1, 14):        # posts and gold caps
+        p[x, 1] = GOLD + (255,)
+        for y in range(2, 16):
+            if p[x, y][3] == 0 or y > 8:
+                p[x, y] = (wood if x == 1 else wood_d) + (255,)
+    for y in range(10, 15):
+        for x in range(2, 14):
+            p[x, y] = (40, 28, 18, 255)
+    for x in range(6, 14):   # the counter
+        p[x, 12] = (150, 104, 56, 255)
+        for y in (13, 14):
+            p[x, y] = (110, 74, 40, 255)
+    for y in range(9, 14):   # the banner
+        for x in range(3, 6):
+            if y < 13 or x == 4:
+                p[x, y] = main + (255,)
+    ec = EMBLEM_ICON[emblem]
+    p[4, 10] = ec + (255,)
+    p[4, 11] = _scale(ec, 0.8) + (255,)
+    for x in range(1, 15):
+        p[x, 15] = _scale(wood_d, 0.9) + (255,)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     im.save(path)
 

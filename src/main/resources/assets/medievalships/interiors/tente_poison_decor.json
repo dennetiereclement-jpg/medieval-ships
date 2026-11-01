@@ -1,0 +1,53 @@
+{
+ "blocks": [
+  {
+   "block": "furnish:spruce_crate",
+   "x": 2.23,
+   "y": 0.0,
+   "z": 3.02,
+   "yaw": 180.0,
+   "scale": 0.62,
+   "fallback": "fallback_0"
+  },
+  {
+   "block": "landsoficaria:loaded_cypress_barrel",
+   "x": 2.1,
+   "y": 0.0,
+   "z": -0.95,
+   "yaw": 90.0,
+   "scale": 0.8,
+   "fallback": "fallback_1",
+   "alt": "minecraft:barrel"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": -2.05,
+   "y": 0.0,
+   "z": -1.2,
+   "yaw": 180.0,
+   "scale": 0.7,
+   "fallback": "fallback_2"
+  },
+  {
+   "block": "farmhouse_decorations:wine_bottle",
+   "x": -0.5,
+   "y": 1.05,
+   "z": 1.92,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_3"
+  },
+  {
+   "block": "farmhouse_decorations:red_wine_bottle",
+   "x": 2.12,
+   "y": 1.05,
+   "z": 1.42,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_4"
+  }
+ ],
+ "seats": [],
+ "paintings": [],
+ "switches": []
+}
