@@ -1,0 +1,400 @@
+[22:28:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_market removed by /tent remove x y z
+[22:28:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_market its collision boxes are forgotten (0 tent(s) left)
+[22:28:16] [Server thread/INFO]: Tente triangulaire de campement posée en 1300, -59, 0, entrée vers south.
+[22:28:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_camp placed: anchor block at 1300, -59, 0 (south)
+[22:28:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_camp faces south (south)
+[22:28:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_camp has its block entity
+[22:28:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_camp registered its collision boxes (1 tent(s) in the registry)
+[22:28:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_camp a collision query on its first solid box finds it (3 shape(s))
+[22:28:17] [Server thread/INFO]: Teleported Player269 to 1293.536000, -55.675000, 9.786000
+[22:28:19] [Server thread/INFO]: Tente triangulaire de campement retirée en 1300, -59, 0.
+[22:28:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_camp removed by /tent remove x y z
+[22:28:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_camp its collision boxes are forgotten (0 tent(s) left)
+[22:28:19] [Server thread/INFO]: Tente d'habitation posée en 1300, -59, 0, entrée vers south.
+[22:28:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_dwelling placed: anchor block at 1300, -59, 0 (south)
+[22:28:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_dwelling faces south (south)
+[22:28:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_dwelling has its block entity
+[22:28:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_dwelling registered its collision boxes (1 tent(s) in the registry)
+[22:28:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_dwelling a collision query on its first solid box finds it (6 shape(s))
+[22:28:20] [Server thread/INFO]: Teleported Player269 to 1292.595000, -55.294000, 11.040000
+[22:28:21] [Server thread/INFO]: Tente d'habitation retirée en 1300, -59, 0.
+[22:28:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_dwelling removed by /tent remove x y z
+[22:28:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_dwelling its collision boxes are forgotten (0 tent(s) left)
+[22:28:22] [Server thread/INFO]: Grande tente de chef posée en 1300, -59, 0, entrée vers south.
+[22:28:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_chief placed: anchor block at 1300, -59, 0 (south)
+[22:28:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_chief faces south (south)
+[22:28:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_chief has its block entity
+[22:28:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_chief registered its collision boxes (1 tent(s) in the registry)
+[22:28:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_chief a collision query on its first solid box finds it (2 shape(s))
+[22:28:23] [Server thread/INFO]: Teleported Player269 to 1292.181000, -52.640000, 11.592000
+[22:28:24] [Server thread/INFO]: Grande tente de chef retirée en 1300, -59, 0.
+[22:28:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_chief removed by /tent remove x y z
+[22:28:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_chief its collision boxes are forgotten (0 tent(s) left)
+[22:28:25] [Server thread/INFO]: Tente du marchand d'armes et d'armures posée en 1300, -59, 0, entrée vers south.
+[22:28:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_armurier placed: anchor block at 1300, -59, 0 (south)
+[22:28:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_armurier faces south (south)
+[22:28:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_armurier has its block entity
+[22:28:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_armurier registered its collision boxes (1 tent(s) in the registry)
+[22:28:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_armurier a collision query on its first solid box finds it (2 shape(s))
+[22:28:26] [Server thread/INFO]: Teleported Player269 to 1293.309000, -52.568000, 10.088000
+[22:28:27] [Server thread/INFO]: Tente du marchand d'armes et d'armures retirée en 1300, -59, 0.
+[22:28:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_armurier removed by /tent remove x y z
+[22:28:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_armurier its collision boxes are forgotten (0 tent(s) left)
+[22:28:28] [Server thread/INFO]: Tente du marchand d'alchimie posée en 1300, -59, 0, entrée vers south.
+[22:28:29] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_alchimiste placed: anchor block at 1300, -59, 0 (south)
+[22:28:29] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_alchimiste faces south (south)
+[22:28:29] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_alchimiste has its block entity
+[22:28:29] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_alchimiste registered its collision boxes (1 tent(s) in the registry)
+[22:28:29] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_alchimiste a collision query on its first solid box finds it (1 shape(s))
+[22:28:29] [Server thread/INFO]: Teleported Player269 to 1293.309000, -52.568000, 10.088000
+[22:28:30] [Server thread/INFO]: Tente du marchand d'alchimie retirée en 1300, -59, 0.
+[22:28:30] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_alchimiste removed by /tent remove x y z
+[22:28:30] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_alchimiste its collision boxes are forgotten (0 tent(s) left)
+[22:28:30] [Server thread/INFO]: Tente de l'herboriste posée en 1300, -59, 0, entrée vers south.
+[22:28:31] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_herboriste placed: anchor block at 1300, -59, 0 (south)
+[22:28:31] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_herboriste faces south (south)
+[22:28:31] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_herboriste has its block entity
+[22:28:31] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_herboriste registered its collision boxes (1 tent(s) in the registry)
+[22:28:31] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_herboriste a collision query on its first solid box finds it (1 shape(s))
+[22:28:31] [Server thread/INFO]: Teleported Player269 to 1293.303000, -52.568000, 10.097000
+[22:28:33] [Server thread/INFO]: Tente de l'herboriste retirée en 1300, -59, 0.
+[22:28:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_herboriste removed by /tent remove x y z
+[22:28:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_herboriste its collision boxes are forgotten (0 tent(s) left)
+[22:28:33] [Server thread/INFO]: Tente du forgeron posée en 1300, -59, 0, entrée vers south.
+[22:28:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_forgeron placed: anchor block at 1300, -59, 0 (south)
+[22:28:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_forgeron faces south (south)
+[22:28:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_forgeron has its block entity
+[22:28:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_forgeron registered its collision boxes (1 tent(s) in the registry)
+[22:28:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_forgeron a collision query on its first solid box finds it (2 shape(s))
+[22:28:34] [Server thread/INFO]: Teleported Player269 to 1293.309000, -52.568000, 10.088000
+[22:28:36] [Server thread/INFO]: Tente du forgeron retirée en 1300, -59, 0.
+[22:28:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_forgeron removed by /tent remove x y z
+[22:28:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_forgeron its collision boxes are forgotten (0 tent(s) left)
+[22:28:36] [Server thread/INFO]: Tente du marchand de nourriture posée en 1300, -59, 0, entrée vers south.
+[22:28:37] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_nourriture placed: anchor block at 1300, -59, 0 (south)
+[22:28:37] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_nourriture faces south (south)
+[22:28:37] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_nourriture has its block entity
+[22:28:37] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_nourriture registered its collision boxes (1 tent(s) in the registry)
+[22:28:37] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_nourriture a collision query on its first solid box finds it (2 shape(s))
+[22:28:37] [Server thread/INFO]: Teleported Player269 to 1293.309000, -52.568000, 10.088000
+[22:28:38] [Server thread/INFO]: Tente du marchand de nourriture retirée en 1300, -59, 0.
+[22:28:39] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_nourriture removed by /tent remove x y z
+[22:28:39] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_nourriture its collision boxes are forgotten (0 tent(s) left)
+[22:28:39] [Server thread/INFO]: Tente du marchand de tissus posée en 1300, -59, 0, entrée vers south.
+[22:28:40] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_tissus placed: anchor block at 1300, -59, 0 (south)
+[22:28:40] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_tissus faces south (south)
+[22:28:40] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_tissus has its block entity
+[22:28:40] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_tissus registered its collision boxes (1 tent(s) in the registry)
+[22:28:40] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_tissus a collision query on its first solid box finds it (1 shape(s))
+[22:28:40] [Server thread/INFO]: Teleported Player269 to 1293.247000, -52.568000, 10.170000
+[22:28:41] [Server thread/INFO]: Tente du marchand de tissus retirée en 1300, -59, 0.
+[22:28:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_tissus removed by /tent remove x y z
+[22:28:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_tissus its collision boxes are forgotten (0 tent(s) left)
+[22:28:42] [Server thread/INFO]: Tente du vendeur de barde posée en 1300, -59, 0, entrée vers south.
+[22:28:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_barde placed: anchor block at 1300, -59, 0 (south)
+[22:28:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_barde faces south (south)
+[22:28:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_barde has its block entity
+[22:28:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_barde registered its collision boxes (1 tent(s) in the registry)
+[22:28:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_barde a collision query on its first solid box finds it (1 shape(s))
+[22:28:43] [Server thread/INFO]: Teleported Player269 to 1293.470000, -53.208000, 9.873000
+[22:28:44] [Server thread/INFO]: Tente du vendeur de barde retirée en 1300, -59, 0.
+[22:28:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_barde removed by /tent remove x y z
+[22:28:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_barde its collision boxes are forgotten (0 tent(s) left)
+[22:28:44] [Server thread/INFO]: Tente du vendeur de fusils posée en 1300, -59, 0, entrée vers south.
+[22:28:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_fusils placed: anchor block at 1300, -59, 0 (south)
+[22:28:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_fusils faces south (south)
+[22:28:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_fusils has its block entity
+[22:28:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_fusils registered its collision boxes (1 tent(s) in the registry)
+[22:28:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_fusils a collision query on its first solid box finds it (1 shape(s))
+[22:28:45] [Server thread/INFO]: Teleported Player269 to 1293.468000, -53.048000, 9.876000
+[22:28:47] [Server thread/INFO]: Tente du vendeur de fusils retirée en 1300, -59, 0.
+[22:28:47] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_fusils removed by /tent remove x y z
+[22:28:47] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_fusils its collision boxes are forgotten (0 tent(s) left)
+[22:28:47] [Server thread/INFO]: Tente du vendeur d'archerie posée en 1300, -59, 0, entrée vers south.
+[22:28:48] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_archer placed: anchor block at 1300, -59, 0 (south)
+[22:28:48] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_archer faces south (south)
+[22:28:48] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_archer has its block entity
+[22:28:48] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_archer registered its collision boxes (1 tent(s) in the registry)
+[22:28:48] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_archer a collision query on its first solid box finds it (2 shape(s))
+[22:28:48] [Server thread/INFO]: Teleported Player269 to 1293.416000, -53.528000, 9.945000
+[22:28:50] [Server thread/INFO]: Tente du vendeur d'archerie retirée en 1300, -59, 0.
+[22:28:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_archer removed by /tent remove x y z
+[22:28:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_archer its collision boxes are forgotten (0 tent(s) left)
+[22:28:50] [Server thread/INFO]: Tente du vendeur de mage posée en 1300, -59, 0, entrée vers south.
+[22:28:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_mage placed: anchor block at 1300, -59, 0 (south)
+[22:28:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_mage faces south (south)
+[22:28:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_mage has its block entity
+[22:28:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_mage registered its collision boxes (1 tent(s) in the registry)
+[22:28:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_mage a collision query on its first solid box finds it (1 shape(s))
+[22:28:51] [Server thread/INFO]: Teleported Player269 to 1293.470000, -53.288000, 9.873000
+[22:28:52] [Server thread/INFO]: Tente du vendeur de mage retirée en 1300, -59, 0.
+[22:28:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_mage removed by /tent remove x y z
+[22:28:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_mage its collision boxes are forgotten (0 tent(s) left)
+[22:28:53] [Server thread/INFO]: Tente du vendeur d'armures posée en 1300, -59, 0, entrée vers south.
+[22:28:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_armures placed: anchor block at 1300, -59, 0 (south)
+[22:28:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_armures faces south (south)
+[22:28:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_armures has its block entity
+[22:28:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_armures registered its collision boxes (1 tent(s) in the registry)
+[22:28:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_armures a collision query on its first solid box finds it (1 shape(s))
+[22:28:54] [Server thread/INFO]: Teleported Player269 to 1293.299000, -52.568000, 10.101000
+[22:28:55] [Server thread/INFO]: Tente du vendeur d'armures retirée en 1300, -59, 0.
+[22:28:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_armures removed by /tent remove x y z
+[22:28:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_armures its collision boxes are forgotten (0 tent(s) left)
+[22:28:56] [Server thread/INFO]: Tente du vendeur de poisons posée en 1300, -59, 0, entrée vers south.
+[22:28:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_poison placed: anchor block at 1300, -59, 0 (south)
+[22:28:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_poison faces south (south)
+[22:28:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_poison has its block entity
+[22:28:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_poison registered its collision boxes (1 tent(s) in the registry)
+[22:28:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_poison a collision query on its first solid box finds it (1 shape(s))
+[22:28:57] [Server thread/INFO]: Teleported Player269 to 1293.299000, -52.568000, 10.101000
+[22:28:58] [Server thread/INFO]: Tente du vendeur de poisons retirée en 1300, -59, 0.
+[22:28:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_poison removed by /tent remove x y z
+[22:28:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_poison its collision boxes are forgotten (0 tent(s) left)
+[22:28:59] [Server thread/INFO]: Tente du boucher posée en 1300, -59, 0, entrée vers south.
+[22:29:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_boucher placed: anchor block at 1300, -59, 0 (south)
+[22:29:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_boucher faces south (south)
+[22:29:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_boucher has its block entity
+[22:29:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_boucher registered its collision boxes (1 tent(s) in the registry)
+[22:29:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_boucher a collision query on its first solid box finds it (1 shape(s))
+[22:29:00] [Server thread/INFO]: Teleported Player269 to 1293.299000, -52.568000, 10.101000
+[22:29:01] [Server thread/INFO]: Tente du boucher retirée en 1300, -59, 0.
+[22:29:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_boucher removed by /tent remove x y z
+[22:29:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tente_boucher its collision boxes are forgotten (0 tent(s) left)
+[22:29:01] [Server thread/INFO]: Canon médiéval posé en 1300, -59, 0, culasse vers south.
+[22:29:02] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] canon_medieval placed: anchor block at 1300, -59, 0 (south)
+[22:29:02] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] canon_medieval faces south (south)
+[22:29:02] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] canon_medieval has its block entity
+[22:29:02] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] canon_medieval registered its collision boxes (1 tent(s) in the registry)
+[22:29:02] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] canon_medieval a collision query on its first solid box finds it (1 shape(s))
+[22:29:02] [Server thread/INFO]: Teleported Player269 to 1296.609000, -57.411000, 5.688000
+[22:29:04] [Server thread/INFO]: Canon médiéval retiré en 1300, -59, 0.
+[22:29:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] canon_medieval removed by /tent remove x y z
+[22:29:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] canon_medieval its collision boxes are forgotten (0 tent(s) left)
+[22:29:04] [Server thread/INFO]: Canon médiéval posé en 1300, -59, 0, culasse vers south.
+[22:29:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] canon_medieval NBT with a state: {LastShot:1234L,Loaded:1b,Powder:2,components:{},id:"medievalships:cannon",x:1300,y:-59,z:0}
+[22:29:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] canon_medieval has a CannonBlockEntity (yes)
+[22:29:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] canon_medieval its block entity type is medievalships:cannon
+[22:29:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] canon_medieval a new cannon is empty and writes no state key
+[22:29:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] canon_medieval its state (loaded, 2 powder, last shot 1234) is saved and read back (fr.medievalships.tent.CannonBlockEntity@325463ce)
+[22:29:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] canon_medieval facing south (breech to the south), the muzzle is to the north (z -1.84, direction z -1.00)
+[22:29:05] [Server thread/INFO]: Teleported Player269 to 1296.300000, -58.220000, -2.900000
+[22:29:07] [Server thread/INFO]: Teleported Player269 to 1296.000000, -59.020000, 0.900000
+[22:29:07] [Server thread/INFO]: Canon médiéval retiré en 1300, -59, 0.
+[22:29:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] canon_medieval removed
+[22:29:08] [Server thread/INFO]: Unmarked 9 chunks in minecraft:overworld from [80, -1] to [82, 1] for force loading
+[22:29:08] [Server thread/INFO]: Player269 is not riding any vehicle
+[22:29:08] [Server thread/INFO]: Teleported Player269 to 1000.500000, -50.000000, 0.500000
+[22:29:09] [Server thread/INFO]: Successfully filled 1764 block(s)
+[22:29:09] [Server thread/INFO]: No blocks were filled
+[22:29:09] [Server thread/INFO]: Charrette couverte blanche posée en 1000, -59, 0, entrée vers south.
+[22:29:11] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_white placed by /tent place: anchor block at 1000, -59, 0 (south)
+[22:29:11] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_white faces south (south)
+[22:29:11] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_white has its block entity
+[22:29:11] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_white registered its collision boxes (1 prop(s) in the registry)
+[22:29:11] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_white a collision query on its first box finds it (8 shape(s))
+[22:29:11] [Server thread/INFO]: Teleported Player269 to 995.810000, -56.078000, 5.963000
+[22:29:12] [Server thread/INFO]: Charrette couverte blanche retirée en 1000, -59, 0.
+[22:29:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_white removed by /cart remove x y z
+[22:29:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_white its collision boxes are forgotten (0 left)
+[22:29:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] cart_covered_white extent 3.1 x 6.0 x 3.3, 15 collision boxes
+[22:29:12] [Server thread/INFO]: Charrette de foin posée en 1000, -59, 0, entrée vers west.
+[22:29:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_hay placed by /cart place: anchor block at 1000, -59, 0 (west)
+[22:29:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_hay faces west (west)
+[22:29:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_hay has its block entity
+[22:29:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_hay registered its collision boxes (1 prop(s) in the registry)
+[22:29:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_hay a collision query on its first box finds it (7 shape(s))
+[22:29:13] [Server thread/INFO]: Teleported Player269 to 995.452000, -57.340000, 5.631000
+[22:29:14] [Server thread/INFO]: Charrette de foin retirée en 1000, -59, 0.
+[22:29:14] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_hay removed by /cart remove x y z
+[22:29:14] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_hay its collision boxes are forgotten (0 left)
+[22:29:14] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] cart_hay extent 5.6 x 3.1 x 2.1, 11 collision boxes
+[22:29:14] [Server thread/INFO]: Roulotte de marchand posée en 1000, -59, 0, entrée vers north.
+[22:29:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_merchant_wagon placed by /cart place: anchor block at 1000, -59, 0 (north)
+[22:29:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_merchant_wagon faces north (north)
+[22:29:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_merchant_wagon has its block entity
+[22:29:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_merchant_wagon registered its collision boxes (1 prop(s) in the registry)
+[22:29:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_merchant_wagon a collision query on its first box finds it (7 shape(s))
+[22:29:15] [Server thread/INFO]: Teleported Player269 to 996.657000, -56.230000, 4.707000
+[22:29:16] [Server thread/INFO]: Roulotte de marchand retirée en 1000, -59, 0.
+[22:29:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_merchant_wagon removed by /cart remove x y z
+[22:29:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_merchant_wagon its collision boxes are forgotten (0 left)
+[22:29:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] cart_merchant_wagon extent 2.9 x 4.6 x 3.2, 11 collision boxes
+[22:29:17] [Server thread/INFO]: Charrette de marché posée en 1000, -59, 0, entrée vers east.
+[22:29:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_market placed by /cart place: anchor block at 1000, -59, 0 (east)
+[22:29:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_market faces east (east)
+[22:29:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_market has its block entity
+[22:29:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_market registered its collision boxes (1 prop(s) in the registry)
+[22:29:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_market a collision query on its first box finds it (18 shape(s))
+[22:29:17] [Server thread/INFO]: Teleported Player269 to 996.677000, -56.480000, 4.846000
+[22:29:18] [Server thread/INFO]: Charrette de marché retirée en 1000, -59, 0.
+[22:29:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_market removed by /cart remove x y z
+[22:29:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_market its collision boxes are forgotten (0 left)
+[22:29:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] cart_market extent 5.1 x 3.6 x 2.9, 33 collision boxes
+[22:29:19] [Server thread/INFO]: Charrette de bûcheron posée en 1000, -59, 0, entrée vers south.
+[22:29:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_logs placed by /cart place: anchor block at 1000, -59, 0 (south)
+[22:29:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_logs faces south (south)
+[22:29:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_logs has its block entity
+[22:29:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_logs registered its collision boxes (1 prop(s) in the registry)
+[22:29:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_logs a collision query on its first box finds it (6 shape(s))
+[22:29:20] [Server thread/INFO]: Teleported Player269 to 996.016000, -56.770000, 6.044000
+[22:29:21] [Server thread/INFO]: Charrette de bûcheron retirée en 1000, -59, 0.
+[22:29:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_logs removed by /cart remove x y z
+[22:29:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_logs its collision boxes are forgotten (0 left)
+[22:29:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] cart_logs extent 3.0 x 5.7 x 2.7, 10 collision boxes
+[22:29:21] [Server thread/INFO]: Charrette de transport posée en 1000, -59, 0, entrée vers west.
+[22:29:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_open placed by /cart place: anchor block at 1000, -59, 0 (west)
+[22:29:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_open faces west (west)
+[22:29:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_open has its block entity
+[22:29:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_open registered its collision boxes (1 prop(s) in the registry)
+[22:29:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_open a collision query on its first box finds it (5 shape(s))
+[22:29:22] [Server thread/INFO]: Teleported Player269 to 995.804000, -57.610000, 5.049000
+[22:29:23] [Server thread/INFO]: Charrette de transport retirée en 1000, -59, 0.
+[22:29:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_open removed by /cart remove x y z
+[22:29:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_open its collision boxes are forgotten (0 left)
+[22:29:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] cart_open extent 4.8 x 2.7 x 1.8, 7 collision boxes
+[22:29:23] [Server thread/INFO]: Charrette couverte turquoise posée en 1000, -59, 0, entrée vers north.
+[22:29:24] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_teal placed by /cart place: anchor block at 1000, -59, 0 (north)
+[22:29:24] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_teal faces north (north)
+[22:29:24] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_teal has its block entity
+[22:29:24] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_teal registered its collision boxes (1 prop(s) in the registry)
+[22:29:24] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_teal a collision query on its first box finds it (7 shape(s))
+[22:29:24] [Server thread/INFO]: Teleported Player269 to 996.862000, -56.539000, 4.497000
+[22:29:25] [Server thread/INFO]: Charrette couverte turquoise retirée en 1000, -59, 0.
+[22:29:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_teal removed by /cart remove x y z
+[22:29:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_teal its collision boxes are forgotten (0 left)
+[22:29:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] cart_covered_teal extent 2.6 x 4.3 x 2.9, 14 collision boxes
+[22:29:26] [Server thread/INFO]: Charrette à tonneaux posée en 1000, -59, 0, entrée vers east.
+[22:29:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_barrels placed by /cart place: anchor block at 1000, -59, 0 (east)
+[22:29:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_barrels faces east (east)
+[22:29:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_barrels has its block entity
+[22:29:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_barrels registered its collision boxes (1 prop(s) in the registry)
+[22:29:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_barrels a collision query on its first box finds it (9 shape(s))
+[22:29:26] [Server thread/INFO]: Teleported Player269 to 997.522000, -57.241000, 4.918000
+[22:29:27] [Server thread/INFO]: Charrette à tonneaux retirée en 1000, -59, 0.
+[22:29:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_barrels removed by /cart remove x y z
+[22:29:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_barrels its collision boxes are forgotten (0 left)
+[22:29:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] cart_barrels extent 4.6 x 2.8 x 2.2, 11 collision boxes
+[22:29:28] [Server thread/INFO]: Player269 is not riding any vehicle
+[22:29:28] [Server thread/INFO]: Teleported Player269 to 1600.500000, -48.000000, 0.500000
+[22:29:28] [Server thread/INFO]: Marked 9 chunks in minecraft:overworld from [99, -1] to [101, 1] to be force loaded
+[22:29:29] [Server thread/INFO]: Successfully filled 3364 block(s)
+[22:29:29] [Server thread/INFO]: No blocks were filled
+[22:29:30] [Server thread/INFO]: Atelier du cuisinier donné à 1 joueur(s).
+[22:29:30] [Server thread/INFO]: Atelier du cuisinier donné à 1 joueur(s).
+[22:29:30] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_cook item given by /workshop give and /ship give (0 -> 2)
+[22:29:30] [Server thread/INFO]: Atelier du forgeron posé en 1600, -59, 0, avant vers south.
+[22:29:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_blacksmith placed by /atelier place: workshop anchor block at 1600, -59, 0 (south)
+[22:29:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_blacksmith faces south (south)
+[22:29:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_blacksmith has its block entity
+[22:29:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_blacksmith registered its collision boxes (1 prop(s) in the registry)
+[22:29:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_blacksmith a collision query on its first box finds it (4 shape(s))
+[22:29:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_blacksmith known to the client (block entity loaded: drawn, collisions predicted)
+[22:29:32] [Server thread/INFO]: Teleported Player269 to 1595.758000, -54.810000, 5.528000
+[22:29:33] [Server thread/INFO]: Atelier du forgeron retiré en 1600, -59, 0.
+[22:29:33] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 2013ms or 40 ticks behind
+[22:29:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_blacksmith removed by /workshop remove x y z
+[22:29:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_blacksmith its collision boxes are forgotten (0 left)
+[22:29:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] workshop_blacksmith extent 6.1 x 4.3 x 4.6, 39 collision boxes, 4 particle source(s)
+[22:29:33] [Server thread/INFO]: Atelier du tailleur de cuir posé en 1600, -59, 0, avant vers west.
+[22:29:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_leatherworker placed by /workshop place: workshop anchor block at 1600, -59, 0 (west)
+[22:29:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_leatherworker faces west (west)
+[22:29:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_leatherworker has its block entity
+[22:29:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_leatherworker registered its collision boxes (1 prop(s) in the registry)
+[22:29:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_leatherworker a collision query on its first box finds it (3 shape(s))
+[22:29:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_leatherworker known to the client (block entity loaded: drawn, collisions predicted)
+[22:29:34] [Server thread/INFO]: Teleported Player269 to 1596.623000, -55.814000, 5.401000
+[22:29:35] [Server thread/INFO]: Atelier du tailleur de cuir retiré en 1600, -59, 0.
+[22:29:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_leatherworker removed by /atelier remove x y z
+[22:29:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_leatherworker its collision boxes are forgotten (0 left)
+[22:29:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] workshop_leatherworker extent 3.1 x 5.3 x 3.6, 24 collision boxes, 0 particle source(s)
+[22:29:35] [Server thread/INFO]: Atelier du tailleur de lin posé en 1600, -59, 0, avant vers north.
+[22:29:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_tailor placed by /workshop place: workshop anchor block at 1600, -59, 0 (north)
+[22:29:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_tailor faces north (north)
+[22:29:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_tailor has its block entity
+[22:29:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_tailor registered its collision boxes (1 prop(s) in the registry)
+[22:29:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_tailor a collision query on its first box finds it (3 shape(s))
+[22:29:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_tailor known to the client (block entity loaded: drawn, collisions predicted)
+[22:29:36] [Server thread/INFO]: Teleported Player269 to 1595.840000, -55.843000, 6.166000
+[22:29:37] [Server thread/INFO]: Atelier du tailleur de lin retiré en 1600, -59, 0.
+[22:29:37] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_tailor removed by /workshop remove x y z
+[22:29:37] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_tailor its collision boxes are forgotten (0 left)
+[22:29:37] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] workshop_tailor extent 5.9 x 3.1 x 3.6, 20 collision boxes, 0 particle source(s)
+[22:29:37] [Server thread/INFO]: Atelier de l'ingénieur posé en 1600, -59, 0, avant vers east.
+[22:29:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_engineer placed by /workshop place: workshop anchor block at 1600, -59, 0 (east)
+[22:29:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_engineer faces east (east)
+[22:29:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_engineer has its block entity
+[22:29:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_engineer registered its collision boxes (1 prop(s) in the registry)
+[22:29:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_engineer a collision query on its first box finds it (2 shape(s))
+[22:29:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_engineer known to the client (block entity loaded: drawn, collisions predicted)
+[22:29:38] [Server thread/INFO]: Teleported Player269 to 1595.636000, -55.807000, 5.886000
+[22:29:39] [Server thread/INFO]: Atelier de l'ingénieur retiré en 1600, -59, 0.
+[22:29:40] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_engineer removed by /workshop remove x y z
+[22:29:40] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_engineer its collision boxes are forgotten (0 left)
+[22:29:40] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] workshop_engineer extent 3.4 x 6.0 x 3.6, 21 collision boxes, 1 particle source(s)
+[22:29:40] [Server thread/INFO]: Atelier du cuisinier posé en 1600, -59, 0, avant vers south.
+[22:29:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_cook placed by /workshop place: workshop anchor block at 1600, -59, 0 (south)
+[22:29:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_cook faces south (south)
+[22:29:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_cook has its block entity
+[22:29:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_cook registered its collision boxes (1 prop(s) in the registry)
+[22:29:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_cook a collision query on its first box finds it (4 shape(s))
+[22:29:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_cook known to the client (block entity loaded: drawn, collisions predicted)
+[22:29:41] [Server thread/INFO]: Teleported Player269 to 1596.211000, -55.744000, 5.256000
+[22:29:42] [Server thread/INFO]: Atelier du cuisinier retiré en 1600, -59, 0.
+[22:29:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_cook removed by /workshop remove x y z
+[22:29:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_cook its collision boxes are forgotten (0 left)
+[22:29:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] workshop_cook extent 5.4 x 3.0 x 3.7, 25 collision boxes, 3 particle source(s)
+[22:29:42] [Server thread/INFO]: Atelier de l'alchimiste posé en 1600, -59, 0, avant vers west.
+[22:29:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_alchemist placed by /workshop place: workshop anchor block at 1600, -59, 0 (west)
+[22:29:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_alchemist faces west (west)
+[22:29:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_alchemist has its block entity
+[22:29:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_alchemist registered its collision boxes (1 prop(s) in the registry)
+[22:29:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_alchemist a collision query on its first box finds it (3 shape(s))
+[22:29:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_alchemist known to the client (block entity loaded: drawn, collisions predicted)
+[22:29:43] [Server thread/INFO]: Teleported Player269 to 1596.469000, -56.195000, 5.116000
+[22:29:44] [Server thread/INFO]: Atelier de l'alchimiste retiré en 1600, -59, 0.
+[22:29:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_alchemist removed by /workshop remove x y z
+[22:29:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_alchemist its collision boxes are forgotten (0 left)
+[22:29:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] workshop_alchemist extent 2.7 x 5.0 x 3.2, 19 collision boxes, 2 particle source(s)
+[22:29:44] [Server thread/INFO]: Atelier de l'enchanteur posé en 1600, -59, 0, avant vers north.
+[22:29:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_enchanter placed by /workshop place: workshop anchor block at 1600, -59, 0 (north)
+[22:29:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_enchanter faces north (north)
+[22:29:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_enchanter has its block entity
+[22:29:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_enchanter registered its collision boxes (1 prop(s) in the registry)
+[22:29:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_enchanter a collision query on its first box finds it (4 shape(s))
+[22:29:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_enchanter known to the client (block entity loaded: drawn, collisions predicted)
+[22:29:45] [Server thread/INFO]: Teleported Player269 to 1594.209000, -54.170000, 7.565000
+[22:29:46] [Server thread/INFO]: Atelier de l'enchanteur retiré en 1600, -59, 0.
+[22:29:46] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_enchanter removed by /workshop remove x y z
+[22:29:46] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_enchanter its collision boxes are forgotten (0 left)
+[22:29:46] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] workshop_enchanter extent 8.2 x 5.9 x 5.3, 35 collision boxes, 3 particle source(s)
+[22:29:46] [Server thread/INFO]: Tente triangulaire de campement posée en 1600, -59, 0, entrée vers south.
+[22:29:47] [Server thread/INFO]: Pas d'atelier en 1600, -59, 0.
+[22:29:47] [Server thread/INFO]: Aucun atelier chargé dans ce monde.
+[22:29:47] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] /workshop remove leaves a tent alone
+[22:29:47] [Server thread/INFO]: Tente triangulaire de campement retirée en 1600, -59, 0.
+[22:29:47] [Server thread/INFO]: Unmarked 9 chunks in minecraft:overworld from [99, -1] to [101, 1] for force loading
+[22:29:47] [Server thread/INFO]: Stopping server
+[22:29:47] [Server thread/INFO]: Saving players
+[22:29:47] [Server thread/INFO]: Player269 lost connection: Disconnected
+[22:29:47] [Server thread/INFO]: Player269 left the game
+[22:29:47] [Server thread/INFO]: Saving worlds
+[22:29:47] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:overworld
+[22:29:48] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_nether
+[22:29:48] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_end
+[22:29:48] [Server thread/INFO]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[22:29:48] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[22:29:48] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[22:29:48] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[22:29:48] [Render thread/INFO]: Stopping!
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1793568684087.json
+
+[Incubating] Problems report is available at: file:///home/runner/work/medieval-ships/medieval-ships/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.2.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 58m 29s
+13 actionable tasks: 13 executed
