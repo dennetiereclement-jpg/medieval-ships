@@ -38,7 +38,11 @@ def build():
     tl.pole(frame, "ridge_b", (0, RIDGE_Y - 0.02, -0.4), (0, RIDGE_Y + 0.12, AWNING_Z + 0.25), d=0.16, extend=0.02)
     for s, sn in ((1, "r"), (-1, "l")):
         # front shear legs cross under the ridge; the back pair leans a little more
-        tl.post(frame, "front_leg_%s" % sn, (s * 1.3, -0.05, 2.45), (-s * 0.28, RIDGE_Y + 0.32, 2.3), d=0.17)
+        # only their foot collides (below 1 block): above it they lean over the doorway and would stop the
+        # player's head at the entrance
+        foot, top = (s * 1.3, -0.05, 2.45), (-s * 0.28, RIDGE_Y + 0.32, 2.3)
+        tl.post(frame, "front_leg_%s" % sn, foot, top, d=0.17, solid=False)
+        tl.collide_segment(foot, tuple(f + (t - f) * 0.25 for f, t in zip(foot, top)), 0.17, segs=1)
         tl.post(frame, "back_leg_%s" % sn, (s * 1.2, -0.05, -2.55), (-s * 0.3, RIDGE_Y + 0.25, -2.72), d=0.17)
         # the awning props lean outwards, holding the lifted front corner of the canvas
         tl.post(frame, "prop_%s" % sn, (s * 3.0, -0.05, 3.7), (s * 2.7, 2.1, 3.3), d=0.13)
