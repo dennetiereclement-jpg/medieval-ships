@@ -148,6 +148,12 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.16.0 ajoute **la tente du vendeur de poisons et la tente du boucher** (étals à toit à deux pans :
+chaudron vert lumineux, fioles et plantes toxiques ; viandes suspendues, saucisses, billot et couperet) et un
+**canon médiéval indépendant** (fût de fonte cerclé, affût de chêne, deux grandes roues à rayons), décoratif pour
+l'instant mais prêt pour un futur tir (état sauvegardé, pièces séparées, bouche repérée). Onglet « Artillerie ».
+`/give @p medievalships:tente_poison`, `tente_boucher`, `canon_medieval`. Voir [docs/TENTES.md](docs/TENTES.md).
+
 La version 1.15.0 ajoute **cinq nouvelles tentes de marchands** (barde, fusils, archerie, mage, armures) sur le
 même pavillon : instruments et harpe, râtelier de fusils et revolver steampunk, arcs, carquois et cible
 d'entraînement, cristaux, orbe et bâtons de mage lumineux, quatre styles d'armures. Une place libre derrière le
@@ -370,7 +376,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.15.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.16.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
