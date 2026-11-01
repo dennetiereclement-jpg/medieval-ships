@@ -126,7 +126,7 @@ public final class BalloonGameTest {
 
 		// the viewpoint of the reference picture, then the side and the front
 		String[] names = {"1_reference", "2_cote", "3_avant"};
-		double[][] eyes = {{26.5, 9.5, 12.5, 0, 9.3, 0}, {31, 9, 0.01, 0, 9, 0}, {0.01, 9, 33, 0, 9, 0}};
+		double[][] eyes = {{15.5, 9.4, 7.3, 0, 9.3, 0}, {18, 9, 0.01, 0, 9, 0}, {0.01, 9, 19, 0, 9, 0}};
 		for (int k = 0; k < names.length; k++) {
 			double[] e = eyes[k];
 			lookLocal(server, hover, e[0], e[1], e[2], e[3], e[4], e[5]);
@@ -185,7 +185,7 @@ public final class BalloonGameTest {
 				String.format(Locale.ROOT, "%s the pilot steps off onto the deck (local %.2f %.2f %.2f)", id, l[0], l[1], l[2]));
 		check.accept(collisions(server) == 0, id + " flight: inside nothing");
 		server.runCommand("gamemode spectator @a");
-		lookLocal(server, pose(server), 26.5, 9.5, 12.5, 0, 9.3, 0);
+		lookLocal(server, pose(server), 15.5, 9.4, 7.3, 0, 9.3, 0);
 		context.waitTicks(4);
 		shot.accept(id + "_4_en_vol");
 
