@@ -116,9 +116,11 @@ public final class ShipModels {
 			List.of(texture("blue_frigate"), texture("blue_frigate_sails")), 0.45f, 32, 36, true);
 	/** The Rowboat: a very light rocking; its splashes and oar sounds come from {@code RowboatEffects}. */
 	public static final Visual ROWBOAT = new Visual(Ships.ROWBOAT, model("rowboat"), List.of(texture("rowboat")), 0.6f, 5, 4, false);
+	/** The trade sloop: a small boat that rocks on the waves, foam at its bow under way. */
+	public static final Visual TRADE_SLOOP = new Visual(Ships.TRADE_SLOOP, model("trade_sloop"), List.of(texture("trade_sloop")), 1.1f, 14, 18, true);
 	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT,
 			STEAMPUNK_AIRSHIP, NAUTILUS, OLD_CORSAIR, SKY_LEVIATHAN, CRYSTAL_AIRSHIP,
-			RUSTIC_SKIFF, DRAGON_JUNK, HOT_AIR_BALLOON, BLUE_FRIGATE, ROWBOAT);
+			RUSTIC_SKIFF, DRAGON_JUNK, HOT_AIR_BALLOON, BLUE_FRIGATE, ROWBOAT, TRADE_SLOOP);
 
 	@Nullable
 	public static Visual of(ShipType type) {

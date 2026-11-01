@@ -62,6 +62,7 @@ import fr.medievalships.entity.RowboatEntity;
 import fr.medievalships.entity.RusticSkiffEntity;
 import fr.medievalships.entity.DragonJunkEntity;
 import fr.medievalships.entity.SteampunkAirshipEntity;
+import fr.medievalships.entity.TradeSloopEntity;
 import fr.medievalships.entity.SteamPaddleboatEntity;
 import fr.medievalships.entity.WarshipEntity;
 import fr.medievalships.core.ShipType;
@@ -99,6 +100,8 @@ public final class MedievalShips implements ModInitializer {
 	public static Item CRYSTAL_AIRSHIP_ITEM;
 	public static EntityType<RusticSkiffEntity> RUSTIC_SKIFF;
 	public static Item RUSTIC_SKIFF_ITEM;
+	public static EntityType<TradeSloopEntity> TRADE_SLOOP;
+	public static Item TRADE_SLOOP_ITEM;
 	public static EntityType<DragonJunkEntity> DRAGON_JUNK;
 	public static Item DRAGON_JUNK_ITEM;
 	public static EntityType<HotAirBalloonEntity> HOT_AIR_BALLOON;
@@ -165,6 +168,8 @@ public final class MedievalShips implements ModInitializer {
 		BLUE_FRIGATE_ITEM = ITEMS.get(Ships.BLUE_FRIGATE);
 		ROWBOAT = registerShip(Ships.ROWBOAT, RowboatEntity::new, 1.5f, 0.5f, 10);
 		ROWBOAT_ITEM = ITEMS.get(Ships.ROWBOAT);
+		TRADE_SLOOP = registerShip(Ships.TRADE_SLOOP, TradeSloopEntity::new, 3.0f, 0.4f, 14);
+		TRADE_SLOOP_ITEM = ITEMS.get(Ships.TRADE_SLOOP);
 
 		RegistryKey<ItemGroup> groupKey = RegistryKey.of(RegistryKeys.ITEM_GROUP, id("ships"));
 		Registry.register(Registries.ITEM_GROUP, groupKey, FabricItemGroup.builder()

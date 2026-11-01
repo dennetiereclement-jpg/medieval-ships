@@ -31,5 +31,7 @@
   "item.medievalships.blue_frigate": "Blue-Sailed Frigate",
   "entity.medievalships.blue_frigate": "Blue-Sailed Frigate",
   "item.medievalships.rowboat": "Rowboat",
-  "entity.medievalships.rowboat": "Rowboat"
+  "entity.medievalships.rowboat": "Rowboat",
+  "item.medievalships.trade_sloop": "Trade Sloop",
+  "entity.medievalships.trade_sloop": "Trade Sloop"
 }
