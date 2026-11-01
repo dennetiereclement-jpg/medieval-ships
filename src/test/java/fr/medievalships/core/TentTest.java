@@ -19,9 +19,10 @@ public class TentTest {
 
 	@Test
 	void sixTypesLoad() {
-		assertEquals(6, TentTypes.ALL.size());
+		assertEquals(6 + 6, TentTypes.ALL.size(), "six camp tents and six merchant tents");
+		assertEquals(TentTypes.MERCHANTS, TentTypes.ALL.subList(6, 12), "the merchant tents come after the camp tents");
 		for (TentType t : TentTypes.ALL) {
-			assertTrue(t.id().startsWith("tent_"), t.id());
+			assertTrue(t.id().startsWith("tent_") || t.id().startsWith("tente_"), t.id());
 			assertNotNull(t.extent());
 			assertTrue(t.extent().x1() > t.extent().x0() && t.extent().y1() > t.extent().y0() && t.extent().z1() > t.extent().z0(), t.id());
 			assertFalse(t.frenchName().isBlank());

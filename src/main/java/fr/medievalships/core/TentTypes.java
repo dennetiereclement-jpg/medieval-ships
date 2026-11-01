@@ -4,8 +4,9 @@ import java.util.List;
 
 
 /**
- * The six tents, the eight carts and the seven crafting workshops. One line per prop: its id (block, item, model, decor
- * and tents / carts / workshops JSON are all named after it) and its names. {@link #ALL} = the tents only (their tab),
+ * The twelve tents (six camp tents, six merchant tents), the eight carts and the seven crafting workshops. One line per
+ * prop: its id (block, item, model, decor and tents / carts / workshops JSON are all named after it) and its names.
+ * {@link #ALL} = the tents only (their tab "Tentes": the six camp tents then the six {@link #MERCHANTS}),
  * {@link #CARTS} = the carts (tab "Charrettes"), {@link #WORKSHOPS} = the workshops (tab "Ateliers"), {@link #PROPS} =
  * all three (registration, commands, models).
  */
@@ -16,8 +17,21 @@ public final class TentTypes {
 	public static final TentType CAMP = TentType.load("tent_camp", "tente triangulaire de campement", "Camp Tent");
 	public static final TentType DWELLING = TentType.load("tent_dwelling", "tente d'habitation", "Dwelling Tent");
 	public static final TentType CHIEF = TentType.load("tent_chief", "grande tente de chef", "Chief's Pavilion");
-	/** The tents only (tab "Tentes"). */
-	public static final List<TentType> ALL = List.of(COMMAND, ADVENTURER, MARKET, CAMP, DWELLING, CHIEF);
+
+	public static final TentType MERCHANT_ARMOURER = TentType.load("tente_armurier", "tente du marchand d'armes et d'armures",
+			"Weapon & Armour Merchant Tent");
+	public static final TentType MERCHANT_ALCHEMIST = TentType.load("tente_alchimiste", "tente du marchand d'alchimie", "Alchemy Merchant Tent");
+	public static final TentType MERCHANT_HERBALIST = TentType.load("tente_herboriste", "tente de l'herboriste", "Herbalist Tent");
+	public static final TentType MERCHANT_BLACKSMITH = TentType.load("tente_forgeron", "tente du forgeron", "Blacksmith Merchant Tent");
+	public static final TentType MERCHANT_FOOD = TentType.load("tente_nourriture", "tente du marchand de nourriture", "Food Merchant Tent");
+	public static final TentType MERCHANT_CLOTH = TentType.load("tente_tissus", "tente du marchand de tissus", "Cloth Merchant Tent");
+	/** The six merchant tents (1.14.0): group "tents", each with its own atlas (textures/entity/<id>.png). */
+	public static final List<TentType> MERCHANTS = List.of(MERCHANT_ARMOURER, MERCHANT_ALCHEMIST, MERCHANT_HERBALIST, MERCHANT_BLACKSMITH,
+			MERCHANT_FOOD, MERCHANT_CLOTH);
+
+	/** The tents only (tab "Tentes"): the six camp tents, then the six merchant tents. */
+	public static final List<TentType> ALL = java.util.stream.Stream.of(List.of(COMMAND, ADVENTURER, MARKET, CAMP, DWELLING, CHIEF), MERCHANTS)
+			.flatMap(List::stream).toList();
 
 	public static final TentType CART_COVERED_WHITE = cart("cart_covered_white", "charrette couverte blanche", "White Covered Wagon");
 	public static final TentType CART_HAY = cart("cart_hay", "charrette de foin", "Hay Cart");
@@ -64,7 +78,8 @@ public final class TentTypes {
 			s = s.substring("medievalships:".length());
 		}
 		for (TentType t : PROPS) {
-			if (t.id().equals(s) || t.id().equals("tent_" + s) || t.id().equals("cart_" + s) || t.id().equals("workshop_" + s)) {
+			if (t.id().equals(s) || t.id().equals("tent_" + s) || t.id().equals("tente_" + s) || t.id().equals("cart_" + s)
+					|| t.id().equals("workshop_" + s)) {
 				return t;
 			}
 		}
