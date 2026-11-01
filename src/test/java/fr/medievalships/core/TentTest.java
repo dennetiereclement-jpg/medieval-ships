@@ -121,6 +121,46 @@ public class TentTest {
 		}
 	}
 
+	@Test
+	void commandGeometryAndDecor() throws Exception {
+		TentType t = TentTypes.COMMAND;
+		TentType.Box e = t.extent();
+		assertTrue(e.width() > 9 && e.width() < 12, "width " + e.width());
+		assertTrue(e.height() > 7 && e.height() < 9, "height " + e.height());
+		assertTrue(e.depth() > 7 && e.depth() < 10, "depth " + e.depth());
+		assertEquals(0.0, e.y0(), EPS);
+		assertTrue(t.colliders().size() >= 30, "collision boxes " + t.colliders().size());
+		int cornerPosts = 0;
+		boolean platform = false;
+		for (TentType.Box b : t.colliders()) {
+			assertTrue(b.x0() >= e.x0() - EPS && b.x1() <= e.x1() + EPS && b.z0() >= e.z0() - EPS && b.z1() <= e.z1() + EPS, "inside the extent " + b);
+			if (b.y0() < 0.1 && Math.abs(b.x0() + b.x1()) > 6 && Math.abs(b.z0() + b.z1()) > 5) {
+				cornerPosts++;
+			}
+			if (b.width() > 8 && b.depth() > 6 && b.y1() < 1.0) {
+				platform = true;
+			}
+		}
+		assertEquals(4, cornerPosts, "the four corner posts stand on the ground");
+		assertTrue(platform, "the platform");
+		assertEquals(t.colliders().size(), t.colliders(TentType.NORTH).size());
+		InteriorDecor decor = InteriorDecor.load(t.decor());
+		assertTrue(decor.blocks().size() >= 10, "furniture " + decor.blocks().size());
+		assertTrue(decor.blocks().stream().anyMatch(b -> b.block().equals("farmhouse_decorations:desk")), "the strategy table");
+		assertTrue(decor.blocks().stream().anyMatch(b -> b.block().endsWith("_chair") || b.block().endsWith("_stool")), "seats");
+		assertTrue(decor.blocks().stream().anyMatch(b -> b.block().endsWith("lantern") && b.glow()), "a glowing lantern");
+		try (var in = TentTest.class.getResourceAsStream("/assets/medievalships/" + t.model())) {
+			assertNotNull(in, "model " + t.model());
+			BbModel m = new BbModel(new InputStreamReader(in, StandardCharsets.UTF_8));
+			assertTrue(m.quadCount() > 1000 && m.quadCount() < 12000, "faces " + m.quadCount());
+			assertTrue(m.animations.isEmpty());
+			for (InteriorDecor.Block b : decor.blocks()) {
+				assertTrue(m.bonesByName.containsKey(b.fallback()), "stand-in bone " + b.fallback());
+			}
+			assertTrue(m.bonesByName.containsKey("canvas") && m.bonesByName.containsKey("detail") && m.bonesByName.containsKey("furniture"));
+		}
+	}
+
 	private static void assertArrayEquals(double[] expected, double[] actual) {
 		assertEquals(expected.length, actual.length);
 		for (int i = 0; i < expected.length; i++) {

@@ -1,0 +1,120 @@
+{
+ "blocks": [
+  {
+   "block": "farmhouse_decorations:desk",
+   "x": 0.0,
+   "y": 0.55,
+   "z": -2.0,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_0"
+  },
+  {
+   "block": "farmhouse_decorations:pile_of_books",
+   "x": 1.05,
+   "y": 1.57,
+   "z": -1.95,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_1"
+  },
+  {
+   "block": "furnish:book_pile",
+   "x": -0.95,
+   "y": 1.57,
+   "z": -1.8,
+   "yaw": 270.0,
+   "scale": 0.9,
+   "fallback": "fallback_2"
+  },
+  {
+   "block": "farmhouse_decorations:kerosene_lantern",
+   "x": 1.25,
+   "y": 1.57,
+   "z": -2.3,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_3",
+   "glow": true,
+   "alt": "minecraft:lantern"
+  },
+  {
+   "block": "furnish:spruce_chair",
+   "x": 0.0,
+   "y": 0.55,
+   "z": -2.95,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_4"
+  },
+  {
+   "block": "furnish:spruce_stool",
+   "x": -0.9,
+   "y": 0.55,
+   "z": -0.95,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_5"
+  },
+  {
+   "block": "furnish:spruce_stool",
+   "x": 1.0,
+   "y": 0.55,
+   "z": -0.9,
+   "yaw": 0.0,
+   "scale": 0.95,
+   "fallback": "fallback_6"
+  },
+  {
+   "block": "furnish:spruce_bench",
+   "x": -3.45,
+   "y": 0.55,
+   "z": 0.4,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_7"
+  },
+  {
+   "block": "mebahelcreaturesdwarven:dwemer_chest",
+   "x": -3.35,
+   "y": 0.55,
+   "z": -2.85,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_8",
+   "alt": "minecraft:chest"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": 3.4,
+   "y": 0.55,
+   "z": -2.85,
+   "yaw": 180.0,
+   "scale": 0.9,
+   "fallback": "fallback_9"
+  },
+  {
+   "block": "landsoficaria:cypress_barrel",
+   "x": 3.4,
+   "y": 0.55,
+   "z": -1.85,
+   "yaw": 90.0,
+   "scale": 0.9,
+   "fallback": "fallback_10",
+   "alt": "minecraft:barrel"
+  },
+  {
+   "block": "farmhouse_decorations:chained_kerosene_lantern",
+   "x": 0.72,
+   "y": 2.95,
+   "z": -0.4,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_11",
+   "glow": true
+  }
+ ],
+ "seats": [],
+ "paintings": [],
+ "switches": []
+}
