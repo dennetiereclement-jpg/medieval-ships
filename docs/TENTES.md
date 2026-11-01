@@ -374,6 +374,73 @@ Où brancher la suite :
 - Le test en jeu (`TentGameTest`) pose les trois objets une fois chacun et vérifie l'aller-retour NBT de l'état du
   canon ; son passage en CI n'est pas garanti au moment de l'écriture.
 
+## Tentes de marchands IV (1.17.0)
+
+Deux étals à deux pans de plus, du même système que ceux de la 1.16.0 (un bloc = tout l'étal, modèle statique,
+boîtes de collision, niveaux de détail, aucun tick), rangés dans l'onglet **Tentes** après les dix-neuf autres
+(`TentTypes.MERCHANTS4`), chacun avec son atlas. Nouveauté : **une bannière à chaque poteau avant** (au lieu
+d'une seule).
+
+| id | nom | onglet | générateur |
+|----|-----|-----|-----|
+| `tente_boulanger` | Tente du boulanger | Tentes | `tools/merchant/generate_tente_boulanger.py` (+ `props_m8.py`) |
+| `tente_poissonnier` | Tente du poissonnier | Tentes | `tools/merchant/generate_tente_poissonnier.py` (+ `props_m9.py`) |
+
+**Obtenir / poser** : `/give @p medievalships:tente_boulanger` (de même `tente_poissonnier`), ou dans l'onglet
+Tentes. Noms courts pour `/tent place` : `boulanger`, `poissonnier` (`poison` reste le vendeur de poisons). Clic
+droit au sol : l'entrée fait face au joueur ; `/tent remove`, casser le bloc d'ancrage : comme les autres.
+
+**Ce qu'on y trouve** (d'après les images de référence) :
+
+- **Boulanger** (473 cubes, environ 7,6 × 6,3 blocs, 5,2 de haut) : étal à **rayures brunes et beiges** qui
+  descendent les deux pans, lambrequin dentelé bordé d'or, quatre poteaux à chapiteaux dorés, lanternes aux deux
+  poteaux avant, **deux bannières brunes à l'épi de blé doré au-dessus d'une miche**, une à chaque poteau avant ;
+  au fond, au milieu, le **four à pain en pierre** : socle, gueule en arc (claveaux sombres) **rougeoyante** avec des
+  pains qui cuisent dedans, rebord de pierre, hotte en gradins qui monte jusque sous la toile ; à droite des
+  **étagères pleines de miches rondes et de pains longs**, deux pots sur un petit meuble et la **pelle à pain** en
+  bois appuyée devant ; une **tresse d'ail** et une **gerbe de blé** pendues à la tringle, une seconde tresse à
+  droite ; le long comptoir avec de grosses miches dorées, un tas de petits pains et de brioches, un pain long, une
+  **tarte aux baies** sur sa planche et un **gâteau** sur son plateau (blocs de mods, voir plus bas), la **nappe crème
+  à l'épi de blé et aux dents dorées** qui pend devant ; à gauche une table basse avec un **sac d'épis de blé** et un
+  plateau de petits pains, devant elle **deux sacs de grain ouverts** (grain visible, épi brodé) ; hors du poteau
+  gauche un tonneau surmonté d'un **panier de baguettes**, un tonneau avec un panier de petits pains, des caisses ;
+  hors du poteau droit un tonneau couvert de petits pains, une caisse avec un plateau de petits pains, une caisse
+  surmontée d'un sac. Un **rare filet de fumée** sort de la gueule du four (particule `smoke`, chance 0,08).
+- **Poissonnier** (étal plus long que les autres) : rayures **bleues et blanches**, lambrequin dentelé bordé d'or,
+  poteaux à chapiteaux dorés et cordages, lanternes aux poteaux avant, **deux bannières bleues au poisson blanc
+  au-dessus d'un hameçon** ; filet de pêche en festons sous l'avant-toit, poissons pendus à des chaînes, étal de
+  **glace** avec saumons et morues, caisses de poissons sur la glace, caisse de crabes et homards, tonneaux de
+  poissons, **casier à homards** à l'avant droit, **ancre** appuyée sur un tonneau à l'avant gauche, algues pendues,
+  planche à découper avec une darne de saumon et un couperet, étagères de pots et de poissons au fond. (Modèle et
+  détails : branche `merchant4-fish`.)
+
+Pour les deux : l'avant est praticable (on atteint le comptoir), une place libre d'au moins 1 × 1 × 2,2 blocs
+derrière le comptoir pour un PNJ marchand (EasyNPC), **et on peut y entrer à pied** (boulanger : par le passage entre
+la table basse et le comptoir, à gauche). Pas de drapeaux ni de tapis (comme sur les images).
+
+**Blocs de mods du boulanger** (dessinés s'ils sont installés, sinon un substitut dans le modèle) :
+`farmersdelight:sweet_berry_cheesecake` (la tarte aux baies, substitut : boîte peinte de baies),
+`landsoficaria:strawberry_cake` (le gâteau, substitut : boîte glacée blanche), `farmersdelight:rice_bag` (le sac au
+fond à gauche et celui posé sur la caisse de droite, substitut : toile de jute), `furnish:spruce_crate` (quatre
+caisses, substitut : caisse). Le four, les pains, les sacs de grain ouverts, la gerbe, l'ail, la pelle, les paniers
+et les tonneaux sont modélisés (les blocs des mods n'ont pas ces formes : pas de four à pain en pierre, pas de pain
+en bloc).
+
+**Pour les développeurs** : `merchantlib.py` (rétrocompatible : les étals et tentes existants se régénèrent à
+l'identique) gagne les couleurs `brown` et `seablue`, les emblèmes `bread` (épi au-dessus d'une miche) et `fish`
+(poisson blanc au-dessus d'un hameçon), `stall(..., banner_side="both")` (une bannière par poteau avant, tournée
+vers l'intérieur ; `L.banner_boxes`), la largeur d'un étal plus long par `half_w`, et `icon(..., shape="stall",
+banners=2)`.
+
+**Limites connues / non vérifié** :
+
+- Les blocs de mods (tarte, gâteau, sacs, caisses) ne sont vus que dans la variante « decor » du test en jeu ; leur
+  échelle et leur position sont calculées d'après le catalogue des mods, pas vérifiées à l'œil en jeu.
+- Le four est un modèle (pleine lumière pour le feu et les pains qui cuisent), pas une source de lumière dans le
+  monde, et ne cuit rien.
+- Le test en jeu (`TentGameTest`) pose les deux étals une fois chacun ; son passage en CI n'est pas garanti au
+  moment de l'écriture.
+
 ## Performances
 
 - **Aucun tick** : l'entité de bloc n'a pas de ticker, pas de particules, pas d'animation ; le serveur ne fait rien
@@ -424,6 +491,14 @@ les boîtes de collision se reconstruisent au chargement du chunk.
   fichiers, langues et onglet, règles de `CannonState`. Le test en jeu pose aussi les deux étals et le canon (type
   d'entité de bloc `medievalships:cannon`, état écrit en NBT puis relu à l'identique par une nouvelle entité, bouche
   au nord pour un canon tourné au sud, captures).
+- JUnit `Merchant4Test` (1.17.0) : les deux étals de `MERCHANTS4` après les dix-neuf premières tentes (21 dans
+  l'onglet), noms (`Baker's Stall`, `Fishmonger's Stall`), noms courts, emprises à l'échelle (le poissonnier plus
+  long), quatre poteaux pleins, place libre pour un PNJ, avant praticable, **chemin à pied** (recherche sur une
+  grille de 0,1 bloc d'un joueur de 0,6 × 1,8 bloc) depuis l'avant jusqu'à une place libre dans la moitié arrière,
+  fichiers, modèles chargés, au plus une particule rare. `MerchantModelsM8Test` : le modèle du boulanger (comptoir et
+  four pleins, place du marchand entre eux, passage à gauche du comptoir, deux bannières, pas de drapeaux ni de
+  tapis, feu et pains éclairés, le four, les pains, les sacs, le blé, l'ail, la pelle, la nappe, blocs de mods,
+  au plus 900 cubes). Le test en jeu pose aussi les deux étals (emprise dans la plateforme dégagée vérifiée).
 
 ## Non vérifié
 
