@@ -5,7 +5,9 @@ A generator (tools/merchant/generate_<id>.py) does, in this order:
 
     import merchantlib as ml
     ml.setup("tente_x")                          # resets the collisions / uuids for this tent (call first)
-    atlas = ml.Atlas("tente_x", colour="red")    # red, purple, green, blue, yellow, teal
+    atlas = ml.Atlas("tente_x", colour="red")    # red, purple, green, blue, yellow, teal, burgundy, darkred, navy,
+                                                 # charcoal; banner_colour= / rug_colour= (optional) override the
+                                                 # banners + flag + pennants / the rug
     atlas.add("my_region", w, h, painter)        # optional, BEFORE export: w x h px in the free band of this tent's
                                                  # atlas; painter(img) paints a PIL RGBA image of size w x h
     root = ml.Bone("tente_x")
@@ -20,7 +22,8 @@ placed it), the anchor block's centre (0, 0, 0) = centre of the footprint. Small
 named "detail", hidden beyond 32 blocks). Cubes whose name starts with "glow" are drawn full bright; a cube whose 4
 sides use the "lantern" region is rebuilt as a lit lantern on export (tools/lanterns.py).
 
-pavilion() options: emblem in EMBLEMS (swords, flask, leaf, anvil, cheese, scroll); flag_corner back_left |
+pavilion() options: emblem in EMBLEMS (swords, flask, leaf, anvil, cheese, scroll; 1.15.0: lyre, muskets, bow, star,
+shield, cannon); roof_rise (apex height above the eaves, default 3.2: lower = flatter roof); flag_corner back_left |
 back_right; side_banners 0 (none), 1 (left side), 2 (both sides); lanterns 0, 2 (front posts) or 4 (all posts);
 front_counter False | True (= "right") | "right" | "left" | "both" (an L: a piece along the front, a return along the
 side); back_shelves True: a 4-level shelf unit along the back wall; ivy True: ivy strips on the valance and posts.
@@ -81,8 +84,18 @@ COLOURS = {   # main, dark (shadows, edges), light
     "blue":   (_rgb("27386e"), _rgb("141d3e"), _rgb("3a5096")),
     "yellow": (_rgb("c9951e"), _rgb("7a560c"), _rgb("e2b648")),
     "teal":   (_rgb("1f7c84"), _rgb("0f454a"), _rgb("36a0a6")),
+    # 1.15.0 (merchant tents II)
+    "burgundy": (_rgb("6e1a2c"), _rgb("3a0c16"), _rgb("8e2e42")),
+    "darkred":  (_rgb("7a1c16"), _rgb("400c08"), _rgb("9a3026")),
+    "navy":     (_rgb("1c2850"), _rgb("0e142c"), _rgb("2e3e72")),
+    "charcoal": (_rgb("3a3634"), _rgb("1c1a1a"), _rgb("56504c")),
 }
-EMBLEMS = ("swords", "flask", "leaf", "anvil", "cheese", "scroll")
+# the paint seed of each colour (the 1.14.0 ones keep their former seeds: their atlases regenerate identically)
+_SEED = {c: k for k, c in enumerate(("blue", "green", "purple", "red", "teal", "yellow", "burgundy", "darkred", "navy", "charcoal"))}
+EMBLEMS = ("swords", "flask", "leaf", "anvil", "cheese", "scroll", "lyre", "muskets", "bow", "star", "shield", "cannon")
+EMBLEM_ICON = {"swords": (220, 222, 228), "flask": (150, 200, 240), "leaf": (230, 226, 200), "anvil": (220, 222, 228),
+               "cheese": (246, 210, 80), "scroll": (240, 228, 196), "lyre": (232, 186, 70), "muskets": (220, 222, 228),
+               "bow": (232, 186, 70), "star": (232, 186, 70), "shield": (200, 206, 216), "cannon": (236, 226, 196)}
 GOLD_STOPS = [(0, (120, 84, 26)), (0.5, (214, 170, 72)), (1, (250, 230, 160))]
 STEEL_STOPS = [(0.0, (72, 74, 80)), (0.45, (140, 144, 150)), (0.8, (196, 200, 206)), (1.0, (236, 238, 242))]
 POTIONS = {"red": "c42c2c", "blue": "2e5ed2", "green": "2ea24e", "purple": "9a3ccc", "yellow": "e2c23a", "orange": "e27a2a",
@@ -118,10 +131,13 @@ class Atlas:
     """The atlas of one tent: the shared shell regions (painted in the tent's colour) + the regions added by the tent
     (atlas.add). Painted on export (textures/entity/<id>.png)."""
 
-    def __init__(self, name, colour="red", size=512):
-        if colour not in COLOURS:
-            raise KeyError("colour must be one of %s" % ", ".join(COLOURS))
+    def __init__(self, name, colour="red", size=512, banner_colour=None, rug_colour=None):
+        for c in (colour, banner_colour or colour, rug_colour or colour):
+            if c not in COLOURS:
+                raise KeyError("colour must be one of %s" % ", ".join(COLOURS))
         self.name, self.colour, self.size = name, colour, size
+        self.banner_colour = banner_colour   # None: the tent colour (banners, flag, pennants)
+        self.rug_colour = rug_colour         # None: the tent colour
         self.emblem = "swords"
         self.regions = {}
         self.painters = {}
@@ -166,7 +182,7 @@ class Atlas:
     def make(self, path):
         from PIL import Image
         img = Image.new("RGBA", (self.size, self.size), (0, 0, 0, 0))
-        _paint_shell(img, self.regions, self.colour, self.emblem)
+        _paint_shell(img, self.regions, self.colour, self.emblem, banner_colour=self.banner_colour, rug_colour=self.rug_colour)
         for name, painter in self.painters.items():
             u, v, w, h = self.regions[name]
             sub = Image.new("RGBA", (w, h), (0, 0, 0, 0))
@@ -334,6 +350,112 @@ def _emblem(img, box, kind, colour, scale=1.0, faded=False):
         for k in range(5):
             y = 0.32 + k * 0.1
             d.line([P(0.3, y), P(0.7 - 0.08 * (k % 2), y)], fill=cd, width=max(1, lw // 2 + 1))
+    elif kind == "lyre":
+        # gold lyre: two curved arms ending in scrolls, a crossbar, a round sound box, strings
+        for sgn in (-1, 1):
+            arm = [P(0.5 + sgn * 0.13, 0.84), P(0.5 + sgn * 0.27, 0.74), P(0.5 + sgn * 0.33, 0.58), P(0.5 + sgn * 0.3, 0.42),
+                   P(0.5 + sgn * 0.22, 0.3), P(0.5 + sgn * 0.24, 0.18), P(0.5 + sgn * 0.34, 0.12)]
+            d.line(arm, fill=gold_d, width=lw * 4, joint="curve")
+            d.line(arm, fill=gold, width=lw * 2 + 1, joint="curve")
+            sx, sy = P(0.5 + sgn * 0.36, 0.14)
+            d.ellipse([sx - lw * 2.2, sy - lw * 2.2, sx + lw * 2.2, sy + lw * 2.2], fill=gold, outline=gold_d, width=max(1, lw // 2))
+        d.line([P(0.25, 0.27), P(0.75, 0.27)], fill=gold_d, width=lw * 3)
+        d.line([P(0.25, 0.27), P(0.75, 0.27)], fill=gold, width=lw * 2)
+        for k in range(5):
+            x = 0.38 + k * 0.06
+            d.line([P(x, 0.28), P(x, 0.8)], fill=(250, 232, 170), width=max(1, lw // 2 + 1))
+        d.chord([*P(0.3, 0.7), *P(0.7, 0.94)], 180, 360, fill=gold, outline=gold_d, width=lw)
+        d.rectangle([*P(0.32, 0.8), *P(0.68, 0.86)], fill=gold, outline=gold_d, width=max(1, lw // 2))
+    elif kind == "muskets":
+        # two crossed muskets (steel barrel, wooden stock with a pale outline), muzzles up
+        wood, wood_d = (176, 120, 70), (96, 60, 30)
+        for sgn in (1, -1):
+            a, b = P(0.5 - 0.36 * sgn, 0.08), P(0.5 + 0.2 * sgn, 0.66)   # barrel: muzzle a -> breech b
+            d.line([a, b], fill=silver_d, width=lw * 3)
+            d.line([a, b], fill=silver, width=lw * 2)
+            # stock: from the breech down to the butt (wider)
+            c, e = P(0.5 + 0.3 * sgn, 0.78), P(0.5 + 0.4 * sgn, 0.92)
+            d.line([b, c], fill=wood_d, width=lw * 4)
+            d.line([b, c], fill=wood, width=lw * 3)
+            d.polygon([P(0.5 + 0.25 * sgn, 0.8), P(0.5 + 0.36 * sgn, 0.72), P(0.5 + 0.48 * sgn, 0.9), P(0.5 + 0.38 * sgn, 0.97)],
+                      fill=wood, outline=wood_d)
+            tx, ty = P(0.5 + 0.2 * sgn, 0.66)
+            d.ellipse([tx - lw * 1.4, ty - lw * 1.4, tx + lw * 1.4, ty + lw * 1.4], fill=silver_d)
+    elif kind == "bow":
+        # a gold recurve bow (arc on the left) with its string, an arrow across (white fletching)
+        x0, y0 = P(0.12, 0.1)
+        x1, y1 = P(0.88, 0.9)
+        d.arc([x0, y0, x1 + (x1 - x0) * 0.1, y1], 112, 248, fill=gold_d, width=lw * 4)
+        d.arc([x0, y0, x1 + (x1 - x0) * 0.1, y1], 112, 248, fill=gold, width=lw * 2 + 1)
+        cx, cy = (x0 + x1 + (x1 - x0) * 0.1) / 2, (y0 + y1) / 2
+        rx_, ry_ = (x1 + (x1 - x0) * 0.1 - x0) / 2, (y1 - y0) / 2
+        ends = [(cx + rx_ * math.cos(math.radians(a)), cy + ry_ * math.sin(math.radians(a))) for a in (112, 248)]
+        d.line(ends, fill=(250, 236, 190), width=max(1, lw // 2 + 1))
+        # the arrow: from bottom-left (fletching) to top-right (head)
+        a, b = P(0.16, 0.86), P(0.84, 0.16)
+        d.line([a, b], fill=gold_d, width=lw * 2)
+        d.line([a, b], fill=gold, width=lw)
+        hx, hy = b
+        d.polygon([(hx + lw * 3, hy - lw * 3), (hx - lw * 3.5, hy - lw * 0.5), (hx + lw * 0.5, hy + lw * 3.5)], fill=gold, outline=gold_d)
+        fx, fy = P(0.2, 0.82)
+        for k in range(3):
+            o = k * lw * 1.6
+            d.line([(fx + o, fy - o), (fx + o - lw * 3, fy - o - lw * 1)], fill=white, width=lw)
+            d.line([(fx + o, fy - o), (fx + o + lw * 1, fy - o + lw * 3)], fill=white, width=lw)
+    elif kind == "star":
+        # a gold eight-pointed star (long and short rays) round a small ring
+        cx, cy = P(0.5, 0.5)
+        R0 = 0.46 * W * scale
+        pts = []
+        for k in range(16):
+            ang = math.pi / 8 * k - math.pi / 2
+            r = R0 * (1.0 if k % 4 == 0 else 0.62 if k % 2 == 0 else 0.2)
+            pts.append((cx + r * math.cos(ang), cy + r * math.sin(ang)))
+        d.polygon(pts, fill=gold, outline=gold_d)
+        for k in range(0, 16, 2):
+            ang = math.pi / 8 * k - math.pi / 2
+            r = R0 * (1.0 if k % 4 == 0 else 0.62)
+            d.line([(cx, cy), (cx + r * math.cos(ang), cy + r * math.sin(ang))], fill=gold_d, width=max(1, lw // 2))
+        r = 0.12 * W * scale
+        d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=gold_d)
+        r2 = r * 0.6
+        d.ellipse([cx - r2, cy - r2, cx + r2, cy + r2], fill=(250, 232, 170))
+    elif kind == "shield":
+        # a heater shield, silver rim, quartered blue / silver field
+        blue, blue_d = (52, 86, 168), (26, 44, 96)
+        pts = [P(0.18, 0.12), P(0.82, 0.12), P(0.82, 0.5), P(0.76, 0.68), P(0.64, 0.82), P(0.5, 0.92), P(0.36, 0.82), P(0.24, 0.68),
+               P(0.18, 0.5)]
+        d.polygon(pts, fill=silver)
+        q = Image.new("L", (W, H), 0)
+        ImageDraw.Draw(q).polygon(pts, fill=255)
+        quarters = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        dq = ImageDraw.Draw(quarters)
+        mx, my = P(0.5, 0.48)
+        dq.rectangle([0, 0, mx, my], fill=blue + (255,))
+        dq.rectangle([mx, my, W, H], fill=blue + (255,))
+        dq.rectangle([mx, 0, W, my], fill=(226, 230, 236, 255))
+        dq.rectangle([0, my, mx, H], fill=(226, 230, 236, 255))
+        im.paste(quarters, (0, 0), q)
+        d.line(pts + [pts[0]], fill=silver_d, width=lw * 2)
+        d.line([P(0.5, 0.12), P(0.5, 0.92)], fill=silver_d, width=lw)
+        d.line([P(0.18, 0.48), P(0.82, 0.48)], fill=silver_d, width=lw)
+    elif kind == "cannon":
+        # two crossed cannons (pale barrels, muzzle rings, cascabel knobs) above three cannonballs
+        pale, pale_d = (236, 226, 196), (130, 116, 88)
+        for sgn in (1, -1):
+            a, b = P(0.5 - 0.36 * sgn, 0.1), P(0.5 + 0.3 * sgn, 0.62)   # muzzle a -> breech b
+            d.line([a, b], fill=pale_d, width=int(lw * 4.5))
+            d.line([a, b], fill=pale, width=int(lw * 3.4))
+            for t in (0.06, 0.55, 0.92):
+                mx, my = a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t
+                rr = lw * (2.6 if t != 0.92 else 2.9)
+                d.ellipse([mx - rr, my - rr, mx + rr, my + rr], fill=pale, outline=pale_d, width=max(1, lw // 2))
+            kx, ky = P(0.5 + 0.35 * sgn, 0.66)
+            d.ellipse([kx - lw * 1.5, ky - lw * 1.5, kx + lw * 1.5, ky + lw * 1.5], fill=pale, outline=pale_d)
+        for (x, y) in ((0.5, 0.71), (0.4, 0.86), (0.6, 0.86)):
+            cx, cy = P(x, y)
+            r = 0.085 * W * scale
+            d.ellipse([cx - r, cy - r, cx + r, cy + r], fill=pale, outline=pale_d, width=lw)
     im = im.resize((w, h), Image.LANCZOS)
     if faded:
         a = im.getchannel("A").point(lambda q: int(q * 0.55))
@@ -538,8 +660,8 @@ def _shield(img, R, rng):
                 _px(img, R, x, y, _jitter(_rgb("a42a24"), rng, 6))
 
 
-def _paint_shell(img, R, colour, emblem):
-    rng = random.Random(1140 + sorted(COLOURS).index(colour))
+def _paint_shell(img, R, colour, emblem, banner_colour=None, rug_colour=None):
+    rng = random.Random(1140 + _SEED[colour])
     main, dark, light = COLOURS[colour]
     fine_wood(img, R["wood"], _rgb("8a6038"), _rgb("442a12"), 4, rng, joints=True, knots=0.15, grain=0.11, shade=0.06)
     fine_wood(img, R["wood_dark"], _rgb("5a3c22"), _rgb("24160a"), 4, rng, joints=False, knots=0.1, grain=0.12, shade=0.06)
@@ -609,11 +731,11 @@ def _paint_shell(img, R, colour, emblem):
     _valance(img, R["valance"], colour, rng)
     _weave(img, R["wall"], _scale(main, 0.82), rng, seams=21, seam_dir="v", stains=4, patches=1)
     _counter(img, R["counter"], rng)
-    _banner(img, R["banner"], colour, emblem, rng)
-    _flag(img, R["flag"], colour, emblem, rng)
-    _pennant(img, R["pennant"], main, rng)
+    _banner(img, R["banner"], banner_colour or colour, emblem, rng)
+    _flag(img, R["flag"], banner_colour or colour, emblem, rng)
+    _pennant(img, R["pennant"], COLOURS[banner_colour][0] if banner_colour else main, rng)
     _pennant(img, R["pennant_beige"], BEIGE, rng)
-    _rug(img, R["rug"], colour, emblem, rng)
+    _rug(img, R["rug"], rug_colour or colour, emblem, rng)
     _shield(img, R["shield"], rng)
 
 
@@ -922,8 +1044,11 @@ def _post(bone, det, name, x, z, eave_y, ivy):
 
 
 def pavilion(root, atlas, emblem="swords", flag_corner="back_left", side_banners=0, rug=True, lanterns=2, front_counter=True,
-             back_shelves=True, ivy=False, half_w=3.1, half_d=2.8, eave_y=3.4, apex_y=6.6):
-    """Builds the shared shell (see the module doc) and returns its Layout."""
+             back_shelves=True, ivy=False, half_w=3.1, half_d=2.8, eave_y=3.4, apex_y=6.6, roof_rise=None):
+    """Builds the shared shell (see the module doc) and returns its Layout. roof_rise (blocks, optional): the apex
+    height above the eaves (overrides apex_y = eave_y + roof_rise; default 3.2), e.g. 2.2 for a lower, flatter roof."""
+    if roof_rise is not None:
+        apex_y = eave_y + float(roof_rise)
     if emblem not in EMBLEMS:
         raise KeyError("emblem must be one of %s" % ", ".join(EMBLEMS))
     atlas.emblem = emblem
@@ -1114,8 +1239,7 @@ def icon(path, colour="red", emblem="swords"):
     for y in range(10, 14):
         for x in range(6, 10):
             p[x, y] = (main if y < 13 or x in (7, 8) else (0, 0, 0)) + (255 if (y < 13 or x in (7, 8)) else 0,)
-    emblem_col = {"swords": (220, 222, 228), "flask": (150, 200, 240), "leaf": (230, 226, 200), "anvil": (220, 222, 228),
-                  "cheese": (246, 210, 80), "scroll": (240, 228, 196)}[emblem]
+    emblem_col = EMBLEM_ICON[emblem]
     p[7, 11] = p[8, 11] = emblem_col + (255,)
     p[7, 12] = p[8, 12] = _scale(emblem_col, 0.8) + (255,)
     for x in range(2, 14):
