@@ -14,7 +14,7 @@ Every region is (u, v, w, h); REGIONS and SAIL_REGIONS are shared with tools/gen
 import math
 import random
 
-from PIL import Image, ImageDraw
+from PIL import Image
 
 from galley_texture import _jitter, _rgb, paint_lamp_glass
 import corsair_texture as ct
@@ -65,8 +65,20 @@ REGIONS = {
     "cannon":      (352, 64, 32, 16),   # dark bronze gun
     "bore":        (384, 64, 16, 16),
     "painting":    (480, 64, 32, 24),
-    "stern_lily":  (288, 72, 48, 48),   # gold fleur-de-lis on a blue field (stern and bow emblems)
+    "stern_lily":  (320, 160, 48, 48),  # gold fleur-de-lis on a blue field (stern and bow emblems)
     "wall_stone":  (416, 64, 64, 32),
+    # the hull strakes (one plank each, stretched on its board: the planking follows the sheer instead of
+    # tiling little bricks), a darker one low, a brighter one high, the dark wood of the bottom
+    "strake_lo":   (0, 160, 64, 16),
+    "strake_mid":  (64, 160, 64, 16),
+    "strake_hi":   (128, 160, 64, 16),
+    "strake_brown": (192, 160, 64, 16),
+    "strake_brown2": (256, 160, 64, 16),
+    "rope_dark":   (368, 160, 16, 16),  # tarred shrouds and ratlines (near black, as on the reference)
+    "gunport_open": (0, 176, 32, 32),   # the open port: gold frame round a dark opening
+    "gunport_lid": (32, 176, 32, 16),   # the red lid, raised (outside face)
+    "castle_panel": (64, 176, 64, 32),  # the stern castle: royal blue panel in a thin gold frame
+    "taffrail":    (128, 176, 64, 24),  # gold carved taffrail with scrolls
     # rooms
     "wall_wood":   (0, 96, 64, 64),     # the cabin: dark panelling, a gold rail
     "floor":       (64, 96, 64, 64),
@@ -102,107 +114,90 @@ SAIL_CELLS = {  # (columns, rows) of cloth blocks drawn in each sail region
     "fore_course": (16, 9), "main_course": (16, 9), "fore_topsail": (13, 7), "main_topsail": (13, 7),
     "fore_topgallant": (10, 5), "main_topgallant": (10, 5), "mizzen_topsail": (9, 4), "jib": (8, 10), "spanker": (8, 7),
 }
-# which sails carry the fleur-de-lis (the reference shows it on the topsails and topgallants)
-EMBLEM_SAILS = ("fore_topsail", "main_topsail", "fore_topgallant", "main_topgallant")
+# which sails carry the fleur-de-lis (the reference shows it on the topsails and topgallants; the courses,
+# the biggest sails seen from the deck, carry it too)
+EMBLEM_SAILS = ("fore_topsail", "main_topsail", "fore_topgallant", "main_topgallant", "fore_course", "main_course")
 
 _mix, _scale, _planks, _blocks, _fill = ct._mix, ct._scale, ct._planks, ct._blocks, ct._fill
 
 
 # ---------------------------------------------------------------- the fleur-de-lis
-def _catmull(p0, p1, p2, p3, t):
-    return tuple(0.5 * ((2 * b) + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t * t + (-a + 3 * b - 3 * c + d) * t ** 3)
-                 for a, b, c, d in zip(p0, p1, p2, p3))
+# The heraldic fleur-de-lis, drawn by hand in 16 x 18 cells (the blocky emblem of the reference): a pointed
+# central petal, two side petals rising from the band, bending outward and drooping at their tips, the band,
+# the stem and its two curled feet.
+LILY = [
+    ".......XX.......",
+    "......XXXX......",
+    "......XXXX......",
+    ".....XXXXXX.....",
+    ".....XXXXXX.....",
+    "..XX.XXXXXX.XX..",
+    ".XXXX.XXXX.XXXX.",
+    "XXXXX.XXXX.XXXXX",
+    "XX.XX.XXXX.XX.XX",
+    "X..XX.XXXX.XX..X",
+    "X..XX..XX..XX..X",
+    "...XX..XX..XX...",
+    "..XXXXXXXXXXXX..",
+    "..XXXXXXXXXXXX..",
+    "......XXXX......",
+    ".....XXXXXX.....",
+    "...XX.XXXX.XX...",
+    "..XX..XXXX..XX..",
+]
 
 
-def _brush(draw, pts, widths, scale, ox, oy, n=24):
-    """A tapering stroke through pts (unit coordinates, u across, v down) drawn as overlapping discs."""
-    P = [pts[0]] + list(pts) + [pts[-1]]
-    W = [widths[0]] + list(widths) + [widths[-1]]
-    for i in range(1, len(P) - 2):
-        for k in range(n):
-            t = k / n
-            u, v = _catmull(P[i - 1], P[i], P[i + 1], P[i + 2], t)
-            w = W[i] + (W[i + 1] - W[i]) * t
-            r = w * scale / 2
-            x, y = ox + u * scale, oy + v * scale
-            draw.ellipse((x - r, y - r, x + r, y + r), fill=255)
-
-
-def fleur_de_lis_mask(w, h, cell=2):
-    """Mask (0/255, size w x h) of a fleur-de-lis drawn in blocks of `cell` px (the blocky emblem of the
-    reference): a narrow central petal with a pointed head, two side petals ("ears") curling out and
-    down with clear gaps to the centre, the band and the three-pronged foot. Drawn large with soft
-    curves, then quantised to the cells."""
-    S = 8
-    big = Image.new("L", (w * S, h * S), 0)
-    d = ImageDraw.Draw(big)
-    sc = h * S          # unit v = 1 spans the height; u is in units of the height too
-    ox, oy = w * S / 2, 0
-    # central petal: a pointed leaf, widest at a third of the height, narrowing to the band
-    pts = []
-    for k in range(33):
-        v = 0.0 + 0.6 * k / 32
-        f = v / 0.6
-        hw = 0.012 + 0.15 * math.sin(math.pi * min(1.0, f * 0.92) ** 0.8) ** 0.9 + 0.05 * (1 - f) * f
-        pts.append((hw, v))
-    pts.append((0.07, 0.62))
-    poly = [(ox + u * sc, oy + v * sc) for u, v in pts] + [(ox - u * sc, oy + v * sc) for u, v in reversed(pts)]
-    d.polygon(poly, fill=255)
-    # the band, with rounded ends
-    d.rectangle((ox - 0.3 * sc, oy + 0.59 * sc, ox + 0.3 * sc, oy + 0.69 * sc), fill=255)
-    for s in (1, -1):
-        d.ellipse((ox + (s * 0.3 - 0.05) * sc, oy + 0.59 * sc, ox + (s * 0.3 + 0.05) * sc, oy + 0.69 * sc), fill=255)
-    # the central stem below the band, flaring into its foot
-    d.rectangle((ox - 0.055 * sc, oy + 0.685 * sc, ox + 0.055 * sc, oy + 0.86 * sc), fill=255)
-    d.polygon([(ox - 0.055 * sc, oy + 0.84 * sc), (ox + 0.055 * sc, oy + 0.84 * sc), (ox + 0.1 * sc, oy + 0.95 * sc),
-               (ox - 0.1 * sc, oy + 0.95 * sc)], fill=255)
-    for s in (1, -1):
-        # side petal: from the band up, bulging out, the tip curling over and down (an ear)
-        _brush(d, [(s * 0.17, 0.6), (s * 0.21, 0.46), (s * 0.3, 0.31), (s * 0.4, 0.23), (s * 0.49, 0.29), (s * 0.52, 0.4), (s * 0.46, 0.52)],
-               [0.11, 0.15, 0.17, 0.16, 0.13, 0.08, 0.035], sc, ox, oy)
-        # the foot: a small curl out and down from under the band
-        _brush(d, [(s * 0.15, 0.7), (s * 0.24, 0.75), (s * 0.31, 0.84), (s * 0.27, 0.95)], [0.09, 0.1, 0.08, 0.03], sc, ox, oy)
-    small = big.resize((w // cell, h // cell), Image.BOX)
-    px = small.load()
-    for y in range(small.height):
-        for x in range(small.width):
-            px[x, y] = 255 if px[x, y] >= 118 else 0
-    return small.resize((small.width * cell, small.height * cell), Image.NEAREST)
+def fleur_de_lis_mask(w, h, cell=None):
+    """Mask (0/255, size w x h) of the fleur-de-lis LILY, drawn in square cells as big as fit in w x h
+    (or `cell` px when given), centred."""
+    cw, ch = len(LILY[0]), len(LILY)
+    cell = cell or max(1, min(w // cw, h // ch))
+    img = Image.new("L", (w, h), 0)
+    px = img.load()
+    ox, oy = (w - cw * cell) // 2, (h - ch * cell) // 2
+    for r, row in enumerate(LILY):
+        for c, ch_ in enumerate(row):
+            if ch_ != "X":
+                continue
+            for y in range(cell):
+                for x in range(cell):
+                    X, Y = ox + c * cell + x, oy + r * cell + y
+                    if 0 <= X < w and 0 <= Y < h:
+                        px[X, Y] = 255
+    return img
 
 
 # ---------------------------------------------------------------- painters
-def _sail(px, region, cols, rows, rng, emblem=False, tri=None):
+def _sail(px, region, cols, rows, rng, emblem=False, tri=None, whiter=0.0):
     """Pale blue blocky sail: one tone per cloth block (the light blue, white and pale wool blocks of
     the reference), a soft lighter sheen, darker worn edges, seams; the fleur-de-lis in navy on the
     middle; tri = triangle mask (region fractions) for the jibs."""
     u, v, w, h = region
-    blues = [_rgb(c) for c in ("8db4e2", "98bce6", "a3c4ea", "7fa9dc", "b0cdee", "90b6e4", "86aedf")]
-    white = _rgb("d6e4f4")
-    dark = _rgb("5f82b2")
+    blues = [_rgb(c) for c in ("9cc1ea", "a6c8ee", "92b9e6", "b2d0f1", "8db5e3", "a0c4ec", "bcd6f3")]
+    white = _rgb("e6eff9")
+    dark = _rgb("5a7fb4")
     cw, ch = w / cols, h / rows
-    tone = [[_scale(rng.choice(blues), rng.uniform(0.95, 1.05)) for _ in range(cols)] for _ in range(rows)]
-    # some whole cloths are white (the reference mixes white and light blue wool)
+    tone = [[_scale(rng.choice(blues), rng.uniform(0.96, 1.04)) for _ in range(cols)] for _ in range(rows)]
+    # whole white cloths among the blue ones (the reference mixes white and light blue wool), and the
+    # middle of the sail catches the light: whiter towards the centre, bluer in the shadowed edges
     for r in range(rows):
         for c in range(cols):
-            if rng.random() < 0.1:
-                tone[r][c] = _mix(white, rng.choice(blues), rng.uniform(0.15, 0.45))
-    blobs = [(rng.uniform(0, cols), rng.uniform(0, rows), rng.uniform(1.5, 3.0)) for _ in range(2)]
-    for r in range(rows):
-        for c in range(cols):
-            for bx, by, br in blobs:
-                dd = math.hypot(c + 0.5 - bx, r + 0.5 - by)
-                if dd < br:
-                    tone[r][c] = _mix(tone[r][c], white, 0.25 * (1 - dd / br))
+            if rng.random() < 0.16:
+                tone[r][c] = _mix(white, rng.choice(blues), rng.uniform(0.1, 0.4))
+            dx, dy = (c + 0.5) / cols - 0.5, (r + 0.5) / rows - 0.45
+            dd = math.hypot(dx * 1.3, dy * 1.1)
+            tone[r][c] = _mix(tone[r][c], white, max(0.0, 0.42 - dd * 0.9))
+            if whiter:
+                tone[r][c] = _mix(tone[r][c], white, whiter)
+            tone[r][c] = _mix(tone[r][c], dark, max(0.0, dd - 0.42) * 0.5)
     mask = None
     if emblem:
-        ew = int(w * 0.42) // 2 * 2
-        eh = int(ew * 1.15) // 2 * 2
-        if eh > h * 0.8:
-            eh = int(h * 0.8) // 2 * 2
-            ew = int(eh / 1.15) // 2 * 2
-        mask = fleur_de_lis_mask(ew, eh)
-        mx, my = (w - ew) // 2, int(h * 0.5 - eh / 2)
-    navy = _rgb("17244c")
+        # the emblem (16 x 18 cells of the LILY) about a third of the width, 4/5 of the height at most
+        cell = max(2, min(int(w * 0.38) // 16, int(h * 0.82) // 18))
+        ew, eh = 16 * cell, 18 * cell
+        mask = fleur_de_lis_mask(ew, eh, cell)
+        mx, my = (w - ew) // 2, int(h * 0.47 - eh / 2)
+    navy = _rgb("141f44")
     for y in range(h):
         for x in range(w):
             fx, fy = (x + 0.5) / w, (y + 0.5) / h
@@ -282,6 +277,93 @@ def _gold_band(px, region, rng):
             elif y in (1, h - 2):
                 c = _rgb("f2c64a")
             px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
+
+
+def _strake(px, region, tones, seam, rng, grain=0.05, nails=True):
+    """One hull strake (stretched on each board): a dark seam along the top and the bottom, a light
+    edge under the upper seam, the grain along the plank, a few nail heads."""
+    u, v, w, h = region
+    seam = _rgb(seam)
+    tones = [_rgb(t) for t in tones]
+    base = rng.choice(tones)
+    f1, p1 = rng.uniform(0.1, 0.25), rng.uniform(0, 6.28)
+    for y in range(h):
+        for x in range(w):
+            if y == 0 or y == h - 1:
+                c = seam
+            else:
+                k = 1.0 + grain * math.sin(x * f1 + p1 + y * 1.3) + (0.07 if y == 1 else 0) - (0.06 if y == h - 2 else 0)
+                # a slow tone drift along the strake (several planks end to end, no hard joints)
+                k *= 1.0 + 0.04 * math.sin(x * 0.2 + p1)
+                c = _scale(base, k)
+                if nails and y in (3, h - 4) and x % 16 == 7:
+                    c = _scale(c, 0.72)
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+
+
+def _gunport_open(px, region, rng):
+    """An open gun port: gold frame round a dark opening (the gun's muzzle stands in it)."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            frame = x < 4 or x >= w - 4 or y < 3 or y >= h - 4
+            if frame:
+                c = _rgb("e0ac26") if (x + y) % 5 else _rgb("bf8f1a")
+                if x == 0 or y == 0 or x == w - 1 or y == h - 1:
+                    c = _rgb("6e5210")
+            else:
+                d = min(x - 4, w - 5 - x, y - 3, h - 5 - y)
+                c = _mix(_rgb("0c0a08"), _rgb("2a2218"), 0.5 if d < 2 else 0.0)
+            px[u + x, v + y] = _jitter(c, rng, 2) + (255,)
+
+
+def _gunport_lid(px, region, rng):
+    """The raised red lid: red boards with two dark iron straps and the hinge line."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            c = _scale(_rgb("b8282c"), 1.0 + 0.05 * math.sin(x * 0.6) + (0.06 if y < 2 else 0) - (0.1 if y >= h - 2 else 0))
+            if y == 0:
+                c = _rgb("4a3a30")   # the hinge
+            if x in (7, 8, w - 9, w - 8) and 1 < y < h - 1:
+                c = _rgb("2c2c30")   # iron straps
+            if x == 0 or x == w - 1:
+                c = _rgb("5a1416")
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+
+
+def _castle_panel(px, region, rng):
+    """The stern castle: a royal blue panel of vertical boards in a thin gold frame."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            k = (x // 6) % 3
+            c = _scale(_rgb(("2152b8", "1d4aa9", "2558c4")[k]), 1.0 + 0.04 * math.sin(y * 0.4 + x))
+            if x % 6 == 5:
+                c = _rgb("132f6e")
+            if y < 2 or y >= h - 2 or x < 2 or x >= w - 2:
+                c = _rgb("d9a521") if (x + y) % 3 else _rgb("f0c84e")
+            if y in (0, h - 1):
+                c = _rgb("7a5a12")
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+
+
+def _taffrail(px, region, rng):
+    """Gold carved taffrail: scrolls (dark S curls) between gold edge lines."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            c = _mix(_rgb("e2ae2a"), _rgb("c08c18"), abs(y - h / 2) / (h / 2))
+            fx, fy = (x % 16) / 16.0, y / h
+            # an S scroll every 16 px
+            s = math.sin(fx * 2 * math.pi) * 0.28 + 0.5
+            if 0.2 < fy < 0.8 and abs(fy - s) < 0.1:
+                c = _rgb("7a5a12")
+            if y in (1, h - 2):
+                c = _rgb("f4cc52")
+            if y in (0, h - 1):
+                c = _rgb("6e5210")
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
 def _gold(px, region, rng):
@@ -373,8 +455,18 @@ def make_texture(path, tris=None):
     _planks(px, R["dark_wood"], ("4a2f1a", "40281a"), "1e140a", rng, plank_h=4, joints=1)
     _planks(px, R["cloth_roll"], ("8db4e2", "7fa9dc", "98bce6"), "5f82b2", rng, plank_h=4, joints=0)
     _carving(px, R["carving"], rng)
+    _strake(px, R["strake_lo"], ("1b44a4", "1a41a0", "1e49ad"), "0b1f52", rng)
+    _strake(px, R["strake_mid"], ("2152b8", "2354bc", "1f4fb4"), "0d2459", rng)
+    _strake(px, R["strake_hi"], ("2a5ccb", "2858c6", "2d61d0"), "0f2a66", rng)
+    _strake(px, R["strake_brown"], ("3e2616", "3a2414"), "160c04", rng, grain=0.07)
+    _strake(px, R["strake_brown2"], ("46291a", "402617"), "160c04", rng, grain=0.07)
+    _gunport_open(px, R["gunport_open"], rng)
+    _gunport_lid(px, R["gunport_lid"], rng)
+    _castle_panel(px, R["castle_panel"], rng)
+    _taffrail(px, R["taffrail"], rng)
     ct._rope(px, R["rope"], "a88e62", "6e5a3a", rng)
     ct._rope(px, R["rope_light"], "8a7250", "5a4830", rng)
+    ct._rope(px, R["rope_dark"], "3a3028", "1e1812", rng)
     _fill(px, R["iron"], "3a3b3e", rng, 6)
     _fill(px, R["bronze"], "b08a2e", rng, 8)
     _fill(px, R["glow"], "ffd27a", rng, 4)
@@ -424,7 +516,8 @@ def make_sail_texture(path, tris=None):
         tri = None
         if name == "jib":
             tri = (tris or {}).get(name) or [(0.0, 0.0), (1.0, 0.0), (0.62, 1.0)]
-        _sail(px, SAIL_REGIONS[name], cols, rows, rng, emblem=name in EMBLEM_SAILS, tri=tri)
+        # the jibs are whiter than the square sails on the reference
+        _sail(px, SAIL_REGIONS[name], cols, rows, rng, emblem=name in EMBLEM_SAILS, tri=tri, whiter=0.35 if name == "jib" else 0.0)
     img.save(path)
     return img
 

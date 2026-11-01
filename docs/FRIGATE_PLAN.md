@@ -50,9 +50,14 @@ plancher (vérifié par `FrigateTest.helmAndSeats`).
 
 ## 5. Matériaux, parties mobiles, contraintes
 
-* **Matériaux** : bordé bleu roi à joints sombres, bandes et balustrades dorées, fond de coque et
-  pont en bois brun, mâts en bois doré, voiles bleu pâle à cellules de toile (blocs de laine de la
-  référence) avec fleurs de lys bleu marine, cordages de chanvre, lanternes à verre allumé.
+* **Matériaux** : bordé bleu roi en virures (une planche par bordage, du bleu sombre près de l'eau au
+  bleu vif sous la lisse) entre la bande dorée de flottaison et la préceinte dorée, sabords ouverts à
+  couvercle rouge relevé et bouche de canon, fond de coque et pont en bois brun, beaupré doré, mâts en
+  bois doré à cercles d'or, vergues dorées, voiles bleu clair et blanc à cellules de toile (blocs de laine
+  de la référence) avec grandes fleurs de lys bleu nuit (basses voiles, huniers, perroquets), haubans et
+  enfléchures goudronnés (sombres), château arrière à panneaux bleus encadrés d'or : cinq fenêtres
+  éclairées, galeries de côté, couronnement sculpté à fleurs de lys, grand fanal et lanternes d'angle,
+  lion doré en figure de proue, balustres tournés.
 * **Parties mobiles** (os du modèle) : voiles (`sail_*` : `sail_wind`, `sail_furl`), roue et safran
   (`steer`), pavillons (`flag_wave`), lanternes (`lantern_sway`), cordages lâches (`rope_sway`),
   porte de la cabine (`door_0`).
@@ -89,7 +94,7 @@ plancher (vérifié par `FrigateTest.helmAndSeats`).
 
 ## 7. Fichiers, tests, limites
 
-* Modèle `blockbench/blue_frigate.bbmodel` (≈ 4 900 cubes, 2 textures : coque + voiles, 7 animations),
+* Modèle `blockbench/blue_frigate.bbmodel` (≈ 5 500 cubes, 2 textures : coque + voiles, 7 animations),
   textures `textures/entity/blue_frigate.png` et `blue_frigate_sails.png`, icône `textures/item/blue_frigate.png`,
   grille `interiors/blue_frigate.grid`, mobilier `interiors/blue_frigate_decor.json` (80 blocs des mods :
   Farmhouse Decorations, Furnish, Farmer's Delight, Lands of Icaria ; boîtes de remplacement si un mod manque).
