@@ -117,6 +117,12 @@ public final class TentCollisions {
 		return byPos == null ? List.of() : new ArrayList<>(byPos.values());
 	}
 
+	/** Any tent known in this world? (cheap: the common case of a world without tents skips everything) */
+	public static synchronized boolean any(World world) {
+		Map<Long, List<Placed>> chunks = BY_WORLD.get(world);
+		return chunks != null && !chunks.isEmpty();
+	}
+
 	public static synchronized int count(World world) {
 		Map<BlockPos, Placed> byPos = BY_POS.get(world);
 		return byPos == null ? 0 : byPos.size();
