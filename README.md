@@ -148,6 +148,11 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.17.0 ajoute **la tente du boulanger** (four à pain en pierre allumé, miches, baguettes, sacs de grain,
+tarte et gâteau) et **la tente du poissonnier** (étal long bleu et blanc, filet de pêche, poissons suspendus, étal de
+glace, nasse à homard, ancre, algues). `/give @p medievalships:tente_boulanger`, `tente_poissonnier`.
+Voir [docs/TENTES.md](docs/TENTES.md).
+
 La version 1.16.0 ajoute **la tente du vendeur de poisons et la tente du boucher** (étals à toit à deux pans :
 chaudron vert lumineux, fioles et plantes toxiques ; viandes suspendues, saucisses, billot et couperet) et un
 **canon médiéval indépendant** (fût de fonte cerclé, affût de chêne, deux grandes roues à rayons), décoratif pour
@@ -376,7 +381,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.16.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.17.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
