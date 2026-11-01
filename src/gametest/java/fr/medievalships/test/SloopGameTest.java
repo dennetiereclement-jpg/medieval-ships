@@ -184,10 +184,11 @@ public final class SloopGameTest {
 			shot.accept(id + "_" + names[k]);
 		}
 
-		// a survival player stands and walks on the main deck, then up on the stern platform between the crates
+		// a survival player stands and walks aft on the main deck, passing beside the mast (on the centreline at z 1.2, its
+		// collision box z 1.0..1.4: a walk along x 0 stops against it), then up on the stern platform between the crates
 		server.runCommand("gamemode survival @a");
 		server.runCommand("effect give @a minecraft:resistance infinite 4 true");
-		tpLocal(server, pose(server), 0, main + 0.02, 2.0, 180, 10);
+		tpLocal(server, pose(server), 0.7, main + 0.02, 2.0, 180, 10);
 		context.waitTicks(30);
 		double[] l = local(context, server);
 		check.accept(Math.abs(l[1] - main) < 0.08 && l[3] > 0, String.format(Locale.ROOT, "%s: standing on the main deck (local y %.3f)", id, l[1]));
