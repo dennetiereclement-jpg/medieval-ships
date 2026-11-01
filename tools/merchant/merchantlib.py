@@ -42,6 +42,12 @@ counter along the front, back shelves, a dark plank back wall, a hanging rail un
 no flags, no rug by default (see stall()); its own regions stall_roof, stall_valance, stall_valance_end, stall_gable,
 stall_wall are added to the atlas when it is built; icon(..., shape="stall") draws the stall's item icon.
 
+1.17.0 (backward compatible: the thirteen earlier tents regenerate byte-identically): colours brown (the baker) and
+seablue (a brighter royal blue, the fishmonger); emblems bread (a golden wheat ear over a loaf) and fish (a white fish
+over a hook); stall(..., banner_side="both") hangs one banner from each front post (inwards; L.banner_boxes), the
+width of a longer stall is half_w (see stall()); icon(..., shape="stall", banners=2) draws the stall icon with two
+banners.
+
 Shell atlas regions (every tent's atlas has them; colour-dependent ones in the tent's colour):
   wood, wood_dark, plank, plank_dark, post (carved dark post, grain along u), beam (carved eave beam), trim_gold,
   leather, leather_dark (64x16 strips); 16x16: end_grain, rope, iron, gold, lantern, glow, brass, steel, white,
@@ -99,15 +105,19 @@ COLOURS = {   # main, dark (shadows, edges), light
     "darkred":  (_rgb("7a1c16"), _rgb("400c08"), _rgb("9a3026")),
     "navy":     (_rgb("1c2850"), _rgb("0e142c"), _rgb("2e3e72")),
     "charcoal": (_rgb("3a3634"), _rgb("1c1a1a"), _rgb("56504c")),
+    # 1.17.0 (merchant tents IV): the baker's brown, the fishmonger's brighter sea blue
+    "brown":    (_rgb("6e3c1c"), _rgb("3a1e0c"), _rgb("8e5630")),
+    "seablue":  (_rgb("2c3f98"), _rgb("161f52"), _rgb("4058bc")),
 }
 # the paint seed of each colour (the 1.14.0 ones keep their former seeds: their atlases regenerate identically)
-_SEED = {c: k for k, c in enumerate(("blue", "green", "purple", "red", "teal", "yellow", "burgundy", "darkred", "navy", "charcoal"))}
+_SEED = {c: k for k, c in enumerate(("blue", "green", "purple", "red", "teal", "yellow", "burgundy", "darkred", "navy", "charcoal", "brown",
+                                                   "seablue"))}
 EMBLEMS = ("swords", "flask", "leaf", "anvil", "cheese", "scroll", "lyre", "muskets", "bow", "star", "shield", "cannon", "poison",
-           "cleavers")
+           "cleavers", "bread", "fish")
 EMBLEM_ICON = {"swords": (220, 222, 228), "flask": (150, 200, 240), "leaf": (230, 226, 200), "anvil": (220, 222, 228),
                "cheese": (246, 210, 80), "scroll": (240, 228, 196), "lyre": (232, 186, 70), "muskets": (220, 222, 228),
                "bow": (232, 186, 70), "star": (232, 186, 70), "shield": (200, 206, 216), "cannon": (236, 226, 196),
-               "poison": (236, 226, 200), "cleavers": (220, 222, 228)}
+               "poison": (236, 226, 200), "cleavers": (220, 222, 228), "bread": (232, 186, 70), "fish": (236, 240, 244)}
 GOLD_STOPS = [(0, (120, 84, 26)), (0.5, (214, 170, 72)), (1, (250, 230, 160))]
 STEEL_STOPS = [(0.0, (72, 74, 80)), (0.45, (140, 144, 150)), (0.8, (196, 200, 206)), (1.0, (236, 238, 242))]
 POTIONS = {"red": "c42c2c", "blue": "2e5ed2", "green": "2ea24e", "purple": "9a3ccc", "yellow": "e2c23a", "orange": "e27a2a",
@@ -529,6 +539,94 @@ def _emblem(img, box, kind, colour, scale=1.0, faded=False):
             d.line([Q(0.0, -bw * 0.06), Q(0.46, -bw * 0.06)], fill=silver_d, width=lw)
             hc = Q(0.09, bw * 0.22)
             d.ellipse([hc[0] - lw * 1.8, hc[1] - lw * 1.8, hc[0] + lw * 1.8, hc[1] + lw * 1.8], fill=COLOURS[colour][1])
+    elif kind == "bread":
+        # 1.17.0: a big golden wheat ear (rising to the upper right, plump grains both sides, awns) over a long loaf
+        # with three scores
+        wheat, wheat_d, wheat_l = (240, 194, 76), (138, 92, 22), (254, 232, 156)
+        a, b = np.array(P(0.2, 0.68)), np.array(P(0.8, 0.04))
+        Lw = float(np.linalg.norm(b - a))
+        dd = (b - a) / Lw
+        n = np.array([-dd[1], dd[0]])
+        d.line([tuple(a), tuple(a + dd * Lw * 0.9)], fill=wheat_d, width=lw * 2)
+        d.line([tuple(a), tuple(a + dd * Lw * 0.9)], fill=wheat, width=lw)
+        gr = 0.062 * W * scale
+        for k in range(5):
+            t = 0.36 + k * 0.125
+            for sgn in (-1, 1):
+                c = a + dd * (Lw * t) + n * (sgn * gr * 0.95)
+                tip = c + dd * gr * 1.7 + n * (sgn * gr * 0.35)
+                pts = [tuple(c - dd * gr * 1.2 - n * sgn * gr * 0.4), tuple(c - dd * gr * 0.3 + n * sgn * gr * 0.95), tuple(tip),
+                       tuple(c + dd * gr * 0.3 - n * sgn * gr * 0.6)]
+                d.polygon(pts, fill=wheat, outline=wheat_d)
+                d.line([tuple(c - dd * gr * 0.5 + n * sgn * gr * 0.2), tuple(c + dd * gr * 0.7 + n * sgn * gr * 0.2)], fill=wheat_l,
+                       width=max(1, lw // 2 + 1))
+                aw = tip + dd * gr * 1.7 + n * (sgn * gr * 1.1)
+                d.line([tuple(tip), tuple(aw)], fill=wheat_d, width=max(1, lw // 2))
+        tip = a + dd * Lw
+        d.polygon([tuple(tip + dd * gr * 0.6), tuple(tip - dd * gr * 1.6 + n * gr * 0.7), tuple(tip - dd * gr * 1.6 - n * gr * 0.7)],
+                  fill=wheat, outline=wheat_d)
+        for sgn in (-1, 1):   # a leaf low on the stalk
+            c = a + dd * (Lw * 0.18)
+            d.polygon([tuple(c), tuple(c + dd * gr * 1.2 + n * sgn * gr * 1.6), tuple(c + dd * gr * 3.2 + n * sgn * gr * 1.9),
+                       tuple(c + dd * gr * 1.4 + n * sgn * gr * 0.5)], fill=_scale(wheat, 0.9), outline=wheat_d)
+        crust, crust_d, crumb = (220, 150, 60), (112, 62, 18), (250, 214, 132)
+        cx, cy = P(0.52, 0.82)
+        rx_, ry_ = 0.42 * W * scale, 0.17 * H * scale
+        d.ellipse([cx - rx_, cy - ry_, cx + rx_, cy + ry_], fill=crust, outline=crust_d, width=lw)
+        d.chord([cx - rx_ + lw * 2, cy - ry_ + lw * 1.5, cx + rx_ - lw * 2, cy + ry_ * 0.3], 180, 360, fill=_scale(crust, 1.14))
+        for k in range(3):   # the diagonal scores
+            sx_ = cx - rx_ * 0.45 + k * rx_ * 0.45
+            d.line([(sx_ - rx_ * 0.14, cy + ry_ * 0.4), (sx_ + rx_ * 0.14, cy - ry_ * 0.55)], fill=crust_d, width=lw * 2)
+            d.line([(sx_ - rx_ * 0.14 + lw, cy + ry_ * 0.4), (sx_ + rx_ * 0.14 + lw, cy - ry_ * 0.55)], fill=crumb, width=lw)
+    elif kind == "fish":
+        # 1.17.0: a white fish arching over (head at the upper right, forked tail at the lower left) above a white
+        # fishing hook (eye ring at the top, barbed J)
+        fw, fw_d = (242, 244, 246), (104, 112, 128)
+        p0, p1 = np.array([0.16, 0.5]), np.array([0.88, 0.2])
+
+        def C(t):   # centre line (unit square), arched upwards
+            q = p0 + (p1 - p0) * t
+            return np.array([q[0], q[1] - 0.1 * math.sin(math.pi * t)])
+
+        def N(t):
+            e = C(min(1.0, t + 0.01)) - C(max(0.0, t - 0.01))
+            e = e / float(np.linalg.norm(e))
+            return np.array([e[1], -e[0]])   # pointing up (towards the back)
+
+        def half(t):
+            return 0.135 * max(0.0, math.sin(math.pi * (0.06 + 0.86 * t))) ** 0.75 + 0.025 * (1 - t)
+        ts = [0.08 + 0.92 * k / 30.0 for k in range(31)]
+        upper = [P(*(C(t) + N(t) * half(t))) for t in ts]
+        lower = [P(*(C(t) - N(t) * half(t) * 0.82)) for t in ts]
+        dfin = [C(0.42) + N(0.42) * half(0.42) * 0.9, C(0.5) + N(0.5) * (half(0.5) + 0.1), C(0.66) + N(0.66) * half(0.66) * 0.9]
+        d.polygon([P(*q) for q in dfin], fill=fw, outline=fw_d, width=max(1, lw // 2))
+        bfin = [C(0.5) - N(0.5) * half(0.5) * 0.7, C(0.5) - N(0.5) * (half(0.5) + 0.07) - (C(0.6) - C(0.5)), C(0.6) - N(0.6) * half(0.6) * 0.7]
+        d.polygon([P(*q) for q in bfin], fill=fw, outline=fw_d, width=max(1, lw // 2))
+        t0, nt = C(0.08), N(0.08)
+        back = C(0.08) - (C(0.14) - C(0.08)) * 2.6
+        tail = [t0 + nt * 0.03, back + nt * 0.13, back + nt * 0.02 + (t0 - back) * 0.35, back - nt * 0.12, t0 - nt * 0.03]
+        d.polygon([P(*q) for q in tail], fill=fw, outline=fw_d, width=max(1, lw // 2))
+        d.polygon(upper + lower[::-1], fill=fw, outline=fw_d, width=lw)
+        for k in range(4):   # scales
+            q = C(0.36 + k * 0.1) + N(0.36 + k * 0.1) * 0.02
+            sx_, sy_ = P(*q)
+            d.arc([sx_ - lw * 2.2, sy_ - lw * 2.2, sx_ + lw * 2.2, sy_ + lw * 2.2], 300, 60, fill=fw_d, width=max(1, lw // 2))
+        g0 = C(0.76)
+        gx, gy = P(*g0)
+        gr_ = half(0.76) * W * scale
+        d.arc([gx - gr_ * 0.7, gy - gr_, gx + gr_ * 0.7, gy + gr_ * 0.85], 290, 70, fill=fw_d, width=lw)
+        ex, ey = P(*(C(0.88) + N(0.88) * half(0.88) * 0.3))
+        d.ellipse([ex - lw * 1.7, ey - lw * 1.7, ex + lw * 1.7, ey + lw * 1.7], fill=(30, 30, 40))
+        mx, my = P(*(C(1.0) - N(1.0) * 0.01))
+        d.line([(mx, my), (mx - lw * 3, my + lw)], fill=fw_d, width=max(1, lw // 2))
+        hk, hk_d = (240, 242, 246), (110, 116, 130)
+        rx0, ry0 = P(0.6, 0.6)
+        rr = 0.04 * W * scale
+        d.ellipse([rx0 - rr, ry0 - rr, rx0 + rr, ry0 + rr], outline=hk, width=lw * 2)
+        d.line([P(0.6, 0.64), P(0.6, 0.86)], fill=hk, width=int(lw * 2.4))
+        d.arc([*P(0.42, 0.76), *P(0.62, 0.96)], 0, 180, fill=hk, width=int(lw * 2.4))
+        d.line([P(0.42, 0.86), P(0.42, 0.77)], fill=hk, width=int(lw * 2.4))
+        d.polygon([P(0.42, 0.72), P(0.38, 0.8), P(0.455, 0.79)], fill=hk)                       # barb
     im = im.resize((w, h), Image.LANCZOS)
     if faded:
         a = im.getchannel("A").point(lambda q: int(q * 0.55))
@@ -1425,13 +1523,18 @@ def stall(root, atlas, emblem="poison", lanterns=2, front_counter=True, back_she
     roof, eave beams all round, the ridge along x (ridge pole, king posts and rafters at the ends), two slightly
     sagging roof slopes front and back with `stripes` stripes running down the slope, striped gable-end triangles
     (`end_stripes`), a dagged valance edged in gold on all four sides, a big banner with the emblem hanging from a rod
-    on the front `banner_side` post (left / right / None), lanterns on the front posts (lanterns=2; 4 = all posts; 0),
+    on the front `banner_side` post (left / right / None; 1.17.0: "both" = one banner on each front post, hanging
+    inwards), lanterns on the front posts (lanterns=2; 4 = all posts; 0),
     a long counter along the front (front_counter: True, or False; counter_x = (x0, x1)), a shelf unit along the back
     (back_shelves), a dark plank back wall and the back half of the sides (walls), a hanging rail along x under the
     eaves at hang_z (default half_d - 0.6) for hams, herbs ... (hang_rail). No flags, no pennants; rug=True lays the
     pavilion's rug in front. Returns the Layout (as pavilion(): half_w, half_d, eave_y, apex_y (= ridge_y), ridge_y,
     counter_top_y, counter_boxes, shelf_levels, floor, front_left, front_right, rug_box, detail, shell, atlas, colour,
-    emblem; plus hang_y (the rail's underside), hang_z, hang_x (x0, x1), banner_box (x0, y0, x1, y1, z))."""
+    emblem; plus hang_y (the rail's underside), hang_z, hang_x (x0, x1), banner_box (x0, y0, x1, y1, z); 1.17.0:
+    banner_boxes = [banner_box of each banner, left first]).
+    Size: half_w (the half width along x, post centre to post centre; 2.65 = 5.3 blocks; a longer stall, e.g. 3.4,
+    wants more stripes / end_stripes odd ...), half_d (the half depth), eave_y, roof_rise; 1.17.0: the banner rods
+    keep their length (banner_size[0] + 0.75 from the post), so two banners need half_w >= banner_size[0] + 1.0."""
     if emblem not in EMBLEMS:
         raise KeyError("emblem must be one of %s" % ", ".join(EMBLEMS))
     atlas.emblem = emblem
@@ -1512,21 +1615,27 @@ def stall(root, atlas, emblem="poison", lanterns=2, front_counter=True, back_she
         beam(shell, "hang_rail", (-hw - 0.05, eave_y - 0.12, L.hang_z), (hw + 0.05, eave_y - 0.12, L.hang_z), 0.16, "wood_dark")
     # ---- the banner from a rod on a front post
     L.banner_box = None
-    if banner_side:
-        sx = -1 if banner_side == "left" else 1
+    L.banner_boxes = []
+    if banner_side not in (None, False, "left", "right", "both"):
+        raise KeyError("banner_side must be left, right, both or None")
+    sides_b = ((("left", "_l"), ("right", "_r")) if banner_side == "both" else ((banner_side, ""),)) if banner_side else ()
+    for side_b, suf in sides_b:
+        sx = -1 if side_b == "left" else 1
         x0 = sx * hw
         zr, yr = D + 0.2, eave_y + 0.02
-        box(det, "banner_arm", (x0 - 0.05, yr - 0.05, hd + 0.18), (x0 + 0.05, yr + 0.05, zr + 0.05), "iron")
+        box(det, "banner_arm" + suf, (x0 - 0.05, yr - 0.05, hd + 0.18), (x0 + 0.05, yr + 0.05, zr + 0.05), "iron")
         xa, xb = x0 + sx * 0.12, x0 - sx * (banner_size[0] + 0.75)   # from the post inwards
-        beam(shell, "banner_rod", (xa, yr, zr), (xb, yr, zr), 0.08, "wood_dark")
+        beam(shell, "banner_rod" + suf, (xa, yr, zr), (xb, yr, zr), 0.08, "wood_dark")
         for k, xx in enumerate((xa, xb)):
-            add_cube(shell, "banner_rod_knob_%d" % k, (xx, yr, zr), EYE, (0.12, 0.12, 0.12), "gold")
+            add_cube(shell, "banner_rod%s_knob_%d" % (suf, k), (xx, yr, zr), EYE, (0.12, 0.12, 0.12), "gold")
         bw, bh = banner_size
         bx = x0 - sx * (0.45 + bw / 2)
-        banner(shell, "banner_front", (bx, yr - 0.04, zr + 0.01), bw, bh, normal=(0, 0, 1), rod=False)
+        banner(shell, "banner_front" + suf, (bx, yr - 0.04, zr + 0.01), bw, bh, normal=(0, 0, 1), rod=False)
         for k, xx in enumerate((bx - bw / 2 + 0.08, bx + bw / 2 - 0.08)):
-            add_cube(det, "banner_ring_%d" % k, (xx, yr, zr), EYE, (0.1, 0.15, 0.13), "gold")
-        L.banner_box = (bx - bw / 2, yr - bh, bx + bw / 2, yr, zr)
+            add_cube(det, "banner%s_ring_%d" % (suf, k), (xx, yr, zr), EYE, (0.1, 0.15, 0.13), "gold")
+        L.banner_boxes.append((bx - bw / 2, yr - bh, bx + bw / 2, yr, zr))
+    if L.banner_boxes:
+        L.banner_box = L.banner_boxes[0]
     # ---- the back wall and the back half of the sides (dark planks)
     if walls:
         box(shell, "wall_back", (-hw, 0.0, -hd - 0.1), (hw, by - 0.17, -hd - 0.02), {"all": "stall_wall"}, stretch=True)
@@ -1584,11 +1693,11 @@ class Decor(tl.Decor):
         super().fallbacks(root)
 
 
-def icon(path, colour="red", emblem="swords", shape="pavilion"):
+def icon(path, colour="red", emblem="swords", shape="pavilion", banners=1):
     """16x16 item icon: a striped pointed tent in its colour, dagged valance, dark opening, a banner with the emblem
     colour; shape="stall" (1.16.0): the gabled market stall (stall_icon)."""
     if shape == "stall":
-        return stall_icon(path, colour=colour, emblem=emblem)
+        return stall_icon(path, colour=colour, emblem=emblem, banners=banners)
     from PIL import Image
     main, dark, light = COLOURS[colour]
     im = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
@@ -1628,7 +1737,7 @@ def icon(path, colour="red", emblem="swords", shape="pavilion"):
     im.save(path)
 
 
-def stall_icon(path, colour="red", emblem="poison"):
+def stall_icon(path, colour="red", emblem="poison", banners=1):
     """16x16 item icon of a gabled stall (1.16.0): the striped front slope under its ridge, the dagged valance, two
     posts with gold caps, the dark inside with a counter, the banner with the emblem colour on the left."""
     from PIL import Image
@@ -1661,13 +1770,14 @@ def stall_icon(path, colour="red", emblem="poison"):
         p[x, 12] = (150, 104, 56, 255)
         for y in (13, 14):
             p[x, y] = (110, 74, 40, 255)
-    for y in range(9, 14):   # the banner
-        for x in range(3, 6):
-            if y < 13 or x == 4:
-                p[x, y] = main + (255,)
     ec = EMBLEM_ICON[emblem]
-    p[4, 10] = ec + (255,)
-    p[4, 11] = _scale(ec, 0.8) + (255,)
+    for bx in ((3, 10) if banners >= 2 else (3,)):   # the banner(s) (1.17.0: banners=2, one on each front post)
+        for y in range(9, 14):
+            for x in range(bx, bx + 3):
+                if y < 13 or x == bx + 1:
+                    p[x, y] = main + (255,)
+        p[bx + 1, 10] = ec + (255,)
+        p[bx + 1, 11] = _scale(ec, 0.8) + (255,)
     for x in range(1, 15):
         p[x, 15] = _scale(wood_d, 0.9) + (255,)
     os.makedirs(os.path.dirname(path), exist_ok=True)
