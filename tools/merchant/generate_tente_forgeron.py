@@ -65,7 +65,7 @@ def main():
                    items=("sword", "spear", "sword"), detail=det)
 
     # ---- the big anvil on its stone block at the front, a quench tub beside it
-    pm.anvil_block(smithy, det, (-0.85, 0, hd - 0.2), yaw=0.0, s=1.8, block=(1.15, 0.66, 0.85), sz=1.35)
+    pm.anvil_block(smithy, det, (-0.95, 0, hd - 0.2), yaw=0.0, s=1.8, block=(1.15, 0.66, 0.85), sz=1.35)
 
     # ---- the right counter (shell): big ingots, a helmet, tongs; the return: hammers, a shield, a chest of ingots
     (fx0, fy, fz0, fx1, _, fz1) = L.counter_boxes[0]
