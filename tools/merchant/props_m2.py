@@ -137,11 +137,11 @@ def _cheese_cut(img, region, rng):
     holes = [(rng.uniform(1, w - 2), rng.uniform(1, h - 2), rng.uniform(0.8, 1.7)) for _ in range(max(3, w * h // 40))]
     for y in range(h):
         for x in range(w):
-            c = _rgb("f6dc7a")
+            c = _rgb("f4cc50")
             for hx, hy, r in holes:
                 d = math.hypot(x + 0.5 - hx, y + 0.5 - hy)
                 if d < r:
-                    c = _rgb("d4aa44") if (y + 0.5 - hy) < 0 else _rgb("e6c25c")
+                    c = _rgb("c8901e") if (y + 0.5 - hy) < 0 else _rgb("dcac34")
             if x in (0, w - 1) or y in (0, h - 1):
                 c = _scale(c, 0.9)
             _px(img, u + x, v + y, _jitter(c, rng, 3))
