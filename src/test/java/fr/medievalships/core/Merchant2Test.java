@@ -64,7 +64,8 @@ public class Merchant2Test {
 			assertTrue(e.width() > 6.0 && e.width() < 11.0, t.id() + " width " + e.width());
 			assertTrue(e.depth() > 6.0 && e.depth() < 11.0, t.id() + " depth " + e.depth());
 			assertTrue(e.height() > 5.0 && e.height() < 10.0, t.id() + " height " + e.height());
-			assertTrue(e.z1() > 4.5, t.id() + " the rug lies in front: extent to z " + e.z1());
+			// the bard's rug lies between the front posts and the gunsmith has none (as on the pictures): the front reaches z > 3.3
+			assertTrue(e.z1() > 3.3, t.id() + " reaches the front posts: extent to z " + e.z1());
 			assertTrue(t.colliders().size() >= 4, t.id() + " collision boxes " + t.colliders().size());
 			int posts = 0;
 			for (TentType.Box b : t.colliders()) {
