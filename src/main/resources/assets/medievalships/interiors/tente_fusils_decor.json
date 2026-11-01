@@ -1,0 +1,54 @@
+{
+ "blocks": [
+  {
+   "block": "farmhouse_decorations:kerosene_lantern",
+   "x": 0.4,
+   "y": 0.95,
+   "z": -2.24,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_0",
+   "glow": true
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": 2.85,
+   "y": 0.0,
+   "z": 1.2,
+   "yaw": 180.0,
+   "scale": 0.78,
+   "fallback": "fallback_1"
+  },
+  {
+   "block": "furnish:dark_oak_crate",
+   "x": 2.85,
+   "y": 0.78,
+   "z": 1.2,
+   "yaw": 270.0,
+   "scale": 0.55,
+   "fallback": "fallback_2"
+  },
+  {
+   "block": "landsoficaria:cypress_barrel",
+   "x": -2.55,
+   "y": 0.0,
+   "z": -0.9,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_3",
+   "alt": "minecraft:barrel"
+  },
+  {
+   "block": "farmhouse_decorations:tool_board",
+   "x": -2.75,
+   "y": 1.55,
+   "z": -1.0,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_4"
+  }
+ ],
+ "seats": [],
+ "paintings": [],
+ "switches": []
+}
