@@ -14,13 +14,14 @@ ballon, nacelles) : la disposition retenue, symétrique, reproduit la silhouette
 | Élément | Pixels (côté) | Blocs |
 |---|---|---|
 | Longueur totale (beaupré → poupe) | x 8 → 400 | **51** (57 avec la bôme d'enseigne et la nacelle de cristal arrière) |
-| Coque (étrave → poupe) | x 25 → 398 | **48,6** ; maître-bau 12 (vue avant 76 px) ; poupe **ronde** en plan sur les 4,4 derniers blocs ; sections **en œuf** (vues avant et arrière) : épaules rondes, la coque se resserre vers la quille (demi-largeur 6 → 5,2 à −3 → 3,6 à −6 → 1,5 à −8,5 au milieu) |
-| Pont principal / quille | y 205 / 278 | 0 / quille « banane » : −7,4 à z 15, −9,4 au milieu, −8,2 à z −10, −6,2 à la poupe ; avant à pied coupé remontant à +3,4 |
+| Coque (étrave → poupe) | x 25 → 398 | **48,6** ; maître-bau 12 (vue avant 76 px) ; poupe **ronde** en plan sur les 4,4 derniers blocs ; sections **en œuf** au milieu et à l'arrière (vue arrière) : épaules rondes, la coque se resserre vers la quille (demi-largeur 6 → 5,2 à −3 → 3,6 à −6 → 1,5 à −8,5 au milieu) |
+| Avant (vue avant : 220 px de large pour 240 de haut, 0,94 fois le lobe central) | proue x 225 → 445, rambarde y 395, quille y 635 (vue avant agrandie 3 fois) | **proue ronde et pleine** : plan `6 (1 − (z/26,05)^4)^0,45` (demi-largeur 5,8 à z 14, 4,9 à z 20, 3,4 à z 24 ; l'ancien avant fin : 4,9 / 3,6 / 2,2) ; vers l'avant les sections se remplissent (exposant 2,6 → 4 de z −2 à z 12), le plus large à −0,5 (rentrée au-dessus vers le gaillard) ; vue de face un bol arrondi presque aussi large que la coque, qui ne se resserre qu'en bas vers la quille ; bordé en virures horizontales qui tournent autour de l'avant jusqu'à l'étrave |
+| Pont principal / quille | y 205 / 278 | 0 / quille « banane » : −7,4 à z 15, −9,4 au milieu, −8,2 à z −10, −6,2 à la poupe ; l'étrave remonte en **grand arc plein** (−4,8 à z 19,5, −1,25 à z 23,9, 0 à z 25,1) puis **droite** sous l'avant du gaillard (z 25,1 → 26,05, jusqu'à +3,4) |
 | Tonture | rambarde y 197 → 183 → 178 | +1 au milieu, monte en continu vers le gaillard (+2,4 à z 13) et l'étrave (+3,3), tête d'étrave sculptée à +4,6 |
 | Galerie du salon (bandeau brun) | y 205 → 236, fenêtres y 213 → 230, x 150 → 265 | six hautes fenêtres éclairées −3 → −1, z −5,5 → 8,5, pilastres, corniche, appui |
-| Bas de coque vert | y 236 → 281 | bande verte de −4 à la quille relevée vers l'avant (suit le pied d'étrave), virures brunes le long de la quille |
-| Gaillard d'avant (pont, garde-corps) | rambarde y 183, x 25 → 120 | pont à +2,0, z 13,3 → 25,6 ; panneau vert à volute dorée ; beaupré carré relevé de 12°, bagues de laiton |
-| Vitrail en éventail de l'avant | x 75 → 110, y 208 → 245 | quart de disque, moyeu en haut à l'arrière (z 13,8, y −0,3), rayon 4,6 ; deux fenêtres éclairées derrière |
+| Bas de coque vert | y 236 → 281 | bande verte de −4 à la quille relevée vers l'avant (suit le pied d'étrave) puis de niveau (−3,3) autour de la proue ronde, virures brunes le long de la quille ; vue de face : bandeau vert du gaillard, ventre brun, bas vert |
+| Gaillard d'avant (pont, garde-corps) | rambarde y 183, x 25 → 120 | pont à +2,0, z 13,3 → 26, large et arrondi devant (garde-corps tourné le long du pavois, qui fait le tour de l'avant) ; bandeau vert à volutes dorées qui fait le tour de la proue (vu de face) ; **beaupré droit et horizontal** au niveau du pont principal (+0,65, de l'étrave à z 28,3), bagues de laiton, haubans |
+| Vitrail en éventail de l'avant | x 75 → 110, y 208 → 245 | quart de disque, moyeu en haut à l'arrière (z 15, y +0,15, juste sous la moulure du gaillard), rayon 6 au plus : son bord suit l'arc de l'étrave à 0,9 bloc (cadre sombre, filet doré), il tourne sur la joue ronde de la proue (vu de côté et de face) ; derrière lui, les deux fenêtres éclairées de la réserve (vraies vitres) |
 | Tourelle (vigie) du pont | x 120 → 145, sommet y 175 | z 10 → 13,3, haut +4,0, chapeau mouluré, lanterne sur poteau |
 | Château arrière, en gradins | façades x 300 / 310 / 320, toits y 186 / 167 / 153 ; vue arrière : bande du milieu 11,5 de large (+2,9 → +5,7), galerie éclairée (−0,8 → +2,4), étage du haut plus étroit (+5,7 → +7,8, 8,5 de large) | étage 1 (0 → +3) en retrait de 0,3 sur la coque, **rond** à la poupe (4,3 blocs), loggia éclairée sous l'encorbellement (+1,2 → +2,3) ; étage 2 (+3 → +5,85) presque aussi large (retrait 0,45, rentré jusqu'à 0,9 vers la poupe), rond sur 5 blocs, en encorbellement jusqu'à z −23,9, **galerie courbe** à son pied (0,5 en saillie, balustres de laiton) ; **toit rond** de +5,85 (corniche) à +8,0 : flancs bombés (quart de superellipse) qui se referment en une terrasse à garde-corps rentrée de 1,5 (7,6 de large vue de l'arrière), lanternes et mât de pavillon, cimier +9,5 |
 | Moteurs latéraux | x 290 → 400, y 200 → 262, œil de cristal en (366, 225), r 13 | z −9,6 → −24,2, centre y −2,3, rayon 3,1, à ±7,5 (vue arrière : envergure 1,6 × la poupe) ; œil r 1,7 (lunette à dents r 2,6) ; arrière : **dôme** (r 3,1 → 1,35 de z −20,2 à −23,1) serti de six cristaux, moyeu de fer r 1,35 → 1,15 |
@@ -32,7 +33,7 @@ ballon, nacelles) : la disposition retenue, symétrique, reproduit la silhouette
 | Quatre lobes latéraux (bosses aux coins, vue de dessus ; lobes de côté, vue avant) | vue de dessus x 127 → 167 et 273 → 333 | 12 à 13 de long, 9 de diamètre, à ±6,4 de l'axe |
 | Mât et flamme rouge | x 221, y 15 → 50 | sommet du mât +25,5 (planche +24,7) |
 | Plateforme à cristaux sous la quille | (220, 300), cristal jusqu'à y 325 | plateforme −12, pointe −14,6 |
-| Nacelles flottantes à cristal | avant (35, 150), arrière (410, 121) | (0, 7,2, 24,4) et (0, 12,9, −25,4) (bien au-dessus et en arrière du toit) ; anneau en travers du navire, cristaux vers l'avant et l'arrière |
+| Nacelles flottantes à cristal | avant (35, 150), arrière (410, 121) | (0, 7,2, 24,4) et (0, 12,9, −25,4) (bien au-dessus et en arrière du toit) ; avant : **fuseau de laiton debout** (toupie qui tourne sur elle-même) et quatre cristaux en croix (vu de face, de côté et de dessus : un corps de laiton étroit, cristaux de part et d'autre, jamais une face d'engrenage) ; arrière : anneau en travers du navire, cristaux vers l'avant et l'arrière |
 
 Proportions : 57 blocs de long, 23 de large (moteurs et leurs ailes compris, 22 au ballon), 41 de haut. Ballon en grappe :
 un grand lobe central (œuf, sections elliptiques), un lobe avant et un lobe arrière sur l'axe, plus hauts, et
@@ -48,8 +49,16 @@ de chaînes à joyaux bleus, câbles vers la coque.
   (léger gonflement et balancement).
 * **Coque** : quille en banane, tonture qui monte vers une haute étrave sculptée (volute dorée), poupe arrondie ;
   bois brun chaud en haut (galerie de six hautes fenêtres éclairées entre pilastres, corniche et appui), bande
-  vert olive qui suit les courbes, filets dorés, virures brunes le long de la quille ; vitrail en éventail de
-  chaque côté de l'avant ; panneaux verts du gaillard à volute dorée ; beaupré relevé à bagues de laiton.
+  vert olive qui suit les courbes, filets dorés, virures brunes le long de la quille.
+* **Avant** (vues avant, de côté et perspective de la planche) : une **proue ronde et pleine** : la pleine
+  largeur portée loin vers l'avant puis arrondie, sections en bol (ventre rond qui ne se resserre qu'en bas vers
+  la quille), le plus large un peu sous le pont, les flancs rentrent vers le gaillard ; vue de face, un bol
+  presque aussi large que la coque : bandeau vert du gaillard à volutes dorées qui fait le tour de l'avant,
+  moulure dorée, ventre brun aux virures horizontales qui tournent jusqu'à l'étrave, **vitraux en éventail**
+  sur les joues (verts, ambre, rouges, plombs sombres, cadre doré), bas vert, l'**étrave** au milieu (poteau
+  sombre cerclé de bandes dorées) qui descend en grand arc de la tête sculptée à la quille ; **beaupré droit**
+  à bagues de laiton au niveau du pont principal, haubans vers l'étrave et le pavois ; la nacelle flottante
+  avant est un fuseau de laiton debout entre quatre cristaux.
 * **Poupe et château arrière** (vues arrière, de côté et perspective de la planche) : vue de l'arrière, une
   silhouette **en œuf** : château en gradins arrondis au-dessus, ventre de poupe qui se resserre vers la quille,
   moteurs ronds de part et d'autre ; bois brun chaud à filets dorés, le vert seulement en panneaux. Étage 1
@@ -102,8 +111,8 @@ de chaînes à joyaux bleus, câbles vers la coque.
 | Toit du château (+5,85 → +8,0, cimier +9,5) | toit rond, plein dans la grille ; sa terrasse (+8,0) a un garde-corps, deux lanternes, le mât de pavillon et deux mâtereaux à flammes : on peut s'y poser (perle de l'Ender, élytres), il n'y a pas d'accès ; la galerie courbe au pied de l'étage 2 est du décor (pleine, sans accès) |
 | Château, étage 2 (+3) | **poste de pilotage** (murs de pierre et poutres) : grande baie cintrée vitrée face à la proue, grande roue de barre (le pilote debout derrière), colonnes d'instruments en laiton, lampes, lampe de cristal ; table des cartes et bibliothèques à l'arrière, sous l'encorbellement ; **porte vers la terrasse** (sur le toit de l'étage 1) à tribord de la baie |
 | Château, étage 1 (0) | **carré des officiers** (table, chaises) ; escalier vers le poste de pilotage (bâbord) et vers la salle des machines (tribord) ; porte double sur le pont |
-| Pont principal (0) et gaillard (+2) | pont ouvert, anneau doré sur son pilier, tourelle, lampes de cristal, bancs ; escaliers extérieurs vers le gaillard |
-| Pont du salon (−4) | **salon** luxueux (canapés rouges, tapis, table basse, bibliothèques et vitrines, carte murale, lanternes, grandes fenêtres) ; **réserve** à l'avant (caisses, tonneaux, sacs, étagères, chaînes et lanternes) |
+| Pont principal (0) et gaillard (+2) | pont ouvert, anneau doré sur son pilier, tourelle, lampes de cristal, bancs ; escaliers extérieurs vers le gaillard ; gaillard large et arrondi (longue-vue, quatre bancs le long du pavois à l'avant) |
+| Pont du salon (−4) | **salon** luxueux (canapés rouges, tapis, table basse, bibliothèques et vitrines, carte murale, lanternes, grandes fenêtres) ; **réserve** dans la proue ronde, élargie (environ 9,5 × 9 blocs : caisses de légumes sous ses quatre fenêtres, piles de caisses et tonneaux, étagères, établi au milieu sous une lanterne, tonneaux et sacs contre la paroi courbe de l'avant, chaînes et lanternes) |
 | Salle des machines (−6 → −0,5, deux niveaux) | palier au niveau du salon (plein dessous), passerelle tribord, escalier de 4 marches vers le fond (relevé à −6 : la coque se resserre vers la quille), **grande machine à cœur de cristal bleu**, tuyaux, engrenages, grilles au sol |
 | Cale (−7,5) | sous le salon, échelle et trappe (à bâbord du milieu, x 1 → 2) : stockage ; ses flancs suivent la coque en œuf |
 
@@ -137,14 +146,14 @@ dessus, avant, arrière, perspective) et [comparaison_crystal_airship_pieces.png
 | `tools/crystal_decor.py` | ameublement : blocs des mods de décoration, meubles faits sur mesure, sièges, tableaux |
 | `tools/crystal_furniture.py` | meubles sur mesure (colonnes d'instruments, lampes de cristal, horloge murale, carte du monde, chaînes, porte-voix) |
 | `tools/crystal_texture.py` | les deux textures (extérieur 512², pièces) et l'icône |
-| `tools/generate_crystal.py` | modèle Blockbench (≈ 18 200 cubes, 12 animations) ; réutilise les outils du Léviathan et du Corsaire |
+| `tools/generate_crystal.py` | modèle Blockbench (≈ 18 500 cubes, 12 animations) ; réutilise les outils du Léviathan et du Corsaire |
 | `core/CrystalLayout.java` | type, géométrie, sondes, sièges, barre, réglages de vol (miroir de `crystal_shape.py`) |
 | `entity/CrystalAirshipEntity.java`, `client/CrystalEffects.java` | entité, particules (étincelles bleues des cristaux et du médaillon, vapeur des moteurs) |
 | `CrystalTest` (JUnit), `CrystalGameTest` (en jeu) | tests |
 
-Ameublement (148 blocs de mods, 40 places assises) : `farmhouse_decorations` (75 : canapés, fauteuils,
-tables, piano, gramophone, bibliothèques, vitrines, lampes, établi), `furnish` (55 : caisses, étagères,
-tabourets, casiers, tableaux), `farmersdelight` (10 : caisses de légumes, sacs, paniers), `landsoficaria`
+Ameublement (157 blocs de mods, 44 places assises) : `farmhouse_decorations` (77 : canapés, fauteuils,
+tables, piano, gramophone, bibliothèques, vitrines, lampes, établis), `furnish` (60 : caisses, étagères,
+tabourets, bancs, casiers, tableaux), `farmersdelight` (12 : caisses de légumes, sacs, paniers), `landsoficaria`
 (2 tonneaux), `mebahelcreaturesdwarven` (6 : tuyaux et blocs de métal nain de la salle des machines).
 Faits sur mesure (aucun mod n'a la pièce) : roue de barre, colonnes d'instruments, lampes de cristal,
 machine à cœur de cristal (engrenages et pistons animés), horloge et manomètres muraux, carte du monde,
@@ -184,9 +193,9 @@ nacelles flottantes, yeux de cristal des moteurs, hublot du médaillon), nuages 
   machines), **fond de la salle des machines** (escalier du palier), **cale** (trappe et échelle du salon),
   **terrasse** sur le toit du carré (porte du poste de pilotage, à tribord de la baie).
 * **Portes** (clic droit) : 0 porte double du château sur le pont, 1 salon ↔ salle des machines, 2 salon ↔
-  réserve, 3 trappe de la cale, 4 poste de pilotage ↔ terrasse. Les vitres (baie du poste de pilotage, grandes fenêtres du salon) laissent
-  voir dehors.
-* **Sièges** : canapés, fauteuils, chaises, tabourets, bancs du pont (40 places) ; Maj pour se lever.
+  réserve, 3 trappe de la cale, 4 poste de pilotage ↔ terrasse. Les vitres (baie du poste de pilotage, grandes fenêtres du salon,
+  fenêtres de la réserve) laissent voir dehors.
+* **Sièges** : canapés, fauteuils, chaises, tabourets, bancs du pont et du gaillard (44 places) ; Maj pour se lever.
 
 ### Piloter
 
@@ -228,6 +237,12 @@ quille au-dessus du relief et descend à l'escale dans les 52 derniers blocs.
   plus basse que sur la planche).
 * Les fenêtres de la poupe (galeries, hanches de l'étage 2) sont éclairées de l'extérieur seulement : de
   l'intérieur, on voit les murs des pièces ; les vraies vitres sont la baie et les fenêtres de côté du poste
-  de pilotage et celles du salon.
+  de pilotage, celles du salon et de la réserve. Le vitrail en éventail de l'avant est vu de l'extérieur
+  seulement.
+* La planche n'est pas cohérente pour l'avant : la vue avant montre une proue très large aux vitraux
+  presque de face, la vue de dessus une proue en ogive, la vue de côté le vitrail à plat sur le flanc ; le
+  modèle suit la vue avant (proue ronde, vitraux sur les joues, vus de face et de côté) ; vue de dessus,
+  l'avant est donc arrondi. La nacelle flottante avant est vue de chant de face comme de côté (fuseau
+  debout), alors que la planche montre un disque vu de chant dans les deux vues.
 * Les vitres sont des cellules pleines transparentes : on ne passe pas par les fenêtres.
 * Les tonneaux, sacs et caisses de la réserve et de la cale sont du décor (pas d'inventaire).

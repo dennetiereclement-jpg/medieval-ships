@@ -368,32 +368,44 @@ def lounge():
 
 
 def storeroom():
-    """Réserve (reference panel 4): crates, barrels, sacks, shelves, chains hanging from the ceiling, lanterns."""
+    """Réserve (reference panel 4), in the round bow: crates under its four windows, stacks of crates and barrels, sacks and
+    baskets, shelves on the walls between and forward of the windows, a workbench in the middle under a lantern, chains
+    hanging from the ceiling, barrels and sacks against the curved forward wall."""
     f = LO
+    # under the windows (the windows run from f + 1 to f + 3): one crate high
     for z in (11.5, 12.5):
         against(FU + "spruce_crate", -1, f, z)
-    against(FU + "dark_oak_crate", -1, f + 1.0, 11.5)
     against(FR + "potato_crate", 1, f, 11.5)
     against(FR + "carrot_crate", 1, f, 12.5)
-    against(FR + "onion_crate", 1, f + 1.0, 11.5)
-    at(FU + "spruce_crate", 0.0, f, 15.2, "stern")
-    at(FU + "spruce_crate", 0.0, f + 1.0, 15.2, "stern", scale=0.7)
-    against(IC + "cypress_barrel", -1, f, 14.3, facing="port")
-    against(IC + "loaded_cypress_barrel", 1, f, 14.3, facing="starboard")
-    against(FR + "rice_bag", -1, f, 15.8)
-    against(FR + "wooden_basket", 1, f, 15.8)
-    for k, (x, z) in enumerate(((-1.2, 17.6), (1.1, 17.4))):
-        custom("barrel", solid=(x - 0.38, x + 0.38, f, f + 0.95, z - 0.38, z + 0.38), name="store_barrel_%d" % k, p=(x, f, z))
-    for k, (x, z, yaw) in enumerate(((-2.2, 13.6, 0.3), (2.1, 13.5, -0.4), (0.2, 18.4, 1.0))):
-        custom("sack", name="store_sack_%d" % k, p=(x, f, z), yaw=yaw)
+    against(FR + "onion_crate", 1, f, 13.5)
+    against(FR + "cabbage_crate", -1, f, 13.5)
+    # forward of the windows: stacks of crates, barrels, shelves over them
+    against(FU + "dark_oak_crate", -1, f, 14.8)
+    against(FU + "spruce_crate", -1, f + 1.0, 14.8)
+    against(FU + "spruce_crate", 1, f, 14.8)
+    against(FR + "beetroot_crate", 1, f + 1.0, 14.8)
+    against(IC + "cypress_barrel", -1, f, 15.9, facing="port")
+    against(IC + "loaded_cypress_barrel", 1, f, 15.9, facing="starboard")
+    against(FR + "rice_bag", -1, f, 16.9)
+    against(FR + "wooden_basket", 1, f, 16.9)
     for side in (-1, 1):
-        for k, z in enumerate((12.0, 14.0)):
+        for z in (15.3, 16.6):
             w = wall_x(f + 2.2, z, side)
             block(FU + "spruce_shelf", w - side * 0.17, f + 2.0, z, "starboard" if side > 0 else "port", solid=False)
-    for k, (x, z, L) in enumerate(((-1.0, 13.0, 1.4), (-0.6, 13.3, 1.0), (1.2, 16.5, 1.2), (0.9, 12.2, 0.8))):
+    # the curved forward wall: barrels, sacks
+    for k, (x, z) in enumerate(((-1.7, 18.0), (1.6, 18.0), (-0.6, 18.6), (0.6, 18.6))):
+        custom("barrel", solid=(x - 0.38, x + 0.38, f, f + 0.95, z - 0.38, z + 0.38), name="store_barrel_%d" % k, p=(x, f, z))
+    custom("barrel", solid=(-0.38, 0.38, f + 0.95, f + 1.9, 18.22, 18.98), name="store_barrel_top", p=(0.0, f + 0.95, 18.6))
+    for k, (x, z, yaw) in enumerate(((-2.4, 17.4, 0.3), (2.3, 17.5, -0.4), (-1.2, 17.2, 1.0), (1.3, 13.6, 0.6))):
+        custom("sack", name="store_sack_%d" % k, p=(x, f, z), yaw=yaw)
+    # the middle: a workbench under a hanging lantern, a crate and a stool beside it
+    at(FD + "workbench", 0.0, f, 15.4, "stern")
+    at(FU + "spruce_crate", 1.25, f, 15.4, "stern", scale=0.7)
+    for k, (x, z, L) in enumerate(((-1.0, 12.6, 1.4), (-0.6, 13.0, 1.0), (1.2, 16.9, 1.2), (0.9, 11.9, 0.8), (-1.4, 16.4, 1.1))):
         custom("hanging_chain", name="store_chain_%d" % k, top=(x, CEIL_LO, z), length=L)
     hanging(0.0, CEIL_LO, 12.0, drop=-0.25)
-    hanging(0.0, CEIL_LO, 16.8, drop=-0.25)
+    hanging(0.0, CEIL_LO, 15.4, drop=-0.25)
+    hanging(0.0, CEIL_LO, 17.9, drop=-0.25)
 
 
 def hold():
@@ -457,6 +469,12 @@ def main_deck():
     fc = cs.FORECASTLE_Y
     custom("telescope", name="fc_telescope", p=(0.0, fc, 20.8), facing="bow")
     custom("rope_coil", name="fc_rope", p=(-1.6, fc, 18.0), r=0.4)
+    # the round bow's forecastle is wide: benches along its bulwarks forward, looking out over the bow
+    for side in (-1, 1):
+        for z in (21.4, 22.4):
+            w = cs.hull_x(z, fc + 0.5) - cs.SHELL - 0.2
+            x = side * (w - 0.6)
+            chair(FU + "dark_oak_bench", x, fc, z, "stern", x - side * 0.9, z)
     at(FU + "spruce_crate", 1.8, fc, 17.6, "stern")
 
 

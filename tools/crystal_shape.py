@@ -7,7 +7,8 @@ the seats and the autopilot (checked by CrystalTest.matchesModelGenerator).
 Ship-local coordinates, in blocks: x = lateral (+x = port), y = up (0 = the main deck), z = forward (+z = bow).
 Measured on the reference sheet (side view: 0.13 block per pixel, see docs/CRYSTAL_PLAN.md): a hull of 48.6
 blocks (51 with the bowsprit, 56 with the aft spar and the floating crystal pods) and 12 wide, a banana keel, a
-sheer sweeping up to a tall carved stem, a rounded stern; a cluster of seven cream balloon lobes (a big central
+sheer sweeping up to a tall carved stem, a bluff round bow (round-bellied sections, the stem sweeping up from the keel
+in a big arc and standing upright under the forecastle), a rounded stern; a cluster of seven cream balloon lobes (a big central
 egg, a fore and an aft lobe on the axis, higher, four side lobes at the corners) low over the big golden ring,
 whose top runs into its belly; a round stern castle in tiers (storey 1 inset from the hull's sides, storey 2 nearly as
 wide and overhanging the stern, under a round railed roof), ornate brass engines on the aft sides, a brass
@@ -54,7 +55,8 @@ MAIN_DECK_Y = 0.0
 HULL_HW = 6.0
 BOW_Z = 25.6               # the stem at the forecastle
 STERN_Z = -23.0            # the transom
-BOW_PLAN = (26.6, 2.0, 0.6)     # plan: hw = HULL_HW * (1 - (z / s)^a)^b ahead of the middle
+BOW_PLAN = (26.05, 4.0, 0.45)   # plan: hw = HULL_HW * (1 - (z / s)^a)^b ahead of the middle: a bluff round bow (the full beam
+                                # carried far forward, rounding off over the last ten blocks: the sheet's front view)
 STERN_PLAN = (40.0, 2.5, 0.5)   # behind it
 STERN_ROUND = (-18.6, 2.5)      # the stern rounds off in plan from this z to STERN_Z: hw *= (1 - u^p)^(1/p)
 SHEER_WAIST = 1.0          # top of the bulwark of the main deck
@@ -64,13 +66,24 @@ SHEER_AFT = 0.0                 # a rise aft, into the castle (z -3 .. -10): non
 SECTION = (2.6, 0.06)      # the sections: round shoulders narrowing in an egg to a narrow keel (the sheet's back and front
                            # views): half width = hw * (k + (1 - k) * (1 - (1 - eta)^p)), eta from the keel (0) to the waist (1)
 TUMBLE = 0.02
+BOW_FULL = (-2.0, 12.0)    # forward of the middle the sections fill out into a round-bellied bowl (blend from the first z to the
+                           # second): the bow seen from the front is nearly round, tapering only at the bottom to the keel
+SECTION_BOW = 4.0          # ... the section's exponent there (fuller bilges)
+BILGE_BOW = -0.5           # ... and its widest level (lower than the waist: the sides tumble home above it, to the forecastle)
+BAND_Z = 19.1              # forward of this the green band of the lower hull runs level round the bow (the generator planks the
+                           # bow along waterlines from here)
+BILGE_MIN = 0.6            # the widest level stays at least this fraction of the way up from the keel to the sheer
 SHELL = 0.4
 # the keel line (z, y) from the stern to the head of the stem: a banana keel, deepest amidships, a full cut-back forefoot
+# forward, the stem sweeps up from the keel in a big full arc and stands upright under the forecastle's front (the sheet's
+# side view: the forefoot is cut away, the bowsprit leaves the stem at the main deck's level)
 KEEL_PTS = ((-23.0, -6.2), (-21.5, -7.2), (-19.5, -7.85), (-16.0, -8.35), (-12.0, -8.7), (-7.0, -9.05), (-2.0, -9.3), (3.0, -9.4),
-            (8.0, -8.9), (13.0, -7.8), (17.0, -6.2), (20.5, -4.2), (23.0, -2.0), (24.8, 0.2), (25.8, 2.0), (26.3, 3.4))
+            (8.0, -8.9), (13.0, -7.65), (16.5, -6.35), (19.5, -4.8), (22.0, -2.95), (23.9, -1.25), (25.1, 0.15), (25.7, 1.5),
+            (25.95, 2.6), (26.05, 3.4))
 STEM_HEAD = (26.0, 4.6)    # (z, top) of the carved stem-head post with its gilded volute
-BOWSPRIT = ((24.6, 0.55), (28.3, 1.35), 0.7)   # (z, y) of its heel and its tip, its square side
-BEAK = ((24.6, 0.55), (28.3, 1.35))            # kept for the pod's rope: the bowsprit
+BOWSPRIT = ((23.4, 0.65), (28.3, 0.65), 0.7)   # (z, y) of its heel and its tip, its square side: a long straight beam at the main
+                                               # deck's level, out of the stem under the forecastle's front
+BEAK = ((23.4, 0.65), (28.3, 0.65))            # kept for the pod's rope: the bowsprit
 
 # decks
 FORECASTLE_Y = 2.0
@@ -281,32 +294,47 @@ def sheer_y(z):
 
 
 def band_y(z):
-    """Top of the green band of the lower hull (under the gallery): level amidships, sweeping up along the forefoot
-    towards the stem."""
+    """Top of the green band of the lower hull (under the gallery): level amidships, sweeping up along the forefoot, level
+    again round the bow forward of BAND_Z (the bow's strakes run level round to the stem; the round bow is warm brown wood
+    above it, as on the sheet's front view)."""
+    z = min(z, BAND_Z)
     k = keel_y(z)
     return min(max(-4.0, k + 1.7), sheer_y(z) - 1.0)
 
 
 def band_low(z):
-    """Bottom of the green band: the dark brown strakes along the keel below it."""
+    """Bottom of the green band: the dark brown strakes along the keel below it (thinning out round the bow's forefoot;
+    level forward of BAND_Z)."""
+    z = min(z, BAND_Z)
     k = keel_y(z)
-    return k + 0.38 * (band_y(z) - k)
+    return k + 0.38 * (1.0 - 0.75 * _smooth((z - 10.0) / 8.0)) * (band_y(z) - k)
+
+
+def bow_blend(z):
+    """0 aft of BOW_FULL[0] (the egg sections of the middle and the stern), 1 forward of BOW_FULL[1] (the round bow)."""
+    return _smooth((z - BOW_FULL[0]) / (BOW_FULL[1] - BOW_FULL[0]))
 
 
 def hull_x(z, y):
     """Half width of the outside of the hull at (z, y): an egg-shaped section, round at the shoulders and narrowing to
-    the keel, from the keel up to the bulwark, a slight tumblehome above it."""
+    the keel, from the keel up to its widest level (the waist; lower at the bow), a slight tumblehome above it. Forward
+    the sections fill out (a fuller exponent) into the round-bellied bow."""
     w = hull_hw(z)
     if w <= 0:
         return 0.0
     k = keel_y(z)
     if y < k:
         return 0.0
-    if y <= SHEER_WAIST:
-        eta = (y - k) / max(0.05, SHEER_WAIST - k)
+    m = bow_blend(z)
+    # the widest level: the waist, lower at the bow, but never in the lower part of a short section (towards the stem, where
+    # the keel sweeps up, the bottom still tapers to the stem)
+    yb = max(SHEER_WAIST + m * (BILGE_BOW - SHEER_WAIST), k + BILGE_MIN * (sheer_y(z) - k))
+    if y <= yb:
+        eta = (y - k) / max(0.05, yb - k)
         p, kw = SECTION
+        p += m * (SECTION_BOW - p)
         return w * (kw + (1.0 - kw) * (1.0 - (1.0 - eta) ** p))
-    return w * (1.0 - TUMBLE * (y - SHEER_WAIST))
+    return w * (1.0 - TUMBLE * (y - yb))
 
 
 def inside_hull(x, y, z, inset=0.0):

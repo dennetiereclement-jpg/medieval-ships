@@ -37,15 +37,15 @@ class CrystalTest {
 		double[][] hull = {
 				{-20.0, -3.0, 4.660213, -7.729129, 1.000000},
 				{-10.0, -6.0, 3.622119, -8.851100, 1.000000},
-				{0.0, -8.5, 1.498249, -9.360400, 1.000000},
-				{0.0, 0.5, 5.997869, -9.360400, 1.000000},
-				{8.0, -3.0, 5.163235, -8.900000, 1.000000},
-				{16.0, -2.0, 4.206856, -6.665089, 2.522547},
-				{22.0, 1.5, 2.975534, -2.978629, 2.955247},
+				{0.0, -8.5, 1.537176, -9.360400, 1.000000},
+				{0.0, 0.5, 5.998942, -9.360400, 1.000000},
+				{8.0, -3.0, 5.893566, -8.900000, 1.000000},
+				{16.0, -2.0, 5.579816, -6.566108, 2.522547},
+				{22.0, 1.5, 4.278673, -2.950000, 2.955247},
 				{-16.0, 2.0, 5.574560, -8.350000, 1.000000},
 				{-22.5, -2.0, 2.798039, -6.552315, 1.000000},
-				{11.0, 0.5, 5.358933, -8.333600, 1.626409},
-				{25.0, 2.0, 1.620247, 0.507022, 3.239092},
+				{11.0, 0.5, 5.797712, -8.229714, 1.626409},
+				{25.0, 2.0, 2.565125, -0.013220, 3.239092},
 				{-7.0, 1.0, 5.961442, -9.050000, 1.000000}};
 		for (double[] r : hull) {
 			assertEquals(r[2], CrystalLayout.hullX(r[0], r[1]), 1e-5, "hull half width at " + r[0] + ", " + r[1]);
@@ -78,6 +78,11 @@ class CrystalTest {
 		assertTrue(length > 52 && length < 58, "overall length " + length);
 		assertEquals(48.6, CrystalLayout.BOW_Z - CrystalLayout.STERN_Z, 1e-9, "hull length");
 		assertEquals(12.0, 2 * CrystalLayout.HULL_HW, 1e-9, "beam");
+		// the bow is round and full (the sheet's front view: nearly as wide as the hull, round-bellied, tapering only at the
+		// bottom to the keel), the stem upright under the forecastle's front
+		assertTrue(CrystalLayout.hullX(20.0, -1.0) > 4.5 && CrystalLayout.hullX(23.0, 1.0) > 3.6, "a bluff round bow");
+		assertTrue(CrystalLayout.hullX(14.0, -4.0) > 0.85 * CrystalLayout.HULL_HW, "a round-bellied bow");
+		assertTrue(CrystalLayout.keelY(25.6) > 1.0 && CrystalLayout.keelY(25.6) < 2.5 && CrystalLayout.keelY(20.0) < -4.0, "the stem's arc");
 		double height = G.topY() - G.lowestY();
 		assertTrue(height > 40 && height < 46, "overall height (mast and the crystal under the keel) " + height);
 		// the balloon floats low over the ring (its top runs a little into the belly, as on the sheet), the ring over the

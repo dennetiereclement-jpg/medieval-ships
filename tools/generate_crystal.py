@@ -375,11 +375,12 @@ def golden_ring(bone, detail):
 
 
 # ================================================================ hull
-_WIN_EDGES = [z for w in ci.LOUNGE_WINDOWS for z in w]
+_WIN_EDGES = [z for w in ci.LOUNGE_WINDOWS + ci.STORE_WINDOWS for z in w]
 HULL_ST = sorted(set([cs.STERN_Z, -22.995, -22.985, -22.965, -22.93, -22.88, -22.8, -22.68, -22.52, -22.3, -22.02, -21.68, -21.25, -20.7,
                       -20.0, -19.2, -18.2, -17.0, -15.7, -14.3, -12.9, -11.5, -10.1, -8.7, -7.3, -6.4] + _WIN_EDGES +
-                     [9.6, 10.4, 11.2, 12.0, 12.8, 13.5, 14.2, 14.9, 15.6, 16.3, 17.0, 17.7, 18.4, 19.1, 19.8, 20.5, 21.2, 21.9, 22.5, 23.1, 23.6,
-                      24.1, 24.5, 24.9, 25.25, 25.55, 25.8, 26.0, 26.15]))
+                     [9.6, 10.4, 11.0, 14.6, 15.2, 15.6, 16.3, 17.0, 17.7, 18.4, cs.BAND_Z]))
+BOW_SPLIT = HULL_ST[-1]    # forward of this station the round bow is planked along waterlines (strakes curving round to the stem)
+BOW_COLS = 14
 FC_PANEL = (11.6, 0.55)    # the forecastle's green panel: from this z forward, from this y up to under the cap rail
 STERN_PANELS = (-2.9, 4.0, 1.45, 2.5)   # carved green panels flanking the medallion on the stern's belly: y of their middle,
                                           # where the hull's half width is this, their width and height
@@ -389,8 +390,8 @@ def section_ys(z):
     """Heights of the hull's rows at z, from the keel up to the sheer (fixed count; collapsed where the hull is low):
     the brown strakes along the keel, the green band, the brown gallery band (rows at the windows' sill and head), the
     forecastle's green panel."""
-    k = cs.keel_y(z)
     top = cs.sheer_y(z)
+    k = min(cs.keel_y(z), top)
     lo = min(max(k, cs.band_low(z)), top)
     b = min(max(lo, cs.band_y(z)), top)
     ys = [k + f * (lo - k) for f in (0.0, 0.08, 0.2, 0.36, 0.56, 0.78, 1.0)]
@@ -402,6 +403,45 @@ def section_ys(z):
 
 def section(z, side):
     return [v3(side * max(0.03, cs.hull_x(z, y)), y, z) for y in section_ys(z)]
+
+
+def bow_row_fns():
+    """Heights of the bow's strakes as functions of z: the rows of the section at BOW_SPLIT, constant below the forecastle's
+    green panel, rising with the sheer above it (the top row is the sheer)."""
+    ys0 = section_ys(BOW_SPLIT)
+    s0 = cs.sheer_y(BOW_SPLIT)
+    out = []
+    for y0 in ys0:
+        w = min(1.0, max(0.0, (y0 - FC_PANEL[1]) / max(1e-6, s0 - FC_PANEL[1])))
+        out.append(lambda z, y0=y0, w=w: y0 + (cs.sheer_y(z) - s0) * w)
+    return out
+
+
+def bow_end(yfn):
+    """z where a strake of height yfn(z) meets the stem (the keel line sweeping up to the stem head)."""
+    lo, hi = BOW_SPLIT, cs.KEEL_PTS[-1][0]
+    if cs.keel_y(lo) >= yfn(lo) - 1e-6:
+        return lo
+    for _ in range(50):
+        mid = (lo + hi) / 2
+        lo, hi = (mid, hi) if cs.keel_y(mid) < yfn(mid) else (lo, mid)
+    return lo
+
+
+def bow_rows(side):
+    """The bow's planking points: per strake, BOW_COLS + 1 points from BOW_SPLIT to the stem (denser towards it)."""
+    rows = []
+    for fn in bow_row_fns():
+        ze = bow_end(fn)
+        pts = []
+        for i in range(BOW_COLS + 1):
+            t = math.sin(math.pi / 2 * i / BOW_COLS)
+            z = BOW_SPLIT + (ze - BOW_SPLIT) * t
+            y = min(fn(z), cs.sheer_y(z))
+            x = cs.hull_x(z, max(y, cs.keel_y(z))) if i < BOW_COLS else min(cs.hull_x(z, max(y, cs.keel_y(z))), 0.12)
+            pts.append(v3(side * max(0.03, x), y, z))
+        rows.append(pts)
+    return rows
 
 
 def hull_region(z, y):
@@ -423,8 +463,44 @@ def hull_pt(z, y, side, out=0.0):
     return v3(side * x, y, z) + n * out, n
 
 
+def stem_line(dy, z0, dz, step=0.35):
+    """The keel line from z0 forward and up the upright stem to its head, sampled evenly along its length (the stem
+    stands upright under the forecastle's front: sampling by z would skip it), offset by dy (down) and dz."""
+    zt = cs.KEEL_PTS[-1][0] - 0.02
+    zz = np.linspace(z0, zt, 900)
+    pts = np.array([(z, cs.keel_y(z)) for z in zz])
+    seg = np.hypot(np.diff(pts[:, 0]), np.diff(pts[:, 1]))
+    L = np.concatenate([[0.0], np.cumsum(seg)])
+    n = max(2, int(L[-1] / step))
+    out = []
+    for t in np.linspace(0.0, L[-1], n + 1):
+        z = np.interp(t, L, pts[:, 0])
+        y = np.interp(t, L, pts[:, 1])
+        out.append(v3(0, y + dy, z + dz))
+    return out
+
+
 def in_window(z, y):
-    return any(z0 - 1e-6 <= z <= z1 + 1e-6 for z0, z1 in ci.LOUNGE_WINDOWS) and ci.WIN_Y[0] - 1e-6 <= y <= ci.WIN_Y[1] + 1e-6
+    return any(z0 - 1e-6 <= z <= z1 + 1e-6 for z0, z1 in ci.LOUNGE_WINDOWS + ci.STORE_WINDOWS) and ci.WIN_Y[0] - 1e-6 <= y <= ci.WIN_Y[1] + 1e-6
+
+
+def glass_window(lights, detail, side, sn, name, z0, z1):
+    """A window of the hull between ci.WIN_Y at z0..z1 (cells of the grid's glass): its panes (amber quarries and clear
+    ones: seen through from inside, both faces) and dark reveals through the planking."""
+    y0, y1 = ci.WIN_Y
+    pa, na_ = hull_pt(z0, (y0 + y1) / 2, side, 0.0)
+    pb, nb = hull_pt(z1, (y0 + y1) / 2, side, 0.0)
+    n = norm(na_ + nb)
+    c = (pa + pb) / 2 + n * 0.01
+    t = norm((pb - pa) - np.dot(pb - pa, n) * n)
+    R = np.column_stack([t, np.cross(n, t), n])
+    L = np.linalg.norm(pb - pa)
+    add_cube(lights, "glow_%s_%s" % (name, sn), c, R, (L, y1 - y0, 0.06),
+             {"all": None, "+3": "window_gallery", "-3": "window_gallery"}, stretch=True, u_dir=pb - pa, v_dir=v3(0, -1, 0))
+    for e, pz in enumerate((pa, pb)):
+        add_cube(detail, "%s_reveal_%s_%d" % (name, sn, e), pz - n * 0.45, R, (0.08, y1 - y0, 0.9), "dark_wood")
+    add_cube(detail, "%s_reveal_top_%s" % (name, sn), c - n * 0.45 + v3(0, (y1 - y0) / 2, 0), R, (L, 0.08, 0.9), "dark_wood")
+    add_cube(detail, "%s_reveal_bot_%s" % (name, sn), c - n * 0.45 - v3(0, (y1 - y0) / 2, 0), R, (L, 0.08, 0.9), "dark_wood")
 
 
 def side_curve(bone, name, zz, yfn, side, out, h, th, region, min_x=0.3):
@@ -441,41 +517,91 @@ def side_curve(bone, name, zz, yfn, side, out, h, th, region, min_x=0.3):
     return pts
 
 
-def fan_window(bone, detail, side, sn):
-    """The bow's fan window (outside only): a quarter fan from its hub at the upper aft corner, in facets following the
-    bow's curve, stained panes between dark ribs, a gilded rim; two lit windows aft of it."""
+BOW_WIN_Y = (ci.WIN_Y[0] + ci.WIN_Y[1]) / 2   # the storeroom's two windows aft of the fan window's hub (the sheet's side view)
+
+
+def fan_reach(a_deg):
+    """Radius of the bow's fan window from its hub towards angle a (0 forward, 90 down): up to ROSE's radius, but stopping
+    FAN_MARGIN short of the stem's arc and the keel (the fan fills the round bow's cheek, its rim following the stem)."""
     zh, yh, R = ci.ROSE
-    na, nr = 7, 4
-    rs = [R * (0.12 + 0.88 * j / nr) for j in range(nr + 1)]
+    a = math.radians(a_deg)
+    keel = _KEEL_LINE
+    t = 0.0
+    while t < R:
+        z, y = zh + t * math.cos(a), yh - t * math.sin(a)
+        if np.min(np.hypot(keel[:, 0] - z, keel[:, 1] - y)) < FAN_MARGIN or y < cs.keel_y(z) + FAN_MARGIN:
+            return max(0.5, t - 0.02)
+        t += 0.02
+    return R
+
+
+FAN_MARGIN = 0.9
+_KEEL_LINE = np.array([(z, cs.keel_y(z)) for z in np.linspace(8.0, cs.KEEL_PTS[-1][0] - 0.01, 700)])
+
+
+def fan_window(bone, detail, side, sn):
+    """The bow's fan window (outside only): a quarter fan from its hub at the upper aft corner, its rim following the stem's
+    arc onto the round bow's cheek, in facets following the bow's curve, stained panes between dark ribs, a gilded rim; two
+    lit windows aft of it."""
+    zh, yh, R = ci.ROSE
+    na, nr = 10, 5
+    reach = [fan_reach(90.0 * i / na) for i in range(na + 1)]
+    fr = [j / nr for j in range(nr + 1)]
+
+    def rr(i, j):
+        return reach[i] * (0.1 + 0.9 * fr[j])
 
     def P(a, r, out=0.05):
         a = math.radians(a)
         return hull_pt(zh + r * math.cos(a), yh - r * math.sin(a), side, out)
+
+    # the round bow bulges between the corners of a flat facet: lift each corner by the largest bulge of the facets round it
+    sag = np.zeros((na + 1, nr + 1))
     for i in range(na):
-        a0, a1 = 90.0 * i / na, 90.0 * (i + 1) / na
         for j in range(nr):
-            p00, n = P(a0, rs[j])
-            p10, _ = P(a1, rs[j])
-            p01, _ = P(a0, rs[j + 1])
-            p11, _ = P(a1, rs[j + 1])
-            pm = P((a0 + a1) / 2, rs[j])[0]
+            cs_ = [P(90.0 * (i + di) / na, rr(i + di, j + dj), 0.0)[0] for di in (0, 1) for dj in (0, 1)]
+            chord = sum(cs_) / 4
+            for fa, fr_ in ((0.5, 0.5), (0.25, 0.5), (0.75, 0.5), (0.5, 0.25), (0.5, 0.75)):
+                a = 90.0 * (i + fa) / na
+                r = (rr(i, j) * (1 - fa) + rr(i + 1, j) * fa) * (1 - fr_) + (rr(i, j + 1) * (1 - fa) + rr(i + 1, j + 1) * fa) * fr_
+                q, n = P(a, r, 0.0)
+                d = max(0.0, float(np.dot(q - chord, n)))
+                for di in (0, 1):
+                    for dj in (0, 1):
+                        sag[i + di, j + dj] = max(sag[i + di, j + dj], d)
+
+    def F(i, j):
+        return P(90.0 * i / na, rr(i, j), 0.05 + sag[i, j])
+    for i in range(na):
+        for j in range(nr):
+            p00, n = F(i, j)
+            p10, _ = F(i + 1, j)
+            p01, _ = F(i, j + 1)
+            p11, _ = F(i + 1, j + 1)
+            pm = (p00 + p10) / 2
             quad(bone, "glow_fan_%s%d_%d" % (sn, i, j), p00, p10, p01, p11, 0.03, "window_fan", n,
-                 sub=(i / na, rs[j] / R, (i + 1) / na, rs[j + 1] / R), u_dir=p10 - p00, v_dir=P((a0 + a1) / 2, rs[j + 1])[0] - pm,
+                 sub=(i / na, 0.12 + 0.88 * fr[j], (i + 1) / na, 0.12 + 0.88 * fr[j + 1]), u_dir=p10 - p00, v_dir=(p01 + p11) / 2 - pm,
                  overlap=(1.02, 1.02))
-    rim = [P(a, R + 0.1, 0.1)[0] for a in np.linspace(0, 90, 13)]
-    polyline(detail, "fan_rim_%s" % sn, rim, 0.2, "gold", sides=4)
-    polyline(detail, "fan_top_%s" % sn, [P(0, r, 0.1)[0] for r in np.linspace(0.0, R + 0.1, 6)], 0.2, "gold", sides=4)
-    polyline(detail, "fan_aft_%s" % sn, [P(90, r, 0.1)[0] for r in np.linspace(0.0, R + 0.1, 6)], 0.2, "gold", sides=4)
+    rim = [P(90.0 * i / na, reach[i] + 0.1, 0.12 + sag[i, nr])[0] for i in range(na + 1)]
+    polyline(detail, "fan_rim_%s" % sn, rim, 0.22, "gold", sides=4)
+    polyline(detail, "fan_top_%s" % sn, [P(0, r, 0.12 + sag[0, min(nr, int(round(k * nr / 5)))])[0]
+                                          for k, r in enumerate(np.linspace(0.0, reach[0] + 0.1, 6))], 0.2, "gold", sides=4)
+    polyline(detail, "fan_aft_%s" % sn, [P(90, r, 0.12 + sag[na, min(nr, int(round(k * nr / 5)))])[0]
+                                          for k, r in enumerate(np.linspace(0.0, reach[-1] + 0.1, 6))], 0.2, "gold", sides=4)
+    # a dark carved frame round the rim (the planking band between the fan and the stem)
+    frame = [P(90.0 * i / na, reach[i] + 0.38, 0.08 + 0.5 * sag[i, nr])[0] for i in range(na + 1)]
+    polyline(detail, "fan_frame_%s" % sn, frame, 0.3, "dark_wood", sides=4)
     disc(detail, "fan_hub_%s" % sn, P(0, 0.0, 0.1)[0], P(0, 0.0)[1], 0.36, 0.12, "gold", sides=8)
-    for k, z in enumerate((11.0, 12.4)):
-        p, n = hull_pt(z, -3.1, side, 0.04)
-        add_cube(bone, "glow_bow_window_%s%d" % (sn, k), p, gl.wall_frame(n), (0.9, 1.8, 0.03),
-                 {"all": None, "+3": "window_lit", "-3": "window_lit"}, stretch=True)
+    for k, (z0, z1) in enumerate(ci.STORE_WINDOWS):
+        z = (z0 + z1) / 2
+        glass_window(bone, detail, side, sn, "bow_window_%d" % k, z0, z1)
         for e, dz in enumerate((-0.52, 0.52)):
-            q, m = hull_pt(z + dz, -3.1, side, 0.1)
+            q, m = hull_pt(z + dz, BOW_WIN_Y, side, 0.1)
             box(detail, "bow_window_jamb_%s%d_%d" % (sn, k, e), q, (0.14, 2.0, 0.14), "dark_wood", R=gl.wall_frame(m))
-        q, m = hull_pt(z, -2.1, side, 0.12)
+        q, m = hull_pt(z, BOW_WIN_Y + 1.0, side, 0.12)
         box(detail, "bow_window_head_%s%d" % (sn, k), q, (1.2, 0.14, 0.2), "gold", R=gl.wall_frame(m))
+        q, m = hull_pt(z, BOW_WIN_Y - 1.0, side, 0.12)
+        box(detail, "bow_window_sill_%s%d" % (sn, k), q, (1.2, 0.12, 0.24), "dark_wood", R=gl.wall_frame(m))
 
 
 def hull(bone, detail, lights):
@@ -493,13 +619,30 @@ def hull(bone, detail, lights):
                     continue
                 region = hull_region(mid[2], mid[1])
                 outward = norm(v3(side, -0.5 if k < 6 else 0.0, 0.25 * np.sign(mid[2])))
-                quad(bone, "hull_%s%d_%d" % (sn, i, k), A[k], B[k], A[k + 1], B[k + 1], 0.14, region, outward, u_dir=v3(0, 0, 1),
+                # the planks run along the strake (round the bow they follow its curve towards the stem)
+                along = (B[k] + B[k + 1]) - (A[k] + A[k + 1])
+                quad(bone, "hull_%s%d_%d" % (sn, i, k), A[k], B[k], A[k + 1], B[k + 1], 0.14, region, outward, u_dir=along,
                      stretch=False, back="dark_wood", overlap=(1.03, 1.06))
+    # the round bow: each row of the last section carried forward as a strake round the bow to the stem (constant height
+    # below the forecastle's panel, rising with the sheer above it), sampled more densely towards the stem
+    for side, sn in SIDES:
+        rows = bow_rows(side)
+        for k in range(len(rows) - 1):
+            A, B = rows[k], rows[k + 1]
+            for i in range(BOW_COLS):
+                pa, pb, qa, qb = A[i], A[i + 1], B[i], B[i + 1]
+                if np.linalg.norm(pb - pa) + np.linalg.norm(qb - qa) < 0.02 or np.linalg.norm(qa - pa) + np.linalg.norm(qb - pb) < 0.02:
+                    continue
+                mid = (pa + pb + qa + qb) / 4
+                region = hull_region(mid[2], mid[1])
+                nrm = np.cross(qa - pa + qb - pb, pb - pa + qb - qa) * side     # outwards
+                if np.linalg.norm(nrm) < 1e-9:
+                    continue
+                quad(bone, "hull_bow_%s%d_%d" % (sn, k, i), pa, pb, qa, qb, 0.14, region, norm(nrm), u_dir=(pb + qb) - (pa + qa),
+                     stretch=False, back="dark_wood", overlap=(1.04, 1.08))
     # the flat of the bottom between the two sides
     for i in range(len(HULL_ST) - 1):
         za, zb = HULL_ST[i], HULL_ST[i + 1]
-        if zb > 25.0:
-            break
         xa, xb = cs.hull_x(za, cs.keel_y(za)), cs.hull_x(zb, cs.keel_y(zb))
         ya, yb = cs.keel_y(za), cs.keel_y(zb)
         if xa + xb < 0.05:
@@ -507,8 +650,7 @@ def hull(bone, detail, lights):
         quad(bone, "bottom_%d" % i, v3(-xa, ya, za), v3(-xb, yb, zb), v3(xa, ya, za), v3(xb, yb, zb), 0.14, "hull_brown", v3(0, -1, 0),
              u_dir=v3(0, 0, 1), stretch=False)
     # the keel (a dark batten) and the stem sweeping up to the carved stem head (the stern: the medallion's gilded post)
-    kp = [v3(0, cs.keel_y(z) - 0.1, z) for z in np.linspace(cs.STERN_Z + 0.15, 26.1, 44)]
-    sm = catmull(kp, 2)
+    sm = stem_line(-0.1, cs.STERN_Z + 0.15, 0.0, step=0.5)
     for k in range(len(sm) - 1):
         beam(bone, "keel_%d" % k, sm[k], sm[k + 1], 0.44, "hull_band", width=0.42, up=v3(1, 0, 0), extend=0.08)
         if sm[k + 1][2] < -12.0:          # aft, under the green stern: a gilded batten along the keel's foot
@@ -518,12 +660,21 @@ def hull(bone, detail, lights):
                 dn = -dn
             beam(detail, "keel_batten_%d" % k, sm[k] + dn * 0.23, sm[k + 1] + dn * 0.23, 0.06, "gold", width=0.18, up=dn, extend=0.04)
     zs_, top = cs.STEM_HEAD
-    head0 = v3(0, cs.keel_y(26.1) - 0.1, 26.1)
+    zt, yt = cs.KEEL_PTS[-1]
+    head0 = v3(0, cs.sheer_y(zt) - 1.1, zt - 0.08)
     head1 = v3(0, top - 0.35, zs_ + 0.05)
-    beam(bone, "stem_head", head0, head1, 0.46, "dark_wood", width=0.46, up=v3(1, 0, 0), extend=0.1)
+    beam(bone, "stem_head", head0, head1, 0.5, "dark_wood", width=0.5, up=v3(1, 0, 0), extend=0.1)
     vol = [head1 + v3(0, 0.3 * (1 - t / 9.5) * math.sin(t) + 0.3, -0.3 * (1 - t / 9.5) * math.cos(t) + 0.0) for t in np.linspace(0, 9.0, 16)]
     polyline(detail, "stem_volute", vol, 0.2, "gold", sides=6)
-    beam(detail, "stem_band", head0 + v3(0, 0.4, 0), head0 + v3(0, 0.62, 0), 0.5, "gold", width=0.5, up=v3(1, 0, 0))
+    beam(detail, "stem_band", head0 + v3(0, 0.4, 0.04), head0 + v3(0, 0.62, 0.04), 0.56, "gold", width=0.56, up=v3(1, 0, 0))
+    # gilded straps across the stem's arc (seen from the front: a dark post banded with gold from the head to the keel)
+    arc = stem_line(-0.12, 12.0, 0.0)
+    L = np.cumsum([0.0] + [np.linalg.norm(arc[i + 1] - arc[i]) for i in range(len(arc) - 1)])
+    for k, f in enumerate((0.2, 0.45, 0.68, 0.86)):
+        i = int(np.searchsorted(L, f * L[-1]))
+        i = max(1, min(len(arc) - 2, i))
+        d = norm(arc[i + 1] - arc[i - 1])
+        beam(detail, "stem_strap_%d" % k, arc[i] - d * 0.11, arc[i] + d * 0.11, 0.62, "gold", width=0.58, up=v3(1, 0, 0))
     # gilded and dark mouldings following the hull's curves: under the cap rail, the top of the green band, a line on
     # the green, its foot (a dark wale); the forecastle panel's frame; the gallery's head and sill
     zz = list(np.linspace(cs.STERN_Z + 0.08, 26.0, 90))
@@ -573,7 +724,7 @@ def hull(bone, detail, lights):
     # the bow's fan windows, gilded spirals on the forecastle's green panels
     for side, sn in SIDES:
         fan_window(lights, detail, side, sn)
-        for k, (z, y, sz) in enumerate(((20.4, 1.55, 1.7), (16.2, 1.45, 1.3))):
+        for k, (z, y, sz) in enumerate(((20.4, 1.6, 1.7), (16.2, 1.5, 1.3), (24.15, 1.95, 1.3))):
             p, n = hull_pt(z, y, side, 0.05)
             add_cube(detail, "scroll_%s%d" % (sn, k), p, gl.wall_frame(n), (sz, sz * 0.62, 0.03), {"all": None, "+3": "scroll", "-3": "scroll"},
                      stretch=True, u_dir=v3(0, 0, -side), v_dir=v3(0, -1, 0))
@@ -587,8 +738,11 @@ def hull(bone, detail, lights):
         beam(bone, "bowsprit_band_%d" % k, q - d * 0.08, q + d * 0.08, bw + 0.1, "brass", width=bw + 0.1, up=v3(0, 1, 0))
     tube(bone, "bowsprit_cap", p1 - d * 0.05, p1 + d * 0.3, 0.5, "gold", sides=8)
     disc(bone, "bowsprit_knob", p1 + d * 0.38, d, 0.22, 0.16, "gold", sides=8)
-    cut = v3(0, -1.6, 24.0)
-    rope(detail, "bowsprit_stay", p1 - d * 0.1, cut + v3(0, 0, 0.35), d=0.08, region="rope_dark", sag=0.15)
+    yc = -1.4
+    zc = max(z for z in np.linspace(20.0, 26.0, 601) if cs.keel_y(z) <= yc)
+    cut = v3(0, yc, zc)
+    rope(detail, "bowsprit_stay", p1 - d * 0.1, cut + v3(0, 0, 0.1), d=0.08, region="rope_dark", sag=0.15)
+    disc(detail, "bowsprit_stay_eye", cut + v3(0, 0, 0.12), (0, 0, 1), 0.2, 0.12, "brass", sides=6)
     for side, sn in SIDES:
         q, _ = hull_pt(23.2, cs.sheer_y(23.2) - 0.4, side, 0.05)
         rope(detail, "bowsprit_shroud_" + sn, p1 - d * 0.3, q, d=0.07, region="rope_dark", sag=0.1)
@@ -645,6 +799,12 @@ def grid_floor(bone, g, y, region, name, lit=True, zrange=None):
     return count
 
 
+def rail_level(z):
+    """Height at which the bulwark's rail runs: the waist's on the main deck, half a block over the forecastle's deck
+    forward (where the round bow's sides tumble home)."""
+    return cs.SHEER_WAIST if z < cs.FORECASTLE_Z else min(cs.sheer_y(z), cs.FORECASTLE_Y + 0.6)
+
+
 def decks(bone, detail, g):
     n = grid_floor(bone, g, cs.MAIN_DECK_Y, "deck", "main_deck", lit=False, zrange=(cs.CASTLE_Z, cs.FORECASTLE_Z + 0.3))
     n += grid_floor(bone, g, cs.FORECASTLE_Y, "deck", "forecastle_deck", lit=False, zrange=(cs.FORECASTLE_Z - 0.3, 30))
@@ -654,8 +814,9 @@ def decks(bone, detail, g):
         zz = np.linspace(cs.CASTLE_Z + 0.4, cs.FORECASTLE_Z - 1.6, 26)
         pts = [(side * (cs.hull_x(z, cs.SHEER_WAIST) - 0.16), cs.sheer_y(z) + 0.1, z) for z in zz]
         gl.balustrade(bone, "waist_rail_" + sn, pts, h=0.62, step=0.42, turned=True, newel=8)
-    zz = list(np.linspace(cs.FORECASTLE_Z - 1.6, 25.55, 16))
-    port = [(cs.hull_x(z, cs.SHEER_WAIST) - 0.16, cs.sheer_y(z) + 0.1, z) for z in zz] + [(0.0, cs.sheer_y(25.75) + 0.1, 25.75)]
+    # round the forecastle: along its bulwark's top (the round bow is as wide as its rail, its front curved)
+    zz = list(np.linspace(cs.FORECASTLE_Z - 1.6, 25.55, 18))
+    port = [(cs.hull_x(z, rail_level(z)) - 0.16, cs.sheer_y(z) + 0.1, z) for z in zz] + [(0.0, cs.sheer_y(25.85) + 0.1, 25.85)]
     gl.balustrade(bone, "fc_rail", port + [(-x, y, z) for x, y, z in reversed(port[:-1])], h=0.62, step=0.42, turned=True, newel=6)
     stair_x = sorted([(st[1], st[2]) for st in ci.STAIRS if st[0].startswith("fc_")])
     w = cs.hull_x(cs.FORECASTLE_Z, cs.SHEER_WAIST) - 0.5
@@ -1655,22 +1816,42 @@ def crystals(bone, lights, detail, root, lantern_bone):
             tube(detail, "castle_lamp_claw_%d_%d" % (k, j), v3(x, y - 0.2, zz), v3(x + math.cos(a) * 0.3, y + 0.3, zz + math.sin(a) * 0.3), 0.05, "gold",
                  sides=4)
     # the floating crystal pods (bones pod_front / pod_rear, their rings pod_*_ring)
-    for name, p, big in (("front", cs.FRONT_POD, False), ("rear", cs.REAR_POD, True)):
-        p = v3(*p)
-        pb = Bone("pod_" + name, origin=tuple(p), parent=root)
-        rb = Bone("pod_%s_ring" % name, origin=tuple(p), parent=pb)
-        R = cs.POD_R * (1.25 if big else 1.0)
-        # the ring lies across the ship (seen edge-on from the side, a cross from above), the crystals point fore and aft
-        gl.gear(rb, "pod_%s_gear" % name, p, (0, 0, 1), R, 0.32, teeth=16, region="copper" if big else "brass", spokes=6,
-                rim="copper" if big else "brass")
-        ring(rb, "pod_%s_ring_in" % name, p, (0, 0, 1), R * 0.62, 0.18, "gold", n=12)
-        disc(rb, "pod_%s_disc" % name, p, (0, 0, 1), R * 0.5, 0.3, "engine_plate", sides=12)
-        crystal(pb, "pod_%s_core" % name, p - v3(0, 0.55 * R, 0), (0, 1, 0), 1.1 * R, 0.28 * R)
-        for s in (1, -1):
-            crystal(pb, "pod_%s_side_%d" % (name, s > 0), p + v3(0, 0, s * 0.3), (0, 0, s), 1.05 * R, 0.42)
-            tube(pb, "pod_%s_axle_%d" % (name, s > 0), p, p + v3(0, 0, s * 0.45), 0.6, "brass", sides=8)
-            for e in (-1, 1):
-                crystal(pb, "pod_%s_tip_%d_%d" % (name, s > 0, e > 0), p + v3(e * R * 0.95, 0, s * 0.15), (0, 0, s), 0.45 * R, 0.2)
+    # the front pod (bone pod_front, its spinning top pod_front_ring): a slim brass spindle standing upright, a toothed
+    # band round its waist, four glowing crystals in a cross round it: seen from the front, the side and above alike (the
+    # sheet: a narrow upright brass body with crystals to either side, never a gear's face)
+    p = v3(*cs.FRONT_POD)
+    pb = Bone("pod_front", origin=tuple(p), parent=root)
+    rb = Bone("pod_front_ring", origin=tuple(p), parent=pb)
+    R = cs.POD_R
+    H, W = R, 0.62
+    ys = np.linspace(-H, H, 11)
+    rad = [max(0.12, W * (1.0 - (y / H) ** 2) ** 0.55) for y in ys]
+    for k in range(len(ys) - 1):
+        tube(rb, "pod_front_spindle_%d" % k, p + v3(0, ys[k], 0), p + v3(0, ys[k + 1], 0), rad[k] + rad[k + 1], "brass" if k % 3 else "gold",
+             sides=8)
+    gl.gear(rb, "pod_front_gear", p, (0, 1, 0), W + 0.32, 0.22, teeth=12, region="brass", spokes=0, rim="gold")
+    for e in (-1, 1):
+        ring(rb, "pod_front_band_%d" % (e > 0), p + v3(0, e * 0.62 * H, 0), (0, 1, 0), 0.62 * W + 0.06, 0.1, "gold", n=8)
+        crystal(pb, "pod_front_finial_%d" % (e > 0), p + v3(0, e * (H - 0.05), 0), (0, e, 0), 0.75, 0.18)
+    for k, d in enumerate((v3(1, 0, 0), v3(-1, 0, 0), v3(0, 0, 1), v3(0, 0, -1))):
+        crystal(pb, "pod_front_side_%d" % k, p + d * 0.3, tuple(d), 1.05 * R, 0.42)
+        tube(pb, "pod_front_axle_%d" % k, p, p + d * (W + 0.45), 0.5, "brass", sides=8)
+        disc(pb, "pod_front_cup_%d" % k, p + d * (W + 0.42), tuple(d), 0.42, 0.12, "gold", sides=8)
+    # the rear pod: its ring lies across the ship (seen edge-on from the side, a cross from above), its crystals point fore
+    # and aft
+    name, p, big = "rear", v3(*cs.REAR_POD), True
+    pb = Bone("pod_" + name, origin=tuple(p), parent=root)
+    rb = Bone("pod_%s_ring" % name, origin=tuple(p), parent=pb)
+    R = cs.POD_R * 1.25
+    gl.gear(rb, "pod_%s_gear" % name, p, (0, 0, 1), R, 0.32, teeth=16, region="copper", spokes=6, rim="copper")
+    ring(rb, "pod_%s_ring_in" % name, p, (0, 0, 1), R * 0.62, 0.18, "gold", n=12)
+    disc(rb, "pod_%s_disc" % name, p, (0, 0, 1), R * 0.5, 0.3, "engine_plate", sides=12)
+    crystal(pb, "pod_%s_core" % name, p - v3(0, 0.55 * R, 0), (0, 1, 0), 1.1 * R, 0.28 * R)
+    for s in (1, -1):
+        crystal(pb, "pod_%s_side_%d" % (name, s > 0), p + v3(0, 0, s * 0.3), (0, 0, s), 1.05 * R, 0.42)
+        tube(pb, "pod_%s_axle_%d" % (name, s > 0), p, p + v3(0, 0, s * 0.45), 0.6, "brass", sides=8)
+        for e in (-1, 1):
+            crystal(pb, "pod_%s_tip_%d_%d" % (name, s > 0, e > 0), p + v3(e * R * 0.95, 0, s * 0.15), (0, 0, s), 0.45 * R, 0.2)
     # ropes holding the pods
     fp, rpod = v3(*cs.FRONT_POD), v3(*cs.REAR_POD)
     fl, rl = cs.lobe("f"), cs.lobe("r")
@@ -2085,7 +2266,8 @@ def build_animations(root):
         b = find(root, name)
         tracks.append((b, [kf("position", t, (0, 16 * 0.12 * math.sin(w * t + 1.7 * k), 0)) for t, _ in _loop_keys(3.0, 12, lambda t: 0)]))
         r = find(root, name + "_ring")
-        tracks.append((r, [rot_kf(t, (0, 0, (1 if k else -1) * 360.0 * t / 3.0)) for t in [3.0 * i / 12 for i in range(13)]]))
+        a = (1 if k else -1) * 360.0      # the rear pod's ring turns in its plane, the front pod's spinning top about its upright axis
+        tracks.append((r, [rot_kf(t, (0, 0, a * t / 3.0) if k else (0, a * t / 3.0, 0)) for t in [3.0 * i / 12 for i in range(13)]]))
     # the balloon breathes: its lobes, straps and jewels swell a little and bob
     for name in ("balloon", "straps", "gems"):
         b = find(root, name)

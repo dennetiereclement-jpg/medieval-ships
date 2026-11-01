@@ -96,7 +96,9 @@ POSTS = ((-2.2, M0, -9.4), (2.2, M0, -9.4), (-1.9, cs.FORECASTLE_Y, 15.2), (1.9,
 # the lounge's six windows between y WIN_Y (z spans on cell boundaries); the cockpit's side windows
 LOUNGE_WINDOWS = ((-5.5, -4.0), (-3.0, -1.5), (-0.5, 1.0), (2.0, 3.5), (4.5, 6.0), (7.0, 8.5))
 WIN_Y = (-3.0, -1.0)
-ROSE = (13.8, -0.3, 4.6)     # the bow's fan window (outside only): z and y of its hub (its upper aft corner), radius
+STORE_WINDOWS = ((11.5, 12.5), (13.0, 14.0))   # the storeroom's two lit windows each side, aft of the bow's fan window (same height)
+ROSE = (15.0, 0.15, 6.0)    # the bow's fan window (outside only): z and y of its hub (its upper aft corner), its greatest radius:
+                             # its rim follows the stem's arc onto the round bow's cheek (seen from the side and from the front)
 COCKPIT_WINDOWS = ((-16.5, -15.0), (-19.0, -17.5))
 COCKPIT_WIN_Y = (3.5, 5.5)
 
@@ -242,11 +244,11 @@ def build():
     above_deck = inner & (Y > deck)
     g.k[above_deck] = OUT
     # the bulwark rails: one cell inside the hull side, a block high above the open decks
-    hx_rail = _vec(cs.hull_x, Z, np.minimum(Y, cs.SHEER_WAIST))
+    hx_rail = _vec(cs.hull_x, Z, np.minimum(Y, np.where(Z < cs.FORECASTLE_Z, cs.SHEER_WAIST, cs.FORECASTLE_Y + 0.6)))
     rail = (hx_rail > 0.5) & (np.abs(X) <= hx_rail) & (np.abs(X) > hx_rail - CELL) & (Y > deck) & (Y < deck + cs.RAIL_H) & (Z > cs.CASTLE_Z)
     g.k[rail & (g.k == OUT)] = FURNITURE
     # ... round the bow of the forecastle (its foremost cells)
-    hx_next = _vec(cs.hull_x, Z + CELL, np.minimum(Y, cs.SHEER_WAIST))
+    hx_next = _vec(cs.hull_x, Z + CELL, np.minimum(Y, np.where(Z < cs.FORECASTLE_Z, cs.SHEER_WAIST, cs.FORECASTLE_Y + 0.6)))
     bow_rail = (Z > cs.FORECASTLE_Z) & (hx_rail > 0.1) & (np.abs(X) <= hx_rail) & (np.abs(X) > hx_next - 0.05) & (Y > deck) & (Y < deck + cs.RAIL_H)
     g.k[bow_rail & (g.k == OUT)] = FURNITURE
 
@@ -321,7 +323,7 @@ def build():
     for z0, z1 in COCKPIT_WINDOWS:
         g.set(WINDOW, -INF, INF, COCKPIT_WIN_Y[0], COCKPIT_WIN_Y[1], z0, z1, where=(g.k == SOLID) & st2 & (np.abs(X) > c2 - 0.55))
     hx_in = _vec(cs.hull_x, Z, Y)
-    for z0, z1 in LOUNGE_WINDOWS:
+    for z0, z1 in LOUNGE_WINDOWS + STORE_WINDOWS:
         g.set(WINDOW, -INF, INF, WIN_Y[0], WIN_Y[1], z0, z1, where=(g.k == SOLID) & body & (np.abs(X) > 2.5))
 
     # ---- open decks: the turret, the ring and its pedestal, the crystal lamps at the castle's corners

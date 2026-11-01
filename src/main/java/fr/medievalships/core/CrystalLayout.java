@@ -42,7 +42,8 @@ public final class CrystalLayout {
 	public static final double HULL_HW = 6.0;
 	public static final double BOW_Z = 25.6;
 	public static final double STERN_Z = -23.0;
-	private static final double[] BOW_PLAN = {26.6, 2.0, 0.6};
+	/** A bluff round bow: the full beam carried far forward, rounding off over the last ten blocks (the sheet's front view). */
+	private static final double[] BOW_PLAN = {26.05, 4.0, 0.45};
 	private static final double[] STERN_PLAN = {40.0, 2.5, 0.5};
 	/** The stern rounds off in plan from this z to STERN_Z (a superellipse of this exponent). */
 	private static final double[] STERN_ROUND = {-18.6, 2.5};
@@ -54,8 +55,19 @@ public final class CrystalLayout {
 	/** The sections: round shoulders narrowing in an egg to a narrow keel (exponent, the keel's fraction of the half beam). */
 	private static final double[] SECTION = {2.6, 0.06};
 	private static final double TUMBLE = 0.02;
+	/**
+	 * Forward of the middle the sections fill out into a round-bellied bowl (blended between these z): a fuller exponent,
+	 * the widest level lower than the waist (the sides tumble home above it), but at least BILGE_MIN of the way up from the
+	 * keel to the sheer (towards the stem the bottom still tapers to it).
+	 */
+	private static final double[] BOW_FULL = {-2.0, 12.0};
+	private static final double SECTION_BOW = 4.0;
+	private static final double BILGE_BOW = -0.5;
+	private static final double BILGE_MIN = 0.6;
+	/** The keel line: a banana keel; forward the stem sweeps up in a big full arc and stands upright under the forecastle's front. */
 	private static final double[][] KEEL_PTS = {{-23.0, -6.2}, {-21.5, -7.2}, {-19.5, -7.85}, {-16.0, -8.35}, {-12.0, -8.7}, {-7.0, -9.05},
-			{-2.0, -9.3}, {3.0, -9.4}, {8.0, -8.9}, {13.0, -7.8}, {17.0, -6.2}, {20.5, -4.2}, {23.0, -2.0}, {24.8, 0.2}, {25.8, 2.0}, {26.3, 3.4}};
+			{-2.0, -9.3}, {3.0, -9.4}, {8.0, -8.9}, {13.0, -7.65}, {16.5, -6.35}, {19.5, -4.8}, {22.0, -2.95}, {23.9, -1.25}, {25.1, 0.15},
+			{25.7, 1.5}, {25.95, 2.6}, {26.05, 3.4}};
 	private static final double[] KEEL_SLOPES = keelSlopes();
 	/** The bowsprit's tip (with its gilded cap). */
 	public static final double BEAK_TIP_Z = 28.8;
@@ -272,7 +284,15 @@ public final class CrystalLayout {
 		return y;
 	}
 
-	/** Half width of the outside of the hull at (z, y): an egg-shaped section, round at the shoulders, narrowing to the keel. */
+	/** 0 aft of BOW_FULL[0] (the egg sections of the middle and the stern), 1 forward of BOW_FULL[1] (the round bow). */
+	static double bowBlend(double z) {
+		return smooth((z - BOW_FULL[0]) / (BOW_FULL[1] - BOW_FULL[0]));
+	}
+
+	/**
+	 * Half width of the outside of the hull at (z, y): an egg-shaped section, round at the shoulders, narrowing to the keel,
+	 * a slight tumblehome above its widest level; forward the sections fill out into the round-bellied bow.
+	 */
 	public static double hullX(double z, double y) {
 		double w = hullHalfWidth(z);
 		if (w <= 0) {
@@ -282,11 +302,14 @@ public final class CrystalLayout {
 		if (y < k) {
 			return 0.0;
 		}
-		if (y <= SHEER_WAIST) {
-			double eta = (y - k) / Math.max(0.05, SHEER_WAIST - k);
-			return w * (SECTION[1] + (1.0 - SECTION[1]) * (1.0 - Math.pow(1.0 - eta, SECTION[0])));
+		double m = bowBlend(z);
+		double yb = Math.max(SHEER_WAIST + m * (BILGE_BOW - SHEER_WAIST), k + BILGE_MIN * (sheerY(z) - k));
+		if (y <= yb) {
+			double eta = (y - k) / Math.max(0.05, yb - k);
+			double p = SECTION[0] + m * (SECTION_BOW - SECTION[0]);
+			return w * (SECTION[1] + (1.0 - SECTION[1]) * (1.0 - Math.pow(1.0 - eta, p)));
 		}
-		return w * (1.0 - TUMBLE * (y - SHEER_WAIST));
+		return w * (1.0 - TUMBLE * (y - yb));
 	}
 
 	/** Half width of the outside of storey 1's walls: the hull's plan, inset, rounded at the stern. */
@@ -559,15 +582,19 @@ public final class CrystalLayout {
 		for (double x : new double[] {-2.6, 2.6}) {
 			probes.add(new double[] {x, -6.4 - 1.3, 19.3});
 		}
-		// the floating pods: their rings lie across the ship, their crystals point fore and aft
+		// the floating pods: the rear one's ring lies across the ship, its crystals point fore and aft; the front one is an
+		// upright spindle with four crystals in a cross round it
 		for (double[] pod : new double[][] {FRONT_POD, REAR_POD}) {
-			double r = POD_R * (pod == REAR_POD ? 1.25 : 1.0);
-			probes.add(new double[] {pod[0], pod[1] + r, pod[2]});
-			probes.add(new double[] {pod[0], pod[1] - 1.1 * r - 0.1, pod[2]});
-			probes.add(new double[] {pod[0] + r, pod[1], pod[2]});
-			probes.add(new double[] {pod[0] - r, pod[1], pod[2]});
-			probes.add(new double[] {pod[0], pod[1], pod[2] + 0.35 + 1.05 * r});
-			probes.add(new double[] {pod[0], pod[1], pod[2] - 0.35 - 1.05 * r});
+			boolean rear = pod == REAR_POD;
+			double r = POD_R * (rear ? 1.25 : 1.0);
+			double tip = 0.35 + 1.05 * r;
+			double rx = rear ? r : tip, rz = tip;
+			probes.add(new double[] {pod[0], pod[1] + (rear ? r : r + 0.7), pod[2]});
+			probes.add(new double[] {pod[0], pod[1] - (rear ? 1.1 * r + 0.1 : r + 0.7), pod[2]});
+			probes.add(new double[] {pod[0] + rx, pod[1], pod[2]});
+			probes.add(new double[] {pod[0] - rx, pod[1], pod[2]});
+			probes.add(new double[] {pod[0], pod[1], pod[2] + rz});
+			probes.add(new double[] {pod[0], pod[1], pod[2] - rz});
 		}
 		return probes;
 	}
