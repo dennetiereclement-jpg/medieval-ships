@@ -13,20 +13,25 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
+import fr.medievalships.core.CannonState;
 import fr.medievalships.core.TentType;
 import fr.medievalships.core.TentTypes;
+import fr.medievalships.tent.CannonBlockEntity;
 import fr.medievalships.tent.TentBlock;
 import fr.medievalships.tent.TentCollisions;
+import fr.medievalships.tent.Tents;
 
 /**
  * In-game checks of the tents (about 40 s of game time). The adventurer tent in detail: {@code /tent place} on a
  * stone platform, the anchor block and its facing, a survival player walking into a front leg is stopped by its
  * collision box (the static boxes of TentCollisions through the entity collision mixin), screenshots,
- * {@code /tent remove}, the block and the boxes are gone. Then each of the sixteen other tents once (the five other
- * camp tents, the six merchant tents of 1.14.0 and the five of 1.15.0, at most about 9 x 9 blocks with their rug, 8.2
- * high: the 29 x 29 platform and the 12 blocks of air above it hold them): placed, block and facing and block entity,
- * its first collision box
- * answers a collision query, one screenshot, removed. Called once from {@link ShipClientGameTest}.
+ * {@code /tent remove}, the block and the boxes are gone. Then each of the eighteen other tents once (the five other
+ * camp tents, the six merchant tents of 1.14.0, the five of 1.15.0 and the two of 1.16.0, at most about 9 x 9 blocks
+ * with their rug, 8.2 high: the 29 x 29 platform and the 12 blocks of air above it hold them): placed, block and facing
+ * and block entity, its first collision box answers a collision query, one screenshot, removed. Last the medieval
+ * cannon (1.16.0): the same, plus its own block entity type ({@code medievalships:cannon}), its persisted state written
+ * and read back through NBT, its muzzle on the far side from the breech, a screenshot from the reference's angle.
+ * Called once from {@link ShipClientGameTest}.
  */
 public final class TentGameTest {
 	private static final TentType TYPE = TentTypes.ADVENTURER;
@@ -117,6 +122,60 @@ public final class TentGameTest {
 		check.accept((Integer) b2[1] == before, id + " its collision boxes are forgotten (" + b2[1] + " tent(s) left)");
 	}
 
+	/**
+	 * The medieval cannon: placed once like the tents ({@link #quick}), then placed again for its own checks: its block
+	 * entity is a {@link CannonBlockEntity} of the type {@code medievalships:cannon}, empty when placed (no key in its
+	 * NBT), a state set on it is written to NBT and read back identical by a fresh block entity, the muzzle is on the far
+	 * side from the breech (facing south: to the north), a screenshot from the reference's angle; removed.
+	 */
+	private static void cannon(ClientGameTestContext context, TestServerContext server, TestClientWorldContext world,
+			BiConsumer<Boolean, String> check, Consumer<String> log, Consumer<String> shot) {
+		TentType type = TentTypes.CANNON;
+		quick(type, context, server, world, check, shot);
+		BlockPos a = anchor();
+		server.runCommand(String.format(Locale.ROOT, "tent place %s %d %d %d south", type.id(), a.getX(), a.getY(), a.getZ()));
+		world.waitForChunksRender();
+		context.waitTicks(20);
+		Object[] r = server.computeOnServer(srv -> {
+			ServerWorld w = srv.getOverworld();
+			var be = w.getBlockEntity(a);
+			if (!(be instanceof CannonBlockEntity cbe)) {
+				return new Object[] {false, String.valueOf(be), false, false, false, "", 0.0, 0.0};
+			}
+			var registries = srv.getRegistryManager();
+			boolean ownType = cbe.getType() == Tents.CANNON_BLOCK_ENTITY;
+			boolean emptyAtFirst = cbe.cannonState().isEmpty() && !cbe.createNbt(registries).contains(CannonState.KEY_LOADED);
+			CannonState set = new CannonState(true, 2, 0, 1234L);
+			cbe.setCannonState(set);
+			var nbt = cbe.createNbtWithIdentifyingData(registries);
+			var copy = net.minecraft.block.entity.BlockEntity.createFromNbt(a, w.getBlockState(a), nbt, registries);
+			boolean roundTrip = copy instanceof CannonBlockEntity c2 && set.equals(c2.cannonState());
+			cbe.setCannonState(CannonState.EMPTY);
+			var m = cbe.muzzle();
+			var d = cbe.muzzleDirection();
+			return new Object[] {true, nbt.toString(), ownType, emptyAtFirst, roundTrip, String.valueOf(copy), m.z - (a.getZ() + 0.5), d.z};
+		});
+		log.accept("canon_medieval NBT with a state: " + r[1]);
+		check.accept(Boolean.TRUE.equals(r[0]), "canon_medieval has a CannonBlockEntity (" + (Boolean.TRUE.equals(r[0]) ? "yes" : r[1]) + ")");
+		check.accept(Boolean.TRUE.equals(r[2]), "canon_medieval its block entity type is medievalships:cannon");
+		check.accept(Boolean.TRUE.equals(r[3]), "canon_medieval a new cannon is empty and writes no state key");
+		check.accept(Boolean.TRUE.equals(r[4]), "canon_medieval its state (loaded, 2 powder, last shot 1234) is saved and read back (" + r[5] + ")");
+		check.accept((Double) r[6] < -1.5 && (Double) r[7] < -0.9, String.format(Locale.ROOT,
+				"canon_medieval facing south (breech to the south), the muzzle is to the north (z %+.2f, direction z %.2f)", r[6], r[7]));
+		// the reference's angle: from the left front of the muzzle, a little above
+		double cx = a.getX() + 0.5, cz = a.getZ() + 0.5;
+		look(server, cx - 4.2, GROUND + 1 + 2.4, cz - 3.4, cx, GROUND + 1 + 1.0, cz - 0.4);
+		context.waitTicks(25);
+		shot.accept("canon_medieval_2_reference");
+		look(server, cx - 4.5, GROUND + 1 + 1.6, cz + 0.4, cx, GROUND + 1 + 1.0, cz);
+		context.waitTicks(12);
+		shot.accept("canon_medieval_3_cote");
+		server.runCommand(String.format(Locale.ROOT, "tent remove %d %d %d", a.getX(), a.getY(), a.getZ()));
+		context.waitTicks(10);
+		boolean gone = server.computeOnServer(srv -> !(srv.getOverworld().getBlockEntity(a) instanceof CannonBlockEntity));
+		check.accept(gone, "canon_medieval removed");
+	}
+
 	public static void run(ClientGameTestContext context, TestServerContext server, TestClientWorldContext world,
 			BiConsumer<Boolean, String> check, Consumer<String> log, Consumer<String> shot) {
 		String id = TYPE.id();
@@ -135,7 +194,10 @@ public final class TentGameTest {
 				"the six merchant tents are placed once each below (" + TentTypes.MERCHANTS.size() + ")");
 		check.accept(TentTypes.ALL.containsAll(TentTypes.MERCHANTS2) && TentTypes.MERCHANTS2.size() == 5,
 				"the five merchant tents of 1.15.0 are placed once each below (" + TentTypes.MERCHANTS2.size() + ")");
-		for (TentType t : java.util.stream.Stream.concat(TentTypes.MERCHANTS.stream(), TentTypes.MERCHANTS2.stream()).toList()) {
+		check.accept(TentTypes.ALL.containsAll(TentTypes.MERCHANTS3) && TentTypes.MERCHANTS3.size() == 2,
+				"the two merchant tents of 1.16.0 are placed once each below (" + TentTypes.MERCHANTS3.size() + ")");
+		for (TentType t : java.util.stream.Stream.of(TentTypes.MERCHANTS, TentTypes.MERCHANTS2, TentTypes.MERCHANTS3, TentTypes.ARTILLERY)
+				.flatMap(java.util.List::stream).toList()) {
 			TentType.Box e = t.extent(TentType.SOUTH);
 			check.accept(e.x0() > -14 && e.x1() < 14 && e.z0() > -14 && e.z1() < 14 && e.y1() < 12,
 					String.format(Locale.ROOT, "%s fits the cleared platform (extent x %.1f..%.1f z %.1f..%.1f h %.1f)", t.id(), e.x0(), e.x1(),
@@ -156,6 +218,7 @@ public final class TentGameTest {
 					quick(t, context, server, world, check, shot);
 				}
 			}
+			cannon(context, server, world, check, log, shot);
 			return;
 		}
 		// the same tent placed again on top of it is refused (the area is not free)
@@ -214,12 +277,14 @@ public final class TentGameTest {
 		Object[] b2 = blockAt(server, a);
 		check.accept(!Boolean.TRUE.equals(b2[0]) && !Boolean.TRUE.equals(b2[3]), id + " removed by /tent remove (block " + b2[1] + ")");
 		check.accept((Integer) b2[2] == (Integer) b0[2] - 1, id + " its collision boxes are forgotten (" + b2[2] + " tent(s) left)");
-		// the sixteen other tents (camp tents, the six merchant tents, then the five of 1.15.0), once each
+		// the eighteen other tents (camp tents, the six merchant tents, the five of 1.15.0, the two of 1.16.0), once each
 		for (TentType t : TentTypes.ALL) {
 			if (t != TYPE) {
 				quick(t, context, server, world, check, shot);
 			}
 		}
+		// the medieval cannon (1.16.0)
+		cannon(context, server, world, check, log, shot);
 		context.runOnClient((MinecraftClient c) -> c.options.hudHidden = false);
 		server.runCommand(String.format(Locale.ROOT, "forceload remove %d %d %d %d", X - 16, -16, X + 16, 16));
 	}

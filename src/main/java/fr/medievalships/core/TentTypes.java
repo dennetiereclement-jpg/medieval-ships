@@ -4,12 +4,12 @@ import java.util.List;
 
 
 /**
- * The seventeen tents (six camp tents, eleven merchant tents), the eight carts and the seven crafting workshops. One
- * line per prop: its id (block, item, model, decor and tents / carts / workshops JSON are all named after it) and its
- * names. {@link #ALL} = the tents only (their tab "Tentes": the six camp tents, the six {@link #MERCHANTS}, then the
- * five {@link #MERCHANTS2}),
- * {@link #CARTS} = the carts (tab "Charrettes"), {@link #WORKSHOPS} = the workshops (tab "Ateliers"), {@link #PROPS} =
- * all three (registration, commands, models).
+ * The nineteen tents (six camp tents, thirteen merchant tents), the eight carts, the seven crafting workshops and the
+ * medieval cannon. One line per prop: its id (block, item, model, decor and tents / carts / workshops / artillery JSON
+ * are all named after it) and its names. {@link #ALL} = the tents only (their tab "Tentes": the six camp tents, the six
+ * {@link #MERCHANTS}, the five {@link #MERCHANTS2}, then the two {@link #MERCHANTS3}),
+ * {@link #CARTS} = the carts (tab "Charrettes"), {@link #WORKSHOPS} = the workshops (tab "Ateliers"),
+ * {@link #ARTILLERY} = the cannon (tab "Artillerie"), {@link #PROPS} = all four (registration, commands, models).
  */
 public final class TentTypes {
 	public static final TentType COMMAND = TentType.load("tent_command", "grande tente de commandement", "Command Tent");
@@ -38,9 +38,14 @@ public final class TentTypes {
 	/** The merchant tents II (1.15.0): five more pavilions of tools/merchant/merchantlib.py, group "tents", each with its own atlas. */
 	public static final List<TentType> MERCHANTS2 = List.of(MERCHANT_BARD, MERCHANT_GUNSMITH, MERCHANT_ARCHERY, MERCHANT_MAGE, MERCHANT_ARMOUR);
 
-	/** The tents only (tab "Tentes"): the six camp tents, the six merchant tents, then the five of 1.15.0. */
+	public static final TentType MERCHANT_POISON = TentType.load("tente_poison", "tente du vendeur de poisons", "Poison Merchant Tent");
+	public static final TentType MERCHANT_BUTCHER = TentType.load("tente_boucher", "tente du boucher", "Butcher's Tent");
+	/** The merchant tents III (1.16.0): two gabled stalls of tools/merchant/merchantlib.py, group "tents", each with its own atlas. */
+	public static final List<TentType> MERCHANTS3 = List.of(MERCHANT_POISON, MERCHANT_BUTCHER);
+
+	/** The tents only (tab "Tentes"): the six camp tents, the six merchant tents, the five of 1.15.0, then the two of 1.16.0. */
 	public static final List<TentType> ALL = java.util.stream.Stream.of(List.of(COMMAND, ADVENTURER, MARKET, CAMP, DWELLING, CHIEF), MERCHANTS,
-			MERCHANTS2).flatMap(List::stream).toList();
+			MERCHANTS2, MERCHANTS3).flatMap(List::stream).toList();
 
 	public static final TentType CART_COVERED_WHITE = cart("cart_covered_white", "charrette couverte blanche", "White Covered Wagon");
 	public static final TentType CART_HAY = cart("cart_hay", "charrette de foin", "Hay Cart");
@@ -64,8 +69,16 @@ public final class TentTypes {
 	public static final List<TentType> WORKSHOPS = List.of(WORKSHOP_BLACKSMITH, WORKSHOP_LEATHERWORKER, WORKSHOP_TAILOR, WORKSHOP_ENGINEER,
 			WORKSHOP_COOK, WORKSHOP_ALCHEMIST, WORKSHOP_ENCHANTER);
 
-	/** Every one-block prop: the tents, then the carts, then the workshops. */
-	public static final List<TentType> PROPS = java.util.stream.Stream.of(ALL, CARTS, WORKSHOPS).flatMap(List::stream).toList();
+	/**
+	 * The medieval cannon (1.16.0): a prop like the others (one block, static model, collision boxes) on a CannonBlock
+	 * whose block entity keeps a {@link CannonState} for the future firing system; its JSON has a muzzle point.
+	 */
+	public static final TentType CANNON = TentType.load(TentType.ARTILLERY, "canon_medieval", "canon médiéval", "Medieval Cannon");
+	/** The artillery (tab "Artillerie"). */
+	public static final List<TentType> ARTILLERY = List.of(CANNON);
+
+	/** Every one-block prop: the tents, then the carts, the workshops, the artillery. */
+	public static final List<TentType> PROPS = java.util.stream.Stream.of(ALL, CARTS, WORKSHOPS, ARTILLERY).flatMap(List::stream).toList();
 
 	private static TentType cart(String id, String frenchName, String englishName) {
 		return TentType.load(TentType.CARTS, id, frenchName, englishName);
@@ -88,7 +101,8 @@ public final class TentTypes {
 		}
 		for (TentType t : PROPS) {
 			if (t.id().equals(s) || t.id().equals("tent_" + s) || t.id().equals("tente_" + s) || t.id().equals("cart_" + s)
-					|| t.id().equals("workshop_" + s)) {
+					|| t.id().equals("workshop_" + s) || t.id().equals("canon_" + s)
+					|| t.isCannon() && (s.equals("canon") || s.equals("cannon"))) {
 				return t;
 			}
 		}

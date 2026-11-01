@@ -268,6 +268,112 @@ toit plus bas (hauteur du sommet au-dessus des avant-toits, 3,2 par défaut).
 - Le rendu réel des meubles des mods n'est visible que dans la variante « decor » du test en jeu.
 - Les PNJ EasyNPC ne sont pas fournis : la place est prévue, le PNJ se pose à la main.
 
+## Tentes de marchands III et canon (1.16.0)
+
+Deux étals de plus, du même système que les onze tentes de marchands (un bloc = toute la tente, modèle statique,
+boîtes de collision, niveaux de détail, aucun tick), mais en **étal à toit à deux pans** (faîtage de gauche à
+droite, deux pans légèrement incurvés devant et derrière, rayures qui descendent les pans) au lieu du pavillon
+pointu ; rangés dans l'onglet **Tentes** après les onze autres (`TentTypes.MERCHANTS3`), chacun avec son atlas.
+Et un objet nouveau, indépendant : le **canon médiéval**, dans un onglet à lui, **Artillerie**.
+
+| id | nom | onglet | générateur |
+|----|-----|-----|-----|
+| `tente_poison` | Tente du vendeur de poisons | Tentes | `tools/merchant/generate_tente_poison.py` |
+| `tente_boucher` | Tente du boucher | Tentes | `tools/merchant/generate_tente_boucher.py` |
+| `canon_medieval` | Canon médiéval | Artillerie | `tools/merchant/generate_canon_medieval.py` |
+
+**Obtenir / poser** : `/give @p medievalships:tente_poison` (de même `tente_boucher`, `canon_medieval`), ou
+`/tent give canon_medieval`, ou dans les onglets Tentes et Artillerie. Noms courts pour `/tent place` : `poison`,
+`boucher`, et `canon` (ou `cannon`, `medieval`). Clic droit au sol : l'entrée d'une tente fait face au joueur ;
+pour le canon, c'est la **culasse** qui fait face au joueur, la **gueule pointe là où il regardait** (il se pose
+comme on le servirait, depuis l'arrière). `/tent remove`, casser le bloc d'ancrage (le canon rend son objet) :
+comme les autres.
+
+**Ce qu'on y trouve** (d'après les images de référence) :
+
+- **Vendeur de poisons** : étal violet et beige à franges dentelées bordées d'or, quatre poteaux à chapiteaux
+  dorés, lanternes aux deux poteaux avant, grande bannière violette au crâne au-dessus d'une fiole orange pendue à
+  une tringle à l'avant gauche ; comptoir de bois avec un chemin de table violet à dents dorées, étagères du fond
+  pleines de fioles rondes (violettes, vertes, rouges, orange) et de petites bouteilles, plantes toxiques et herbes
+  séchées pendues au faîtage, champignons ; à l'avant gauche un **chaudron noir sur une caisse au liquide vert
+  bouillonnant et lumineux** ; tonneaux et caisses. Ambiance mystérieuse et dangereuse.
+- **Boucher** : même étal en rouge et beige, bannière rouge aux deux **couperets croisés**, lanternes ; quartiers
+  de viande pendus aux crochets du faîtage (jambons, demi-carcasse / carré de côtes, chapelets de saucisses),
+  comptoir couvert de pièces crues et d'une nappe crème à dents rouges, gros **billot rond** avec un couperet planté
+  à l'avant, tonneau surmonté de viande, caisses de viande, étagères, tonneaux.
+- **Canon médiéval** (432 cubes, environ 4 blocs de long × 2,4 de large × 2,1 de haut) : long fût de fonte noire à
+  seize pans avec ses renforts (anneaux), gueule évasée à bourrelet épais autour de l'âme visible, gros anneau de
+  culasse, culasse bombée et lourd bouton de culasse, anse de levage et lumière sur le dessus ; tourillons posés dans
+  un affût de chêne massif : deux flasques en gradins cerclées de bandes de fer boulonnées, sus-bandes de fer sur
+  les tourillons, entretoises avant, milieu et crosse, semelle et coin de mire en bois sous la culasse, crosse
+  posée au sol avec son sabot de fer ; deux grandes roues à huit rayons (jantes rondes à seize segments, bandages
+  de fer rivetés, moyeux cerclés) sur un essieu à fusées de fer ; une petite pile de quatre boulets au sol sous la
+  volée, dans l'emprise (pas de caisses : il doit tenir sur un rempart ou dans un fort). Atlas à lui
+  (`textures/entity/canon_medieval.png`).
+
+**Collisions du canon** : huit boîtes au plus près du modèle (l'affût en quatre gradins, le fût en une boîte au-dessus
+de l'affût, chaque roue, la pile de boulets) : pas de mur invisible, on en fait le tour à pied ; on ne passe pas sous
+la volée (moins de 1,3 bloc). Pour une tente : comme les autres, une place libre d'au moins 1 × 1 × 2,2 blocs
+derrière le comptoir pour un PNJ marchand (EasyNPC), l'avant reste praticable.
+
+**Où poser le canon** : sur la terre ferme et les ouvrages — remparts, chemins de ronde, tours, forts, quais, cours de
+château (sol plein sous au moins 60 % de l'emprise, place libre de 3 × 5 blocs sur 3 de haut). **Un bloc ne
+peut pas être posé SUR un navire en mouvement** : les navires du mod sont des entités, pas des blocs ; le canon se
+pose donc sur un rempart, un fort, un quai, pas sur un pont de navire. Un canon de bord serait un « équipement de
+navire » (pièce du modèle du navire, comme ses sièges et ses lanternes) : travail futur.
+
+### Canon médiéval : architecture du tir
+
+Le tir **n'est pas encore écrit** (clic droit : rien ; aucun ticker ; aucun son ni particule). Tout est préparé
+pour l'ajouter sans toucher au reste :
+
+- **Bloc** : `tent/CannonBlock` (sous-classe de `TentBlock` : même dessin, mêmes collisions `TentCollisions`, même
+  pose et même casse ; `FACING` = côté culasse). Son entité de bloc est un `CannonBlockEntity`.
+- **Entité de bloc** : `tent/CannonBlockEntity`, type à part `medievalships:cannon` (`Tents.CANNON_BLOCK_ENTITY`),
+  dessinée par le même `TentBlockEntityRenderer` que les tentes. Elle garde un `core/CannonState` (immuable, testé
+  en JUnit) : `loaded` (boulet chargé), `powder` (charges de poudre, 0 à 3), `fuseTicks` (mèche allumée : ticks
+  restants, 0 à 200), `lastShotTime` (heure de jeu du dernier tir, -1 = jamais). Sauvé / relu avec l'API de données
+  d'entité de bloc de la 1.21.11 (`writeData(WriteView)` / `readData(ReadView)`, clés `Loaded`, `Powder`,
+  `FuseTicks`, `LastShot`) ; un canon vide n'écrit **aucune** clé. `setCannonState(...)` marque le chunk à sauver.
+- **Bouche** : le JSON `artillery/canon_medieval.json` a, en plus de l'emprise et des boîtes, `"muzzle": [x, y, z]`
+  (le centre de la bouche de l'âme, repère du canon posé face au sud) et `"muzzle_dir": [dx, dy, dz]` (l'axe du fût
+  vers la bouche, normalisé, 5° de hausse), lus par `TentType.muzzle()` (`TentType.Muzzle`, tourné avec
+  l'orientation comme les boîtes : `muzzle(quart)`) ; en monde : `CannonBlockEntity.muzzle()` et
+  `muzzleDirection()`. Champ optionnel : les tentes n'en ont pas.
+- **Bones du modèle** (pour l'animation de recul et de hausse) : `carriage` (pivot sur l'essieu : tout le canon
+  recule avec lui), dessous `barrel` (pivot = axe des tourillons : hausse, recul du fût), `wheel_left` et
+  `wheel_right` (pivot = leur moyeu : elles roulent au recul ; gauche / droite vues par le canonnier derrière la
+  culasse, gauche = -x), `detail` (boulons, bandes : caché au-delà de `tentDecorDistance`) ; sous la racine,
+  `furniture` (les boulets).
+
+Où brancher la suite :
+
+1. **Charger / bourrer / allumer** : `CannonBlock.onUse` (aujourd'hui `PASS`) — un boulet en main → `loaded`, de la
+   poudre → `powder + 1`, un briquet → `fuseTicks` ; tout passe par `CannonBlockEntity.setCannonState`.
+2. **Mèche** : surcharger `getTicker` dans `CannonBlock` pour ne rendre un ticker serveur que si la mèche brûle
+   (`CannonState.lit()`) — un canon au repos ne coûte toujours rien par tick ; le ticker décompte `fuseTicks` puis
+   appelle un `fire()` de `CannonBlockEntity`.
+3. **Tir** (`fire()`) : fumée et éclair (particules) et son à `muzzle()`, projectile (entité boulet) lancé le long
+   de `muzzleDirection()` avec une vitesse selon `powder`, puis `state.fired(heure)`.
+4. **Recul côté client** : envoyer l'état au client (`toInitialChunkDataNbt` / `toUpdatePacket`, pas encore écrits),
+   puis une pose du modèle dans `TentBlockEntityRenderer` qui déplace `carriage`, tourne les roues et le fût.
+
+**Pour les développeurs** : la bibliothèque du canon est `tools/merchant/artillery.py` (rien n'a été ajouté à
+`merchantlib.py`) : son atlas (`Atlas`), `lathe` (corps de révolution à pans en douves inclinées, avec l'âme),
+`disc`, `cylinder_x`, `ball` / `ball_pile`, et `export` (écrit `artillery/<id>.json` avec `muzzle` et
+`muzzle_dir`) ; les roues et l'essieu viennent de `tools/carts/cartlib.py` (`wheel`, `axle`). Java : groupe
+`TentType.ARTILLERY` (dossier `artillery/`), liste `TentTypes.ARTILLERY` (dernière dans `PROPS`), onglet
+`itemGroup.medievalships.artillery`.
+
+**Limites connues / non vérifié** :
+
+- Le tir n'existe pas encore (voir ci-dessus) ; rien ne modifie l'état d'un canon en jeu hors du test.
+- Pas de canon de navire (voir « Où poser le canon »).
+- L'image de référence montre les deux roues aux deux bouts du flanc (perspective incohérente d'une image
+  générée) : le canon suit la description retenue, un affût de campagne à deux roues sur un essieu.
+- Le test en jeu (`TentGameTest`) pose les trois objets une fois chacun et vérifie l'aller-retour NBT de l'état du
+  canon ; son passage en CI n'est pas garanti au moment de l'écriture.
+
 ## Performances
 
 - **Aucun tick** : l'entité de bloc n'a pas de ticker, pas de particules, pas d'animation ; le serveur ne fait rien
@@ -308,6 +414,16 @@ les boîtes de collision se reconstruisent au chargement du chunk.
 - JUnit `Merchant2Test` (1.15.0) : les cinq tentes de `MERCHANTS2` après les douze premières, mêmes vérifications,
   plus une place libre de 1 × 1 × 2,2 blocs pour un PNJ, rien de solide sur le tapis, aucune particule ; le test en
   jeu pose désormais les seize autres tentes (les cinq de la 1.15.0 comprises).
+- JUnit `Merchant3Test` (1.16.0) : les deux étals de `MERCHANTS3` après les dix-sept premières tentes, noms,
+  emprises à l'échelle (toit à deux pans moins haut), quatre poteaux pleins, place libre pour un PNJ, avant
+  praticable, fichiers, modèles chargés, au plus une particule rare et discrète.
+- JUnit `CannonTest` (1.16.0) : le canon seul dans `TentTypes.ARTILLERY`, dernier de `PROPS`, noms courts, taille
+  (3,4 à 4,2 de long, 1,8 à 2,6 de large, 1,8 à 2,4 de haut), boîtes de collision peu nombreuses (affût, fût, deux
+  roues), rien hors de l'emprise, bouche à l'opposé de la culasse et tournée avec l'orientation, lecture du champ
+  `muzzle` (normalisé, optionnel), bones `carriage`, `barrel`, `wheel_left`, `wheel_right` et leurs pivots,
+  fichiers, langues et onglet, règles de `CannonState`. Le test en jeu pose aussi les deux étals et le canon (type
+  d'entité de bloc `medievalships:cannon`, état écrit en NBT puis relu à l'identique par une nouvelle entité, bouche
+  au nord pour un canon tourné au sud, captures).
 
 ## Non vérifié
 

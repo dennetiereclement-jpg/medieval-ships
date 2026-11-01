@@ -687,7 +687,7 @@ public final class ShipCommands {
 		for (ServerPlayerEntity p : players) {
 			p.getInventory().offerOrDrop(new ItemStack(fr.medievalships.tent.Tents.item(type)));
 		}
-		ok(ctx, capitalize(type.frenchName()) + (type.isWorkshop() ? " donné à " : " donnée à ") + players.size() + " joueur(s).");
+		ok(ctx, capitalize(type.frenchName()) + (type.masculine() ? " donné à " : " donnée à ") + players.size() + " joueur(s).");
 		return players.size();
 	}
 

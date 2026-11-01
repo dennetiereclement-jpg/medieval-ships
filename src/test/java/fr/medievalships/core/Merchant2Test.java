@@ -42,6 +42,7 @@ public class Merchant2Test {
 			assertFalse(t.isCart());
 			assertFalse(t.isWorkshop());
 			assertFalse(TentTypes.MERCHANTS.contains(t));
+			assertFalse(TentTypes.MERCHANTS3.contains(t));
 			assertTrue(TentTypes.ALL.contains(t) && TentTypes.PROPS.contains(t), t.id() + " in the tents' tab and the props");
 			assertTrue(t.frenchName().startsWith("tente du vendeur "), t.frenchName());
 			assertTrue(t.englishName().endsWith("Merchant Tent"), t.englishName());

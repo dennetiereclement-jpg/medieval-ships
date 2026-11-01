@@ -38,6 +38,12 @@ import com.google.gson.JsonParser;
  * <p>The crafting workshops are the third family ({@link #group()} {@code "workshops"}, {@link TentTypes#WORKSHOPS}, tab
  * "Ateliers"): files {@code assets/medievalships/workshops/<id>.json}, plus an optional {@code "particles"} list
  * ({@link Particle}: a forge's smoke, an altar's glow) drawn client-side by the anchor block's random display ticks.
+ *
+ * <p>The artillery is the fourth family ({@link #group()} {@code "artillery"}, {@link TentTypes#ARTILLERY}, tab
+ * "Artillerie"): files {@code assets/medievalships/artillery/<id>.json} (written by
+ * {@code tools/merchant/generate_<id>.py}), its own atlas, a {@code CannonBlock} and a {@code CannonBlockEntity} (block
+ * entity type {@code medievalships:cannon}) that keeps a {@link CannonState}, plus the optional {@code "muzzle"}
+ * point and {@code "muzzle_dir"} direction ({@link Muzzle}) where a future shot's smoke and projectile will start.
  */
 public final class TentType {
 	/**
@@ -56,6 +62,21 @@ public final class TentType {
 		public Particle rotate(int quarter) {
 			double[] r = TentType.rotate(x, z, quarter);
 			return new Particle(type, r[0], y, r[1], chance, count);
+		}
+	}
+
+	/**
+	 * The mouth of a cannon's barrel (JSON {@code "muzzle": [x, y, z], "muzzle_dir": [dx, dy, dz]}): the prop-local point
+	 * at the centre of the bore's opening and the unit direction a shot leaves along (normalised on reading; facing
+	 * south like everything in the JSON, turned with the facing by {@link #rotate(int)}). Read for the future firing
+	 * system (smoke, flash, projectile spawn); nothing uses it in game yet.
+	 */
+	public record Muzzle(double x, double y, double z, double dx, double dy, double dz) {
+		/** The muzzle turned by quarter turns (point and direction alike). */
+		public Muzzle rotate(int quarter) {
+			double[] p = TentType.rotate(x, z, quarter);
+			double[] d = TentType.rotate(dx, dz, quarter);
+			return new Muzzle(p[0], y, p[1], d[0], dy, d[1]);
 		}
 	}
 
@@ -83,6 +104,8 @@ public final class TentType {
 
 	/** The three families of one-block props: their JSON folder under {@code assets/medievalships/} and their creative tab. */
 	public static final String TENTS = "tents", CARTS = "carts", WORKSHOPS = "workshops";
+	/** The fourth family: the artillery (the medieval cannon), tab "Artillerie". */
+	public static final String ARTILLERY = "artillery";
 	/** The atlas a prop's model is drawn with when its JSON names none (the tents'). */
 	public static final String DEFAULT_TEXTURE = "textures/entity/tents.png";
 
@@ -101,9 +124,12 @@ public final class TentType {
 	private final List<Particle> particles;
 	/** The particle sources already turned to each facing (index = quarter turns). */
 	private final List<List<Particle>> rotatedParticles = new ArrayList<>();
+	/** The muzzle turned to each facing (index = quarter turns), or null for a prop that is not a gun. */
+	private final Muzzle[] rotatedMuzzle = new Muzzle[4];
+	private final Muzzle muzzle;
 
 	TentType(String group, String texture, String id, String frenchName, String englishName, String model, String decor, Box extent,
-			List<Box> colliders, List<Particle> particles) {
+			List<Box> colliders, List<Particle> particles, Muzzle muzzle) {
 		this.group = group;
 		this.texture = texture;
 		this.id = id;
@@ -114,7 +140,9 @@ public final class TentType {
 		this.extent = extent;
 		this.colliders = List.copyOf(colliders);
 		this.particles = List.copyOf(particles);
+		this.muzzle = muzzle;
 		for (int q = 0; q < 4; q++) {
+			rotatedMuzzle[q] = muzzle == null ? null : muzzle.rotate(q);
 			List<Box> list = new ArrayList<>();
 			for (Box b : colliders) {
 				list.add(rotate(b, q));
@@ -133,7 +161,7 @@ public final class TentType {
 		return id;
 	}
 
-	/** {@link #TENTS}, {@link #CARTS} or {@link #WORKSHOPS}: the JSON folder and the creative tab. */
+	/** {@link #TENTS}, {@link #CARTS}, {@link #WORKSHOPS} or {@link #ARTILLERY}: the JSON folder and the creative tab. */
 	public String group() {
 		return group;
 	}
@@ -144,6 +172,26 @@ public final class TentType {
 
 	public boolean isWorkshop() {
 		return WORKSHOPS.equals(group);
+	}
+
+	/** A piece of artillery (the medieval cannon): a CannonBlock with its own block entity type. */
+	public boolean isCannon() {
+		return ARTILLERY.equals(group);
+	}
+
+	/** Is the French name masculine ("posé", "le canon", "l'atelier") rather than feminine ("posée", "la tente")? */
+	public boolean masculine() {
+		return isWorkshop() || isCannon();
+	}
+
+	/** The muzzle of a gun (facing south), or null when the JSON has none. */
+	public Muzzle muzzle() {
+		return muzzle;
+	}
+
+	/** The muzzle turned to a facing, or null. */
+	public Muzzle muzzle(int quarter) {
+		return rotatedMuzzle[quarter & 3];
 	}
 
 	/** The atlas of the model, relative to {@code assets/medievalships/} ({@code textures/entity/tents.png} or {@code carts.png}). */
@@ -268,7 +316,26 @@ public final class TentType {
 				particles.add(new Particle(type, pos.get(0).getAsDouble(), pos.get(1).getAsDouble(), pos.get(2).getAsDouble(), chance, count));
 			}
 		}
-		return new TentType(group, texture, id, frenchName, englishName, model, decor, extent, colliders, particles);
+		Muzzle muzzle = null;
+		if (root.has("muzzle") && root.get("muzzle").isJsonArray()) {
+			JsonArray m = root.getAsJsonArray("muzzle");
+			double dx = 0, dy = 0, dz = 1;
+			if (root.has("muzzle_dir") && root.get("muzzle_dir").isJsonArray()) {
+				JsonArray d = root.getAsJsonArray("muzzle_dir");
+				dx = d.get(0).getAsDouble();
+				dy = d.get(1).getAsDouble();
+				dz = d.get(2).getAsDouble();
+			}
+			double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+			if (len < 1e-9) {
+				dx = 0;
+				dy = 0;
+				dz = 1;
+				len = 1;
+			}
+			muzzle = new Muzzle(m.get(0).getAsDouble(), m.get(1).getAsDouble(), m.get(2).getAsDouble(), dx / len, dy / len, dz / len);
+		}
+		return new TentType(group, texture, id, frenchName, englishName, model, decor, extent, colliders, particles, muzzle);
 	}
 
 	private static Box box(JsonArray a) {

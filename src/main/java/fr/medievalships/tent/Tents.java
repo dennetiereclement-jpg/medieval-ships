@@ -28,14 +28,17 @@ import fr.medievalships.core.TentType;
 import fr.medievalships.core.TentTypes;
 
 /**
- * Registration of the tents, the carts and the workshops: one block and one block item per {@link TentType}
- * ({@code medievalships:<id>}, {@link TentTypes#PROPS}; a {@link WorkshopBlock} for a workshop), one block entity type
- * for all of them, the creative tabs "Tentes", "Charrettes" and "Ateliers", and the
- * collision registry fed by the block entity load / unload events (chunks loading and unloading; placing and
- * breaking go through the block itself).
+ * Registration of the tents, the carts, the workshops and the artillery: one block and one block item per
+ * {@link TentType} ({@code medievalships:<id>}, {@link TentTypes#PROPS}; a {@link WorkshopBlock} for a workshop, a
+ * {@link CannonBlock} for the cannon), one block entity type {@code tent} for all of them but the cannon, which has
+ * its own ({@code cannon}, {@link CannonBlockEntity}: a persisted state), the creative tabs "Tentes", "Charrettes",
+ * "Ateliers" and "Artillerie", and the collision registry fed by the block entity load / unload events (chunks loading
+ * and unloading; placing and breaking go through the block itself).
  */
 public final class Tents {
 	public static BlockEntityType<TentBlockEntity> BLOCK_ENTITY;
+	/** The cannon's block entity type ({@code medievalships:cannon}), drawn by the same renderer as the tents. */
+	public static BlockEntityType<CannonBlockEntity> CANNON_BLOCK_ENTITY;
 	private static final Map<TentType, TentBlock> BLOCKS = new LinkedHashMap<>();
 	private static final Map<TentType, Item> ITEMS = new LinkedHashMap<>();
 
@@ -64,19 +67,23 @@ public final class Tents {
 			RegistryKey<Block> blockKey = RegistryKey.of(RegistryKeys.BLOCK, MedievalShips.id(type.id()));
 			// solid(): its collision shape is a thin floor, which vanilla would count as "not solid" and let flowing
 			// water wash the prop away; a tent, a cart or a workshop at the water's edge must stay
-			boolean wooden = type.isCart() || type.isWorkshop();
-			AbstractBlock.Settings settings = AbstractBlock.Settings.create().registryKey(blockKey).strength(wooden ? 1.0f : 0.6f)
+			boolean wooden = type.isCart() || type.isWorkshop() || type.isCannon();
+			AbstractBlock.Settings settings = AbstractBlock.Settings.create().registryKey(blockKey)
+					.strength(type.isCannon() ? 2.0f : wooden ? 1.0f : 0.6f)
 					.sounds(wooden ? BlockSoundGroup.WOOD : BlockSoundGroup.WOOL).nonOpaque().solid();
-			// the workshops: the same block, plus their particles (forge smoke, enchanting glyphs...)
-			TentBlock block = Registry.register(Registries.BLOCK, blockKey,
-					type.isWorkshop() ? new WorkshopBlock(type, settings) : new TentBlock(type, settings));
+			// the workshops: the same block, plus their particles (forge smoke, enchanting glyphs...); the cannon: its
+			// own block entity (the state of the future firing system)
+			TentBlock block = Registry.register(Registries.BLOCK, blockKey, type.isWorkshop() ? new WorkshopBlock(type, settings)
+					: type.isCannon() ? new CannonBlock(type, settings) : new TentBlock(type, settings));
 			BLOCKS.put(type, block);
 			RegistryKey<Item> itemKey = RegistryKey.of(RegistryKeys.ITEM, MedievalShips.id(type.id()));
 			ITEMS.put(type, Registry.register(Registries.ITEM, itemKey,
 					new TentItem(block, new Item.Settings().registryKey(itemKey).maxCount(16).useBlockPrefixedTranslationKey())));
 		}
-		BLOCK_ENTITY = Registry.register(Registries.BLOCK_ENTITY_TYPE, MedievalShips.id("tent"),
-				FabricBlockEntityTypeBuilder.create(TentBlockEntity::new, BLOCKS.values().toArray(new Block[0])).build());
+		BLOCK_ENTITY = Registry.register(Registries.BLOCK_ENTITY_TYPE, MedievalShips.id("tent"), FabricBlockEntityTypeBuilder
+				.create(TentBlockEntity::new, BLOCKS.values().stream().filter(b -> !(b instanceof CannonBlock)).toArray(Block[]::new)).build());
+		CANNON_BLOCK_ENTITY = Registry.register(Registries.BLOCK_ENTITY_TYPE, MedievalShips.id("cannon"), FabricBlockEntityTypeBuilder
+				.create(CannonBlockEntity::new, BLOCKS.values().stream().filter(b -> b instanceof CannonBlock).toArray(Block[]::new)).build());
 
 		RegistryKey<ItemGroup> groupKey = RegistryKey.of(RegistryKeys.ITEM_GROUP, MedievalShips.id("tents"));
 		Registry.register(Registries.ITEM_GROUP, groupKey, FabricItemGroup.builder()
@@ -95,6 +102,12 @@ public final class Tents {
 				.icon(() -> new ItemStack(ITEMS.get(TentTypes.WORKSHOP_BLACKSMITH)))
 				.displayName(Text.translatable("itemGroup.medievalships.workshops"))
 				.entries((context, entries) -> TentTypes.WORKSHOPS.forEach(t -> entries.add(ITEMS.get(t))))
+				.build());
+		RegistryKey<ItemGroup> artilleryKey = RegistryKey.of(RegistryKeys.ITEM_GROUP, MedievalShips.id("artillery"));
+		Registry.register(Registries.ITEM_GROUP, artilleryKey, FabricItemGroup.builder()
+				.icon(() -> new ItemStack(ITEMS.get(TentTypes.CANNON)))
+				.displayName(Text.translatable("itemGroup.medievalships.artillery"))
+				.entries((context, entries) -> TentTypes.ARTILLERY.forEach(t -> entries.add(ITEMS.get(t))))
 				.build());
 
 		// the collision boxes follow the chunks: known while the tent's chunk is loaded, forgotten with it

@@ -68,5 +68,9 @@
   "block.medievalships.workshop_engineer": "Engineer's Workshop",
   "block.medievalships.workshop_cook": "Cook's Workshop",
   "block.medievalships.workshop_alchemist": "Alchemist's Workshop",
-  "block.medievalships.workshop_enchanter": "Enchanter's Workshop"
+  "block.medievalships.workshop_enchanter": "Enchanter's Workshop",
+  "block.medievalships.tente_poison": "Poison Merchant Tent",
+  "block.medievalships.tente_boucher": "Butcher's Tent",
+  "itemGroup.medievalships.artillery": "Artillery",
+  "block.medievalships.canon_medieval": "Medieval Cannon"
 }

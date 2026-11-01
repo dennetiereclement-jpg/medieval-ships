@@ -31,6 +31,10 @@ public final class MedievalShipsClient implements ClientModInitializer {
 		// the tents: drawn from their anchor block, their collision boxes known while their chunks are loaded
 		net.minecraft.client.render.block.entity.BlockEntityRendererFactories.register(fr.medievalships.tent.Tents.BLOCK_ENTITY,
 				ctx -> new fr.medievalships.client.render.TentBlockEntityRenderer());
+		// the cannon has its own block entity type (its persisted state) but is drawn exactly like the tents
+		net.minecraft.client.render.block.entity.BlockEntityRendererFactories
+				.<fr.medievalships.tent.TentBlockEntity, fr.medievalships.client.render.TentBlockEntityRenderer.State>register(
+						fr.medievalships.tent.Tents.CANNON_BLOCK_ENTITY, ctx -> new fr.medievalships.client.render.TentBlockEntityRenderer());
 		ResourceLoader.get(ResourceType.CLIENT_RESOURCES).registerReloader(MedievalShips.id("tent_models"),
 				(SynchronousResourceReloader) fr.medievalships.client.render.TentModels::reload);
 		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientBlockEntityEvents.BLOCK_ENTITY_LOAD.register((be, world) -> {

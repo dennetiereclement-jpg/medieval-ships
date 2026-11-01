@@ -68,5 +68,9 @@
   "block.medievalships.workshop_engineer": "Atelier de l'ingénieur",
   "block.medievalships.workshop_cook": "Atelier du cuisinier",
   "block.medievalships.workshop_alchemist": "Atelier de l'alchimiste",
-  "block.medievalships.workshop_enchanter": "Atelier de l'enchanteur"
+  "block.medievalships.workshop_enchanter": "Atelier de l'enchanteur",
+  "block.medievalships.tente_poison": "Tente du vendeur de poisons",
+  "block.medievalships.tente_boucher": "Tente du boucher",
+  "itemGroup.medievalships.artillery": "Artillerie",
+  "block.medievalships.canon_medieval": "Canon médiéval"
 }

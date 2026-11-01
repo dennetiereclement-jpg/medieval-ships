@@ -35,7 +35,7 @@ import fr.medievalships.tent.Tents;
 /**
  * {@code /tent give <id> [players]}, {@code /tent place <id> [x y z] [facing]}, {@code /tent remove [nearest|x y z]},
  * {@code /tent list}, {@code /tent types}. Admin only, like {@code /ship}. Every prop id (tents, carts and workshops,
- * {@link TentTypes#PROPS}) is accepted, also by {@code /ship give}; {@code /cart} is the same command under another name.
+ * {@link TentTypes#PROPS}, the cannon included) is accepted, also by {@code /ship give}; {@code /cart} is the same command under another name.
  * {@code /workshop} (alias {@code /atelier}) is the same tree for the workshops only ({@link TentTypes#WORKSHOPS}): its
  * {@code remove} and {@code list} only see workshops.
  */
@@ -107,7 +107,7 @@ public final class TentCommands {
 		for (ServerPlayerEntity p : players) {
 			p.getInventory().offerOrDrop(new ItemStack(Tents.item(type)));
 		}
-		ok(ctx, capitalize(type.frenchName()) + " donné" + family.e() + " à " + players.size() + " joueur(s).");
+		ok(ctx, capitalize(type.frenchName()) + " donné" + (type.masculine() ? "" : family.e()) + " à " + players.size() + " joueur(s).");
 		return players.size();
 	}
 
@@ -139,8 +139,8 @@ public final class TentCommands {
 		BlockState state = Tents.block(type).getDefaultState().with(TentBlock.FACING, facing);
 		world.setBlockState(pos, state, 3);
 		Tents.block(type).onPlaced(world, pos, state, null, ItemStack.EMPTY);
-		ok(ctx, String.format(Locale.ROOT, "%s posé%s en %s, %s vers %s.", capitalize(type.frenchName()), family.e(), pos.toShortString(),
-				type.isWorkshop() ? "avant" : "entrée", facing.asString()));
+		ok(ctx, String.format(Locale.ROOT, "%s posé%s en %s, %s vers %s.", capitalize(type.frenchName()), type.masculine() ? "" : family.e(),
+				pos.toShortString(), type.isWorkshop() ? "avant" : type.isCannon() ? "culasse" : "entrée", facing.asString()));
 		return 1;
 	}
 
@@ -169,7 +169,8 @@ public final class TentCommands {
 		}
 		world.breakBlock(target.pos(), false);
 		TentCollisions.remove(world, target.pos());
-		ok(ctx, capitalize(target.type().frenchName()) + " retiré" + family.e() + " en " + target.pos().toShortString() + ".");
+		ok(ctx, capitalize(target.type().frenchName()) + " retiré" + (target.type().masculine() ? "" : family.e()) + " en "
+				+ target.pos().toShortString() + ".");
 		return 1;
 	}
 
@@ -191,7 +192,8 @@ public final class TentCommands {
 				break;
 			}
 			ok(ctx, String.format(Locale.ROOT, "- %s [%s] %s vers %s, à %.0f m", capitalize(t.type().frenchName()), t.pos().toShortString(),
-					t.type().isWorkshop() ? "avant" : "entrée", FACINGS[t.quarter() & 3], Math.sqrt(t.pos().getSquaredDistance(p))));
+					t.type().isWorkshop() ? "avant" : t.type().isCannon() ? "culasse" : "entrée", FACINGS[t.quarter() & 3],
+					Math.sqrt(t.pos().getSquaredDistance(p))));
 		}
 		return all.size();
 	}

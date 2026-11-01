@@ -1,0 +1,16 @@
+{
+ "variants": {
+  "facing=north": {
+   "model": "medievalships:block/cannon"
+  },
+  "facing=south": {
+   "model": "medievalships:block/cannon"
+  },
+  "facing=west": {
+   "model": "medievalships:block/cannon"
+  },
+  "facing=east": {
+   "model": "medievalships:block/cannon"
+  }
+ }
+}
