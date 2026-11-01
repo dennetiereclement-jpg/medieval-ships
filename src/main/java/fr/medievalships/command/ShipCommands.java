@@ -1,6 +1,10 @@
 package fr.medievalships.command;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -8,14 +12,18 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import com.mojang.brigadier.tree.CommandNode;
+import com.mojang.brigadier.tree.LiteralCommandNode;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.command.argument.Vec3ArgumentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnReason;
@@ -31,10 +39,12 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.Vec3d;
 
 import fr.medievalships.MedievalShips;
+import fr.medievalships.core.Autopilot;
 import fr.medievalships.core.Gait;
 import fr.medievalships.core.GotoRoutes;
 import fr.medievalships.core.Route;
 import fr.medievalships.core.ShipGeometry;
+import fr.medievalships.core.ShipSelector;
 import fr.medievalships.core.ShipType;
 import fr.medievalships.core.Ships;
 import fr.medievalships.core.ShipPose;
@@ -57,36 +67,74 @@ public final class ShipCommands {
 	private static final SuggestionProvider<ServerCommandSource> GAITS = (ctx, builder) ->
 			CommandSource.suggestMatching(new String[] {"lente", "normale", "rapide"}, builder);
 	private static final SuggestionProvider<ServerCommandSource> MODES = (ctx, builder) ->
-			CommandSource.suggestMatching(new String[] {"pingpong", "loop", "once"}, builder);
+			CommandSource.suggestMatching(new String[] {"pingpong", "loop", "once", "return"}, builder);
+	private static final SuggestionProvider<ServerCommandSource> ENDS = (ctx, builder) ->
+			CommandSource.suggestMatching(new String[] {"stay", "despawn", "despawn_item"}, builder);
+	/** Vessel selectors ({@code /ship as}, {@code /ship test}): names, {@code nearest}, types and UUIDs of the loaded vessels. */
+	private static final SuggestionProvider<ServerCommandSource> SHIPS = (ctx, builder) -> {
+		List<String> out = new ArrayList<>();
+		out.add(ShipSelector.NEAREST);
+		for (ServerWorld world : ctx.getSource().getServer().getWorlds()) {
+			for (ShipEntity ship : ShipTracker.ships(world)) {
+				if (ship.isRemoved()) {
+					continue;
+				}
+				if (ship.hasCustomName()) {
+					out.add(ShipSelector.quote(ship.getCustomName().getString()));
+				}
+				if (!out.contains(ship.shipType().id())) {
+					out.add(ship.shipType().id());
+				}
+				out.add(ship.getUuidAsString().substring(0, 8));
+			}
+		}
+		return CommandSource.suggestMatching(out, builder);
+	};
+
+	/** How a vessel spawned on a route starts ({@code /ship spawn <type> route <name> [wait|go]}). */
+	private enum Start {
+		/** As the stop says: its time, or held if it is a {@code hold} stop. */
+		DEFAULT,
+		/** Held at the stop until {@code /ship route depart}, whatever the stop says. */
+		HOLD,
+		/** Leaves at once. */
+		GO
+	}
 
 	public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
 		LiteralArgumentBuilder<ServerCommandSource> root = CommandManager.literal("ship")
 				.requires(ShipPermissions::isAdmin);
 
-		// /ship give [type] [targets]   /ship spawn [type]   (type: galley | galleon, galley by default)
+		// /ship give [type] [targets]   /ship spawn [type] [<x y z> [yaw]] [route <name> [wait|hold|go]] [named <name>]
 		var give = CommandManager.literal("give")
 				.executes(ctx -> give(ctx, Ships.GALLEY, java.util.List.of(ctx.getSource().getPlayerOrThrow())))
 				.then(CommandManager.argument("targets", EntityArgumentType.players())
 						.executes(ctx -> give(ctx, Ships.GALLEY, EntityArgumentType.getPlayers(ctx, "targets"))));
-		var spawn = CommandManager.literal("spawn").executes(ctx -> spawn(ctx, Ships.GALLEY));
+		var spawn = CommandManager.literal("spawn").executes(ctx -> spawn(ctx, Ships.GALLEY, false, false, false, Start.DEFAULT, false));
+		Map<String, ShipType> words = new LinkedHashMap<>();
 		for (ShipType type : Ships.ALL) {
-			give.then(CommandManager.literal(type.id())
-					.executes(ctx -> give(ctx, type, java.util.List.of(ctx.getSource().getPlayerOrThrow())))
-					.then(CommandManager.argument("targets", EntityArgumentType.players())
-							.executes(ctx -> give(ctx, type, EntityArgumentType.getPlayers(ctx, "targets")))));
-			spawn.then(CommandManager.literal(type.id()).executes(ctx -> spawn(ctx, type)));
+			words.put(type.id(), type);
 		}
-		for (java.util.Map.Entry<String, ShipType> alias : Ships.ALIASES.entrySet()) {
-			ShipType type = alias.getValue();
-			give.then(CommandManager.literal(alias.getKey())
+		words.putAll(Ships.ALIASES);
+		for (Map.Entry<String, ShipType> e : words.entrySet()) {
+			ShipType type = e.getValue();
+			give.then(CommandManager.literal(e.getKey())
 					.executes(ctx -> give(ctx, type, java.util.List.of(ctx.getSource().getPlayerOrThrow())))
 					.then(CommandManager.argument("targets", EntityArgumentType.players())
 							.executes(ctx -> give(ctx, type, EntityArgumentType.getPlayers(ctx, "targets")))));
-			spawn.then(CommandManager.literal(alias.getKey()).executes(ctx -> spawn(ctx, type)));
+			spawn.then(spawnNode(type, e.getKey()));
 		}
 		root.then(give);
 		root.then(spawn);
 		root.then(CommandManager.literal("remove").executes(ShipCommands::remove));
+		root.then(CommandManager.literal("disembark").executes(ctx -> disembark(ctx, false))
+				.then(CommandManager.argument("pos", Vec3ArgumentType.vec3()).executes(ctx -> disembark(ctx, true))));
+		// /ship test <vessel> docked|holding|sailing|finished|empty|at <stop>|aboard <players>  (1 = yes, for /execute store)
+		var test = CommandManager.argument("ship", StringArgumentType.string()).suggests(SHIPS);
+		for (ArgumentBuilder<ServerCommandSource, ?> condition : conditionNodes(null, true)) {
+			test.then(condition);
+		}
+		root.then(CommandManager.literal("test").then(test));
 		root.then(CommandManager.literal("list").executes(ShipCommands::list));
 		root.then(CommandManager.literal("info").executes(ShipCommands::info));
 		root.then(CommandManager.literal("unstuck").executes(ShipCommands::unstuck));
@@ -139,11 +187,25 @@ public final class ShipCommands {
 				.then(CommandManager.literal("addstop")
 						.then(CommandManager.argument("name", StringArgumentType.word()).suggests(ROUTES)
 								.executes(ctx -> addPoint(ctx, ConfigManager.ship(Ships.GALLEY).aiDefaultWaitSeconds, null))
+								.then(CommandManager.literal("hold")
+										.executes(ctx -> addPoint(ctx, Waypoint.HOLD, null))
+										.then(CommandManager.argument("label", StringArgumentType.greedyString())
+												.executes(ctx -> addPoint(ctx, Waypoint.HOLD, StringArgumentType.getString(ctx, "label")))))
 								.then(CommandManager.argument("seconds", IntegerArgumentType.integer(1, 86400))
 										.executes(ctx -> addPoint(ctx, IntegerArgumentType.getInteger(ctx, "seconds"), null))
 										.then(CommandManager.argument("label", StringArgumentType.greedyString())
 												.executes(ctx -> addPoint(ctx, IntegerArgumentType.getInteger(ctx, "seconds"),
 														StringArgumentType.getString(ctx, "label")))))))
+				.then(CommandManager.literal("end")
+						.then(CommandManager.argument("name", StringArgumentType.word()).suggests(ROUTES)
+								.then(CommandManager.argument("end", StringArgumentType.word()).suggests(ENDS)
+										.executes(ShipCommands::routeEnd))))
+				.then(CommandManager.literal("onarrive")
+						.then(CommandManager.argument("name", StringArgumentType.word()).suggests(ROUTES)
+								.then(CommandManager.argument("index", IntegerArgumentType.integer(1))
+										.executes(ctx -> onArrive(ctx, null))
+										.then(CommandManager.argument("command", StringArgumentType.greedyString())
+												.executes(ctx -> onArrive(ctx, StringArgumentType.getString(ctx, "command")))))))
 				.then(CommandManager.literal("edit")
 						.then(CommandManager.argument("name", StringArgumentType.word()).suggests(ROUTES)
 								.then(CommandManager.argument("index", IntegerArgumentType.integer(1))
@@ -165,6 +227,7 @@ public final class ShipCommands {
 												.then(CommandManager.argument("blocks", DoubleArgumentType.doubleArg(0, 256))
 														.executes(ctx -> editPoint(ctx, "depth", DoubleArgumentType.getDouble(ctx, "blocks")))))
 										.then(CommandManager.literal("wait")
+												.then(CommandManager.literal("hold").executes(ctx -> editPoint(ctx, "wait", Waypoint.HOLD)))
 												.then(CommandManager.argument("seconds", IntegerArgumentType.integer(0, 86400))
 														.executes(ctx -> editPoint(ctx, "wait", IntegerArgumentType.getInteger(ctx, "seconds")))))
 										.then(CommandManager.literal("clear").executes(ctx -> editPoint(ctx, "clear", 0))))))
@@ -240,7 +303,184 @@ public final class ShipCommands {
 		// /ship goto ..., /ship destination ... (and the players' /pilote): destinations for the autopilot
 		DestinationCommands.register(dispatcher, root);
 
-		dispatcher.register(root);
+		LiteralCommandNode<ServerCommandSource> node = dispatcher.register(root);
+
+		// /ship as <vessel> <any /ship command>: the command applies to that vessel (name, UUID, type or nearest), as if
+		// run by it (/execute as <ship entity> run ship ... does the same with a vanilla selector)
+		dispatcher.register(CommandManager.literal("ship").requires(ShipPermissions::isAdmin)
+				.then(CommandManager.literal("as")
+						.then(CommandManager.argument("ship", StringArgumentType.string()).suggests(SHIPS)
+								.redirect(node, ctx -> ctx.getSource().withEntity(resolve(ctx.getSource(), StringArgumentType.getString(ctx, "ship")))))));
+
+		// /execute if|unless ship <vessel> docked|holding|sailing|finished|empty|at <stop>|aboard <players> run ...
+		CommandNode<ServerCommandSource> execute = dispatcher.getRoot().getChild("execute");
+		if (execute != null) {
+			for (boolean positive : new boolean[] {true, false}) {
+				CommandNode<ServerCommandSource> branch = execute.getChild(positive ? "if" : "unless");
+				if (branch == null) {
+					continue;
+				}
+				var vessel = CommandManager.argument("ship", StringArgumentType.string()).suggests(SHIPS);
+				for (ArgumentBuilder<ServerCommandSource, ?> condition : conditionNodes(execute, positive)) {
+					vessel.then(condition);
+				}
+				branch.addChild(CommandManager.literal("ship").requires(ShipPermissions::isAdmin).then(vessel).build());
+			}
+		}
+	}
+
+	// ------------------------------------------------------------------ quest scripts: spawn on a route, selectors, tests
+
+	/** {@code spawn <type> [<x y z> [yaw]] [route <name> [wait|hold|go]] [named <name>]}. */
+	private static LiteralArgumentBuilder<ServerCommandSource> spawnNode(ShipType type, String word) {
+		LiteralArgumentBuilder<ServerCommandSource> node = CommandManager.literal(word);
+		spawnTail(node, type, false, false);
+		ArgumentBuilder<ServerCommandSource, ?> yaw = CommandManager.argument("yaw", DoubleArgumentType.doubleArg(-360, 360));
+		spawnTail(yaw, type, true, true);
+		ArgumentBuilder<ServerCommandSource, ?> pos = CommandManager.argument("pos", Vec3ArgumentType.vec3());
+		spawnTail(pos, type, true, false);
+		pos.then(yaw);
+		node.then(pos);
+		return node;
+	}
+
+	private static void spawnTail(ArgumentBuilder<ServerCommandSource, ?> node, ShipType type, boolean hasPos, boolean hasYaw) {
+		node.executes(ctx -> spawn(ctx, type, hasPos, hasYaw, false, Start.DEFAULT, false));
+		node.then(named(type, hasPos, hasYaw, false, Start.DEFAULT));
+		ArgumentBuilder<ServerCommandSource, ?> route = CommandManager.argument("route", StringArgumentType.word()).suggests(ROUTES)
+				.executes(ctx -> spawn(ctx, type, hasPos, hasYaw, true, Start.DEFAULT, false))
+				.then(named(type, hasPos, hasYaw, true, Start.DEFAULT));
+		for (String[] start : new String[][] {{"wait", "HOLD"}, {"hold", "HOLD"}, {"go", "GO"}}) {
+			Start s = Start.valueOf(start[1]);
+			route.then(CommandManager.literal(start[0]).executes(ctx -> spawn(ctx, type, hasPos, hasYaw, true, s, false))
+					.then(named(type, hasPos, hasYaw, true, s)));
+		}
+		node.then(CommandManager.literal("route").then(route));
+	}
+
+	private static LiteralArgumentBuilder<ServerCommandSource> named(ShipType type, boolean hasPos, boolean hasYaw, boolean hasRoute, Start start) {
+		return CommandManager.literal("named").then(CommandManager.argument("ship_name", StringArgumentType.greedyString())
+				.executes(ctx -> spawn(ctx, type, hasPos, hasYaw, hasRoute, start, true)));
+	}
+
+	/**
+	 * The vessel a selector means: {@code nearest} (the usual targeting), a name given with {@code /ship name}, a
+	 * UUID or its first characters, or a type (the nearest one of that type); see {@link ShipSelector}.
+	 */
+	static ShipEntity resolve(ServerCommandSource source, String selector) throws CommandSyntaxException {
+		if (ShipSelector.isNearest(selector)) {
+			return target(source);
+		}
+		List<ShipEntity> ships = new ArrayList<>();
+		List<ShipSelector.Candidate> candidates = new ArrayList<>();
+		Vec3d pos = source.getPosition();
+		for (ServerWorld world : source.getServer().getWorlds()) {
+			for (ShipEntity ship : ShipTracker.ships(world)) {
+				if (ship.isRemoved()) {
+					continue;
+				}
+				ships.add(ship);
+				candidates.add(new ShipSelector.Candidate(ship.hasCustomName() ? ship.getCustomName().getString() : null,
+						ship.getUuidAsString(), ship.shipType().id(), ship.squaredDistanceTo(pos), world == source.getWorld()));
+			}
+		}
+		int i = ShipSelector.match(selector, candidates);
+		if (i < 0) {
+			throw error("Aucun navire ne répond à « " + selector + " » (nom donné avec /ship name, UUID, type ou nearest ; voir /ship list).");
+		}
+		return ships.get(i);
+	}
+
+	/** The vessel of a {@code /ship test} or {@code /execute if ship} command (argument {@code ship}). */
+	private static ShipEntity selected(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
+		return resolve(ctx.getSource(), StringArgumentType.getString(ctx, "ship"));
+	}
+
+	/** A test on a vessel: its result (0 = no; for {@code aboard}, the number of the given players aboard). */
+	private interface Condition {
+		int count(CommandContext<ServerCommandSource> ctx, ShipEntity ship) throws CommandSyntaxException;
+	}
+
+	private static final Map<String, Condition> CONDITIONS = new LinkedHashMap<>();
+
+	static {
+		CONDITIONS.put("docked", (ctx, s) -> s.isAutopilotEnabled()
+				&& (s.autopilot().phase == Autopilot.Phase.DOCKED || s.autopilot().phase == Autopilot.Phase.FINISHED) ? 1 : 0);
+		CONDITIONS.put("holding", (ctx, s) -> s.isAutopilotEnabled() && s.autopilot().holding() ? 1 : 0);
+		CONDITIONS.put("sailing", (ctx, s) -> s.isAutopilotEnabled()
+				&& (s.autopilot().phase == Autopilot.Phase.SAILING || s.autopilot().phase == Autopilot.Phase.RECOVERING) ? 1 : 0);
+		CONDITIONS.put("finished", (ctx, s) -> s.isAutopilotEnabled() && s.autopilot().phase == Autopilot.Phase.FINISHED ? 1 : 0);
+		CONDITIONS.put("empty", (ctx, s) -> s.playersAboard(ctx.getSource().getWorld()).isEmpty() ? 1 : 0);
+	}
+
+	/** Moored (or finished) at the given stop (1 = the first point of the route). */
+	private static final Condition AT = (ctx, s) -> {
+		Autopilot ap = s.autopilot();
+		boolean moored = ap.phase == Autopilot.Phase.DOCKED || ap.phase == Autopilot.Phase.FINISHED;
+		return s.isAutopilotEnabled() && moored && ap.target == IntegerArgumentType.getInteger(ctx, "stop") - 1 ? 1 : 0;
+	};
+
+	/** The number of the given players aboard; 0 (no) unless every one of them is. */
+	private static final Condition ABOARD = (ctx, s) -> {
+		Collection<ServerPlayerEntity> players = EntityArgumentType.getPlayers(ctx, "players");
+		int n = 0;
+		for (ServerPlayerEntity p : players) {
+			if (s.isAboard(p)) {
+				n++;
+			}
+		}
+		return n == players.size() ? n : 0;
+	};
+
+	/**
+	 * The condition nodes under a vessel argument: {@code docked | holding | sailing | finished | empty | at <stop> |
+	 * aboard <players>}. With {@code fork}, they are {@code /execute if|unless} conditions (forking back to {@code execute}).
+	 */
+	private static List<ArgumentBuilder<ServerCommandSource, ?>> conditionNodes(@Nullable CommandNode<ServerCommandSource> fork, boolean positive) {
+		List<ArgumentBuilder<ServerCommandSource, ?>> out = new ArrayList<>();
+		for (Map.Entry<String, Condition> e : CONDITIONS.entrySet()) {
+			out.add(conditional(CommandManager.literal(e.getKey()), e.getValue(), fork, positive));
+		}
+		out.add(CommandManager.literal("at").then(conditional(CommandManager.argument("stop", IntegerArgumentType.integer(1)), AT, fork, positive)));
+		out.add(CommandManager.literal("aboard")
+				.then(conditional(CommandManager.argument("players", EntityArgumentType.players()), ABOARD, fork, positive)));
+		return out;
+	}
+
+	private static <T extends ArgumentBuilder<ServerCommandSource, T>> T conditional(T builder, Condition condition,
+			@Nullable CommandNode<ServerCommandSource> fork, boolean positive) {
+		if (fork != null) {
+			builder.fork(fork, ctx -> (condition.count(ctx, selected(ctx)) > 0) == positive
+					? Collections.singleton(ctx.getSource()) : Collections.emptyList());
+		}
+		return builder.executes(ctx -> {
+			int n = condition.count(ctx, selected(ctx));
+			boolean yes = (n > 0) == positive;
+			if (fork != null && !yes) {
+				throw error("Test échoué.");
+			}
+			ctx.getSource().sendFeedback(() -> Text.literal(yes ? (fork != null ? "Test réussi." : "oui (" + n + ")") : "non")
+					.formatted(yes ? Formatting.GREEN : Formatting.YELLOW), false);
+			return yes ? Math.max(1, n) : 0;
+		});
+	}
+
+	/** {@code /ship disembark [<x y z>]}: the players aboard the targeted vessel step off, on the quay beside it or at the point. */
+	private static int disembark(CommandContext<ServerCommandSource> ctx, boolean hasPos) throws CommandSyntaxException {
+		ShipEntity ship = target(ctx);
+		ServerWorld world = ctx.getSource().getWorld();
+		int aboard = ship.playersAboard(world).size();
+		if (aboard == 0) {
+			ok(ctx, "Personne à bord de " + describe(ship) + ".");
+			return 0;
+		}
+		Vec3d where = hasPos ? Vec3ArgumentType.getVec3(ctx, "pos") : null;
+		int n = ship.disembark(world, where);
+		if (n == 0) {
+			throw error("Aucun quai ni rivage à côté de " + describe(ship) + " : donnez un point (/ship disembark <x> <y> <z>).");
+		}
+		ok(ctx, n + " joueur(s) débarqué(s) de " + describe(ship) + ".");
+		return n;
 	}
 
 	// ------------------------------------------------------------------ nautilus
@@ -355,13 +595,20 @@ public final class ShipCommands {
 	}
 
 	/**
-	 * The ship the command applies to: the one the player rides or stands on, else the one
-	 * he looks at, else the nearest one within 32 blocks.
+	 * The ship the command applies to: the one the command runs as ({@code /ship as}, {@code /execute as}, a stop's
+	 * command), else the one the player rides or stands on, else the one he looks at, else the nearest one within
+	 * 32 blocks.
 	 */
 	static ShipEntity target(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
-		ServerCommandSource source = ctx.getSource();
+		return target(ctx.getSource());
+	}
+
+	static ShipEntity target(ServerCommandSource source) throws CommandSyntaxException {
 		ServerWorld world = source.getWorld();
 		Entity entity = source.getEntity();
+		if (entity instanceof ShipEntity self && !self.isRemoved()) {
+			return self;
+		}
 		if (entity != null) {
 			if (entity.getVehicle() instanceof ShipEntity ship) {
 				return ship;
@@ -402,7 +649,11 @@ public final class ShipCommands {
 	}
 
 	private static Route route(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
-		String name = StringArgumentType.getString(ctx, "name");
+		return route(ctx, "name");
+	}
+
+	private static Route route(CommandContext<ServerCommandSource> ctx, String argument) throws CommandSyntaxException {
+		String name = StringArgumentType.getString(ctx, argument);
 		Route r = ShipData.get(ctx.getSource().getServer()).route(name);
 		if (r == null) {
 			throw error("Itinéraire inconnu : " + name);
@@ -429,16 +680,95 @@ public final class ShipCommands {
 		return s.isEmpty() ? s : Character.toUpperCase(s.charAt(0)) + s.substring(1);
 	}
 
-	private static int spawn(CommandContext<ServerCommandSource> ctx, ShipType type) throws CommandSyntaxException {
+	/**
+	 * {@code /ship spawn <type> [<x y z> [yaw]] [route <name> [wait|hold|go]] [named <name>]}: at the command's position
+	 * (as before), at the point, or at the route's first stop, facing the stop's heading or the next point; on a
+	 * route the vessel is assigned it and moored at the stop, waiting the stop's time, the order to leave ({@code wait}
+	 * / {@code hold}: {@code /ship route depart}) or nothing ({@code go}).
+	 */
+	private static int spawn(CommandContext<ServerCommandSource> ctx, ShipType type, boolean hasPos, boolean hasYaw, boolean hasRoute,
+			Start start, boolean hasName) throws CommandSyntaxException {
 		ServerCommandSource source = ctx.getSource();
-		Vec3d pos = source.getPosition();
-		float yaw = source.getRotation().y;
-		ShipEntity ship = ShipPlacement.place(source.getWorld(), type, pos.x, pos.y, pos.z, yaw, false);
-		if (ship == null) {
-			throw error(String.format(Locale.ROOT, "Pas assez d'eau libre ici pour %s (il faut ~%d x %d blocs d'eau profonde de 2 blocs).",
-					type.frenchName(), (int) Math.ceil(2 * type.hull().tip + 3), (int) Math.ceil(2 * type.hull().maxHalfWidth + 1)));
+		ServerWorld world = source.getWorld();
+		Route route = null;
+		if (hasRoute) {
+			route = route(ctx, "route");
+			if (GotoRoutes.isGoto(route.name)) {
+				throw error("C'est la destination d'un vaisseau, pas un itinéraire.");
+			}
+			if (route.size() < 2) {
+				throw error("Il faut au moins 2 points (de préférence des escales aux extrémités).");
+			}
+			if (route.air != type.geometry().flying()) {
+				throw error(route.air ? "C'est un itinéraire aérien : seul un aéronef peut le suivre."
+						: "C'est un itinéraire maritime : un aéronef a besoin d'un itinéraire aérien (/ship route create <nom> [mode] air).");
+			}
+			if (!world.getRegistryKey().getValue().toString().equals(route.dimension)) {
+				throw error("L'itinéraire " + route.name + " est dans la dimension " + route.dimension + ".");
+			}
 		}
-		ok(ctx, "Navire mis à l'eau : " + describe(ship));
+		Vec3d pos;
+		float yaw;
+		if (hasPos) {
+			pos = Vec3ArgumentType.getVec3(ctx, "pos");
+			yaw = hasYaw ? (float) DoubleArgumentType.getDouble(ctx, "yaw") : source.getRotation().y;
+		} else if (route != null) {
+			int idx = route.firstStop();
+			Waypoint stop = route.get(idx);
+			ShipGeometry g = type.geometry();
+			// a sea stop is near the water; an air stop is where the deck should be: the aircraft's keel one block
+			// lower than ShipPlacement puts it over a clicked block
+			double y = route.air ? stop.y - g.hull().mainDeckY + g.lowestY() - 1.0 : stop.y;
+			pos = new Vec3d(stop.x, y, stop.z);
+			int[] nx = Autopilot.next(route, idx, 1);
+			if (stop.yaw != null) {
+				yaw = stop.yaw.floatValue();
+			} else if (nx != null) {
+				Waypoint n = route.get(nx[0]);
+				yaw = (float) ShipPose.yawOf(n.x - stop.x, n.z - stop.z);
+			} else if (idx > 0) {
+				Waypoint p = route.get(idx - 1);
+				yaw = (float) ShipPose.yawOf(stop.x - p.x, stop.z - p.z);
+			} else {
+				yaw = source.getRotation().y;
+			}
+		} else {
+			pos = source.getPosition();
+			yaw = source.getRotation().y;
+		}
+		ShipEntity ship = ShipPlacement.place(world, type, pos.x, pos.y, pos.z, yaw, false);
+		if (ship == null) {
+			throw error(String.format(Locale.ROOT, "Pas assez %s pour %s%s (il faut ~%d x %d blocs %s).",
+					type.geometry().flying() ? "d'espace libre" : "d'eau libre", type.frenchName(),
+					route != null && !hasPos ? " à l'escale " + (route.firstStop() + 1) + " de " + route.name : " ici",
+					(int) Math.ceil(2 * type.hull().tip + 3), (int) Math.ceil(2 * type.hull().maxHalfWidth + 1),
+					type.geometry().flying() ? "libres" : "d'eau profonde de 2 blocs"));
+		}
+		if (hasName) {
+			ship.setCustomName(Text.literal(StringArgumentType.getString(ctx, "ship_name")));
+		}
+		String msg = (type.geometry().flying() ? "Aéronef mis en place : " : "Navire mis à l'eau : ") + describe(ship);
+		if (route != null) {
+			ship.startRoute(route);
+			Autopilot ap = ship.autopilot();
+			if (start == Start.HOLD) {
+				ap.hold();
+			} else if (start == Start.GO) {
+				ap.departNow();
+			}
+			Waypoint at = ap.currentTarget(route);
+			String state;
+			if (ap.phase == Autopilot.Phase.DOCKED) {
+				state = "à l'escale " + (ap.target + 1) + " (" + at.label(ap.target) + "), "
+						+ (ap.holding() ? "attend l'ordre de départ (/ship as " + ShipSelector.quote(ship.hasCustomName()
+								? ship.getCustomName().getString() : ship.getUuidAsString().substring(0, 8)) + " route depart)"
+						: ap.waitTicks <= 1 ? "part tout de suite" : "part dans " + ap.waitTicks / 20 + " s");
+			} else {
+				state = "en route vers le point " + (ap.target + 1) + (start == Start.HOLD ? " (il y attendra l'ordre de départ)" : "");
+			}
+			msg += ", itinéraire " + route.name + " : " + state + ".";
+		}
+		ok(ctx, msg);
 		return 1;
 	}
 
@@ -457,8 +787,9 @@ public final class ShipCommands {
 		for (ServerWorld world : source.getServer().getWorlds()) {
 			for (ShipEntity ship : ShipTracker.ships(world)) {
 				n++;
-				String ai = ship.isAutopilotEnabled() ? " pilote auto: " + ship.routeName() + " (" + ship.autopilot().phase + ")" : "";
-				String line = "- " + describe(ship) + " " + world.getRegistryKey().getValue() + ai;
+				String ai = ship.isAutopilotEnabled() ? " pilote auto: " + ship.routeName() + " (" + ship.autopilot().phase
+						+ (ship.autopilot().holding() ? ", attend l'ordre de départ" : "") + ")" : "";
+				String line = "- " + describe(ship) + " " + world.getRegistryKey().getValue() + " uuid " + ship.getUuidAsString().substring(0, 8) + ai;
 				source.sendFeedback(() -> Text.literal(line), false);
 			}
 		}
@@ -478,11 +809,11 @@ public final class ShipCommands {
 		ShipEntity ship = target(ctx);
 		String limit = Double.isNaN(ship.speedLimit()) ? "allures" : String.format(Locale.ROOT, "%.1f blocs/s", ship.speedLimit());
 		String text = String.format(Locale.ROOT,
-				"%s%nvitesse %.2f blocs/s, cap %.0f, barre %.2f, allure %s, limite %s%npilote auto %s, itinéraire %s, phase %s, cible %d, attente %d s%npassagers %d/%d",
-				describe(ship), ship.physics().speed, ship.getYaw(), ship.physics().helm, ship.gait().frenchName(), limit,
-				ship.isAutopilotEnabled() ? "oui" : "non", ship.routeName(), ship.autopilot().phase,
-				ship.autopilot().target + 1, ship.autopilot().waitTicks / 20,
-				ship.getPassengerList().size(), ship.geometry().seats().size());
+				"%s (uuid %s)%nvitesse %.2f blocs/s, cap %.0f, barre %.2f, allure %s, limite %s%npilote auto %s, itinéraire %s, phase %s, cible %d, attente %s%npassagers %d/%d, joueurs à bord %d",
+				describe(ship), ship.getUuidAsString().substring(0, 8), ship.physics().speed, ship.getYaw(), ship.physics().helm,
+				ship.gait().frenchName(), limit, ship.isAutopilotEnabled() ? "oui" : "non", ship.routeName(), ship.autopilot().phase,
+				ship.autopilot().target + 1, ship.autopilot().holding() ? "sur ordre (/ship route depart)" : ship.autopilot().waitTicks / 20 + " s",
+				ship.getPassengerList().size(), ship.geometry().seats().size(), ship.playersAboard(ctx.getSource().getWorld()).size());
 		ctx.getSource().sendFeedback(() -> Text.literal(text), false);
 		return 1;
 	}
@@ -570,7 +901,7 @@ public final class ShipCommands {
 		}
 		Route.Mode mode = Route.Mode.byName(modeName);
 		if (mode == null) {
-			throw error("Mode inconnu : pingpong (aller-retour), loop (boucle), once (aller simple).");
+			throw error("Mode inconnu : pingpong (aller-retour sans fin), loop (boucle), once (aller simple), return (aller, puis retour au départ et fin).");
 		}
 		Route route = new Route(name, ctx.getSource().getWorld().getRegistryKey().getValue().toString());
 		route.mode = mode;
@@ -598,11 +929,59 @@ public final class ShipCommands {
 		route.points.add(w);
 		ShipData.get(source.getServer()).putRoute(route);
 		int idx = route.size();
+		String wait = w.holds() ? "attend l'ordre de départ" : waitSeconds + " s";
 		ok(ctx, String.format(Locale.ROOT, route.air ? "Point %d ajouté à %s : %.1f %.1f %.1f%s" : "Point %d ajouté à %s : %.1f %.1f%s",
 				route.air ? new Object[] {idx, route.name, w.x, w.y, w.z, w.isStop() ? " (escale " + (label == null ? "" : label + ", ")
-						+ waitSeconds + " s, cap " + Math.round(w.yaw) + ")" : ""} : new Object[] {idx, route.name, w.x, w.z,
-				w.isStop() ? " (escale " + (label == null ? "" : label + ", ") + waitSeconds + " s)" : ""}));
+						+ wait + ", cap " + Math.round(w.yaw) + ")" : ""} : new Object[] {idx, route.name, w.x, w.z,
+				w.isStop() ? " (escale " + (label == null ? "" : label + ", ") + wait + ")" : ""}));
 		return idx;
+	}
+
+	/** {@code /ship route end <name> <stay|despawn|despawn_item>}: what becomes of the vessel at the end of a once / return route. */
+	private static int routeEnd(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
+		Route route = route(ctx);
+		Route.End end = Route.End.byName(StringArgumentType.getString(ctx, "end"));
+		if (end == null) {
+			throw error("Fin inconnue : stay (le navire reste au terminus), despawn (il disparaît), despawn_item (il disparaît en laissant son objet).");
+		}
+		route.end = end;
+		ShipData.get(ctx.getSource().getServer()).putRoute(route);
+		String note = route.mode == Route.Mode.LOOP || route.mode == Route.Mode.PINGPONG
+				? " (sans effet tant que le mode est " + route.mode.name().toLowerCase(Locale.ROOT) + " : l'itinéraire ne finit jamais)" : "";
+		ok(ctx, "Fin de " + route.name + " : " + switch (end) {
+			case STAY -> "le navire reste au terminus";
+			case DESPAWN -> "le navire attend le temps de la dernière escale (ou l'ordre de départ), débarque les joueurs et disparaît";
+			case DESPAWN_ITEM -> "le navire attend le temps de la dernière escale (ou l'ordre de départ), débarque les joueurs et disparaît en laissant son objet";
+		} + note + ".");
+		return 1;
+	}
+
+	/**
+	 * {@code /ship route onarrive <name> <stop> [command]}: a command the server runs when a vessel reaches the stop
+	 * (as the vessel, with the administrators' permission level); without a command, the stop's one is removed.
+	 */
+	private static int onArrive(CommandContext<ServerCommandSource> ctx, @Nullable String command) throws CommandSyntaxException {
+		Route route = route(ctx);
+		int index = IntegerArgumentType.getInteger(ctx, "index");
+		if (index > route.size()) {
+			throw error("L'itinéraire n'a que " + route.size() + " point(s).");
+		}
+		Waypoint w = route.points.get(index - 1);
+		if (command == null || command.isBlank()) {
+			w.onArrive = null;
+			ShipData.get(ctx.getSource().getServer()).putRoute(route);
+			ok(ctx, "Point " + index + " de " + route.name + " : plus de commande à l'arrivée.");
+			return 1;
+		}
+		String c = command.trim();
+		if (c.startsWith("/")) {
+			c = c.substring(1);
+		}
+		w.onArrive = c;
+		ShipData.get(ctx.getSource().getServer()).putRoute(route);
+		ok(ctx, "Point " + index + " de " + route.name + (w.isStop() ? "" : " (simple point de passage : la commande ne s'exécute qu'à une escale)")
+				+ " : à l'arrivée, le serveur exécutera /" + c + " en tant que navire (niveau de permission " + ConfigManager.server().adminPermissionLevel + ").");
+		return 1;
 	}
 
 	/** Options of one point: heading at the stop, speed of the leg, altitude, waiting time. */
@@ -633,7 +1012,8 @@ public final class ShipCommands {
 			}
 			case "wait" -> {
 				w.waitSeconds = (int) value;
-				msg = value > 0 ? "escale de " + (int) value + " s" : "simple point de passage";
+				msg = value < 0 ? "escale où le navire attend l'ordre de départ (/ship route depart)"
+						: value > 0 ? "escale de " + (int) value + " s" : "simple point de passage";
 			}
 			default -> {
 				w.yaw = null;
@@ -663,11 +1043,12 @@ public final class ShipCommands {
 		Route route = route(ctx);
 		Route.Mode mode = Route.Mode.byName(StringArgumentType.getString(ctx, "mode"));
 		if (mode == null) {
-			throw error("Mode inconnu : pingpong, loop, once.");
+			throw error("Mode inconnu : pingpong (aller-retour sans fin), loop (boucle), once (aller simple), return (aller, puis retour au départ et fin).");
 		}
 		route.mode = mode;
 		ShipData.get(ctx.getSource().getServer()).putRoute(route);
-		ok(ctx, "Mode de " + route.name + " : " + mode.name().toLowerCase(Locale.ROOT));
+		ok(ctx, "Mode de " + route.name + " : " + mode.name().toLowerCase(Locale.ROOT)
+				+ (mode == Route.Mode.ONCE || mode == Route.Mode.RETURN ? " (fin : " + route.end().name().toLowerCase(Locale.ROOT) + ")" : ""));
 		return 1;
 	}
 
@@ -693,15 +1074,18 @@ public final class ShipCommands {
 
 	private static int routeInfo(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
 		Route route = route(ctx);
-		ctx.getSource().sendFeedback(() -> Text.literal(String.format(Locale.ROOT, "%s (%s, %s, %.0f blocs)", route.name,
-				route.mode.name().toLowerCase(Locale.ROOT), route.dimension, route.totalLength())).formatted(Formatting.GOLD), false);
+		boolean ends = route.mode == Route.Mode.ONCE || route.mode == Route.Mode.RETURN;
+		ctx.getSource().sendFeedback(() -> Text.literal(String.format(Locale.ROOT, "%s (%s%s, %s, %.0f blocs)", route.name,
+				route.mode.name().toLowerCase(Locale.ROOT), ends ? ", fin " + route.end().name().toLowerCase(Locale.ROOT) : "", route.dimension,
+				route.totalLength())).formatted(Formatting.GOLD), false);
 		for (int i = 0; i < route.size(); i++) {
 			Waypoint w = route.get(i);
-			String line = String.format(Locale.ROOT, " %d. %.1f %.1f %.1f%s%s%s%s", i + 1, w.x, w.y, w.z,
-					w.isStop() ? " escale " + w.label(i) + " (" + w.waitSeconds + " s)" : "",
+			String line = String.format(Locale.ROOT, " %d. %.1f %.1f %.1f%s%s%s%s%s", i + 1, w.x, w.y, w.z,
+					w.isStop() ? " escale " + w.label(i) + " (" + (w.holds() ? "attend l'ordre de départ" : w.waitSeconds + " s") + ")" : "",
 					w.yaw != null ? " cap " + Math.round(w.yaw) + "°" : "",
 					w.speed != null ? String.format(Locale.ROOT, " %.1f blocs/s", w.speed) : "",
-					w.depth != null ? String.format(Locale.ROOT, " profondeur %.0f m", w.depth) : "");
+					w.depth != null ? String.format(Locale.ROOT, " profondeur %.0f m", w.depth) : "",
+					w.onArrive != null && !w.onArrive.isBlank() ? " à l'arrivée : /" + w.onArrive : "");
 			ctx.getSource().sendFeedback(() -> Text.literal(line), false);
 		}
 		return route.size();

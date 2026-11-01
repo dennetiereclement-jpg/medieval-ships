@@ -136,6 +136,17 @@ Pour tous :
 * **Intérieurs praticables en vol** : on marche sur les ponts et dans les pièces pendant que le
   vaisseau vole ou navigue grâce au système du mod (grille intérieure de collisions qui suit la coque,
   transport des joueurs et des entités à bord), **pas** Valkyrien Skies, qui n'est ni requis ni utilisé.
+* **Scénarios de quêtes / PNJ (Easy NPC, blocs de commande, fonctions), sans Java** : un PNJ fait
+  apparaître un vaisseau à la première escale d'un itinéraire, déjà affecté et amarré en attente de
+  l'ordre (`/ship spawn <type> route <nom> wait named "Le Faucon"`), des escales « sur ordre »
+  (`/ship route addstop <nom> hold …`), le départ sur ordre (`/ship as "Le Faucon" route depart`), des
+  conditions pour `/execute if` (`ship "Le Faucon" aboard @a`, `at <n°>`, `docked`, `holding`, `sailing`,
+  `empty`), des commandes exécutées à l'arrivée à une escale (`/ship route onarrive`, réservées aux
+  administrateurs et exécutées avec leur seul niveau de permission), le débarquement de tous les joueurs
+  sur le quai le plus proche (`/ship disembark`), et la fin du voyage d'un itinéraire `once` / `return`
+  (`/ship route end <nom> stay|despawn|despawn_item`). Valable pour tous les vaisseaux, mer, air et
+  Nautilus. Exemple complet dans
+  [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
 La version 1.9.2 retravaille le Grand Dirigeable de Cristal d'après sa planche : poupe en œuf (coque ronde aux épaules qui se resserre vers la quille, château arrière rond à trois rangées de fenêtres éclairées et toit-terrasse), proue large et bombée avec ses deux grandes fenêtres en éventail à vitraux, gaillard d'avant à bande verte et volutes dorées, long beaupré cerclé de laiton, lanternes et pendentifs de cristal sous l'étrave ; intérieur remeublé d'après les images (poste de pilotage, salon aux canapés rouges, salle des machines, réserve).
 

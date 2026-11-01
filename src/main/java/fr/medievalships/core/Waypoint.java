@@ -2,13 +2,18 @@ package fr.medievalships.core;
 
 /**
  * A route point. {@code waitSeconds > 0} makes it a stop (port, quay): the ship stops there
- * and waits before leaving. {@code gait} optionally overrides the cruising gait on the leg
- * leading to this point.
+ * and waits before leaving; {@link #HOLD} ({@code -1}) makes it a stop where the ship waits
+ * until it is told to leave ({@code /ship route depart}, a quest script). {@code gait}
+ * optionally overrides the cruising gait on the leg leading to this point.
  */
 public final class Waypoint {
+	/** {@link #waitSeconds} of a stop where the vessel waits for the order to leave, however long it takes. */
+	public static final int HOLD = -1;
+
 	public double x;
 	public double y;
 	public double z;
+	/** Seconds waited at this stop; 0 = a point passed without stopping; {@link #HOLD} = until told to leave. */
 	public int waitSeconds;
 	public String name;
 	public String gait;
@@ -22,6 +27,11 @@ public final class Waypoint {
 	 * comes up at the stops.
 	 */
 	public Double depth;
+	/**
+	 * Optional command the server runs when a vessel arrives at this stop ({@code /ship route onarrive}), as the
+	 * vessel (it is {@code @s}, the position is its own), with the permission level of the administrators.
+	 */
+	public String onArrive;
 
 	public Waypoint() {
 	}
@@ -34,8 +44,19 @@ public final class Waypoint {
 		this.name = name;
 	}
 
+	/** A stop (the vessel stops and waits there), timed or held. */
 	public boolean isStop() {
-		return waitSeconds > 0;
+		return waitSeconds != 0;
+	}
+
+	/** A stop where the vessel waits for the order to leave rather than for a time. */
+	public boolean holds() {
+		return waitSeconds < 0;
+	}
+
+	/** Ticks the vessel waits once moored here: negative = until told to leave. */
+	public int dockTicks() {
+		return holds() ? Autopilot.HOLD_TICKS : Math.max(1, waitSeconds) * 20;
 	}
 
 	public String label(int index) {
