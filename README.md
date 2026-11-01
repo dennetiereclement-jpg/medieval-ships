@@ -137,6 +137,8 @@ Pour tous :
   vaisseau vole ou navigue grâce au système du mod (grille intérieure de collisions qui suit la coque,
   transport des joueurs et des entités à bord), **pas** Valkyrien Skies, qui n'est ni requis ni utilisé.
 
+La version 1.9.1 refait l'arrière de deux véhicules d'après leurs planches. Le Grand Dirigeable de Cristal a une poupe ronde en gradins de bois chaud, trois rangées de fenêtres éclairées, une loggia, des panneaux verts sculptés, un toit vert en mansarde à dorures et joyaux, un médaillon et des moteurs ornés de cristaux ; son ballon est un peu plus bas. La Jonque du Dragon a une maison de poupe retravaillée : un pignon au-dessus du porche, des toits aux pentes latérales plus amples, des fenêtres cintrées sombres à l'arrière et une galerie.
+
 La version 1.9.0 ajoute trois véhicules volants, reproduits d'après leurs planches de référence, et les fonctions
 communes décrites ci-dessus :
 
