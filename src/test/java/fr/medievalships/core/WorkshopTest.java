@@ -36,9 +36,9 @@ public class WorkshopTest {
 	@Test
 	void sevenWorkshopsLoadAfterTheTentsAndCarts() {
 		assertEquals(7, TentTypes.WORKSHOPS.size());
-		assertEquals(6 + 6, TentTypes.ALL.size(), "the tents' list: six camp tents and six merchant tents");
+		assertEquals(6 + 6 + 5, TentTypes.ALL.size(), "the tents' list: six camp tents, six merchant tents, the five of 1.15.0");
 		assertEquals(8, TentTypes.CARTS.size(), "the carts' list is unchanged");
-		assertEquals(TentTypes.WORKSHOPS, TentTypes.PROPS.subList(20, 27), "the workshops come last in PROPS");
+		assertEquals(TentTypes.WORKSHOPS, TentTypes.PROPS.subList(25, 32), "the workshops come last in PROPS");
 		Set<String> ids = new HashSet<>();
 		for (TentType t : TentTypes.PROPS) {
 			assertTrue(ids.add(t.id()), "id used twice: " + t.id());

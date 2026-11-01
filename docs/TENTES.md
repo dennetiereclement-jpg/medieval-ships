@@ -207,6 +207,67 @@ lanternes, comptoir, étagères, lierre ; renvoie la disposition : hauteurs, des
 - Le rendu réel des meubles des mods (seulement dans la variante « decor » du test en jeu) et des particules de la
   forge n'ont pas été vus.
 
+## Tentes de marchands II (1.15.0)
+
+Cinq tentes d'étal de plus, du même système que les six de la 1.14.0 (un bloc = toute la tente, modèle statique,
+boîtes de collision, niveaux de détail, aucun tick, aucune particule permanente), du même pavillon
+(`merchantlib.pavilion`) et à la même échelle, rangées dans l'onglet **Tentes** après les six premières
+(`TentTypes.MERCHANTS2`). Chacune a son atlas (`textures/entity/<id>.png`).
+
+| id | nom | couleur / emblème de la bannière | générateur |
+|----|-----|-----|-----|
+| `tente_barde` | Tente du vendeur de barde | bordeaux et beige / lyre d'or sur bannière violette | `tools/merchant/generate_tente_barde.py` |
+| `tente_fusils` | Tente du vendeur de fusils | rouge sombre et beige / mousquets croisés sur bannière sombre | `tools/merchant/generate_tente_fusils.py` |
+| `tente_archer` | Tente du vendeur d'archerie | vert et beige, toit plus bas / arc et flèche | `tools/merchant/generate_tente_archer.py` |
+| `tente_mage` | Tente du vendeur de mage | violet et beige, ornements dorés / étoile d'or | `tools/merchant/generate_tente_mage.py` |
+| `tente_armures` | Tente du vendeur d'armures | bleu marine et beige / écu héraldique | `tools/merchant/generate_tente_armures.py` |
+
+**Obtenir / poser** : `/give @p medievalships:tente_barde` (de même `tente_fusils`, `tente_archer`, `tente_mage`,
+`tente_armures`), ou `/tent give tente_barde`, ou dans l'onglet Tentes. Clic droit au sol : l'entrée fait face au
+joueur. `/tent place barde` (nom court sans `tente_`, ici `barde`, `fusils`, `archer`, `mage`, `armures` ; attention,
+`armurier` reste la tente d'armes et d'armures de la 1.14.0), `/tent remove`, casser le bloc d'ancrage : comme les
+autres tentes. Comme pour la 1.14.0, il faut de la place libre devant l'entrée pour le tapis.
+
+**Pour un PNJ marchand (EasyNPC) et les joueurs** : chaque tente garde à l'intérieur, derrière le comptoir
+principal, une place libre d'au moins 1 × 1 × 2,2 blocs (sans boîte de collision) où poser le PNJ ; l'entrée au
+milieu de l'avant et le tapis devant restent libres (le tapis est plat, sans collision).
+
+**Ce qu'on y trouve** (d'après l'image de référence ; tout est modélisé dans la tente sauf les meubles des mods) :
+
+- **Vendeur de barde** : luths et guitares et petits instruments accrochés au fond, grande harpe dorée, tambours
+  (rouge à cordage doré, naturel), livres de musique et partitions, livre ouvert sur un lutrin, flûtes dans un
+  tonneau, étagères et comptoirs, rideaux bordeaux sur les côtés, tapis violet bordé d'or, lanternes.
+- **Vendeur de fusils** : râtelier de fusils et de mousquets debout le long du fond, long comptoir sous un chemin
+  de table rouge à dents dorées avec un long fusil et un pistolet à barillet, caisses de munitions, petites pièces
+  mécaniques et laiton, tonneaux de poudre, lanternes.
+- **Vendeur d'archerie** : arcs exposés au fond, carquois pleins de flèches à l'empennage blanc, fagots de flèches,
+  arbalètes sur le comptoir drapé de vert, caisses, la **cible ronde d'entraînement** sur son chevalet devant la
+  tente, tapis vert, lanternes ; toit plus bas que les autres pavillons.
+- **Vendeur de mage** : étagères de cristaux bleus et violets et de potions qui luisent (dessinés en pleine
+  lumière, sans particules), bâtons de mage à tête de cristal debout à droite, orbe lumineux sur son support,
+  grimoires ouverts sur le comptoir central drapé de violet à dents dorées, caisses, coffre, tapis violet, lanternes.
+- **Vendeur d'armures** : plusieurs mannequins d'armures de styles différents (chevalier en plates d'argent,
+  soldat plus simple, armure lourde d'acier sombre, armure d'apparat dorée), heaumes de formes variées sur les
+  étagères, cuirasses, grand bouclier bleu à l'aigle d'or devant, coffres et caisses, tapis bleu, lanternes.
+
+**Meubles des mods** : chaque générateur pose ses meubles (caisses, tonneaux, étagères, lanternes, livres...)
+par `Decor` (`interiors/<id>_decor.json`) : le bloc du mod s'il est installé, sinon le bloc vanilla indiqué, sinon
+une boîte de substitution ; ids vérifiés dans le catalogue des mods. Les armes, armures, bâtons, instruments et
+fusils n'existent dans les mods que comme objets (pas comme blocs) : ils sont modélisés dans la tente.
+
+**Pour les développeurs** (ajouts rétrocompatibles de `merchantlib.py`, les six tentes de la 1.14.0 se
+régénèrent à l'identique) : couleurs `burgundy`, `darkred`, `navy`, `charcoal` ; emblèmes `lyre`, `muskets`, `bow`,
+`star`, `shield` (et `cannon`, inutilisé) ; `Atlas(id, colour, banner_colour=..., rug_colour=...)` pour une bannière
+(et le drapeau, les fanions) ou un tapis d'une autre couleur que la toile ; `pavilion(..., roof_rise=2.2)` pour un
+toit plus bas (hauteur du sommet au-dessus des avant-toits, 3,2 par défaut).
+
+**Limites connues / non vérifié** :
+
+- Le test en jeu (`TentGameTest`) pose aussi ces cinq tentes une fois chacune (emprise vérifiée dans la plateforme
+  dégagée) ; son passage en CI n'est pas garanti au moment de l'écriture.
+- Le rendu réel des meubles des mods n'est visible que dans la variante « decor » du test en jeu.
+- Les PNJ EasyNPC ne sont pas fournis : la place est prévue, le PNJ se pose à la main.
+
 ## Performances
 
 - **Aucun tick** : l'entité de bloc n'a pas de ticker, pas de particules, pas d'animation ; le serveur ne fait rien
@@ -244,6 +305,9 @@ les boîtes de collision se reconstruisent au chargement du chunk.
 - JUnit `MerchantTest` (1.14.0) : les six tentes de marchands dans `TentTypes.ALL` et `MERCHANTS`, groupe
   `tents`, noms courts (`/tent place armurier`), emprises à l'échelle, boîtes de collision dans l'emprise, quatre
   poteaux pleins, entrée libre, fichiers (langues, blockstate, objet, icône, modèle, atlas), modèles chargés.
+- JUnit `Merchant2Test` (1.15.0) : les cinq tentes de `MERCHANTS2` après les douze premières, mêmes vérifications,
+  plus une place libre de 1 × 1 × 2,2 blocs pour un PNJ, rien de solide sur le tapis, aucune particule ; le test en
+  jeu pose désormais les seize autres tentes (les cinq de la 1.15.0 comprises).
 
 ## Non vérifié
 

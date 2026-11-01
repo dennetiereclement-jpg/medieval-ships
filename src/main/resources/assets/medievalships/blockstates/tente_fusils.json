@@ -1,0 +1,16 @@
+{
+ "variants": {
+  "facing=north": {
+   "model": "medievalships:block/tent"
+  },
+  "facing=south": {
+   "model": "medievalships:block/tent"
+  },
+  "facing=west": {
+   "model": "medievalships:block/tent"
+  },
+  "facing=east": {
+   "model": "medievalships:block/tent"
+  }
+ }
+}
