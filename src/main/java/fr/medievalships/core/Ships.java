@@ -1286,10 +1286,12 @@ public final class Ships {
 
 	/** The steampunk hot-air balloon: a round striped envelope over a small wooden basket, flying slowly (see {@link BalloonLayout}). */
 	public static final ShipType HOT_AIR_BALLOON = BalloonLayout.type();
+	/** The Blue-Sailed Frigate: a big three-masted ship with rooms, blue sails bearing fleurs-de-lis (see {@link FrigateLayout}). */
+	public static final ShipType BLUE_FRIGATE = FrigateLayout.type();
 
 	public static final List<ShipType> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT, STEAMPUNK_AIRSHIP, NAUTILUS,
 			OLD_CORSAIR, SKY_LEVIATHAN, CRYSTAL_AIRSHIP,
-			RUSTIC_SKIFF, DRAGON_JUNK, HOT_AIR_BALLOON);
+			RUSTIC_SKIFF, DRAGON_JUNK, HOT_AIR_BALLOON, BLUE_FRIGATE);
 
 	/**
 	 * Other names accepted by the commands (the ids used in saves and configs never change):
