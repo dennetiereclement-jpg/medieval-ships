@@ -19,10 +19,12 @@ import fr.medievalships.tent.TentBlock;
 import fr.medievalships.tent.TentCollisions;
 
 /**
- * In-game checks of the tents (about 15 s of game time): {@code /tent place tent_adventurer} on a stone platform,
- * the anchor block and its facing, a survival player walking into a front leg is stopped by its collision box (the
- * static boxes of TentCollisions through the entity collision mixin), screenshots, {@code /tent remove}, the block
- * and the boxes are gone. Called once from {@link ShipClientGameTest}.
+ * In-game checks of the tents (about 40 s of game time). The adventurer tent in detail: {@code /tent place} on a
+ * stone platform, the anchor block and its facing, a survival player walking into a front leg is stopped by its
+ * collision box (the static boxes of TentCollisions through the entity collision mixin), screenshots,
+ * {@code /tent remove}, the block and the boxes are gone. Then each of the five other tents once: placed, block and
+ * facing and block entity, its first collision box answers a collision query, one screenshot, removed. Called once
+ * from {@link ShipClientGameTest}.
  */
 public final class TentGameTest {
 	private static final TentType TYPE = TentTypes.ADVENTURER;
@@ -54,6 +56,64 @@ public final class TentGameTest {
 		});
 	}
 
+	/** Puts the player's eyes at (ex, ey, ez) looking at (tx, ty, tz). */
+	private static void look(TestServerContext server, double ex, double ey, double ez, double tx, double ty, double tz) {
+		double dx = tx - ex, dy = ty - ey, dz = tz - ez;
+		float yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+		float pitch = (float) -Math.toDegrees(Math.atan2(dy, Math.hypot(dx, dz)));
+		server.runCommand(String.format(Locale.ROOT, "tp @p %.3f %.3f %.3f %.1f %.1f", ex, ey - 1.62, ez, yaw, pitch));
+	}
+
+	/** Places one tent facing south on the platform, checks block, facing, block entity, one collision box, one shot, removes it. */
+	private static void quick(TentType type, ClientGameTestContext context, TestServerContext server, TestClientWorldContext world,
+			BiConsumer<Boolean, String> check, Consumer<String> shot) {
+		String id = type.id();
+		BlockPos a = anchor();
+		int before = server.computeOnServer(srv -> TentCollisions.count(srv.getOverworld()));
+		server.runCommand(String.format(Locale.ROOT, "tent place %s %d %d %d south", id, a.getX(), a.getY(), a.getZ()));
+		world.waitForChunksRender();
+		context.waitTicks(20);
+		Object[] b0 = server.computeOnServer(srv -> {
+			ServerWorld w = srv.getOverworld();
+			var state = w.getBlockState(a);
+			boolean tent = state.getBlock() instanceof TentBlock b && b.tentType() == type;
+			return new Object[] {tent, tent ? state.get(TentBlock.FACING).asString() : state.getBlock().toString(), TentCollisions.count(w),
+					w.getBlockEntity(a) != null};
+		});
+		check.accept(Boolean.TRUE.equals(b0[0]), String.format(Locale.ROOT, "%s placed: anchor block at %s (%s)", id, a.toShortString(), b0[1]));
+		check.accept("south".equals(b0[1]), id + " faces south (" + b0[1] + ")");
+		check.accept(Boolean.TRUE.equals(b0[3]), id + " has its block entity");
+		check.accept((Integer) b0[2] == before + 1, id + " registered its collision boxes (" + b0[2] + " tent(s) in the registry)");
+		// one collision: the tent's first world box answers a collision query through TentCollisions.append (the mixin's path)
+		int hits = server.computeOnServer(srv -> {
+			ServerWorld w = srv.getOverworld();
+			var boxes = TentCollisions.worldBoxes(type, a, TentType.SOUTH);
+			if (boxes.isEmpty()) {
+				return -1;
+			}
+			java.util.List<net.minecraft.util.shape.VoxelShape> out = new java.util.ArrayList<>();
+			TentCollisions.append(out, null, boxes.get(0).expand(0.05), w);
+			return out.size();
+		});
+		check.accept(hits >= 1, id + " a collision query on its first solid box finds it (" + hits + " shape(s))");
+		// one screenshot from the front-left, above
+		TentType.Box e = type.extent(TentType.SOUTH);
+		double cx = a.getX() + 0.5, cz = a.getZ() + 0.5;
+		double r = Math.max(e.width(), e.depth()) * 1.15 + 2.0;
+		look(server, cx - r * 0.6, GROUND + 1 + e.height() * 0.8 + 1.5, cz + r * 0.8, cx, GROUND + 1 + e.height() * 0.4, cz);
+		context.waitTicks(25);
+		shot.accept(id + "_1_reference");
+		// removed by position
+		server.runCommand(String.format(Locale.ROOT, "tent remove %d %d %d", a.getX(), a.getY(), a.getZ()));
+		context.waitTicks(10);
+		Object[] b2 = server.computeOnServer(srv -> {
+			ServerWorld w = srv.getOverworld();
+			return new Object[] {w.getBlockState(a).getBlock() instanceof TentBlock, TentCollisions.count(w), w.getBlockEntity(a) != null};
+		});
+		check.accept(!Boolean.TRUE.equals(b2[0]) && !Boolean.TRUE.equals(b2[2]), id + " removed by /tent remove x y z");
+		check.accept((Integer) b2[1] == before, id + " its collision boxes are forgotten (" + b2[1] + " tent(s) left)");
+	}
+
 	public static void run(ClientGameTestContext context, TestServerContext server, TestClientWorldContext world,
 			BiConsumer<Boolean, String> check, Consumer<String> log, Consumer<String> shot) {
 		String id = TYPE.id();
@@ -62,8 +122,8 @@ public final class TentGameTest {
 		server.runCommand(String.format(Locale.ROOT, "tp @p %d %d 0 0 40", X, GROUND + 12));
 		context.waitTicks(20);
 		// a flat stone platform of its own, the air cleared above it
-		server.runCommand(String.format(Locale.ROOT, "fill %d -63 -12 %d %d 12 stone", X - 12, X + 12, GROUND));
-		server.runCommand(String.format(Locale.ROOT, "fill %d %d -12 %d %d 12 air", X - 12, GROUND + 1, X + 12, GROUND + 12));
+		server.runCommand(String.format(Locale.ROOT, "fill %d -63 -14 %d %d 14 stone", X - 14, X + 14, GROUND));
+		server.runCommand(String.format(Locale.ROOT, "fill %d %d -14 %d %d 14 air", X - 14, GROUND + 1, X + 14, GROUND + 12));
 		context.waitTicks(10);
 		BlockPos a = anchor();
 		server.runCommand(String.format(Locale.ROOT, "tent place %s %d %d %d south", id, a.getX(), a.getY(), a.getZ()));
@@ -75,6 +135,11 @@ public final class TentGameTest {
 		check.accept(Boolean.TRUE.equals(b0[3]), id + " has its block entity");
 		check.accept((Integer) b0[2] >= 1, id + " registered its collision boxes (" + b0[2] + " tent(s) in the registry)");
 		if (!Boolean.TRUE.equals(b0[0])) {
+			for (TentType t : TentTypes.ALL) {
+				if (t != TYPE) {
+					quick(t, context, server, world, check, shot);
+				}
+			}
 			return;
 		}
 		// the same tent placed again on top of it is refused (the area is not free)
@@ -85,7 +150,7 @@ public final class TentGameTest {
 
 		// screenshots: the reference's view (front-left, above), the front, the inside
 		context.runOnClient((MinecraftClient c) -> c.options.hudHidden = true);
-		server.runCommand(String.format(Locale.ROOT, "tp @p %.2f %.2f %.2f %.1f %.1f", X - 7.5, GROUND + 5.5, 9.5, 38.0, 22.0));
+		look(server, X - 7.5, GROUND + 5.5, 9.5, X + 0.5, GROUND + 2.0, 0.5);
 		context.waitTicks(25);
 		shot.accept(id + "_1_reference");
 		server.runCommand(String.format(Locale.ROOT, "tp @p %.2f %.2f %.2f %.1f %.1f", X + 0.5, GROUND + 3.0, 11.0, 180.0, 8.0));
@@ -133,6 +198,12 @@ public final class TentGameTest {
 		Object[] b2 = blockAt(server, a);
 		check.accept(!Boolean.TRUE.equals(b2[0]) && !Boolean.TRUE.equals(b2[3]), id + " removed by /tent remove (block " + b2[1] + ")");
 		check.accept((Integer) b2[2] == (Integer) b0[2] - 1, id + " its collision boxes are forgotten (" + b2[2] + " tent(s) left)");
+		// the five other tents, once each
+		for (TentType t : TentTypes.ALL) {
+			if (t != TYPE) {
+				quick(t, context, server, world, check, shot);
+			}
+		}
 		context.runOnClient((MinecraftClient c) -> c.options.hudHidden = false);
 	}
 }

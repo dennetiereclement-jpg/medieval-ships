@@ -148,6 +148,12 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.11.0 ajoute **six tentes médiévales en un seul bloc** (grande tente de commandement, petite tente
+d'aventurier, grand abri de marché, tente triangulaire de campement, tente d'habitation, grande tente de chef) :
+un bloc posé = la tente entière dessinée avec ses meubles des mods de décoration, collisions des poteaux et
+planchers, vérification de place libre, commandes `/tent`, onglet créatif « Tentes », aucun tick. Voir
+[Tentes](#tentes-un-bloc--une-tente) et [docs/TENTES.md](docs/TENTES.md).
+
 La version 1.10.2 affine encore le navire aux voiles bleues après relecture : fleurs de lys redessinées, poupe plus haute à deux rangs de fenêtres éclairées et galeries de hanche, mosaïque de planches bleues continue, voiles ombrées avec focs, huit sabords par bord, lion de proue plus grand, pavillon rouge à croix blanche à l'artimon.
 
 La version 1.10.1 embellit le grand navire aux voiles bleues : bordé bleu roi en vraies virures entre des bandes dorées, sabords à mantelets rouges et canons, poupe dorée aux fenêtres éclairées, proue courbée avec figure de proue et beaupré, voiles bleu clair gonflées aux grandes fleurs de lys noires, cordages et enfléchures, lanternes et pavillon ; le petit voilier passe son test de marche sur le pont.
@@ -338,7 +344,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.10.2.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.11.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
@@ -364,6 +370,7 @@ pour 1.21.11 sur <https://fabricmc.net/develop>.
 * [Modèle Blockbench, textures et animations](docs/MODELE.md)
 * [Architecture technique (marche sur le pont, collisions, IA, performances)](docs/ARCHITECTURE.md)
 * [Tests effectués et non effectués](docs/TESTS.md)
+* [Les six tentes en un bloc : pose, retrait, commandes, meubles](docs/TENTES.md)
 
 ## Configuration
 
@@ -529,8 +536,24 @@ tools/                           générateurs des modèles et rendu d'aperçu (
 
 ## Tentes (un bloc = une tente)
 
-Six tentes médiévales de décor (commandement, aventurier, marché, campement, habitation, chef), chacune étant **un
-seul bloc** à poser : la tente entière est dessinée à partir de ce bloc comme les navires le sont de leur entité,
-les meubles des mods de décoration sont dessinés en place (visuels), poteaux et planchers ont des collisions, rien ne
-« tick ». Onglet créatif « Tentes », `/tent give|place|remove|list`, détails dans [docs/TENTES.md](docs/TENTES.md).
-Première tente livrée : la petite tente d'aventurier (`tent_adventurer`).
+![Les six tentes](docs/preview_tentes.png)
+
+Six tentes médiévales de décor, chacune étant **un seul bloc** à poser : clic droit au sol, l'entrée face au
+joueur, et la tente entière (toile, poteaux, cordes, plancher, lanternes, meubles) est dessinée à partir de ce bloc
+comme les navires le sont de leur entité. Casser le bloc d'ancrage (ou `/tent remove`) retire tout. Les meubles des
+mods de décoration (Furnish, Farmer's Delight, Farmhouse Decorations, Lands of Icaria, Mebahel Dwarven) sont dessinés
+en place, purement visuels, avec un bloc vanilla ou une boîte de substitution quand un mod manque ; poteaux,
+planchers, rambardes et meubles pleins ont des collisions ; rien ne « tick ».
+
+| id | nom | emprise (l × h × p, blocs) | cubes |
+|----|-----|-----|-----|
+| `tent_command` | Grande tente de commandement : 4 gros poteaux penchés, plancher, rambardes, roue de navire, table de stratégie | 10,5 × 8,3 × 8,4 | 449 |
+| `tent_adventurer` | Petite tente d'aventurier : A-frame beige, deux pans ouverts, caisse, tonneau, couchage | 8,3 × 3,8 × 8,8 | 154 |
+| `tent_market` | Grand abri de marché : grande toile sur poteaux, fanions rouges, étals, marchandises, tonneaux | 11,5 × 5,7 × 10,7 | 318 |
+| `tent_camp` | Tente triangulaire de campement : A-frame rustique, entrée ouverte, couchage, rangements | 7,7 × 4,3 × 8,4 | 153 |
+| `tent_dwelling` | Tente d'habitation : intérieur au tapis rouge, lit, table, coffres, et pavillon à tables et bancs | 7,9 × 4,8 × 9,7 | 441 |
+| `tent_chief` | Grande tente de chef : plan polygonal, cône rayé beige/rouge/sombre, piliers, mobilier riche | 10,3 × 8,1 × 10 | 673 |
+
+Onglet créatif « Tentes », `/tent give|place|remove|list|types` (admin, `/ship give <id>` marche aussi), réglages
+`tentDecorDistance` / `tentRenderDistance`. Détails, liste des meubles par tente et tests dans
+[docs/TENTES.md](docs/TENTES.md).
