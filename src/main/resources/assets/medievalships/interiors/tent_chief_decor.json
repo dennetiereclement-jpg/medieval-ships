@@ -1,0 +1,166 @@
+{
+ "blocks": [
+  {
+   "block": "farmhouse_decorations:rug_3x_3",
+   "x": 0.0,
+   "y": 0.12,
+   "z": 0.3,
+   "yaw": 180.0,
+   "scale": 1.35,
+   "fallback": "fallback_0",
+   "alt": "minecraft:red_carpet"
+  },
+  {
+   "block": "furnish:dark_oak_table",
+   "x": -0.5,
+   "y": 0.12,
+   "z": -1.75,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_1"
+  },
+  {
+   "block": "furnish:dark_oak_table",
+   "x": 0.5,
+   "y": 0.12,
+   "z": -1.75,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_2"
+  },
+  {
+   "block": "furnish:dark_oak_chair",
+   "x": 0.0,
+   "y": 0.12,
+   "z": -2.75,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_3"
+  },
+  {
+   "block": "furnish:spruce_chair",
+   "x": -1.65,
+   "y": 0.12,
+   "z": -1.75,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_4"
+  },
+  {
+   "block": "furnish:spruce_chair",
+   "x": 1.65,
+   "y": 0.12,
+   "z": -1.75,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_5"
+  },
+  {
+   "block": "mebahelcreaturesdwarven:dwemer_chest",
+   "x": 2.35,
+   "y": 0.12,
+   "z": -2.45,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_6"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": -2.45,
+   "y": 0.12,
+   "z": -2.3,
+   "yaw": 180.0,
+   "scale": 0.9,
+   "fallback": "fallback_7"
+  },
+  {
+   "block": "furnish:oak_crate",
+   "x": -2.45,
+   "y": 1.02,
+   "z": -2.3,
+   "yaw": 90.0,
+   "scale": 0.75,
+   "fallback": "fallback_8"
+  },
+  {
+   "block": "farmersdelight:rice_bag",
+   "x": -1.55,
+   "y": 0.12,
+   "z": -2.75,
+   "yaw": 180.0,
+   "scale": 0.75,
+   "fallback": "fallback_9"
+  },
+  {
+   "block": "farmhouse_decorations:tall_bookshelf",
+   "x": -2.95,
+   "y": 0.12,
+   "z": 0.4,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_10",
+   "alt": "minecraft:bookshelf"
+  },
+  {
+   "block": "furnish:dark_oak_stool",
+   "x": 2.7,
+   "y": 0.12,
+   "z": 0.9,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_11"
+  },
+  {
+   "block": "landsoficaria:cypress_barrel",
+   "x": 3.25,
+   "y": 0.0,
+   "z": 3.4,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_12",
+   "alt": "minecraft:barrel"
+  },
+  {
+   "block": "landsoficaria:cypress_barrel",
+   "x": -3.3,
+   "y": 0.0,
+   "z": 3.25,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_13",
+   "alt": "minecraft:barrel"
+  },
+  {
+   "block": "farmersdelight:carrot_crate",
+   "x": -3.0,
+   "y": 0.0,
+   "z": 4.2,
+   "yaw": 180.0,
+   "scale": 0.85,
+   "fallback": "fallback_14"
+  },
+  {
+   "block": "farmhouse_decorations:chained_kerosene_lantern",
+   "x": 1.21,
+   "y": 1.85,
+   "z": 3.0767,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_15",
+   "glow": true
+  },
+  {
+   "block": "farmhouse_decorations:chained_kerosene_lantern",
+   "x": -1.229,
+   "y": 1.85,
+   "z": 3.0705,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_16",
+   "glow": true
+  }
+ ],
+ "seats": [],
+ "paintings": [],
+ "switches": []
+}
