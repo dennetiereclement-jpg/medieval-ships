@@ -1,0 +1,62 @@
+{
+ "blocks": [
+  {
+   "block": "farmersdelight:tomato_crate",
+   "x": 3.2,
+   "y": 0.0,
+   "z": 3.37,
+   "yaw": 180.0,
+   "scale": 0.7,
+   "fallback": "fallback_0"
+  },
+  {
+   "block": "farmersdelight:cabbage_crate",
+   "x": 2.45,
+   "y": 0.0,
+   "z": 3.57,
+   "yaw": 180.0,
+   "scale": 0.6,
+   "fallback": "fallback_1"
+  },
+  {
+   "block": "farmersdelight:potato_crate",
+   "x": 3.2,
+   "y": 0.7,
+   "z": 3.37,
+   "yaw": 180.0,
+   "scale": 0.55,
+   "fallback": "fallback_2"
+  },
+  {
+   "block": "farmersdelight:wooden_basket",
+   "x": 0.55,
+   "y": 0.0,
+   "z": 2.55,
+   "yaw": 180.0,
+   "scale": 0.5,
+   "fallback": "fallback_3"
+  },
+  {
+   "block": "landsoficaria:cypress_barrel",
+   "x": -2.5,
+   "y": 0.0,
+   "z": 0.55,
+   "yaw": 270.0,
+   "scale": 0.8,
+   "fallback": "fallback_4",
+   "alt": "minecraft:barrel"
+  },
+  {
+   "block": "farmersdelight:rice_bag",
+   "x": -1.9,
+   "y": 0.0,
+   "z": -1.55,
+   "yaw": 180.0,
+   "scale": 0.6,
+   "fallback": "fallback_5"
+  }
+ ],
+ "seats": [],
+ "paintings": [],
+ "switches": []
+}
