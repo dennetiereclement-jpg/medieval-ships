@@ -114,9 +114,11 @@ public final class ShipModels {
 	/** The Blue-Sailed Frigate: its sails (with their fleurs-de-lis) are a texture of their own; foam at the bow. */
 	public static final Visual BLUE_FRIGATE = new Visual(Ships.BLUE_FRIGATE, model("blue_frigate"),
 			List.of(texture("blue_frigate"), texture("blue_frigate_sails")), 0.45f, 32, 36, true);
+	/** The Rowboat: a very light rocking; its splashes and oar sounds come from {@code RowboatEffects}. */
+	public static final Visual ROWBOAT = new Visual(Ships.ROWBOAT, model("rowboat"), List.of(texture("rowboat")), 0.6f, 5, 4, false);
 	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT,
 			STEAMPUNK_AIRSHIP, NAUTILUS, OLD_CORSAIR, SKY_LEVIATHAN, CRYSTAL_AIRSHIP,
-			RUSTIC_SKIFF, DRAGON_JUNK, HOT_AIR_BALLOON, BLUE_FRIGATE);
+			RUSTIC_SKIFF, DRAGON_JUNK, HOT_AIR_BALLOON, BLUE_FRIGATE, ROWBOAT);
 
 	@Nullable
 	public static Visual of(ShipType type) {

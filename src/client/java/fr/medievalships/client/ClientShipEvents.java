@@ -88,6 +88,7 @@ public final class ClientShipEvents {
 				JunkEffects.tick(world, ship, player);
 				BalloonEffects.tick(world, ship, player);
 				FrigateEffects.tick(world, ship, player);
+				RowboatEffects.tick(world, ship, player);
 			}
 		}
 		rescue(world, player);
