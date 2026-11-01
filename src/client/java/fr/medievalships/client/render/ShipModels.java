@@ -108,9 +108,11 @@ public final class ShipModels {
 	/** The Dragon Junk: its rooms' atlas and its great sail are textures of their own; a light bob in the air. */
 	public static final Visual DRAGON_JUNK = new Visual(Ships.DRAGON_JUNK, model("dragon_junk"),
 			List.of(texture("dragon_junk"), texture("dragon_junk_interior"), texture("dragon_junk_sail")), 0.45f, 30, 26, false, null, null, 0.06f);
+	/** The Rowboat: a very light rocking; its splashes and oar sounds come from {@code RowboatEffects}. */
+	public static final Visual ROWBOAT = new Visual(Ships.ROWBOAT, model("rowboat"), List.of(texture("rowboat")), 0.6f, 5, 4, false);
 	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT,
 			STEAMPUNK_AIRSHIP, NAUTILUS, OLD_CORSAIR, SKY_LEVIATHAN, CRYSTAL_AIRSHIP,
-			RUSTIC_SKIFF, DRAGON_JUNK);
+			RUSTIC_SKIFF, DRAGON_JUNK, ROWBOAT);
 
 	@Nullable
 	public static Visual of(ShipType type) {

@@ -68,6 +68,14 @@ public final class ShipInteractions {
 			cancelled = ship.cancelGoto();
 		}
 		if (ship.isAutopilotEnabled()) {
+			// a boat with no deck to stand on (its floor under the water: the rowboat) is boarded by sitting down: while
+			// the autopilot rows, the click gives a free passenger seat instead
+			if (ship.geometry().hull().mainDeckY < ship.geometry().hull().waterlineY && player.getVehicle() != ship) {
+				int free = ship.freeSeat(false);
+				if (free >= 0 && ship.seat(player, free)) {
+					return;
+				}
+			}
 			player.sendMessage(Text.literal("Le pilote automatique tient la barre (/ship ai disable).").formatted(Formatting.YELLOW), true);
 			return;
 		}

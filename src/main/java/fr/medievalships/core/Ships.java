@@ -1284,9 +1284,12 @@ public final class Ships {
 	/** The Dragon Junk: a flying junk with rooms, its great red sail painted with a black dragon (see {@link JunkLayout}). */
 	public static final ShipType DRAGON_JUNK = JunkLayout.type();
 
+	/** The Rowboat: a small clinker-built rowboat, two seats, a pair of oars (see {@link RowboatLayout}). */
+	public static final ShipType ROWBOAT = RowboatLayout.type();
+
 	public static final List<ShipType> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT, STEAMPUNK_AIRSHIP, NAUTILUS,
 			OLD_CORSAIR, SKY_LEVIATHAN, CRYSTAL_AIRSHIP,
-			RUSTIC_SKIFF, DRAGON_JUNK);
+			RUSTIC_SKIFF, DRAGON_JUNK, ROWBOAT);
 
 	/**
 	 * Other names accepted by the commands (the ids used in saves and configs never change):
