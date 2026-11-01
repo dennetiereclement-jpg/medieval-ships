@@ -46,8 +46,10 @@ def right_counters(props, det, L, rng):
     (fx0, y, fz0, fx1, _, fz1), (sx0, _, sz0, sx1, _, sz1) = L.counter_boxes[0], L.counter_boxes[1]
     cx0 = fx0 + 0.75
     ml.table_cloth(props, "book_cloth", cx0, fx1 + 0.02, fz0, fz1 + 0.02, y, hang=0.5, sides=("front",))
-    pm.wb.open_book(props, "book", ((cx0 + fx1) / 2, y + 0.015, (fz0 + fz1) / 2 + 0.03), w=0.78, d=0.5, yaw=-0.12, cover="book_red",
-                    glow=False, tilt=0.18, lift=0.04)
+    # the big open book propped on a low wooden stand, its pages towards the customers
+    bx, bz = (cx0 + fx1) / 2, (fz0 + fz1) / 2 + 0.03
+    ml.box(props, "book_stand", (bx - 0.38, y + 0.015, bz - 0.3), (bx + 0.38, y + 0.175, bz - 0.02), "wood_dark")
+    pm.wb.open_book(props, "book", (bx, y + 0.015, bz), w=0.95, d=0.62, yaw=-0.1, cover="book_red", glow=False, tilt=0.32, lift=0.05)
     pm.wb.candle(det, "candle_a", (fx0 + 0.18, y, fz0 + 0.22), h=0.34, r=0.06, holder="brass")
     pm.wb.candle(det, "candle_b", (fx0 + 0.42, y, fz0 + 0.14), h=0.2, r=0.05, holder="brass")
     pm.bottle(det, "rc_b0", (fx0 + 0.3, y, fz1 - 0.18), "blue", r=0.07, h=0.16)
