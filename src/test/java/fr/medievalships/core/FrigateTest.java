@@ -76,13 +76,17 @@ class FrigateTest {
 		assertTrue(c.maxTurnRate < corsair.maxTurnRate && c.acceleration < corsair.acceleration && c.waterDrag <= corsair.waterDrag,
 				"heavier and slower than the corsair");
 		// the yard arms, the bowsprit and the boom are probed by the autopilot
-		boolean bowsprit = false, boom = false, yard = false;
+		boolean bowsprit = false, boom = false, yard = false, stern = false, lion = false, headRail = false;
 		for (double[] p : G.probes()) {
 			bowsprit |= p[2] > FrigateLayout.BOWSPRIT_TIP[2] - 0.5;
-			boom |= p[2] < FrigateLayout.BOOM_END_Z + 0.5;
+			boom |= Math.abs(p[2] - FrigateLayout.BOOM_END_Z) < 0.3 && p[1] > FrigateLayout.BOOM_Y - 0.3;
+			stern |= p[2] < FrigateLayout.STERN_REACH_Z + 0.3;
+			lion |= Math.abs(p[2] - FrigateLayout.FIGUREHEAD_PROBE[2]) < 0.1 && Math.abs(p[1] - FrigateLayout.FIGUREHEAD_PROBE[1]) < 0.1;
+			headRail |= Math.abs(p[2] - FrigateLayout.HEAD_RAIL_PROBE[2]) < 0.1 && Math.abs(p[1] - FrigateLayout.HEAD_RAIL_PROBE[1]) < 0.1;
 			yard |= Math.abs(p[0]) > FrigateLayout.YARD_HALF * 0.8;
 		}
 		assertTrue(bowsprit && boom && yard, "probes at the bowsprit end, the boom end and the yard arms");
+		assertTrue(stern && lion && headRail, "probes at the rudder, the lion figurehead and the lowest head rail");
 	}
 
 	private static double floorUnder(double x, double y, double z, InteriorGrid.State s) {
@@ -268,7 +272,7 @@ class FrigateTest {
 		for (String bone : new String[] {"hull", "sterncastle", "rooms", "furniture", "fittings", "detail", "helm_wheel", "rudder",
 				"mast_fore", "mast_main", "mast_mizzen", "sail_fore_course", "sail_fore_topsail", "sail_fore_topgallant", "sail_main_course",
 				"sail_main_topsail", "sail_main_topgallant", "sail_mizzen_topsail", "sail_spanker", "sail_jibs", "flag_fore", "flag_fore_tip",
-				"flag_main", "flag_mizzen", "flag_mizzen_tip", "lantern_stern_p", "lantern_stern_s", "lantern_cathead_p", "lantern_jibboom",
+				"flag_main", "flag_mizzen", "flag_mizzen_tip", "lantern_stern_p", "lantern_stern_s", "lantern_cathead_p", "lantern_cathead_s",
 				"door_0_a", "door_0_b", "rope_slack_fore_brace_p", "rope_slack_main_topmast_stay"}) {
 			assertNotNull(m.bonesByName.get(bone), "bone " + bone);
 		}

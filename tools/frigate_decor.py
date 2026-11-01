@@ -215,7 +215,7 @@ def hold():
     carpenter's tool board, a small table with a stool, lanterns from the beams; the centre line stays
     clear from the foot of the companionway to the bow."""
     for side in (1, -1):
-        for z in (-7.0, -3.5, 7.0, 10.5):
+        for z in (-7.5, -4.5, 7.5, 10.5):
             gun(side, z, "hold")
     f_in = {1: "starboard", -1: "port"}
     # starboard: barrels on cradles, crates, provisions
@@ -258,7 +258,7 @@ def hold():
     custom("coil", name="hold_coil_0", p=(2.4, L, 0.9), r=0.36)
     custom("coil", name="hold_coil_1", p=(-1.9, L, -7.9), r=0.32)
     # shelves of jars on the hull between the guns
-    for z in (-5.6, -4.9):
+    for z in (-6.6, -5.9):
         block(FU + "spruce_shelf", 3.7, L + 1.9, z, "starboard", solid=False, centre=True)
     for k, z in enumerate((-5.8, -5.3, -4.8)):
         block(LI + ("storage_vase" if k % 2 else "brown_storage_vase"), 3.7, L + 2.15, z, "starboard", solid=False, scale=0.3)

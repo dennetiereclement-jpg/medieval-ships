@@ -533,7 +533,7 @@
    "block": "furnish:spruce_shelf",
    "x": 3.356,
    "y": 3.9,
-   "z": -5.6,
+   "z": -6.6,
    "yaw": 90.0,
    "scale": 1.0,
    "fallback": "fallback_58"
@@ -542,7 +542,7 @@
    "block": "furnish:spruce_shelf",
    "x": 3.356,
    "y": 3.9,
-   "z": -4.9,
+   "z": -5.9,
    "yaw": 90.0,
    "scale": 1.0,
    "fallback": "fallback_59"
