@@ -1,0 +1,73 @@
+{
+ "blocks": [
+  {
+   "block": "landsoficaria:cypress_barrel",
+   "x": -3.75,
+   "y": 0.0,
+   "z": 3.4,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_0",
+   "alt": "minecraft:barrel"
+  },
+  {
+   "block": "landsoficaria:cypress_barrel",
+   "x": -3.55,
+   "y": 0.0,
+   "z": 4.45,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_1",
+   "alt": "minecraft:barrel"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": 3.55,
+   "y": 0.0,
+   "z": 3.45,
+   "yaw": 180.0,
+   "scale": 0.85,
+   "fallback": "fallback_2"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": 3.55,
+   "y": 0.85,
+   "z": 3.45,
+   "yaw": 270.0,
+   "scale": 0.7,
+   "fallback": "fallback_3"
+  },
+  {
+   "block": "furnish:dark_oak_crate",
+   "x": 2.75,
+   "y": 0.0,
+   "z": 3.85,
+   "yaw": 180.0,
+   "scale": 0.7,
+   "fallback": "fallback_4"
+  },
+  {
+   "block": "farmhouse_decorations:kerosene_lantern",
+   "x": 2.59,
+   "y": 1.0,
+   "z": 1.8,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_5",
+   "glow": true
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": 2.4,
+   "y": 0.0,
+   "z": -0.98,
+   "yaw": 90.0,
+   "scale": 0.7,
+   "fallback": "fallback_6"
+  }
+ ],
+ "seats": [],
+ "paintings": [],
+ "switches": []
+}

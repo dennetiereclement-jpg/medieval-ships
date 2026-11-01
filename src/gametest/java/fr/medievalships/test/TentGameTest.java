@@ -22,9 +22,10 @@ import fr.medievalships.tent.TentCollisions;
  * In-game checks of the tents (about 40 s of game time). The adventurer tent in detail: {@code /tent place} on a
  * stone platform, the anchor block and its facing, a survival player walking into a front leg is stopped by its
  * collision box (the static boxes of TentCollisions through the entity collision mixin), screenshots,
- * {@code /tent remove}, the block and the boxes are gone. Then each of the five other tents once: placed, block and
- * facing and block entity, its first collision box answers a collision query, one screenshot, removed. Called once
- * from {@link ShipClientGameTest}.
+ * {@code /tent remove}, the block and the boxes are gone. Then each of the eleven other tents once (the five other
+ * camp tents and the six merchant tents of 1.14.0, about 6.5 x 6 blocks plus their rug, 8.2 high: the 29 x 29 platform
+ * and the 12 blocks of air above it hold them): placed, block and facing and block entity, its first collision box
+ * answers a collision query, one screenshot, removed. Called once from {@link ShipClientGameTest}.
  */
 public final class TentGameTest {
 	private static final TentType TYPE = TentTypes.ADVENTURER;
@@ -200,7 +201,7 @@ public final class TentGameTest {
 		Object[] b2 = blockAt(server, a);
 		check.accept(!Boolean.TRUE.equals(b2[0]) && !Boolean.TRUE.equals(b2[3]), id + " removed by /tent remove (block " + b2[1] + ")");
 		check.accept((Integer) b2[2] == (Integer) b0[2] - 1, id + " its collision boxes are forgotten (" + b2[2] + " tent(s) left)");
-		// the five other tents, once each
+		// the eleven other tents (camp tents, then the six merchant tents), once each
 		for (TentType t : TentTypes.ALL) {
 			if (t != TYPE) {
 				quick(t, context, server, world, check, shot);
