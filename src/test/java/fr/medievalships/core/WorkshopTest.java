@@ -36,9 +36,9 @@ public class WorkshopTest {
 	@Test
 	void sevenWorkshopsLoadAfterTheTentsAndCarts() {
 		assertEquals(7, TentTypes.WORKSHOPS.size());
-		assertEquals(6, TentTypes.ALL.size(), "the tents' list is unchanged");
+		assertEquals(6 + 6, TentTypes.ALL.size(), "the tents' list: six camp tents and six merchant tents");
 		assertEquals(8, TentTypes.CARTS.size(), "the carts' list is unchanged");
-		assertEquals(TentTypes.WORKSHOPS, TentTypes.PROPS.subList(14, 21), "the workshops come last in PROPS");
+		assertEquals(TentTypes.WORKSHOPS, TentTypes.PROPS.subList(20, 27), "the workshops come last in PROPS");
 		Set<String> ids = new HashSet<>();
 		for (TentType t : TentTypes.PROPS) {
 			assertTrue(ids.add(t.id()), "id used twice: " + t.id());
@@ -95,8 +95,8 @@ public class WorkshopTest {
 						&& p.y() >= 0 && p.y() <= e.y1() + 3, t.id() + " particle source near the workshop " + p);
 			}
 		}
-		for (TentType t : TentTypes.ALL) {
-			assertTrue(t.particles().isEmpty(), t.id() + ": the tents have no particles");
+		for (TentType t : TentTypes.ALL.subList(0, 6)) {
+			assertTrue(t.particles().isEmpty(), t.id() + ": the camp tents have no particles");
 		}
 	}
 
