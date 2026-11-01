@@ -26,7 +26,8 @@ public class CartTest {
 	void eightCartsLoadBesideTheSixTents() {
 		assertEquals(8, TentTypes.CARTS.size());
 		assertEquals(6 + 6 + 5 + 2 + 2, TentTypes.ALL.size(), "the tents' list: six camp tents, merchant tents I (6), II (5), III (2) and IV (2)");
-		assertEquals(6 + 6 + 5 + 2 + 2 + 8 + 7 + 1, TentTypes.PROPS.size()); // tents, merchant tents I to IV, carts, workshops, the cannon
+		assertEquals(6 + 6 + 5 + 2 + 2 + 8 + 7 + 3 + 1, TentTypes.PROPS.size()); // tents, merchant tents I to IV, carts, workshops,
+		// the training areas, the cannon
 		Set<String> ids = new HashSet<>();
 		for (TentType t : TentTypes.CARTS) {
 			assertTrue(IDS.contains(t.id()), t.id());

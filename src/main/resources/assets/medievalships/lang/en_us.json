@@ -74,5 +74,17 @@
   "block.medievalships.tente_boulanger": "Baker's Stall",
   "block.medievalships.tente_poissonnier": "Fishmonger's Stall",
   "itemGroup.medievalships.artillery": "Artillery",
-  "block.medievalships.canon_medieval": "Medieval Cannon"
+  "block.medievalships.canon_medieval": "Medieval Cannon",
+  "itemGroup.medievalships.training": "Training",
+  "block.medievalships.training_area_dummy": "Strike Training Area",
+  "block.medievalships.training_area_tatami": "Tatami Training Area",
+  "block.medievalships.training_area_shield": "Sword & Shield Training Area",
+  "itemGroup.medievalships.training": "Training",
+  "block.medievalships.training_area_dummy": "Strike Training Area",
+  "block.medievalships.training_area_tatami": "Tatami Training Area",
+  "block.medievalships.training_area_shield": "Sword & Shield Training Area",
+  "itemGroup.medievalships.training": "Training",
+  "block.medievalships.training_area_dummy": "Strike Training Area",
+  "block.medievalships.training_area_tatami": "Tatami Training Area",
+  "block.medievalships.training_area_shield": "Sword & Shield Training Area"
 }

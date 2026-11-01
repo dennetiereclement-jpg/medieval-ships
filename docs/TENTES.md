@@ -65,7 +65,8 @@ compte les cordes et piquets devant et derrière). Les six objets sont dans l'on
 - `/tent list` — les tentes chargées de ce monde, de la plus proche à la plus lointaine.
 - `/tent types` — les ids de tous les objets en un bloc (six tentes, et depuis 1.12.0 / 1.13.0 / 1.14.0 les huit
   [charrettes](CHARRETTES.md), les sept [ateliers](ATELIERS.md) et les six
-  [tentes de marchands](#tentes-de-marchands-1140)).
+  [tentes de marchands](#tentes-de-marchands-1140) ; depuis 1.18.0 les trois
+  [aires d'entraînement](ENTRAINEMENT.md)).
 
 ## Meubles par tente (mods source, substituts)
 

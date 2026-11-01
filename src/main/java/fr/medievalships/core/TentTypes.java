@@ -9,7 +9,8 @@ import java.util.List;
  * are all named after it) and its names. {@link #ALL} = the tents only (their tab "Tentes": the six camp tents, the six
  * {@link #MERCHANTS}, the five {@link #MERCHANTS2}, the two {@link #MERCHANTS3}, then the two {@link #MERCHANTS4}),
  * {@link #CARTS} = the carts (tab "Charrettes"), {@link #WORKSHOPS} = the workshops (tab "Ateliers"),
- * {@link #ARTILLERY} = the cannon (tab "Artillerie"), {@link #PROPS} = all four (registration, commands, models).
+ * {@link #ARTILLERY} = the cannon (tab "Artillerie"), {@link #TRAINING} = the training areas (tab "Entraînement"),
+ * {@link #PROPS} = all five (registration, commands, models).
  */
 public final class TentTypes {
 	public static final TentType COMMAND = TentType.load("tent_command", "grande tente de commandement", "Command Tent");
@@ -88,8 +89,20 @@ public final class TentTypes {
 	/** The artillery (tab "Artillerie"). */
 	public static final List<TentType> ARTILLERY = List.of(CANNON);
 
-	/** Every one-block prop: the tents, then the carts, the workshops, the artillery. */
-	public static final List<TentType> PROPS = java.util.stream.Stream.of(ALL, CARTS, WORKSHOPS, ARTILLERY).flatMap(List::stream).toList();
+	/**
+	 * The training areas (1.18.0): fenced yards of about 7 x 7 blocks drawn as one static model (tools/training/traininglib.py),
+	 * group "training", each with its own atlas, tab "Entraînement".
+	 */
+	public static final TentType TRAINING_DUMMY = training("training_area_dummy", "aire d'entraînement aux frappes", "Strike Training Area");
+	public static final TentType TRAINING_TATAMI = training("training_area_tatami", "aire d'entraînement aux tatamis", "Tatami Training Area");
+	public static final TentType TRAINING_SHIELD = training("training_area_shield", "aire d'entraînement épée et bouclier",
+			"Sword & Shield Training Area");
+	/** The training areas (tab "Entraînement"). */
+	public static final List<TentType> TRAINING = List.of(TRAINING_DUMMY, TRAINING_TATAMI, TRAINING_SHIELD);
+
+	/** Every one-block prop: the tents, then the carts, the workshops, the training areas, the artillery. */
+	public static final List<TentType> PROPS = java.util.stream.Stream.of(ALL, CARTS, WORKSHOPS, TRAINING, ARTILLERY).flatMap(List::stream)
+			.toList();
 
 	private static TentType cart(String id, String frenchName, String englishName) {
 		return TentType.load(TentType.CARTS, id, frenchName, englishName);
@@ -97,6 +110,10 @@ public final class TentTypes {
 
 	private static TentType workshop(String id, String frenchName, String englishName) {
 		return TentType.load(TentType.WORKSHOPS, id, frenchName, englishName);
+	}
+
+	private static TentType training(String id, String frenchName, String englishName) {
+		return TentType.load(TentType.TRAINING, id, frenchName, englishName);
 	}
 
 	private TentTypes() {
@@ -112,7 +129,7 @@ public final class TentTypes {
 		}
 		for (TentType t : PROPS) {
 			if (t.id().equals(s) || t.id().equals("tent_" + s) || t.id().equals("tente_" + s) || t.id().equals("cart_" + s)
-					|| t.id().equals("workshop_" + s) || t.id().equals("canon_" + s)
+					|| t.id().equals("workshop_" + s) || t.id().equals("canon_" + s) || t.id().equals("training_area_" + s)
 					|| t.isCannon() && (s.equals("canon") || s.equals("cannon"))) {
 				return t;
 			}

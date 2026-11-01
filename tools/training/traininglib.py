@@ -284,6 +284,19 @@ def paint_jar(img, rng):
             _px(img, x, y, _jitter(_scale(c, k), rng, 5))
 
 
+def paint_iron_cap(img, rng):
+    """Grey forged iron plate (lighter than the shell's iron), a darker edge and four rivets."""
+    hammered_iron(img, _full(img), _rgb("5e5e64"), rng, dent=0.08)
+    w, h = img.size
+    for y in range(h):
+        for x in range(w):
+            if min(x, y, w - 1 - x, h - 1 - y) == 0:
+                _px(img, x, y, _rgb("3a3a40"))
+    for x, y in ((2, 2), (w - 3, 2), (2, h - 3), (w - 3, h - 3)):
+        _px(img, x, y, _rgb("b4b6bc"))
+        _px(img, x + 1, y + 1, _rgb("2a2a2e"))
+
+
 def paint_terracotta(img, rng):
     w, h = img.size
     for y in range(h):
@@ -458,16 +471,16 @@ def paint_earth_floor(img, rng):
         for x in range(w):
             c = _jitter(_mix(_rgb("6e5034"), _rgb("8a6a46"), rng.random()), rng, 8)
             px[x, y] = c + (255,)
-    stones = [_rgb("8a847a"), _rgb("9a948a"), _rgb("7a746c"), _rgb("8c7a66"), _rgb("a49c90"), _rgb("6e6a64")]
+    stones = [_rgb("857a6c"), _rgb("918676"), _rgb("7a6e60"), _rgb("8c7a66"), _rgb("9a8e7e"), _rgb("6e6458")]
     # bare earth patches where the stones are missing
-    bare = [(rng.uniform(0, w), rng.uniform(0, h), rng.uniform(5, 12)) for _ in range(max(2, w * h // 2200))]
-    step = 6
+    bare = [(rng.uniform(0, w), rng.uniform(0, h), rng.uniform(4, 8)) for _ in range(max(2, w * h // 4000))]
+    step = 5
     for gy in range(-step, h + step, step):
         for gx in range(-step, w + step, step):
             cx, cy = gx + rng.uniform(-1.5, 1.5) + (step / 2 if (gy // step) % 2 else 0), gy + rng.uniform(-1.5, 1.5)
             if any(math.hypot(cx - bx, cy - by) < br for bx, by, br in bare) and rng.random() < 0.8:
                 continue
-            rx_, ry_ = rng.uniform(2.0, 3.2), rng.uniform(1.8, 2.8)
+            rx_, ry_ = rng.uniform(1.8, 2.7), rng.uniform(1.6, 2.4)
             c = rng.choice(stones)
             for y in range(int(cy - ry_ - 1), int(cy + ry_ + 2)):
                 for x in range(int(cx - rx_ - 1), int(cx + rx_ + 2)):
@@ -475,10 +488,10 @@ def paint_earth_floor(img, rng):
                         continue
                     d = math.hypot((x - cx) / rx_, (y - cy) / ry_)
                     if d <= 1.0:
-                        k = 1.14 - 0.3 * d - (0.12 if (x - cx) + (y - cy) > 1 else 0)
+                        k = 1.08 - 0.18 * d - (0.08 if (x - cx) + (y - cy) > 1 else 0)
                         px[x, y] = _jitter(_scale(c, k), rng, 6) + (255,)
                     elif d <= 1.25:
-                        px[x, y] = _jitter(_rgb("4a3624"), rng, 5) + (255,)
+                        px[x, y] = _jitter(_rgb("5a4430"), rng, 5) + (255,)
     for _ in range(w * h // 90):
         x, y = rng.randrange(w), rng.randrange(h)
         px[x, y] = _jitter(rng.choice([_rgb("c9a85a"), _rgb("5a4630"), _rgb("a49c90")]), rng, 8) + (255,)
@@ -565,6 +578,7 @@ _TRAINING = [  # (name, w, h, painter(img, rng))
     ("t_flowers", 32, 32, paint_flowers),
     ("t_jar", 16, 16, paint_jar),
     ("t_terracotta", 16, 16, paint_terracotta),
+    ("t_iron_cap", 16, 16, paint_iron_cap),
 ]
 
 
@@ -675,7 +689,8 @@ def fence_post(A, name, foot, h=FENCE_H, d=0.26, stone=False, pillar=False, caps
     top = foot + UP * (y0 + h)
     beam(A.shell, name, foot + UP * y0, top, d, {"all": "t_rivet_wood", "+1": "end_grain", "-1": "end_grain"})
     if caps:
-        box(A.detail, name + "_cap", top + v3(-d / 2 - 0.025, -0.02, -d / 2 - 0.025), top + v3(d / 2 + 0.025, 0.05, d / 2 + 0.025), "iron")
+        box(A.detail, name + "_cap", top + v3(-d / 2 - 0.025, -0.02, -d / 2 - 0.025), top + v3(d / 2 + 0.025, 0.05, d / 2 + 0.025),
+            "t_iron_cap", stretch=True)
     collide((foot[0] - d / 2 - (0.06 if stone else 0), 0.0, foot[2] - d / 2 - (0.06 if stone else 0),
              foot[0] + d / 2 + (0.06 if stone else 0), max(FENCE_COLLIDE_H, y0 + h), foot[2] + d / 2 + (0.06 if stone else 0)))
     return top + UP * 0.05
@@ -697,7 +712,7 @@ def fence_bay(A, name, p0, p1, h=FENCE_H, rails=(0.38, 0.86), solid=True):
 
 def fence_ring(A, x0, x1, z0, z1, entrance=("front", 0.0, 1.6), post_every=1.4, h=FENCE_H, stone="corners", gaps=()):
     """A post-and-rail fence round the rectangle x0..x1, z0..z1 with an entrance gap: entrance = (side, centre along
-    that side's axis (x for front / back, z for left / right), width >= 1.5) or None. stone = "corners" (stone bases
+    that side's axis (x for front / back, z for left / right), FREE width between the gate posts, >= 1.5) or None. stone = "corners" (stone bases
     under the corner posts), "pillars" (stone pillars at the corners and both sides of the entrance), or None.
     gaps = extra (side, centre, width) openings without gate posts (e.g. where a stall's back stands).
     Returns F: F.posts (dict corner name -> top point: front_left, front_right, back_left, back_right, gate_left,
@@ -724,8 +739,10 @@ def fence_ring(A, x0, x1, z0, z1, entrance=("front", 0.0, 1.6), post_every=1.4, 
             if es != side:
                 continue
             # the gap's start / end as distances along this side
-            t0 = (ec - ew / 2 - a[axis]) / dvec[axis]
-            t1 = (ec + ew / 2 - a[axis]) / dvec[axis]
+            # the gate posts stand outside the free width (their half thickness added; a gap without posts is cut as given)
+            hp = (0.31 if stone == "pillars" else 0.14) if gate else 0.0
+            t0 = (ec - ew / 2 - hp - a[axis]) / dvec[axis]
+            t1 = (ec + ew / 2 + hp - a[axis]) / dvec[axis]
             t0, t1 = min(t0, t1), max(t0, t1)
             cuts.append((t0, t1, gate))
         cuts.sort()
@@ -784,24 +801,24 @@ def dummy(A, name, foot, height=1.75, yaw=0.0, helmet=False, sword=None, shield=
     body_bot = body_top - body_h
     arm_y = body_top - 0.15 * s
     # foot: two crossing planks and a block
-    add_cube(sh, name + "_foot_a", P(0, 0.06, 0), R, (0.8, 0.12, 0.16), "wood_dark")
-    add_cube(sh, name + "_foot_b", P(0, 0.06, 0), R, (0.16, 0.12, 0.8), "wood_dark")
-    add_cube(sh, name + "_foot_c", P(0, 0.16, 0), R, (0.26, 0.14, 0.26), {"all": "wood", "+2": "end_grain"})
+    add_cube(sh, name + "_foot_a", P(0, 0.09, 0), R, (0.5, 0.18, 0.5), {"all": "wood_dark", "+2": "plank_dark"})
+    add_cube(sh, name + "_foot_c", P(0, 0.24, 0), R, (0.3, 0.12, 0.3), {"all": "wood", "+2": "end_grain"})
+    add_cube(det, name + "_foot_b", P(0, 0.06, 0), R, (0.7, 0.1, 0.14), "wood_dark")
     # post (visible under the body)
     add_cube(sh, name + "_post", P(0, (0.2 + body_bot + 0.1) / 2, 0), R, (0.13, body_bot - 0.1, 0.13), "wood")
     # body, rope bands, a straw skirt at the bottom
-    add_cube(sh, name + "_body", P(0, (body_bot + body_top) / 2, 0), R, (0.5 * s, body_h, 0.34 * s),
+    add_cube(sh, name + "_body", P(0, (body_bot + body_top) / 2, 0), R, (0.46 * s, body_h, 0.32 * s),
              {"all": body, "+2": "t_straw_end", "-2": "t_straw_end"}, stretch=True)
     add_cube(det, name + "_skirt", P(0, body_bot - 0.06 * s, 0), R, (0.42 * s, 0.14 * s, 0.28 * s), body, stretch=True)
     for k, t in enumerate((0.3, 0.62)):
         y = body_bot + body_h * t
         add_cube(det, "%s_band_%d" % (name, k), P(0, y, 0), R, (0.52 * s, 0.06, 0.36 * s), "rope")
     # arms (a cross), rope wraps near the ends, little straw fists
-    span = 0.98 * s
-    add_cube(sh, name + "_arms", P(0, arm_y, 0), R, (span, 0.17 * s, 0.17 * s),
+    span = 1.04 * s
+    add_cube(sh, name + "_arms", P(0, arm_y, 0), R, (span, 0.21 * s, 0.2 * s),
              {"all": "t_straw_rope", "+1": "t_straw_end", "-1": "t_straw_end"}, stretch=True)
     for k, sx in enumerate((-1, 1)):
-        add_cube(det, "%s_wrap_%d" % (name, k), P(sx * span * 0.36, arm_y, 0), R, (0.07, 0.19 * s, 0.19 * s), "rope")
+        add_cube(det, "%s_wrap_%d" % (name, k), P(sx * span * 0.34, arm_y, 0), R, (0.07, 0.23 * s, 0.22 * s), "rope")
     # head and neck rope
     add_cube(sh, name + "_head", P(0, neck_y + head / 2, 0), R, (head, head, head * 0.92),
              {"all": body, "+2": "t_straw_end", "-2": "t_straw_end"}, stretch=True)
@@ -895,12 +912,10 @@ def punching_bag(A, name, foot, yaw=0.0, span=1.6, h=2.6, bag_h=1.05, bag_r=0.3,
         octo(det, "%s_bag_rope_%d" % (name, k), P(0, by0 + bag_h * t - 0.03, 0), bag_r + 0.02, 0.06, "rope", yaw=yaw)
     if coil:
         cx = -span / 2
-        for k in range(4):
-            a0, a1 = 2 * math.pi * k / 4, 2 * math.pi * (k + 1) / 4
-            p0 = P(cx + math.cos(a0) * 0.22, h - 0.9 + math.sin(a0) * 0.22, 0.17)
-            p1 = P(cx + math.cos(a1) * 0.22, h - 0.9 + math.sin(a1) * 0.22, 0.17)
-            beam(det, "%s_coil_%d" % (name, k), p0, p1, 0.08, "rope", extend=0.04)
-        add_cube(det, name + "_coil_tie", P(cx, h - 0.62, 0.15), R, (0.1, 0.12, 0.1), "rope")
+        # a skein of rope hung on the front of the left post: two loops side by side, a tie at the top
+        for k, dx in enumerate((-0.07, 0.07)):
+            add_cube(det, "%s_coil_%d" % (name, k), P(cx + dx, h - 0.85, 0.17), R @ rz(0.12 * (1 if k else -1)), (0.12, 0.5, 0.1), "rope")
+        add_cube(det, name + "_coil_tie", P(cx, h - 0.62, 0.17), R, (0.3, 0.1, 0.13), "rope")
         # rope wound round the post foot
         add_cube(det, name + "_post_rope", P(span / 2, 0.55, 0), R, (0.29, 0.16, 0.29), "rope")
     lo = np.minimum(P(-span / 2 - 0.2, 0, -0.2), P(span / 2 + 0.2, 0, 0.2))

@@ -67,7 +67,7 @@ public final class Tents {
 			RegistryKey<Block> blockKey = RegistryKey.of(RegistryKeys.BLOCK, MedievalShips.id(type.id()));
 			// solid(): its collision shape is a thin floor, which vanilla would count as "not solid" and let flowing
 			// water wash the prop away; a tent, a cart or a workshop at the water's edge must stay
-			boolean wooden = type.isCart() || type.isWorkshop() || type.isCannon();
+			boolean wooden = type.isCart() || type.isWorkshop() || type.isCannon() || type.isTraining();
 			AbstractBlock.Settings settings = AbstractBlock.Settings.create().registryKey(blockKey)
 					.strength(type.isCannon() ? 2.0f : wooden ? 1.0f : 0.6f)
 					.sounds(wooden ? BlockSoundGroup.WOOD : BlockSoundGroup.WOOL).nonOpaque().solid();
@@ -102,6 +102,12 @@ public final class Tents {
 				.icon(() -> new ItemStack(ITEMS.get(TentTypes.WORKSHOP_BLACKSMITH)))
 				.displayName(Text.translatable("itemGroup.medievalships.workshops"))
 				.entries((context, entries) -> TentTypes.WORKSHOPS.forEach(t -> entries.add(ITEMS.get(t))))
+				.build());
+		RegistryKey<ItemGroup> trainingKey = RegistryKey.of(RegistryKeys.ITEM_GROUP, MedievalShips.id("training"));
+		Registry.register(Registries.ITEM_GROUP, trainingKey, FabricItemGroup.builder()
+				.icon(() -> new ItemStack(ITEMS.get(TentTypes.TRAINING_DUMMY)))
+				.displayName(Text.translatable("itemGroup.medievalships.training"))
+				.entries((context, entries) -> TentTypes.TRAINING.forEach(t -> entries.add(ITEMS.get(t))))
 				.build());
 		RegistryKey<ItemGroup> artilleryKey = RegistryKey.of(RegistryKeys.ITEM_GROUP, MedievalShips.id("artillery"));
 		Registry.register(Registries.ITEM_GROUP, artilleryKey, FabricItemGroup.builder()
