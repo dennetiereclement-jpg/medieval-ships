@@ -1,0 +1,400 @@
+[18:25:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] blue_frigate: the wheel and the rudder turn with the helm (-0.98)
+[18:25:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] blue_frigate: the sails are set under way (open 1.00)
+[18:25:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] blue_frigate moved 6.36 blocks in 7.5 s at the helm
+[18:25:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] blue_frigate sails under the player's control (moved 6.36)
+[18:25:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] blue_frigate: the hull creaks and the bow wave washes under way (14 sounds)
+[18:25:16] [Server thread/INFO]: Player671 stopped riding Blue-Sailed Frigate
+[18:25:16] [Server thread/INFO]: Set Player671's game mode to Spectator Mode
+[18:25:16] [Server thread/INFO]: Teleported Player671 to 1123.464000, -43.731000, 24.198000
+[18:25:16] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[18:25:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] blue_frigate: still under way, foam at the bow (speed 1.57)
+[18:25:17] [Server thread/INFO]: Unmarked 32 chunks in minecraft:overworld from [67, -4] to [70, 3] for force loading
+[18:25:17] [Server thread/INFO]: Player671 is not riding any vehicle
+[18:25:17] [Server thread/INFO]: No entity was found
+[18:25:17] [Server thread/INFO]: Teleported Player671 to 760.500000, -40.000000, 0.500000
+[18:25:18] [Server thread/INFO]: Successfully filled 5115 block(s)
+[18:25:19] [Server thread/INFO]: Navire mis à l'eau : Petite barque [760 -58 0]
+[18:25:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] rowboat at 760.50 -58.11 0.50 yaw 0.0
+[18:25:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] rowboat floats: water line at y=-58.11 (basin surface -58)
+[18:25:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] rowboat placed: inside nothing
+[18:25:20] [Server thread/INFO]: Teleported Player671 to 764.400000, -57.031000, 4.650000
+[18:25:22] [Server thread/INFO]: Teleported Player671 to 769.500000, -58.131000, 0.500000
+[18:25:23] [Server thread/INFO]: Teleported Player671 to 760.510000, -48.731000, 0.500000
+[18:25:23] [Server thread/INFO]: Set Player671's game mode to Survival Mode
+[18:25:23] [Server thread/INFO]: No items were found on player Player671
+[18:25:23] [Server thread/INFO]: Teleported Player671 to 762.600000, -58.631000, 0.800000
+[18:25:23] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[18:25:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] rowboat the player starts in the water beside it (touching water true)
+[18:25:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] rowboat a click on the hull seats him at the oars (aboard true, seat 0)
+[18:25:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] rowboat the rower sits on his thwart (not standing at a helm)
+[18:25:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] rowboat seated he is out of the water (touching false, y -58.09, surface -58.11)
+[18:25:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] rowboat rows forward under command (6.58 blocks in 3 s)
+[18:25:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] rowboat under way the oars row (weight 0.97, phase 0.00 -> 1.54)
+[18:25:31] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] rowboat turns short (71.2 degrees in 2 s)
+[18:25:31] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] rowboat still seated and dry after rowing
+[18:25:31] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] rowboat rowing: inside nothing
+[18:25:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] rowboat little inertia: 0.86 blocks in 1 s, 2 s after the oars stopped
+[18:25:34] [Server thread/INFO]: Summoned new Armor Stand
+[18:25:34] [Server thread/INFO]: Summoned new Armor Stand
+[18:25:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] rowboat a passenger takes the aft thwart, a third one is refused (1, 0, 2 aboard)
+[18:25:35] [Server thread/INFO]: Player671 stopped riding Rowboat
+[18:25:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] rowboat leaving it lands outside the hull (local 1.60 -0.82 -0.12)
+[18:25:35] [Server thread/INFO]: No items were found on player Player671
+[18:25:35] [Server thread/INFO]: Petite barque donné(e) à 1 joueur(s).
+[18:25:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] rowboat item: /ship give gives it (1)
+[18:25:35] [Server thread/INFO]: Removed 1 item(s) from player Player671
+[18:25:35] [Server thread/INFO]: Killed 2 entities
+[18:25:36] [Server thread/INFO]: Player671 is not riding any vehicle
+[18:25:36] [Server thread/INFO]: Set Player671's game mode to Spectator Mode
+[18:25:36] [Server thread/INFO]: Teleported Player671 to -407.500000, -30.000000, -11.500000
+[18:25:36] [Server thread/INFO]: Marked 24 chunks in minecraft:overworld from [-27, -3] to [-25, 4] to be force loaded
+[18:25:36] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[18:25:37] [Server thread/INFO]: Successfully filled 558 block(s)
+[18:25:37] [Server thread/INFO]: Successfully filled 558 block(s)
+[18:25:37] [Server thread/INFO]: Successfully filled 1962 block(s)
+[18:25:37] [Server thread/INFO]: Successfully filled 1962 block(s)
+[18:25:37] [Server thread/INFO]: Successfully filled 12180 block(s)
+[18:25:37] [Server thread/INFO]: No blocks were filled
+[18:25:37] [Server thread/INFO]: Successfully filled 12180 block(s)
+[18:25:37] [Server thread/INFO]: No blocks were filled
+[18:25:37] [Server thread/INFO]: Successfully filled 12180 block(s)
+[18:25:37] [Server thread/INFO]: No blocks were filled
+[18:25:37] [Server thread/INFO]: Successfully filled 7714 block(s)
+[18:25:37] [Server thread/INFO]: No blocks were filled
+[18:25:37] [Server thread/INFO]: Successfully filled 1904 block(s)
+[18:25:37] [Server thread/INFO]: Could not set the block
+[18:25:37] [Server thread/INFO]: Could not set the block
+[18:25:40] [Server thread/INFO]: Itinéraire inconnu : pnj_traversee
+[18:25:40] [Server thread/INFO]: Itinéraire pnj_traversee créé (once). Ajoutez des points avec /ship route addstop|addpoint pnj_traversee
+[18:25:40] [Server thread/INFO]: Point 1 ajouté à pnj_traversee : -407.5 -21.5 (escale Quai du village, attend l'ordre de départ)
+[18:25:40] [Server thread/INFO]: Point 2 ajouté à pnj_traversee : -407.5 38.5 (escale Port, 8 s)
+[18:25:40] [Server thread/INFO]: Fin de pnj_traversee : le navire attend le temps de la dernière escale (ou l'ordre de départ), débarque les joueurs et disparaît.
+[18:25:40] [Server thread/INFO]: Point 2 de pnj_traversee : à l'arrivée, le serveur exécutera /setblock -395 -47 38 minecraft:gold_block en tant que navire (niveau de permission 2).
+[18:25:40] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] quest route: ONCE DESPAWN 2 points, stop1 wait -1, stop2 wait 8, onarrive setblock -395 -47 38 minecraft:gold_block
+[18:25:40] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] quest: the route is scripted with hold stop, despawn end and arrival command (ONCE DESPAWN 2 points, stop1 wait -1, stop2 wait 8, onarrive setblock -395 -47 38 minecraft:gold_block)
+[18:25:40] [Server thread/INFO]: Navire mis à l'eau : La Sirène [-407 -49 -21], itinéraire pnj_traversee : à l'escale 1 (Quai du village), attend l'ordre de départ (/ship as "La Sirène" route depart).
+[18:25:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] quest spawn: ai true route pnj_traversee phase DOCKED target 0 speed 0.00 holding true at -407.50 -49.11 -21.50 yaw 0.0
+[18:25:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] quest: /ship spawn <type> route <name> wait named <name> spawns the named ship
+[18:25:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] quest: spawned at the first stop of the route, moored and held (ai true route pnj_traversee phase DOCKED target 0 speed 0.00 holding true)
+[18:25:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] quest: spawned at the quay facing the port (-407.5 -21.5 yaw 0.0)
+[18:25:41] [Server thread/INFO]: oui (1)
+[18:25:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] quest: /ship test <name> holding says yes
+[18:25:41] [Server thread/INFO]: non
+[18:25:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] quest: /ship test <name> aboard @p says no before boarding
+[18:25:41] [Server thread/INFO]: oui (1)
+[18:25:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] quest: /ship test <name> at 1 says yes at the quay
+[18:25:41] [Server thread/INFO]: Set Player671's game mode to Survival Mode
+[18:25:41] [Server thread/INFO]: Unable to apply this effect (target is either immune to effects, or has something stronger)
+[18:25:41] [Server thread/INFO]: Teleported Player671 to -407.500000, -48.060000, -23.500000
+[18:25:41] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[18:25:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] quest: player on deck at -407.50 -48.66 -23.50 (deck -48.66)
+[18:25:43] [Server thread/INFO]: oui (1)
+[18:25:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] quest: /ship test <name> aboard @p says yes once the player stands on the deck (1)
+[18:25:43] [Server thread/INFO]: Changed the block at -395, -47, -22
+[18:25:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] quest: /execute if|unless ship <name> aboard @p works as a condition (Block{minecraft:emerald_block})
+[18:25:43] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 2024ms or 40 ticks behind
+[18:25:47] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] quest: held at the quay until told to leave (ai true route pnj_traversee phase DOCKED target 0 speed 0.00 holding true)
+[18:25:47] [Server thread/INFO]: Départ immédiat.
+[18:25:48] [Render thread/INFO]: [System] [CHAT] La Sirène lève l'ancre !
+[18:25:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] quest: /ship as <name> route depart makes it leave towards the port (ai true route pnj_traversee phase SAILING target 1 speed 1.75 holding false)
+[18:25:49] [Server thread/INFO]: oui (1)
+[18:25:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] quest: /ship test <name> sailing says yes under way
+[18:25:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] quest t=1s: z -17.52 (port 38) ai true route pnj_traversee phase SAILING target 1 speed 2.65 holding false
+[18:25:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] quest t=4s: player local 0.00 0.45 -3.05 while sailing
+[18:25:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] quest t=6s: z 5.56 (port 38) ai true route pnj_traversee phase SAILING target 1 speed 5.50 holding false
+[18:26:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] quest t=11s: z 30.39 (port 38) ai true route pnj_traversee phase SAILING target 1 speed 3.44 holding false
+[18:26:04] [Render thread/INFO]: [System] [CHAT] La Sirène est arrivé à Port. Terminus : il repartira dans 8 s.
+[18:26:04] [Server thread/INFO]: Ship La Sirène (8d678288-f44a-4961-8788-8e43f1302556) runs: /setblock -395 -47 38 minecraft:gold_block
+[18:26:04] [Server thread/INFO]: [La Sirène: Changed the block at -395, -47, 38]
+[18:26:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] quest t=15s: z 37.36 (port 38) ai true route pnj_traversee phase DOCKED target 1 speed 0.00 holding false
+[18:26:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] quest: the player is carried on the deck during the crossing
+[18:26:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] quest: sails to the port and moors there (0.81 blocks off, ai true route pnj_traversee phase DOCKED target 1 speed 0.00 holding false)
+[18:26:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] quest: the arrival command of the port ran (Block{minecraft:gold_block})
+[18:26:05] [Server thread/INFO]: oui (1)
+[18:26:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] quest: /ship test <name> at 2 says yes at the port
+[18:26:05] [Server thread/INFO]: 1 joueur(s) débarqué(s) de La Sirène [-407 -49 37].
+[18:26:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] quest: disembark -> 1, player at -397.50 -49.00 37.50
+[18:26:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] quest: /ship as <name> disembark lands the player on the quay (-397.5 -49.0 37.5)
+[18:26:05] [Server thread/INFO]: non
+[18:26:05] [Server thread/INFO]: oui (1)
+[18:26:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] quest: nobody aboard after disembarking
+[18:26:05] [Server thread/INFO]: Teleported Player671 to -397.500000, -49.000000, 37.500000
+[18:26:12] [Server thread/INFO]: Ship La Sirène (8d678288-f44a-4961-8788-8e43f1302556) reached the end of route pnj_traversee: 0 player(s) landed, removed (DESPAWN)
+[18:26:12] [Render thread/INFO]: [System] [CHAT] La Sirène a terminé son voyage.
+[18:26:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] quest: the ship vanishes at the end of its once route (end despawn) after the port's wait
+[18:26:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] quest: the route stays for the next trip
+[18:26:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] quest: ferry records left 0
+[18:26:13] [Server thread/INFO]: Set Player671's game mode to Spectator Mode
+[18:26:13] [Server thread/INFO]: Unmarked 24 chunks in minecraft:overworld from [-27, -3] to [-25, 4] for force loading
+[18:26:13] [Server thread/INFO]: Player671 is not riding any vehicle
+[18:26:13] [Server thread/INFO]: Teleported Player671 to 900.500000, -30.000000, -39.500000
+[18:26:13] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[18:26:14] [Server thread/INFO]: Marked 12 chunks in minecraft:overworld from [55, -2] to [57, 1] to be force loaded
+[18:26:15] [Server thread/INFO]: Successfully filled 574 block(s)
+[18:26:15] [Server thread/INFO]: Successfully filled 574 block(s)
+[18:26:15] [Server thread/INFO]: Successfully filled 826 block(s)
+[18:26:15] [Server thread/INFO]: Successfully filled 826 block(s)
+[18:26:15] [Server thread/INFO]: Successfully filled 16380 block(s)
+[18:26:15] [Server thread/INFO]: No blocks were filled
+[18:26:15] [Server thread/INFO]: Successfully filled 15834 block(s)
+[18:26:15] [Server thread/INFO]: No blocks were filled
+[18:26:15] [Server thread/INFO]: Navire mis à l'eau : Petit voilier de commerce [900 -48 -11]
+[18:26:18] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] trade_sloop at 900.50 -48.61 -11.50, water surface -49.111
+[18:26:18] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop floats at its waterline (y -48.61, water -49.11)
+[18:26:18] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop placed: inside nothing
+[18:26:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] trade_sloop at rest: sail set 0, open 0.06
+[18:26:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop: the sails furl onto the boom when stopped (open 0.06)
+[18:26:23] [Server thread/INFO]: Teleported Player671 to 914.500000, -45.731000, 9.500000
+[18:26:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop: the sails are set again (open 0.95)
+[18:26:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop: the model loaded in game has its sails, rudder and animations
+[18:26:26] [Server thread/INFO]: Teleported Player671 to 914.500000, -45.731000, 9.500000
+[18:26:28] [Server thread/INFO]: Teleported Player671 to 930.500000, -45.231000, -11.000000
+[18:26:28] [Server thread/INFO]: Teleported Player671 to 887.500000, -45.231000, -35.500000
+[18:26:29] [Server thread/INFO]: Teleported Player671 to 900.550000, -14.231000, -11.000000
+[18:26:30] [Server thread/INFO]: Set Player671's game mode to Survival Mode
+[18:26:30] [Server thread/INFO]: Unable to apply this effect (target is either immune to effects, or has something stronger)
+[18:26:30] [Server thread/INFO]: Teleported Player671 to 901.200000, -47.991000, -9.500000
+[18:26:30] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[18:26:31] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop: standing on the main deck (local y 0.600)
+[18:26:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop: walks aft along the deck (local 0.70 0.60 -1.02)
+[18:26:32] [Server thread/INFO]: Teleported Player671 to 900.500000, -47.491000, -15.900000
+[18:26:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop: standing on the stern platform (local y 1.100)
+[18:26:33] [Server thread/INFO]: Teleported Player671 to 900.800000, -47.511000, -15.900000
+[18:26:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop: the player takes the tiller
+[18:26:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] trade_sloop at the tiller: 5.14 blocks after 4 s, 13.11 after 6.5 s, turned 15.5 deg, helm -1.00, sails 1.00, speed 3.62
+[18:26:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop sails under the player's control, gathering way (5.14 then 13.11 blocks)
+[18:26:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop: the tiller and the rudder follow the helm (-1.00)
+[18:26:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop: the sails stay set under way (open 1.00)
+[18:26:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop turns to port (15.5 degrees in 2.5 s)
+[18:26:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop under way: inside nothing
+[18:26:41] [Server thread/INFO]: Player671 stopped riding Trade Sloop
+[18:26:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop: the pilot steps off onto the stern platform (local 0.03 1.10 -3.96)
+[18:26:41] [Server thread/INFO]: Set Player671's game mode to Spectator Mode
+[18:26:41] [Server thread/INFO]: Teleported Player671 to 922.341000, -45.231000, 14.564000
+[18:26:41] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[18:26:42] [Server thread/INFO]: No items were found on player Player671
+[18:26:42] [Server thread/INFO]: Petit voilier de commerce donné(e) à 1 joueur(s).
+[18:26:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop item: /ship give gives it (1)
+[18:26:42] [Server thread/INFO]: Removed 1 item(s) from player Player671
+[18:26:42] [Server thread/INFO]: Unmarked 12 chunks in minecraft:overworld from [55, -2] to [57, 1] for force loading
+[18:26:42] [Server thread/INFO]: Set Player671's game mode to Survival Mode
+[18:26:42] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[18:26:42] [Server thread/INFO]: Player671 is not riding any vehicle
+[18:26:42] [Server thread/INFO]: Set Player671's game mode to Spectator Mode
+[18:26:42] [Server thread/INFO]: Teleported Player671 to 900.500000, -48.000000, 0.500000
+[18:26:42] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[18:26:43] [Server thread/INFO]: Successfully filled 2500 block(s)
+[18:26:43] [Server thread/INFO]: Successfully filled 6250 block(s)
+[18:26:44] [Server thread/INFO]: Petite tente d'aventurier posée en 900, -59, 0, entrée vers south.
+[18:26:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_adventurer placed by /tent place: anchor block at 900, -59, 0 (south)
+[18:26:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_adventurer faces south as asked (south)
+[18:26:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_adventurer has its block entity
+[18:26:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_adventurer registered its collision boxes (1 tent(s) in the registry)
+[18:26:45] [Server thread/INFO]: Pas assez de place pour la tente (9 x 10 blocs, 4 de haut) : Adventurer Tent en 900 -59 0.
+[18:26:46] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_adventurer a second tent over the first is refused
+[18:26:46] [Server thread/INFO]: Teleported Player671 to 892.500000, -54.500000, 9.500000
+[18:26:47] [Server thread/INFO]: Teleported Player671 to 900.500000, -57.000000, 11.000000
+[18:26:48] [Server thread/INFO]: Teleported Player671 to 900.300000, -57.400000, 3.200000
+[18:26:48] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_adventurer has a front leg collision box
+[18:26:48] [Server thread/INFO]: Set Player671's game mode to Survival Mode
+[18:26:48] [Server thread/INFO]: Teleported Player671 to 901.603000, -59.000000, 4.235000
+[18:26:48] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[18:26:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] tent_adventurer walk into the leg: z 4.24 -> 1.94 (leg face at 3.04)
+[18:26:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_adventurer the front leg stops the player (moved 2.29, stopped -1.09 in front of it)
+[18:26:50] [Server thread/INFO]: Teleported Player671 to 900.500000, -59.000000, 3.500000
+[18:26:52] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_adventurer the entrance is open (walked 1.80 blocks in)
+[18:26:52] [Server thread/INFO]: Set Player671's game mode to Spectator Mode
+[18:26:52] [Server thread/INFO]: Aucune tente chargée dans ce monde.
+[18:26:52] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[18:26:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_adventurer removed by /tent remove (block Block{minecraft:water})
+[18:26:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_adventurer its collision boxes are forgotten (0 tent(s) left)
+[18:26:53] [Server thread/INFO]: Stopping server
+[18:26:53] [Server thread/INFO]: Saving players
+[18:26:53] [Server thread/INFO]: Player671 lost connection: Disconnected
+[18:26:53] [Server thread/INFO]: Player671 left the game
+[18:26:53] [Server thread/INFO]: Saving worlds
+[18:26:53] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:overworld
+[18:26:53] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_nether
+[18:26:53] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_end
+[18:26:53] [Server thread/INFO]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[18:26:53] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[18:26:53] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[18:26:53] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[18:26:53] [Test thread/ERROR]: Client gametests failed with an exception
+java.lang.AssertionError: 2 check(s) failed: [solo] tent_adventurer the front leg stops the player (moved 2.29, stopped -1.09 in front of it) | [dedie] tent_adventurer the front leg stops the player (moved 2.29, stopped -1.09 in front of it)
+	at knot//fr.medievalships.test.ShipClientGameTest.finish(ShipClientGameTest.java:1915)
+	at knot//fr.medievalships.test.ShipClientGameTest.runTest(ShipClientGameTest.java:86)
+	at knot//net.fabricmc.fabric.impl.client.gametest.FabricClientGameTestRunner.lambda$start$0(FabricClientGameTestRunner.java:54)
+	at knot//net.fabricmc.fabric.impl.client.gametest.threading.ThreadingImpl.lambda$runTestThread$1(ThreadingImpl.java:142)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+[18:26:53] [Render thread/ERROR]: Minecraft has crashed!
+net.fabricmc.loader.impl.FormattedException: java.lang.AssertionError: 2 check(s) failed: [solo] tent_adventurer the front leg stops the player (moved 2.29, stopped -1.09 in front of it) | [dedie] tent_adventurer the front leg stops the player (moved 2.29, stopped -1.09 in front of it)
+	at net.fabricmc.loader.impl.FormattedException.ofLocalized(FormattedException.java:63)
+	at net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider.launch(MinecraftGameProvider.java:516)
+	at net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:72)
+	at net.fabricmc.loader.impl.launch.knot.KnotClient.main(KnotClient.java:23)
+Caused by: java.lang.AssertionError: 2 check(s) failed: [solo] tent_adventurer the front leg stops the player (moved 2.29, stopped -1.09 in front of it) | [dedie] tent_adventurer the front leg stops the player (moved 2.29, stopped -1.09 in front of it)
+	at knot//fr.medievalships.test.ShipClientGameTest.finish(ShipClientGameTest.java:1915)
+	at knot//fr.medievalships.test.ShipClientGameTest.runTest(ShipClientGameTest.java:86)
+	at knot//net.fabricmc.fabric.impl.client.gametest.FabricClientGameTestRunner.lambda$start$0(FabricClientGameTestRunner.java:54)
+	at knot//net.fabricmc.fabric.impl.client.gametest.threading.ThreadingImpl.lambda$runTestThread$1(ThreadingImpl.java:142)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+
+> Task :runProductionClientGameTest FAILED
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1793554433338.json
+
+[Incubating] Problems report is available at: file:///home/runner/work/medieval-ships/medieval-ships/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':runProductionClientGameTest'.
+> Process 'command '/usr/bin/xvfb-run'' finished with non-zero exit value 1
+
+* Try:
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+* Exception is:
+org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runProductionClientGameTest'.
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+	at org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter.execute(FinalizePropertiesTaskExecuter.java:46)
+	at org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter.execute(ResolveTaskExecutionModeExecuter.java:51)
+	at org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter.execute(SkipTaskWithNoActionsExecuter.java:57)
+	at org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter.execute(SkipOnlyIfTaskExecuter.java:74)
+	at org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter.execute(CatchExceptionTaskExecuter.java:36)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.executeTask(EventFiringTaskExecuter.java:77)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:55)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:52)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter.execute(EventFiringTaskExecuter.java:52)
+	at org.gradle.execution.plan.DefaultNodeExecutor.executeLocalTaskNode(DefaultNodeExecutor.java:55)
+	at org.gradle.execution.plan.DefaultNodeExecutor.execute(DefaultNodeExecutor.java:34)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:355)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:343)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.lambda$execute$0(DefaultTaskExecutionGraph.java:339)
+	at org.gradle.internal.operations.CurrentBuildOperationRef.with(CurrentBuildOperationRef.java:84)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:339)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:328)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.execute(DefaultPlanExecutor.java:459)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.run(DefaultPlanExecutor.java:376)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:47)
+Caused by: org.gradle.process.ProcessExecutionException: Process 'command '/usr/bin/xvfb-run'' finished with non-zero exit value 1
+	at org.gradle.process.internal.DefaultExecHandle$ExecResultImpl.assertNormalExitValue(DefaultExecHandle.java:450)
+	at org.gradle.process.internal.DefaultExecAction.execute(DefaultExecAction.java:49)
+	at org.gradle.process.internal.DefaultExecActionFactory.exec(DefaultExecActionFactory.java:216)
+	at org.gradle.process.internal.DefaultExecOperations.exec(DefaultExecOperations.java:37)
+	at net.fabricmc.loom.task.prod.AbstractProductionRunTask.run(AbstractProductionRunTask.java:148)
+	at net.fabricmc.loom.task.prod.ClientProductionRunTask.run(ClientProductionRunTask.java:120)
+	at org.gradle.internal.reflect.JavaMethod.invoke(JavaMethod.java:125)
+	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.doExecute(StandardTaskAction.java:58)
+	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.execute(StandardTaskAction.java:51)
+	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.execute(StandardTaskAction.java:29)
+	at org.gradle.api.internal.tasks.execution.TaskExecution$3.run(TaskExecution.java:252)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:29)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:26)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.run(DefaultBuildOperationRunner.java:47)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeAction(TaskExecution.java:237)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeActions(TaskExecution.java:220)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeWithPreviousOutputFiles(TaskExecution.java:203)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.execute(TaskExecution.java:170)
+	at org.gradle.internal.execution.steps.ExecuteStep.executeInternal(ExecuteStep.java:105)
+	at org.gradle.internal.execution.steps.ExecuteStep.access$000(ExecuteStep.java:44)
+	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:59)
+	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:56)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:56)
+	at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:44)
+	at org.gradle.internal.execution.steps.CancelExecutionStep.execute(CancelExecutionStep.java:42)
+	at org.gradle.internal.execution.steps.TimeoutStep.executeWithoutTimeout(TimeoutStep.java:75)
+	at org.gradle.internal.execution.steps.TimeoutStep.execute(TimeoutStep.java:55)
+	at org.gradle.internal.execution.steps.PreCreateOutputParentsStep.execute(PreCreateOutputParentsStep.java:50)
+	at org.gradle.internal.execution.steps.PreCreateOutputParentsStep.execute(PreCreateOutputParentsStep.java:28)
+	at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.execute(RemovePreviousOutputsStep.java:68)
+	at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.execute(RemovePreviousOutputsStep.java:38)
+	at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:61)
+	at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:26)
+	at org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep.execute(CaptureOutputsAfterExecutionStep.java:69)
+	at org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep.execute(CaptureOutputsAfterExecutionStep.java:46)
+	at org.gradle.internal.execution.steps.ResolveInputChangesStep.execute(ResolveInputChangesStep.java:39)
+	at org.gradle.internal.execution.steps.ResolveInputChangesStep.execute(ResolveInputChangesStep.java:28)
+	at org.gradle.internal.execution.steps.BuildCacheStep.executeWithoutCache(BuildCacheStep.java:189)
+	at org.gradle.internal.execution.steps.BuildCacheStep.lambda$execute$1(BuildCacheStep.java:75)
+	at org.gradle.internal.Either$Right.fold(Either.java:176)
+	at org.gradle.internal.execution.caching.CachingState.fold(CachingState.java:62)
+	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:73)
+	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:48)
+	at org.gradle.internal.execution.steps.StoreExecutionStateStep.execute(StoreExecutionStateStep.java:46)
+	at org.gradle.internal.execution.steps.StoreExecutionStateStep.execute(StoreExecutionStateStep.java:35)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.executeBecause(SkipUpToDateStep.java:75)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.lambda$execute$2(SkipUpToDateStep.java:53)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:53)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:35)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:37)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:27)
+	at org.gradle.internal.execution.steps.ResolveIncrementalCachingStateStep.executeDelegate(ResolveIncrementalCachingStateStep.java:49)
+	at org.gradle.internal.execution.steps.ResolveIncrementalCachingStateStep.executeDelegate(ResolveIncrementalCachingStateStep.java:27)
+	at org.gradle.internal.execution.steps.AbstractResolveCachingStateStep.execute(AbstractResolveCachingStateStep.java:71)
+	at org.gradle.internal.execution.steps.AbstractResolveCachingStateStep.execute(AbstractResolveCachingStateStep.java:39)
+	at org.gradle.internal.execution.steps.ResolveChangesStep.execute(ResolveChangesStep.java:64)
+	at org.gradle.internal.execution.steps.ResolveChangesStep.execute(ResolveChangesStep.java:35)
+	at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:62)
+	at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:40)
+	at org.gradle.internal.execution.steps.AbstractCaptureStateBeforeExecutionStep.execute(AbstractCaptureStateBeforeExecutionStep.java:76)
+	at org.gradle.internal.execution.steps.AbstractCaptureStateBeforeExecutionStep.execute(AbstractCaptureStateBeforeExecutionStep.java:45)
+	at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.executeWithNonEmptySources(AbstractSkipEmptyWorkStep.java:136)
+	at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.execute(AbstractSkipEmptyWorkStep.java:61)
+	at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.execute(AbstractSkipEmptyWorkStep.java:38)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep.execute(MarkSnapshottingInputsStartedStep.java:38)
+	at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.execute(LoadPreviousExecutionStateStep.java:36)
+	at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.execute(LoadPreviousExecutionStateStep.java:23)
+	at org.gradle.internal.execution.steps.HandleStaleOutputsStep.execute(HandleStaleOutputsStep.java:75)
+	at org.gradle.internal.execution.steps.HandleStaleOutputsStep.execute(HandleStaleOutputsStep.java:41)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.lambda$execute$0(AssignMutableWorkspaceStep.java:35)
+	at org.gradle.api.internal.tasks.execution.TaskExecution$4.withWorkspace(TaskExecution.java:297)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.execute(AssignMutableWorkspaceStep.java:31)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.execute(AssignMutableWorkspaceStep.java:22)
+	at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:40)
+	at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:23)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.lambda$execute$2(ExecuteWorkBuildOperationFiringStep.java:67)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationFiringStep.java:67)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationFiringStep.java:39)
+	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:46)
+	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:34)
+	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:44)
+	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:31)
+	at org.gradle.internal.execution.impl.DefaultExecutionEngine$1.execute(DefaultExecutionEngine.java:64)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:132)
+	... 30 more
+
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.2.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 53m 6s
+13 actionable tasks: 13 executed
