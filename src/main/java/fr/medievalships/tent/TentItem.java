@@ -70,8 +70,9 @@ public class TentItem extends BlockItem {
 				for (int y = y0; y <= y1; y++) {
 					BlockState s = world.getBlockState(m.set(x, y, z));
 					if (!coverable(s) && !m.equals(pos)) {
-						return String.format(Locale.ROOT, "Pas assez de place pour la tente (%d x %d blocs, %d de haut) : %s en %d %d %d.",
-								x1 - x0 + 1, z1 - z0 + 1, y1 - y0 + 1, s.getBlock().getName().getString(), x, y, z);
+						return String.format(Locale.ROOT, "Pas assez de place pour %s (%d x %d blocs, %d de haut) : %s en %d %d %d.",
+								type.isWorkshop() ? "l'atelier" : "la tente", x1 - x0 + 1, z1 - z0 + 1, y1 - y0 + 1, s.getBlock().getName().getString(),
+								x, y, z);
 					}
 				}
 				columns++;
@@ -83,7 +84,8 @@ public class TentItem extends BlockItem {
 		}
 		BlockState anchorGround = world.getBlockState(m.set(pos.getX(), y0 - 1, pos.getZ()));
 		if (anchorGround.getCollisionShape(world, m).isEmpty() || grounded < columns * GROUND_SHARE) {
-			return "Le sol n'est pas assez plein sous la tente : posez-la sur un terrain plat.";
+			return type.isWorkshop() ? "Le sol n'est pas assez plein sous l'atelier : posez-le sur un terrain plat."
+					: "Le sol n'est pas assez plein sous la tente : posez-la sur un terrain plat.";
 		}
 		return null;
 	}

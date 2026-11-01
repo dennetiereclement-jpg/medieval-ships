@@ -148,6 +148,13 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.13.0 ajoute **sept ateliers d'artisanat en un seul bloc** (forgeron, tailleur de cuir, tailleur de
+lin, ingénieur, cuisinier, alchimiste, enchanteur) : objets de décor à poser, construits comme les tentes et les
+charrettes (un bloc posé = l'atelier entier), collisions des établis, forges et étagères, particules discrètes
+(fumée, flammes, glyphes), commandes `/workshop` (alias `/atelier`), onglet créatif « Ateliers », aucun tick.
+L'artisanat lui-même (interface, recettes, métiers) **n'est pas encore relié** : prévu plus tard. Voir
+[Ateliers](#ateliers-un-bloc--un-atelier) et [docs/ATELIERS.md](docs/ATELIERS.md).
+
 La version 1.12.0 ajoute **huit charrettes médiévales en un seul bloc** (charrette couverte blanche, charrette
 de foin, roulotte de marchand, charrette de marché, charrette de bûcheron, charrette de transport, charrette
 couverte turquoise, charrette à tonneaux) : décors statiques construits comme les tentes (un bloc posé = la
@@ -379,6 +386,7 @@ pour 1.21.11 sur <https://fabricmc.net/develop>.
 * [Tests effectués et non effectués](docs/TESTS.md)
 * [Les six tentes en un bloc : pose, retrait, commandes, meubles](docs/TENTES.md)
 * [Les huit charrettes en un bloc : ids, pose, retrait, commandes, performances](docs/CHARRETTES.md)
+* [Les sept ateliers d'artisanat en un bloc : ids, pose, retrait, commandes, particules](docs/ATELIERS.md)
 
 ## Configuration
 
@@ -587,3 +595,25 @@ d'ancrage (ou `/cart remove`) retire tout.
 Onglet créatif « Charrettes », `/cart give|place|remove|list|types` (admin ; alias de `/tent`, et `/ship give <id>`
 marche aussi), mêmes réglages de distance que les tentes (`tentDecorDistance` / `tentRenderDistance`). Détails et
 tests dans [docs/CHARRETTES.md](docs/CHARRETTES.md).
+
+## Ateliers (un bloc = un atelier)
+
+Sept ateliers d'artisanat médiévaux, **statiques**, chacun étant **un seul bloc** à poser comme les tentes et les
+charrettes : clic droit au sol, l'avant face au joueur, après vérification que l'emprise est libre ; l'atelier entier
+est dessiné à partir de ce bloc, avec quelques particules discrètes (fumée de la forge, glyphes de l'enchanteur...).
+Casser le bloc d'ancrage (ou `/workshop remove`) retire tout. Pour l'instant ce sont **des objets à poser** : le clic
+droit n'ouvre rien, l'artisanat (interface, recettes, métiers) sera relié plus tard.
+
+| id | nom |
+|----|-----|
+| `workshop_blacksmith` | Atelier du forgeron (Blacksmith's Workshop) |
+| `workshop_leatherworker` | Atelier du tailleur de cuir (Leatherworker's Workshop) |
+| `workshop_tailor` | Atelier du tailleur de lin (Tailor's Workshop) |
+| `workshop_engineer` | Atelier de l'ingénieur (Engineer's Workshop) |
+| `workshop_cook` | Atelier du cuisinier (Cook's Workshop) |
+| `workshop_alchemist` | Atelier de l'alchimiste (Alchemist's Workshop) |
+| `workshop_enchanter` | Atelier de l'enchanteur (Enchanter's Workshop) |
+
+Onglet créatif « Ateliers », `/workshop give|place|remove|list|types` (admin ; alias `/atelier`, et
+`/ship give <id>` marche aussi), mêmes réglages de distance que les tentes. Détails et tests dans
+[docs/ATELIERS.md](docs/ATELIERS.md).

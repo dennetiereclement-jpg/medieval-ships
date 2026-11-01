@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Locale;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -35,8 +34,10 @@ import fr.medievalships.tent.Tents;
 
 /**
  * {@code /tent give <id> [players]}, {@code /tent place <id> [x y z] [facing]}, {@code /tent remove [nearest|x y z]},
- * {@code /tent list}, {@code /tent types}. Admin only, like {@code /ship}. Every prop id (tents and carts,
+ * {@code /tent list}, {@code /tent types}. Admin only, like {@code /ship}. Every prop id (tents, carts and workshops,
  * {@link TentTypes#PROPS}) is accepted, also by {@code /ship give}; {@code /cart} is the same command under another name.
+ * {@code /workshop} (alias {@code /atelier}) is the same tree for the workshops only ({@link TentTypes#WORKSHOPS}): its
+ * {@code remove} and {@code list} only see workshops.
  */
 public final class TentCommands {
 	private TentCommands() {
@@ -44,57 +45,75 @@ public final class TentCommands {
 
 	private static final String[] FACINGS = {"south", "west", "north", "east"};
 
-	public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-		dispatcher.register(tree("tent"));
-		dispatcher.register(tree("cart"));
+	/**
+	 * The props a command tree handles and the French words of its messages: {@code e} is the agreement of the past
+	 * participles ("posée" for a tent, "posé" for a workshop).
+	 */
+	private record Family(List<TentType> types, boolean onlyThese, String e, String noneLoaded, String noneAt, String listed) {
+		boolean accepts(TentType t) {
+			return !onlyThese || types.contains(t);
+		}
 	}
 
-	private static LiteralArgumentBuilder<ServerCommandSource> tree(String name) {
+	private static final Family PROPS = new Family(TentTypes.PROPS, false, "e", "Aucune tente chargée dans ce monde.", "Pas de tente en ",
+			"%d tente(s) chargée(s) :");
+	private static final Family WORKSHOPS = new Family(TentTypes.WORKSHOPS, true, "", "Aucun atelier chargé dans ce monde.",
+			"Pas d'atelier en ", "%d atelier(s) chargé(s) :");
+
+	public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
+		dispatcher.register(tree("tent", PROPS));
+		dispatcher.register(tree("cart", PROPS));
+		dispatcher.register(tree("workshop", WORKSHOPS));
+		dispatcher.register(tree("atelier", WORKSHOPS));
+	}
+
+	private static LiteralArgumentBuilder<ServerCommandSource> tree(String name, Family family) {
 		LiteralArgumentBuilder<ServerCommandSource> root = CommandManager.literal(name).requires(ShipPermissions::isAdmin);
 		var give = CommandManager.literal("give");
 		var place = CommandManager.literal("place");
-		for (TentType type : TentTypes.PROPS) {
+		for (TentType type : family.types()) {
 			give.then(CommandManager.literal(type.id())
-					.executes(ctx -> give(ctx, type, List.of(ctx.getSource().getPlayerOrThrow())))
+					.executes(ctx -> give(ctx, type, List.of(ctx.getSource().getPlayerOrThrow()), family))
 					.then(CommandManager.argument("targets", EntityArgumentType.players())
-							.executes(ctx -> give(ctx, type, EntityArgumentType.getPlayers(ctx, "targets")))));
+							.executes(ctx -> give(ctx, type, EntityArgumentType.getPlayers(ctx, "targets"), family))));
 			var at = CommandManager.argument("pos", BlockPosArgumentType.blockPos())
-					.executes(ctx -> place(ctx, type, BlockPosArgumentType.getLoadedBlockPos(ctx, "pos"), null));
+					.executes(ctx -> place(ctx, type, BlockPosArgumentType.getLoadedBlockPos(ctx, "pos"), null, family));
 			for (String f : FACINGS) {
-				at.then(CommandManager.literal(f).executes(ctx -> place(ctx, type, BlockPosArgumentType.getLoadedBlockPos(ctx, "pos"), f)));
+				at.then(CommandManager.literal(f).executes(ctx -> place(ctx, type, BlockPosArgumentType.getLoadedBlockPos(ctx, "pos"), f, family)));
 			}
-			var typed = CommandManager.literal(type.id()).executes(ctx -> place(ctx, type, null, null)).then(at);
+			var typed = CommandManager.literal(type.id()).executes(ctx -> place(ctx, type, null, null, family)).then(at);
 			for (String f : FACINGS) {
-				typed.then(CommandManager.literal(f).executes(ctx -> place(ctx, type, null, f)));
+				typed.then(CommandManager.literal(f).executes(ctx -> place(ctx, type, null, f, family)));
 			}
 			place.then(typed);
 		}
 		root.then(give);
 		root.then(place);
-		root.then(CommandManager.literal("remove").executes(ctx -> remove(ctx, null))
-				.then(CommandManager.literal("nearest").executes(ctx -> remove(ctx, null)))
+		root.then(CommandManager.literal("remove").executes(ctx -> remove(ctx, null, family))
+				.then(CommandManager.literal("nearest").executes(ctx -> remove(ctx, null, family)))
 				.then(CommandManager.argument("pos", BlockPosArgumentType.blockPos())
-						.executes(ctx -> remove(ctx, BlockPosArgumentType.getLoadedBlockPos(ctx, "pos")))));
-		root.then(CommandManager.literal("list").executes(TentCommands::list));
+						.executes(ctx -> remove(ctx, BlockPosArgumentType.getLoadedBlockPos(ctx, "pos"), family))));
+		root.then(CommandManager.literal("list").executes(ctx -> list(ctx, family)));
 		root.then(CommandManager.literal("types").executes(ctx -> {
-			for (TentType t : TentTypes.PROPS) {
+			for (TentType t : family.types()) {
 				ok(ctx, t.id() + " : " + t.frenchName());
 			}
-			return TentTypes.PROPS.size();
+			return family.types().size();
 		}));
 		return root;
 	}
 
-	private static int give(CommandContext<ServerCommandSource> ctx, TentType type, Collection<ServerPlayerEntity> players) {
+	private static int give(CommandContext<ServerCommandSource> ctx, TentType type, Collection<ServerPlayerEntity> players, Family family) {
 		for (ServerPlayerEntity p : players) {
 			p.getInventory().offerOrDrop(new ItemStack(Tents.item(type)));
 		}
-		ok(ctx, capitalize(type.frenchName()) + " donnée à " + players.size() + " joueur(s).");
+		ok(ctx, capitalize(type.frenchName()) + " donné" + family.e() + " à " + players.size() + " joueur(s).");
 		return players.size();
 	}
 
 	/** The anchor goes at the given block (or the command's position), the entrance towards the facing (or the source's). */
-	private static int place(CommandContext<ServerCommandSource> ctx, TentType type, BlockPos pos, String facingName) throws CommandSyntaxException {
+	private static int place(CommandContext<ServerCommandSource> ctx, TentType type, BlockPos pos, String facingName, Family family)
+			throws CommandSyntaxException {
 		ServerCommandSource source = ctx.getSource();
 		ServerWorld world = source.getWorld();
 		if (pos == null) {
@@ -120,57 +139,59 @@ public final class TentCommands {
 		BlockState state = Tents.block(type).getDefaultState().with(TentBlock.FACING, facing);
 		world.setBlockState(pos, state, 3);
 		Tents.block(type).onPlaced(world, pos, state, null, ItemStack.EMPTY);
-		ok(ctx, String.format(Locale.ROOT, "%s posée en %s, entrée vers %s.", capitalize(type.frenchName()), pos.toShortString(), facing.asString()));
+		ok(ctx, String.format(Locale.ROOT, "%s posé%s en %s, %s vers %s.", capitalize(type.frenchName()), family.e(), pos.toShortString(),
+				type.isWorkshop() ? "avant" : "entrée", facing.asString()));
 		return 1;
 	}
 
-	private static int remove(CommandContext<ServerCommandSource> ctx, BlockPos pos) throws CommandSyntaxException {
+	private static int remove(CommandContext<ServerCommandSource> ctx, BlockPos pos, Family family) throws CommandSyntaxException {
 		ServerCommandSource source = ctx.getSource();
 		ServerWorld world = source.getWorld();
 		TentCollisions.Placed target = null;
 		if (pos != null) {
 			target = TentCollisions.at(world, pos);
-			if (target == null) {
-				throw error("Pas de tente en " + pos.toShortString() + ".");
+			if (target == null || !family.accepts(target.type())) {
+				throw error(family.noneAt() + pos.toShortString() + ".");
 			}
 		} else {
 			Vec3d p = source.getPosition();
 			double best = Double.MAX_VALUE;
 			for (TentCollisions.Placed t : TentCollisions.all(world)) {
 				double d = t.pos().getSquaredDistance(p);
-				if (d < best) {
+				if (d < best && family.accepts(t.type())) {
 					best = d;
 					target = t;
 				}
 			}
 			if (target == null) {
-				throw error("Aucune tente chargée dans ce monde.");
+				throw error(family.noneLoaded());
 			}
 		}
 		world.breakBlock(target.pos(), false);
 		TentCollisions.remove(world, target.pos());
-		ok(ctx, capitalize(target.type().frenchName()) + " retirée en " + target.pos().toShortString() + ".");
+		ok(ctx, capitalize(target.type().frenchName()) + " retiré" + family.e() + " en " + target.pos().toShortString() + ".");
 		return 1;
 	}
 
-	private static int list(CommandContext<ServerCommandSource> ctx) {
+	private static int list(CommandContext<ServerCommandSource> ctx, Family family) {
 		ServerWorld world = ctx.getSource().getWorld();
 		Vec3d p = ctx.getSource().getPosition();
 		List<TentCollisions.Placed> all = TentCollisions.all(world);
+		all.removeIf(t -> !family.accepts(t.type()));
 		all.sort((a, b) -> Double.compare(a.pos().getSquaredDistance(p), b.pos().getSquaredDistance(p)));
 		if (all.isEmpty()) {
-			ok(ctx, "Aucune tente chargée dans ce monde.");
+			ok(ctx, family.noneLoaded());
 			return 0;
 		}
-		ok(ctx, all.size() + " tente(s) chargée(s) :");
+		ok(ctx, String.format(Locale.ROOT, family.listed(), all.size()));
 		int n = 0;
 		for (TentCollisions.Placed t : all) {
 			if (n++ >= 20) {
 				ok(ctx, "...");
 				break;
 			}
-			ok(ctx, String.format(Locale.ROOT, "- %s [%s] entrée vers %s, à %.0f m", capitalize(t.type().frenchName()), t.pos().toShortString(),
-					FACINGS[t.quarter() & 3], Math.sqrt(t.pos().getSquaredDistance(p))));
+			ok(ctx, String.format(Locale.ROOT, "- %s [%s] %s vers %s, à %.0f m", capitalize(t.type().frenchName()), t.pos().toShortString(),
+					t.type().isWorkshop() ? "avant" : "entrée", FACINGS[t.quarter() & 3], Math.sqrt(t.pos().getSquaredDistance(p))));
 		}
 		return all.size();
 	}

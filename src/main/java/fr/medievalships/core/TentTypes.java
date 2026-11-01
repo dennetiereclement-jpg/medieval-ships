@@ -4,9 +4,10 @@ import java.util.List;
 
 
 /**
- * The six tents and the eight carts. One line per prop: its id (block, item, model, decor and tents / carts JSON are all
- * named after it) and its names. {@link #ALL} = the tents only (their tab), {@link #CARTS} = the carts (tab
- * "Charrettes"), {@link #PROPS} = both (registration, commands, models).
+ * The six tents, the eight carts and the seven crafting workshops. One line per prop: its id (block, item, model, decor
+ * and tents / carts / workshops JSON are all named after it) and its names. {@link #ALL} = the tents only (their tab),
+ * {@link #CARTS} = the carts (tab "Charrettes"), {@link #WORKSHOPS} = the workshops (tab "Ateliers"), {@link #PROPS} =
+ * all three (registration, commands, models).
  */
 public final class TentTypes {
 	public static final TentType COMMAND = TentType.load("tent_command", "grande tente de commandement", "Command Tent");
@@ -29,11 +30,26 @@ public final class TentTypes {
 	public static final List<TentType> CARTS = List.of(CART_COVERED_WHITE, CART_HAY, CART_MERCHANT_WAGON, CART_MARKET, CART_LOGS, CART_OPEN,
 			CART_COVERED_TEAL, CART_BARRELS);
 
-	/** Every one-block prop: the tents, then the carts. */
-	public static final List<TentType> PROPS = java.util.stream.Stream.concat(ALL.stream(), CARTS.stream()).toList();
+	public static final TentType WORKSHOP_BLACKSMITH = workshop("workshop_blacksmith", "atelier du forgeron", "Blacksmith's Workshop");
+	public static final TentType WORKSHOP_LEATHERWORKER = workshop("workshop_leatherworker", "atelier du tailleur de cuir", "Leatherworker's Workshop");
+	public static final TentType WORKSHOP_TAILOR = workshop("workshop_tailor", "atelier du tailleur de lin", "Tailor's Workshop");
+	public static final TentType WORKSHOP_ENGINEER = workshop("workshop_engineer", "atelier de l'ingénieur", "Engineer's Workshop");
+	public static final TentType WORKSHOP_COOK = workshop("workshop_cook", "atelier du cuisinier", "Cook's Workshop");
+	public static final TentType WORKSHOP_ALCHEMIST = workshop("workshop_alchemist", "atelier de l'alchimiste", "Alchemist's Workshop");
+	public static final TentType WORKSHOP_ENCHANTER = workshop("workshop_enchanter", "atelier de l'enchanteur", "Enchanter's Workshop");
+	/** The crafting workshops (tab "Ateliers"); placeable props only for now (the crafting itself comes later). */
+	public static final List<TentType> WORKSHOPS = List.of(WORKSHOP_BLACKSMITH, WORKSHOP_LEATHERWORKER, WORKSHOP_TAILOR, WORKSHOP_ENGINEER,
+			WORKSHOP_COOK, WORKSHOP_ALCHEMIST, WORKSHOP_ENCHANTER);
+
+	/** Every one-block prop: the tents, then the carts, then the workshops. */
+	public static final List<TentType> PROPS = java.util.stream.Stream.of(ALL, CARTS, WORKSHOPS).flatMap(List::stream).toList();
 
 	private static TentType cart(String id, String frenchName, String englishName) {
 		return TentType.load(TentType.CARTS, id, frenchName, englishName);
+	}
+
+	private static TentType workshop(String id, String frenchName, String englishName) {
+		return TentType.load(TentType.WORKSHOPS, id, frenchName, englishName);
 	}
 
 	private TentTypes() {
@@ -48,7 +64,7 @@ public final class TentTypes {
 			s = s.substring("medievalships:".length());
 		}
 		for (TentType t : PROPS) {
-			if (t.id().equals(s) || t.id().equals("tent_" + s) || t.id().equals("cart_" + s)) {
+			if (t.id().equals(s) || t.id().equals("tent_" + s) || t.id().equals("cart_" + s) || t.id().equals("workshop_" + s)) {
 				return t;
 			}
 		}

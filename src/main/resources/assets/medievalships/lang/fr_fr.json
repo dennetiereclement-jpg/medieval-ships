@@ -49,5 +49,13 @@
   "block.medievalships.cart_logs": "Charrette de bûcheron",
   "block.medievalships.cart_open": "Charrette de transport",
   "block.medievalships.cart_covered_teal": "Charrette couverte turquoise",
-  "block.medievalships.cart_barrels": "Charrette à tonneaux"
+  "block.medievalships.cart_barrels": "Charrette à tonneaux",
+  "itemGroup.medievalships.workshops": "Ateliers",
+  "block.medievalships.workshop_blacksmith": "Atelier du forgeron",
+  "block.medievalships.workshop_leatherworker": "Atelier du tailleur de cuir",
+  "block.medievalships.workshop_tailor": "Atelier du tailleur de lin",
+  "block.medievalships.workshop_engineer": "Atelier de l'ingénieur",
+  "block.medievalships.workshop_cook": "Atelier du cuisinier",
+  "block.medievalships.workshop_alchemist": "Atelier de l'alchimiste",
+  "block.medievalships.workshop_enchanter": "Atelier de l'enchanteur"
 }

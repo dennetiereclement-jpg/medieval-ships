@@ -26,7 +26,7 @@ public class CartTest {
 	void eightCartsLoadBesideTheSixTents() {
 		assertEquals(8, TentTypes.CARTS.size());
 		assertEquals(6, TentTypes.ALL.size(), "the tents' list is unchanged");
-		assertEquals(14, TentTypes.PROPS.size());
+		assertEquals(6 + 8 + 7, TentTypes.PROPS.size()); // tents, carts, workshops
 		Set<String> ids = new HashSet<>();
 		for (TentType t : TentTypes.CARTS) {
 			assertTrue(IDS.contains(t.id()), t.id());

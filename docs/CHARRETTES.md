@@ -62,14 +62,15 @@ touchent le sol du bloc d'ancrage : rien ne flotte ni ne s'enfonce.
 
 ## Commandes (admin, mêmes permissions que `/ship`)
 
-`/cart` est un alias de `/tent` : les deux acceptent les ids des tentes et des charrettes.
+`/cart` est un alias de `/tent` : les deux acceptent les ids des tentes, des charrettes et (depuis 1.13.0) des
+[ateliers](ATELIERS.md).
 
 - `/cart give <id> [joueurs]` — donne l'objet (`/tent give <id>` et `/ship give <id>` marchent aussi).
 - `/cart place <id> [x y z] [south|west|north|east]` — pose la charrette à la position (ou celle de l'exécutant),
   l'avant vers la direction donnée (ou vers l'exécutant). Même vérification de place libre que l'objet.
 - `/cart remove [nearest|x y z]` — retire la charrette (ou tente) la plus proche, ou celle dont l'ancrage est en x y z.
 - `/cart list` — les tentes et charrettes chargées de ce monde, de la plus proche à la plus lointaine.
-- `/cart types` — les quatorze ids (six tentes, huit charrettes).
+- `/cart types` — les vingt et un ids (six tentes, huit charrettes, sept ateliers).
 
 ## Modèles et textures
 

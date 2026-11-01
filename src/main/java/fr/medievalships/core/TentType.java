@@ -8,7 +8,7 @@ import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Locale;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -34,8 +34,35 @@ import com.google.gson.JsonParser;
  * {@code assets/medievalships/carts/<id>.json} (written by {@code tools/carts/generate_<id>.py}), their atlas
  * {@code textures/entity/carts.png} (the JSON's {@code "texture"}), their items in the tab "Charrettes"
  * ({@link TentTypes#CARTS}). Same block, block entity, renderer, collisions and commands as the tents.
+ *
+ * <p>The crafting workshops are the third family ({@link #group()} {@code "workshops"}, {@link TentTypes#WORKSHOPS}, tab
+ * "Ateliers"): files {@code assets/medievalships/workshops/<id>.json}, plus an optional {@code "particles"} list
+ * ({@link Particle}: a forge's smoke, an altar's glow) drawn client-side by the anchor block's random display ticks.
  */
 public final class TentType {
+	/**
+	 * A particle source of a prop (JSON {@code "particles": [{"type": "flame", "pos": [x, y, z], "chance": 0.5, "count": 1}]}):
+	 * a vanilla particle type among {@link #PARTICLE_TYPES}, a prop-local point (turned with the facing like the
+	 * collision boxes), the probability that it emits at each random display tick of the anchor block (vanilla calls
+	 * it about once every 2 s for a block near the player) and how many particles it then emits.
+	 */
+	public record Particle(String type, double x, double y, double z, double chance, int count) {
+		/** Is the type one the block knows how to spawn? (unknown types are ignored in game) */
+		public boolean known() {
+			return PARTICLE_TYPES.contains(type);
+		}
+
+		/** The source turned by quarter turns (see {@link TentType#rotate(double, double, int)}). */
+		public Particle rotate(int quarter) {
+			double[] r = TentType.rotate(x, z, quarter);
+			return new Particle(type, r[0], y, r[1], chance, count);
+		}
+	}
+
+	/** The particle types a prop's JSON may name (vanilla ids, {@code minecraft:} optional). */
+	public static final List<String> PARTICLE_TYPES = List.of("flame", "smoke", "campfire_smoke", "enchant", "witch", "portal", "end_rod",
+			"electric_spark", "small_flame", "glow");
+
 	/** A box in tent-local blocks: x0, y0, z0, x1, y1, z1. */
 	public record Box(double x0, double y0, double z0, double x1, double y1, double z1) {
 		public double width() {
@@ -54,8 +81,8 @@ public final class TentType {
 	/** Quarter turns of the horizontal facings, as Minecraft counts them: south 0, west 1, north 2, east 3. */
 	public static final int SOUTH = 0, WEST = 1, NORTH = 2, EAST = 3;
 
-	/** The two families of one-block props: their JSON folder under {@code assets/medievalships/} and their creative tab. */
-	public static final String TENTS = "tents", CARTS = "carts";
+	/** The three families of one-block props: their JSON folder under {@code assets/medievalships/} and their creative tab. */
+	public static final String TENTS = "tents", CARTS = "carts", WORKSHOPS = "workshops";
 	/** The atlas a prop's model is drawn with when its JSON names none (the tents'). */
 	public static final String DEFAULT_TEXTURE = "textures/entity/tents.png";
 
@@ -71,9 +98,12 @@ public final class TentType {
 	/** The collision boxes already turned to each facing (index = quarter turns), computed once. */
 	private final List<List<Box>> rotatedColliders = new ArrayList<>();
 	private final Box[] rotatedExtent = new Box[4];
+	private final List<Particle> particles;
+	/** The particle sources already turned to each facing (index = quarter turns). */
+	private final List<List<Particle>> rotatedParticles = new ArrayList<>();
 
 	TentType(String group, String texture, String id, String frenchName, String englishName, String model, String decor, Box extent,
-			List<Box> colliders) {
+			List<Box> colliders, List<Particle> particles) {
 		this.group = group;
 		this.texture = texture;
 		this.id = id;
@@ -83,6 +113,7 @@ public final class TentType {
 		this.decor = decor;
 		this.extent = extent;
 		this.colliders = List.copyOf(colliders);
+		this.particles = List.copyOf(particles);
 		for (int q = 0; q < 4; q++) {
 			List<Box> list = new ArrayList<>();
 			for (Box b : colliders) {
@@ -90,6 +121,11 @@ public final class TentType {
 			}
 			rotatedColliders.add(List.copyOf(list));
 			rotatedExtent[q] = rotate(extent, q);
+			List<Particle> ps = new ArrayList<>();
+			for (Particle p : particles) {
+				ps.add(p.rotate(q));
+			}
+			rotatedParticles.add(List.copyOf(ps));
 		}
 	}
 
@@ -97,13 +133,17 @@ public final class TentType {
 		return id;
 	}
 
-	/** {@link #TENTS} or {@link #CARTS}: the JSON folder and the creative tab. */
+	/** {@link #TENTS}, {@link #CARTS} or {@link #WORKSHOPS}: the JSON folder and the creative tab. */
 	public String group() {
 		return group;
 	}
 
 	public boolean isCart() {
 		return CARTS.equals(group);
+	}
+
+	public boolean isWorkshop() {
+		return WORKSHOPS.equals(group);
 	}
 
 	/** The atlas of the model, relative to {@code assets/medievalships/} ({@code textures/entity/tents.png} or {@code carts.png}). */
@@ -147,6 +187,16 @@ public final class TentType {
 	/** The collision boxes turned to a facing. */
 	public List<Box> colliders(int quarter) {
 		return rotatedColliders.get(quarter & 3);
+	}
+
+	/** Prop-local particle sources (facing south); empty for most props. */
+	public List<Particle> particles() {
+		return particles;
+	}
+
+	/** The particle sources turned to a facing. */
+	public List<Particle> particles(int quarter) {
+		return rotatedParticles.get(quarter & 3);
 	}
 
 	/**
@@ -204,7 +254,21 @@ public final class TentType {
 				colliders.add(box(e.getAsJsonArray()));
 			}
 		}
-		return new TentType(group, texture, id, frenchName, englishName, model, decor, extent, colliders);
+		List<Particle> particles = new ArrayList<>();
+		if (root.has("particles") && root.get("particles").isJsonArray()) {
+			for (JsonElement e : root.getAsJsonArray("particles")) {
+				JsonObject o = e.getAsJsonObject();
+				String type = o.get("type").getAsString().trim().toLowerCase(Locale.ROOT);
+				if (type.startsWith("minecraft:")) {
+					type = type.substring("minecraft:".length());
+				}
+				JsonArray pos = o.getAsJsonArray("pos");
+				double chance = o.has("chance") ? Math.max(0.0, Math.min(1.0, o.get("chance").getAsDouble())) : 1.0;
+				int count = o.has("count") ? Math.max(1, Math.min(16, o.get("count").getAsInt())) : 1;
+				particles.add(new Particle(type, pos.get(0).getAsDouble(), pos.get(1).getAsDouble(), pos.get(2).getAsDouble(), chance, count));
+			}
+		}
+		return new TentType(group, texture, id, frenchName, englishName, model, decor, extent, colliders, particles);
 	}
 
 	private static Box box(JsonArray a) {

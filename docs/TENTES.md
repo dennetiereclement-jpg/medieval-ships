@@ -63,7 +63,8 @@ compte les cordes et piquets devant et derrière). Les six objets sont dans l'on
   entrée vers la direction donnée (ou vers l'exécutant). Même vérification de place libre que l'objet.
 - `/tent remove [nearest|x y z]` — retire la tente la plus proche, ou celle dont l'ancrage est en x y z.
 - `/tent list` — les tentes chargées de ce monde, de la plus proche à la plus lointaine.
-- `/tent types` — les six ids.
+- `/tent types` — les ids de tous les objets en un bloc (six tentes, et depuis 1.12.0 / 1.13.0 les huit
+  [charrettes](CHARRETTES.md) et les sept [ateliers](ATELIERS.md)).
 
 ## Meubles par tente (mods source, substituts)
 
