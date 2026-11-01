@@ -147,7 +147,7 @@ def gear(bone, name, c, axis, r, th, teeth, region, spokes, spoke_region, hub_r)
         am = (a0 + a1) / 2
         p0 = c + (e1 * math.cos(a0) + e2 * math.sin(a0)) * r
         p1 = c + (e1 * math.cos(a1) + e2 * math.sin(a1)) * r
-        beam(bone, "%s_rim_%d" % (name, k), p0, p1, th, region, width=r * 0.24, up=e1 * math.cos(am) + e2 * math.sin(am), extend=r * 0.07)
+        beam(bone, "%s_rim_%d" % (name, k), p0, p1, th, region, width=r * 0.3, up=e1 * math.cos(am) + e2 * math.sin(am), extend=r * 0.07)
     for k in range(teeth):
         a = 2 * math.pi * (k + 0.5) / teeth
         d = e1 * math.cos(a) + e2 * math.sin(a)
@@ -157,7 +157,7 @@ def gear(bone, name, c, axis, r, th, teeth, region, spokes, spoke_region, hub_r)
     for k in range(spokes):
         a = 2 * math.pi * k / spokes
         d = e1 * math.cos(a) + e2 * math.sin(a)
-        beam(bone, "%s_spoke_%d" % (name, k), c + d * hub_r * 0.8, c + d * r * 0.92, th * 0.7, spoke_region, width=r * 0.11, up=axis)
+        beam(bone, "%s_spoke_%d" % (name, k), c + d * hub_r * 0.8, c + d * r * 0.9, th * 0.7, spoke_region, width=r * 0.14, up=axis)
     disc(bone, name + "_hub", c, axis, hub_r, th * 1.5, "brass", sides=10)
     disc(bone, name + "_hub_cap", c + axis * th * 0.9, axis, hub_r * 0.45, th * 0.5, "gold", sides=8)
 
@@ -204,9 +204,16 @@ def build():
     for k, az in enumerate(bs.CHAIN_AZIMUTHS):
         p = P(fb_, az, 0.22)
         R = ry(-math.radians(az))
-        add_cube(rigging, "shackle_%d" % k, p, R, (0.5, 0.75, 0.12), "gold")
-        disc(rigging, "shackle_boss_%d" % k, p + radial(az) * 0.08, radial(az), 0.17, 0.08, "brass", sides=8)
-        add_cube(rigging, "shackle_ear_%d" % k, p - v3(0, 0.46, 0) + radial(az) * 0.02, R, (0.22, 0.2, 0.14), "gold")
+        add_cube(rigging, "shackle_%d" % k, p, R, (0.56, 0.8, 0.12), "gold")
+        # an ornate clasp: a gold gear emblem with a brass boss over the shackle, a hanging ear the chain starts from
+        disc(rigging, "shackle_gear_%d" % k, p + radial(az) * 0.1, radial(az), 0.26, 0.07, "gold", sides=10)
+        F = face_frame(radial(az))
+        for tt in range(8):
+            a = 2 * math.pi * tt / 8 + 0.2
+            q = p + radial(az) * 0.1 + (F[:, 0] * math.cos(a) + F[:, 1] * math.sin(a)) * 0.29
+            add_cube(rigging, "shackle_tooth_%d_%d" % (k, tt), q, F @ rz(a), (0.08, 0.07, 0.06), "gold")
+        disc(rigging, "shackle_boss_%d" % k, p + radial(az) * 0.15, radial(az), 0.12, 0.08, "brass", sides=8)
+        add_cube(rigging, "shackle_ear_%d" % k, p - v3(0, 0.48, 0) + radial(az) * 0.02, R, (0.22, 0.2, 0.14), "gold")
 
     # ---------------------------------------------------------------- suspension: gold chains down the skirt to the
     # load ring at the mouth, then from the ring to the basket's rail; the ring hangs from the burner frame
@@ -224,6 +231,13 @@ def build():
         disc(rigging, "chain_clamp_%d" % k, bottom - v3(0, 0.04, 0), UP, 0.11, 0.1, "brass", sides=8)
         ring(rigging, "chain_eye_%d" % k, top, radial(az), 0.12, 0.05, "gold", n=6)
 
+    # four ropes from the load ring to the heads of the stem and stern posts (the chains carry the basket, the ropes
+    # keep it from swinging fore and aft)
+    for k, (az, s_) in enumerate(((12.0, 1), (-12.0, 1), (168.0, -1), (192.0, -1))):
+        top = v3(0, LOAD_RING_Y - 0.08, 0) + radial(az) * (LOAD_RING_R - 0.02)
+        head = v3(0, sheer(s_ * (bs.HALF_LENGTH + 0.3)) + 0.4, s_ * (bs.HALF_LENGTH + 0.55))
+        tube(rigging, "stay_rope_%d" % k, top, head, 0.09, "rope", sides=4, extend=0.05)
+
     # ---------------------------------------------------------------- the basket: a small planked hull with dark rims
     for side, sn in SIDES:
         for i in range(len(STATIONS) - 1):
@@ -238,7 +252,7 @@ def build():
                       inner="hull" if ko >= 4 else None)
             # the rims: a flat cap plank on the bulwark and a round rail on it, a dark wale at the deck line
             pa, pb = v3(side * hw(za), sheer(za) + 0.04, za), v3(side * hw(zb), sheer(zb) + 0.04, zb)
-            beam(basket, "gunwale_%s%d" % (sn, i), pa, pb, 0.08, "rim", width=0.3, extend=0.04)
+            beam(basket, "gunwale_%s%d" % (sn, i), pa, pb, 0.08, "wood", width=0.3, extend=0.04)
             tube(basket, "rail_%s%d" % (sn, i), pa + v3(0, 0.08, 0), pb + v3(0, 0.08, 0), 0.17, "rim", extend=0.05)
             ya, yb = upper_y(za, 0.08), upper_y(zb, 0.08)
             qa, qb = v3(side * (hull_x(za, ya) + 0.05), ya, za), v3(side * (hull_x(zb, yb) + 0.05), yb, zb)
@@ -246,6 +260,11 @@ def build():
             ya, yb = upper_y(za, 0.55), upper_y(zb, 0.55)
             qa, qb = v3(side * (hull_x(za, ya) + 0.04), ya, za), v3(side * (hull_x(zb, yb) + 0.04), yb, zb)
             tube(basket, "rub_%s%d" % (sn, i), qa, qb, 0.07, "brass", extend=0.04, sides=4)
+            # a dark stanchion on the bulwark at every other station, from the wale up to the cap
+            if 1 <= i < len(STATIONS) - 2 and i % 2 == 1:
+                y0, y1 = upper_y(za, 0.12), sheer(za)
+                (p0, n0), (p1, n1) = hull_pt(za, y0, side, 0.05), hull_pt(za, y1, side, 0.05)
+                beam(basket, "stanchion_%s%d" % (sn, i), p0, p1, 0.1, "rim", width=0.16, up=norm(n0 + n1), extend=0.02)
     for i in range(len(STATIONS) - 1):
         za, zb = STATIONS[i], STATIONS[i + 1]
         tube(basket, "keel_%d" % i, (0, bs.keel_y(za) - 0.08, za), (0, bs.keel_y(zb) - 0.08, zb), 0.22, "rim", extend=0.05)
@@ -425,7 +444,7 @@ def build():
         beam(engine, "wheel_strut_%d" % k, p, bearing, 0.08, "iron", width=0.1, extend=0.05)
     # the wheel itself: a rim of oak segments, square teeth, eight spokes, a brass hub (bone side_wheel, turns under way)
     wb_ = Bone("side_wheel", origin=tuple(wc), parent=engine)
-    gear(wb_, "wheel", wc, (1, 0, 0), bs.WHEEL_R, 0.16, 16, "gear_wood", 8, "wood", 0.26)
+    gear(wb_, "wheel", wc, (1, 0, 0), bs.WHEEL_R, 0.22, 16, "gear_wood", 8, "wood", 0.28)
     disc(wb_, "wheel_crank", wc + v3(ws * 0.14, 0, 0), (1, 0, 0), 0.2, 0.1, "brass", sides=8)
     add_cube(wb_, "wheel_crank_pin", wc + v3(ws * 0.24, 0.12, 0), EYE, (0.1, 0.08, 0.08), "gold")
     # the pinion driving it from the top, on a shaft from the boiler through the bulwark (bone pinion)

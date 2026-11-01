@@ -58,7 +58,7 @@ Animations (os du modèle) : `helm_wheel` (`steer`, le volant des vannes), `burn
 `side_wheel` + `pinion` (`engine` : tournent avec la vitesse), `lantern_*` (`lantern_sway`). Le modèle entier
 ondule doucement (`sway` 1,6) et flotte de haut en bas (`hover` 0,1).
 
-Taille du modèle : **2 536 cubes** (enveloppe 300 panneaux, chaînes ≈ 300 maillons), une texture 256 × 256.
+Taille du modèle : **2 658 cubes** (enveloppe 300 panneaux, chaînes ≈ 300 maillons), une texture 256 × 256.
 
 ## 3. Places et commandes
 
