@@ -108,7 +108,7 @@ def front(props, det, L, rng):
     ml.barrel(props, "barrel_fl", fl, r=0.37, h=0.9, content="m7_steak_heap")
     p7.steak_pile(props, "barrel_meat", (fl[0], 0.9, fl[2]), rng, n=4, w=0.34, d=0.22, th=0.1)
     ml.barrel(props, "barrel_fl2", (-hw - 0.62, 0.0, hd - 0.92), r=0.33, h=0.8)
-    cx, cz, cs = -0.62, hd + 0.62, 0.56
+    cx, cz, cs = -0.92, hd + 0.62, 0.56
     ml.crate(props, "crate_meat", (cx, 0.0, cz), size=cs, yaw=0.0, solid=True)
     p7.steak_pile(props, "crate_steaks", (cx, cs, cz), rng, n=3, w=0.3, d=0.2, th=0.09)
 
