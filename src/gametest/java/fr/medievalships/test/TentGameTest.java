@@ -128,6 +128,15 @@ public final class TentGameTest {
 		server.runCommand(String.format(Locale.ROOT, "fill %d -63 -14 %d %d 14 stone", X - 14, X + 14, GROUND));
 		server.runCommand(String.format(Locale.ROOT, "fill %d %d -14 %d %d 14 air", X - 14, GROUND + 1, X + 14, GROUND + 12));
 		context.waitTicks(10);
+		// the six merchant tents (1.14.0) are in the list placed below, and each fits the cleared area of the platform
+		check.accept(TentTypes.ALL.containsAll(TentTypes.MERCHANTS) && TentTypes.MERCHANTS.size() == 6,
+				"the six merchant tents are placed once each below (" + TentTypes.MERCHANTS.size() + ")");
+		for (TentType t : TentTypes.MERCHANTS) {
+			TentType.Box e = t.extent(TentType.SOUTH);
+			check.accept(e.x0() > -14 && e.x1() < 14 && e.z0() > -14 && e.z1() < 14 && e.y1() < 12,
+					String.format(Locale.ROOT, "%s fits the cleared platform (extent x %.1f..%.1f z %.1f..%.1f h %.1f)", t.id(), e.x0(), e.x1(),
+							e.z0(), e.z1(), e.y1()));
+		}
 		BlockPos a = anchor();
 		server.runCommand(String.format(Locale.ROOT, "tent place %s %d %d %d south", id, a.getX(), a.getY(), a.getZ()));
 		world.waitForChunksRender();

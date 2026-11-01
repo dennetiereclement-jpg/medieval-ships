@@ -63,8 +63,9 @@ compte les cordes et piquets devant et derrière). Les six objets sont dans l'on
   entrée vers la direction donnée (ou vers l'exécutant). Même vérification de place libre que l'objet.
 - `/tent remove [nearest|x y z]` — retire la tente la plus proche, ou celle dont l'ancrage est en x y z.
 - `/tent list` — les tentes chargées de ce monde, de la plus proche à la plus lointaine.
-- `/tent types` — les ids de tous les objets en un bloc (six tentes, et depuis 1.12.0 / 1.13.0 les huit
-  [charrettes](CHARRETTES.md) et les sept [ateliers](ATELIERS.md)).
+- `/tent types` — les ids de tous les objets en un bloc (six tentes, et depuis 1.12.0 / 1.13.0 / 1.14.0 les huit
+  [charrettes](CHARRETTES.md), les sept [ateliers](ATELIERS.md) et les six
+  [tentes de marchands](#tentes-de-marchands-1140)).
 
 ## Meubles par tente (mods source, substituts)
 
@@ -115,6 +116,97 @@ tous les cas le serveur n'a pas besoin des mods : il ne manque jamais rien et ri
 Les fichiers exacts : `assets/medievalships/interiors/<id>_decor.json` (positions, orientation, échelle, `glow`,
 `alt`, bone de substitution `fallback`).
 
+## Tentes de marchands (1.14.0)
+
+Six grandes tentes d'étal, posées comme les six autres (un bloc, même bloc / entité de bloc / rendu / collisions /
+commandes), rangées dans le même onglet créatif **Tentes**, après les six premières. Elles partagent le même
+pavillon (`tools/merchant/merchantlib.py`, fonction `pavilion`) : carré d'environ 6,5 × 6 blocs ouvert devant et sur
+l'avant des côtés, quatre gros poteaux sculptés (bois sombre, frettes de fer, chapiteau, fleuron doré), poutres
+d'avant-toit à 3,4 blocs, haut toit à quatre pans légèrement creusés jusqu'à 6,6 blocs avec un épi doré, rayures
+couleur / beige, lambrequin à dents carrées bordé d'or, mât à drapeau à queue d'aronde à l'arrière gauche (et un
+petit drapeau à l'arrière droit, guirlande de fanions vers le sommet), grande bannière à l'emblème au milieu de
+l'avant, lanternes allumées sur les poteaux avant, tapis à l'emblème devant l'entrée, comptoir en L, étagères du
+fond, toile de fond et de l'arrière des côtés. Chaque tente a son propre atlas (`textures/entity/<id>.png`).
+
+| id | nom | couleur / emblème | emprise (l × h × p, blocs) | cubes | générateur |
+|----|-----|-----|-----|-----|-----|
+| `tente_armurier` | Tente du marchand d'armes et d'armures | rouge / épées croisées | 8,5 × 8,2 × 8,7 | 620 | `tools/merchant/generate_tente_armurier.py` |
+| `tente_alchimiste` | Tente du marchand d'alchimie | violet, bords dorés / fiole | 8,4 × 8,2 × 8,7 | 762 | `tools/merchant/generate_tente_alchimiste.py` |
+| `tente_herboriste` | Tente de l'herboriste | vert, lierre / feuille | 8,4 × 8,2 × 8,7 | 816 | `tools/merchant/generate_tente_herboriste.py` |
+| `tente_forgeron` | Tente du forgeron | bleu marine / enclume | 8,4 × 8,2 × 8,7 | 644 | `tools/merchant/generate_tente_forgeron.py` |
+| `tente_nourriture` | Tente du marchand de nourriture | jaune ocre / fromage | 8,4 × 8,2 × 8,7 | 681 | `tools/merchant/generate_tente_nourriture.py` |
+| `tente_tissus` | Tente du marchand de tissus | turquoise / parchemin | 8,8 × 8,2 × 8,7 | 660 | `tools/merchant/generate_tente_tissus.py` |
+
+L'emprise compte le drapeau qui dépasse à l'arrière gauche (jusqu'à 4,5 blocs du centre) et le **tapis devant
+l'entrée** (jusqu'à 5,4 blocs devant le centre) : il faut cette place libre devant la tente pour la poser.
+
+**Obtenir / poser** : `/give @p medievalships:tente_armurier` (de même `tente_alchimiste`, `tente_herboriste`,
+`tente_forgeron`, `tente_nourriture`, `tente_tissus`), ou `/tent give tente_armurier`, ou dans l'onglet Tentes.
+Clic droit au sol : l'entrée fait face au joueur. `/tent place armurier` (le nom court sans `tente_` marche aussi),
+`/tent remove`, casser le bloc d'ancrage (au centre, au sol) : comme les autres tentes.
+
+**Ce qu'on y trouve** (tout est dans le modèle sauf les meubles des mods, listés ensuite) :
+
+- **Marchand d'armes et d'armures** : bannières rouges aux épées croisées (devant, avant droit, côté gauche),
+  râtelier d'épées, haches et lances le long du côté gauche, second râtelier d'épées et de lances au fond, deux
+  armures de plates complètes sur leurs supports derrière le comptoir, heaumes, rondaches et lingots sur les
+  étagères et le comptoir, une épée posée, lances dans un tonneau, l'écu au lion d'or appuyé sur une caisse devant,
+  caisses cerclées de fer.
+- **Marchand d'alchimie** : étagères pleines de fioles de couleur, chaudron violet bouillonnant avec un cristal
+  d'améthyste lumineux à l'avant gauche, grosses fioles sur le comptoir gauche, livre ouvert sur une nappe violette
+  à franges dorées, bougies, bocaux, parchemin, bouquets d'herbes suspendus.
+- **Herboriste** : lierre sur le toit, le lambrequin et les poteaux, bouquets d'herbes séchées et de lavande
+  suspendus, pots de fleurs (blanches, violettes, rouges) et pousses sur les comptoirs et les étagères, caisses
+  moussues, caisses de récolte, paniers.
+- **Forgeron** : forge de pierre au foyer rougeoyant au fond à gauche, grosse enclume grise sur un bloc de pierre
+  devant, râtelier d'épées, heaumes, boucliers, outils et lingots ; la forge émet de temps en temps une flamme et
+  une fumée (particules vanilla des « random display ticks » du bloc, comme les ateliers : rien de permanent).
+- **Marchand de nourriture** : table de présentation sous une nappe jaune avec une pyramide de fromages, meules et
+  pains sur les étagères, comptoir de tomates, pommes, petits pains et légumes, jambons et saucissons pendus à la
+  poutre avant, paniers, sacs, tonneaux.
+- **Marchand de tissus** : grand casier de rouleaux de tissu (crème, bleu, lilas, violet, jaune, or, rouge), comptoir
+  du fond avec une pyramide de coupons, tissus suspendus, étagère de linge plié, tringle de tissus pendus au-dessus
+  du comptoir gauche, mannequin en robe crème à l'avant gauche, comptoir droit sous une nappe turquoise bordée d'or,
+  rideau turquoise au poteau avant droit.
+
+**Meubles des mods** (même principe que plus haut : le bloc du mod s'il est installé, sinon le bloc vanilla
+indiqué `→`, sinon une boîte de substitution du modèle ; purement visuels) :
+
+- **Armes et armures** (7) : `landsoficaria:cypress_barrel` ×2 → `minecraft:barrel`, `furnish:spruce_crate` ×3,
+  `furnish:dark_oak_crate`, `farmhouse_decorations:kerosene_lantern` (sur le comptoir, lumineuse).
+- **Alchimie** (4) : `landsoficaria:cypress_barrel` ×2 → `minecraft:barrel`, `furnish:spruce_crate`,
+  `farmhouse_decorations:pile_of_books`.
+- **Herboriste** (5) : `landsoficaria:cypress_barrel` → `minecraft:barrel`, `farmersdelight:cabbage_crate`,
+  `farmersdelight:carrot_crate`, `farmersdelight:onion_crate`, `farmersdelight:wooden_basket`.
+- **Forgeron** (5) : `landsoficaria:cypress_barrel` → `minecraft:barrel`, `furnish:spruce_crate` ×3,
+  `farmhouse_decorations:tool_board` (panneau à outils sur le côté droit).
+- **Nourriture** (6) : `farmersdelight:tomato_crate`, `farmersdelight:cabbage_crate`, `farmersdelight:potato_crate`,
+  `farmersdelight:wooden_basket`, `farmersdelight:rice_bag`, `landsoficaria:cypress_barrel` → `minecraft:barrel`.
+- **Tissus** (5) : `furnish:spruce_crate` ×5 → `minecraft:barrel`.
+
+Les bannières, emblèmes, armures, fioles, rouleaux de tissu, fromages, l'enclume et la forge sont modélisés (aucun
+meuble de mod ne les représente). **Collisions** : poteaux, comptoirs, étagères, râteliers, tonneaux et caisses,
+enclume, forge, chaudron ; la toile, les bannières et le tapis ne bloquent pas, l'entrée au milieu de l'avant reste
+libre.
+
+**Pour les développeurs** : `merchantlib.py` donne `setup`, `Atlas(id, colour)` (+ `atlas.add(nom, l, h, peintre)`
+pour les régions propres à une tente), `pavilion(...)` (options : emblème, coin du drapeau, bannières de côté,
+lanternes, comptoir, étagères, lierre ; renvoie la disposition : hauteurs, dessus des comptoirs, niveaux des
+étagères, sol libre, places près des poteaux avant, bone `detail`), des accessoires (`barrel`, `crate`, `sack`,
+`basket`, `bottle`, `hanging_bunch`, `weapon_rack`, `sword`, `axe`, `spear`, `counter`, `shelf_unit`,
+`table_cloth`, `banner`, `rug`, `vine`, `lantern`), `Decor` et `export` (écrit `tents/<id>.json` avec sa
+`"texture"`, le modèle, l'atlas, l'icône, le décor). Relancer un générateur réécrit tous les fichiers de sa tente.
+
+**Limites connues / non vérifié** :
+
+- Le test en jeu des six tentes de marchands (`TentGameTest`, ci-dessous) est écrit mais n'a pas encore tourné en
+  CI au moment de la 1.14.0 (exécutions annulées pour libérer les machines) : la pose, les collisions et le rendu en
+  jeu ne sont vérifiés que par les tests JUnit et les rendus hors jeu (`tools/preview.py`).
+- Les rayures du toit sont dessinées par facettes : leurs bords font de petites marches d'une rangée à l'autre au
+  lieu d'une ligne droite.
+- Le rendu réel des meubles des mods (seulement dans la variante « decor » du test en jeu) et des particules de la
+  forge n'ont pas été vus.
+
 ## Performances
 
 - **Aucun tick** : l'entité de bloc n'a pas de ticker, pas de particules, pas d'animation ; le serveur ne fait rien
@@ -145,9 +237,13 @@ les boîtes de collision se reconstruisent au chargement du chunk.
 - Test en jeu `TentGameTest` (CI, appelé par `ShipClientGameTest`, variantes vanilla / Lithium / avec les mods de
   décoration) : la petite tente d'aventurier en détail (`/tent place`, bloc et orientation, refus d'une seconde
   tente par-dessus, un joueur en survie arrêté par un poteau avant et entrant librement par l'entrée, captures
-  d'écran, `/tent remove`, bloc et collisions disparus), puis chacune des cinq autres tentes une fois : posée,
-  bloc, orientation, entité de bloc, une requête de collision sur sa première boîte pleine, une capture d'écran,
-  retirée par `/tent remove x y z`.
+  d'écran, `/tent remove`, bloc et collisions disparus), puis chacune des onze autres tentes une fois (les cinq
+  autres tentes de camp et, depuis 1.14.0, les six tentes de marchands, dont l'emprise est d'abord vérifiée dans la
+  plateforme dégagée) : posée, bloc, orientation, entité de bloc, une requête de collision sur sa première boîte
+  pleine, une capture d'écran, retirée par `/tent remove x y z`.
+- JUnit `MerchantTest` (1.14.0) : les six tentes de marchands dans `TentTypes.ALL` et `MERCHANTS`, groupe
+  `tents`, noms courts (`/tent place armurier`), emprises à l'échelle, boîtes de collision dans l'emprise, quatre
+  poteaux pleins, entrée libre, fichiers (langues, blockstate, objet, icône, modèle, atlas), modèles chargés.
 
 ## Non vérifié
 
