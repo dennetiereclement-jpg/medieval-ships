@@ -1,0 +1,45 @@
+{
+ "blocks": [
+  {
+   "block": "landsoficaria:cypress_barrel",
+   "x": 3.58,
+   "y": 0.0,
+   "z": 1.05,
+   "yaw": 90.0,
+   "scale": 0.85,
+   "fallback": "fallback_0",
+   "alt": "minecraft:barrel"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": 2.82,
+   "y": 0.0,
+   "z": 3.42,
+   "yaw": 180.0,
+   "scale": 0.72,
+   "fallback": "fallback_1"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": 2.2,
+   "y": 0.0,
+   "z": -0.4,
+   "yaw": 180.0,
+   "scale": 0.62,
+   "fallback": "fallback_2"
+  },
+  {
+   "block": "landsoficaria:cypress_barrel",
+   "x": -2.3,
+   "y": 0.0,
+   "z": -0.4,
+   "yaw": 180.0,
+   "scale": 0.72,
+   "fallback": "fallback_3",
+   "alt": "minecraft:barrel"
+  }
+ ],
+ "seats": [],
+ "paintings": [],
+ "switches": []
+}

@@ -1,0 +1,44 @@
+{
+ "blocks": [
+  {
+   "block": "landsoficaria:cypress_barrel",
+   "x": -3.52,
+   "y": 0.0,
+   "z": 1.95,
+   "yaw": 270.0,
+   "scale": 0.82,
+   "fallback": "fallback_0",
+   "alt": "minecraft:barrel"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": 3.52,
+   "y": 0.0,
+   "z": 1.9,
+   "yaw": 90.0,
+   "scale": 0.7,
+   "fallback": "fallback_1"
+  },
+  {
+   "block": "landsoficaria:purple_storage_vase",
+   "x": -2.55,
+   "y": 0.0,
+   "z": -0.9,
+   "yaw": 270.0,
+   "scale": 0.62,
+   "fallback": "fallback_2"
+  },
+  {
+   "block": "furnish:book_pile",
+   "x": 0.62,
+   "y": 1.0,
+   "z": -2.32,
+   "yaw": 180.0,
+   "scale": 0.7,
+   "fallback": "fallback_3"
+  }
+ ],
+ "seats": [],
+ "paintings": [],
+ "switches": []
+}
