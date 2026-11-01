@@ -1,0 +1,400 @@
+[19:44:10] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop floats at its waterline (y -48.61, water -49.11)
+[19:44:10] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop placed: inside nothing
+[19:44:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] trade_sloop at rest: sail set 0, open 0.06
+[19:44:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop: the sails furl onto the boom when stopped (open 0.06)
+[19:44:15] [Server thread/INFO]: Teleported Player512 to 914.500000, -45.731000, 9.500000
+[19:44:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop: the sails are set again (open 0.95)
+[19:44:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop: the model loaded in game has its sails, rudder and animations
+[19:44:19] [Server thread/INFO]: Teleported Player512 to 914.500000, -45.731000, 9.500000
+[19:44:20] [Server thread/INFO]: Teleported Player512 to 930.500000, -45.231000, -11.000000
+[19:44:21] [Server thread/INFO]: Teleported Player512 to 887.500000, -45.231000, -35.500000
+[19:44:21] [Server thread/INFO]: Teleported Player512 to 900.550000, -14.231000, -11.000000
+[19:44:22] [Server thread/INFO]: Set Player512's game mode to Survival Mode
+[19:44:22] [Server thread/INFO]: Unable to apply this effect (target is either immune to effects, or has something stronger)
+[19:44:22] [Server thread/INFO]: Teleported Player512 to 901.200000, -47.991000, -9.500000
+[19:44:22] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[19:44:24] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop: standing on the main deck (local y 0.600)
+[19:44:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop: walks aft along the deck (local 0.70 0.60 -1.02)
+[19:44:25] [Server thread/INFO]: Teleported Player512 to 900.500000, -47.491000, -15.900000
+[19:44:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop: standing on the stern platform (local y 1.100)
+[19:44:26] [Server thread/INFO]: Teleported Player512 to 900.800000, -47.511000, -15.900000
+[19:44:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop: the player takes the tiller
+[19:44:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] trade_sloop at the tiller: 5.14 blocks after 4 s, 13.11 after 6.5 s, turned 15.5 deg, helm -1.00, sails 1.00, speed 3.62
+[19:44:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop sails under the player's control, gathering way (5.14 then 13.11 blocks)
+[19:44:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop: the tiller and the rudder follow the helm (-1.00)
+[19:44:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop: the sails stay set under way (open 1.00)
+[19:44:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop turns to port (15.5 degrees in 2.5 s)
+[19:44:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop under way: inside nothing
+[19:44:33] [Server thread/INFO]: Player512 stopped riding Trade Sloop
+[19:44:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop: the pilot steps off onto the stern platform (local 0.03 1.10 -3.96)
+[19:44:33] [Server thread/INFO]: Set Player512's game mode to Spectator Mode
+[19:44:33] [Server thread/INFO]: Teleported Player512 to 922.341000, -45.231000, 14.564000
+[19:44:33] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[19:44:34] [Server thread/INFO]: No items were found on player Player512
+[19:44:34] [Server thread/INFO]: Petit voilier de commerce donné(e) à 1 joueur(s).
+[19:44:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] trade_sloop item: /ship give gives it (1)
+[19:44:34] [Server thread/INFO]: Removed 1 item(s) from player Player512
+[19:44:34] [Server thread/INFO]: Unmarked 12 chunks in minecraft:overworld from [55, -2] to [57, 1] for force loading
+[19:44:34] [Server thread/INFO]: Set Player512's game mode to Survival Mode
+[19:44:34] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[19:44:34] [Server thread/INFO]: Player512 is not riding any vehicle
+[19:44:34] [Server thread/INFO]: Set Player512's game mode to Spectator Mode
+[19:44:34] [Server thread/INFO]: Teleported Player512 to 900.500000, -48.000000, 0.500000
+[19:44:34] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[19:44:35] [Server thread/INFO]: Successfully filled 3364 block(s)
+[19:44:36] [Server thread/INFO]: Successfully filled 8410 block(s)
+[19:44:36] [Server thread/INFO]: Petite tente d'aventurier posée en 900, -59, 0, entrée vers south.
+[19:44:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_adventurer placed by /tent place: anchor block at 900, -59, 0 (south)
+[19:44:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_adventurer faces south as asked (south)
+[19:44:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_adventurer has its block entity
+[19:44:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_adventurer registered its collision boxes (1 tent(s) in the registry)
+[19:44:38] [Server thread/INFO]: Pas assez de place pour la tente (9 x 10 blocs, 4 de haut) : Adventurer Tent en 900 -59 0.
+[19:44:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_adventurer a second tent over the first is refused
+[19:44:38] [Server thread/INFO]: Teleported Player512 to 892.500000, -56.120000, 9.500000
+[19:44:39] [Server thread/INFO]: Teleported Player512 to 900.500000, -57.000000, 11.000000
+[19:44:40] [Server thread/INFO]: Teleported Player512 to 900.300000, -57.400000, 3.200000
+[19:44:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_adventurer has a front leg collision box
+[19:44:41] [Server thread/INFO]: Set Player512's game mode to Survival Mode
+[19:44:41] [Server thread/INFO]: Teleported Player512 to 901.603000, -59.000000, 4.235000
+[19:44:41] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[19:44:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] tent_adventurer walk into the leg: z 4.24 -> 1.94 (leg face at 3.04)
+[19:44:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_adventurer the front leg stops the player (moved 2.29, stopped -1.09 in front of it)
+[19:44:43] [Server thread/INFO]: Teleported Player512 to 900.500000, -59.000000, 3.500000
+[19:44:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_adventurer the entrance is open (walked 1.80 blocks in)
+[19:44:44] [Server thread/INFO]: Set Player512's game mode to Spectator Mode
+[19:44:44] [Server thread/INFO]: Aucune tente chargée dans ce monde.
+[19:44:44] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[19:44:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_adventurer removed by /tent remove (block Block{minecraft:water})
+[19:44:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_adventurer its collision boxes are forgotten (0 tent(s) left)
+[19:44:45] [Server thread/INFO]: Grande tente de commandement posée en 900, -59, 0, entrée vers south.
+[19:44:46] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_command placed: anchor block at 900, -59, 0 (Block{minecraft:water})
+[19:44:46] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_command faces south (Block{minecraft:water})
+[19:44:46] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_command has its block entity
+[19:44:46] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_command registered its collision boxes (0 tent(s) in the registry)
+[19:44:46] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_command a collision query on its first solid box finds it (0 shape(s))
+[19:44:46] [Server thread/INFO]: Teleported Player512 to 892.080000, -52.520000, 11.727000
+[19:44:47] [Server thread/INFO]: Pas de tente en 900, -59, 0.
+[19:44:48] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_command removed by /tent remove x y z
+[19:44:48] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_command its collision boxes are forgotten (0 tent(s) left)
+[19:44:48] [Server thread/INFO]: Grand abri de marché posée en 900, -59, 0, entrée vers south.
+[19:44:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_market placed: anchor block at 900, -59, 0 (Block{minecraft:water})
+[19:44:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_market faces south (Block{minecraft:water})
+[19:44:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_market has its block entity
+[19:44:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_market registered its collision boxes (0 tent(s) in the registry)
+[19:44:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_market a collision query on its first solid box finds it (0 shape(s))
+[19:44:49] [Server thread/INFO]: Teleported Player512 to 891.394000, -54.554000, 12.641000
+[19:44:50] [Server thread/INFO]: Pas de tente en 900, -59, 0.
+[19:44:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_market removed by /tent remove x y z
+[19:44:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_market its collision boxes are forgotten (0 tent(s) left)
+[19:44:50] [Server thread/INFO]: Tente triangulaire de campement posée en 900, -59, 0, entrée vers south.
+[19:44:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_camp placed: anchor block at 900, -59, 0 (Block{minecraft:water})
+[19:44:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_camp faces south (Block{minecraft:water})
+[19:44:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_camp has its block entity
+[19:44:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_camp registered its collision boxes (0 tent(s) in the registry)
+[19:44:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_camp a collision query on its first solid box finds it (0 shape(s))
+[19:44:51] [Server thread/INFO]: Teleported Player512 to 893.536000, -55.675000, 9.786000
+[19:44:53] [Server thread/INFO]: Pas de tente en 900, -59, 0.
+[19:44:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_camp removed by /tent remove x y z
+[19:44:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_camp its collision boxes are forgotten (0 tent(s) left)
+[19:44:53] [Server thread/INFO]: Tente d'habitation posée en 900, -59, 0, entrée vers south.
+[19:44:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_dwelling placed: anchor block at 900, -59, 0 (Block{minecraft:water})
+[19:44:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_dwelling faces south (Block{minecraft:water})
+[19:44:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_dwelling has its block entity
+[19:44:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_dwelling registered its collision boxes (0 tent(s) in the registry)
+[19:44:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_dwelling a collision query on its first solid box finds it (0 shape(s))
+[19:44:54] [Server thread/INFO]: Teleported Player512 to 892.595000, -55.294000, 11.040000
+[19:44:56] [Server thread/INFO]: Pas de tente en 900, -59, 0.
+[19:44:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_dwelling removed by /tent remove x y z
+[19:44:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_dwelling its collision boxes are forgotten (0 tent(s) left)
+[19:44:56] [Server thread/INFO]: Grande tente de chef posée en 900, -59, 0, entrée vers south.
+[19:44:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_chief placed: anchor block at 900, -59, 0 (Block{minecraft:water})
+[19:44:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_chief faces south (Block{minecraft:water})
+[19:44:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_chief has its block entity
+[19:44:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_chief registered its collision boxes (0 tent(s) in the registry)
+[19:44:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] tent_chief a collision query on its first solid box finds it (0 shape(s))
+[19:44:57] [Server thread/INFO]: Teleported Player512 to 892.181000, -52.640000, 11.592000
+[19:44:59] [Server thread/INFO]: Pas de tente en 900, -59, 0.
+[19:44:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_chief removed by /tent remove x y z
+[19:44:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] tent_chief its collision boxes are forgotten (0 tent(s) left)
+[19:44:59] [Server thread/INFO]: Player512 is not riding any vehicle
+[19:44:59] [Server thread/INFO]: Teleported Player512 to 1000.500000, -50.000000, 0.500000
+[19:45:00] [Server thread/INFO]: Successfully filled 1764 block(s)
+[19:45:00] [Server thread/INFO]: No blocks were filled
+[19:45:01] [Server thread/INFO]: Charrette couverte blanche posée en 1000, -59, 0, entrée vers south.
+[19:45:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_white placed by /tent place: anchor block at 1000, -59, 0 (south)
+[19:45:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_white faces south (south)
+[19:45:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_white has its block entity
+[19:45:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_white registered its collision boxes (1 prop(s) in the registry)
+[19:45:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_white a collision query on its first box finds it (8 shape(s))
+[19:45:01] [Server thread/INFO]: Teleported Player512 to 995.810000, -56.078000, 5.963000
+[19:45:02] [Server thread/INFO]: Charrette couverte blanche retirée en 1000, -59, 0.
+[19:45:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_white removed by /cart remove x y z
+[19:45:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_white its collision boxes are forgotten (0 left)
+[19:45:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] cart_covered_white extent 3.1 x 6.0 x 3.3, 15 collision boxes
+[19:45:03] [Server thread/INFO]: Charrette de foin posée en 1000, -59, 0, entrée vers west.
+[19:45:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_hay placed by /cart place: anchor block at 1000, -59, 0 (west)
+[19:45:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_hay faces west (west)
+[19:45:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_hay has its block entity
+[19:45:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_hay registered its collision boxes (1 prop(s) in the registry)
+[19:45:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_hay a collision query on its first box finds it (12 shape(s))
+[19:45:03] [Server thread/INFO]: Teleported Player512 to 995.461000, -57.490000, 5.619000
+[19:45:05] [Server thread/INFO]: Charrette de foin retirée en 1000, -59, 0.
+[19:45:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_hay removed by /cart remove x y z
+[19:45:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_hay its collision boxes are forgotten (0 left)
+[19:45:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] cart_hay extent 5.6 x 2.9 x 1.9, 18 collision boxes
+[19:45:05] [Server thread/INFO]: Roulotte de marchand posée en 1000, -59, 0, entrée vers north.
+[19:45:06] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_merchant_wagon placed by /cart place: anchor block at 1000, -59, 0 (north)
+[19:45:06] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_merchant_wagon faces north (north)
+[19:45:06] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_merchant_wagon has its block entity
+[19:45:06] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_merchant_wagon registered its collision boxes (1 prop(s) in the registry)
+[19:45:06] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_merchant_wagon a collision query on its first box finds it (7 shape(s))
+[19:45:06] [Server thread/INFO]: Teleported Player512 to 996.657000, -56.230000, 4.707000
+[19:45:07] [Server thread/INFO]: Roulotte de marchand retirée en 1000, -59, 0.
+[19:45:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_merchant_wagon removed by /cart remove x y z
+[19:45:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_merchant_wagon its collision boxes are forgotten (0 left)
+[19:45:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] cart_merchant_wagon extent 2.9 x 4.6 x 3.2, 11 collision boxes
+[19:45:07] [Server thread/INFO]: Charrette de marché posée en 1000, -59, 0, entrée vers east.
+[19:45:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_market placed by /cart place: anchor block at 1000, -59, 0 (east)
+[19:45:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_market faces east (east)
+[19:45:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_market has its block entity
+[19:45:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_market registered its collision boxes (1 prop(s) in the registry)
+[19:45:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_market a collision query on its first box finds it (18 shape(s))
+[19:45:08] [Server thread/INFO]: Teleported Player512 to 996.677000, -56.480000, 4.846000
+[19:45:09] [Server thread/INFO]: Charrette de marché retirée en 1000, -59, 0.
+[19:45:09] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_market removed by /cart remove x y z
+[19:45:09] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_market its collision boxes are forgotten (0 left)
+[19:45:09] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] cart_market extent 5.1 x 3.6 x 2.9, 33 collision boxes
+[19:45:09] [Server thread/INFO]: Charrette de bûcheron posée en 1000, -59, 0, entrée vers south.
+[19:45:10] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_logs placed by /cart place: anchor block at 1000, -59, 0 (south)
+[19:45:10] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_logs faces south (south)
+[19:45:10] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_logs has its block entity
+[19:45:10] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_logs registered its collision boxes (1 prop(s) in the registry)
+[19:45:10] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_logs a collision query on its first box finds it (2 shape(s))
+[19:45:10] [Server thread/INFO]: Teleported Player512 to 995.923000, -56.988000, 6.169000
+[19:45:11] [Server thread/INFO]: Charrette de bûcheron retirée en 1000, -59, 0.
+[19:45:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_logs removed by /cart remove x y z
+[19:45:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_logs its collision boxes are forgotten (0 left)
+[19:45:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] cart_logs extent 2.8 x 5.8 x 2.4, 6 collision boxes
+[19:45:12] [Server thread/INFO]: Charrette de transport posée en 1000, -59, 0, entrée vers west.
+[19:45:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_open placed by /cart place: anchor block at 1000, -59, 0 (west)
+[19:45:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_open faces west (west)
+[19:45:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_open has its block entity
+[19:45:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_open registered its collision boxes (1 prop(s) in the registry)
+[19:45:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_open a collision query on its first box finds it (5 shape(s))
+[19:45:12] [Server thread/INFO]: Teleported Player512 to 995.804000, -57.610000, 5.049000
+[19:45:13] [Server thread/INFO]: Charrette de transport retirée en 1000, -59, 0.
+[19:45:14] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_open removed by /cart remove x y z
+[19:45:14] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_open its collision boxes are forgotten (0 left)
+[19:45:14] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] cart_open extent 4.8 x 2.7 x 1.8, 7 collision boxes
+[19:45:14] [Server thread/INFO]: Charrette couverte turquoise posée en 1000, -59, 0, entrée vers north.
+[19:45:14] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_teal placed by /cart place: anchor block at 1000, -59, 0 (north)
+[19:45:14] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_teal faces north (north)
+[19:45:14] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_teal has its block entity
+[19:45:14] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_teal registered its collision boxes (1 prop(s) in the registry)
+[19:45:14] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_teal a collision query on its first box finds it (7 shape(s))
+[19:45:14] [Server thread/INFO]: Teleported Player512 to 996.862000, -56.539000, 4.497000
+[19:45:16] [Server thread/INFO]: Charrette couverte turquoise retirée en 1000, -59, 0.
+[19:45:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_teal removed by /cart remove x y z
+[19:45:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_covered_teal its collision boxes are forgotten (0 left)
+[19:45:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] cart_covered_teal extent 2.6 x 4.3 x 2.9, 14 collision boxes
+[19:45:16] [Server thread/INFO]: Charrette à tonneaux posée en 1000, -59, 0, entrée vers east.
+[19:45:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_barrels placed by /cart place: anchor block at 1000, -59, 0 (east)
+[19:45:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_barrels faces east (east)
+[19:45:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_barrels has its block entity
+[19:45:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_barrels registered its collision boxes (1 prop(s) in the registry)
+[19:45:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_barrels a collision query on its first box finds it (6 shape(s))
+[19:45:17] [Server thread/INFO]: Teleported Player512 to 997.372000, -56.870000, 4.978000
+[19:45:18] [Server thread/INFO]: Charrette à tonneaux retirée en 1000, -59, 0.
+[19:45:18] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_barrels removed by /cart remove x y z
+[19:45:18] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_barrels its collision boxes are forgotten (0 left)
+[19:45:18] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] cart_barrels extent 4.7 x 2.8 x 2.6, 8 collision boxes
+[19:45:18] [Server thread/INFO]: Stopping server
+[19:45:18] [Server thread/INFO]: Saving players
+[19:45:18] [Server thread/INFO]: Player512 lost connection: Disconnected
+[19:45:18] [Server thread/INFO]: Player512 left the game
+[19:45:18] [Server thread/INFO]: Saving worlds
+[19:45:18] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:overworld
+[19:45:18] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_end
+[19:45:18] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_nether
+[19:45:18] [Server thread/INFO]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[19:45:18] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[19:45:18] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[19:45:18] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[19:45:18] [Test thread/ERROR]: Client gametests failed with an exception
+java.lang.AssertionError: 52 check(s) failed: [solo] tent_adventurer the front leg stops the player (moved 2.29, stopped -1.09 in front of it) | [solo] tent_command placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [solo] tent_command faces south (Block{minecraft:water}) | [solo] tent_command has its block entity | [solo] tent_command registered its collision boxes (0 tent(s) in the registry) | [solo] tent_command a collision query on its first solid box finds it (0 shape(s)) | [solo] tent_market placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [solo] tent_market faces south (Block{minecraft:water}) | [solo] tent_market has its block entity | [solo] tent_market registered its collision boxes (0 tent(s) in the registry) | [solo] tent_market a collision query on its first solid box finds it (0 shape(s)) | [solo] tent_camp placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [solo] tent_camp faces south (Block{minecraft:water}) | [solo] tent_camp has its block entity | [solo] tent_camp registered its collision boxes (0 tent(s) in the registry) | [solo] tent_camp a collision query on its first solid box finds it (0 shape(s)) | [solo] tent_dwelling placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [solo] tent_dwelling faces south (Block{minecraft:water}) | [solo] tent_dwelling has its block entity | [solo] tent_dwelling registered its collision boxes (0 tent(s) in the registry) | [solo] tent_dwelling a collision query on its first solid box finds it (0 shape(s)) | [solo] tent_chief placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [solo] tent_chief faces south (Block{minecraft:water}) | [solo] tent_chief has its block entity | [solo] tent_chief registered its collision boxes (0 tent(s) in the registry) | [solo] tent_chief a collision query on its first solid box finds it (0 shape(s)) | [dedie] tent_adventurer the front leg stops the player (moved 2.29, stopped -1.09 in front of it) | [dedie] tent_command placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [dedie] tent_command faces south (Block{minecraft:water}) | [dedie] tent_command has its block entity | [dedie] tent_command registered its collision boxes (0 tent(s) in the registry) | [dedie] tent_command a collision query on its first solid box finds it (0 shape(s)) | [dedie] tent_market placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [dedie] tent_market faces south (Block{minecraft:water}) | [dedie] tent_market has its block entity | [dedie] tent_market registered its collision boxes (0 tent(s) in the registry) | [dedie] tent_market a collision query on its first solid box finds it (0 shape(s)) | [dedie] tent_camp placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [dedie] tent_camp faces south (Block{minecraft:water}) | [dedie] tent_camp has its block entity | [dedie] tent_camp registered its collision boxes (0 tent(s) in the registry) | [dedie] tent_camp a collision query on its first solid box finds it (0 shape(s)) | [dedie] tent_dwelling placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [dedie] tent_dwelling faces south (Block{minecraft:water}) | [dedie] tent_dwelling has its block entity | [dedie] tent_dwelling registered its collision boxes (0 tent(s) in the registry) | [dedie] tent_dwelling a collision query on its first solid box finds it (0 shape(s)) | [dedie] tent_chief placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [dedie] tent_chief faces south (Block{minecraft:water}) | [dedie] tent_chief has its block entity | [dedie] tent_chief registered its collision boxes (0 tent(s) in the registry) | [dedie] tent_chief a collision query on its first solid box finds it (0 shape(s))
+	at knot//fr.medievalships.test.ShipClientGameTest.finish(ShipClientGameTest.java:1916)
+	at knot//fr.medievalships.test.ShipClientGameTest.runTest(ShipClientGameTest.java:86)
+	at knot//net.fabricmc.fabric.impl.client.gametest.FabricClientGameTestRunner.lambda$start$0(FabricClientGameTestRunner.java:54)
+	at knot//net.fabricmc.fabric.impl.client.gametest.threading.ThreadingImpl.lambda$runTestThread$1(ThreadingImpl.java:142)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+[19:45:18] [Render thread/ERROR]: Minecraft has crashed!
+net.fabricmc.loader.impl.FormattedException: java.lang.AssertionError: 52 check(s) failed: [solo] tent_adventurer the front leg stops the player (moved 2.29, stopped -1.09 in front of it) | [solo] tent_command placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [solo] tent_command faces south (Block{minecraft:water}) | [solo] tent_command has its block entity | [solo] tent_command registered its collision boxes (0 tent(s) in the registry) | [solo] tent_command a collision query on its first solid box finds it (0 shape(s)) | [solo] tent_market placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [solo] tent_market faces south (Block{minecraft:water}) | [solo] tent_market has its block entity | [solo] tent_market registered its collision boxes (0 tent(s) in the registry) | [solo] tent_market a collision query on its first solid box finds it (0 shape(s)) | [solo] tent_camp placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [solo] tent_camp faces south (Block{minecraft:water}) | [solo] tent_camp has its block entity | [solo] tent_camp registered its collision boxes (0 tent(s) in the registry) | [solo] tent_camp a collision query on its first solid box finds it (0 shape(s)) | [solo] tent_dwelling placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [solo] tent_dwelling faces south (Block{minecraft:water}) | [solo] tent_dwelling has its block entity | [solo] tent_dwelling registered its collision boxes (0 tent(s) in the registry) | [solo] tent_dwelling a collision query on its first solid box finds it (0 shape(s)) | [solo] tent_chief placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [solo] tent_chief faces south (Block{minecraft:water}) | [solo] tent_chief has its block entity | [solo] tent_chief registered its collision boxes (0 tent(s) in the registry) | [solo] tent_chief a collision query on its first solid box finds it (0 shape(s)) | [dedie] tent_adventurer the front leg stops the player (moved 2.29, stopped -1.09 in front of it) | [dedie] tent_command placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [dedie] tent_command faces south (Block{minecraft:water}) | [dedie] tent_command has its block entity | [dedie] tent_command registered its collision boxes (0 tent(s) in the registry) | [dedie] tent_command a collision query on its first solid box finds it (0 shape(s)) | [dedie] tent_market placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [dedie] tent_market faces south (Block{minecraft:water}) | [dedie] tent_market has its block entity | [dedie] tent_market registered its collision boxes (0 tent(s) in the registry) | [dedie] tent_market a collision query on its first solid box finds it (0 shape(s)) | [dedie] tent_camp placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [dedie] tent_camp faces south (Block{minecraft:water}) | [dedie] tent_camp has its block entity | [dedie] tent_camp registered its collision boxes (0 tent(s) in the registry) | [dedie] tent_camp a collision query on its first solid box finds it (0 shape(s)) | [dedie] tent_dwelling placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [dedie] tent_dwelling faces south (Block{minecraft:water}) | [dedie] tent_dwelling has its block entity | [dedie] tent_dwelling registered its collision boxes (0 tent(s) in the registry) | [dedie] tent_dwelling a collision query on its first solid box finds it (0 shape(s)) | [dedie] tent_chief placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [dedie] tent_chief faces south (Block{minecraft:water}) | [dedie] tent_chief has its block entity | [dedie] tent_chief registered its collision boxes (0 tent(s) in the registry) | [dedie] tent_chief a collision query on its first solid box finds it (0 shape(s))
+	at net.fabricmc.loader.impl.FormattedException.ofLocalized(FormattedException.java:63)
+	at net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider.launch(MinecraftGameProvider.java:516)
+	at net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:72)
+	at net.fabricmc.loader.impl.launch.knot.KnotClient.main(KnotClient.java:23)
+Caused by: java.lang.AssertionError: 52 check(s) failed: [solo] tent_adventurer the front leg stops the player (moved 2.29, stopped -1.09 in front of it) | [solo] tent_command placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [solo] tent_command faces south (Block{minecraft:water}) | [solo] tent_command has its block entity | [solo] tent_command registered its collision boxes (0 tent(s) in the registry) | [solo] tent_command a collision query on its first solid box finds it (0 shape(s)) | [solo] tent_market placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [solo] tent_market faces south (Block{minecraft:water}) | [solo] tent_market has its block entity | [solo] tent_market registered its collision boxes (0 tent(s) in the registry) | [solo] tent_market a collision query on its first solid box finds it (0 shape(s)) | [solo] tent_camp placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [solo] tent_camp faces south (Block{minecraft:water}) | [solo] tent_camp has its block entity | [solo] tent_camp registered its collision boxes (0 tent(s) in the registry) | [solo] tent_camp a collision query on its first solid box finds it (0 shape(s)) | [solo] tent_dwelling placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [solo] tent_dwelling faces south (Block{minecraft:water}) | [solo] tent_dwelling has its block entity | [solo] tent_dwelling registered its collision boxes (0 tent(s) in the registry) | [solo] tent_dwelling a collision query on its first solid box finds it (0 shape(s)) | [solo] tent_chief placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [solo] tent_chief faces south (Block{minecraft:water}) | [solo] tent_chief has its block entity | [solo] tent_chief registered its collision boxes (0 tent(s) in the registry) | [solo] tent_chief a collision query on its first solid box finds it (0 shape(s)) | [dedie] tent_adventurer the front leg stops the player (moved 2.29, stopped -1.09 in front of it) | [dedie] tent_command placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [dedie] tent_command faces south (Block{minecraft:water}) | [dedie] tent_command has its block entity | [dedie] tent_command registered its collision boxes (0 tent(s) in the registry) | [dedie] tent_command a collision query on its first solid box finds it (0 shape(s)) | [dedie] tent_market placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [dedie] tent_market faces south (Block{minecraft:water}) | [dedie] tent_market has its block entity | [dedie] tent_market registered its collision boxes (0 tent(s) in the registry) | [dedie] tent_market a collision query on its first solid box finds it (0 shape(s)) | [dedie] tent_camp placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [dedie] tent_camp faces south (Block{minecraft:water}) | [dedie] tent_camp has its block entity | [dedie] tent_camp registered its collision boxes (0 tent(s) in the registry) | [dedie] tent_camp a collision query on its first solid box finds it (0 shape(s)) | [dedie] tent_dwelling placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [dedie] tent_dwelling faces south (Block{minecraft:water}) | [dedie] tent_dwelling has its block entity | [dedie] tent_dwelling registered its collision boxes (0 tent(s) in the registry) | [dedie] tent_dwelling a collision query on its first solid box finds it (0 shape(s)) | [dedie] tent_chief placed: anchor block at 900, -59, 0 (Block{minecraft:water}) | [dedie] tent_chief faces south (Block{minecraft:water}) | [dedie] tent_chief has its block entity | [dedie] tent_chief registered its collision boxes (0 tent(s) in the registry) | [dedie] tent_chief a collision query on its first solid box finds it (0 shape(s))
+	at knot//fr.medievalships.test.ShipClientGameTest.finish(ShipClientGameTest.java:1916)
+	at knot//fr.medievalships.test.ShipClientGameTest.runTest(ShipClientGameTest.java:86)
+	at knot//net.fabricmc.fabric.impl.client.gametest.FabricClientGameTestRunner.lambda$start$0(FabricClientGameTestRunner.java:54)
+	at knot//net.fabricmc.fabric.impl.client.gametest.threading.ThreadingImpl.lambda$runTestThread$1(ThreadingImpl.java:142)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+
+> Task :runProductionClientGameTest FAILED
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1793559308629.json
+
+[Incubating] Problems report is available at: file:///home/runner/work/medieval-ships/medieval-ships/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':runProductionClientGameTest'.
+> Process 'command '/usr/bin/xvfb-run'' finished with non-zero exit value 1
+
+* Try:
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+* Exception is:
+org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runProductionClientGameTest'.
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+	at org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter.execute(FinalizePropertiesTaskExecuter.java:46)
+	at org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter.execute(ResolveTaskExecutionModeExecuter.java:51)
+	at org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter.execute(SkipTaskWithNoActionsExecuter.java:57)
+	at org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter.execute(SkipOnlyIfTaskExecuter.java:74)
+	at org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter.execute(CatchExceptionTaskExecuter.java:36)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.executeTask(EventFiringTaskExecuter.java:77)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:55)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:52)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter.execute(EventFiringTaskExecuter.java:52)
+	at org.gradle.execution.plan.DefaultNodeExecutor.executeLocalTaskNode(DefaultNodeExecutor.java:55)
+	at org.gradle.execution.plan.DefaultNodeExecutor.execute(DefaultNodeExecutor.java:34)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:355)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:343)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.lambda$execute$0(DefaultTaskExecutionGraph.java:339)
+	at org.gradle.internal.operations.CurrentBuildOperationRef.with(CurrentBuildOperationRef.java:84)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:339)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:328)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.execute(DefaultPlanExecutor.java:459)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.run(DefaultPlanExecutor.java:376)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:47)
+Caused by: org.gradle.process.ProcessExecutionException: Process 'command '/usr/bin/xvfb-run'' finished with non-zero exit value 1
+	at org.gradle.process.internal.DefaultExecHandle$ExecResultImpl.assertNormalExitValue(DefaultExecHandle.java:450)
+	at org.gradle.process.internal.DefaultExecAction.execute(DefaultExecAction.java:49)
+	at org.gradle.process.internal.DefaultExecActionFactory.exec(DefaultExecActionFactory.java:216)
+	at org.gradle.process.internal.DefaultExecOperations.exec(DefaultExecOperations.java:37)
+	at net.fabricmc.loom.task.prod.AbstractProductionRunTask.run(AbstractProductionRunTask.java:148)
+	at net.fabricmc.loom.task.prod.ClientProductionRunTask.run(ClientProductionRunTask.java:120)
+	at org.gradle.internal.reflect.JavaMethod.invoke(JavaMethod.java:125)
+	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.doExecute(StandardTaskAction.java:58)
+	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.execute(StandardTaskAction.java:51)
+	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.execute(StandardTaskAction.java:29)
+	at org.gradle.api.internal.tasks.execution.TaskExecution$3.run(TaskExecution.java:252)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:29)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:26)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.run(DefaultBuildOperationRunner.java:47)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeAction(TaskExecution.java:237)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeActions(TaskExecution.java:220)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeWithPreviousOutputFiles(TaskExecution.java:203)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.execute(TaskExecution.java:170)
+	at org.gradle.internal.execution.steps.ExecuteStep.executeInternal(ExecuteStep.java:105)
+	at org.gradle.internal.execution.steps.ExecuteStep.access$000(ExecuteStep.java:44)
+	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:59)
+	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:56)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:56)
+	at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:44)
+	at org.gradle.internal.execution.steps.CancelExecutionStep.execute(CancelExecutionStep.java:42)
+	at org.gradle.internal.execution.steps.TimeoutStep.executeWithoutTimeout(TimeoutStep.java:75)
+	at org.gradle.internal.execution.steps.TimeoutStep.execute(TimeoutStep.java:55)
+	at org.gradle.internal.execution.steps.PreCreateOutputParentsStep.execute(PreCreateOutputParentsStep.java:50)
+	at org.gradle.internal.execution.steps.PreCreateOutputParentsStep.execute(PreCreateOutputParentsStep.java:28)
+	at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.execute(RemovePreviousOutputsStep.java:68)
+	at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.execute(RemovePreviousOutputsStep.java:38)
+	at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:61)
+	at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:26)
+	at org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep.execute(CaptureOutputsAfterExecutionStep.java:69)
+	at org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep.execute(CaptureOutputsAfterExecutionStep.java:46)
+	at org.gradle.internal.execution.steps.ResolveInputChangesStep.execute(ResolveInputChangesStep.java:39)
+	at org.gradle.internal.execution.steps.ResolveInputChangesStep.execute(ResolveInputChangesStep.java:28)
+	at org.gradle.internal.execution.steps.BuildCacheStep.executeWithoutCache(BuildCacheStep.java:189)
+	at org.gradle.internal.execution.steps.BuildCacheStep.lambda$execute$1(BuildCacheStep.java:75)
+	at org.gradle.internal.Either$Right.fold(Either.java:176)
+	at org.gradle.internal.execution.caching.CachingState.fold(CachingState.java:62)
+	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:73)
+	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:48)
+	at org.gradle.internal.execution.steps.StoreExecutionStateStep.execute(StoreExecutionStateStep.java:46)
+	at org.gradle.internal.execution.steps.StoreExecutionStateStep.execute(StoreExecutionStateStep.java:35)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.executeBecause(SkipUpToDateStep.java:75)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.lambda$execute$2(SkipUpToDateStep.java:53)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:53)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:35)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:37)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:27)
+	at org.gradle.internal.execution.steps.ResolveIncrementalCachingStateStep.executeDelegate(ResolveIncrementalCachingStateStep.java:49)
+	at org.gradle.internal.execution.steps.ResolveIncrementalCachingStateStep.executeDelegate(ResolveIncrementalCachingStateStep.java:27)
+	at org.gradle.internal.execution.steps.AbstractResolveCachingStateStep.execute(AbstractResolveCachingStateStep.java:71)
+	at org.gradle.internal.execution.steps.AbstractResolveCachingStateStep.execute(AbstractResolveCachingStateStep.java:39)
+	at org.gradle.internal.execution.steps.ResolveChangesStep.execute(ResolveChangesStep.java:64)
+	at org.gradle.internal.execution.steps.ResolveChangesStep.execute(ResolveChangesStep.java:35)
+	at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:62)
+	at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:40)
+	at org.gradle.internal.execution.steps.AbstractCaptureStateBeforeExecutionStep.execute(AbstractCaptureStateBeforeExecutionStep.java:76)
+	at org.gradle.internal.execution.steps.AbstractCaptureStateBeforeExecutionStep.execute(AbstractCaptureStateBeforeExecutionStep.java:45)
+	at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.executeWithNonEmptySources(AbstractSkipEmptyWorkStep.java:136)
+	at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.execute(AbstractSkipEmptyWorkStep.java:61)
+	at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.execute(AbstractSkipEmptyWorkStep.java:38)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep.execute(MarkSnapshottingInputsStartedStep.java:38)
+	at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.execute(LoadPreviousExecutionStateStep.java:36)
+	at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.execute(LoadPreviousExecutionStateStep.java:23)
+	at org.gradle.internal.execution.steps.HandleStaleOutputsStep.execute(HandleStaleOutputsStep.java:75)
+	at org.gradle.internal.execution.steps.HandleStaleOutputsStep.execute(HandleStaleOutputsStep.java:41)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.lambda$execute$0(AssignMutableWorkspaceStep.java:35)
+	at org.gradle.api.internal.tasks.execution.TaskExecution$4.withWorkspace(TaskExecution.java:297)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.execute(AssignMutableWorkspaceStep.java:31)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.execute(AssignMutableWorkspaceStep.java:22)
+	at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:40)
+	at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:23)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.lambda$execute$2(ExecuteWorkBuildOperationFiringStep.java:67)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationFiringStep.java:67)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationFiringStep.java:39)
+	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:46)
+	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:34)
+	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:44)
+	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:31)
+	at org.gradle.internal.execution.impl.DefaultExecutionEngine$1.execute(DefaultExecutionEngine.java:64)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:132)
+	... 30 more
+
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.2.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 50m 15s
+13 actionable tasks: 13 executed
