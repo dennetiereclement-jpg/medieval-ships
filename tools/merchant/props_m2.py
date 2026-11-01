@@ -153,8 +153,8 @@ def _ham(img, region, rng):
     for y in range(h):
         for x in range(w):
             d = abs(x - (w - 1) / 2) / (w / 2)
-            c = _mix(_rgb("e08a76"), _rgb("9a3a2a"), d ** 1.5)
-            c = _mix(c, _rgb("b4542e"), 0.25 * (y / h))
+            c = _mix(_rgb("ee9a72"), _rgb("a2381e"), d ** 1.3)
+            c = _mix(c, _rgb("c0582a"), 0.3 * (y / h))
             if (x + y) % 6 == 0 or (x - y) % 6 == 0:
                 c = _mix(c, _rgb("e8d0a0"), 0.3)  # the netting string
             _px(img, u + x, v + y, _jitter(c, rng, 5))
@@ -415,13 +415,15 @@ def forge(bone, detail, cx, z_back, w=1.7, d=1.05, collide=True):
     return y + 0.65
 
 
-def anvil(bone, name, foot, yaw=0.0, s=1.0, detail=None):
-    """A black iron anvil (the workshops' anvil with this atlas): stepped foot, waist, face with heel and horn (+x)."""
+def anvil(bone, name, foot, yaw=0.0, s=1.0, detail=None, sz=1.0):
+    """A grey iron anvil (the workshops' anvil with this atlas): stepped foot, waist, face with heel and horn (+x);
+    sz widens it across (z)."""
     foot = v3(*foot)
     R = ry(yaw)
+    k = v3(s, s, s * sz)
 
     def b(nm, c, size, reg="m2_anvil_iron", bn=None):
-        add_cube(bn or bone, "%s_%s" % (name, nm), foot + R @ (v3(*c) * s), R, v3(*size) * s,
+        add_cube(bn or bone, "%s_%s" % (name, nm), foot + R @ (v3(*c) * k), R, v3(*size) * k,
                  {"all": reg, "+2": "m2_steel"} if nm == "face" else reg)
     b("base", (0, 0.06, 0), (0.62, 0.12, 0.44))
     b("base2", (0, 0.16, 0), (0.48, 0.09, 0.34))
@@ -436,7 +438,7 @@ def anvil(bone, name, foot, yaw=0.0, s=1.0, detail=None):
     b("hardy", (-0.25, 0.565, 0.0), (0.05, 0.02, 0.05), "m2_steel", bn=detail)
 
 
-def anvil_block(bone, detail, foot, yaw=0.0, s=1.55, block=(1.05, 0.62, 0.8)):
+def anvil_block(bone, detail, foot, yaw=0.0, s=1.55, block=(1.05, 0.62, 0.8), sz=1.0):
     """The big anvil of the picture on its block of stone (two courses, a slab top), hammer and tongs on it."""
     foot = v3(*foot)
     bw, bh, bd = block
@@ -444,7 +446,7 @@ def anvil_block(bone, detail, foot, yaw=0.0, s=1.55, block=(1.05, 0.62, 0.8)):
     box(bone, "anvil_stone_1", foot + v3(-bw / 2 + 0.05, bh * 0.55, -bd / 2 + 0.05), foot + v3(bw / 2 - 0.05, bh, bd / 2 - 0.05),
         {"all": "m2_anvil_stone", "+2": "m2_stone_top"})
     top = foot + UP * bh
-    anvil(bone, "anvil", top, yaw=yaw, s=s, detail=detail)
+    anvil(bone, "anvil", top, yaw=yaw, s=s, detail=detail, sz=sz)
     face_y = top[1] + 0.56 * s
     R = ry(yaw)
     # a hammer lying across the face, tongs leaning on the block
