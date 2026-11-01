@@ -148,6 +148,8 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.10.1 embellit le grand navire aux voiles bleues : bordé bleu roi en vraies virures entre des bandes dorées, sabords à mantelets rouges et canons, poupe dorée aux fenêtres éclairées, proue courbée avec figure de proue et beaupré, voiles bleu clair gonflées aux grandes fleurs de lys noires, cordages et enfléchures, lanternes et pavillon ; le petit voilier passe son test de marche sur le pont.
+
 La version 1.10.0 ajoute quatre petits véhicules, reproduits d'après leur planche de référence, et les commandes de
 scénarios de quêtes / PNJ décrites ci-dessus ([docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj)) :
 
@@ -334,7 +336,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.10.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.10.1.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
