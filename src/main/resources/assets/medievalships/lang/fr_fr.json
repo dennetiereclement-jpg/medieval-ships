@@ -25,5 +25,7 @@
   "item.medievalships.rustic_skiff": "Le Navire Volant Rustique",
   "entity.medievalships.rustic_skiff": "Le Navire Volant Rustique",
   "item.medievalships.dragon_junk": "La Jonque du Dragon",
-  "entity.medievalships.dragon_junk": "La Jonque du Dragon"
+  "entity.medievalships.dragon_junk": "La Jonque du Dragon",
+  "item.medievalships.blue_frigate": "Grand navire aux voiles bleues",
+  "entity.medievalships.blue_frigate": "Grand navire aux voiles bleues"
 }

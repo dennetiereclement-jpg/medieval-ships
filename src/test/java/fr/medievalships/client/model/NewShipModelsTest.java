@@ -64,7 +64,12 @@ class NewShipModelsTest {
 					new String[] {"helm_wheel", "rudder", "sail_p", "sail_s", "bow_sail", "pennant_mast", "pennant_stern", "lantern_porch_apex", "door_0_a",
 							"door_1", "door_2", "door_3_b", "door_4", "rope_slack_0", "hull", "roof", "house", "companion_house", "spars", "rooms",
 							"furniture", "fittings"},
-					new String[] {"steer", "sail_wind", "streamer_wave", "lantern_sway", "rope_sway", "door_0", "door_1", "door_2", "door_3", "door_4"}));
+					new String[] {"steer", "sail_wind", "streamer_wave", "lantern_sway", "rope_sway", "door_0", "door_1", "door_2", "door_3", "door_4"}),
+			new Expected("blue_frigate",
+					new String[] {"helm_wheel", "rudder", "mast_fore", "mast_main", "mast_mizzen", "sail_fore_course", "sail_main_topsail",
+							"sail_mizzen_topsail", "sail_spanker", "sail_jibs", "flag_fore", "flag_fore_tip", "flag_mizzen", "lantern_stern_p",
+							"lantern_cathead_s", "door_0_a", "door_0_b", "rope_slack_fore_brace_p", "hull", "sterncastle", "rooms", "furniture", "fittings"},
+					new String[] {"sail_wind", "sail_furl", "steer", "flag_wave", "lantern_sway", "rope_sway", "door_0"}));
 
 	private static BbModel load(String name) throws Exception {
 		try (Reader r = Files.newBufferedReader(Path.of("src/main/resources/assets/medievalships/models/entity/" + name + ".bbmodel"),

@@ -108,9 +108,12 @@ public final class ShipModels {
 	/** The Dragon Junk: its rooms' atlas and its great sail are textures of their own; a light bob in the air. */
 	public static final Visual DRAGON_JUNK = new Visual(Ships.DRAGON_JUNK, model("dragon_junk"),
 			List.of(texture("dragon_junk"), texture("dragon_junk_interior"), texture("dragon_junk_sail")), 0.45f, 30, 26, false, null, null, 0.06f);
+	/** The Blue-Sailed Frigate: its sails (with their fleurs-de-lis) are a texture of their own; foam at the bow. */
+	public static final Visual BLUE_FRIGATE = new Visual(Ships.BLUE_FRIGATE, model("blue_frigate"),
+			List.of(texture("blue_frigate"), texture("blue_frigate_sails")), 0.45f, 32, 36, true);
 	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT,
 			STEAMPUNK_AIRSHIP, NAUTILUS, OLD_CORSAIR, SKY_LEVIATHAN, CRYSTAL_AIRSHIP,
-			RUSTIC_SKIFF, DRAGON_JUNK);
+			RUSTIC_SKIFF, DRAGON_JUNK, BLUE_FRIGATE);
 
 	@Nullable
 	public static Visual of(ShipType type) {
