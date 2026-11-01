@@ -1,0 +1,25 @@
+Starting a Gradle Daemon (subsequent builds will be faster)
+
+> Configure project :
+Fabric Loom: 1.14.10
+
+Cannot remap modifiers because it does not exists in any of the targets [] or their parents.
+
+> Task :downloadAssets
+> Task :compileJava
+> Task :processResources
+> Task :classes
+
+> Task :compileClientJava
+Note: /home/runner/work/medieval-ships/medieval-ships/src/client/java/fr/medievalships/client/MedievalShipsClient.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+
+> Task :processClientResources
+> Task :clientClasses
+> Task :compileGametestJava
+> Task :processGametestResources
+> Task :gametestClasses
+> Task :gametestJar
+> Task :processIncludeJars
+> Task :remapGametestJar
+> Task :jar
