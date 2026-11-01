@@ -148,6 +148,12 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.15.0 ajoute **cinq nouvelles tentes de marchands** (barde, fusils, archerie, mage, armures) sur le
+même pavillon : instruments et harpe, râtelier de fusils et revolver steampunk, arcs, carquois et cible
+d'entraînement, cristaux, orbe et bâtons de mage lumineux, quatre styles d'armures. Une place libre derrière le
+comptoir accueille un PNJ EasyNPC. `/give @p medievalships:tente_barde` (`tente_fusils`, `tente_archer`,
+`tente_mage`, `tente_armures`). Voir [docs/TENTES.md](docs/TENTES.md).
+
 La version 1.14.0 ajoute **six grandes tentes de marchands en un seul bloc** (armurier, alchimiste, herboriste,
 forgeron, nourriture, tissus) : pavillons rayés à toit pointu, lambrequins dorés, bannières à emblème, lanternes,
 tapis brodé et étals garnis, avec les meubles des mods de décoration quand ils sont installés (tonneaux, caisses,
@@ -364,7 +370,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.14.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.15.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
