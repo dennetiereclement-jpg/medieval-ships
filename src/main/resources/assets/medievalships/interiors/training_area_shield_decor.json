@@ -1,0 +1,17 @@
+{
+ "blocks": [
+  {
+   "block": "landsoficaria:cypress_barrel",
+   "x": -3.37,
+   "y": 0.0,
+   "z": -1.33,
+   "yaw": 180.0,
+   "scale": 0.85,
+   "fallback": "fallback_0",
+   "alt": "minecraft:barrel"
+  }
+ ],
+ "seats": [],
+ "paintings": [],
+ "switches": []
+}
