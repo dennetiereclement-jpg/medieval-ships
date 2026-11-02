@@ -81,9 +81,15 @@ FENCE_H = 1.15          # top of a fence post (the rails at 0.38 and 0.86)
 FENCE_COLLIDE_H = 1.5   # like vanilla fences: players use the entrance
 
 
+TARGETS = []   # the area's training targets (Target), in bone order: "targets" of the JSON (1.19.0)
+SEATS = []     # the area's seats {"pos": [x, y, z], "yaw": deg}: "seats" of the JSON (1.19.0)
+
+
 def setup(name):
-    """Resets the collision list, the uuids and the region tables for one area (call first)."""
+    """Resets the collision list, the uuids, the region tables, the targets and the seats for one area (call first)."""
     ml.setup(name)
+    TARGETS[:] = []
+    SEATS[:] = []
 
 
 def _seed(s):
@@ -777,15 +783,146 @@ def fence_ring(A, x0, x1, z0, z1, entrance=("front", 0.0, 1.6), post_every=1.4, 
     return F
 
 
+# ---------------------------------------------------------------- interactive targets and seats (1.19.0)
+class Target:
+    """The moving part of a training target (JSON "targets", see export): a top-level bone "target_<i>" (origin = the
+    pivot: base of a dummy's post, top of a bag's chain) holding only the parts that move, with child bones of their
+    own origin: "target_<i>_head" (at the neck), "target_<i>_arm_l" / "target_<i>_arm_r" (at the shoulders; l = the
+    dummy's own left = its local +x, the side of the shield; r = its local -x, the sword hand), "target_<i>_shield"
+    (child of arm_l, at the shield's grip) and "target_<i>_sword" (child of arm_r, at the grip in the fist). The fixed
+    parts (foot, plinth, gallows, beam, hook) stay in the static bones. kind: "dummy" | "shield_dummy" | "bag".
+
+    While the area is built the bone hangs under the area's root (so the lanterns / z-fight passes and the extent see
+    it like any other); export() moves it to the top level of the outliner. hitbox (export): the box round the cubes of
+    the target except the parts in `unhit` (a sword is not a target) and the cubes refused by `hit_filter`, or
+    `hitbox` (x0, y0, z0, x1, y1, z1) when set."""
+
+    def __init__(self, A, kind, pivot=(0.0, 0.0, 0.0), yaw=0.0):
+        self.index = len(TARGETS)
+        self.kind = kind
+        self.name = "target_%d" % self.index
+        self.bone = Bone(self.name, origin=pivot, parent=A.root)
+        self.parts = {}
+        self.yaw = yaw
+        self.unhit = set()
+        self.hit_filter = None
+        self.hitbox = None
+        TARGETS.append(self)
+
+    @property
+    def pivot(self):
+        return self.bone.origin
+
+    def set_pivot(self, p):
+        self.bone.origin = v3(*p)
+
+    def part(self, part, origin, parent=None):
+        """A child bone "target_<i>_<part>" with its origin (prop-local), under the part `parent` (None: the target
+        bone). Asking twice for the same part returns the first bone."""
+        if part not in self.parts:
+            pb = self.parts[parent] if parent else self.bone
+            self.parts[part] = Bone("%s_%s" % (self.name, part), origin=origin, parent=pb)
+        return self.parts[part]
+
+
+def target(A, kind, pivot=(0.0, 0.0, 0.0), yaw=0.0):
+    """A new training target of the area (see Target)."""
+    return Target(A, kind, pivot, yaw)
+
+
+def seat(pos, yaw=0.0):
+    """Declares a seat (JSON "seats"): pos = the centre of the seat SURFACE (prop-local blocks), yaw = the direction
+    the sitter faces in degrees, Minecraft convention (0 = +z, 90 = -x, 180 = -z, 270 = +x)."""
+    SEATS.append({"pos": [round(float(v), 3) for v in pos], "yaw": round(float(yaw) % 360.0, 2)})
+
+
+def split_x(bone_neg, bone_pos, name, center, axes, size, regions, **kw):
+    """One stretched cube cut in two at the middle of its local x: the -x half in bone_neg (named name + "_r"), the +x
+    half in bone_pos (name + "_l"), each face's texture cut at the same place (Blockbench sub-UVs), the cut faces not
+    drawn: at rest the pair looks exactly like the whole cube (a straw dummy's arm bar -> two arms). No u_dir / v_dir
+    hints (they would flip the UVs)."""
+    assert kw.get("u_dir") is None and kw.get("v_dir") is None
+    axes = np.asarray(axes, dtype=float)
+    c = v3(*center)
+    L = float(size[0])
+    out = []
+    for bone, sg, suffix in ((bone_neg, -1, "_r"), (bone_pos, 1, "_l")):
+        cube = add_cube(bone, name + suffix, c + axes[:, 0] * (sg * L / 4), axes, (L / 2, size[1], size[2]), regions, **kw)
+        t0, t1 = (0.0, 0.5) if sg < 0 else (0.5, 1.0)   # the piece's share of the local x, from -L/2 to +L/2
+        for bbface, spec in cube.faces.items():
+            if spec is None:
+                continue
+            normal, udir, _ = gg.FACE_AXES[bbface]
+            if abs(normal[0]) > 0.5:
+                # blockbench cube +x is the local -x: keep only the piece's outer end face
+                if (normal[0] < 0) != (sg > 0):
+                    cube.faces[bbface] = None
+                continue
+            # u runs along the local +x when the face's blockbench u axis is -x
+            f0, f1 = (t0, t1) if udir[0] < 0 else (1.0 - t1, 1.0 - t0)
+            spec["sub"] = [f0, 0.0, f1, 1.0]
+        out.append(cube)
+    return out
+
+
+def _cubes_of(bone, skip=()):
+    out = list(bone.cubes)
+    for ch in bone.children:
+        if ch.name not in skip:
+            out.extend(_cubes_of(ch, skip))
+    return out
+
+
+def _box_of(cubes):
+    lo, hi = v3(1e9, 1e9, 1e9), v3(-1e9, -1e9, -1e9)
+    for c in cubes:
+        R = c.bone.frame_rot() @ np.asarray(c.axes, dtype=float)
+        C = c.bone.to_world(np.asarray(c.center, dtype=float))
+        for sx in (-1, 1):
+            for sy in (-1, 1):
+                for sz in (-1, 1):
+                    p = C + R @ (np.asarray(c.size) * 0.5 * v3(sx, sy, sz))
+                    lo, hi = np.minimum(lo, p), np.maximum(hi, p)
+    return lo, hi
+
+
+def _r3(v):
+    return [round(float(x), 3) for x in v]
+
+
+def targets_json():
+    """The "targets" entries (contract C of 1.19.0): kind, bone, pivot, hitbox (+ shield_box for a shield dummy),
+    yaw (the target's facing, degrees, Minecraft convention like the seats; informative)."""
+    out = []
+    for T in TARGETS:
+        skip = {"%s_%s" % (T.name, p) for p in T.unhit}
+        if T.hitbox is not None:
+            lo, hi = v3(*T.hitbox[:3]), v3(*T.hitbox[3:])
+        else:
+            lo, hi = _box_of([c for c in _cubes_of(T.bone, skip) if T.hit_filter is None or T.hit_filter(c)])
+        e = {"kind": T.kind, "bone": T.name, "pivot": _r3(T.pivot), "hitbox": _r3(lo) + _r3(hi)}
+        if "shield" in T.parts:
+            slo, shi = _box_of(_cubes_of(T.parts["shield"]))
+            e["shield_box"] = _r3(slo) + _r3(shi)
+        e["yaw"] = round((-math.degrees(T.yaw)) % 360.0, 2)   # ry(yaw) faces (sin, 0, cos): Minecraft yaw -yaw
+        out.append(e)
+    return out
+
+
 # ---------------------------------------------------------------- dummies
 def dummy(A, name, foot, height=1.75, yaw=0.0, helmet=False, sword=None, shield=None, shield_region="t_shield_round",
-          body="t_straw", arms_up=0.0, solid=True):
+          body="t_straw", arms_up=0.0, solid=True, target=True):
     """A straw-and-wood training dummy standing on foot (x, 0, z), facing +z turned by yaw (radians): a dark wooden
     cross foot, the post, a straw body bound with rope, horizontal straw arms (a cross) with rope wraps, a straw head
     with a rope at the neck. height = top of the head. helmet=True: an iron nasal helmet on the head; sword = "pos_x"
     | "neg_x" (local side of the arm holding an upright sword, raised forward); shield = "pos_x" | "neg_x" (a round
     shield strapped to that arm, facing forward). Returns a dict of attachment points (head_top, arm_l, arm_r,
-    chest)."""
+    chest).
+
+    target=True (1.19.0): the dummy is an interactive training target (Target, kind "dummy", or "shield_dummy" with a
+    shield): the foot stays in the static bones; the post (pivot: where it leaves the foot block), the body, the head
+    (bone _head, origin at the neck), the arm bar cut in two arms (bones _arm_l at +x / _arm_r at -x, origins at the
+    shoulders) and the sword / shield (children of their arm) move. The look at rest is unchanged."""
     foot = v3(*foot)
     R = ry(yaw)
 
@@ -800,37 +937,49 @@ def dummy(A, name, foot, height=1.75, yaw=0.0, helmet=False, sword=None, shield=
     body_top = neck_y - 0.05 * s
     body_bot = body_top - body_h
     arm_y = body_top - 0.15 * s
+    span = 1.04 * s
+    T = None
+    if target:
+        T = Target(A, "shield_dummy" if shield else "dummy", P(0, 0.30, 0), yaw)
+        mv = mvd = T.bone                                  # the moving body
+        hd = T.part("head", P(0, neck_y - 0.01, 0))
+        arm = {1: T.part("arm_l", P(0.23 * s, arm_y, 0)), -1: T.part("arm_r", P(-0.23 * s, arm_y, 0))}
+    else:
+        mv, mvd, hd = sh, det, None
+        arm = {1: None, -1: None}
     # foot: two crossing planks and a block
     add_cube(sh, name + "_foot_a", P(0, 0.09, 0), R, (0.5, 0.18, 0.5), {"all": "wood_dark", "+2": "plank_dark"})
     add_cube(sh, name + "_foot_c", P(0, 0.24, 0), R, (0.3, 0.12, 0.3), {"all": "wood", "+2": "end_grain"})
     add_cube(det, name + "_foot_b", P(0, 0.06, 0), R, (0.7, 0.1, 0.14), "wood_dark")
     # post (visible under the body)
-    add_cube(sh, name + "_post", P(0, (0.2 + body_bot + 0.1) / 2, 0), R, (0.13, body_bot - 0.1, 0.13), "wood")
+    add_cube(mv, name + "_post", P(0, (0.2 + body_bot + 0.1) / 2, 0), R, (0.13, body_bot - 0.1, 0.13), "wood")
     # body, rope bands, a straw skirt at the bottom
-    add_cube(sh, name + "_body", P(0, (body_bot + body_top) / 2, 0), R, (0.46 * s, body_h, 0.32 * s),
+    add_cube(mv, name + "_body", P(0, (body_bot + body_top) / 2, 0), R, (0.46 * s, body_h, 0.32 * s),
              {"all": body, "+2": "t_straw_end", "-2": "t_straw_end"}, stretch=True)
-    add_cube(det, name + "_skirt", P(0, body_bot - 0.06 * s, 0), R, (0.42 * s, 0.14 * s, 0.28 * s), body, stretch=True)
+    add_cube(mvd, name + "_skirt", P(0, body_bot - 0.06 * s, 0), R, (0.42 * s, 0.14 * s, 0.28 * s), body, stretch=True)
     for k, t in enumerate((0.3, 0.62)):
         y = body_bot + body_h * t
-        add_cube(det, "%s_band_%d" % (name, k), P(0, y, 0), R, (0.52 * s, 0.06, 0.36 * s), "rope")
-    # arms (a cross), rope wraps near the ends, little straw fists
-    span = 1.04 * s
-    add_cube(sh, name + "_arms", P(0, arm_y, 0), R, (span, 0.21 * s, 0.2 * s),
-             {"all": "t_straw_rope", "+1": "t_straw_end", "-1": "t_straw_end"}, stretch=True)
+        add_cube(mvd, "%s_band_%d" % (name, k), P(0, y, 0), R, (0.52 * s, 0.06, 0.36 * s), "rope")
+    # arms (a cross; two arms cut at the middle for a target), rope wraps near the ends, little straw fists
+    arm_regions = {"all": "t_straw_rope", "+1": "t_straw_end", "-1": "t_straw_end"}
+    if T:
+        split_x(arm[-1], arm[1], name + "_arms", P(0, arm_y, 0), R, (span, 0.21 * s, 0.2 * s), arm_regions, stretch=True)
+    else:
+        add_cube(sh, name + "_arms", P(0, arm_y, 0), R, (span, 0.21 * s, 0.2 * s), arm_regions, stretch=True)
     for k, sx in enumerate((-1, 1)):
-        add_cube(det, "%s_wrap_%d" % (name, k), P(sx * span * 0.34, arm_y, 0), R, (0.07, 0.23 * s, 0.22 * s), "rope")
+        add_cube(arm[sx] or det, "%s_wrap_%d" % (name, k), P(sx * span * 0.34, arm_y, 0), R, (0.07, 0.23 * s, 0.22 * s), "rope")
     # head and neck rope
-    add_cube(sh, name + "_head", P(0, neck_y + head / 2, 0), R, (head, head, head * 0.92),
+    add_cube(hd or sh, name + "_head", P(0, neck_y + head / 2, 0), R, (head, head, head * 0.92),
              {"all": body, "+2": "t_straw_end", "-2": "t_straw_end"}, stretch=True)
-    add_cube(det, name + "_neck", P(0, neck_y - 0.01, 0), R, (0.2 * s, 0.07, 0.2 * s), "rope")
+    add_cube(hd or det, name + "_neck", P(0, neck_y - 0.01, 0), R, (0.2 * s, 0.07, 0.2 * s), "rope")
     pts = {"head_top": P(0, height, 0), "arm_l": P(-span / 2, arm_y, 0), "arm_r": P(span / 2, arm_y, 0),
            "chest": P(0, (body_bot + body_top) / 2, 0.17 * s)}
     if helmet:
         hc = P(0, height - head * 0.28, 0)
-        add_cube(sh, name + "_helm", hc + UP * 0.04, R, (head + 0.06, head * 0.62, head * 0.98), "steel")
-        add_cube(det, name + "_helm_top", hc + UP * (head * 0.36 + 0.04), R, (head * 0.7, 0.06, head * 0.7), "steel")
-        add_cube(det, name + "_helm_rim", hc - UP * (head * 0.25), R, (head + 0.1, 0.05, head + 0.06), "iron")
-        add_cube(det, name + "_helm_nasal", P(0, height - head * 0.55, head * 0.5 + 0.03), R, (0.05, head * 0.42, 0.03), "iron")
+        add_cube(hd or sh, name + "_helm", hc + UP * 0.04, R, (head + 0.06, head * 0.62, head * 0.98), "steel")
+        add_cube(hd or det, name + "_helm_top", hc + UP * (head * 0.36 + 0.04), R, (head * 0.7, 0.06, head * 0.7), "steel")
+        add_cube(hd or det, name + "_helm_rim", hc - UP * (head * 0.25), R, (head + 0.1, 0.05, head + 0.06), "iron")
+        add_cube(hd or det, name + "_helm_nasal", P(0, height - head * 0.55, head * 0.5 + 0.03), R, (0.05, head * 0.42, 0.03), "iron")
         pts["head_top"] = P(0, height + 0.08, 0)
     for side, kind in ((sword, "sword"), (shield, "shield")):
         if side is None:
@@ -838,13 +987,18 @@ def dummy(A, name, foot, height=1.75, yaw=0.0, helmet=False, sword=None, shield=
         sx = 1 if side == "pos_x" else -1
         hand = P(sx * (span / 2 + 0.02), arm_y, 0)
         if kind == "sword":
-            add_cube(det, name + "_fist", hand, R, (0.12, 0.14, 0.14), body, stretch=True)
+            add_cube(arm[sx] or det, name + "_fist", hand, R, (0.12, 0.14, 0.14), body, stretch=True)
             up = R @ norm(v3(0, 0.82, 0.57))
-            ml.sword(det, name + "_sword", hand - up * 0.13, up=up, facing=R @ v3(1, 0, 0), length=0.95)
+            sb = det
+            if T:
+                sb = T.part("sword", hand, parent="arm_l" if sx > 0 else "arm_r")
+                T.unhit.add("sword")
+            ml.sword(sb, name + "_sword", hand - up * 0.13, up=up, facing=R @ v3(1, 0, 0), length=0.95)
         else:
             c = hand + R @ v3(sx * 0.06, -0.02, 0.17)
-            add_cube(det, name + "_strap", hand + R @ v3(sx * 0.03, 0, 0.08), R, (0.08, 0.1, 0.16), "leather")
-            round_shield(A, name + "_shield", c, R @ v3(sx * 0.25, 0, 1.0), r=0.36, region=shield_region)
+            add_cube(arm[sx] or det, name + "_strap", hand + R @ v3(sx * 0.03, 0, 0.08), R, (0.08, 0.1, 0.16), "leather")
+            shb = T.part("shield", hand + R @ v3(sx * 0.03, 0, 0.16), parent="arm_l" if sx > 0 else "arm_r") if T else None
+            round_shield(A, name + "_shield", c, R @ v3(sx * 0.25, 0, 1.0), r=0.36, region=shield_region, bone=shb)
     if solid:
         hw = max(0.4, span / 2 + 0.05)
         ex = abs(math.cos(yaw)) * hw + abs(math.sin(yaw)) * 0.25
@@ -881,10 +1035,13 @@ def helmet(A, name, center, size=0.36, yaw=0.0, bone=None):
 
 
 # ---------------------------------------------------------------- punching bag, racks, furniture
-def punching_bag(A, name, foot, yaw=0.0, span=1.6, h=2.6, bag_h=1.05, bag_r=0.3, coil=True):
+def punching_bag(A, name, foot, yaw=0.0, span=1.6, h=2.6, bag_h=1.05, bag_r=0.3, coil=True, target=True):
     """A heavy punching bag hanging on a chain from a wooden gallows: two posts (span apart along local x) on foot
     blocks, a top beam overhanging both, corner braces, a chain to the straw bag (rope bands, leather ends), a coil
-    of rope hung on the left post. foot = the ground point under the bag."""
+    of rope hung on the left post. foot = the ground point under the bag.
+
+    target=True (1.19.0): the chain and the bag are an interactive training target (Target, kind "bag", pivot = the
+    top of the chain, in the hook; hitbox = the bag); the gallows, the beam and the hook stay static."""
     foot = v3(*foot)
     R = ry(yaw)
 
@@ -901,15 +1058,20 @@ def punching_bag(A, name, foot, yaw=0.0, span=1.6, h=2.6, bag_h=1.05, bag_r=0.3,
          width=0.24)
     add_cube(det, name + "_hook", P(0, h - 0.06, 0), R, (0.1, 0.1, 0.1), "black_iron")
     bag_top = h - 0.48
-    beam(det, name + "_chain", P(0, h - 0.04, 0), P(0, bag_top + 0.04, 0), 0.05, "black_iron")
-    add_cube(det, name + "_chain_link", P(0, (h + bag_top) / 2, 0), R, (0.09, 0.12, 0.03), "black_iron")
-    for k, (a, b) in enumerate(((v3(-0.18, 0, 0), v3(0, 0.18, 0)), (v3(0.18, 0, 0), v3(0, 0.18, 0)))):
-        beam(det, "%s_sling_%d" % (name, k), P(*(a + v3(0, bag_top, 0))), P(*(b + v3(0, bag_top, 0))), 0.04, "black_iron")
     by0 = bag_top - bag_h
-    octo(sh, name + "_bag", P(0, by0, 0), bag_r, bag_h, {"all": "t_bag", "+2": "t_bag_end", "-2": "t_bag_end"}, yaw=yaw)
-    octo(det, name + "_bag_top", P(0, bag_top - 0.02, 0), bag_r * 0.7, 0.08, "t_bag_end", yaw=yaw)
+    mv, mvd = sh, det
+    if target:
+        T = Target(A, "bag", P(0, h - 0.04, 0), yaw)
+        T.hit_filter = lambda c: c.name.startswith(name + "_bag")   # the bag, its ropes and its top; not the chain
+        mv = mvd = T.bone
+    beam(mvd, name + "_chain", P(0, h - 0.04, 0), P(0, bag_top + 0.04, 0), 0.05, "black_iron")
+    add_cube(mvd, name + "_chain_link", P(0, (h + bag_top) / 2, 0), R, (0.09, 0.12, 0.03), "black_iron")
+    for k, (a, b) in enumerate(((v3(-0.18, 0, 0), v3(0, 0.18, 0)), (v3(0.18, 0, 0), v3(0, 0.18, 0)))):
+        beam(mvd, "%s_sling_%d" % (name, k), P(*(a + v3(0, bag_top, 0))), P(*(b + v3(0, bag_top, 0))), 0.04, "black_iron")
+    octo(mv, name + "_bag", P(0, by0, 0), bag_r, bag_h, {"all": "t_bag", "+2": "t_bag_end", "-2": "t_bag_end"}, yaw=yaw)
+    octo(mvd, name + "_bag_top", P(0, bag_top - 0.02, 0), bag_r * 0.7, 0.08, "t_bag_end", yaw=yaw)
     for k, t in enumerate((0.25, 0.75)):
-        octo(det, "%s_bag_rope_%d" % (name, k), P(0, by0 + bag_h * t - 0.03, 0), bag_r + 0.02, 0.06, "rope", yaw=yaw)
+        octo(mvd, "%s_bag_rope_%d" % (name, k), P(0, by0 + bag_h * t - 0.03, 0), bag_r + 0.02, 0.06, "rope", yaw=yaw)
     if coil:
         cx = -span / 2
         # a skein of rope hung on the front of the left post: two loops side by side, a tie at the top
@@ -1198,7 +1360,12 @@ def export(root, name, atlas, decor=None, icon=None, particles=None, visible_box
     ext = tl.extent(root)
     outs = [out_model] if out_model else [os.path.join(ROOT, "blockbench/%s.bbmodel" % name),
                                           os.path.join(ASSETS, "models/entity/%s.bbmodel" % name)]
-    model = gn.export(root, [], textures, outs, name=name, visible_box=visible_box)
+    model = gn.export(root, [], textures, [], name=name, visible_box=visible_box)
+    _targets_to_top(model)
+    for p in outs:
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        with open(p, "w") as f:
+            gn.json_dump(model, f, compact="resources" in p)
     if not out_model:
         data = {
             "model": "models/entity/%s.bbmodel" % name,
@@ -1209,6 +1376,10 @@ def export(root, name, atlas, decor=None, icon=None, particles=None, visible_box
         }
         if particles:
             data["particles"] = particles
+        if TARGETS:
+            data["targets"] = targets_json()
+        if SEATS:
+            data["seats"] = [dict(s) for s in SEATS]
         path = os.path.join(ASSETS, "%s/%s.json" % (GROUP, name))
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w") as f:
@@ -1223,6 +1394,25 @@ def export(root, name, atlas, decor=None, icon=None, particles=None, visible_box
     print("%s: %d cubes, extent %s, %d collision boxes, %d mod blocks" % (
         name, len(model["elements"]), ["%.2f" % v for v in ext], len(COLLIDERS), 0 if decor is None else len(decor.blocks)))
     return model
+
+
+def _targets_to_top(model):
+    """Moves the groups "target_<i>" from under the area's root group to the top level of the outliner (contract C:
+    top-level bones; the root group has no rotation and its origin at 0, so nothing moves)."""
+    out = []
+    for g in model["outliner"]:
+        out.append(g)
+        if not isinstance(g, dict):
+            continue
+        assert not any(abs(v) > 1e-6 for v in g.get("origin", [0, 0, 0])) and "rotation" not in g
+        keep = []
+        for ch in g["children"]:
+            if isinstance(ch, dict) and ch["name"].startswith("target_"):
+                out.append(ch)
+            else:
+                keep.append(ch)
+        g["children"] = keep
+    model["outliner"] = out
 
 
 def particle(kind, pos, chance=0.3, count=1):

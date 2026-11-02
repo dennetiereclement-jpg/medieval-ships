@@ -12,6 +12,9 @@ wall above a sword rack, a blue banner with the gold heraldic shield on a tall p
 left post, a bucket by the back fence; a sword rack by the right fence; two blue banners with the gold shield on tall
 posts in the front fence; tall lantern posts standing on the stone pillars at the two back corners.
 
+1.19.0: the three dummies are interactive training targets (kind "shield_dummy": bones target_0..2 with their head,
+arms, sword and shield; JSON "targets", see traininglib.Target).
+
 Usage:  python3 tools/training/generate_training_area_shield.py      (TRAINING_OUT=<file.bbmodel>: preview model only)
 Writes (traininglib.export): training/training_area_shield.json, models/entity + blockbench/training_area_shield.bbmodel,
 textures/entity/training_area_shield.png, textures/item/training_area_shield.png,
@@ -91,7 +94,7 @@ def build():
     tr.sword_rack(A, "rack_right", (HW - 0.38, 0.0, -2.35), (HW - 0.38, 0.0, -1.15), normal=(-1, 0, 0), h=1.0, swords=4)
     # the three wooden dummies: helmet, sword in the right hand, round shield on the left forearm
     for k, ((x, z), yaw, pose) in enumerate(DUMMIES):
-        pl.wooden_dummy(sh, det, "dummy_%d" % k, (x, 0.0, z), yaw=yaw, sword_pose=pose)
+        pl.wooden_dummy(sh, det, "dummy_%d" % k, (x, 0.0, z), yaw=yaw, sword_pose=pose, target=tr.target(A, "shield_dummy", yaw=yaw))
     tr.export(A.root, NAME, atlas, decor=decor, icon=dict(kind="shield", colour="blue", floor="earth"))
 
 
