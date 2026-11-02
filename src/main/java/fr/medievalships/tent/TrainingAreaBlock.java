@@ -4,12 +4,16 @@ import com.mojang.serialization.MapCodec;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.block.AbstractBlock;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
+import net.minecraft.block.ShapeContext;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 
 import fr.medievalships.core.TentType;
@@ -22,6 +26,8 @@ import fr.medievalships.training.TrainingTargets;
  * training targets ({@link TrainingTargets}): asked for when it is placed, discarded when it is broken or replaced.
  */
 public class TrainingAreaBlock extends TentBlock {
+	private static final VoxelShape OUTLINE = Block.createCuboidShape(0, 0, 0, 16, 3, 16);
+
 	public TrainingAreaBlock(TentType type, AbstractBlock.Settings settings) {
 		super(type, settings);
 	}
@@ -30,6 +36,15 @@ public class TrainingAreaBlock extends TentBlock {
 	protected MapCodec<? extends BlockWithEntity> getCodec() {
 		TentType type = tentType();
 		return AbstractBlock.createCodec(settings -> new TrainingAreaBlock(type, settings));
+	}
+
+	/**
+	 * A low slab for aiming (not the full block of the other props): the targets standing over the anchor are hit,
+	 * not the block in front of them; a creative player still aims at it on the ground to break it.
+	 */
+	@Override
+	protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+		return OUTLINE;
 	}
 
 	@Override
