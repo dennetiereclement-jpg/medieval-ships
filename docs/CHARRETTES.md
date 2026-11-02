@@ -146,3 +146,19 @@ collision se reconstruisent au chargement du chunk.
    dans `lang/fr_fr.json` et `lang/en_us.json` (`block.medievalships.<id>`), `blockstates/<id>.json`,
    `items/<id>.json` et `models/item/<id>.json` (copies des existants). Bloc, objet, onglet, commandes, collisions
    et rendu sont génériques.
+
+## Barque de décor (1.19.1)
+
+`medievalships:barque_deco` (« Barque (décor) ») : la **copie exacte de la petite barque pilotable**, en objet de décor
+immobile, comme les charrettes. Un seul bloc posé par clic droit sur le sol, tourné vers le joueur (la proue vers
+lui) ; retrait en cassant le bloc (rend l'objet) ou `/tent remove`. Elle repose sur sa quille, rames sorties, sans
+animation ni calcul. Collisions : la coque (proue, milieu, poupe) ; les rames ne bloquent pas. Ses **deux bancs sont
+des places assises** (clic droit pour s'asseoir, Maj pour se lever, comme dans la taverne nomade).
+
+La barque pilotable (`/give @p medievalships:rowboat`) ne change pas : les deux existent. La barque de décor est dans
+l'onglet « Charrettes » et dans l'onglet des navires, à côté de la barque pilotable.
+
+- Obtenir : `/give @p medievalships:barque_deco` ou `/tent give barque_deco`.
+- Le modèle est généré par `tools/props/generate_barque_deco.py` à partir de `models/entity/rowboat.bbmodel` (relancer
+  le script après une modification de la barque pour garder les deux identiques) ; même texture que la barque.
+- Limite : elle se pose sur un sol solide (plage, quai), pas sur l'eau.

@@ -72,9 +72,14 @@ public final class TentTypes {
 	 * atlas), group "carts"; its JSON lists the stools' {@link TentType.Seat seats}, where a player can sit down.
 	 */
 	public static final TentType TAVERN = cart("taverne_nomade", "taverne nomade", "Nomad Tavern");
-	/** The carts (tab "Charrettes"): the eight carts of 1.12.0, then the nomad tavern. */
+	/**
+	 * The decorative rowboat (1.19.0): an exact copy of the sailing rowboat's model (tools/props/generate_barque_deco.py),
+	 * lifted onto the ground, static; its two thwarts are seats. The sailing rowboat (an entity) stays as it is.
+	 */
+	public static final TentType ROWBOAT_DECO = cart("barque_deco", "barque (décor)", "Rowboat (Decoration)");
+	/** The carts (tab "Charrettes"): the eight carts of 1.12.0, the nomad tavern, then the decorative rowboat. */
 	public static final List<TentType> CARTS = List.of(CART_COVERED_WHITE, CART_HAY, CART_MERCHANT_WAGON, CART_MARKET, CART_LOGS, CART_OPEN,
-			CART_COVERED_TEAL, CART_BARRELS, TAVERN);
+			CART_COVERED_TEAL, CART_BARRELS, TAVERN, ROWBOAT_DECO);
 
 	public static final TentType WORKSHOP_BLACKSMITH = workshop("workshop_blacksmith", "atelier du forgeron", "Blacksmith's Workshop");
 	public static final TentType WORKSHOP_LEATHERWORKER = workshop("workshop_leatherworker", "atelier du tailleur de cuir", "Leatherworker's Workshop");

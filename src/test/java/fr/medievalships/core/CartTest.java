@@ -29,10 +29,11 @@ public class CartTest {
 
 	@Test
 	void eightCartsLoadBesideTheSixTents() {
-		assertEquals(9, TentTypes.CARTS.size(), "the eight carts and the nomad tavern");
-		assertSame(TentTypes.TAVERN, TentTypes.CARTS.get(8), "the tavern last in the carts' tab");
+		assertEquals(10, TentTypes.CARTS.size(), "the eight carts, the nomad tavern and the decorative rowboat");
+		assertSame(TentTypes.TAVERN, TentTypes.CARTS.get(8), "the tavern after the eight carts");
+		assertSame(TentTypes.ROWBOAT_DECO, TentTypes.CARTS.get(9), "the decorative rowboat last in the carts' tab");
 		assertEquals(6 + 6 + 5 + 2 + 2, TentTypes.ALL.size(), "the tents' list: six camp tents, merchant tents I (6), II (5), III (2) and IV (2)");
-		assertEquals(6 + 6 + 5 + 2 + 2 + 9 + 7 + 3 + 1, TentTypes.PROPS.size()); // tents, merchant tents I to IV, carts and the
+		assertEquals(6 + 6 + 5 + 2 + 2 + 10 + 7 + 3 + 1, TentTypes.PROPS.size()); // tents, merchant tents I to IV, carts and the
 		// tavern, workshops, the training areas, the cannon
 		Set<String> ids = new HashSet<>();
 		for (TentType t : WAGONS) {

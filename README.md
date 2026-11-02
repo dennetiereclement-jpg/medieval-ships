@@ -148,6 +148,10 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.19.1 ajoute **la barque de décor** (`/give @p medievalships:barque_deco`) : la copie exacte de la
+petite barque, en objet immobile à poser sur une plage ou un quai, avec ses deux bancs où l'on s'assoit ; la barque
+pilotable reste disponible. Voir [docs/CHARRETTES.md](docs/CHARRETTES.md#barque-de-décor-1191).
+
 La version 1.19.0 ajoute **la taverne nomade** (roulotte à toit de toile arrondi, comptoir ouvert, bannières à la
 chope, auvent, enseigne, terrasse de tables, feu de camp et marmite) avec **19 places où l'on s'assoit vraiment**
 (clic droit, Maj pour se lever, une personne par place ; aussi le banc de l'aire aux tatamis), et rend les **aires
@@ -397,7 +401,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.19.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.19.1.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation

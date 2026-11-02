@@ -178,7 +178,11 @@ public final class MedievalShips implements ModInitializer {
 		Registry.register(Registries.ITEM_GROUP, groupKey, FabricItemGroup.builder()
 				.icon(() -> new ItemStack(GALLEY_ITEM))
 				.displayName(Text.translatable("itemGroup.medievalships.ships"))
-				.entries((context, entries) -> ITEMS.values().forEach(entries::add))
+				.entries((context, entries) -> {
+					ITEMS.values().forEach(entries::add);
+					// the decorative rowboat beside the sailing one (it is also in the tab "Charrettes")
+					entries.add(fr.medievalships.tent.Tents.item(fr.medievalships.core.TentTypes.ROWBOAT_DECO));
+				})
 				.build());
 		ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(entries -> ITEMS.values().forEach(entries::add));
 
