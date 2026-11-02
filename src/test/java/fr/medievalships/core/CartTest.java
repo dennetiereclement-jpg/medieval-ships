@@ -32,8 +32,9 @@ public class CartTest {
 		assertEquals(10, TentTypes.CARTS.size(), "the eight carts, the nomad tavern and the decorative rowboat");
 		assertSame(TentTypes.TAVERN, TentTypes.CARTS.get(8), "the tavern after the eight carts");
 		assertSame(TentTypes.ROWBOAT_DECO, TentTypes.CARTS.get(9), "the decorative rowboat last in the carts' tab");
-		assertEquals(6 + 6 + 5 + 2 + 2, TentTypes.ALL.size(), "the tents' list: six camp tents, merchant tents I (6), II (5), III (2) and IV (2)");
-		assertEquals(6 + 6 + 5 + 2 + 2 + 10 + 7 + 3 + 8 + 1, TentTypes.PROPS.size()); // tents, merchant tents I to IV, carts and the
+		assertEquals(6 + 6 + 5 + 2 + 2 + 1, TentTypes.ALL.size(),
+				"the tents' list: six camp tents, merchant tents I (6), II (5), III (2), IV (2) and V (1, the jeweller's)");
+		assertEquals(6 + 6 + 5 + 2 + 2 + 1 + 10 + 7 + 3 + 8 + 1, TentTypes.PROPS.size()); // tents, merchant tents I to V, carts and the
 		// tavern, workshops, the training areas, the street decorations (1.20.0), the cannon
 		Set<String> ids = new HashSet<>();
 		for (TentType t : WAGONS) {
@@ -49,7 +50,7 @@ public class CartTest {
 		for (TentType t : TentTypes.ALL) {
 			assertEquals(TentType.TENTS, t.group());
 			if (TentTypes.MERCHANTS.contains(t) || TentTypes.MERCHANTS2.contains(t) || TentTypes.MERCHANTS3.contains(t)
-					|| TentTypes.MERCHANTS4.contains(t)) {
+					|| TentTypes.MERCHANTS4.contains(t) || TentTypes.MERCHANTS5.contains(t)) {
 				assertTrue(t.texture().startsWith("textures/entity/tente_"), t.id() + ": a merchant tent has its own atlas " + t.texture());
 			} else {
 				assertEquals(TentType.DEFAULT_TEXTURE, t.texture(), t.id());

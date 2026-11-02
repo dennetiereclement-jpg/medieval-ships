@@ -200,10 +200,12 @@ public final class TentGameTest {
 		check.accept(TentTypes.ALL.containsAll(TentTypes.MERCHANTS4) && TentTypes.MERCHANTS4.size() == 2,
 				"the two merchant stalls of 1.17.0 (the baker's, the longer fishmonger's) are placed once each below ("
 						+ TentTypes.MERCHANTS4.size() + ")");
+		check.accept(TentTypes.ALL.containsAll(TentTypes.MERCHANTS5) && TentTypes.MERCHANTS5.size() == 1,
+				"the jeweller's tent of 1.21.0 is placed once below (" + TentTypes.MERCHANTS5.size() + ")");
 		check.accept(TentTypes.TRAINING.size() == 3, "the three training areas of 1.18.0 are placed once each below (" + TentTypes.TRAINING.size()
 				+ ")");
 		for (TentType t : java.util.stream.Stream.of(TentTypes.MERCHANTS, TentTypes.MERCHANTS2, TentTypes.MERCHANTS3, TentTypes.MERCHANTS4,
-				TentTypes.TRAINING, TentTypes.ARTILLERY)
+				TentTypes.MERCHANTS5, TentTypes.TRAINING, TentTypes.ARTILLERY)
 				.flatMap(java.util.List::stream).toList()) {
 			TentType.Box e = t.extent(TentType.SOUTH);
 			check.accept(e.x0() > -14 && e.x1() < 14 && e.z0() > -14 && e.z1() < 14 && e.y1() < 12,
@@ -287,7 +289,7 @@ public final class TentGameTest {
 		Object[] b2 = blockAt(server, a);
 		check.accept(!Boolean.TRUE.equals(b2[0]) && !Boolean.TRUE.equals(b2[3]), id + " removed by /tent remove (block " + b2[1] + ")");
 		check.accept((Integer) b2[2] == (Integer) b0[2] - 1, id + " its collision boxes are forgotten (" + b2[2] + " tent(s) left)");
-		// the eighteen other tents (camp tents, the six merchant tents, the five of 1.15.0, the two of 1.16.0), once each
+		// the other tents (camp tents, the merchant tents of 1.14.0 - 1.17.0, the jeweller's of 1.21.0), once each
 		for (TentType t : TentTypes.ALL) {
 			if (t != TYPE) {
 				quick(t, context, server, world, check, shot);

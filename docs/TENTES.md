@@ -442,6 +442,78 @@ banners=2)`.
 - Le test en jeu (`TentGameTest`) pose les deux étals une fois chacun ; son passage en CI n'est pas garanti au
   moment de l'écriture.
 
+## Tente du joaillier (1.21.0)
+
+Une tente de marchand de plus, du même système que les quinze autres (un bloc = toute la tente, modèle statique,
+boîtes de collision, niveaux de détail, aucun tick, aucune entité), rangée dans l'onglet **Tentes** après les
+autres (`TentTypes.MERCHANTS5`), avec son atlas (`textures/entity/tente_joaillier.png`).
+
+| id | nom | onglet | emprise (l × h × p, blocs) | cubes | générateur |
+|----|-----|-----|-----|-----|-----|
+| `tente_joaillier` | Tente du joaillier (*Jeweller's Tent*) | Tentes | 9,4 × 7,2 × 6,5 | 490 | `tools/merchant/generate_tente_joaillier.py` (+ `props_m10.py`) |
+
+**Obtenir / poser** : `/give @p medievalships:tente_joaillier`, ou `/tent give tente_joaillier`, ou dans l'onglet
+Tentes. Nom court pour `/tent place` : `joaillier`. Clic droit au sol : l'entrée fait face au joueur ; `/tent remove`,
+casser le bloc d'ancrage : comme les autres. L'emprise compte le bout gauche du toit qui descend plus bas, la caisse
+de cristaux et le coffre posés devant.
+
+**Ce qu'on y trouve** (d'après la description de l'image de référence) :
+
+- Une tente rectangulaire plus large que profonde (environ 8 × 5,5 blocs), ouverte sur tout l'avant ; quatre gros
+  poteaux de bois sombre cerclés de fer à chapiteaux dorés, la lourde poutre d'avant-toit à ferrures, deux poutres
+  de travers et une **jambe de force** à l'intérieur à gauche.
+- Le **toit à deux pans à rayures violettes et beiges** qui descendent les pentes, avec en son **milieu une partie
+  surélevée et pointue** (un petit pavillon à quatre pans en fuseaux violets et beiges) coiffée d'un **épi en bois et
+  or** ; le **bout gauche du toit descend plus bas** sur le côté gauche ; le lambrequin dentelé violet et beige bordé
+  d'or tout autour.
+- Les **côtés et le fond fermés par des rideaux drapés** en grands quartiers violets et beiges (en arlequin, galons
+  dorés), des **draperies violettes** côté intérieur au fond, l'avant des côtés **relevé et noué** près des poteaux.
+- **Deux bannières violettes à dents dorées et au diamant d'or** (pierre taillée) : la grande pendue à la potence du
+  poteau avant gauche, une plus petite au poteau avant droit.
+- Une **lanterne** sous la poutre près du poteau gauche, une au bras du poteau droit, une **petite lanterne à
+  chaîne** à l'intérieur (bloc de mod) ; le bloc d'ancrage éclaire (lumière 12).
+- À l'avant gauche, le **comptoir sous une nappe violette à dents dorées** avec **trois bustes de velours noir
+  portant des colliers d'or** sertis d'un **rubis**, d'un **saphir** et d'une **émeraude**, deux **plateaux de
+  bagues**, un coffret, et dessous des **tiroirs à loquets de fer**.
+- Au fond au milieu, l'**étagère** : **coffrets à bijoux** (l'un ouvert sur un collier), **cristaux** de couleur, un
+  **buste au collier d'or** en haut.
+- Au fond à droite, le **comptoir** à nappe violette : un **plateau de pierres taillées** (rouges, vertes, bleues,
+  violettes), un buste au collier, la **vitrine de verre** sur socle de bois avec la **couronne d'or sertie de
+  rubis** sur son coussin ; au-dessus, la **balance de joaillier** dorée pendue à la poutre (une améthyste et une
+  émeraude sur les plateaux).
+- Dehors à l'avant gauche une **caisse de cristaux** (améthystes, cristaux verts et rouges), à l'avant droit un
+  **gros coffre au trésor cerclé de fer** ; au milieu, le **tapis violet à bordure dorée et au diamant**.
+
+**Accès, PNJ, collisions** : l'avant est grand ouvert et le milieu libre ; une **place libre de 1 × 1 × 2,2 blocs
+derrière le comptoir de droite** (x 1,6 à 2,6, z −2,2 à −1,2) pour un marchand EasyNPC, qu'on rejoint à pied depuis
+l'avant. Bloquent : les poteaux, les deux comptoirs, l'étagère, la vitrine, la caisse, le coffre, et les rideaux des
+côtés et du fond (murs minces, seulement là où ils sont fermés) ; ni le tapis, ni les bannières, ni le toit, ni la
+balance, ni les rideaux noués de l'avant. Pas de sièges.
+
+**Blocs de mods** (dessinés s'ils sont installés, sinon un substitut dans le modèle) :
+`farmhouse_decorations:chained_kerosene_lantern` (la petite lanterne à chaîne intérieure, lumineuse ; substitut :
+lanterne), `furnish:spruce_crate` (la caisse de cristaux ; substitut : caisse), `minecraft:amethyst_cluster` ×2
+(bloc vanilla posé dans la caisse, lumineux ; substitut : cristal violet). Les bustes, colliers, bagues, plateaux de
+pierres, coffrets, la vitrine et sa couronne, la balance, le coffre au trésor, les bannières, le tapis et les rideaux
+sont modélisés (la vitrine `furnish:<couleur>_showcase` est un cube de verre teinté sans socle de bois : la couronne
+n'y serait pas lisible ; les coffres d'Icaria sont des entités de bloc non dessinables).
+
+**Pour les développeurs** : `merchantlib.py` (rétrocompatible : les tentes existantes se régénèrent à l'identique)
+gagne l'emblème `diamond` et `export(..., light=12)` (le champ JSON `"light"`, lu par `TentType` pour tous les
+groupes) ; `props_m10.py` ajoute la partie pointée du toit (`peak`), le bout gauche en croupe (`hip_left`), les murs
+de rideaux (`walls`), les plaques triangulaires découpées par leur texture (`tri_plate` : bords nets sans marches),
+et les objets du joaillier (`bust`, `ring_tray`, `gem_tray`, `coffer`, `vitrine_crown`, `balance`,
+`treasure_chest`, `jeweller_banner`).
+
+**Limites connues / non vérifié** :
+
+- Rendu vérifié hors jeu seulement (`tools/preview.py`) ; le test en jeu (`TentGameTest`) pose la tente une fois, son
+  passage en CI n'est pas garanti au moment de l'écriture ; les blocs de mods ne sont vus que dans la variante
+  « decor ».
+- Les faces latérales du pavillon pointu traversent le toit : de l'intérieur, on en voit un petit triangle sous le
+  faîtage, comme une ferme.
+- L'image de référence n'était pas disponible : le modèle suit sa description écrite.
+
 ## Performances
 
 - **Aucun tick** : l'entité de bloc n'a pas de ticker, pas de particules, pas d'animation ; le serveur ne fait rien

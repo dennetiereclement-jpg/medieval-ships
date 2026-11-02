@@ -36,12 +36,13 @@ public class WorkshopTest {
 	@Test
 	void sevenWorkshopsLoadAfterTheTentsAndCarts() {
 		assertEquals(7, TentTypes.WORKSHOPS.size());
-		assertEquals(6 + 6 + 5 + 2 + 2, TentTypes.ALL.size(), "the tents' list: six camp tents, merchant tents I (6), II (5), III (2) and IV (2)");
+		assertEquals(6 + 6 + 5 + 2 + 2 + 1, TentTypes.ALL.size(),
+				"the tents' list: six camp tents, merchant tents I (6), II (5), III (2), IV (2) and V (1, the jeweller's)");
 		assertEquals(10, TentTypes.CARTS.size(), "the carts' list: the eight carts, the nomad tavern, the decorative rowboat (1.19.0)");
-		assertEquals(TentTypes.WORKSHOPS, TentTypes.PROPS.subList(31, 38), "the workshops come after the tents and carts in PROPS");
-		assertEquals(TentTypes.TRAINING, TentTypes.PROPS.subList(38, 41), "then the training areas (1.18.0)");
-		assertEquals(TentTypes.DECORATIONS, TentTypes.PROPS.subList(41, 49), "then the street decorations (1.20.0)");
-		assertEquals(TentTypes.ARTILLERY, TentTypes.PROPS.subList(49, 50), "then the artillery, last");
+		assertEquals(TentTypes.WORKSHOPS, TentTypes.PROPS.subList(32, 39), "the workshops come after the tents and carts in PROPS");
+		assertEquals(TentTypes.TRAINING, TentTypes.PROPS.subList(39, 42), "then the training areas (1.18.0)");
+		assertEquals(TentTypes.DECORATIONS, TentTypes.PROPS.subList(42, 50), "then the street decorations (1.20.0)");
+		assertEquals(TentTypes.ARTILLERY, TentTypes.PROPS.subList(50, 51), "then the artillery, last");
 		Set<String> ids = new HashSet<>();
 		for (TentType t : TentTypes.PROPS) {
 			assertTrue(ids.add(t.id()), "id used twice: " + t.id());

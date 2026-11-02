@@ -4,10 +4,11 @@ import java.util.List;
 
 
 /**
- * The twenty-one tents (six camp tents, fifteen merchant tents), the eight carts and the nomad tavern, the seven crafting
+ * The twenty-two tents (six camp tents, sixteen merchant tents), the eight carts and the nomad tavern, the seven crafting
  * workshops, the three training areas and the medieval cannon. One line per prop: its id (block, item, model, decor and
  * tents / carts / workshops / artillery JSON are all named after it) and its names. {@link #ALL} = the tents only (their tab "Tentes": the six camp tents, the six
- * {@link #MERCHANTS}, the five {@link #MERCHANTS2}, the two {@link #MERCHANTS3}, then the two {@link #MERCHANTS4}),
+ * {@link #MERCHANTS}, the five {@link #MERCHANTS2}, the two {@link #MERCHANTS3}, the two {@link #MERCHANTS4}, then the jeweller's
+ * {@link #MERCHANTS5}),
  * {@link #CARTS} = the carts (tab "Charrettes"), {@link #WORKSHOPS} = the workshops (tab "Ateliers"),
  * {@link #ARTILLERY} = the cannon (tab "Artillerie"), {@link #TRAINING} = the training areas (tab "Entraînement"),
  * {@link #DECORATIONS} = the eight street decorations (tab "Décorations", 1.20.0), {@link #PROPS} = all six (registration,
@@ -53,12 +54,20 @@ public final class TentTypes {
 	 */
 	public static final List<TentType> MERCHANTS4 = List.of(MERCHANT_BAKER, MERCHANT_FISHMONGER);
 
+	public static final TentType MERCHANT_JEWELLER = TentType.load("tente_joaillier", "tente du joaillier", "Jeweller's Tent");
+	/**
+	 * The merchant tents V (1.21.0): the jeweller's tent (the gabled stall of tools/merchant/merchantlib.py with the raised
+	 * pointed centre, the hipped left end and the curtain walls of tools/merchant/props_m10.py), group "tents", its own
+	 * atlas, its anchor block lit (JSON "light").
+	 */
+	public static final List<TentType> MERCHANTS5 = List.of(MERCHANT_JEWELLER);
+
 	/**
 	 * The tents only (tab "Tentes"): the six camp tents, the six merchant tents, the five of 1.15.0, the two of 1.16.0,
-	 * then the two of 1.17.0.
+	 * the two of 1.17.0, then the jeweller's of 1.21.0.
 	 */
 	public static final List<TentType> ALL = java.util.stream.Stream.of(List.of(COMMAND, ADVENTURER, MARKET, CAMP, DWELLING, CHIEF), MERCHANTS,
-			MERCHANTS2, MERCHANTS3, MERCHANTS4).flatMap(List::stream).toList();
+			MERCHANTS2, MERCHANTS3, MERCHANTS4, MERCHANTS5).flatMap(List::stream).toList();
 
 	public static final TentType CART_COVERED_WHITE = cart("cart_covered_white", "charrette couverte blanche", "White Covered Wagon");
 	public static final TentType CART_HAY = cart("cart_hay", "charrette de foin", "Hay Cart");

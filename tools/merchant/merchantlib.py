@@ -48,6 +48,11 @@ over a hook); stall(..., banner_side="both") hangs one banner from each front po
 width of a longer stall is half_w (see stall()); icon(..., shape="stall", banners=2) draws the stall icon with two
 banners.
 
+1.21.0 (backward compatible: the fifteen earlier tents regenerate byte-identically): emblem diamond (a cut gem in gold
+outline, the jeweller); export(..., light=12) writes the optional "light" (the anchor block's luminance, TentType
+honours it for every group). The jeweller's raised pointed roof centre, hipped left end and draped curtain walls are
+in tools/merchant/props_m10.py.
+
 Shell atlas regions (every tent's atlas has them; colour-dependent ones in the tent's colour):
   wood, wood_dark, plank, plank_dark, post (carved dark post, grain along u), beam (carved eave beam), trim_gold,
   leather, leather_dark (64x16 strips); 16x16: end_grain, rope, iron, gold, lantern, glow, brass, steel, white,
@@ -113,11 +118,12 @@ COLOURS = {   # main, dark (shadows, edges), light
 _SEED = {c: k for k, c in enumerate(("blue", "green", "purple", "red", "teal", "yellow", "burgundy", "darkred", "navy", "charcoal", "brown",
                                                    "seablue"))}
 EMBLEMS = ("swords", "flask", "leaf", "anvil", "cheese", "scroll", "lyre", "muskets", "bow", "star", "shield", "cannon", "poison",
-           "cleavers", "bread", "fish")
+           "cleavers", "bread", "fish", "diamond")
 EMBLEM_ICON = {"swords": (220, 222, 228), "flask": (150, 200, 240), "leaf": (230, 226, 200), "anvil": (220, 222, 228),
                "cheese": (246, 210, 80), "scroll": (240, 228, 196), "lyre": (232, 186, 70), "muskets": (220, 222, 228),
                "bow": (232, 186, 70), "star": (232, 186, 70), "shield": (200, 206, 216), "cannon": (236, 226, 196),
-               "poison": (236, 226, 200), "cleavers": (220, 222, 228), "bread": (232, 186, 70), "fish": (236, 240, 244)}
+               "poison": (236, 226, 200), "cleavers": (220, 222, 228), "bread": (232, 186, 70), "fish": (236, 240, 244),
+               "diamond": (232, 186, 70)}
 GOLD_STOPS = [(0, (120, 84, 26)), (0.5, (214, 170, 72)), (1, (250, 230, 160))]
 STEEL_STOPS = [(0.0, (72, 74, 80)), (0.45, (140, 144, 150)), (0.8, (196, 200, 206)), (1.0, (236, 238, 242))]
 POTIONS = {"red": "c42c2c", "blue": "2e5ed2", "green": "2ea24e", "purple": "9a3ccc", "yellow": "e2c23a", "orange": "e27a2a",
@@ -627,6 +633,25 @@ def _emblem(img, box, kind, colour, scale=1.0, faded=False):
         d.arc([*P(0.42, 0.76), *P(0.62, 0.96)], 0, 180, fill=hk, width=int(lw * 2.4))
         d.line([P(0.42, 0.86), P(0.42, 0.77)], fill=hk, width=int(lw * 2.4))
         d.polygon([P(0.42, 0.72), P(0.38, 0.8), P(0.455, 0.79)], fill=hk)                       # barb
+    elif kind == "diamond":
+        # 1.21.0: a cut gem seen from the side in gold outline (the jeweller): the flat table on top, the crown facets
+        # down to the girdle, the pavilion tapering to the culet point; the facets tinted with the light tent colour
+        main_, dark_, light_ = COLOURS[colour]
+        tint, tint_l = _mix(light_, (255, 255, 255), 0.25), _mix(light_, (255, 255, 255), 0.6)
+        T0, T1, G0, G1, C = P(0.34, 0.16), P(0.66, 0.16), P(0.1, 0.38), P(0.9, 0.38), P(0.5, 0.92)
+        M0, M1 = P(0.3, 0.38), P(0.7, 0.38)
+        d.polygon([T0, T1, G1, C, G0], fill=tint)
+        d.polygon([T0, M0, G0], fill=tint_l)
+        d.polygon([T0, T1, M1, M0], fill=_mix(tint, tint_l, 0.5))
+        d.polygon([M0, P(0.5, 0.38), C], fill=tint_l)
+        for a, b in ((T0, M0), (T1, M1), (M0, P(0.5, 0.38)), (M1, P(0.5, 0.38)), (G0, M0), (M0, M1), (M1, G1), (M0, C), (M1, C),
+                     (P(0.5, 0.38), C), (T0, P(0.2, 0.38)), (T1, P(0.8, 0.38))):
+            d.line([a, b], fill=gold_d, width=max(1, lw // 2 + 1))
+        d.line([T0, T1, G1, C, G0, T0], fill=gold, width=int(lw * 1.6))
+        d.line([G0, G1], fill=gold, width=int(lw * 1.3))
+        sx_, sy_ = P(0.4, 0.27)
+        for dx_, dy_ in ((1, 0), (0, 1)):   # a sparkle on the table
+            d.line([(sx_ - dx_ * lw * 2.5, sy_ - dy_ * lw * 2.5), (sx_ + dx_ * lw * 2.5, sy_ + dy_ * lw * 2.5)], fill=(255, 250, 230), width=lw)
     im = im.resize((w, h), Image.LANCZOS)
     if faded:
         a = im.getchannel("A").point(lambda q: int(q * 0.55))
@@ -1784,10 +1809,11 @@ def stall_icon(path, colour="red", emblem="poison", banners=1):
     im.save(path)
 
 
-def export(root, name, atlas, decor=None, icon=None, particles=None, visible_box=(10, 8, 0)):
+def export(root, name, atlas, decor=None, icon=None, particles=None, visible_box=(10, 8, 0), light=None):
     """Writes tents/<id>.json, models/entity/<id>.bbmodel, blockbench/<id>.bbmodel, textures/entity/<id>.png,
     textures/item/<id>.png (icon=dict(colour=..., emblem=...) or a function(path)), interiors/<id>_decor.json.
-    MERCHANT_OUT=<file.bbmodel>: writes only the model (and its atlas next to it) there, for previews."""
+    MERCHANT_OUT=<file.bbmodel>: writes only the model (and its atlas next to it) there, for previews.
+    light (1.21.0, optional): the anchor block's luminance 0-15 (TentType "light", any group); None writes nothing."""
     out_model = os.environ.get("MERCHANT_OUT")
     tex_name = "%s.png" % name
     tex_path = os.path.join(ASSETS, "textures/entity", tex_name) if not out_model else os.path.join(os.path.dirname(out_model), tex_name)
@@ -1818,6 +1844,8 @@ def export(root, name, atlas, decor=None, icon=None, particles=None, visible_box
         }
         if particles:
             data["particles"] = particles
+        if light:
+            data["light"] = int(light)
         path = os.path.join(ASSETS, "tents/%s.json" % name)
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w") as f:

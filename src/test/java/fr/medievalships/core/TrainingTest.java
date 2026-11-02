@@ -35,7 +35,7 @@ public class TrainingTest {
 	@Test
 	void threeAreasLoadInTheirOwnTab() {
 		assertEquals(3, TentTypes.TRAINING.size());
-		assertEquals(TentTypes.TRAINING, TentTypes.PROPS.subList(38, 41), "after the tents, the carts and the workshops, before the cannon");
+		assertEquals(TentTypes.TRAINING, TentTypes.PROPS.subList(39, 42), "after the tents, the carts and the workshops, before the cannon");
 		for (int i = 0; i < IDS.size(); i++) {
 			TentType t = TentTypes.TRAINING.get(i);
 			assertEquals(IDS.get(i), t.id());

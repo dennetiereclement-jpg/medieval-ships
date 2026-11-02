@@ -39,7 +39,7 @@ public class DecorationTest {
 	@Test
 	void eightDecorationsInTheirOwnTab() {
 		assertEquals(8, TentTypes.DECORATIONS.size());
-		assertEquals(TentTypes.DECORATIONS, TentTypes.PROPS.subList(41, 49), "after the training areas, before the cannon");
+		assertEquals(TentTypes.DECORATIONS, TentTypes.PROPS.subList(42, 50), "after the training areas, before the cannon");
 		assertSame(TentTypes.CANNON, TentTypes.PROPS.get(TentTypes.PROPS.size() - 1), "the artillery stays last");
 		for (int i = 0; i < IDS.size(); i++) {
 			TentType t = TentTypes.DECORATIONS.get(i);
@@ -182,7 +182,9 @@ public class DecorationTest {
 			}
 		}
 		for (TentType t : TentTypes.PROPS) {
-			if (!t.isDecoration()) {
+			if (t == TentTypes.MERCHANT_JEWELLER) {
+				assertEquals(12, t.light(), "the jeweller's tent (1.21.0) lights its stall (lanterns, glowing gems)");
+			} else if (!t.isDecoration()) {
 				assertEquals(0, t.light(), t.id() + " the older props give no light");
 			}
 		}

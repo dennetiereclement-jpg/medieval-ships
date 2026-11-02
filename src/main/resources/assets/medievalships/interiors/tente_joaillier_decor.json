@@ -1,0 +1,46 @@
+{
+ "blocks": [
+  {
+   "block": "farmhouse_decorations:chained_kerosene_lantern",
+   "x": -2.3,
+   "y": 2.14,
+   "z": 0.45,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_0",
+   "glow": true
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": -3.15,
+   "y": 0.0,
+   "z": 3.13,
+   "yaw": 180.0,
+   "scale": 0.7,
+   "fallback": "fallback_1"
+  },
+  {
+   "block": "minecraft:amethyst_cluster",
+   "x": -3.29,
+   "y": 0.7,
+   "z": 3.03,
+   "yaw": 180.0,
+   "scale": 0.42,
+   "fallback": "fallback_2",
+   "glow": true
+  },
+  {
+   "block": "minecraft:amethyst_cluster",
+   "x": -3.03,
+   "y": 0.7,
+   "z": 3.21,
+   "yaw": 180.0,
+   "scale": 0.42,
+   "fallback": "fallback_3",
+   "glow": true
+  }
+ ],
+ "seats": [],
+ "paintings": [],
+ "switches": []
+}
