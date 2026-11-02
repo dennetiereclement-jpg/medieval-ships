@@ -96,7 +96,8 @@ public class SeatsTest {
 		TentType.Box e = t.extent();
 		for (TentType.Seat s : t.seats()) {
 			assertTrue(s.x() > e.x0() && s.x() < e.x1() && s.z() > e.z0() && s.z() < e.z1(), "seat inside the extent " + s);
-			assertTrue(s.y() > 0.2 && s.y() < 1.6, "a seat's surface between 0.2 and 1.6 above the ground " + s);
+			// the bar stools stand on the ledge in front of the counter, about 1.6 up
+			assertTrue(s.y() > 0.2 && s.y() < 2.0, "a seat's surface between 0.2 and 2.0 above the ground " + s);
 			assertTrue(s.yaw() >= 0 && s.yaw() < 360, "yaw " + s);
 		}
 		for (String file : new String[] {"carts/taverne_nomade.json", "blockstates/taverne_nomade.json", "items/taverne_nomade.json",
