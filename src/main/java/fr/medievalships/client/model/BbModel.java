@@ -205,6 +205,72 @@ public final class BbModel {
 		}
 	}
 
+	/** Is there a bone of that name? */
+	public boolean hasBone(String bone) {
+		return bonesByName.containsKey(bone);
+	}
+
+	/** The origin (pivot) of a bone in model-local blocks (x = -bbX/16, y = bbY/16, z = -bbZ/16), or null for an unknown name. */
+	public double[] origin(String bone) {
+		Bone b = bonesByName.get(bone);
+		return b == null ? null : new double[] {-b.origin[0] / 16.0, b.origin[1] / 16.0, -b.origin[2] / 16.0};
+	}
+
+	/**
+	 * Sets a bone's extra rotation in a pose (Blockbench degrees about its own axes, added to the bone's rotation like
+	 * an animation's); unknown names are ignored. Only {@link #renderSubtree} applies it to bones no animation moves.
+	 */
+	public void rotate(Pose pose, String bone, float x, float y, float z) {
+		Bone b = bonesByName.get(bone);
+		if (b != null) {
+			pose.rot[b.index][0] = x;
+			pose.rot[b.index][1] = y;
+			pose.rot[b.index][2] = z;
+		}
+	}
+
+	/**
+	 * Emits the quads of one bone and its children only (a training target's moving parts), in model-local blocks like
+	 * {@link #render}: every bone of the subtree is transformed with the pose's rotations ({@link #rotate}), whether an
+	 * animation moves it or not; its parents, if any, at rest. With no extra rotation the quads are exactly the ones the
+	 * full render draws for that subtree. Hidden bones of the pose are skipped as in {@link #render}.
+	 */
+	public void renderSubtree(Pose pose, String bone, QuadSink sink) {
+		Bone b = bonesByName.get(bone);
+		if (b == null) {
+			return;
+		}
+		java.util.ArrayDeque<Bone> chain = new java.util.ArrayDeque<>();
+		for (Bone a = b.parent; a != null; a = a.parent) {
+			if (pose.hidden[a.index]) {
+				return;
+			}
+			chain.push(a);
+		}
+		float[] m = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0};
+		for (Bone a : chain) {
+			m = compose(m, restMatrix(a));
+		}
+		float[] p = new float[12], uv = new float[8], n = new float[3];
+		renderBone(b, m, pose, -1, sink, p, uv, n, true);
+	}
+
+	/** A bone's own transform at rest (3x4 affine, Blockbench pixels): R * (v - o) + o. */
+	private static float[] restMatrix(Bone bone) {
+		float[][] R = rotationMatrix(bone.rotation);
+		float[] o = bone.origin;
+		float[] local = new float[12];
+		for (int i = 0; i < 3; i++) {
+			float off = o[i];
+			for (int j = 0; j < 3; j++) {
+				local[i * 4 + j] = R[i][j];
+				off -= R[i][j] * o[j];
+			}
+			local[i * 4 + 3] = off;
+		}
+		return local;
+	}
+
 	@FunctionalInterface
 	public interface QuadSink {
 		/**
@@ -502,11 +568,16 @@ public final class BbModel {
 	}
 
 	private void renderBone(Bone bone, float[] parent, Pose pose, int texture, QuadSink sink, float[] p, float[] uv, float[] n) {
+		renderBone(bone, parent, pose, texture, sink, p, uv, n, false);
+	}
+
+	/** {@code dynamic}: transform this bone and its children with the pose even if no animation moves them ({@link #renderSubtree}). */
+	private void renderBone(Bone bone, float[] parent, Pose pose, int texture, QuadSink sink, float[] p, float[] uv, float[] n, boolean dynamic) {
 		int b = bone.index;
 		if (pose.hidden[b]) {
 			return;
 		}
-		if (!bone.animated) {
+		if (!bone.animated && !dynamic) {
 			renderStatic(bone, parent, pose, texture, sink, p, uv, n);
 			return;
 		}
@@ -554,7 +625,7 @@ public final class BbModel {
 			sink.quad(p, uv, n, q.glow, q.lit);
 		}
 		for (Bone c : bone.children) {
-			renderBone(c, m, pose, texture, sink, p, uv, n);
+			renderBone(c, m, pose, texture, sink, p, uv, n, dynamic);
 		}
 	}
 

@@ -37,7 +37,7 @@ import fr.medievalships.tent.Tents;
  * {@code /tent list}, {@code /tent types}. Admin only, like {@code /ship}. Every prop id (tents, carts and workshops,
  * {@link TentTypes#PROPS}, the cannon included) is accepted, also by {@code /ship give}; {@code /cart} is the same command under another name.
  * {@code /workshop} (alias {@code /atelier}) is the same tree for the workshops only ({@link TentTypes#WORKSHOPS}): its
- * {@code remove} and {@code list} only see workshops.
+ * {@code remove} and {@code list} only see workshops; {@code /training} the same for the training areas (1.19.0).
  */
 public final class TentCommands {
 	private TentCommands() {
@@ -59,12 +59,16 @@ public final class TentCommands {
 			"%d tente(s) chargée(s) :");
 	private static final Family WORKSHOPS = new Family(TentTypes.WORKSHOPS, true, "", "Aucun atelier chargé dans ce monde.",
 			"Pas d'atelier en ", "%d atelier(s) chargé(s) :");
+	/** {@code /training}: the training areas only (1.19.0; unbreakable in survival, removed by an admin with this or /tent remove). */
+	private static final Family TRAINING = new Family(TentTypes.TRAINING, true, "e", "Aucune aire d'entraînement chargée dans ce monde.",
+			"Pas d'aire d'entraînement en ", "%d aire(s) d'entraînement chargée(s) :");
 
 	public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
 		dispatcher.register(tree("tent", PROPS));
 		dispatcher.register(tree("cart", PROPS));
 		dispatcher.register(tree("workshop", WORKSHOPS));
 		dispatcher.register(tree("atelier", WORKSHOPS));
+		dispatcher.register(tree("training", TRAINING));
 	}
 
 	private static LiteralArgumentBuilder<ServerCommandSource> tree(String name, Family family) {

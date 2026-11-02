@@ -47,10 +47,18 @@ public final class MedievalShipsClient implements ClientModInitializer {
 				fr.medievalships.tent.TentCollisions.remove(world, be.getPos());
 			}
 		});
+		// the training targets (1.19.0): drawn by their entity from the area's model, their reaction read from it
+		EntityRendererRegistry.register(fr.medievalships.training.TrainingTargets.TYPE, fr.medievalships.client.render.TrainingTargetRenderer::new);
+		fr.medievalships.training.TrainingTargetEntity.joints = fr.medievalships.client.render.TrainingTargetRenderer::joints;
+		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents.ENTITY_LOAD
+				.register((entity, world) -> fr.medievalships.client.render.TrainingTargetRenderer.loaded(entity));
+		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents.ENTITY_UNLOAD
+				.register((entity, world) -> fr.medievalships.client.render.TrainingTargetRenderer.unloaded(entity));
 		ClientTickEvents.END_WORLD_TICK.register(ClientShipEvents::endWorldTick);
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
 			ShipTracker.clearClientWorlds();
 			fr.medievalships.tent.TentCollisions.clearClientWorlds();
+			fr.medievalships.client.render.TrainingTargetRenderer.clear();
 			SyncedConfig.clear();
 		});
 		// the server's settings that change what this client shows (preview, bank, pilot's panel)

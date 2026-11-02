@@ -27,7 +27,8 @@ import fr.medievalships.tent.TentBlockEntity;
  * decoration mods drawn in place ({@link EmbeddedDecor}, stand-in bones hidden), turned to the block's facing.
  * Levels of detail by distance (config: {@code tentDecorDistance}, {@code tentRenderDistance}): the furniture and
  * the "detail" bone within the first, nothing beyond the second. The renderer is registered as drawing outside
- * its block, so the big model is not cut when the anchor's chunk section leaves the view.
+ * its block, so the big model is not cut when the anchor's chunk section leaves the view. The training areas' targets
+ * (bones {@code target_<i>}, 1.19.0) are left to their entities (TrainingTargetRenderer) when this client has them.
  */
 public class TentBlockEntityRenderer implements BlockEntityRenderer<TentBlockEntity, TentBlockEntityRenderer.State> {
 	public static class State extends BlockEntityRenderState {
@@ -35,6 +36,8 @@ public class TentBlockEntityRenderer implements BlockEntityRenderer<TentBlockEnt
 		TentType tent;
 		int quarter;
 		double squaredDistance;
+		/** Training areas (1.19.0): the targets drawn by their own entity (bit i = target i), left out here. */
+		long targetsDrawn;
 	}
 
 	@Override
@@ -49,6 +52,7 @@ public class TentBlockEntityRenderer implements BlockEntityRenderer<TentBlockEnt
 		state.tent = be.tentType();
 		state.quarter = be.quarter();
 		state.squaredDistance = cameraPos.squaredDistanceTo(be.getPos().getX() + 0.5, be.getPos().getY() + 1.0, be.getPos().getZ() + 0.5);
+		state.targetsDrawn = state.tent != null && state.tent.hasTargets() ? TrainingTargetRenderer.drawnMask(be.getWorld(), be.getPos(), state.tent) : 0;
 	}
 
 	@Override
@@ -84,8 +88,15 @@ public class TentBlockEntityRenderer implements BlockEntityRenderer<TentBlockEnt
 		matrices.translate(0.5, 0, 0.5);
 		matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-90f * state.quarter));
 		RenderLayer layer = RenderLayers.entityCutoutNoCull(TentModels.texture(type));
+		long targetsDrawn = state.targetsDrawn;
 		queue.submitCustom(matrices, layer, (entry, vertices) -> {
 			BbModel.Pose pose = model.newPose();
+			// the training targets that their entity draws (moving, TrainingTargetRenderer); the others stay here, at rest
+			for (int i = 0; targetsDrawn != 0 && i < type.targets().size() && i < 64; i++) {
+				if ((targetsDrawn >> i & 1) != 0) {
+					model.hide(pose, type.targets().get(i).bone());
+				}
+			}
 			if (decor != null) {
 				for (String bone : decor.hidden) {
 					model.hide(pose, bone);
