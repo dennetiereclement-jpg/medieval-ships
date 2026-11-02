@@ -32,7 +32,7 @@ import fr.medievalships.core.TentTypes;
  * {@link TentType} ({@code medievalships:<id>}, {@link TentTypes#PROPS}; a {@link WorkshopBlock} for a workshop, a
  * {@link CannonBlock} for the cannon), one block entity type {@code tent} for all of them but the cannon, which has
  * its own ({@code cannon}, {@link CannonBlockEntity}: a persisted state), the creative tabs "Tentes", "Charrettes",
- * "Ateliers" and "Artillerie", and the collision registry fed by the block entity load / unload events (chunks loading
+ * "Ateliers", "Entraînement", "Décorations" (1.20.0; a decoration's block gives the light of its JSON) and "Artillerie", and the collision registry fed by the block entity load / unload events (chunks loading
  * and unloading; placing and breaking go through the block itself).
  */
 public final class Tents {
@@ -67,10 +67,16 @@ public final class Tents {
 			RegistryKey<Block> blockKey = RegistryKey.of(RegistryKeys.BLOCK, MedievalShips.id(type.id()));
 			// solid(): its collision shape is a thin floor, which vanilla would count as "not solid" and let flowing
 			// water wash the prop away; a tent, a cart or a workshop at the water's edge must stay
-			boolean wooden = type.isCart() || type.isWorkshop() || type.isCannon() || type.isTraining();
+			boolean wooden = type.isCart() || type.isWorkshop() || type.isCannon() || type.isTraining() || type.isDecoration();
 			AbstractBlock.Settings settings = AbstractBlock.Settings.create().registryKey(blockKey)
 					.strength(type.isCannon() ? 2.0f : wooden ? 1.0f : 0.6f)
 					.sounds(wooden ? BlockSoundGroup.WOOD : BlockSoundGroup.WOOL).nonOpaque().solid();
+			if (type.light() > 0) {
+				// 1.20.0: a decoration with a lantern lights the area through its anchor block's luminance (the vanilla
+				// light engine; the lantern itself is drawn full bright by the renderer), nothing computed per tick
+				int light = type.light();
+				settings.luminance(state -> light);
+			}
 			if (type.isTraining()) {
 				// 1.19.0: the training areas cannot be broken in survival nor blown up nor pushed (creative or /tent remove)
 				settings.strength(-1.0f, 3600000.0f).pistonBehavior(net.minecraft.block.piston.PistonBehavior.BLOCK);
@@ -113,6 +119,12 @@ public final class Tents {
 				.icon(() -> new ItemStack(ITEMS.get(TentTypes.TRAINING_DUMMY)))
 				.displayName(Text.translatable("itemGroup.medievalships.training"))
 				.entries((context, entries) -> TentTypes.TRAINING.forEach(t -> entries.add(ITEMS.get(t))))
+				.build());
+		RegistryKey<ItemGroup> decorationsKey = RegistryKey.of(RegistryKeys.ITEM_GROUP, MedievalShips.id("decorations"));
+		Registry.register(Registries.ITEM_GROUP, decorationsKey, FabricItemGroup.builder()
+				.icon(() -> new ItemStack(ITEMS.get(TentTypes.DECO_BUNTING)))
+				.displayName(Text.translatable("itemGroup.medievalships.decorations"))
+				.entries((context, entries) -> TentTypes.DECORATIONS.forEach(t -> entries.add(ITEMS.get(t))))
 				.build());
 		RegistryKey<ItemGroup> artilleryKey = RegistryKey.of(RegistryKeys.ITEM_GROUP, MedievalShips.id("artillery"));
 		Registry.register(Registries.ITEM_GROUP, artilleryKey, FabricItemGroup.builder()

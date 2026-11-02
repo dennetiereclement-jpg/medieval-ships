@@ -1,0 +1,32 @@
+{
+ "model": "models/entity/deco_etendoir.bbmodel",
+ "texture": "textures/entity/decorations.png",
+ "decor": null,
+ "extent": [
+  -2.684,
+  0.0,
+  -0.333,
+  2.684,
+  3.4,
+  0.333
+ ],
+ "colliders": [
+  [
+   -2.54,
+   0.0,
+   -0.19,
+   -2.16,
+   3.35,
+   0.19
+  ],
+  [
+   2.16,
+   0.0,
+   -0.19,
+   2.54,
+   3.0,
+   0.19
+  ]
+ ],
+ "light": 0
+}

@@ -94,7 +94,7 @@ GOLD_DARK = _rgb("8a6418")
 GOLD_LIGHT = _rgb("f2cf6a")
 
 # ---------------------------------------------------------------- palette (sampled from the reference sheet)
-WOOD = _rgb("7a5232")
+WOOD = _rgb("8a5c36")
 WOOD_DARK_C = _rgb("3e2a18")
 ROPE_LIGHT, ROPE_DARK = _rgb("d8c08e"), _rgb("8a7048")
 RED, RED_DARK = _rgb("a4282a"), _rgb("5e1414")
@@ -289,7 +289,7 @@ def p_pennant(base, dark):
     def paint(img, rng):
         w, h = img.size
         _cloth_base(img, rng, base, fold_period=9, fold=0.05)
-        body = int(h * 0.62)
+        body = int(h * 0.74)
         teeth = 3
         tw = w / teeth
         for y in range(h):
@@ -349,20 +349,22 @@ def p_sheet_white(img, rng):
 
 
 def p_tunic_stripes(img, rng):
-    base = _rgb("4a5490")
-    _cloth_base(img, rng, base, fold_period=10, fold=0.06)
+    """A dusty blue tunic: thin pale vertical stripes, a pale band above the hem, darker side seams."""
+    base = _rgb("56628e")
+    _cloth_base(img, rng, base, fold_period=10, fold=0.07)
     w, h = img.size
+    pale = _rgb("cfd0d4")
     for y in range(h):
         for x in range(w):
-            if x % 8 in (3, 4):
-                _P(img, x, y, _jitter(_rgb("d8d4c8"), rng, 5))
-            if h - 9 <= y <= h - 7:
-                _P(img, x, y, _jitter(_rgb("d8d4c8"), rng, 5))
+            if x % 6 == 2:
+                _P(img, x, y, _jitter(pale, rng, 6))
+            if h - 8 <= y <= h - 7:
+                _P(img, x, y, _jitter(pale, rng, 6))
             if x in (0, w - 1):
                 _P(img, x, y, _scale(base, 0.7))
     for x in range(w):
-        _P(img, x, h - 1, _rgb("2a3060"))
-        _P(img, x, 0, _rgb("2a3060"))
+        _P(img, x, h - 1, _rgb("2e3660"))
+        _P(img, x, 0, _rgb("2e3660"))
 
 
 def p_cloth_worn(img, rng):
@@ -523,19 +525,21 @@ def p_banner_navy(img, rng):
 
 
 def p_net(img, rng):
-    """Cut-out diamond mesh of rope (cells ~11 px), darker knots at the crossings."""
+    """Cut-out diamond mesh of chunky rope (cells 16 px, strands 3 px: lit middle, dark edges), knots at the crossings."""
     w, h = img.size
     cell = 16
     for y in range(h):
         for x in range(w):
             a = (x + y) % cell
             b = (x - y) % cell
-            on_a, on_b = a < 2, b < 2
+            on_a, on_b = a < 3, b < 3
             if on_a or on_b:
-                t = ((x * 0.7 + y) % 3) / 3
-                c = _ramp([(0, ROPE_DARK), (0.5, ROPE_LIGHT), (1, ROPE_DARK)], t)
+                k = a if on_a else b
+                c = ROPE_LIGHT if k == 1 else _mix(ROPE_LIGHT, ROPE_DARK, 0.55)
+                if ((x * 0.7 + y) % 4) < 1:
+                    c = _scale(c, 0.85)
                 if on_a and on_b:
-                    c = _scale(ROPE_DARK, 0.85)
+                    c = _mix(ROPE_LIGHT, ROPE_DARK, 0.3) if (a == 1 and b == 1) else _scale(ROPE_DARK, 0.9)
                 _P(img, x, y, _jitter(c, rng, 4))
             else:
                 _P(img, x, y, (0, 0, 0), 0)
@@ -746,7 +750,7 @@ class Post:
 
 
 def post(bone, name, foot, height, d=0.32, region="post", bindings=(), bands=(), caps=False, footing=None, top="end_grain",
-         solid=True, detail=None, ring_h=0.075, rings=3, band_h=0.11):
+         solid=True, detail=None, ring_h=0.075, rings=3, band_h=0.16):
     """A squared upright post (section d) standing on foot (x, y, z) up to `height` above it, the grain vertical,
     the top end grain. bindings = heights (above the foot) of rope bindings (rings coils of rope wrapped round,
     each slightly askew); bands = heights of iron bands (with rivets); caps = an iron cap on the top; footing =
@@ -875,10 +879,10 @@ def pennant(bone, name, a, b, length, region, out=(0, 0, 1), flutter=0.04, tilt=
     return P
 
 
-def clothes(bone, name, a, b, length, region, out=(0, 0, 1), pegs=2, detail=None, sway=0.05, nx=2, ny=3, taper=0.0,
+def clothes(bone, name, a, b, length, region, out=(0, 0, 1), pegs=2, detail=None, sway=0.05, nx=3, ny=1, taper=0.0,
             peg_region="peg", peg_h=0.24):
     """A piece of laundry pegged on the rope between a and b: the top edge on the rope, the cloth hanging `length`
-    with soft folds (sway), its bottom corners a little narrower by `taper`; `pegs` clothes pegs straddling the rope
+    with soft vertical folds (sway: each of the nx strips is planar, so the folds read as light and shade), its bottom corners a little narrower by `taper`; `pegs` clothes pegs straddling the rope
     (under detail). No collision."""
     a, b = v3(*a), v3(*b)
     u, n = _hang_frame(a, b, out)
@@ -887,7 +891,7 @@ def clothes(bone, name, a, b, length, region, out=(0, 0, 1), pegs=2, detail=None
     def P(s, t):
         top = a + (b - a) * s
         p = top - UP * (length * t) + u * ((s - 0.5) * -2 * taper * t * W * 0.5)
-        return p + n * (sway * math.sin(math.pi * s * 2 + 0.6) * t + 0.03 * t)
+        return p + n * (sway * math.sin(math.pi * s * 3 + 0.6) * (0.35 + 0.65 * t) + 0.04 * t)
     loft(bone, name, P, nx, ny, region, th=0.02, u_hint=u, v_hint=-UP)
     det = detail if detail is not None else bone
     for k in range(pegs):
@@ -931,10 +935,13 @@ def tail(bone, name, top, width, length, region, out=(0, 0, 1), along=(1, 0, 0),
     return P
 
 
-def net(bone, name, line, t0, t1, drop, region="net", out=(0, 0, 1), belly=0.12, nx=6, ny=2, edge=True, th=0.012, drop_fn=None):
-    """A slack rope net hanging from the rope `line` (a Line) between t0 and t1: the cut-out mesh texture stretched
-    on a lofted panel, `drop` deep in the middle (drop_fn(s) -> depth overrides), bellying out by `belly`; edge =
-    dangling rope ends along the bottom. No collision."""
+def net(bone, name, line, t0, t1, drop, region="net", out=(0, 0, 1), belly=0.12, nx=6, ny=2, edge=True, th=0.012, drop_fn=None,
+        tile=None):
+    """A slack rope net hanging from the rope `line` (a Line) between t0 and t1: the cut-out mesh texture on a lofted
+    panel, `drop` deep in the middle (drop_fn(s) -> depth overrides), bellying out by `belly`; edge = dangling rope
+    ends along the bottom. tile = (fu, fv): each of the nx x ny pieces shows the fraction fu x fv of the texture (the
+    net region's mesh repeats every quarter, so 0.25 = one diamond per piece) instead of the whole texture being
+    stretched over the panel: finer meshes. No collision."""
     u, n = _hang_frame(line.at(t0), line.at(t1), out)
 
     def depth(s):
@@ -943,7 +950,11 @@ def net(bone, name, line, t0, t1, drop, region="net", out=(0, 0, 1), belly=0.12,
     def P(s, t):
         top = line.at(t0 + (t1 - t0) * s) - UP * 0.03
         return top - UP * (depth(s) * t) + n * (belly * math.sin(math.pi * t) * math.sin(math.pi * s))
+    first = len(bone.cubes)
     loft(bone, name, P, nx, ny, region, th=th, u_hint=u, v_hint=-UP)
+    if tile:
+        for c in bone.cubes[first:]:
+            gn.set_sub(c, (0.0, 0.0, tile[0], tile[1]))
     if edge:
         def E(s, t):
             return P(s, 1.0) - UP * (0.18 * t)
@@ -1014,7 +1025,7 @@ def hanging_lantern(bone, name, anchor, drop=0.3, size=0.3, metal="iron", hook=T
     return c
 
 
-def wall_lantern(bone, name, post_, y, side=(1, 0, 0), arm=0.22, size=0.26, drop=0.06, detail=None):
+def wall_lantern(bone, name, post_, y, side=(1, 0, 0), arm=0.22, size=0.26, drop=0.06, detail=None, metal="iron"):
     """A small lantern hanging from a short iron bracket on the face of a post (Post) at height y towards `side`."""
     s = norm(v3(*side))
     base = post_.at(post_.foot[1] + y, s)
@@ -1024,7 +1035,7 @@ def wall_lantern(bone, name, post_, y, side=(1, 0, 0), arm=0.22, size=0.26, drop
     beam(det, name + "_stay", base - UP * 0.16, base + s * arm * 0.6, 0.03, "iron_dark", up=UP)
     c = tip - UP * (drop + size * 1.3 / 2 + 0.03)
     beam(det, name + "_hanger", tip, c + UP * size * 0.7, 0.025, "iron_dark")
-    tl.lantern(bone, name, c, size=size)
+    tl.lantern(bone, name, c, size=size, metal=metal)
     return c
 
 

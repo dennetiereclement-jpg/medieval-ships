@@ -10,7 +10,8 @@ import java.util.List;
  * {@link #MERCHANTS}, the five {@link #MERCHANTS2}, the two {@link #MERCHANTS3}, then the two {@link #MERCHANTS4}),
  * {@link #CARTS} = the carts (tab "Charrettes"), {@link #WORKSHOPS} = the workshops (tab "Ateliers"),
  * {@link #ARTILLERY} = the cannon (tab "Artillerie"), {@link #TRAINING} = the training areas (tab "Entraînement"),
- * {@link #PROPS} = all five (registration, commands, models).
+ * {@link #DECORATIONS} = the eight street decorations (tab "Décorations", 1.20.0), {@link #PROPS} = all six (registration,
+ * commands, models).
  */
 public final class TentTypes {
 	public static final TentType COMMAND = TentType.load("tent_command", "grande tente de commandement", "Command Tent");
@@ -111,9 +112,27 @@ public final class TentTypes {
 	/** The training areas (tab "Entraînement"). */
 	public static final List<TentType> TRAINING = List.of(TRAINING_DUMMY, TRAINING_TATAMI, TRAINING_SHIELD);
 
-	/** Every one-block prop: the tents, then the carts, the workshops, the training areas, the artillery. */
-	public static final List<TentType> PROPS = java.util.stream.Stream.of(ALL, CARTS, WORKSHOPS, TRAINING, ARTILLERY).flatMap(List::stream)
-			.toList();
+	/**
+	 * The street decorations (1.20.0): static props of two posts (or one) with cloth, ropes, a net, herbs or a lantern,
+	 * drawn as one model each (tools/deco/generate_&lt;id&gt;.py on decolib.py), group "decorations", one shared atlas
+	 * (textures/entity/decorations.png), tab "Décorations". The hanging lantern and the bunting light the area round their
+	 * foot (JSON "light", {@link TentType#light()}).
+	 */
+	public static final TentType DECO_BUNTING = decoration("deco_guirlande", "guirlande festive", "Festive Bunting", false, false);
+	public static final TentType DECO_CLOTHESLINE = decoration("deco_etendoir", "étendoir à linge", "Clothesline", true, false);
+	public static final TentType DECO_DRAPERY = decoration("deco_draperie", "draperie rouge", "Red Drapery", false, false);
+	public static final TentType DECO_NET = decoration("deco_filet", "filet suspendu", "Hanging Net", true, false);
+	public static final TentType DECO_HERBS = decoration("deco_sechoir", "séchoir à herbes", "Herb Drying Rack", true, false);
+	public static final TentType DECO_LANTERN = decoration("deco_lanterne", "lanterne suspendue", "Hanging Lantern", false, false);
+	public static final TentType DECO_BANNER = decoration("deco_banniere", "bannière de la Couronne", "Crown Banner", false, false);
+	public static final TentType DECO_SHADE = decoration("deco_ombrage", "toiles d'ombrage", "Shade Sails", false, true);
+	/** The street decorations (tab "Décorations"), in the order of the reference sheet. */
+	public static final List<TentType> DECORATIONS = List.of(DECO_BUNTING, DECO_CLOTHESLINE, DECO_DRAPERY, DECO_NET, DECO_HERBS, DECO_LANTERN,
+			DECO_BANNER, DECO_SHADE);
+
+	/** Every one-block prop: the tents, then the carts, the workshops, the training areas, the decorations, the artillery (last). */
+	public static final List<TentType> PROPS = java.util.stream.Stream.of(ALL, CARTS, WORKSHOPS, TRAINING, DECORATIONS, ARTILLERY)
+			.flatMap(List::stream).toList();
 
 	private static TentType cart(String id, String frenchName, String englishName) {
 		return TentType.load(TentType.CARTS, id, frenchName, englishName);
@@ -125,6 +144,10 @@ public final class TentTypes {
 
 	private static TentType training(String id, String frenchName, String englishName) {
 		return TentType.load(TentType.TRAINING, id, frenchName, englishName);
+	}
+
+	private static TentType decoration(String id, String frenchName, String englishName, boolean masculine, boolean plural) {
+		return TentType.load(TentType.DECORATIONS, id, frenchName, englishName).withGender(masculine, plural);
 	}
 
 	private TentTypes() {
@@ -141,6 +164,7 @@ public final class TentTypes {
 		for (TentType t : PROPS) {
 			if (t.id().equals(s) || t.id().equals("tent_" + s) || t.id().equals("tente_" + s) || t.id().equals("cart_" + s)
 					|| t.id().equals("workshop_" + s) || t.id().equals("canon_" + s) || t.id().equals("training_area_" + s)
+					|| t.id().equals("deco_" + s)
 					|| t.isCannon() && (s.equals("canon") || s.equals("cannon")) || t == TAVERN && (s.equals("taverne") || s.equals("tavern"))) {
 				return t;
 			}

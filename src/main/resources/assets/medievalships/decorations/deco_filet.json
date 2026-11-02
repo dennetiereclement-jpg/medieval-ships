@@ -1,0 +1,32 @@
+{
+ "model": "models/entity/deco_filet.bbmodel",
+ "texture": "textures/entity/decorations.png",
+ "decor": null,
+ "extent": [
+  -2.71,
+  0.0,
+  -0.359,
+  2.697,
+  3.4,
+  0.373
+ ],
+ "colliders": [
+  [
+   -2.57,
+   0.0,
+   -0.22,
+   -2.13,
+   3.35,
+   0.22
+  ],
+  [
+   2.13,
+   0.0,
+   -0.22,
+   2.57,
+   3.05,
+   0.22
+  ]
+ ],
+ "light": 0
+}

@@ -90,5 +90,14 @@
   "itemGroup.medievalships.training": "Entraînement",
   "block.medievalships.training_area_dummy": "Aire d'entraînement aux frappes",
   "block.medievalships.training_area_tatami": "Aire d'entraînement aux tatamis",
-  "block.medievalships.training_area_shield": "Aire d'entraînement épée et bouclier"
+  "block.medievalships.training_area_shield": "Aire d'entraînement épée et bouclier",
+  "itemGroup.medievalships.decorations": "Décorations",
+  "block.medievalships.deco_guirlande": "Guirlande festive",
+  "block.medievalships.deco_etendoir": "Étendoir à linge",
+  "block.medievalships.deco_draperie": "Draperie rouge",
+  "block.medievalships.deco_filet": "Filet suspendu",
+  "block.medievalships.deco_sechoir": "Séchoir à herbes",
+  "block.medievalships.deco_lanterne": "Lanterne suspendue",
+  "block.medievalships.deco_banniere": "Bannière de la Couronne",
+  "block.medievalships.deco_ombrage": "Toiles d'ombrage"
 }

@@ -90,5 +90,14 @@
   "itemGroup.medievalships.training": "Training",
   "block.medievalships.training_area_dummy": "Strike Training Area",
   "block.medievalships.training_area_tatami": "Tatami Training Area",
-  "block.medievalships.training_area_shield": "Sword & Shield Training Area"
+  "block.medievalships.training_area_shield": "Sword & Shield Training Area",
+  "itemGroup.medievalships.decorations": "Decorations",
+  "block.medievalships.deco_guirlande": "Festive Bunting",
+  "block.medievalships.deco_etendoir": "Clothesline",
+  "block.medievalships.deco_draperie": "Red Drapery",
+  "block.medievalships.deco_filet": "Hanging Net",
+  "block.medievalships.deco_sechoir": "Herb Drying Rack",
+  "block.medievalships.deco_lanterne": "Hanging Lantern",
+  "block.medievalships.deco_banniere": "Crown Banner",
+  "block.medievalships.deco_ombrage": "Shade Sails"
 }

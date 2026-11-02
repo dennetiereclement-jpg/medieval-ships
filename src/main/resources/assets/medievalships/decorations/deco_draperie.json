@@ -1,0 +1,32 @@
+{
+ "model": "models/entity/deco_draperie.bbmodel",
+ "texture": "textures/entity/decorations.png",
+ "decor": null,
+ "extent": [
+  -2.537,
+  0.0,
+  -0.336,
+  2.537,
+  3.67,
+  0.732
+ ],
+ "colliders": [
+  [
+   -2.41,
+   0.0,
+   -0.21,
+   -1.99,
+   3.62,
+   0.21
+  ],
+  [
+   1.99,
+   0.0,
+   -0.21,
+   2.41,
+   3.42,
+   0.21
+  ]
+ ],
+ "light": 0
+}

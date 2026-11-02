@@ -63,12 +63,27 @@ public final class TentCommands {
 	private static final Family TRAINING = new Family(TentTypes.TRAINING, true, "e", "Aucune aire d'entraînement chargée dans ce monde.",
 			"Pas d'aire d'entraînement en ", "%d aire(s) d'entraînement chargée(s) :");
 
+	/** {@code /deco}: the street decorations only (1.20.0); {@code /tent} works for them too. */
+	private static final Family DECORATIONS = new Family(TentTypes.DECORATIONS, true, "e", "Aucune décoration chargée dans ce monde.",
+			"Pas de décoration en ", "%d décoration(s) chargée(s) :");
+
+	/** The French past participle's ending for a prop of a family: the decorations have their own gender and number. */
+	private static String agree(TentType type, Family family) {
+		return type.isDecoration() ? type.agreement() : type.masculine() ? "" : family.e();
+	}
+
+	/** What the facing names: the entrance of a tent, the breech of the cannon, the front of a workshop or a decoration. */
+	private static String facingPart(TentType type) {
+		return type.isWorkshop() || type.isDecoration() ? "avant" : type.isCannon() ? "culasse" : "entrée";
+	}
+
 	public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
 		dispatcher.register(tree("tent", PROPS));
 		dispatcher.register(tree("cart", PROPS));
 		dispatcher.register(tree("workshop", WORKSHOPS));
 		dispatcher.register(tree("atelier", WORKSHOPS));
 		dispatcher.register(tree("training", TRAINING));
+		dispatcher.register(tree("deco", DECORATIONS));
 	}
 
 	private static LiteralArgumentBuilder<ServerCommandSource> tree(String name, Family family) {
@@ -111,7 +126,7 @@ public final class TentCommands {
 		for (ServerPlayerEntity p : players) {
 			p.getInventory().offerOrDrop(new ItemStack(Tents.item(type)));
 		}
-		ok(ctx, capitalize(type.frenchName()) + " donné" + (type.masculine() ? "" : family.e()) + " à " + players.size() + " joueur(s).");
+		ok(ctx, capitalize(type.frenchName()) + " donné" + agree(type, family) + " à " + players.size() + " joueur(s).");
 		return players.size();
 	}
 
@@ -143,8 +158,8 @@ public final class TentCommands {
 		BlockState state = Tents.block(type).getDefaultState().with(TentBlock.FACING, facing);
 		world.setBlockState(pos, state, 3);
 		Tents.block(type).onPlaced(world, pos, state, null, ItemStack.EMPTY);
-		ok(ctx, String.format(Locale.ROOT, "%s posé%s en %s, %s vers %s.", capitalize(type.frenchName()), type.masculine() ? "" : family.e(),
-				pos.toShortString(), type.isWorkshop() ? "avant" : type.isCannon() ? "culasse" : "entrée", facing.asString()));
+		ok(ctx, String.format(Locale.ROOT, "%s posé%s en %s, %s vers %s.", capitalize(type.frenchName()), agree(type, family),
+				pos.toShortString(), facingPart(type), facing.asString()));
 		return 1;
 	}
 
@@ -173,7 +188,7 @@ public final class TentCommands {
 		}
 		world.breakBlock(target.pos(), false);
 		TentCollisions.remove(world, target.pos());
-		ok(ctx, capitalize(target.type().frenchName()) + " retiré" + (target.type().masculine() ? "" : family.e()) + " en "
+		ok(ctx, capitalize(target.type().frenchName()) + " retiré" + agree(target.type(), family) + " en "
 				+ target.pos().toShortString() + ".");
 		return 1;
 	}
@@ -196,7 +211,7 @@ public final class TentCommands {
 				break;
 			}
 			ok(ctx, String.format(Locale.ROOT, "- %s [%s] %s vers %s, à %.0f m", capitalize(t.type().frenchName()), t.pos().toShortString(),
-					t.type().isWorkshop() ? "avant" : t.type().isCannon() ? "culasse" : "entrée", FACINGS[t.quarter() & 3],
+					facingPart(t.type()), FACINGS[t.quarter() & 3],
 					Math.sqrt(t.pos().getSquaredDistance(p))));
 		}
 		return all.size();

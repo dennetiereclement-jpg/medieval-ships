@@ -49,6 +49,12 @@ import com.google.gson.JsonParser;
  * "Entraînement"): fenced yards of about 7 x 7 blocks (dummies, punching bag, tatamis, racks) drawn as one static model
  * like the others, files {@code assets/medievalships/training/<id>.json} (written by
  * {@code tools/training/generate_<id>.py}), each with its own atlas.
+ *
+ * <p>The street decorations are the sixth family (1.20.0, {@link #group()} {@code "decorations"},
+ * {@link TentTypes#DECORATIONS}, tab "Décorations"): bunting, clothesline, drapery, net, herb rack, hanging lantern, banner,
+ * shade sails, files {@code assets/medievalships/decorations/<id>.json} (written by {@code tools/deco/generate_<id>.py}
+ * on {@code tools/deco/decolib.py}), one shared atlas {@code textures/entity/decorations.png}, plus the optional
+ * {@code "light"} (0-15, {@link #light()}): the luminance of the anchor block, lit by the vanilla light engine.
  */
 public final class TentType {
 	/**
@@ -113,6 +119,10 @@ public final class TentType {
 	public static final String ARTILLERY = "artillery";
 	/** The fifth family: the training areas (1.18.0), tab "Entraînement". */
 	public static final String TRAINING = "training";
+	/** The sixth family: the street decorations (1.20.0), tab "Décorations". */
+	public static final String DECORATIONS = "decorations";
+	/** The brightest light a prop's anchor block may give (a torch, a lantern: 15, vanilla's maximum). */
+	public static final int MAX_LIGHT = 15;
 	/** The atlas a prop's model is drawn with when its JSON names none (the tents'). */
 	public static final String DEFAULT_TEXTURE = "textures/entity/tents.png";
 
@@ -134,6 +144,11 @@ public final class TentType {
 	/** The muzzle turned to each facing (index = quarter turns), or null for a prop that is not a gun. */
 	private final Muzzle[] rotatedMuzzle = new Muzzle[4];
 	private final Muzzle muzzle;
+	/** The anchor block's luminance (JSON "light", 0-15, default 0): the vanilla light engine lights the area round it. */
+	private int light;
+	/** Null: the family decides ({@link #masculine()}); else this prop's own French gender (the decorations, 1.20.0). */
+	private Boolean masculine;
+	private boolean plural;
 	/** The interactive training targets (JSON "targets", 1.19.0) turned to each facing (index = quarter turns); empty lists for most props. */
 	private List<List<TrainingTarget>> targets = List.of(List.of(), List.of(), List.of(), List.of());
 
@@ -170,7 +185,7 @@ public final class TentType {
 		return id;
 	}
 
-	/** {@link #TENTS}, {@link #CARTS}, {@link #WORKSHOPS}, {@link #ARTILLERY} or {@link #TRAINING}: the JSON folder and the creative tab. */
+	/** {@link #TENTS}, {@link #CARTS}, {@link #WORKSHOPS}, {@link #ARTILLERY}, {@link #TRAINING} or {@link #DECORATIONS}: the JSON folder and the creative tab. */
 	public String group() {
 		return group;
 	}
@@ -193,9 +208,47 @@ public final class TentType {
 		return TRAINING.equals(group);
 	}
 
+	/** A street decoration (1.20.0): bunting, clothesline, drapery, net, herb rack, lantern, banner, shade sails. */
+	public boolean isDecoration() {
+		return DECORATIONS.equals(group);
+	}
+
+	/**
+	 * The light the anchor block gives (JSON {@code "light"}, clamped to 0-{@link #MAX_LIGHT}, 0 when absent): its block
+	 * state's luminance, so the vanilla light engine lights the area round the prop's foot (nothing is computed per tick).
+	 */
+	public int light() {
+		return light;
+	}
+
 	/** Is the French name masculine ("posé", "le canon", "l'atelier") rather than feminine ("posée", "la tente")? */
 	public boolean masculine() {
-		return isWorkshop() || isCannon();
+		return masculine != null ? masculine : isWorkshop() || isCannon();
+	}
+
+	/** Is the French name plural ("les toiles d'ombrage")? Only some decorations are. */
+	public boolean plural() {
+		return plural;
+	}
+
+	/** The French past participle's ending for this prop: "" (posé), "e" (posée), "s" (posés) or "es" (posées). */
+	public String agreement() {
+		return (masculine() ? "" : "e") + (plural ? "s" : "");
+	}
+
+	/** Sets the French gender and number of this prop's name (the decorations' names are of both genders). */
+	TentType withGender(boolean masculine, boolean plural) {
+		this.masculine = masculine;
+		this.plural = plural;
+		return this;
+	}
+
+	/** Reads the JSON's {@code "light"}: absent, null or not a number gives 0; clamped to 0-{@link #MAX_LIGHT}. */
+	static int parseLight(JsonObject root) {
+		if (!root.has("light") || !root.get("light").isJsonPrimitive() || !root.get("light").getAsJsonPrimitive().isNumber()) {
+			return 0;
+		}
+		return Math.max(0, Math.min(MAX_LIGHT, (int) Math.round(root.get("light").getAsDouble())));
 	}
 
 	/** The muzzle of a gun (facing south), or null when the JSON has none. */
@@ -365,6 +418,7 @@ public final class TentType {
 		}
 		TentType type = new TentType(group, texture, id, frenchName, englishName, model, decor, extent, colliders, particles, muzzle);
 		type.targets = TrainingTarget.parseAll(root);
+		type.light = parseLight(root);
 		return type.withSeats(parseSeats(root));
 	}
 
