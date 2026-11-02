@@ -1,0 +1,400 @@
+[17:58:47] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] /workshop remove leaves a tent alone
+[17:58:47] [Server thread/INFO]: Tente triangulaire de campement retirée en 1600, -59, 0.
+[17:58:47] [Server thread/INFO]: Unmarked 9 chunks in minecraft:overworld from [99, -1] to [101, 1] for force loading
+[17:58:47] [Server thread/INFO]: Player164 is not riding any vehicle
+[17:58:47] [Server thread/INFO]: Teleported Player164 to 1450.500000, -48.000000, 0.500000
+[17:58:47] [Server thread/INFO]: Marked 9 chunks in minecraft:overworld from [89, -1] to [91, 1] to be force loaded
+[17:58:49] [Server thread/INFO]: Successfully filled 3364 block(s)
+[17:58:49] [Server thread/INFO]: No blocks were filled
+[17:58:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy has targets in its JSON (4)
+[17:58:49] [Server thread/INFO]: Aire d'entraînement aux frappes posée en 1450, -59, 0, entrée vers south.
+[17:58:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] training_area_dummy targets: dummy#3 1450.20 -58.80 1.55 bag#0 1452.62 -58.01 -1.90 dummy#1 1448.75 -58.80 -0.05 dummy#2 1451.45 -58.80 -0.75
+[17:58:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy placed facing south
+[17:58:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy its 4 target(s) spawned once each (4, 4 near)
+[17:58:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy each target at its home (the JSON's box turned to the facing)
+[17:58:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy the targets are at full health
+[17:58:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy each target's box is its hitbox (with its shield)
+[17:58:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy the client has the 4 target(s) (4)
+[17:58:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy the client's box of target 0 is the server's
+[17:58:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy the static renderer leaves the 4 target bones to their entities (mask f)
+[17:58:50] [Server thread/INFO]: Teleported Player164 to 1445.000000, -57.020000, 7.000000
+[17:58:52] [Server thread/INFO]: Set Player164's game mode to Survival Mode
+[17:58:52] [Server thread/INFO]: Teleported Player164 to 1452.620000, -59.000000, -0.066000
+[17:58:52] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[17:58:52] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 0 (bag) hit by a fist: its hit counter 0 -> 1
+[17:58:52] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 0 (bag) no damage (20.0 / 20.0)
+[17:58:52] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 0 (bag) still there after the hit
+[17:58:52] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 0 (bag) the client got the hit (1)
+[17:58:52] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 0 (bag) its reaction plays on the client
+[17:58:52] [Render thread/INFO]: Loaded 14 advancements
+[17:58:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 0 (bag) hit by an iron sword: counted, no damage (20.0 / 20.0), still there
+[17:58:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 0 (bag) the sword hits harder than the fist (0.85 > 0.35)
+[17:58:53] [Server thread/INFO]: Set Player164's game mode to Spectator Mode
+[17:58:53] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[17:58:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 0 (bag) hit by an arrow: counter 2 -> 3
+[17:58:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 0 (bag) the arrow does no damage and does not stick (20.0 / 20.0, 0 stuck)
+[17:58:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 0 (bag) nothing dropped (no item, no experience): 0
+[17:58:54] [Server thread/INFO]: Set Player164's game mode to Survival Mode
+[17:58:54] [Server thread/INFO]: Teleported Player164 to 1448.750000, -59.000000, 1.870000
+[17:58:54] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[17:58:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 1 (dummy) hit by a fist: its hit counter 0 -> 1
+[17:58:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 1 (dummy) no damage (20.0 / 20.0)
+[17:58:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 1 (dummy) still there after the hit
+[17:58:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 1 (dummy) the client got the hit (1)
+[17:58:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 1 (dummy) its reaction plays on the client
+[17:58:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 1 (dummy) hit by an iron sword: counted, no damage (20.0 / 20.0), still there
+[17:58:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 1 (dummy) the sword hits harder than the fist (0.85 > 0.35)
+[17:58:56] [Server thread/INFO]: Set Player164's game mode to Spectator Mode
+[17:58:56] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[17:58:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 1 (dummy) hit by an arrow: counter 2 -> 3
+[17:58:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 1 (dummy) the arrow does no damage and does not stick (20.0 / 20.0, 0 stuck)
+[17:58:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 1 (dummy) nothing dropped (no item, no experience): 0
+[17:58:56] [Server thread/INFO]: Set Player164's game mode to Survival Mode
+[17:58:56] [Server thread/INFO]: Teleported Player164 to 1451.450000, -59.000000, 1.128000
+[17:58:56] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[17:58:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 2 (dummy) hit by a fist: its hit counter 0 -> 1
+[17:58:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 2 (dummy) no damage (20.0 / 20.0)
+[17:58:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 2 (dummy) still there after the hit
+[17:58:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 2 (dummy) the client got the hit (1)
+[17:58:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 2 (dummy) its reaction plays on the client
+[17:58:58] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 2 (dummy) hit by an iron sword: counted, no damage (20.0 / 20.0), still there
+[17:58:58] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 2 (dummy) the sword hits harder than the fist (0.85 > 0.35)
+[17:58:58] [Server thread/INFO]: Set Player164's game mode to Spectator Mode
+[17:58:58] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[17:58:58] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 2 (dummy) hit by an arrow: counter 2 -> 3
+[17:58:58] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 2 (dummy) the arrow does no damage and does not stick (20.0 / 20.0, 0 stuck)
+[17:58:58] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 2 (dummy) nothing dropped (no item, no experience): 0
+[17:58:58] [Server thread/INFO]: Set Player164's game mode to Survival Mode
+[17:58:58] [Server thread/INFO]: Teleported Player164 to 1450.200000, -59.000000, 3.509000
+[17:58:58] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[17:58:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 3 (dummy) hit by a fist: its hit counter 0 -> 1
+[17:58:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 3 (dummy) no damage (20.0 / 20.0)
+[17:58:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 3 (dummy) still there after the hit
+[17:58:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 3 (dummy) the client got the hit (1)
+[17:58:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 3 (dummy) its reaction plays on the client
+[17:59:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 3 (dummy) hit by an iron sword: counted, no damage (20.0 / 20.0), still there
+[17:59:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 3 (dummy) the sword hits harder than the fist (0.85 > 0.35)
+[17:59:00] [Server thread/INFO]: Set Player164's game mode to Spectator Mode
+[17:59:00] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[17:59:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 3 (dummy) hit by an arrow: counter 2 -> 3
+[17:59:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 3 (dummy) the arrow does no damage and does not stick (20.0 / 20.0, 0 stuck)
+[17:59:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 3 (dummy) nothing dropped (no item, no experience): 0
+[17:59:01] [Server thread/INFO]: Teleported Player164 to 1446.150000, -59.020000, 3.150000
+[17:59:02] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] training_area_dummy the dummy swings on the client after a sword hit
+[17:59:02] [Server thread/INFO]: Teleported Player164 to 1449.420000, -59.220000, 1.500000
+[17:59:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy the bag swings on the client after a sword hit
+[17:59:04] [Server thread/INFO]: Set Player164's game mode to Survival Mode
+[17:59:04] [Server thread/INFO]: Teleported Player164 to 1450.500000, -59.000000, 2.500000
+[17:59:04] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[17:59:06] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy unbreakable anchor (hardness -1, blast resistance 3600000)
+[17:59:06] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy a survival player mining its anchor for 2 s does not break it (targets 4)
+[17:59:06] [Server thread/INFO]: Set Player164's game mode to Spectator Mode
+[17:59:06] [Server thread/INFO]: Killed 4 entities
+[17:59:06] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[17:59:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy /kill leaves the targets alone (4)
+[17:59:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy asking for its targets again spawns no duplicate (4)
+[17:59:07] [Server thread/INFO]: Aire d'entraînement aux frappes retirée en 1450, -59, 0.
+[17:59:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy /tent remove takes its targets away (0 left)
+[17:59:07] [Server thread/INFO]: Aire d'entraînement aux frappes posée en 1450, -59, 0, entrée vers south.
+[17:59:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] training_area_dummy targets: dummy#3 1450.20 -58.80 1.55 bag#0 1452.62 -58.01 -1.90 dummy#1 1448.75 -58.80 -0.05 dummy#2 1451.45 -58.80 -0.75
+[17:59:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy placed facing south
+[17:59:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy its 4 target(s) spawned once each (4, 4 near)
+[17:59:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy each target at its home (the JSON's box turned to the facing)
+[17:59:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy the targets are at full health
+[17:59:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy each target's box is its hitbox (with its shield)
+[17:59:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy the client has the 4 target(s) (4)
+[17:59:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy the client's box of target 0 is the server's
+[17:59:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy the static renderer leaves the 4 target bones to their entities (mask f)
+[17:59:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy placed again: new target entities, none left from before
+[17:59:08] [Server thread/INFO]: Unmarked 9 chunks in minecraft:overworld from [89, -1] to [91, 1] for force loading
+[17:59:08] [Server thread/INFO]: Teleported Player164 to 4450.500000, -40.000000, 0.500000
+[17:59:10] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] training_area_dummy chunk unloaded while away: true
+[17:59:10] [Server thread/INFO]: Teleported Player164 to 1450.500000, -48.000000, 0.500000
+[17:59:10] [Server thread/INFO]: Marked 9 chunks in minecraft:overworld from [89, -1] to [91, 1] to be force loaded
+[17:59:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy after its chunks unloaded and came back: 4 target(s), no duplicate (4)
+[17:59:13] [Server thread/INFO]: Set Player164's game mode to Creative Mode
+[17:59:13] [Server thread/INFO]: Teleported Player164 to 1450.500000, -59.000000, 2.500000
+[17:59:13] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Creative Mode
+[17:59:14] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy a creative player breaks its anchor, its targets go with it (0 left)
+[17:59:14] [Server thread/INFO]: Set Player164's game mode to Spectator Mode
+[17:59:14] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy its collision boxes are forgotten
+[17:59:14] [Server thread/INFO]: Aire d'entraînement aux tatamis posée en 1450, -59, 0, entrée vers south.
+[17:59:14] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[17:59:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] training_area_tatami targets:
+[17:59:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_tatami placed facing south
+[17:59:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_tatami its 0 target(s) spawned once each (0, 0 near)
+[17:59:15] [Server thread/INFO]: Aire d'entraînement aux tatamis retirée en 1450, -59, 0.
+[17:59:15] [Server thread/INFO]: Aire d'entraînement épée et bouclier posée en 1450, -59, 0, entrée vers west.
+[17:59:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] training_area_shield targets: shield_dummy#1 1450.50 -58.93 1.18 shield_dummy#2 1451.56 -58.93 2.94 shield_dummy#0 1449.51 -58.93 -0.70
+[17:59:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield placed facing west
+[17:59:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield its 3 target(s) spawned once each (3, 3 near)
+[17:59:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield each target at its home (the JSON's box turned to the facing)
+[17:59:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield the targets are at full health
+[17:59:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield each target's box is its hitbox (with its shield)
+[17:59:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield the client has the 3 target(s) (3)
+[17:59:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield the client's box of target 0 is the server's
+[17:59:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield the static renderer leaves the 3 target bones to their entities (mask 7)
+[17:59:17] [Server thread/INFO]: Set Player164's game mode to Survival Mode
+[17:59:17] [Server thread/INFO]: Teleported Player164 to 1448.782000, -59.000000, 1.162000
+[17:59:17] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[17:59:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 0 (shield_dummy) hit by a fist: its hit counter 0 -> 1
+[17:59:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 0 (shield_dummy) no damage (20.0 / 20.0)
+[17:59:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 0 (shield_dummy) still there after the hit
+[17:59:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 0 (shield_dummy) the client got the hit (1)
+[17:59:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 0 (shield_dummy) its reaction plays on the client
+[17:59:18] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 0 (shield_dummy) hit by an iron sword: counted, no damage (20.0 / 20.0), still there
+[17:59:18] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 0 (shield_dummy) the sword hits harder than the fist (0.85 > 0.35)
+[17:59:18] [Server thread/INFO]: Set Player164's game mode to Spectator Mode
+[17:59:19] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[17:59:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 0 (shield_dummy) hit by an arrow: counter 2 -> 3
+[17:59:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 0 (shield_dummy) the arrow does no damage and does not stick (20.0 / 20.0, 0 stuck)
+[17:59:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 0 (shield_dummy) nothing dropped (no item, no experience): 0
+[17:59:19] [Server thread/INFO]: Set Player164's game mode to Survival Mode
+[17:59:19] [Server thread/INFO]: Teleported Player164 to 1449.313000, -59.000000, 2.765000
+[17:59:19] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[17:59:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 1 (shield_dummy) hit by a fist: its hit counter 0 -> 1
+[17:59:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 1 (shield_dummy) no damage (20.0 / 20.0)
+[17:59:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 1 (shield_dummy) still there after the hit
+[17:59:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 1 (shield_dummy) the client got the hit (1)
+[17:59:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 1 (shield_dummy) its reaction plays on the client
+[17:59:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 1 (shield_dummy) hit by an iron sword: counted, no damage (20.0 / 20.0), still there
+[17:59:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 1 (shield_dummy) the sword hits harder than the fist (0.85 > 0.35)
+[17:59:21] [Server thread/INFO]: Set Player164's game mode to Spectator Mode
+[17:59:21] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[17:59:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 1 (shield_dummy) hit by an arrow: counter 2 -> 3
+[17:59:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 1 (shield_dummy) the arrow does no damage and does not stick (20.0 / 20.0, 0 stuck)
+[17:59:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 1 (shield_dummy) nothing dropped (no item, no experience): 0
+[17:59:21] [Server thread/INFO]: Set Player164's game mode to Survival Mode
+[17:59:21] [Server thread/INFO]: Teleported Player164 to 1450.152000, -59.000000, 4.338000
+[17:59:21] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[17:59:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 2 (shield_dummy) hit by a fist: its hit counter 0 -> 1
+[17:59:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 2 (shield_dummy) no damage (20.0 / 20.0)
+[17:59:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 2 (shield_dummy) still there after the hit
+[17:59:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 2 (shield_dummy) the client got the hit (1)
+[17:59:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 2 (shield_dummy) its reaction plays on the client
+[17:59:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 2 (shield_dummy) hit by an iron sword: counted, no damage (20.0 / 20.0), still there
+[17:59:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 2 (shield_dummy) the sword hits harder than the fist (0.85 > 0.35)
+[17:59:23] [Server thread/INFO]: Set Player164's game mode to Spectator Mode
+[17:59:23] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[17:59:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 2 (shield_dummy) hit by an arrow: counter 2 -> 3
+[17:59:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 2 (shield_dummy) the arrow does no damage and does not stick (20.0 / 20.0, 0 stuck)
+[17:59:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 2 (shield_dummy) nothing dropped (no item, no experience): 0
+[17:59:23] [Server thread/INFO]: Teleported Player164 to 1448.809000, -59.520000, 1.095000
+[17:59:24] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] training_area_shield target 0: a hit aimed at the shield is a shield hit (part 1)
+[17:59:24] [Server thread/INFO]: Teleported Player164 to 1450.240000, -59.451000, -2.567000
+[17:59:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] training_area_shield target 0: a hit on the body from behind is a body hit (part 1)
+[17:59:25] [Server thread/INFO]: Teleported Player164 to 1449.345000, -59.520000, 2.723000
+[17:59:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] training_area_shield target 1: a hit aimed at the shield is a shield hit (part 1)
+[17:59:26] [Server thread/INFO]: Teleported Player164 to 1451.692000, -59.451000, -0.403000
+[17:59:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] training_area_shield target 1: a hit on the body from behind is a body hit (part 1)
+[17:59:26] [Server thread/INFO]: Teleported Player164 to 1450.168000, -59.520000, 4.322000
+[17:59:27] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] training_area_shield target 2: a hit aimed at the shield is a shield hit (part 1)
+[17:59:27] [Server thread/INFO]: Teleported Player164 to 1452.959000, -59.451000, 1.537000
+[17:59:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] training_area_shield target 2: a hit on the body from behind is a body hit (part 1)
+[17:59:28] [Server thread/INFO]: Teleported Player164 to 1450.007000, -59.020000, 2.422000
+[17:59:29] [Server thread/INFO]: Set Player164's game mode to Survival Mode
+[17:59:29] [Server thread/INFO]: Teleported Player164 to 1450.500000, -59.000000, 2.500000
+[17:59:29] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[17:59:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield unbreakable anchor (hardness -1, blast resistance 3600000)
+[17:59:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield a survival player mining its anchor for 2 s does not break it (targets 3)
+[17:59:32] [Server thread/INFO]: Set Player164's game mode to Spectator Mode
+[17:59:32] [Server thread/INFO]: Killed 3 entities
+[17:59:32] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[17:59:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield /kill leaves the targets alone (3)
+[17:59:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield asking for its targets again spawns no duplicate (3)
+[17:59:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield an explosion next to it leaves the anchor and the targets (3, full health true)
+[17:59:33] [Server thread/INFO]: Aire d'entraînement épée et bouclier retirée en 1450, -59, 0.
+[17:59:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield removed by /training remove, its targets with it (0 left)
+[17:59:33] [Server thread/INFO]: Successfully filled 20 block(s)
+[17:59:33] [Server thread/INFO]: No blocks were filled
+[17:59:33] [Server thread/INFO]: Unmarked 9 chunks in minecraft:overworld from [89, -1] to [91, 1] for force loading
+[17:59:33] [Server thread/INFO]: Stopping server
+[17:59:33] [Server thread/INFO]: Saving players
+[17:59:33] [Server thread/INFO]: Player164 lost connection: Disconnected
+[17:59:33] [Server thread/INFO]: Player164 left the game
+[17:59:33] [Server thread/INFO]: Saving worlds
+[17:59:34] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:overworld
+[17:59:34] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_nether
+[17:59:34] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_end
+[17:59:34] [Server thread/INFO]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[17:59:34] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[17:59:34] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[17:59:34] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[17:59:34] [Test thread/ERROR]: Client gametests failed with an exception
+java.lang.AssertionError: 14 check(s) failed: [solo] training_area_dummy the dummy swings on the client after a sword hit | [solo] training_area_shield target 0: a hit aimed at the shield is a shield hit (part 1) | [solo] training_area_shield target 0: a hit on the body from behind is a body hit (part 1) | [solo] training_area_shield target 1: a hit aimed at the shield is a shield hit (part 1) | [solo] training_area_shield target 1: a hit on the body from behind is a body hit (part 1) | [solo] training_area_shield target 2: a hit aimed at the shield is a shield hit (part 1) | [solo] training_area_shield target 2: a hit on the body from behind is a body hit (part 1) | [dedie] training_area_dummy the dummy swings on the client after a sword hit | [dedie] training_area_shield target 0: a hit aimed at the shield is a shield hit (part 1) | [dedie] training_area_shield target 0: a hit on the body from behind is a body hit (part 1) | [dedie] training_area_shield target 1: a hit aimed at the shield is a shield hit (part 1) | [dedie] training_area_shield target 1: a hit on the body from behind is a body hit (part 1) | [dedie] training_area_shield target 2: a hit aimed at the shield is a shield hit (part 1) | [dedie] training_area_shield target 2: a hit on the body from behind is a body hit (part 1)
+	at knot//fr.medievalships.test.ShipClientGameTest.finish(ShipClientGameTest.java:1918)
+	at knot//fr.medievalships.test.ShipClientGameTest.runTest(ShipClientGameTest.java:86)
+	at knot//net.fabricmc.fabric.impl.client.gametest.FabricClientGameTestRunner.lambda$start$0(FabricClientGameTestRunner.java:54)
+	at knot//net.fabricmc.fabric.impl.client.gametest.threading.ThreadingImpl.lambda$runTestThread$1(ThreadingImpl.java:142)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+[17:59:34] [Render thread/ERROR]: Minecraft has crashed!
+net.fabricmc.loader.impl.FormattedException: java.lang.AssertionError: 14 check(s) failed: [solo] training_area_dummy the dummy swings on the client after a sword hit | [solo] training_area_shield target 0: a hit aimed at the shield is a shield hit (part 1) | [solo] training_area_shield target 0: a hit on the body from behind is a body hit (part 1) | [solo] training_area_shield target 1: a hit aimed at the shield is a shield hit (part 1) | [solo] training_area_shield target 1: a hit on the body from behind is a body hit (part 1) | [solo] training_area_shield target 2: a hit aimed at the shield is a shield hit (part 1) | [solo] training_area_shield target 2: a hit on the body from behind is a body hit (part 1) | [dedie] training_area_dummy the dummy swings on the client after a sword hit | [dedie] training_area_shield target 0: a hit aimed at the shield is a shield hit (part 1) | [dedie] training_area_shield target 0: a hit on the body from behind is a body hit (part 1) | [dedie] training_area_shield target 1: a hit aimed at the shield is a shield hit (part 1) | [dedie] training_area_shield target 1: a hit on the body from behind is a body hit (part 1) | [dedie] training_area_shield target 2: a hit aimed at the shield is a shield hit (part 1) | [dedie] training_area_shield target 2: a hit on the body from behind is a body hit (part 1)
+	at net.fabricmc.loader.impl.FormattedException.ofLocalized(FormattedException.java:63)
+	at net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider.launch(MinecraftGameProvider.java:516)
+	at net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:72)
+	at net.fabricmc.loader.impl.launch.knot.KnotClient.main(KnotClient.java:23)
+Caused by: java.lang.AssertionError: 14 check(s) failed: [solo] training_area_dummy the dummy swings on the client after a sword hit | [solo] training_area_shield target 0: a hit aimed at the shield is a shield hit (part 1) | [solo] training_area_shield target 0: a hit on the body from behind is a body hit (part 1) | [solo] training_area_shield target 1: a hit aimed at the shield is a shield hit (part 1) | [solo] training_area_shield target 1: a hit on the body from behind is a body hit (part 1) | [solo] training_area_shield target 2: a hit aimed at the shield is a shield hit (part 1) | [solo] training_area_shield target 2: a hit on the body from behind is a body hit (part 1) | [dedie] training_area_dummy the dummy swings on the client after a sword hit | [dedie] training_area_shield target 0: a hit aimed at the shield is a shield hit (part 1) | [dedie] training_area_shield target 0: a hit on the body from behind is a body hit (part 1) | [dedie] training_area_shield target 1: a hit aimed at the shield is a shield hit (part 1) | [dedie] training_area_shield target 1: a hit on the body from behind is a body hit (part 1) | [dedie] training_area_shield target 2: a hit aimed at the shield is a shield hit (part 1) | [dedie] training_area_shield target 2: a hit on the body from behind is a body hit (part 1)
+	at knot//fr.medievalships.test.ShipClientGameTest.finish(ShipClientGameTest.java:1918)
+	at knot//fr.medievalships.test.ShipClientGameTest.runTest(ShipClientGameTest.java:86)
+	at knot//net.fabricmc.fabric.impl.client.gametest.FabricClientGameTestRunner.lambda$start$0(FabricClientGameTestRunner.java:54)
+	at knot//net.fabricmc.fabric.impl.client.gametest.threading.ThreadingImpl.lambda$runTestThread$1(ThreadingImpl.java:142)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+
+> Task :runProductionClientGameTest FAILED
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1793639076375.json
+
+[Incubating] Problems report is available at: file:///home/runner/work/medieval-ships/medieval-ships/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':runProductionClientGameTest'.
+> Process 'command '/usr/bin/xvfb-run'' finished with non-zero exit value 1
+
+* Try:
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+* Exception is:
+org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runProductionClientGameTest'.
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+	at org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter.execute(FinalizePropertiesTaskExecuter.java:46)
+	at org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter.execute(ResolveTaskExecutionModeExecuter.java:51)
+	at org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter.execute(SkipTaskWithNoActionsExecuter.java:57)
+	at org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter.execute(SkipOnlyIfTaskExecuter.java:74)
+	at org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter.execute(CatchExceptionTaskExecuter.java:36)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.executeTask(EventFiringTaskExecuter.java:77)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:55)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:52)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter.execute(EventFiringTaskExecuter.java:52)
+	at org.gradle.execution.plan.DefaultNodeExecutor.executeLocalTaskNode(DefaultNodeExecutor.java:55)
+	at org.gradle.execution.plan.DefaultNodeExecutor.execute(DefaultNodeExecutor.java:34)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:355)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:343)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.lambda$execute$0(DefaultTaskExecutionGraph.java:339)
+	at org.gradle.internal.operations.CurrentBuildOperationRef.with(CurrentBuildOperationRef.java:84)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:339)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:328)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.execute(DefaultPlanExecutor.java:459)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.run(DefaultPlanExecutor.java:376)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:47)
+Caused by: org.gradle.process.ProcessExecutionException: Process 'command '/usr/bin/xvfb-run'' finished with non-zero exit value 1
+	at org.gradle.process.internal.DefaultExecHandle$ExecResultImpl.assertNormalExitValue(DefaultExecHandle.java:450)
+	at org.gradle.process.internal.DefaultExecAction.execute(DefaultExecAction.java:49)
+	at org.gradle.process.internal.DefaultExecActionFactory.exec(DefaultExecActionFactory.java:216)
+	at org.gradle.process.internal.DefaultExecOperations.exec(DefaultExecOperations.java:37)
+	at net.fabricmc.loom.task.prod.AbstractProductionRunTask.run(AbstractProductionRunTask.java:148)
+	at net.fabricmc.loom.task.prod.ClientProductionRunTask.run(ClientProductionRunTask.java:120)
+	at org.gradle.internal.reflect.JavaMethod.invoke(JavaMethod.java:125)
+	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.doExecute(StandardTaskAction.java:58)
+	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.execute(StandardTaskAction.java:51)
+	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.execute(StandardTaskAction.java:29)
+	at org.gradle.api.internal.tasks.execution.TaskExecution$3.run(TaskExecution.java:252)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:29)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:26)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.run(DefaultBuildOperationRunner.java:47)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeAction(TaskExecution.java:237)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeActions(TaskExecution.java:220)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeWithPreviousOutputFiles(TaskExecution.java:203)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.execute(TaskExecution.java:170)
+	at org.gradle.internal.execution.steps.ExecuteStep.executeInternal(ExecuteStep.java:105)
+	at org.gradle.internal.execution.steps.ExecuteStep.access$000(ExecuteStep.java:44)
+	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:59)
+	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:56)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:56)
+	at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:44)
+	at org.gradle.internal.execution.steps.CancelExecutionStep.execute(CancelExecutionStep.java:42)
+	at org.gradle.internal.execution.steps.TimeoutStep.executeWithoutTimeout(TimeoutStep.java:75)
+	at org.gradle.internal.execution.steps.TimeoutStep.execute(TimeoutStep.java:55)
+	at org.gradle.internal.execution.steps.PreCreateOutputParentsStep.execute(PreCreateOutputParentsStep.java:50)
+	at org.gradle.internal.execution.steps.PreCreateOutputParentsStep.execute(PreCreateOutputParentsStep.java:28)
+	at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.execute(RemovePreviousOutputsStep.java:68)
+	at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.execute(RemovePreviousOutputsStep.java:38)
+	at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:61)
+	at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:26)
+	at org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep.execute(CaptureOutputsAfterExecutionStep.java:69)
+	at org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep.execute(CaptureOutputsAfterExecutionStep.java:46)
+	at org.gradle.internal.execution.steps.ResolveInputChangesStep.execute(ResolveInputChangesStep.java:39)
+	at org.gradle.internal.execution.steps.ResolveInputChangesStep.execute(ResolveInputChangesStep.java:28)
+	at org.gradle.internal.execution.steps.BuildCacheStep.executeWithoutCache(BuildCacheStep.java:189)
+	at org.gradle.internal.execution.steps.BuildCacheStep.lambda$execute$1(BuildCacheStep.java:75)
+	at org.gradle.internal.Either$Right.fold(Either.java:176)
+	at org.gradle.internal.execution.caching.CachingState.fold(CachingState.java:62)
+	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:73)
+	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:48)
+	at org.gradle.internal.execution.steps.StoreExecutionStateStep.execute(StoreExecutionStateStep.java:46)
+	at org.gradle.internal.execution.steps.StoreExecutionStateStep.execute(StoreExecutionStateStep.java:35)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.executeBecause(SkipUpToDateStep.java:75)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.lambda$execute$2(SkipUpToDateStep.java:53)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:53)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:35)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:37)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:27)
+	at org.gradle.internal.execution.steps.ResolveIncrementalCachingStateStep.executeDelegate(ResolveIncrementalCachingStateStep.java:49)
+	at org.gradle.internal.execution.steps.ResolveIncrementalCachingStateStep.executeDelegate(ResolveIncrementalCachingStateStep.java:27)
+	at org.gradle.internal.execution.steps.AbstractResolveCachingStateStep.execute(AbstractResolveCachingStateStep.java:71)
+	at org.gradle.internal.execution.steps.AbstractResolveCachingStateStep.execute(AbstractResolveCachingStateStep.java:39)
+	at org.gradle.internal.execution.steps.ResolveChangesStep.execute(ResolveChangesStep.java:64)
+	at org.gradle.internal.execution.steps.ResolveChangesStep.execute(ResolveChangesStep.java:35)
+	at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:62)
+	at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:40)
+	at org.gradle.internal.execution.steps.AbstractCaptureStateBeforeExecutionStep.execute(AbstractCaptureStateBeforeExecutionStep.java:76)
+	at org.gradle.internal.execution.steps.AbstractCaptureStateBeforeExecutionStep.execute(AbstractCaptureStateBeforeExecutionStep.java:45)
+	at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.executeWithNonEmptySources(AbstractSkipEmptyWorkStep.java:136)
+	at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.execute(AbstractSkipEmptyWorkStep.java:61)
+	at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.execute(AbstractSkipEmptyWorkStep.java:38)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep.execute(MarkSnapshottingInputsStartedStep.java:38)
+	at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.execute(LoadPreviousExecutionStateStep.java:36)
+	at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.execute(LoadPreviousExecutionStateStep.java:23)
+	at org.gradle.internal.execution.steps.HandleStaleOutputsStep.execute(HandleStaleOutputsStep.java:75)
+	at org.gradle.internal.execution.steps.HandleStaleOutputsStep.execute(HandleStaleOutputsStep.java:41)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.lambda$execute$0(AssignMutableWorkspaceStep.java:35)
+	at org.gradle.api.internal.tasks.execution.TaskExecution$4.withWorkspace(TaskExecution.java:297)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.execute(AssignMutableWorkspaceStep.java:31)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.execute(AssignMutableWorkspaceStep.java:22)
+	at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:40)
+	at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:23)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.lambda$execute$2(ExecuteWorkBuildOperationFiringStep.java:67)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationFiringStep.java:67)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationFiringStep.java:39)
+	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:46)
+	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:34)
+	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:44)
+	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:31)
+	at org.gradle.internal.execution.impl.DefaultExecutionEngine$1.execute(DefaultExecutionEngine.java:64)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:132)
+	... 30 more
+
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.2.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 55m 5s
+13 actionable tasks: 13 executed
