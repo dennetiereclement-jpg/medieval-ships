@@ -137,7 +137,17 @@ public final class TrainingTargetGameTest {
 			pl.setHeadYaw(yaw);
 			pl.setPitch(pitch);
 			int before = t.hits();
+			// a spectator's attack only moves its camera onto the entity (vanilla): hit as a creative player, in the
+			// same tick, then go back to watching
+			net.minecraft.world.GameMode mode = pl.getGameMode();
+			if (mode == net.minecraft.world.GameMode.SPECTATOR) {
+				pl.changeGameMode(net.minecraft.world.GameMode.CREATIVE);
+				pl.setCameraEntity(pl);
+			}
 			pl.attack(t);
+			if (mode == net.minecraft.world.GameMode.SPECTATOR) {
+				pl.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
+			}
 			return new Object[] {before, t.hits(), t.getHealth(), t.getMaxHealth(), t.lastPart(), t.isRemoved(), t.lastStrength(), drops(w, a)};
 		});
 	}
