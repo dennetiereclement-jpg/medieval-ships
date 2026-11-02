@@ -148,6 +148,15 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.19.0 ajoute **la taverne nomade** (roulotte à toit de toile arrondi, comptoir ouvert, bannières à la
+chope, auvent, enseigne, terrasse de tables, feu de camp et marmite) avec **19 places où l'on s'assoit vraiment**
+(clic droit, Maj pour se lever, une personne par place ; aussi le banc de l'aire aux tatamis), et rend les **aires
+d'entraînement interactives** : mannequins et sac de frappe réagissent aux coups (bascule, balancement, bouclier
+et épée qui bougent, sons, particules), sont indestructibles et ne rapportent ni butin ni expérience ; les aires ne
+se cassent plus en survie (retrait admin : créatif, `/tent remove`, `/training remove`).
+`/give @p medievalships:taverne_nomade`. Voir [docs/TAVERNE.md](docs/TAVERNE.md) et
+[docs/ENTRAINEMENT.md](docs/ENTRAINEMENT.md).
+
 La version 1.18.0 ajoute **trois aires d'entraînement en un seul bloc** (onglet « Entraînement ») : aire aux
 frappes (trois mannequins de paille, sac de frappe sur potence, râtelier d'épées, bannières rouges), aire aux
 tatamis (tatamis à bordure rouge, échoppe à auvent, banc, armes d'entraînement, bannières au lotus) et aire épée et
@@ -388,7 +397,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.18.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.19.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
