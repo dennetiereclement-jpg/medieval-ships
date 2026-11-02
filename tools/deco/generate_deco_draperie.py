@@ -25,11 +25,11 @@ def build():
     right = dl.post(root, "post_r", (HALF, 0, 0), TOP_R, d=D, bindings=[yr + 0.02], bands=[0.36], detail=det)
     a = dl.v3(-HALF + D * 0.5, yl, D / 2 + 0.02)
     b = dl.v3(HALF - D * 0.5, yr, D / 2 + 0.02)
-    # the back layer: the deeper swag, its gold edge the lowest (about 1.8 above the ground in the middle)
-    dl.swag(root, "swag_back", a + dl.v3(0, -0.04, -0.05), b + dl.v3(0, -0.04, -0.05), 0.5, 1.55, "drape_swag", top_sag=0.3,
+    # the back layer: the deeper swag, its gold edge the lowest (about 2 above the ground in the middle)
+    dl.swag(root, "swag_back", a + dl.v3(0, -0.04, -0.05), b + dl.v3(0, -0.04, -0.05), 0.55, 1.3, "drape_swag", top_sag=0.12,
             bulge=0.3, folds=0.025, nx=10, ny=2)
     # the front layer: a shallower swag over it, bellying out more
-    dl.swag(root, "swag_front", a + dl.v3(0, 0.02, 0.02), b + dl.v3(0, 0.02, 0.02), 0.32, 1.05, "drape_swag", top_sag=0.36,
+    dl.swag(root, "swag_front", a + dl.v3(0, 0.02, 0.02), b + dl.v3(0, 0.02, 0.02), 0.2, 0.92, "drape_swag", top_sag=0.14,
             bulge=0.42, folds=0.025, nx=10, ny=2)
     # the two ends hanging down beside the posts (in front of their inner faces), gathered at the top
     dl.tail(root, "tail_l", a + dl.v3(0.2, -0.02, 0.1), 0.58, 1.68, "drape_tail", out=(0.25, 0, 1), gather=0.4, folds=0.07)

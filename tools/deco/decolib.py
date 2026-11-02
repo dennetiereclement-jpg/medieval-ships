@@ -882,8 +882,9 @@ def pennant(bone, name, a, b, length, region, out=(0, 0, 1), flutter=0.04, tilt=
 def clothes(bone, name, a, b, length, region, out=(0, 0, 1), pegs=2, detail=None, sway=0.05, nx=3, ny=1, taper=0.0,
             peg_region="peg", peg_h=0.24):
     """A piece of laundry pegged on the rope between a and b: the top edge on the rope, the cloth hanging `length`
-    with soft vertical folds (sway: each of the nx strips is planar, so the folds read as light and shade), its bottom corners a little narrower by `taper`; `pegs` clothes pegs straddling the rope
-    (under detail). No collision."""
+    with soft vertical folds (sway: each of the nx strips is planar, so the folds read as light and shade), its
+    bottom corners a little narrower by `taper`; `pegs` clothes pegs straddling the rope (under detail). No
+    collision."""
     a, b = v3(*a), v3(*b)
     u, n = _hang_frame(a, b, out)
     W = np.linalg.norm(b - a)
