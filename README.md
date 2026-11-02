@@ -148,6 +148,11 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.21.0 ajoute **la tente du joaillier** (`/give @p medievalships:tente_joaillier`) : tente violette et
+beige à pavillon central pointu, rideaux en arlequin, bannières au diamant, bustes à colliers sertis, vitrine à la
+couronne, balance de joaillier, cristaux, coffres et tapis au diamant ; place libre pour un PNJ EasyNPC.
+Voir [docs/TENTES.md](docs/TENTES.md).
+
 La version 1.20.0 ajoute **huit décorations de rue en un seul bloc** (onglet « Décorations ») : guirlande festive,
 étendoir à linge, draperie rouge, filet suspendu, séchoir à herbes, lanterne suspendue (éclaire la zone),
 bannière de la Couronne au lion, toiles d'ombrage. Modèles très légers, seuls les poteaux ont une collision.
@@ -407,7 +412,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.20.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.21.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
