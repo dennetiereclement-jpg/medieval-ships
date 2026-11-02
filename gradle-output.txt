@@ -1,0 +1,400 @@
+[22:19:10] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_barrels has its block entity
+[22:19:10] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_barrels registered its collision boxes (1 prop(s) in the registry)
+[22:19:10] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_barrels a collision query on its first box finds it (9 shape(s))
+[22:19:10] [Server thread/INFO]: Teleported Player953 to 997.522000, -57.241000, 4.918000
+[22:19:11] [Server thread/INFO]: Charrette à tonneaux retirée en 1000, -59, 0.
+[22:19:11] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_barrels removed by /cart remove x y z
+[22:19:11] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] cart_barrels its collision boxes are forgotten (0 left)
+[22:19:11] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] cart_barrels extent 4.6 x 2.8 x 2.2, 11 collision boxes
+[22:19:11] [Server thread/INFO]: Taverne nomade posée en 1000, -59, 0, entrée vers south.
+[22:19:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] taverne_nomade placed by /cart place: anchor block at 1000, -59, 0 (south)
+[22:19:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] taverne_nomade faces south (south)
+[22:19:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] taverne_nomade has its block entity
+[22:19:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] taverne_nomade registered its collision boxes (1 prop(s) in the registry)
+[22:19:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] taverne_nomade a collision query on its first box finds it (1 shape(s))
+[22:19:12] [Server thread/INFO]: Teleported Player953 to 991.005000, -53.550000, 11.217000
+[22:19:13] [Server thread/INFO]: Taverne nomade retirée en 1000, -59, 0.
+[22:19:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] taverne_nomade removed by /cart remove x y z
+[22:19:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] taverne_nomade its collision boxes are forgotten (0 left)
+[22:19:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] taverne_nomade extent 13.5 x 9.0 x 5.9, 72 collision boxes
+[22:19:13] [Server thread/INFO]: Barque (décor) posée en 1000, -59, 0, entrée vers west.
+[22:19:14] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] barque_deco placed by /cart place: anchor block at 1000, -59, 0 (west)
+[22:19:14] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] barque_deco faces west (west)
+[22:19:14] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] barque_deco has its block entity
+[22:19:14] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] barque_deco registered its collision boxes (1 prop(s) in the registry)
+[22:19:14] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] barque_deco a collision query on its first box finds it (3 shape(s))
+[22:19:14] [Server thread/INFO]: Teleported Player953 to 995.268000, -57.532000, 6.577000
+[22:19:15] [Server thread/INFO]: Barque (décor) retirée en 1000, -59, 0.
+[22:19:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] barque_deco removed by /cart remove x y z
+[22:19:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] barque_deco its collision boxes are forgotten (0 left)
+[22:19:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] barque_deco extent 5.6 x 7.0 x 1.9, 3 collision boxes
+[22:19:16] [Server thread/INFO]: Player953 is not riding any vehicle
+[22:19:16] [Server thread/INFO]: Teleported Player953 to 1600.500000, -48.000000, 0.500000
+[22:19:16] [Server thread/INFO]: Marked 9 chunks in minecraft:overworld from [99, -1] to [101, 1] to be force loaded
+[22:19:17] [Server thread/INFO]: Successfully filled 3364 block(s)
+[22:19:17] [Server thread/INFO]: No blocks were filled
+[22:19:18] [Server thread/INFO]: Atelier du cuisinier donné à 1 joueur(s).
+[22:19:18] [Server thread/INFO]: Atelier du cuisinier donné à 1 joueur(s).
+[22:19:18] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_cook item given by /workshop give and /ship give (0 -> 2)
+[22:19:18] [Server thread/INFO]: Atelier du forgeron posé en 1600, -59, 0, avant vers south.
+[22:19:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_blacksmith placed by /atelier place: workshop anchor block at 1600, -59, 0 (south)
+[22:19:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_blacksmith faces south (south)
+[22:19:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_blacksmith has its block entity
+[22:19:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_blacksmith registered its collision boxes (1 prop(s) in the registry)
+[22:19:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_blacksmith a collision query on its first box finds it (4 shape(s))
+[22:19:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_blacksmith known to the client (block entity loaded: drawn, collisions predicted)
+[22:19:19] [Server thread/INFO]: Teleported Player953 to 1595.758000, -54.810000, 5.528000
+[22:19:20] [Server thread/INFO]: Atelier du forgeron retiré en 1600, -59, 0.
+[22:19:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_blacksmith removed by /workshop remove x y z
+[22:19:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_blacksmith its collision boxes are forgotten (0 left)
+[22:19:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] workshop_blacksmith extent 6.1 x 4.3 x 4.6, 39 collision boxes, 4 particle source(s)
+[22:19:21] [Server thread/INFO]: Atelier du tailleur de cuir posé en 1600, -59, 0, avant vers west.
+[22:19:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_leatherworker placed by /workshop place: workshop anchor block at 1600, -59, 0 (west)
+[22:19:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_leatherworker faces west (west)
+[22:19:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_leatherworker has its block entity
+[22:19:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_leatherworker registered its collision boxes (1 prop(s) in the registry)
+[22:19:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_leatherworker a collision query on its first box finds it (3 shape(s))
+[22:19:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_leatherworker known to the client (block entity loaded: drawn, collisions predicted)
+[22:19:22] [Server thread/INFO]: Teleported Player953 to 1596.623000, -55.814000, 5.401000
+[22:19:23] [Server thread/INFO]: Atelier du tailleur de cuir retiré en 1600, -59, 0.
+[22:19:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_leatherworker removed by /atelier remove x y z
+[22:19:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_leatherworker its collision boxes are forgotten (0 left)
+[22:19:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] workshop_leatherworker extent 3.1 x 5.3 x 3.6, 24 collision boxes, 0 particle source(s)
+[22:19:23] [Server thread/INFO]: Atelier du tailleur de lin posé en 1600, -59, 0, avant vers north.
+[22:19:24] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_tailor placed by /workshop place: workshop anchor block at 1600, -59, 0 (north)
+[22:19:24] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_tailor faces north (north)
+[22:19:24] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_tailor has its block entity
+[22:19:24] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_tailor registered its collision boxes (1 prop(s) in the registry)
+[22:19:24] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_tailor a collision query on its first box finds it (3 shape(s))
+[22:19:24] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_tailor known to the client (block entity loaded: drawn, collisions predicted)
+[22:19:24] [Server thread/INFO]: Teleported Player953 to 1595.840000, -55.843000, 6.166000
+[22:19:25] [Server thread/INFO]: Atelier du tailleur de lin retiré en 1600, -59, 0.
+[22:19:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_tailor removed by /workshop remove x y z
+[22:19:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_tailor its collision boxes are forgotten (0 left)
+[22:19:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] workshop_tailor extent 5.9 x 3.1 x 3.6, 20 collision boxes, 0 particle source(s)
+[22:19:25] [Server thread/INFO]: Atelier de l'ingénieur posé en 1600, -59, 0, avant vers east.
+[22:19:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_engineer placed by /workshop place: workshop anchor block at 1600, -59, 0 (east)
+[22:19:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_engineer faces east (east)
+[22:19:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_engineer has its block entity
+[22:19:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_engineer registered its collision boxes (1 prop(s) in the registry)
+[22:19:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_engineer a collision query on its first box finds it (2 shape(s))
+[22:19:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_engineer known to the client (block entity loaded: drawn, collisions predicted)
+[22:19:26] [Server thread/INFO]: Teleported Player953 to 1595.636000, -55.807000, 5.886000
+[22:19:27] [Server thread/INFO]: Atelier de l'ingénieur retiré en 1600, -59, 0.
+[22:19:27] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_engineer removed by /workshop remove x y z
+[22:19:27] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_engineer its collision boxes are forgotten (0 left)
+[22:19:27] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] workshop_engineer extent 3.4 x 6.0 x 3.6, 21 collision boxes, 1 particle source(s)
+[22:19:27] [Server thread/INFO]: Atelier du cuisinier posé en 1600, -59, 0, avant vers south.
+[22:19:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_cook placed by /workshop place: workshop anchor block at 1600, -59, 0 (south)
+[22:19:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_cook faces south (south)
+[22:19:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_cook has its block entity
+[22:19:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_cook registered its collision boxes (1 prop(s) in the registry)
+[22:19:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_cook a collision query on its first box finds it (4 shape(s))
+[22:19:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_cook known to the client (block entity loaded: drawn, collisions predicted)
+[22:19:28] [Server thread/INFO]: Teleported Player953 to 1596.211000, -55.744000, 5.256000
+[22:19:29] [Server thread/INFO]: Atelier du cuisinier retiré en 1600, -59, 0.
+[22:19:30] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_cook removed by /workshop remove x y z
+[22:19:30] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_cook its collision boxes are forgotten (0 left)
+[22:19:30] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] workshop_cook extent 5.4 x 3.0 x 3.7, 25 collision boxes, 3 particle source(s)
+[22:19:30] [Server thread/INFO]: Atelier de l'alchimiste posé en 1600, -59, 0, avant vers west.
+[22:19:30] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_alchemist placed by /workshop place: workshop anchor block at 1600, -59, 0 (west)
+[22:19:30] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_alchemist faces west (west)
+[22:19:30] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_alchemist has its block entity
+[22:19:30] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_alchemist registered its collision boxes (1 prop(s) in the registry)
+[22:19:30] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_alchemist a collision query on its first box finds it (3 shape(s))
+[22:19:30] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_alchemist known to the client (block entity loaded: drawn, collisions predicted)
+[22:19:30] [Server thread/INFO]: Teleported Player953 to 1596.469000, -56.195000, 5.116000
+[22:19:32] [Server thread/INFO]: Atelier de l'alchimiste retiré en 1600, -59, 0.
+[22:19:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_alchemist removed by /workshop remove x y z
+[22:19:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_alchemist its collision boxes are forgotten (0 left)
+[22:19:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] workshop_alchemist extent 2.7 x 5.0 x 3.2, 19 collision boxes, 2 particle source(s)
+[22:19:32] [Server thread/INFO]: Atelier de l'enchanteur posé en 1600, -59, 0, avant vers north.
+[22:19:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_enchanter placed by /workshop place: workshop anchor block at 1600, -59, 0 (north)
+[22:19:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_enchanter faces north (north)
+[22:19:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_enchanter has its block entity
+[22:19:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_enchanter registered its collision boxes (1 prop(s) in the registry)
+[22:19:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_enchanter a collision query on its first box finds it (4 shape(s))
+[22:19:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_enchanter known to the client (block entity loaded: drawn, collisions predicted)
+[22:19:33] [Server thread/INFO]: Teleported Player953 to 1594.209000, -54.170000, 7.565000
+[22:19:34] [Server thread/INFO]: Atelier de l'enchanteur retiré en 1600, -59, 0.
+[22:19:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_enchanter removed by /workshop remove x y z
+[22:19:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] workshop_enchanter its collision boxes are forgotten (0 left)
+[22:19:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] workshop_enchanter extent 8.2 x 5.9 x 5.3, 35 collision boxes, 3 particle source(s)
+[22:19:34] [Server thread/INFO]: Tente triangulaire de campement posée en 1600, -59, 0, entrée vers south.
+[22:19:34] [Server thread/INFO]: Pas d'atelier en 1600, -59, 0.
+[22:19:34] [Server thread/INFO]: Aucun atelier chargé dans ce monde.
+[22:19:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] /workshop remove leaves a tent alone
+[22:19:35] [Server thread/INFO]: Tente triangulaire de campement retirée en 1600, -59, 0.
+[22:19:35] [Server thread/INFO]: Unmarked 9 chunks in minecraft:overworld from [99, -1] to [101, 1] for force loading
+[22:19:35] [Server thread/INFO]: Player953 is not riding any vehicle
+[22:19:35] [Server thread/INFO]: Teleported Player953 to 2300.500000, -48.000000, 0.500000
+[22:19:36] [Server thread/INFO]: Successfully filled 3844 block(s)
+[22:19:36] [Server thread/INFO]: No blocks were filled
+[22:19:37] [Server thread/INFO]: Taverne nomade posée en 2300, -59, 0, entrée vers south.
+[22:19:40] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: the nomad tavern placed by /tent place at 2300, -59, 0
+[22:19:40] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: the tavern has 19 seats
+[22:19:40] [Server thread/INFO]: Set Player953's game mode to Survival Mode
+[22:19:40] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[22:19:40] [Server thread/INFO]: Teleported Player953 to 2296.300000, -59.000000, 2.250000
+[22:19:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] seats: seat 0 surface at y=-58.438 yaw 90.0; server: seat 0 feet y=-59.038; client: riding true feet y=-59.038 yaw 90.0 body 90.0
+[22:19:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: the player rides seat 0 (server) after the sit request
+[22:19:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: the player rides on his client too
+[22:19:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: feet 0.6 below the seat's surface, thighs on it (server feet -59.038, surface -58.438)
+[22:19:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: same height on the client (feet -59.038)
+[22:19:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: body facing the seat's yaw 90.0 (body 90.0)
+[22:19:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: looking the seat's way (yaw 90.0)
+[22:19:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: the seat entity is never saved (chunk, player file)
+[22:19:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: one seat entity
+[22:19:42] [Server thread/INFO]: Summoned new Armor Stand
+[22:19:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] seats: armor stand on seat 0 then seat 1: OCCUPIED false false SEATED true
+[22:19:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: an armor stand is refused on the occupied seat 0 (OCCUPIED false false SEATED true)
+[22:19:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: vanilla riding refused too: one rider per seat
+[22:19:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: the armor stand sits on seat 1 while the player sits on 0
+[22:19:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: two seat entities for two riders
+[22:19:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: the armor stand gone, its seat entity removed with it
+[22:19:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] seats: stood up at 2296.30 -59.00 2.25 (seat 0 at 2296.30 -58.44 3.10)
+[22:19:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: sneaking stands the player up (server and client)
+[22:19:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: no seat entity left once nobody sits
+[22:19:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: standing clear of the blocks and the tavern's collision boxes
+[22:19:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: standing beside seat 0
+[22:19:43] [Server thread/INFO]: Teleported Player953 to 2296.300000, -59.000000, 4.000000
+[22:19:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: the crosshair picks seat 1 (1 of 2300, -59, 0)
+[22:19:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: a right click on seat 1 seats the player there (riding 1)
+[22:19:44] [Server thread/INFO]: Taverne nomade retirée en 2300, -59, 0.
+[22:19:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: the tavern removed by /tent remove
+[22:19:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: the seated player is stood up when the tavern goes
+[22:19:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] seats: no seat entity left after the tavern's removal
+[22:19:45] [Server thread/INFO]: Set Player953's game mode to Spectator Mode
+[22:19:45] [Server thread/INFO]: Player953 is not riding any vehicle
+[22:19:45] [Server thread/INFO]: Teleported Player953 to 1450.500000, -48.000000, 0.500000
+[22:19:45] [Server thread/INFO]: Marked 9 chunks in minecraft:overworld from [89, -1] to [91, 1] to be force loaded
+[22:19:45] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[22:19:46] [Server thread/INFO]: Successfully filled 3364 block(s)
+[22:19:46] [Server thread/INFO]: No blocks were filled
+[22:19:47] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy has targets in its JSON (4)
+[22:19:47] [Server thread/INFO]: Aire d'entraînement aux frappes posée en 1450, -59, 0, entrée vers south.
+[22:19:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] training_area_dummy targets: dummy#3 1450.20 -58.80 1.55 bag#0 1452.62 -58.01 -1.90 dummy#1 1448.75 -58.80 -0.05 dummy#2 1451.45 -58.80 -0.75
+[22:19:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy placed facing south
+[22:19:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy its 4 target(s) spawned once each (4, 4 near)
+[22:19:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy each target at its home (the JSON's box turned to the facing)
+[22:19:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy the targets are at full health
+[22:19:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy each target's box is its hitbox (with its shield)
+[22:19:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy the client has the 4 target(s) (4)
+[22:19:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy the client's box of target 0 is the server's
+[22:19:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy the static renderer leaves the 4 target bones to their entities (mask f)
+[22:19:49] [Server thread/INFO]: Teleported Player953 to 1445.000000, -57.020000, 7.000000
+[22:19:50] [Server thread/INFO]: Set Player953's game mode to Survival Mode
+[22:19:50] [Server thread/INFO]: Teleported Player953 to 1452.620000, -59.000000, -0.066000
+[22:19:50] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[22:19:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 0 (bag) hit by a fist: its hit counter 0 -> 1
+[22:19:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 0 (bag) no damage (20.0 / 20.0)
+[22:19:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 0 (bag) still there after the hit
+[22:19:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 0 (bag) the client got the hit (1)
+[22:19:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 0 (bag) its reaction plays on the client
+[22:19:51] [Render thread/INFO]: Loaded 30 advancements
+[22:19:52] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 0 (bag) hit by an iron sword: counted, no damage (20.0 / 20.0), still there
+[22:19:52] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 0 (bag) the sword hits harder than the fist (0.85 > 0.35)
+[22:19:52] [Server thread/INFO]: Set Player953's game mode to Spectator Mode
+[22:19:52] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[22:19:52] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 0 (bag) hit by an arrow: counter 2 -> 3
+[22:19:52] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 0 (bag) the arrow does no damage and does not stick (20.0 / 20.0, 0 stuck)
+[22:19:52] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 0 (bag) nothing dropped (no item, no experience): 0
+[22:19:52] [Server thread/INFO]: Set Player953's game mode to Survival Mode
+[22:19:52] [Server thread/INFO]: Teleported Player953 to 1448.750000, -59.000000, 1.870000
+[22:19:52] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[22:19:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 1 (dummy) hit by a fist: its hit counter 0 -> 1
+[22:19:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 1 (dummy) no damage (20.0 / 20.0)
+[22:19:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 1 (dummy) still there after the hit
+[22:19:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 1 (dummy) the client got the hit (1)
+[22:19:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 1 (dummy) its reaction plays on the client
+[22:19:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 1 (dummy) hit by an iron sword: counted, no damage (20.0 / 20.0), still there
+[22:19:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 1 (dummy) the sword hits harder than the fist (0.85 > 0.35)
+[22:19:54] [Server thread/INFO]: Set Player953's game mode to Spectator Mode
+[22:19:54] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[22:19:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 1 (dummy) hit by an arrow: counter 2 -> 3
+[22:19:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 1 (dummy) the arrow does no damage and does not stick (20.0 / 20.0, 0 stuck)
+[22:19:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 1 (dummy) nothing dropped (no item, no experience): 0
+[22:19:54] [Server thread/INFO]: Set Player953's game mode to Survival Mode
+[22:19:54] [Server thread/INFO]: Teleported Player953 to 1451.450000, -59.000000, 1.128000
+[22:19:54] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[22:19:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 2 (dummy) hit by a fist: its hit counter 0 -> 1
+[22:19:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 2 (dummy) no damage (20.0 / 20.0)
+[22:19:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 2 (dummy) still there after the hit
+[22:19:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 2 (dummy) the client got the hit (1)
+[22:19:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 2 (dummy) its reaction plays on the client
+[22:19:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 2 (dummy) hit by an iron sword: counted, no damage (20.0 / 20.0), still there
+[22:19:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 2 (dummy) the sword hits harder than the fist (0.85 > 0.35)
+[22:19:56] [Server thread/INFO]: Set Player953's game mode to Spectator Mode
+[22:19:56] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[22:19:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 2 (dummy) hit by an arrow: counter 2 -> 3
+[22:19:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 2 (dummy) the arrow does no damage and does not stick (20.0 / 20.0, 0 stuck)
+[22:19:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 2 (dummy) nothing dropped (no item, no experience): 0
+[22:19:56] [Server thread/INFO]: Set Player953's game mode to Survival Mode
+[22:19:56] [Server thread/INFO]: Teleported Player953 to 1450.200000, -59.000000, 3.509000
+[22:19:56] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[22:19:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 3 (dummy) hit by a fist: its hit counter 0 -> 1
+[22:19:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 3 (dummy) no damage (20.0 / 20.0)
+[22:19:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 3 (dummy) still there after the hit
+[22:19:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 3 (dummy) the client got the hit (1)
+[22:19:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 3 (dummy) its reaction plays on the client
+[22:19:58] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 3 (dummy) hit by an iron sword: counted, no damage (20.0 / 20.0), still there
+[22:19:58] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 3 (dummy) the sword hits harder than the fist (0.85 > 0.35)
+[22:19:58] [Server thread/INFO]: Set Player953's game mode to Spectator Mode
+[22:19:58] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[22:19:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 3 (dummy) hit by an arrow: counter 2 -> 3
+[22:19:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 3 (dummy) the arrow does no damage and does not stick (20.0 / 20.0, 0 stuck)
+[22:19:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy target 3 (dummy) nothing dropped (no item, no experience): 0
+[22:19:59] [Server thread/INFO]: Teleported Player953 to 1446.150000, -59.020000, 3.150000
+[22:20:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy the dummy swings on the client after a sword hit
+[22:20:00] [Server thread/INFO]: Teleported Player953 to 1449.420000, -59.220000, 1.500000
+[22:20:02] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy the bag swings on the client after a sword hit
+[22:20:02] [Server thread/INFO]: Set Player953's game mode to Survival Mode
+[22:20:02] [Server thread/INFO]: Teleported Player953 to 1450.500000, -59.000000, 2.500000
+[22:20:02] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[22:20:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy unbreakable anchor (hardness -1, blast resistance 3600000)
+[22:20:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy a survival player mining its anchor for 2 s does not break it (targets 4)
+[22:20:05] [Server thread/INFO]: Set Player953's game mode to Spectator Mode
+[22:20:05] [Server thread/INFO]: Killed 4 entities
+[22:20:05] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[22:20:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy /kill leaves the targets alone (4)
+[22:20:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy asking for its targets again spawns no duplicate (4)
+[22:20:05] [Server thread/INFO]: Aire d'entraînement aux frappes retirée en 1450, -59, 0.
+[22:20:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy /tent remove takes its targets away (0 left)
+[22:20:05] [Server thread/INFO]: Aire d'entraînement aux frappes posée en 1450, -59, 0, entrée vers south.
+[22:20:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] training_area_dummy targets: dummy#3 1450.20 -58.80 1.55 bag#0 1452.62 -58.01 -1.90 dummy#1 1448.75 -58.80 -0.05 dummy#2 1451.45 -58.80 -0.75
+[22:20:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy placed facing south
+[22:20:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy its 4 target(s) spawned once each (4, 4 near)
+[22:20:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy each target at its home (the JSON's box turned to the facing)
+[22:20:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy the targets are at full health
+[22:20:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy each target's box is its hitbox (with its shield)
+[22:20:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy the client has the 4 target(s) (4)
+[22:20:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy the client's box of target 0 is the server's
+[22:20:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy the static renderer leaves the 4 target bones to their entities (mask f)
+[22:20:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy placed again: new target entities, none left from before
+[22:20:07] [Server thread/INFO]: Unmarked 9 chunks in minecraft:overworld from [89, -1] to [91, 1] for force loading
+[22:20:07] [Server thread/INFO]: Teleported Player953 to 4450.500000, -40.000000, 0.500000
+[22:20:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] training_area_dummy chunk unloaded while away: true
+[22:20:08] [Server thread/INFO]: Teleported Player953 to 1450.500000, -48.000000, 0.500000
+[22:20:08] [Server thread/INFO]: Marked 9 chunks in minecraft:overworld from [89, -1] to [91, 1] to be force loaded
+[22:20:11] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy after its chunks unloaded and came back: 4 target(s), no duplicate (4)
+[22:20:11] [Server thread/INFO]: Set Player953's game mode to Creative Mode
+[22:20:11] [Server thread/INFO]: Teleported Player953 to 1450.500000, -59.000000, 2.500000
+[22:20:12] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Creative Mode
+[22:20:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy a creative player breaks its anchor, its targets go with it (0 left)
+[22:20:12] [Server thread/INFO]: Set Player953's game mode to Spectator Mode
+[22:20:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_dummy its collision boxes are forgotten
+[22:20:12] [Server thread/INFO]: Aire d'entraînement aux tatamis posée en 1450, -59, 0, entrée vers south.
+[22:20:12] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[22:20:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] training_area_tatami targets:
+[22:20:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_tatami placed facing south
+[22:20:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_tatami its 0 target(s) spawned once each (0, 0 near)
+[22:20:13] [Server thread/INFO]: Aire d'entraînement aux tatamis retirée en 1450, -59, 0.
+[22:20:14] [Server thread/INFO]: Aire d'entraînement épée et bouclier posée en 1450, -59, 0, entrée vers west.
+[22:20:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] training_area_shield targets: shield_dummy#1 1450.50 -58.93 1.18 shield_dummy#2 1451.56 -58.93 2.94 shield_dummy#0 1449.51 -58.93 -0.70
+[22:20:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield placed facing west
+[22:20:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield its 3 target(s) spawned once each (3, 3 near)
+[22:20:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield each target at its home (the JSON's box turned to the facing)
+[22:20:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield the targets are at full health
+[22:20:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield each target's box is its hitbox (with its shield)
+[22:20:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield the client has the 3 target(s) (3)
+[22:20:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield the client's box of target 0 is the server's
+[22:20:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield the static renderer leaves the 3 target bones to their entities (mask 7)
+[22:20:15] [Server thread/INFO]: Set Player953's game mode to Survival Mode
+[22:20:15] [Server thread/INFO]: Teleported Player953 to 1448.782000, -59.000000, 1.162000
+[22:20:15] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[22:20:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 0 (shield_dummy) hit by a fist: its hit counter 0 -> 1
+[22:20:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 0 (shield_dummy) no damage (20.0 / 20.0)
+[22:20:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 0 (shield_dummy) still there after the hit
+[22:20:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 0 (shield_dummy) the client got the hit (1)
+[22:20:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 0 (shield_dummy) its reaction plays on the client
+[22:20:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 0 (shield_dummy) hit by an iron sword: counted, no damage (20.0 / 20.0), still there
+[22:20:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 0 (shield_dummy) the sword hits harder than the fist (0.85 > 0.35)
+[22:20:17] [Server thread/INFO]: Set Player953's game mode to Spectator Mode
+[22:20:17] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[22:20:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 0 (shield_dummy) hit by an arrow: counter 2 -> 3
+[22:20:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 0 (shield_dummy) the arrow does no damage and does not stick (20.0 / 20.0, 0 stuck)
+[22:20:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 0 (shield_dummy) nothing dropped (no item, no experience): 0
+[22:20:17] [Server thread/INFO]: Set Player953's game mode to Survival Mode
+[22:20:17] [Server thread/INFO]: Teleported Player953 to 1449.313000, -59.000000, 2.765000
+[22:20:17] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[22:20:18] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 1 (shield_dummy) hit by a fist: its hit counter 0 -> 1
+[22:20:18] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 1 (shield_dummy) no damage (20.0 / 20.0)
+[22:20:18] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 1 (shield_dummy) still there after the hit
+[22:20:18] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 1 (shield_dummy) the client got the hit (1)
+[22:20:18] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 1 (shield_dummy) its reaction plays on the client
+[22:20:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 1 (shield_dummy) hit by an iron sword: counted, no damage (20.0 / 20.0), still there
+[22:20:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 1 (shield_dummy) the sword hits harder than the fist (0.85 > 0.35)
+[22:20:19] [Server thread/INFO]: Set Player953's game mode to Spectator Mode
+[22:20:19] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[22:20:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 1 (shield_dummy) hit by an arrow: counter 2 -> 3
+[22:20:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 1 (shield_dummy) the arrow does no damage and does not stick (20.0 / 20.0, 0 stuck)
+[22:20:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 1 (shield_dummy) nothing dropped (no item, no experience): 0
+[22:20:19] [Server thread/INFO]: Set Player953's game mode to Survival Mode
+[22:20:19] [Server thread/INFO]: Teleported Player953 to 1450.152000, -59.000000, 4.338000
+[22:20:20] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[22:20:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 2 (shield_dummy) hit by a fist: its hit counter 0 -> 1
+[22:20:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 2 (shield_dummy) no damage (20.0 / 20.0)
+[22:20:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 2 (shield_dummy) still there after the hit
+[22:20:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 2 (shield_dummy) the client got the hit (1)
+[22:20:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 2 (shield_dummy) its reaction plays on the client
+[22:20:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 2 (shield_dummy) hit by an iron sword: counted, no damage (20.0 / 20.0), still there
+[22:20:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 2 (shield_dummy) the sword hits harder than the fist (0.85 > 0.35)
+[22:20:21] [Server thread/INFO]: Set Player953's game mode to Spectator Mode
+[22:20:21] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[22:20:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 2 (shield_dummy) hit by an arrow: counter 2 -> 3
+[22:20:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 2 (shield_dummy) the arrow does no damage and does not stick (20.0 / 20.0, 0 stuck)
+[22:20:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 2 (shield_dummy) nothing dropped (no item, no experience): 0
+[22:20:22] [Server thread/INFO]: Teleported Player953 to 1448.809000, -59.520000, 1.095000
+[22:20:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 0: a hit aimed at the shield is a shield hit (part 1)
+[22:20:22] [Server thread/INFO]: Teleported Player953 to 1450.240000, -59.451000, -2.567000
+[22:20:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 0: a hit on the body from behind is a body hit (part 0)
+[22:20:23] [Server thread/INFO]: Teleported Player953 to 1449.345000, -59.520000, 2.723000
+[22:20:24] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 1: a hit aimed at the shield is a shield hit (part 1)
+[22:20:24] [Server thread/INFO]: Teleported Player953 to 1451.692000, -59.451000, -0.403000
+[22:20:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 1: a hit on the body from behind is a body hit (part 0)
+[22:20:25] [Server thread/INFO]: Teleported Player953 to 1450.168000, -59.520000, 4.322000
+[22:20:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 2: a hit aimed at the shield is a shield hit (part 1)
+[22:20:25] [Server thread/INFO]: Teleported Player953 to 1452.959000, -59.451000, 1.537000
+[22:20:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield target 2: a hit on the body from behind is a body hit (part 0)
+[22:20:26] [Server thread/INFO]: Teleported Player953 to 1450.007000, -59.020000, 2.422000
+[22:20:28] [Server thread/INFO]: Set Player953's game mode to Survival Mode
+[22:20:28] [Server thread/INFO]: Teleported Player953 to 1450.500000, -59.000000, 2.500000
+[22:20:28] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[22:20:30] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield unbreakable anchor (hardness -1, blast resistance 3600000)
+[22:20:30] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield a survival player mining its anchor for 2 s does not break it (targets 3)
+[22:20:30] [Server thread/INFO]: Set Player953's game mode to Spectator Mode
+[22:20:30] [Server thread/INFO]: Killed 3 entities
+[22:20:30] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[22:20:31] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield /kill leaves the targets alone (3)
+[22:20:31] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield asking for its targets again spawns no duplicate (3)
+[22:20:31] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield an explosion next to it leaves the anchor and the targets (3, full health true)
+[22:20:31] [Server thread/INFO]: Aire d'entraînement épée et bouclier retirée en 1450, -59, 0.
+[22:20:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield removed by /training remove, its targets with it (0 left)
+[22:20:32] [Server thread/INFO]: Successfully filled 19 block(s)
+[22:20:32] [Server thread/INFO]: No blocks were filled
+[22:20:32] [Server thread/INFO]: Unmarked 9 chunks in minecraft:overworld from [89, -1] to [91, 1] for force loading
+[22:20:32] [Server thread/INFO]: Stopping server
+[22:20:32] [Server thread/INFO]: Saving players
+[22:20:32] [Server thread/INFO]: Player953 lost connection: Disconnected
+[22:20:32] [Server thread/INFO]: Player953 left the game
+[22:20:32] [Server thread/INFO]: Saving worlds
+[22:20:32] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:overworld
+[22:20:32] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_end
+[22:20:32] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_nether
+[22:20:32] [Server thread/INFO]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[22:20:32] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[22:20:32] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[22:20:32] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[22:20:33] [Render thread/INFO]: Stopping!
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1793654408529.json
+
+[Incubating] Problems report is available at: file:///home/runner/work/medieval-ships/medieval-ships/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.2.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1h 31s
+13 actionable tasks: 13 executed
