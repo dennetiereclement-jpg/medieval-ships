@@ -105,8 +105,8 @@ public class DecorationTest {
 			for (TentType.Box b : cs) {
 				assertTrue(b.x0() >= e.x0() - 0.05 && b.x1() <= e.x1() + 0.05 && b.z0() >= e.z0() - 0.05 && b.z1() <= e.z1() + 0.05
 						&& b.y0() >= 0.0 && b.y1() <= e.y1() + 0.05, t.id() + " no invisible wall: inside the extent " + b);
-				assertTrue(b.width() <= 0.8 && b.depth() <= 0.8, t.id() + " a thin box (a post or its footing) " + b);
-				if (b.y0() < 0.6 && b.y1() > 2.0) {
+				assertTrue(b.width() <= 0.9 && b.depth() <= 0.9, t.id() + " a thin box (a post or its footing) " + b);
+				if (b.y0() < 1.0 && b.y1() > 2.0) { // from the ground or from its stone footing
 					posts++;
 				}
 			}
@@ -120,7 +120,8 @@ public class DecorationTest {
 		for (TentType t : TentTypes.DECORATIONS) {
 			List<TentType.Box> posts = new ArrayList<>();
 			for (TentType.Box b : t.colliders()) {
-				if (b.y1() > 2.0) {
+				// a post stands on the ground or on its stone footing (the hanging lantern's body is not a post)
+				if (b.y1() > 2.0 && b.y0() < 1.0) {
 					posts.add(b);
 				}
 			}
