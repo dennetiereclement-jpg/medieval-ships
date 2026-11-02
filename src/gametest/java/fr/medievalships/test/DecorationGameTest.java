@@ -118,7 +118,7 @@ public final class DecorationGameTest {
 			int between = -1;
 			List<TentType.Box> tall = new ArrayList<>();
 			for (TentType.Box b : type.colliders(TentType.SOUTH)) {
-				if (b.y1() > 2.0) {
+				if (b.y1() > 2.0 && b.y0() < 1.0) { // posts stand on the ground or a footing (not the hanging lantern)
 					tall.add(b);
 				}
 			}
