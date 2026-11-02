@@ -61,6 +61,8 @@
   "block.medievalships.cart_open": "Open Cart",
   "block.medievalships.cart_covered_teal": "Teal Covered Wagon",
   "block.medievalships.cart_barrels": "Barrel Cart",
+  "block.medievalships.taverne_nomade": "Nomad Tavern",
+  "entity.medievalships.seat": "Seat",
   "itemGroup.medievalships.workshops": "Workshops",
   "block.medievalships.workshop_blacksmith": "Blacksmith's Workshop",
   "block.medievalships.workshop_leatherworker": "Leatherworker's Workshop",

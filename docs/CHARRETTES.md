@@ -42,6 +42,11 @@ touchent le sol du bloc d'ancrage : rien ne flotte ni ne s'enfonce.
 - **Charrette à tonneaux** : deux grandes roues, deux gros tonneaux cerclés de fer debout, lanterne sur poteau au
   coin avant, montants arrière hauts, brancards.
 
+Depuis 1.19.0 l'onglet **Charrettes** contient aussi, en dernier, une neuvième « charrette » bien plus grande : la
+**[taverne nomade](TAVERNE.md)** (`taverne_nomade`, environ 13 x 10 blocs : roulotte-taverne à comptoir, terrasse,
+tables, tabourets, feu de camp et chaudron), même bloc et mêmes commandes que les autres, et sur laquelle **on peut
+s'asseoir** (clic droit sur un tabouret, Maj pour se lever).
+
 ## Poser, orienter, retirer
 
 - **Poser** : clic droit au sol avec l'objet. L'avant de la charrette (timon / brancards) fait face au joueur (état

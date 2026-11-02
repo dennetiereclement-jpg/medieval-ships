@@ -347,12 +347,83 @@ public final class TentType {
 			}
 			muzzle = new Muzzle(m.get(0).getAsDouble(), m.get(1).getAsDouble(), m.get(2).getAsDouble(), dx / len, dy / len, dz / len);
 		}
-		return new TentType(group, texture, id, frenchName, englishName, model, decor, extent, colliders, particles, muzzle);
+		return new TentType(group, texture, id, frenchName, englishName, model, decor, extent, colliders, particles, muzzle).withSeats(parseSeats(root));
 	}
 
 	private static Box box(JsonArray a) {
 		return new Box(a.get(0).getAsDouble(), a.get(1).getAsDouble(), a.get(2).getAsDouble(), a.get(3).getAsDouble(), a.get(4).getAsDouble(),
 				a.get(5).getAsDouble());
+	}
+
+	// ---- seats (1.19.0): where a player can sit down (fr.medievalships.tent.SeatEntity), JSON "seats"
+
+	/**
+	 * A place to sit (JSON {@code "seats": [{"pos": [x, y, z], "yaw": deg}, ...]}, written by the model generators): the
+	 * centre of the seat's surface (the top of the stool or bench, prop-local blocks: y = 0 the ground, +z the front) and
+	 * the direction the sitter faces, prop-local, in Minecraft's convention (0 = +z, 90 = -x, 180 = -z, 270 = +x). A bench
+	 * has one entry per place. Both turn with the prop's facing like the collision boxes ({@link #rotate(int)}).
+	 */
+	public record Seat(double x, double y, double z, float yaw) {
+		/** The seat turned by quarter turns: the point like the collision boxes, the yaw by 90 degrees per quarter. */
+		public Seat rotate(int quarter) {
+			double[] r = TentType.rotate(x, z, quarter);
+			return new Seat(r[0], y, r[1], (float) wrapYaw(yaw + 90.0 * (quarter & 3)));
+		}
+
+		/** A yaw in [0, 360). */
+		public static double wrapYaw(double yaw) {
+			double w = yaw % 360.0;
+			return w < 0 ? w + 360.0 : w;
+		}
+	}
+
+	private List<Seat> seats = List.of();
+	/** The seats turned to each facing (index = quarter turns). */
+	private List<List<Seat>> rotatedSeats = List.of(List.of(), List.of(), List.of(), List.of());
+
+	/** The places to sit (facing south); empty for most props. */
+	public List<Seat> seats() {
+		return seats;
+	}
+
+	/** The places to sit turned to a facing (same order: a seat's index is its place in the JSON). */
+	public List<Seat> seats(int quarter) {
+		return rotatedSeats.get(quarter & 3);
+	}
+
+	private TentType withSeats(List<Seat> list) {
+		seats = List.copyOf(list);
+		List<List<Seat>> turned = new ArrayList<>();
+		for (int q = 0; q < 4; q++) {
+			List<Seat> l = new ArrayList<>();
+			for (Seat s : seats) {
+				l.add(s.rotate(q));
+			}
+			turned.add(List.copyOf(l));
+		}
+		rotatedSeats = List.copyOf(turned);
+		return this;
+	}
+
+	/** The JSON's {@code "seats"} (absent: none); an entry without a three-number {@code "pos"} is skipped, the yaw defaults to 0. */
+	static List<Seat> parseSeats(JsonObject root) {
+		List<Seat> out = new ArrayList<>();
+		if (!root.has("seats") || !root.get("seats").isJsonArray()) {
+			return out;
+		}
+		for (JsonElement e : root.getAsJsonArray("seats")) {
+			if (!e.isJsonObject() || !e.getAsJsonObject().has("pos") || !e.getAsJsonObject().get("pos").isJsonArray()) {
+				continue;
+			}
+			JsonObject o = e.getAsJsonObject();
+			JsonArray p = o.getAsJsonArray("pos");
+			if (p.size() != 3) {
+				continue;
+			}
+			float yaw = o.has("yaw") && o.get("yaw").isJsonPrimitive() ? o.get("yaw").getAsFloat() : 0f;
+			out.add(new Seat(p.get(0).getAsDouble(), p.get(1).getAsDouble(), p.get(2).getAsDouble(), (float) Seat.wrapYaw(yaw)));
+		}
+		return out;
 	}
 
 	@Override

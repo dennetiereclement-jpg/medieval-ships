@@ -15,5 +15,6 @@ abstract class GameRendererMixin {
 	@Inject(method = "updateCrosshairTarget", at = @At("RETURN"))
 	private void medievalships$pickShips(float tickDelta, CallbackInfo ci) {
 		ShipPicker.update(MinecraftClient.getInstance(), tickDelta);
+		fr.medievalships.client.SeatPicker.update(MinecraftClient.getInstance(), tickDelta); // the props' seats (1.19.0)
 	}
 }

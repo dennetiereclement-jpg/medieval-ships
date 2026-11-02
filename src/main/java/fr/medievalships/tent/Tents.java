@@ -128,5 +128,6 @@ public final class Tents {
 			}
 		});
 		ServerWorldEvents.UNLOAD.register((server, world) -> TentCollisions.clear(world));
+		Seats.register(); // sitting on the props' seats (1.19.0): the seat entity, the sit request
 	}
 }

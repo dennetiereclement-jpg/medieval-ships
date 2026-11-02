@@ -4,9 +4,9 @@ import java.util.List;
 
 
 /**
- * The twenty-one tents (six camp tents, fifteen merchant tents), the eight carts, the seven crafting workshops and the
- * medieval cannon. One line per prop: its id (block, item, model, decor and tents / carts / workshops / artillery JSON
- * are all named after it) and its names. {@link #ALL} = the tents only (their tab "Tentes": the six camp tents, the six
+ * The twenty-one tents (six camp tents, fifteen merchant tents), the eight carts and the nomad tavern, the seven crafting
+ * workshops, the three training areas and the medieval cannon. One line per prop: its id (block, item, model, decor and
+ * tents / carts / workshops / artillery JSON are all named after it) and its names. {@link #ALL} = the tents only (their tab "Tentes": the six camp tents, the six
  * {@link #MERCHANTS}, the five {@link #MERCHANTS2}, the two {@link #MERCHANTS3}, then the two {@link #MERCHANTS4}),
  * {@link #CARTS} = the carts (tab "Charrettes"), {@link #WORKSHOPS} = the workshops (tab "Ateliers"),
  * {@link #ARTILLERY} = the cannon (tab "Artillerie"), {@link #TRAINING} = the training areas (tab "Entraînement"),
@@ -67,8 +67,14 @@ public final class TentTypes {
 	public static final TentType CART_OPEN = cart("cart_open", "charrette de transport", "Open Cart");
 	public static final TentType CART_COVERED_TEAL = cart("cart_covered_teal", "charrette couverte turquoise", "Teal Covered Wagon");
 	public static final TentType CART_BARRELS = cart("cart_barrels", "charrette à tonneaux", "Barrel Cart");
+	/**
+	 * The nomad tavern (1.19.0): a big wagon with its counter, terrace, tables and stools (about 13 x 10 blocks, its own
+	 * atlas), group "carts"; its JSON lists the stools' {@link TentType.Seat seats}, where a player can sit down.
+	 */
+	public static final TentType TAVERN = cart("taverne_nomade", "taverne nomade", "Nomad Tavern");
+	/** The carts (tab "Charrettes"): the eight carts of 1.12.0, then the nomad tavern. */
 	public static final List<TentType> CARTS = List.of(CART_COVERED_WHITE, CART_HAY, CART_MERCHANT_WAGON, CART_MARKET, CART_LOGS, CART_OPEN,
-			CART_COVERED_TEAL, CART_BARRELS);
+			CART_COVERED_TEAL, CART_BARRELS, TAVERN);
 
 	public static final TentType WORKSHOP_BLACKSMITH = workshop("workshop_blacksmith", "atelier du forgeron", "Blacksmith's Workshop");
 	public static final TentType WORKSHOP_LEATHERWORKER = workshop("workshop_leatherworker", "atelier du tailleur de cuir", "Leatherworker's Workshop");
@@ -130,7 +136,7 @@ public final class TentTypes {
 		for (TentType t : PROPS) {
 			if (t.id().equals(s) || t.id().equals("tent_" + s) || t.id().equals("tente_" + s) || t.id().equals("cart_" + s)
 					|| t.id().equals("workshop_" + s) || t.id().equals("canon_" + s) || t.id().equals("training_area_" + s)
-					|| t.isCannon() && (s.equals("canon") || s.equals("cannon"))) {
+					|| t.isCannon() && (s.equals("canon") || s.equals("cannon")) || t == TAVERN && (s.equals("taverne") || s.equals("tavern"))) {
 				return t;
 			}
 		}

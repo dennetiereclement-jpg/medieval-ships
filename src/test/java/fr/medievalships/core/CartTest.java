@@ -16,20 +16,26 @@ import org.junit.jupiter.api.Test;
 
 import fr.medievalships.client.model.BbModel;
 
-/** The eight carts: the second family of one-block props (same TentType machinery as the tents). */
+/**
+ * The eight carts: the second family of one-block props (same TentType machinery as the tents). The nomad tavern of
+ * 1.19.0, much bigger, is the ninth entry of {@link TentTypes#CARTS} (its own checks: SeatsTest, TavernModelTest).
+ */
 public class CartTest {
 	private static final double EPS = 1e-9;
 	private static final List<String> IDS = List.of("cart_covered_white", "cart_hay", "cart_merchant_wagon", "cart_market", "cart_logs",
 			"cart_open", "cart_covered_teal", "cart_barrels");
+	/** The eight carts of 1.12.0 (without the tavern). */
+	private static final List<TentType> WAGONS = TentTypes.CARTS.subList(0, 8);
 
 	@Test
 	void eightCartsLoadBesideTheSixTents() {
-		assertEquals(8, TentTypes.CARTS.size());
+		assertEquals(9, TentTypes.CARTS.size(), "the eight carts and the nomad tavern");
+		assertSame(TentTypes.TAVERN, TentTypes.CARTS.get(8), "the tavern last in the carts' tab");
 		assertEquals(6 + 6 + 5 + 2 + 2, TentTypes.ALL.size(), "the tents' list: six camp tents, merchant tents I (6), II (5), III (2) and IV (2)");
-		assertEquals(6 + 6 + 5 + 2 + 2 + 8 + 7 + 3 + 1, TentTypes.PROPS.size()); // tents, merchant tents I to IV, carts, workshops,
-		// the training areas, the cannon
+		assertEquals(6 + 6 + 5 + 2 + 2 + 9 + 7 + 3 + 1, TentTypes.PROPS.size()); // tents, merchant tents I to IV, carts and the
+		// tavern, workshops, the training areas, the cannon
 		Set<String> ids = new HashSet<>();
-		for (TentType t : TentTypes.CARTS) {
+		for (TentType t : WAGONS) {
 			assertTrue(IDS.contains(t.id()), t.id());
 			assertTrue(ids.add(t.id()));
 			assertEquals(TentType.CARTS, t.group());
@@ -56,7 +62,7 @@ public class CartTest {
 
 	@Test
 	void extentsToScaleAndCollidersInside() {
-		for (TentType t : TentTypes.CARTS) {
+		for (TentType t : WAGONS) {
 			TentType.Box e = t.extent();
 			assertEquals(0.0, e.y0(), EPS, t.id() + " stands on the ground");
 			assertTrue(e.depth() > 3.0 && e.depth() < 8.0, t.id() + " length " + e.depth());
@@ -110,7 +116,7 @@ public class CartTest {
 
 	@Test
 	void modelsLoadLight() throws Exception {
-		for (TentType t : TentTypes.CARTS) {
+		for (TentType t : WAGONS) {
 			try (var in = CartTest.class.getResourceAsStream("/assets/medievalships/" + t.model())) {
 				assertNotNull(in, "model " + t.model());
 				BbModel m = new BbModel(new InputStreamReader(in, StandardCharsets.UTF_8));

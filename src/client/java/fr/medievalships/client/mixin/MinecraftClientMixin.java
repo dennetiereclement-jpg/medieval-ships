@@ -30,6 +30,13 @@ abstract class MinecraftClientMixin {
 
 	@Inject(method = "doItemUse", at = @At("HEAD"), cancellable = true)
 	private void medievalships$useShip(CallbackInfo ci) {
+		if (player != null && fr.medievalships.client.SeatPicker.use(player)) {
+			// a seat of a prop (a tavern stool, a bench, 1.19.0): sit down
+			itemUseCooldown = 4;
+			player.swingHand(Hand.MAIN_HAND);
+			ci.cancel();
+			return;
+		}
 		ShipPicker.Target t = ShipPicker.current();
 		if (t == null || player == null || t.pick().kind() == ShipGeometry.PickKind.DECK) {
 			return; // on the deck vanilla behaviour applies (eating, drinking...), never reaching the water below

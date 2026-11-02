@@ -47,6 +47,8 @@ public final class MedievalShipsClient implements ClientModInitializer {
 				fr.medievalships.tent.TentCollisions.remove(world, be.getPos());
 			}
 		});
+		// the invisible seat a player sits on (1.19.0): nothing to draw
+		EntityRendererRegistry.register(fr.medievalships.tent.Seats.SEAT, net.minecraft.client.render.entity.EmptyEntityRenderer::new);
 		ClientTickEvents.END_WORLD_TICK.register(ClientShipEvents::endWorldTick);
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
 			ShipTracker.clearClientWorlds();

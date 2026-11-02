@@ -113,6 +113,7 @@ public class TentBlock extends BlockWithEntity {
 
 	@Override
 	protected void onStateReplaced(BlockState state, ServerWorld world, BlockPos pos, boolean moved) {
+		Seats.release(world, pos, type, quarter(state)); // whoever sits on it stands up (1.19.0)
 		TentCollisions.remove(world, pos);
 		super.onStateReplaced(state, world, pos, moved);
 	}
