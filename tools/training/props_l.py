@@ -8,6 +8,7 @@ plus a few shared ones of props_m1 / props_m8) and the geometry of the things on
     import props_l as pl
     pl.add_regions(atlas)                        # before export
     pl.wooden_dummy(bone, det, name, foot, ...)  # the wooden dummy wearing an iron helmet, holding a sword and a round shield
+                                                 # (target=tr.target(A, "shield_dummy"): an interactive target, 1.19.0)
     pl.round_shield(...), pl.helmet(...), pl.shield_rack(...), pl.stone_pillar(...)
     pl.staff(...), pl.wooden_sword(...), pl.lean_on_fence(...), pl.practice_rack(...), pl.flower_pot(...),
     pl.folded_stack(...), pl.jar(...), pl.mat_roll(...), pl.floor_knot(...), pl.lantern_gallows(...)
@@ -457,15 +458,30 @@ def shield_rack(bone, det, name, p0, p1, normal=(0, 0, 1), n=3, h=0.95, r=0.3, f
 
 # ================================================================ the wooden dummy
 def wooden_dummy(bone, det, name, foot, yaw=0.0, scale=1.0, sword_pose="up", shield_face="l_shield", helmet_on=True,
-                 solid=True):
+                 solid=True, target=None):
     """A wooden training dummy (a blocky wooden man on a small plinth), facing +z turned by yaw (radians): feet, legs,
     hips, a boarded torso with a rope belt, broad shoulders, a head under an iron helmet; its RIGHT hand (at -x) holds a
     steel sword (sword_pose "up": raised upright before it, "low": held out forwards and down), its LEFT forearm (at +x)
     carries a round shield strapped on it, turned a little outwards. Everything joins: the grip runs through the
-    fist, the shield's back touches the forearm. Returns the top of the helmet (world)."""
+    fist, the shield's back touches the forearm. Returns the top of the helmet (world).
+
+    target (1.19.0): a traininglib.Target ("shield_dummy") that receives the moving parts: its bone (pivot set here: the
+    top of the plinth) gets the feet, legs, hips, torso and chest; "_head" (origin at the neck) the neck, head and
+    helmet; "_arm_l" / "_arm_r" (origins at the shoulders) the arms; "_shield" (child of arm_l, origin at the grip on the
+    back of the shield) the shield; "_sword" (child of arm_r, origin at the grip in the fist) the sword. The plinth stays
+    in `bone`. The look at rest is unchanged."""
     R = ry(yaw)
     f = v3(*foot)
     s = scale
+    if target is not None:
+        target.set_pivot(f + R @ (v3(0.0, 0.08, 0.0) * s))
+        body = bdet = target.bone
+        hb = target.part("head", f + R @ (v3(0.0, 1.47, 0.0) * s))
+        al = target.part("arm_l", f + R @ (v3(0.33, 1.38, 0.0) * s))
+        ar = target.part("arm_r", f + R @ (v3(-0.33, 1.38, 0.0) * s))
+        target.unhit.add("sword")
+    else:
+        body, bdet, hb, al, ar = bone, det, bone, bone, bone
 
     def L(p):
         return f + R @ (v3(*p) * s)
@@ -479,47 +495,49 @@ def wooden_dummy(bone, det, name, foot, yaw=0.0, scale=1.0, sword_pose="up", shi
 
     lb("plinth", (-0.34, 0.0, -0.26), (0.34, 0.08, 0.26), {"all": "wood_dark", "+2": "plank"})
     for sg, nm in ((-1, "r"), (1, "l")):
-        lb("foot_" + nm, (sg * 0.12 - 0.08, 0.08, -0.1), (sg * 0.12 + 0.08, 0.18, 0.16), "l_dummy_dark")
-        lb("leg_" + nm, (sg * 0.12 - 0.075, 0.18, -0.07), (sg * 0.12 + 0.075, 0.74, 0.07), "l_dummy")
-    lb("hips", (-0.22, 0.72, -0.12), (0.22, 0.86, 0.12), "l_dummy_dark")
-    lb("torso", (-0.22, 0.86, -0.13), (0.22, 1.36, 0.13), "l_dummy")
-    lb("belt", (-0.235, 0.88, -0.145), (0.235, 0.94, 0.145), "rope", b=det)
-    lb("chest", (-0.27, 1.26, -0.14), (0.27, 1.44, 0.14), "l_dummy")
-    lb("neck", (-0.07, 1.44, -0.07), (0.07, 1.5, 0.07), "l_dummy_dark")
+        lb("foot_" + nm, (sg * 0.12 - 0.08, 0.08, -0.1), (sg * 0.12 + 0.08, 0.18, 0.16), "l_dummy_dark", b=body)
+        lb("leg_" + nm, (sg * 0.12 - 0.075, 0.18, -0.07), (sg * 0.12 + 0.075, 0.74, 0.07), "l_dummy", b=body)
+    lb("hips", (-0.22, 0.72, -0.12), (0.22, 0.86, 0.12), "l_dummy_dark", b=body)
+    lb("torso", (-0.22, 0.86, -0.13), (0.22, 1.36, 0.13), "l_dummy", b=body)
+    lb("belt", (-0.235, 0.88, -0.145), (0.235, 0.94, 0.145), "rope", b=det if target is None else bdet)
+    lb("chest", (-0.27, 1.26, -0.14), (0.27, 1.44, 0.14), "l_dummy", b=body)
+    lb("neck", (-0.07, 1.44, -0.07), (0.07, 1.5, 0.07), "l_dummy_dark", b=hb)
     head_c = (0.0, 1.64, 0.0)
-    lb("head", (-0.15, 1.5, -0.14), (0.15, 1.8, 0.14), "l_dummy")
+    lb("head", (-0.15, 1.5, -0.14), (0.15, 1.8, 0.14), "l_dummy", b=hb)
     if helmet_on:
-        helmet(bone, name + "_helm", L((0.0, 1.66, 0.0)), R, s=0.3 * s)
+        helmet(hb, name + "_helm", L((0.0, 1.66, 0.0)), R, s=0.3 * s)
     # the right arm: shoulder, elbow by the side, forearm forwards, the fist
     sh_r, el_r = (-0.33, 1.38, 0.0), (-0.35, 1.08, 0.04)
     if sword_pose == "low":
         fi_r = (-0.42, 1.04, 0.34)
     else:
         fi_r = (-0.35, 1.12, 0.32)
-    limb("arm_r", sh_r, el_r, 0.13, "l_dummy")
-    limb("forearm_r", el_r, fi_r, 0.12, "l_dummy")
-    lb("fist_r", v3(*fi_r) - 0.07, v3(*fi_r) + 0.07, "l_dummy_dark")
-    lb("shoulder_r", (-0.4, 1.3, -0.1), (-0.26, 1.46, 0.1), "l_dummy_dark")
+    limb("arm_r", sh_r, el_r, 0.13, "l_dummy", b=ar)
+    limb("forearm_r", el_r, fi_r, 0.12, "l_dummy", b=ar)
+    lb("fist_r", v3(*fi_r) - 0.07, v3(*fi_r) + 0.07, "l_dummy_dark", b=ar)
+    lb("shoulder_r", (-0.4, 1.3, -0.1), (-0.26, 1.46, 0.1), "l_dummy_dark", b=ar)
     if sword_pose == "low":
         d = R @ norm(v3(-0.55, -0.35, 0.75))
     else:
         d = R @ norm(v3(0.0, 1.0, 0.12))
     grip_mid = L(fi_r)
     face = R @ v3(0, 0, 1) if sword_pose != "low" else R @ v3(0, 1, 0)
-    sword(bone, name + "_sword", grip_mid - d * (0.15 * s), up=d, facing=face, length=0.95 * s)
+    swb = target.part("sword", grip_mid, parent="arm_r") if target is not None else bone
+    sword(swb, name + "_sword", grip_mid - d * (0.15 * s), up=d, facing=face, length=0.95 * s)
     # the left arm: forearm forwards, the round shield strapped on it, turned a little outwards
     sh_l, el_l, fi_l = (0.33, 1.38, 0.0), (0.36, 1.06, 0.04), (0.37, 1.1, 0.2)
-    limb("arm_l", sh_l, el_l, 0.13, "l_dummy")
-    limb("forearm_l", el_l, fi_l, 0.12, "l_dummy")
-    lb("fist_l", v3(*fi_l) - 0.07, v3(*fi_l) + 0.07, "l_dummy_dark")
-    lb("shoulder_l", (0.26, 1.3, -0.1), (0.4, 1.46, 0.1), "l_dummy_dark")
+    limb("arm_l", sh_l, el_l, 0.13, "l_dummy", b=al)
+    limb("forearm_l", el_l, fi_l, 0.12, "l_dummy", b=al)
+    lb("fist_l", v3(*fi_l) - 0.07, v3(*fi_l) + 0.07, "l_dummy_dark", b=al)
+    lb("shoulder_l", (0.26, 1.3, -0.1), (0.4, 1.46, 0.1), "l_dummy_dark", b=al)
     out = 0.42
     n_sh = R @ v3(math.sin(out), 0.0, math.cos(out))
     r_sh = 0.33 * s
     th = 0.045 * s
     # the fist grips the shield's back: the shield's back plane touches the front of the fist
     c_sh = L(fi_l) + n_sh * (0.1 * s + th / 2)
-    round_shield(bone, name + "_shield", c_sh, normal=n_sh, r=r_sh, face=shield_face, th=th)
+    shb = target.part("shield", L(fi_l) + n_sh * (0.1 * s), parent="arm_l") if target is not None else bone
+    round_shield(shb, name + "_shield", c_sh, normal=n_sh, r=r_sh, face=shield_face, th=th)
     if solid:
         p0, p1 = L((-0.45, 0, -0.3)), L((0.62, 0, 0.62))
         lo, hi = np.minimum(p0, p1), np.maximum(p0, p1)

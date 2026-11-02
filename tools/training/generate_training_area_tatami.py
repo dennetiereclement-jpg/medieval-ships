@@ -6,7 +6,8 @@ A square martial-arts yard (~7 x 7) of traininglib (agent K) dressed by props_l.
 beige tatami mats (woven, staggered, dark edges) with a red border all round and the red flower knot in the middle,
 framed by a square of dark mat seams; the post-and-rail fence with iron-capped posts and stone corner bases, the
 entrance in the middle of the front; at the back the small stall with the red-and-beige striped awning over a plank
-back wall, a wooden bench with rolled mats and cushions, two shelf units of training gear (jars, folded cloths), wooden
+back wall, a wooden bench with two red cushions (two seats, JSON "seats", 1.19.0; rolled mats and a folded cloth
+under it), two shelf units of training gear (jars, folded cloths), wooden
 swords hung on the back wall and a lantern under the awning; two stools with jars by its left post; on the left a rack
 of staves and wooden swords and wooden swords leaning on the front-left fence, on the right staves leaning on the fence;
 the tall red banner with the gold lotus at the back right on its gallows post, a barrel and a lying log-barrel beside
@@ -66,15 +67,19 @@ def stall(A, atlas, rng, decor):
                 pl.folded_stack(det, "shelf_%d_cloth_%d" % (k, i), (lx0 + 0.18, y, zc), ["cloth_beige", "cloth_white", "cloth_red"],
                                 w=0.28, d=0.24)
                 pl.jar(det, "shelf_%d_jar_%d_a" % (k, i), (lx1 - 0.16, y, zc), r=0.09, h=0.21)
-    # the bench in the middle, rolled mats and cushions on it
-    bx = (x0 + x1) / 2
-    tr.bench(A, "bench", (bx, 0.0, zb + 0.42), length=1.25, h=0.46, depth=0.38)
-    pl.mat_roll(det, "bench_roll_0", (bx - 0.36, 0.46 + 0.11, zb + 0.42), 0.36, r=0.11, direction=(0, 0, 1), region="t_straw",
+    # the bench in the middle: two places (1.19.0: players sit on them), each with its red cushion; the rolled mats and
+    # a folded cloth lie on the floor under it
+    bx, bz = (x0 + x1) / 2, zb + 0.42
+    tr.bench(A, "bench", (bx, 0.0, bz), length=1.25, h=0.46, depth=0.38)
+    for k, dx in enumerate((-0.3, 0.3)):
+        tr.box(det, "bench_cushion" + ("_%d" % k if k == 0 else ""), (bx + dx - 0.2, 0.46, bz - 0.14), (bx + dx + 0.2, 0.56, bz + 0.14),
+               {"all": "cloth_red"}, stretch=True)
+        tr.seat((bx + dx, 0.56, bz), yaw=0.0)
+    pl.mat_roll(det, "bench_roll_0", (bx - 0.2, 0.11, bz - 0.14), 0.36, r=0.11, direction=(1, 0, 0), region="t_straw",
                 ends="t_straw_end")
-    pl.mat_roll(det, "bench_roll_1", (bx - 0.08, 0.46 + 0.11, zb + 0.42), 0.36, r=0.11, direction=(0, 0, 1), region="cloth_beige",
+    pl.mat_roll(det, "bench_roll_1", (bx + 0.16, 0.11, bz + 0.14), 0.36, r=0.11, direction=(1, 0, 0), region="cloth_beige",
                 ends="cloth_red")
-    tr.box(det, "bench_cushion", (bx + 0.12, 0.46, zb + 0.28), (bx + 0.52, 0.56, zb + 0.56), {"all": "cloth_red"}, stretch=True)
-    pl.folded_stack(det, "bench_cloth", (bx + 0.32, 0.56, zb + 0.42), ["cloth_white"], w=0.3, d=0.22)
+    pl.folded_stack(det, "bench_cloth", (bx - 0.22, 0.0, bz + 0.13), ["cloth_white", "cloth_red"], w=0.3, d=0.22)
     # wooden swords and a staff hung on the back wall above the bench (pegs)
     for k in range(4):
         x = bx - 0.45 + 0.3 * k

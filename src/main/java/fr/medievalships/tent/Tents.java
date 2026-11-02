@@ -71,10 +71,15 @@ public final class Tents {
 			AbstractBlock.Settings settings = AbstractBlock.Settings.create().registryKey(blockKey)
 					.strength(type.isCannon() ? 2.0f : wooden ? 1.0f : 0.6f)
 					.sounds(wooden ? BlockSoundGroup.WOOD : BlockSoundGroup.WOOL).nonOpaque().solid();
+			if (type.isTraining()) {
+				// 1.19.0: the training areas cannot be broken in survival nor blown up nor pushed (creative or /tent remove)
+				settings.strength(-1.0f, 3600000.0f).pistonBehavior(net.minecraft.block.piston.PistonBehavior.BLOCK);
+			}
 			// the workshops: the same block, plus their particles (forge smoke, enchanting glyphs...); the cannon: its
 			// own block entity (the state of the future firing system)
 			TentBlock block = Registry.register(Registries.BLOCK, blockKey, type.isWorkshop() ? new WorkshopBlock(type, settings)
-					: type.isCannon() ? new CannonBlock(type, settings) : new TentBlock(type, settings));
+					: type.isCannon() ? new CannonBlock(type, settings) : type.isTraining() ? new TrainingAreaBlock(type, settings)
+					: new TentBlock(type, settings));
 			BLOCKS.put(type, block);
 			RegistryKey<Item> itemKey = RegistryKey.of(RegistryKeys.ITEM, MedievalShips.id(type.id()));
 			ITEMS.put(type, Registry.register(Registries.ITEM, itemKey,
@@ -129,5 +134,7 @@ public final class Tents {
 		});
 		ServerWorldEvents.UNLOAD.register((server, world) -> TentCollisions.clear(world));
 		Seats.register(); // sitting on the props' seats (1.19.0): the seat entity, the sit request
+		// the training areas' targets (1.19.0)
+		fr.medievalships.training.TrainingTargets.register();
 	}
 }

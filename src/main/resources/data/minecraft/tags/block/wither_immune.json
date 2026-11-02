@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "medievalships:training_area_dummy",
+    "medievalships:training_area_tatami",
+    "medievalships:training_area_shield"
+  ]
+}

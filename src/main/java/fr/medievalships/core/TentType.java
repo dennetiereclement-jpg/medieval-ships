@@ -134,6 +134,8 @@ public final class TentType {
 	/** The muzzle turned to each facing (index = quarter turns), or null for a prop that is not a gun. */
 	private final Muzzle[] rotatedMuzzle = new Muzzle[4];
 	private final Muzzle muzzle;
+	/** The interactive training targets (JSON "targets", 1.19.0) turned to each facing (index = quarter turns); empty lists for most props. */
+	private List<List<TrainingTarget>> targets = List.of(List.of(), List.of(), List.of(), List.of());
 
 	TentType(String group, String texture, String id, String frenchName, String englishName, String model, String decor, Box extent,
 			List<Box> colliders, List<Particle> particles, Muzzle muzzle) {
@@ -199,6 +201,20 @@ public final class TentType {
 	/** The muzzle of a gun (facing south), or null when the JSON has none. */
 	public Muzzle muzzle() {
 		return muzzle;
+	}
+
+	/** The training targets (facing south), see {@link TrainingTarget}; empty for every prop but the training areas. */
+	public List<TrainingTarget> targets() {
+		return targets.get(0);
+	}
+
+	/** The training targets turned to a facing. */
+	public List<TrainingTarget> targets(int quarter) {
+		return targets.get(quarter & 3);
+	}
+
+	public boolean hasTargets() {
+		return !targets.get(0).isEmpty();
 	}
 
 	/** The muzzle turned to a facing, or null. */
@@ -347,7 +363,9 @@ public final class TentType {
 			}
 			muzzle = new Muzzle(m.get(0).getAsDouble(), m.get(1).getAsDouble(), m.get(2).getAsDouble(), dx / len, dy / len, dz / len);
 		}
-		return new TentType(group, texture, id, frenchName, englishName, model, decor, extent, colliders, particles, muzzle).withSeats(parseSeats(root));
+		TentType type = new TentType(group, texture, id, frenchName, englishName, model, decor, extent, colliders, particles, muzzle);
+		type.targets = TrainingTarget.parseAll(root);
+		return type.withSeats(parseSeats(root));
 	}
 
 	private static Box box(JsonArray a) {
