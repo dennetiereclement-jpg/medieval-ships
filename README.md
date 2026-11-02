@@ -148,6 +148,15 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.22.0 ajoute **l'établi du joaillier**, huitième atelier (`/give @p medievalships:workshop_jeweler`) :
+établi en chêne noir d'environ 2 x 1 blocs, tiroirs, ferrures rivetées, chemin violet au diamant d'or, machine à
+tailler les gemmes avec sa manivelle, lingots d'or, gemmes taillées lumineuses, plateau de pierres, bagues, outils.
+Elle ajoute aussi **un point d'accroche pour relier les ateliers à un système de métiers**, sans recettes ni interface
+inventées : un clic droit sur un atelier déclenche l'événement Fabric `WorkshopUseCallback` (pour un autre mod), puis
+la commande configurée pour son métier (`"workshopCommands": {"jeweler": "trigger jeweler_menu"}` dans
+`config/medievalships.json`), sinon un court message. Voir
+[docs/ATELIERS.md](docs/ATELIERS.md#relier-un-atelier-à-un-système-de-métiers).
+
 La version 1.21.0 ajoute **la tente du joaillier** (`/give @p medievalships:tente_joaillier`) : tente violette et
 beige à pavillon central pointu, rideaux en arlequin, bannières au diamant, bustes à colliers sertis, vitrine à la
 couronne, balance de joaillier, cristaux, coffres et tapis au diamant ; place libre pour un PNJ EasyNPC.
@@ -412,7 +421,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.21.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.22.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
@@ -440,7 +449,7 @@ pour 1.21.11 sur <https://fabricmc.net/develop>.
 * [Tests effectués et non effectués](docs/TESTS.md)
 * [Les six tentes en un bloc : pose, retrait, commandes, meubles](docs/TENTES.md)
 * [Les huit charrettes en un bloc : ids, pose, retrait, commandes, performances](docs/CHARRETTES.md)
-* [Les sept ateliers d'artisanat en un bloc : ids, pose, retrait, commandes, particules](docs/ATELIERS.md)
+* [Les huit ateliers d'artisanat en un bloc : ids, pose, retrait, commandes, particules, point d'accroche des métiers](docs/ATELIERS.md)
 
 ## Configuration
 
@@ -652,11 +661,13 @@ tests dans [docs/CHARRETTES.md](docs/CHARRETTES.md).
 
 ## Ateliers (un bloc = un atelier)
 
-Sept ateliers d'artisanat médiévaux, **statiques**, chacun étant **un seul bloc** à poser comme les tentes et les
+Huit ateliers d'artisanat médiévaux (l'établi du joaillier depuis 1.22.0), **statiques**, chacun étant **un seul bloc** à poser comme les tentes et les
 charrettes : clic droit au sol, l'avant face au joueur, après vérification que l'emprise est libre ; l'atelier entier
 est dessiné à partir de ce bloc, avec quelques particules discrètes (fumée de la forge, glyphes de l'enchanteur...).
-Casser le bloc d'ancrage (ou `/workshop remove`) retire tout. Pour l'instant ce sont **des objets à poser** : le clic
-droit n'ouvre rien, l'artisanat (interface, recettes, métiers) sera relié plus tard.
+Casser le bloc d'ancrage (ou `/workshop remove`) retire tout. Ce sont **des objets à poser** : le mod n'a ni
+recettes, ni interface de fabrication, ni progression. Depuis 1.22.0, un clic droit déclenche un point d'accroche
+générique (événement `WorkshopUseCallback`, ou commande du serveur par métier : `"workshopCommands"`), pour relier un
+système de métiers existant ; sinon il affiche un court message.
 
 | id | nom |
 |----|-----|
@@ -667,6 +678,7 @@ droit n'ouvre rien, l'artisanat (interface, recettes, métiers) sera relié plus
 | `workshop_cook` | Atelier du cuisinier (Cook's Workshop) |
 | `workshop_alchemist` | Atelier de l'alchimiste (Alchemist's Workshop) |
 | `workshop_enchanter` | Atelier de l'enchanteur (Enchanter's Workshop) |
+| `workshop_jeweler` | Établi du joaillier (Jeweller's Workbench), 1.22.0 |
 
 Onglet créatif « Ateliers », `/workshop give|place|remove|list|types` (admin ; alias `/atelier`, et
 `/ship give <id>` marche aussi), mêmes réglages de distance que les tentes. Détails et tests dans

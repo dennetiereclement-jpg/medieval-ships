@@ -72,6 +72,8 @@
   "block.medievalships.workshop_cook": "Atelier du cuisinier",
   "block.medievalships.workshop_alchemist": "Atelier de l'alchimiste",
   "block.medievalships.workshop_enchanter": "Atelier de l'enchanteur",
+  "block.medievalships.workshop_jeweler": "Établi du joaillier",
+  "message.medievalships.workshop_unlinked": "%s — aucune interface de fabrication n'est reliée",
   "block.medievalships.tente_poison": "Tente du vendeur de poisons",
   "block.medievalships.tente_boucher": "Tente du boucher",
   "block.medievalships.tente_boulanger": "Tente du boulanger",

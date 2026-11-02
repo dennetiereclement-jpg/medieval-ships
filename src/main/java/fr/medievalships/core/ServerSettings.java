@@ -1,8 +1,10 @@
 package fr.medievalships.core;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /** Settings shared by every ship ({@code "server"} section of {@code config/medievalships.json}). */
 public final class ServerSettings {
@@ -40,6 +42,15 @@ public final class ServerSettings {
 	public double tentDecorDistance = 32.0;
 	/** ...and the tent itself within this one; beyond, nothing is drawn. */
 	public double tentRenderDistance = 64.0;
+	/**
+	 * The crafting workshops' hook (1.22.0): a server command per profession id ({@code "jeweler"}, {@code "blacksmith"}...,
+	 * see {@link TentType#profession()}; a workshop id such as {@code "workshop_jeweler"} is accepted too), run as the
+	 * player who right-clicks a workshop of that profession, at their position, e.g.
+	 * {@code {"jeweler": "trigger jeweler_menu"}}: an existing crafting / MMO interface opened by a command, without Java.
+	 * Empty by default (a right click then only shows a short message). {@link #sanitize} trims the entries, lower-cases
+	 * the keys, removes a leading {@code /} and drops blank entries.
+	 */
+	public Map<String, String> workshopCommands = new LinkedHashMap<>();
 
 	public void sanitize() {
 		announceRadius = Math.max(0, Math.min(512, Double.isNaN(announceRadius) ? 40 : announceRadius));
@@ -47,6 +58,7 @@ public final class ServerSettings {
 		adminPermissionLevel = Math.max(0, Math.min(4, adminPermissionLevel));
 		placeAdminOnly = canonicalVessels(clean(placeAdminOnly));
 		placeAllowedPlayers = clean(placeAllowedPlayers);
+		workshopCommands = cleanCommands(workshopCommands);
 		tentDecorDistance = Double.isNaN(tentDecorDistance) ? 32.0 : Math.max(0, Math.min(256, tentDecorDistance));
 		tentRenderDistance = Double.isNaN(tentRenderDistance) ? 64.0 : Math.max(8, Math.min(512, tentRenderDistance));
 		playerDestinationMaxDistance = Double.isNaN(playerDestinationMaxDistance) ? DEFAULT_PLAYER_DESTINATION_MAX_DISTANCE
@@ -64,6 +76,57 @@ public final class ServerSettings {
 			}
 		}
 		return out;
+	}
+
+	/** The key of {@link #workshopCommands} for a profession or workshop id: trimmed, lower case, without "workshop_". */
+	public static String professionKey(String id) {
+		if (id == null) {
+			return "";
+		}
+		String k = id.trim().toLowerCase(Locale.ROOT);
+		if (k.startsWith("medievalships:")) {
+			k = k.substring("medievalships:".length());
+		}
+		return k.startsWith("workshop_") ? k.substring("workshop_".length()) : k;
+	}
+
+	private static Map<String, String> cleanCommands(Map<String, String> in) {
+		Map<String, String> out = new LinkedHashMap<>();
+		if (in != null) {
+			for (Map.Entry<String, String> e : in.entrySet()) {
+				String key = professionKey(e.getKey());
+				String cmd = e.getValue() == null ? "" : e.getValue().trim();
+				while (cmd.startsWith("/")) {
+					cmd = cmd.substring(1).trim();
+				}
+				if (!key.isEmpty() && !cmd.isEmpty()) {
+					out.put(key, cmd);
+				}
+			}
+		}
+		return out;
+	}
+
+	/** The command configured for a profession ({@link #workshopCommands}), or null when there is none. */
+	public String workshopCommand(String profession) {
+		if (workshopCommands == null || profession == null) {
+			return null;
+		}
+		String cmd = workshopCommands.get(professionKey(profession));
+		return cmd == null || cmd.isBlank() ? null : cmd;
+	}
+
+	/**
+	 * Sets (or, with a null or blank command, removes) the command of a profession, cleaned as {@link #sanitize} does:
+	 * the API for code and tests (the config file is the usual way). Lasts until the config is loaded again.
+	 */
+	public void setWorkshopCommand(String profession, String command) {
+		Map<String, String> map = new LinkedHashMap<>(workshopCommands == null ? Map.of() : workshopCommands);
+		map.remove(professionKey(profession));
+		if (command != null) {
+			map.put(profession, command);
+		}
+		workshopCommands = cleanCommands(map);
 	}
 
 	/** Entries of {@link #placeAdminOnly} that are no vessel of this version (a typo reserves nothing: worth a warning). */

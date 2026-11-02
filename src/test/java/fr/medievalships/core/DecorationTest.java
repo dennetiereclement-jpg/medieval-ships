@@ -39,7 +39,7 @@ public class DecorationTest {
 	@Test
 	void eightDecorationsInTheirOwnTab() {
 		assertEquals(8, TentTypes.DECORATIONS.size());
-		assertEquals(TentTypes.DECORATIONS, TentTypes.PROPS.subList(42, 50), "after the training areas, before the cannon");
+		assertEquals(TentTypes.DECORATIONS, TentTypes.PROPS.subList(43, 51), "after the training areas, before the cannon");
 		assertSame(TentTypes.CANNON, TentTypes.PROPS.get(TentTypes.PROPS.size() - 1), "the artillery stays last");
 		for (int i = 0; i < IDS.size(); i++) {
 			TentType t = TentTypes.DECORATIONS.get(i);

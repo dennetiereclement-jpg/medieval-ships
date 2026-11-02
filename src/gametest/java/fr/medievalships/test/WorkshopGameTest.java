@@ -1,6 +1,8 @@
 package fr.medievalships.test;
 
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -11,23 +13,30 @@ import net.fabricmc.fabric.api.client.gametest.v1.context.TestServerContext;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
 
+import fr.medievalships.api.WorkshopUseCallback;
 import fr.medievalships.core.TentType;
 import fr.medievalships.core.TentTypes;
+import fr.medievalships.data.ConfigManager;
 import fr.medievalships.tent.TentBlock;
 import fr.medievalships.tent.TentCollisions;
 import fr.medievalships.tent.Tents;
 import fr.medievalships.tent.WorkshopBlock;
 
 /**
- * In-game checks of the seven crafting workshops (placeable props only: the crafting is not wired yet). On a flat
+ * In-game checks of the eight crafting workshops (the jeweller's workbench of 1.22.0 the eighth). On a flat
  * stone platform of their own on dry land (x 1600, east of every basin; chunks force-loaded), each workshop once:
  * placed by {@code /workshop place <id> x y z <facing>} (one through the alias {@code /atelier}), its anchor block (a
  * {@link WorkshopBlock}), facing and block entity, its collision boxes registered on the server and known to the
  * client, its first box answers a collision query (the mixin's path), one screenshot, removed by
  * {@code /workshop remove x y z} (one through {@code /atelier remove}), its boxes forgotten. Also {@code /workshop give}
- * and {@code /ship give} with a workshop id, and {@code /workshop remove} leaving a tent alone. Called once from
+ * and {@code /ship give} with a workshop id, the right-click hook of 1.22.0 ({@link #useHook}), and
+ * {@code /workshop remove} leaving a tent alone. Called once from
  * {@link ShipClientGameTest}.
  */
 public final class WorkshopGameTest {
@@ -52,6 +61,81 @@ public final class WorkshopGameTest {
 			ServerPlayerEntity pl = srv.getPlayerManager().getPlayerList().get(0);
 			return pl.getInventory().count(Tents.item(type));
 		});
+	}
+
+	/** Set on the server thread: makes the test's event listener cancel the next uses (checks the event's cancelling). */
+	private static volatile boolean cancelUses;
+	private static boolean listening;
+
+	/**
+	 * Right-clicks the workshop at {@code a} through the server-side use path (the block state's onUse, as a click on the
+	 * block does), by the first player, the tag "used_jeweler" removed first; returns {accepted, the result's class name,
+	 * the player has the tag again, the result is FAIL}.
+	 */
+	private static Object[] click(TestServerContext server, BlockPos a) {
+		return server.computeOnServer(srv -> {
+			ServerPlayerEntity pl = srv.getPlayerManager().getPlayerList().get(0);
+			ServerWorld w = srv.getOverworld();
+			pl.removeCommandTag("used_jeweler");
+			ActionResult r = w.getBlockState(a).onUse(w, pl, new BlockHitResult(Vec3d.ofCenter(a), Direction.UP, a, false));
+			return new Object[] {r.isAccepted(), r.getClass().getSimpleName(), pl.getCommandTags().contains("used_jeweler"), r == ActionResult.FAIL};
+		});
+	}
+
+	/**
+	 * The workshops' interaction hook (1.22.0) on the jeweller's workbench: with a command configured for "jeweler"
+	 * (through the config API), a click runs it as the player (tag added); a second click within 10 ticks does nothing
+	 * (rate limit); a WorkshopUseCallback listener can cancel it; without a command nothing breaks (the action-bar
+	 * message); a spectator's click does nothing. The settings are restored afterwards.
+	 */
+	private static void useHook(ClientGameTestContext context, TestServerContext server, BiConsumer<Boolean, String> check, Consumer<String> log,
+			BlockPos a) {
+		if (!listening) {
+			listening = true;
+			WorkshopUseCallback.EVENT.register((player, world, pos, type, profession) -> cancelUses ? ActionResult.FAIL : ActionResult.PASS);
+		}
+		server.runCommand(String.format(Locale.ROOT, "workshop place workshop_jeweler %d %d %d south", a.getX(), a.getY(), a.getZ()));
+		server.runCommand(String.format(Locale.ROOT, "tp @p %d.5 %d %d.5 180 20", a.getX(), a.getY(), a.getZ() + 2));
+		server.runCommand("gamemode survival @p");
+		context.waitTicks(25);
+		boolean placed = server.computeOnServer(srv -> srv.getOverworld().getBlockState(a).getBlock() instanceof WorkshopBlock b
+				&& b.tentType() == TentTypes.WORKSHOP_JEWELER);
+		check.accept(placed, "workshop_jeweler placed for the use hook");
+		Map<String, String> saved = server.computeOnServer(srv -> new LinkedHashMap<>(ConfigManager.server().workshopCommands));
+		server.runOnServer(srv -> ConfigManager.server().setWorkshopCommand("jeweler", "tag @s add used_jeweler"));
+		Object[] r1 = click(server, a);
+		check.accept(Boolean.TRUE.equals(r1[0]) && Boolean.TRUE.equals(r1[2]),
+				"use hook: the command configured for \"jeweler\" ran as the player (" + r1[1] + ", tag added: " + r1[2] + ")");
+		Object[] r2 = click(server, a);
+		check.accept(!Boolean.TRUE.equals(r2[2]), "use hook: a second click within 10 ticks runs nothing (" + r2[1] + ")");
+		context.waitTicks(25);
+		Object[] r3 = click(server, a);
+		check.accept(Boolean.TRUE.equals(r3[2]), "use hook: runs again after 10 ticks (" + r3[1] + ")");
+		context.waitTicks(25);
+		server.runOnServer(srv -> cancelUses = true);
+		Object[] r4 = click(server, a);
+		server.runOnServer(srv -> cancelUses = false);
+		check.accept(!Boolean.TRUE.equals(r4[2]) && Boolean.TRUE.equals(r4[3]),
+				"use hook: a WorkshopUseCallback listener cancels the command (" + r4[1] + ")");
+		context.waitTicks(25);
+		server.runOnServer(srv -> ConfigManager.server().setWorkshopCommand("jeweler", null));
+		Object[] r5 = click(server, a);
+		check.accept(Boolean.TRUE.equals(r5[0]) && !Boolean.TRUE.equals(r5[2]),
+				"use hook: without a command the click is handled (message) and nothing runs (" + r5[1] + ")");
+		context.waitTicks(25);
+		server.runOnServer(srv -> ConfigManager.server().setWorkshopCommand("jeweler", "tag @s add used_jeweler"));
+		server.runCommand("gamemode spectator @p");
+		context.waitTicks(2);
+		Object[] r6 = click(server, a);
+		check.accept(!Boolean.TRUE.equals(r6[0]) && !Boolean.TRUE.equals(r6[2]), "use hook: a spectator's click does nothing (" + r6[1] + ")");
+		server.runOnServer(srv -> {
+			ConfigManager.server().workshopCommands = new LinkedHashMap<>(saved);
+			ConfigManager.server().sanitize();
+			srv.getPlayerManager().getPlayerList().get(0).removeCommandTag("used_jeweler");
+		});
+		server.runCommand(String.format(Locale.ROOT, "workshop remove %d %d %d", a.getX(), a.getY(), a.getZ()));
+		context.waitTicks(5);
+		log.accept("workshop use hook: " + r1[1] + " / " + r2[1] + " / " + r3[1] + " / " + r4[1] + " / " + r5[1] + " / " + r6[1]);
 	}
 
 	public static void run(ClientGameTestContext context, TestServerContext server, TestClientWorldContext world,
@@ -87,7 +171,7 @@ public final class WorkshopGameTest {
 			int before = server.computeOnServer(srv -> TentCollisions.count(srv.getOverworld()));
 			server.runCommand(String.format(Locale.ROOT, "%s place %s %d %d %d %s", cmd, id, a.getX(), a.getY(), a.getZ(), facing));
 			world.waitForChunksRender();
-			context.waitTicks(15);
+			context.waitTicks(25);
 			Object[] b0 = server.computeOnServer(srv -> {
 				ServerWorld w = srv.getOverworld();
 				var state = w.getBlockState(a);
@@ -132,6 +216,8 @@ public final class WorkshopGameTest {
 			log.accept(String.format(Locale.ROOT, "%s extent %.1f x %.1f x %.1f, %d collision boxes, %d particle source(s)", id, e.width(),
 					e.depth(), e.height(), type.colliders().size(), type.particles().size()));
 		}
+
+		useHook(context, server, check, log, a);
 
 		// /workshop remove only sees workshops: a tent at the spot stays
 		server.runCommand(String.format(Locale.ROOT, "tent place tent_camp %d %d %d south", a.getX(), a.getY(), a.getZ()));

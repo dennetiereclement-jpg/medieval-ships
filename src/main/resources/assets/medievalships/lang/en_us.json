@@ -72,6 +72,8 @@
   "block.medievalships.workshop_cook": "Cook's Workshop",
   "block.medievalships.workshop_alchemist": "Alchemist's Workshop",
   "block.medievalships.workshop_enchanter": "Enchanter's Workshop",
+  "block.medievalships.workshop_jeweler": "Jeweller's Workbench",
+  "message.medievalships.workshop_unlinked": "%s — no crafting interface is linked",
   "block.medievalships.tente_poison": "Poison Merchant Tent",
   "block.medievalships.tente_boucher": "Butcher's Tent",
   "block.medievalships.tente_boulanger": "Baker's Stall",

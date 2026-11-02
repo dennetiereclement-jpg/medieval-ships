@@ -1,0 +1,16 @@
+{
+ "variants": {
+  "facing=north": {
+   "model": "medievalships:block/workshop"
+  },
+  "facing=south": {
+   "model": "medievalships:block/workshop"
+  },
+  "facing=west": {
+   "model": "medievalships:block/workshop"
+  },
+  "facing=east": {
+   "model": "medievalships:block/workshop"
+  }
+ }
+}

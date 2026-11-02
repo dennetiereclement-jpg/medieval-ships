@@ -1,0 +1,33 @@
+{
+ "model": "models/entity/workshop_jeweler.bbmodel",
+ "texture": "textures/entity/workshops_c.png",
+ "decor": null,
+ "extent": [
+  -1.075,
+  0.0,
+  -0.587,
+  1.075,
+  1.42,
+  0.587
+ ],
+ "colliders": [
+  [
+   -1.02,
+   0.0,
+   -0.52,
+   1.02,
+   1.0,
+   0.52
+  ],
+  [
+   -0.301,
+   1.0,
+   -0.318,
+   0.336,
+   1.37,
+   0.311
+  ]
+ ],
+ "particles": [],
+ "profession": "jeweler"
+}
