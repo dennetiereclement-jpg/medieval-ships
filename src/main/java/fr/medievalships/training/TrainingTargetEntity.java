@@ -96,7 +96,7 @@ public class TrainingTargetEntity extends LivingEntity {
 	/** Server side: where it is held. */
 	@Nullable
 	private Vec3d home;
-	private long lastSound = Long.MIN_VALUE;
+	private long lastSound = -SOUND_GAP;
 	/** The prop resolved from {@link #PROP} (both sides). */
 	@Nullable
 	private TentType prop;
@@ -289,10 +289,13 @@ public class TrainingTargetEntity extends LivingEntity {
 			origin = sourcePos;
 			ray = centre.subtract(origin);
 		}
+		// unit length: the distances along the ray are in blocks
+		ray = ray.lengthSquared() > 1e-12 ? ray.normalize() : new Vec3d(0, 0, 1);
 		double tBody = rayBox(body, origin, ray), tShield = shield == null ? Double.POSITIVE_INFINITY : rayBox(shield, origin, ray);
 		if (Double.isInfinite(tBody) && Double.isInfinite(tShield)) {
 			// a hit that does not come along its ray (a sweep, an area spell): along the line to the body's centre
 			ray = centre.subtract(origin);
+			ray = ray.lengthSquared() > 1e-12 ? ray.normalize() : new Vec3d(0, 0, 1);
 			tBody = rayBox(body, origin, ray);
 			tShield = shield == null ? Double.POSITIVE_INFINITY : rayBox(shield, origin, ray);
 		}
