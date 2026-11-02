@@ -8,8 +8,15 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
@@ -20,7 +27,8 @@ import fr.medievalships.core.TentType;
  * The anchor block of a crafting workshop: a {@link TentBlock} (same drawing, collisions, placement and drops) that
  * also gives off the particles of its JSON ({@link TentType#particles}: the forge's smoke, the altar's enchanting
  * glyphs...), client-side only, at the vanilla random display ticks of the block (no ticker, nothing on the server).
- * Right-clicking it does nothing yet: the crafting is not wired to the workshops for now.
+ * Right-clicking it (1.22.0) fires the generic hook of {@link WorkshopInteraction} (an event for other mods, a command
+ * from the server config, else a short message): the mod itself has no recipes, no crafting interface, no progression.
  */
 public class WorkshopBlock extends TentBlock {
 	public WorkshopBlock(TentType type, AbstractBlock.Settings settings) {
@@ -31,6 +39,32 @@ public class WorkshopBlock extends TentBlock {
 	protected MapCodec<? extends BlockWithEntity> getCodec() {
 		TentType type = tentType();
 		return AbstractBlock.createCodec(settings -> new WorkshopBlock(type, settings));
+	}
+
+	/**
+	 * A right click (1.22.0): on the server, {@link WorkshopInteraction#use} (the {@code WorkshopUseCallback} event, then
+	 * the command configured for the profession, else a short message); on the client, just the arm swing. Spectators:
+	 * nothing.
+	 */
+	@Override
+	protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
+		if (player.isSpectator()) {
+			return ActionResult.PASS;
+		}
+		if (world instanceof ServerWorld serverWorld && player instanceof ServerPlayerEntity serverPlayer) {
+			return WorkshopInteraction.use(serverPlayer, serverWorld, pos, tentType());
+		}
+		return ActionResult.SUCCESS;
+	}
+
+	/**
+	 * The same with an item in hand (like a crafting table: the item is not used on the workshop; sneaking places it as
+	 * usual). Only for the main hand, so that one click fires the hook once.
+	 */
+	@Override
+	protected ActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand,
+			BlockHitResult hit) {
+		return hand == Hand.MAIN_HAND ? onUse(state, world, pos, player, hit) : ActionResult.PASS;
 	}
 
 	@Override

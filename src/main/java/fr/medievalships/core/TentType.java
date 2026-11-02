@@ -149,6 +149,8 @@ public final class TentType {
 	/** Null: the family decides ({@link #masculine()}); else this prop's own French gender (the decorations, 1.20.0). */
 	private Boolean masculine;
 	private boolean plural;
+	/** A workshop's profession id (JSON "profession", 1.22.0; default: the id without "workshop_"); null for the other props. */
+	private String profession;
 	/** The interactive training targets (JSON "targets", 1.19.0) turned to each facing (index = quarter turns); empty lists for most props. */
 	private List<List<TrainingTarget>> targets = List.of(List.of(), List.of(), List.of(), List.of());
 
@@ -241,6 +243,32 @@ public final class TentType {
 		this.masculine = masculine;
 		this.plural = plural;
 		return this;
+	}
+
+	/**
+	 * The profession a workshop belongs to (1.22.0): JSON {@code "profession"} (trimmed, lower case), else the id without
+	 * its {@code workshop_} prefix ({@code workshop_jeweler} -> {@code jeweler}). It is the key of the server setting
+	 * {@code workshopCommands} and the argument of the {@code WorkshopUseCallback} event. Null for every prop that is not a
+	 * workshop.
+	 */
+	public String profession() {
+		return profession;
+	}
+
+	/** A workshop's profession when its JSON names none: its id without the {@code workshop_} prefix. */
+	public static String defaultProfession(String id) {
+		return id.startsWith("workshop_") ? id.substring("workshop_".length()) : id;
+	}
+
+	/** Reads the JSON's {@code "profession"} (a non-blank string, trimmed, lower case), else {@link #defaultProfession}. */
+	static String parseProfession(String id, JsonObject root) {
+		if (root.has("profession") && root.get("profession").isJsonPrimitive()) {
+			String p = root.get("profession").getAsString().trim().toLowerCase(Locale.ROOT);
+			if (!p.isEmpty()) {
+				return p;
+			}
+		}
+		return defaultProfession(id);
 	}
 
 	/** Reads the JSON's {@code "light"}: absent, null or not a number gives 0; clamped to 0-{@link #MAX_LIGHT}. */
@@ -419,6 +447,7 @@ public final class TentType {
 		TentType type = new TentType(group, texture, id, frenchName, englishName, model, decor, extent, colliders, particles, muzzle);
 		type.targets = TrainingTarget.parseAll(root);
 		type.light = parseLight(root);
+		type.profession = WORKSHOPS.equals(group) ? parseProfession(id, root) : null;
 		return type.withSeats(parseSeats(root));
 	}
 

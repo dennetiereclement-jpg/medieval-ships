@@ -4,8 +4,8 @@ import java.util.List;
 
 
 /**
- * The twenty-two tents (six camp tents, sixteen merchant tents), the eight carts and the nomad tavern, the seven crafting
- * workshops, the three training areas and the medieval cannon. One line per prop: its id (block, item, model, decor and
+ * The twenty-two tents (six camp tents, sixteen merchant tents), the eight carts and the nomad tavern, the eight crafting
+ * workshops (the jeweller's workbench of 1.22.0 the eighth), the three training areas and the medieval cannon. One line per prop: its id (block, item, model, decor and
  * tents / carts / workshops / artillery JSON are all named after it) and its names. {@link #ALL} = the tents only (their tab "Tentes": the six camp tents, the six
  * {@link #MERCHANTS}, the five {@link #MERCHANTS2}, the two {@link #MERCHANTS3}, the two {@link #MERCHANTS4}, then the jeweller's
  * {@link #MERCHANTS5}),
@@ -98,9 +98,18 @@ public final class TentTypes {
 	public static final TentType WORKSHOP_COOK = workshop("workshop_cook", "atelier du cuisinier", "Cook's Workshop");
 	public static final TentType WORKSHOP_ALCHEMIST = workshop("workshop_alchemist", "atelier de l'alchimiste", "Alchemist's Workshop");
 	public static final TentType WORKSHOP_ENCHANTER = workshop("workshop_enchanter", "atelier de l'enchanteur", "Enchanter's Workshop");
-	/** The crafting workshops (tab "Ateliers"); placeable props only for now (the crafting itself comes later). */
+	/**
+	 * The jeweller's workbench (1.22.0): one dark oak bench (about 2 x 1 blocks) with its gem-cutting machine, gold, gems
+	 * and tools, drawn by tools/workshops/generate_workshop_jeweler.py on its own atlas (textures/entity/workshops_c.png);
+	 * profession "jeweler".
+	 */
+	public static final TentType WORKSHOP_JEWELER = workshop("workshop_jeweler", "établi du joaillier", "Jeweller's Workbench");
+	/**
+	 * The crafting workshops (tab "Ateliers"), the jeweller's workbench last. Placeable props; a right click only fires
+	 * the generic hook of fr.medievalships.tent.WorkshopInteraction (no recipes, no interface of the mod's own).
+	 */
 	public static final List<TentType> WORKSHOPS = List.of(WORKSHOP_BLACKSMITH, WORKSHOP_LEATHERWORKER, WORKSHOP_TAILOR, WORKSHOP_ENGINEER,
-			WORKSHOP_COOK, WORKSHOP_ALCHEMIST, WORKSHOP_ENCHANTER);
+			WORKSHOP_COOK, WORKSHOP_ALCHEMIST, WORKSHOP_ENCHANTER, WORKSHOP_JEWELER);
 
 	/**
 	 * The medieval cannon (1.16.0): a prop like the others (one block, static model, collision boxes) on a CannonBlock

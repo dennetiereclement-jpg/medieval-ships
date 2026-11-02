@@ -24,25 +24,25 @@ import com.google.gson.JsonParser;
 import fr.medievalships.client.model.BbModel;
 
 /**
- * The seven crafting workshops: the third family of one-block props (same TentType machinery as the tents and carts),
- * their files and names, and the optional particle sources of their JSON (parsed, turned with the facing).
+ * The eight crafting workshops (the jeweller's workbench of 1.22.0 the eighth): the third family of one-block props
+ * (same TentType machinery as the tents and carts), their files and names, and the optional particle sources of their JSON (parsed, turned with the facing).
  */
 public class WorkshopTest {
 	private static final double EPS = 1e-9;
 	private static final Path ASSETS = Path.of("src/main/resources/assets/medievalships");
 	private static final List<String> IDS = List.of("workshop_blacksmith", "workshop_leatherworker", "workshop_tailor", "workshop_engineer",
-			"workshop_cook", "workshop_alchemist", "workshop_enchanter");
+			"workshop_cook", "workshop_alchemist", "workshop_enchanter", "workshop_jeweler");
 
 	@Test
-	void sevenWorkshopsLoadAfterTheTentsAndCarts() {
-		assertEquals(7, TentTypes.WORKSHOPS.size());
+	void eightWorkshopsLoadAfterTheTentsAndCarts() {
+		assertEquals(8, TentTypes.WORKSHOPS.size(), "the seven workshops of 1.13.0 and the jeweller's workbench (1.22.0)");
 		assertEquals(6 + 6 + 5 + 2 + 2 + 1, TentTypes.ALL.size(),
 				"the tents' list: six camp tents, merchant tents I (6), II (5), III (2), IV (2) and V (1, the jeweller's)");
 		assertEquals(10, TentTypes.CARTS.size(), "the carts' list: the eight carts, the nomad tavern, the decorative rowboat (1.19.0)");
-		assertEquals(TentTypes.WORKSHOPS, TentTypes.PROPS.subList(32, 39), "the workshops come after the tents and carts in PROPS");
-		assertEquals(TentTypes.TRAINING, TentTypes.PROPS.subList(39, 42), "then the training areas (1.18.0)");
-		assertEquals(TentTypes.DECORATIONS, TentTypes.PROPS.subList(42, 50), "then the street decorations (1.20.0)");
-		assertEquals(TentTypes.ARTILLERY, TentTypes.PROPS.subList(50, 51), "then the artillery, last");
+		assertEquals(TentTypes.WORKSHOPS, TentTypes.PROPS.subList(32, 40), "the workshops come after the tents and carts in PROPS");
+		assertEquals(TentTypes.TRAINING, TentTypes.PROPS.subList(40, 43), "then the training areas (1.18.0)");
+		assertEquals(TentTypes.DECORATIONS, TentTypes.PROPS.subList(43, 51), "then the street decorations (1.20.0)");
+		assertEquals(TentTypes.ARTILLERY, TentTypes.PROPS.subList(51, 52), "then the artillery, last");
 		Set<String> ids = new HashSet<>();
 		for (TentType t : TentTypes.PROPS) {
 			assertTrue(ids.add(t.id()), "id used twice: " + t.id());
@@ -53,8 +53,9 @@ public class WorkshopTest {
 			assertEquals(TentType.WORKSHOPS, t.group());
 			assertTrue(t.isWorkshop());
 			assertFalse(t.isCart());
-			assertTrue(t.frenchName().startsWith("atelier "), t.frenchName());
-			assertTrue(t.englishName().endsWith("Workshop"), t.englishName());
+			assertTrue(t.frenchName().startsWith("atelier ") || t.frenchName().startsWith("établi "), t.frenchName());
+			assertTrue(t.englishName().endsWith("Workshop") || t.englishName().endsWith("Workbench"), t.englishName());
+			assertTrue(t.masculine(), t.id() + ": l'atelier, l'établi");
 		}
 		for (TentType t : TentTypes.ALL) {
 			assertFalse(t.isWorkshop(), t.id());
@@ -66,6 +67,10 @@ public class WorkshopTest {
 		assertSame(TentTypes.WORKSHOP_ENCHANTER, TentTypes.byId("medievalships:workshop_enchanter"));
 		assertSame(TentTypes.WORKSHOP_COOK, TentTypes.byId("cook"));
 		assertSame(TentTypes.WORKSHOP_ALCHEMIST, TentTypes.byId(" Alchemist "));
+		assertSame(TentTypes.WORKSHOP_JEWELER, TentTypes.byId("jeweler"));
+		assertSame(TentTypes.WORKSHOP_JEWELER, TentTypes.WORKSHOPS.get(7), "the jeweller's workbench is the eighth, after the enchanter");
+		assertEquals("établi du joaillier", TentTypes.WORKSHOP_JEWELER.frenchName());
+		assertEquals("Jeweller's Workbench", TentTypes.WORKSHOP_JEWELER.englishName());
 		assertSame(TentTypes.MARKET, TentTypes.byId("market"), "the tents and carts keep their short names");
 	}
 
