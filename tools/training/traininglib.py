@@ -17,6 +17,9 @@ A generator (tools/training/generate_<id>.py) does, in this order:
     F = tr.fence_ring(A, -3.4, 3.4, -3.4, 3.4, entrance=("front", 1.4, 1.6), stone="corners")
     tr.dummy(A, "dummy_0", (x, 0, z), height=1.75, yaw=0.0)                 # helmet=True, sword="pos_x", shield="neg_x"
     tr.punching_bag(A, "bag", (x, 0, z))
+    # 1.19.0: dummy() / punching_bag() (and props_l.wooden_dummy(target=tr.target(A, "shield_dummy"))) make interactive
+    # training targets: top-level bones "target_<i>" (+ _head, _arm_l, _arm_r, _shield, _sword), JSON "targets"
+    tr.seat((x, y, z), yaw=0.0)                       # a place to sit (JSON "seats", the seat surface; yaw degrees)
     tr.sword_rack(A, "rack", (x0, 0, z), (x1, 0, z), normal=(0, 0, 1))
     roof, val = tr.awning_regions(atlas, "red")                             # or ("blue", stripe="beige")
     S = tr.awning(A, "stall", x0, x1, z0, z1, roof, val)
