@@ -466,8 +466,8 @@ public final class ShipCommands {
 			if (fork != null && !yes) {
 				throw error("Test échoué.");
 			}
-			ctx.getSource().sendFeedback(() -> Text.literal(yes ? (fork != null ? "Test réussi." : "oui (" + n + ")") : "non")
-					.formatted(yes ? Formatting.GREEN : Formatting.YELLOW), false);
+			say(ctx, Text.literal(yes ? (fork != null ? "Test réussi." : "oui (" + n + ")") : "non")
+					.formatted(yes ? Formatting.GREEN : Formatting.YELLOW));
 			return yes ? Math.max(1, n) : 0;
 		});
 	}
@@ -502,7 +502,7 @@ public final class ShipCommands {
 
 	private static void report(CommandContext<ServerCommandSource> ctx, @Nullable Text msg, String fallback) {
 		Text m = msg == null ? Text.literal(fallback).formatted(Formatting.GREEN) : msg;
-		ctx.getSource().sendFeedback(() -> m, true);
+		say(ctx, m);
 	}
 
 	/** NaN: no ordered depth (the pilot's keys); infinity: ballasts full (down to the bottom or the deepest dive). */
@@ -587,14 +587,32 @@ public final class ShipCommands {
 				ship.toggle(Ships.NautilusLayout.FLOODLIGHT_ON) ? "allumé" : "éteint",
 				ship.toggle(Ships.NautilusLayout.SHUTTERS_CLOSED) ? "fermés" : "ouverts",
 				ship.toggle(Ships.NautilusLayout.LIFEBOAT_AWAY) ? "à l'eau" : "à bord");
-		ctx.getSource().sendFeedback(() -> Text.literal(msg).formatted(Formatting.GOLD), false);
+		say(ctx, Text.literal(msg).formatted(Formatting.GOLD));
 		return 1;
 	}
 
 	// ------------------------------------------------------------------ helpers
 
 	static void ok(CommandContext<ServerCommandSource> ctx, String msg) {
-		ctx.getSource().sendFeedback(() -> Text.literal(msg).formatted(Formatting.GREEN), true);
+		say(ctx, Text.literal(msg).formatted(Formatting.GREEN));
+	}
+
+	/**
+	 * Shows a message to whoever runs a command. A player gets it directly: {@code sendFeedback} is silenced for
+	 * players by the {@code sendCommandFeedback} game rule, which many servers turn off, and the confirmations, the
+	 * reports and the reasons of a refusal would then never reach them (only the bare errors do). The console and
+	 * command blocks keep the usual feedback path (with the broadcast to the operators).
+	 */
+	static void say(CommandContext<ServerCommandSource> ctx, Text text) {
+		say(ctx.getSource(), text);
+	}
+
+	static void say(ServerCommandSource source, Text text) {
+		if (source.getPlayer() != null) {
+			source.sendMessage(text);
+		} else {
+			source.sendFeedback(() -> text, true);
+		}
 	}
 
 	static CommandSyntaxException error(String msg) {
@@ -805,7 +823,7 @@ public final class ShipCommands {
 				String ai = ship.isAutopilotEnabled() ? " pilote auto: " + ship.routeName() + " (" + ship.autopilot().phase
 						+ (ship.autopilot().holding() ? ", attend l'ordre de départ" : "") + ")" : "";
 				String line = "- " + describe(ship) + " " + world.getRegistryKey().getValue() + " uuid " + ship.getUuidAsString().substring(0, 8) + ai;
-				source.sendFeedback(() -> Text.literal(line), false);
+				say(source, Text.literal(line));
 			}
 		}
 		Map<String, ShipData.FerryRecord> ferries = ShipData.get(source.getServer()).ferries();
@@ -813,10 +831,10 @@ public final class ShipCommands {
 			ShipData.FerryRecord r = e.getValue();
 			String line = String.format(Locale.ROOT, "  (navire automatique %s, dernière position %d %d, itinéraire %s)",
 					e.getKey().substring(0, 8), (int) r.x, (int) r.z, r.route);
-			source.sendFeedback(() -> Text.literal(line).formatted(Formatting.GRAY), false);
+			say(source, Text.literal(line).formatted(Formatting.GRAY));
 		}
 		int total = n;
-		source.sendFeedback(() -> Text.literal(total + " navire(s) chargé(s).").formatted(Formatting.GREEN), false);
+		say(source, Text.literal(total + " navire(s) chargé(s).").formatted(Formatting.GREEN));
 		return n;
 	}
 
@@ -829,7 +847,7 @@ public final class ShipCommands {
 				ship.gait().frenchName(), limit, ship.isAutopilotEnabled() ? "oui" : "non", ship.routeName(), ship.autopilot().phase,
 				ship.autopilot().target + 1, ship.autopilot().holding() ? "sur ordre (/ship route depart)" : ship.autopilot().waitTicks / 20 + " s",
 				ship.getPassengerList().size(), ship.geometry().seats().size(), ship.playersAboard(ctx.getSource().getWorld()).size());
-		ctx.getSource().sendFeedback(() -> Text.literal(text), false);
+		say(ctx, Text.literal(text));
 		return 1;
 	}
 
@@ -1077,12 +1095,12 @@ public final class ShipCommands {
 	private static int routeList(CommandContext<ServerCommandSource> ctx) {
 		Map<String, Route> routes = ShipData.get(ctx.getSource().getServer()).routes();
 		if (routes.isEmpty()) {
-			ctx.getSource().sendFeedback(() -> Text.literal("Aucun itinéraire."), false);
+			say(ctx, Text.literal("Aucun itinéraire."));
 		}
 		for (Route r : routes.values()) {
 			String line = String.format(Locale.ROOT, "- %s%s : %d points, %.0f blocs, %s, %s", r.name, r.air ? " (aérien)" : "", r.size(),
 					r.totalLength(), r.mode.name().toLowerCase(Locale.ROOT), r.dimension);
-			ctx.getSource().sendFeedback(() -> Text.literal(line), false);
+			say(ctx, Text.literal(line));
 		}
 		return routes.size();
 	}
@@ -1090,9 +1108,9 @@ public final class ShipCommands {
 	private static int routeInfo(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
 		Route route = route(ctx);
 		boolean ends = route.mode == Route.Mode.ONCE || route.mode == Route.Mode.RETURN;
-		ctx.getSource().sendFeedback(() -> Text.literal(String.format(Locale.ROOT, "%s (%s%s, %s, %.0f blocs)", route.name,
+		say(ctx, Text.literal(String.format(Locale.ROOT, "%s (%s%s, %s, %.0f blocs)", route.name,
 				route.mode.name().toLowerCase(Locale.ROOT), ends ? ", fin " + route.end().name().toLowerCase(Locale.ROOT) : "", route.dimension,
-				route.totalLength())).formatted(Formatting.GOLD), false);
+				route.totalLength())).formatted(Formatting.GOLD));
 		for (int i = 0; i < route.size(); i++) {
 			Waypoint w = route.get(i);
 			String line = String.format(Locale.ROOT, " %d. %.1f %.1f %.1f%s%s%s%s%s", i + 1, w.x, w.y, w.z,
@@ -1101,7 +1119,7 @@ public final class ShipCommands {
 					w.speed != null ? String.format(Locale.ROOT, " %.1f blocs/s", w.speed) : "",
 					w.depth != null ? String.format(Locale.ROOT, " profondeur %.0f m", w.depth) : "",
 					w.onArrive != null && !w.onArrive.isBlank() ? " à l'arrivée : /" + w.onArrive : "");
-			ctx.getSource().sendFeedback(() -> Text.literal(line), false);
+			say(ctx, Text.literal(line));
 		}
 		return route.size();
 	}
