@@ -538,37 +538,92 @@ Noms courts acceptés par les commandes : `militaire`, `commandement`, `marchand
 
 ### Tente militaire
 
-Tente à faîtage vert olive (environ 6 × 7-8 blocs, faîtage vers 4,5-5) : toile olive marbrée aux pentes affaissées,
-fenêtre à croisillons de bois, poteaux sombres cerclés de fer, cordes de haubanage vers des piquets, entrée ouverte sous
-le pignon avec rabats retenus, bannière verte à l'épée d'or dans une couronne de laurier, lanterne allumée ; dedans un
-lit de camp, une table avec une carte, des caisses, un petit tapis vert ; dehors des sacs de toile, une caisse avec un
-rouleau de corde. Au moins deux places libres pour un PNJ EasyNPC (1 × 1 × 2,2). *(Détails, blocs de mods et places
-PNJ : paragraphe du constructeur à compléter à l'intégration.)*
+**Tente militaire** (`tente_militaire`, `/give @p medievalships:tente_militaire`, 420 cubes, emprise 8,3 × 5,7 × 9,4
+blocs avec cordes, piquets et sacs ; la tente seule fait 6,3 × 7,9 blocs, faîte à 4,7) : tente à faîtage en toile kaki
+olive à taches de camouflage, deux pans affaissés à plis, murs bas évasés, intérieur plus sombre ; grande fenêtre à
+croisillons de bois avec auvent de toile dans le mur gauche ; poteaux sombres à frettes de fer rivetées, poteaux de
+faîte qui dépassent du toit, poutre de faîte en bois clair tenue par des sangles de toile, six grosses cordes de
+haubanage vers des piquets à chapeau de fer. Entrée ouverte sous le pignon : festons de toile roulés sous le bord drapé
+du toit, deux lourds rideaux à plis noués contre les poteaux, bannière verte à bordure crème et pointe à redans (épée
+d'or pointe en bas entre deux branches de laurier), lanterne allumée (le bloc d'ancrage éclaire à 12). Dedans : lit
+militaire à couverture verte au fond à droite, table avec carte, parchemin et dague, tabouret, deux caisses, tapis vert
+bordé de beige qui déborde sur des planches devant l'entrée. Dehors : six sacs de jute, une caisse cerclée de fer avec
+un rouleau de corde, un petit poteau sur socle de pierre.
+
+- **Blocs de mods** : `furnish:spruce_crate` (→ `minecraft:barrel`), `furnish:spruce_stool` (boîte de substitution si
+  le mod manque).
+- **Collisions** : les murs de toile, les poteaux, le lit, la table, les caisses et les sacs (22 boîtes) ; l'entrée et
+  l'allée centrale sont libres jusqu'à 2,2 blocs de haut (la pointe de la bannière est à 2,45).
+- **Places PNJ** (deux, libres, 1 × 1 × 2,2) : au centre au fond (x −0,5..0,5, z −2,7..−1,7) et au milieu
+  (x −0,5..0,5, z −0,6..0,4).
+- **Limites** : purement décoratif (lit, caisses et tabouret non utilisables), pas de sol propre (l'herbe du terrain),
+  il faut environ 1,4 bloc libre devant l'entrée pour les sacs, la caisse et les piquets.
+- Générateur `tools/tents/generate_tente_militaire.py`, atlas propre `textures/entity/tente_militaire.png`, test JUnit
+  `CampMilitaireTest`.
 
 ### Tente de commandement militaire
 
-Grand chapiteau rectangulaire (environ 10-11 × 12-13 blocs, faîtage vers 6-7) : toile olive marbrée, bandes « camouflage »
-beige et olive, lambrequin beige en dents de scie, poteaux cerclés de fer, cordes vers des ancres de pierre et de fer,
-grande ouverture sous un pignon avec rideaux retenus, trois bannières vertes aux épées croisées d'or, lanternes allumées,
-petit drapeau vert à queue d'aronde au faîtage ; dedans une grande table de stratégie avec une carte, des rouleaux, des
-livres, des caisses d'équipement, un tapis rouge orné, de la place pour au moins quatre PNJ ; devant, une table de cartes,
-une pile de caisses surmontée d'un heaume, un coffre, une roue de charrette. *(Paragraphe du constructeur à compléter.)*
+**Tente de commandement militaire** (`tente_commandement`, `/give @p medievalships:tente_commandement`, 606 cubes,
+lumière 13) — grand chapiteau rectangulaire en toile olive marbrée (poteaux 9,8 × 11,8 blocs, murs 3,9, faîte à 6,9,
+emprise avec haubans et mobilier extérieur 12,9 × 15,5 × 8,9) : toit à deux pans affaissés entre les chevrons, bandes
+camouflage beige, kaki et olive en gros pixels aux bords en escalier, lambrequin dentelé tout autour et sous la poutre
+avant, gros poteaux frettés de fer (angles, côtés, entrée), deux poinçons qui traversent le faîte, huit haubans épais
+vers des blocs d'ancrage en pierre, grande entrée de 4,4 × 3,2 aux rideaux camouflage relevés (le gauche olive foncé),
+trois bannières vertes aux épées croisées dans une couronne de laurier, lanternes allumées, fanion olive à queue
+d'aronde au faîte. Intérieur : poste de commandement (table de stratégie avec carte, rouleaux, livres, plume et lampe ;
+bibliothèques, caisses d'équipement, râtelier d'armes, tapis rouge orné). Dehors : grande table aux cartes et plumes,
+caisses aux épées croisées avec un heaume, coffre, roue de charrette.
+
+- **Blocs de mods** : farmhouse_decorations (`tall_bookshelf` → `minecraft:bookshelf`, `pile_of_books`,
+  `kerosene_lantern` → `minecraft:lantern`) et furnish (`spruce_crate` → `minecraft:barrel`, `spruce_chair`,
+  `spruce_stool`), avec repli vanilla ou cubes de remplacement.
+- **Collisions** : 41 boîtes (poteaux, les cinq murs de toile, mobilier) ; l'entrée est ouverte et l'allée de l'entrée
+  à la table est libre jusqu'à 2,2 blocs de haut.
+- **Places PNJ** (cinq, libres, 1 × 1 × 2,2) : x −3,5..−2,5 et 2,5..3,5 pour z 0..1 et 2,5..3,5, plus devant la table
+  (x −0,5..0,5, z −1,2..−0,2).
+- **Limites** : décor statique, aucun PNJ fourni, il faut 13 × 16 blocs dégagés pour la poser.
+- Générateur `tools/tents/generate_tente_commandement.py` (+ `props_tente_commandement.py`), atlas propre de 1024 px
+  `textures/entity/tente_commandement.png`, test JUnit `CampCommandementTest`.
 
 ### Tente marchande
 
-Grand pavillon de marchand (environ 8-9 × 7-8 blocs, drapeau vers 7) : toit à pignon à larges bandes rouges et crème,
-lambrequin doré crénelé, charpente sombre aux gros chapeaux de poteaux et bandes de fer, cordes drapées le long des
-avant-toits, petit drapeau rouge et or, deux auvents latéraux (caisses et coffre à gauche, tonneaux et caisses à
-droite), enseigne suspendue aux pièces d'or, bannière rouge à la bourse d'or, lanternes ; un comptoir drapé de rouge
-bordé d'or, des étagères de potions, livres et marchandises, un coffre doré, des tonneaux cerclés, un gros sac, un tapis
-rouge et or ; une place libre derrière le comptoir pour un marchand EasyNPC (accès par un passage latéral). Pas de
-système d'échange. *(Paragraphe du constructeur à compléter.)*
+**Tente marchande** (`tente_marchande`, `/give @p medievalships:tente_marchande`, 731 cubes, atlas propre de 512 px) —
+grand pavillon marchand d'environ 10 × 7,8 blocs, extensions, enseigne et tapis compris, drapeau à un peu plus de 7
+blocs. Un grand toit à deux pans, à larges rayures rouge vif et crème pêche aux plis souples, finit par une retombée de
+toile rayée au-dessus d'un lambrequin doré à grands créneaux. Le bâti est en bois chaud : de gros poteaux cerclés de fer
+riveté, coiffés de gros chapeaux, et des blocs coiffés aux deux bouts du faîtage. Des cordes épaisses sont nouées aux
+coins avant et descendent le long du pignon gauche. Sur le faîtage flotte un drapeau rouge et or à queue d'aronde. Une
+enseigne aux pièces d'or pend d'une poutre partant du bout droit du faîtage, et une bannière rouge à la bourse dorée est
+accrochée à droite du poteau avant gauche. Quatre lanternes allumées (deux aux poteaux avant, une à l'intérieur, une
+sous l'extension droite) éclairent la tente, et le bloc d'ancrage émet une lumière de 13. Deux extensions couvertes
+partent sous l'avant-toit : à gauche, un auvent rayé avec un coffre doré sur un support croisillonné, des caisses, un
+tonneau, et un grand sac de toile noué devant ; à droite, un auvent crème sur des tonneaux et des caisses. À
+l'intérieur : un comptoir sous une nappe rouge à bordure dorée (parchemins, caisse de fruits rouges, petites caisses),
+des étagères à fond de bois avec potions, livres et tissus, des rideaux retroussés, et un tapis rouge et or devant.
 
-**Tests** : `TentGameTest` pose chacune des trois tentes une fois (bloc, orientation, entité de bloc, boîtes de
-collision, tient sur la plateforme, capture, retrait) et place un villageois sur une place libre à l'intérieur (une
-colonne 1 × 1 × 2,2 hors de toute boîte de collision, cherchée depuis le centre) : il n'est dans aucune boîte de
-collision et ne bouge pas. Les tests JUnit `CampMilitaireTest`, `CampCommandementTest`, `CampMarchandeTest` arrivent avec
-chaque modèle.
+- **Blocs de mods** : `furnish:spruce_crate` ×2 et `landsoficaria:cypress_barrel` ; sans ces mods, un tonneau vanilla
+  ou des cubes de remplacement les remplacent.
+- **Collisions** : 29 boîtes (poteaux ±0,34, poteaux des extensions ±0,24, comptoir, mur du fond…) ; l'avant est
+  praticable jusqu'au comptoir.
+- **Place du PNJ marchand** (EasyNPC) : 1 × 1 × 2,2 libre derrière le comptoir (x −0,2..0,8, z −1,25..−0,25 en
+  coordonnées de la tente, avant = +z). On y accède par le passage entre le poteau avant gauche et le comptoir, sous la
+  bannière.
+- **Limites** : pas de système d'échange et rien ne tourne en tâche de fond.
+- Générateur `tools/tents/generate_tente_marchande.py` (s'appuie sur `merchantlib` et `tentlib` sans les modifier),
+  test JUnit `CampMarchandeTest`.
+
+**Tests** :
+
+- JUnit `CampMilitaireTest`, `CampCommandementTest`, `CampMarchandeTest` (une par tente) : le JSON se charge par
+  `TentType.load` avec son atlas propre et sa lumière, le modèle et le décor se chargent, l'emprise et le nombre de
+  cubes restent dans les bornes, le modèle est statique avec un bone `detail` et des lanternes lumineuses, les poteaux
+  et les murs de toile pleins ont des collisions, l'entrée est ouverte et l'allée libre jusqu'à 2,2 blocs de haut, les
+  places PNJ sont libres (et, pour la tente marchande, atteignables à pied depuis l'avant).
+- `TentGameTest` pose chacune des trois tentes une fois (bloc, orientation, entité de bloc, boîtes de collision, tient
+  sur la plateforme, capture, retrait) et place un villageois sur une place libre à l'intérieur (une colonne
+  1 × 1 × 2,2 hors de toute boîte de collision, cherchée depuis le centre) : il n'est dans aucune boîte de collision et
+  ne bouge pas.
+- Les générateurs régénèrent leurs fichiers à l'identique (vérifié à l'intégration).
 
 ## Performances
 
@@ -577,7 +632,7 @@ chaque modèle.
   qui bougent dans l'emprise).
 - **Rendu** : un `BlockEntityRenderer` qui réutilise le chemin statique du rendu des navires (`BbModel.renderStatic`,
   matrices des bones en cache) ; la boîte de rendu est l'emprise de la tente, donc le jeu l'élimine hors champ
-  (frustum culling). Modèles modestes (153 à 673 cubes) : des centaines de tentes restent peu coûteuses.
+  (frustum culling). Modèles modestes (153 à 816 cubes) : des centaines de tentes restent peu coûteuses.
 - **Niveaux de détail** (`config/medievalships.json`, section `server`, lus par le client dans son propre fichier
   de configuration : ils ne sont pas synchronisés depuis le serveur) :
   `tentDecorDistance` (32 blocs) : en deçà, les meubles et petits détails sont dessinés ; entre cette distance et

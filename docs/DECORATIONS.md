@@ -129,8 +129,8 @@ pieu demande au monde les entités vivantes dans cette petite boîte (pas de rec
   pendant l'invulnérabilité qui suit un coup plus fort, contre un mob invulnérable ou un bouclier qui pare tout) ;
 - pas deux fois de suite : un délai par entité (`cooldownTicks`, 20 ticks = 1 s ; mémoire passagère dans l'entité de
   bloc, nettoyée, jamais sauvegardée) ;
-- **épargne** les joueurs par défaut (réglage `damagePlayers` ; jamais en créatif ni en spectateur), et **toujours** les
-  animaux, villageois, PNJ (les entités Easy NPC ne sont pas des `Monster`).
+- **épargne** les joueurs par défaut (réglage `damagePlayers` ; jamais en créatif, en spectateur ni invulnérables), et
+  **toujours** les animaux, villageois, PNJ (les entités Easy NPC ne sont pas des `Monster`).
 
 **Réglages serveur** (`config/medievalships.json`, section `"server"`), valeurs par défaut :
 
@@ -165,7 +165,8 @@ Sûr sur serveur dédié (aucune classe client sur ce chemin).
   rendue) à la pointe n'est ni blessé ni touché par le pieu par défaut, l'est avec `damagePlayers = true` (posé par
   l'API, puis rétabli) ; trois pieux côte à côte à un bloc d'écart
   se posent tous ; captures ; un pieu cassé rend son objet.
-- JUnit `DecorationTest` : les huit JSON se chargent dans l'ordre, groupe `decorations` entre les aires
+- JUnit `DecorationTest` : les neuf JSON se chargent dans l'ordre (les huit décorations de rue, puis le pieu, seul à
+  avoir son propre atlas et un champ `hazard`), groupe `decorations` entre les aires
   d'entraînement et le canon, emprises de 1 à 8 blocs de large et au plus 6 de haut au sol, seules de fines boîtes de
   poteaux collisionnent et toutes dans l'emprise, le passage entre deux poteaux est libre, lumière (12, 15, 0 sinon,
   bornage 0-15), modèles chargés sans animation avec un os `detail` et au plus 250 cubes, cubes `glow` quand il y a de
