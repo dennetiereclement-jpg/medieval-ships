@@ -75,6 +75,11 @@ class NewShipModelsTest {
 							"lantern_cathead_s", "door_0_a", "door_0_b", "rope_slack_fore_brace_p", "hull", "sterncastle", "rooms", "furniture", "fittings"},
 					new String[] {"sail_wind", "sail_furl", "steer", "flag_wave", "lantern_sway", "rope_sway", "door_0"}),
 			new Expected("rowboat", new String[] {"oar_l1", "oar_r1", "hull", "fittings", "detail"}, new String[] {"row"}),
+			new Expected("royal_lion_ship",
+					new String[] {"helm_wheel", "rudder", "mast_fore", "mast_main", "mast_mizzen", "sail_main_course", "sail_fore_topsail",
+							"sail_mizzen_course", "sail_jibs", "flag_main", "flag_main_tip", "flag_stern", "lantern_stern_p", "lantern_bow",
+							"door_0_a", "door_1_b", "door_2_a", "rope_slack_fore_brace_p", "hull", "sterncastle", "rooms", "furniture", "fittings"},
+					new String[] {"sail_wind", "sail_furl", "steer", "flag_wave", "lantern_sway", "rope_sway", "door_0", "door_1", "door_2"}),
 			new Expected("trade_sloop",
 					new String[] {"sail_main", "sail_jib", "rudder", "lantern_0", "lantern_1", "lantern_bow", "rope_slack_0", "hull", "deck", "mast", "cargo"},
 					new String[] {"sail_wind", "sail_furl", "steer", "lantern_sway", "rope_sway"}));

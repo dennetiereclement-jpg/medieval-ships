@@ -55,6 +55,7 @@ import fr.medievalships.entity.MedievalGalleyEntity;
 import fr.medievalships.entity.ElvenSailboatEntity;
 import fr.medievalships.entity.NautilusEntity;
 import fr.medievalships.entity.BlueFrigateEntity;
+import fr.medievalships.entity.RoyalLionShipEntity;
 import fr.medievalships.entity.OldCorsairEntity;
 import fr.medievalships.entity.SkyLeviathanEntity;
 import fr.medievalships.entity.CrystalAirshipEntity;
@@ -110,6 +111,8 @@ public final class MedievalShips implements ModInitializer {
 	public static Item BLUE_FRIGATE_ITEM;
 	public static EntityType<RowboatEntity> ROWBOAT;
 	public static Item ROWBOAT_ITEM;
+	public static EntityType<RoyalLionShipEntity> ROYAL_LION_SHIP;
+	public static Item ROYAL_LION_SHIP_ITEM;
 
 	private static final Map<ShipType, EntityType<? extends ShipEntity>> ENTITY_TYPES = new LinkedHashMap<>();
 	private static final Map<ShipType, Item> ITEMS = new LinkedHashMap<>();
@@ -170,6 +173,8 @@ public final class MedievalShips implements ModInitializer {
 		ROWBOAT_ITEM = ITEMS.get(Ships.ROWBOAT);
 		TRADE_SLOOP = registerShip(Ships.TRADE_SLOOP, TradeSloopEntity::new, 3.0f, 0.4f, 14);
 		TRADE_SLOOP_ITEM = ITEMS.get(Ships.TRADE_SLOOP);
+		ROYAL_LION_SHIP = registerShip(Ships.ROYAL_LION_SHIP, RoyalLionShipEntity::new, 6.5f, 0.4f, 22);
+		ROYAL_LION_SHIP_ITEM = ITEMS.get(Ships.ROYAL_LION_SHIP);
 
 		// the six tents: one block each, their items in the tab "Tentes"
 		fr.medievalships.tent.Tents.register();

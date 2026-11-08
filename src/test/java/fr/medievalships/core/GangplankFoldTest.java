@@ -41,6 +41,7 @@ class GangplankFoldTest {
 			Map.entry("elven_sailboat", new double[] {2.344, 1.490, 1.272}),
 			Map.entry("old_corsair", new double[] {3.144, 1.756, 2.082}),
 			Map.entry("blue_frigate", new double[] {3.144, 1.585, 2.892}),
+			Map.entry("royal_lion_ship", new double[] {3.144, 1.585, 2.892}), // (no 1.23.1 pack: the frigate's, same plank width)
 			Map.entry("crystal_airship", new double[] {3.644, 1.531, 1.708}),
 			Map.entry("sky_leviathan", new double[] {3.144, 1.531, 1.708}),
 			Map.entry("dragon_junk", new double[] {3.144, 1.531, 1.708}),

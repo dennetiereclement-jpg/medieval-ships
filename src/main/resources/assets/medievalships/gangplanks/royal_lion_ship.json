@@ -1,0 +1,33 @@
+{
+  "side": "starboard",
+  "hinge": [
+    -5.47,
+    6.4,
+    3.0
+  ],
+  "width": 3.0,
+  "length": 9.0,
+  "style": "dark_wood",
+  "lever": [
+    -4.55,
+    4.5,
+    4.95
+  ],
+  "step": [
+    -5.04,
+    4.5,
+    1.5,
+    -2.75,
+    6.4,
+    4.5
+  ],
+  "angles": [
+    -15.0,
+    42.0
+  ],
+  "max_drop": 6.02,
+  "segments": 16,
+  "stow_offset": 0.14,
+  "stow_drop": 1.0,
+  "stow_tilt": 13
+}
