@@ -13,31 +13,35 @@ import fr.medievalships.core.Gangplank;
 
 /**
  * Draws a vessel's boarding gangplank in the ship's model space (inside {@link ShipRenderer}'s transform, so a stowed
- * plank follows the hull): the folding plank model {@code gangplank_<id>}, each segment bone placed by its fold pose
- * and each handrail folded about its pivot line ({@link Gangplank#foldPose}, the mapping of {@link Gangplank}'s class
- * doc: a compact zig-zag pack against the hull side when stowed, unfolding while it deploys, straight once deployed),
- * the deck lever with its handle flipped by the state, the two support chains / ropes (stretched thin boxes) from the
- * chain anchor, or from a pair of small gallows posts at the hinge, to the plank's tip, and the inboard stairs while
+ * plank follows the hull): the telescoping, folding plank model {@code gangplank_<id>}, each segment's strip, wings and
+ * handrails placed by the fold pose ({@link Gangplank#foldPose} and {@link Gangplank#plankPoint}, the mapping of
+ * {@link Gangplank}'s class doc: a small flat hull-coloured pack against the hull side when stowed, opening and sliding
+ * out while it deploys, straight once deployed; nested segments are skipped), the deck lever with its handle flipped by
+ * the state, the two support chains / ropes (stretched thin boxes) from the chain anchor, or from a pair of gallows posts
+ * at the hinge that telescope out of the rail, to the plank's tip (retracted while stowed), and the inboard stairs while
  * the plank is out. Everything comes from synced state; the stowed pose is computed once per vessel, a moving one into
- * a scratch array, and the segments go through {@link BbModel#renderPart} (cached quads) and one reused sink.
+ * a scratch array, and the parts go through {@link BbModel#renderPart} (cached quads) and one reused sink.
  */
 final class GangplankRenderer {
 	private static final float CHAIN = 0.05f;
 	private static final float POST = 0.13f;
-	private static final float POST_HEIGHT = 2.5f;
-	/** Bone names of the segments and of their handrails (no string built per frame). */
+	/** Bone names of the segments, their wings and their handrails (no string built per frame). */
 	private static final String[] SEG = new String[Gangplank.MAX_SEGMENTS];
+	private static final String[][] WING = new String[Gangplank.MAX_SEGMENTS][2];
 	private static final String[][] RAIL = new String[Gangplank.MAX_SEGMENTS][2];
 	/** Scratch pose of a moving plank and of the chains' end (render thread only; each command fills them before use). */
-	private static final double[] POSE = new double[3 * Gangplank.MAX_SEGMENTS + 1];
+	private static final double[] POSE = new double[Gangplank.poseLength(Gangplank.MAX_SEGMENTS)];
 	private static final double[] TIP = new double[3];
+	private static final double[] FROM = new double[3];
 	private static final FoldSink FOLD = new FoldSink();
 
 	static {
 		for (int k = 0; k < Gangplank.MAX_SEGMENTS; k++) {
 			SEG[k] = "seg_" + k;
-			RAIL[k][0] = "rail_" + k + "_0";
-			RAIL[k][1] = "rail_" + k + "_1";
+			for (int side = 0; side < 2; side++) {
+				WING[k][side] = "wing_" + k + "_" + side;
+				RAIL[k][side] = "rail_" + k + "_" + side;
+			}
 		}
 	}
 
@@ -51,7 +55,7 @@ final class GangplankRenderer {
 		Gangplank.State gp = state.gangplankState;
 		double ticks = state.gangplankTicks;
 		double target = state.gangplankTarget;
-		// ---- the plank: each segment (and its folding handrails) by its fold pose, about the hinge
+		// ---- the plank: each segment's strip, wings and handrails by the fold pose, about the hinge
 		BbModel.Pose[] poses = ShipModels.gangplankPoses(shipId);
 		if (plank != null && poses != null) {
 			matrices.push();
@@ -60,18 +64,23 @@ final class GangplankRenderer {
 				matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(180f));
 			}
 			queue.submitCustom(matrices, layer, (entry, vertices) -> {
-				int n = Gangplank.fold(spec).n();
+				Gangplank.Fold fold = Gangplank.fold(spec);
+				int n = fold.n();
 				double[] f = Gangplank.foldPose(spec, gp, ticks, target, POSE);
-				FoldSink sink = FOLD.begin(entry, vertices, light);
+				FoldSink sink = FOLD.begin(entry, vertices, light, spec, f);
 				for (int k = 0; k < n; k++) {
-					sink.segment(f[3 * k], f[3 * k + 1], f[3 * k + 2]);
+					if (!Gangplank.visible(f, k)) {
+						continue; // nested inside the previous segment
+					}
+					sink.segment(fold, k, 0, false);
 					plank.renderPart(poses[0], SEG[k], sink);
-					if (!far) {
-						for (int side = 0; side < 2; side++) {
-							sink.rail(spec, side == 0 ? -1 : 1, f[3 * n]);
-							plank.renderPart(poses[1], RAIL[k][side], sink);
+					for (int side = 0; side < 2; side++) {
+						sink.segment(fold, k, side == 0 ? -1 : 1, false);
+						plank.renderPart(poses[1], WING[k][side], sink);
+						if (!far && Gangplank.railVisible(f, k)) {
+							sink.segment(fold, k, side == 0 ? -1 : 1, true);
+							plank.renderPart(poses[2], RAIL[k][side], sink);
 						}
-						sink.noRail();
 					}
 				}
 			});
@@ -112,25 +121,34 @@ final class GangplankRenderer {
 		int[] plankTop = Gangplank.region(spec.style(), "plank");
 		boolean out = state.gangplankOut;
 		queue.submitCustom(matrices, layer, (entry, vertices) -> {
-			int n = Gangplank.fold(spec).n();
+			Gangplank.Fold fold = Gangplank.fold(spec);
+			int n = fold.n();
 			double[] f = Gangplank.foldPose(spec, gp, ticks, target, POSE);
-			double hw = spec.width() / 2 - 0.08;
-			for (double w : new double[] {-hw, hw}) {
-				// the eyes at the tip of the last segment, wherever the folding put it
-				Gangplank.foldPoint(spec, f, n - 1, spec.length() - 0.25, 0.06, w, TIP);
-				double[] corner = TIP;
-				double[] from;
+			double chain = f[Gangplank.POSE_CHAIN];
+			double ph = Gangplank.postHeight(chain);
+			for (int side = -1; side <= 1; side += 2) {
+				double w = side * (spec.width() / 2 - Gangplank.EYE_INSET);
+				double[] from = FROM;
 				if (spec.hasChainAnchor()) {
 					from = spec.chainAnchor(w);
 				} else {
-					// a small gallows post at each end of the hinge, a sheave on top
-					double px = spec.hx() - spec.o() * 0.12, pz = spec.hz() + spec.o() * (w + Math.signum(w) * 0.2);
-					box(entry, vertices, light, rail, px - POST / 2, spec.hy() - 0.1, pz - POST / 2, px + POST / 2, spec.hy() + POST_HEIGHT, pz + POST / 2);
-					box(entry, vertices, light, metal, px - 0.1, spec.hy() + POST_HEIGHT - 0.2, pz - 0.1, px + 0.1, spec.hy() + POST_HEIGHT + 0.04,
-							pz + 0.1);
-					from = new double[] {px, spec.hy() + POST_HEIGHT - 0.08, pz};
+					// a gallows post at each end of the hinge (sunk into the rail while stowed), a sheave on top
+					double px = spec.hx() - spec.o() * 0.12, pz = spec.hz() + spec.o() * side * (spec.width() / 2 + 0.12);
+					box(entry, vertices, light, rail, px - POST / 2, spec.hy() - 0.1, pz - POST / 2, px + POST / 2, spec.hy() + ph, pz + POST / 2);
+					box(entry, vertices, light, metal, px - 0.1, spec.hy() + ph - 0.2, pz - 0.1, px + 0.1, spec.hy() + ph + 0.04, pz + 0.1);
+					FROM[0] = px;
+					FROM[1] = spec.hy() + ph - 0.08;
+					FROM[2] = pz;
 				}
-				beam(entry, vertices, light, cord, from, corner, CHAIN);
+				if (chain <= 0) {
+					continue; // retracted onto the sheave
+				}
+				// the eye on the last segment's wing, wherever the folding put it; the chain pays out towards it
+				Gangplank.plankPoint(spec, fold, f, n - 1, side, spec.length() - 0.25, 0.05, w, TIP);
+				for (int a = 0; a < 3; a++) {
+					TIP[a] = from[a] + (TIP[a] - from[a]) * chain;
+				}
+				beam(entry, vertices, light, cord, from, TIP, CHAIN);
 			}
 			if (out) {
 				for (Gangplank.Box b : Gangplank.stairBoxes(spec)) {
@@ -141,52 +159,58 @@ final class GangplankRenderer {
 	}
 
 	/**
-	 * Emits model-local quads of one segment (or one of its handrails) placed by its fold pose, relative to the hinge
-	 * frame: a handrail point is first turned about the rail's pivot line ({@link Gangplank#railPoint}), then the
-	 * segment's pose maps (u, v, w) to (cx + u cos a + v sin a, cy - u sin a + v cos a, w). One instance, reused.
+	 * Emits model-local quads of one part of a segment (its strip, a wing or a wing's handrail) placed by the fold pose,
+	 * relative to the hinge frame, exactly as {@link Gangplank#plankPoint} (and {@link Gangplank#railPoint}) map them:
+	 * the handrail's posts scaled along v, the wing turned about its hinge axis, the segment slid back (lower and narrower
+	 * while nested), then (u, v, w) to (cx + u cos a + v sin a, cy - u sin a + v cos a, w). One instance, reused.
 	 */
 	private static final class FoldSink implements BbModel.QuadSink {
 		private MatrixStack.Entry entry;
 		private VertexConsumer vertices;
 		private int light;
 		private float ca, sa, cx, cy;
+		/** The part: wing turn (cos, sin, pivot v / w, side), slide back, nesting, handrail scale. */
+		private float cw, sw, pv, pz, shift, drop, shrink, railK;
+		private int part;
 		private boolean rail;
-		private float cr, sr, pv, pz;
+		private Gangplank.Spec spec;
+		private double[] pose;
 
-		FoldSink begin(MatrixStack.Entry entry, VertexConsumer vertices, int light) {
+		FoldSink begin(MatrixStack.Entry entry, VertexConsumer vertices, int light, Gangplank.Spec spec, double[] pose) {
 			this.entry = entry;
 			this.vertices = vertices;
 			this.light = light;
-			this.rail = false;
+			this.spec = spec;
+			this.pose = pose;
+			double r = Math.toRadians(pose[Gangplank.POSE_A]);
+			ca = (float) Math.cos(r);
+			sa = (float) Math.sin(r);
+			cx = (float) pose[Gangplank.POSE_X];
+			cy = (float) pose[Gangplank.POSE_Y];
+			double ph = Math.toRadians(pose[Gangplank.POSE_WING]);
+			cw = (float) Math.cos(ph);
+			sw = (float) Math.sin(ph);
+			pv = (float) Gangplank.WING_PIVOT;
+			railK = (float) Gangplank.railScale(pose[Gangplank.POSE_RAIL]);
 			return this;
 		}
 
-		void segment(double a, double x, double y) {
-			double r = Math.toRadians(a);
-			ca = (float) Math.cos(r);
-			sa = (float) Math.sin(r);
-			cx = (float) x;
-			cy = (float) y;
-		}
-
-		void rail(Gangplank.Spec spec, int side, double fold) {
-			double psi = Math.toRadians(-side * fold);
-			cr = (float) Math.cos(psi);
-			sr = (float) Math.sin(psi);
-			pv = (float) Gangplank.RAIL_PIVOT_V;
-			pz = (float) (side * (spec.width() / 2 - Gangplank.RAIL_PIVOT_INSET));
-			rail = true;
-		}
-
-		void noRail() {
-			rail = false;
+		/** The next quads are segment k's part (0 strip, -1 / +1 wing), a wing's handrail if {@code isRail}. */
+		void segment(Gangplank.Fold fold, int k, int part, boolean isRail) {
+			this.part = part;
+			this.rail = isRail;
+			pz = (float) (part * Gangplank.wingPivot(spec));
+			shift = (float) Gangplank.nestShift(fold, pose, k);
+			double nest = Gangplank.nestOffset(pose, k);
+			drop = (float) (Gangplank.NEST_DROP * nest);
+			shrink = (float) (1.0 - (1.0 - Gangplank.NEST_SHRINK) * nest);
 		}
 
 		@Override
 		public void quad(float[] p, float[] uv, float[] n, boolean glow) {
 			float nx = n[0], ny = n[1], nz = n[2];
-			if (rail) {
-				float ry = ny * cr - nz * sr, rz = ny * sr + nz * cr;
+			if (part != 0) {
+				float rz = nz * cw - part * ny * sw, ry = part * nz * sw + ny * cw;
 				ny = ry;
 				nz = rz;
 			}
@@ -194,10 +218,16 @@ final class GangplankRenderer {
 			for (int k = 0; k < 4; k++) {
 				float x = p[k * 3], y = p[k * 3 + 1], z = p[k * 3 + 2];
 				if (rail) {
-					float dv = y - pv, dw = z - pz;
-					y = pv + dv * cr - dw * sr;
-					z = pz + dv * sr + dw * cr;
+					y *= railK;
 				}
+				if (part != 0) {
+					float dv = y - pv, dw = z - pz;
+					z = pz + dw * cw - part * dv * sw;
+					y = pv + part * dw * sw + dv * cw;
+				}
+				x -= shift;
+				y -= drop;
+				z *= shrink;
 				vertices.vertex(entry, cx + x * ca + y * sa, cy - x * sa + y * ca, z)
 						.color(0xFFFFFFFF)
 						.texture(uv[k * 2], uv[k * 2 + 1])

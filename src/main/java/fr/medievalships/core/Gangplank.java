@@ -43,37 +43,37 @@ import com.google.gson.JsonParser;
  * </pre>
  * Deployed, it rests at the angle found by the landing search, within {@link Spec#minAngle}..{@link Spec#maxAngle}.
  *
- * <h2>Folding (accordion)</h2>
- * The plank is a folding gangway of {@link #segments} segments of equal length {@code s} (segment {@code k} spans
- * {@code u} in [k s, (k+1) s]), hinged to each other. Stowed, it is folded zig-zag into a compact pack hanging
- * against the OUTSIDE of the hull side just under the hinge: segment 0 hangs down from the hinge (walking surface
- * facing outboard), segment 1 folds back up on it, and so on; the pack is one segment high and {@code n} layers of
- * {@link #FOLD_UNDER} + {@link #FOLD_OVER} thick, its inner face {@link Fold#standoff} outboard of the hinge line
- * (clear of the hull, see {@link #fold}) and its top {@link #STOW_DROP} under the hinge height. Joint {@code j}
- * (between segments j-1 and j, at {@code u = j s}) folds the walking surfaces against each other (odd j: "top"
- * fold, pivot {@link #FOLD_OVER} over the walking surface) or the undersides (even j: "bottom" fold, pivot
- * {@link #FOLD_UNDER} under it), so the layers stack without crossing. The handrails' stanchions of each segment
- * fold flat, inwards, onto its walking surface (pivot line {@link #RAIL_PIVOT_V} over it, {@link #RAIL_PIVOT_INSET}
- * inside its side edges). Deploying, the pack lifts out and up, unfolds segment by segment (joint 1 first) while the
- * whole swings to the target slope, the handrails stand up, and the plank lands straight, exactly as a one-piece
- * plank at the target angle ({@link #foldPose}); retracting is the reverse. A segment's pose is
- * {@code (a_k, cx_k, cy_k)}: its points are, relative to the hinge (X outboard, Y up),
+ * <h2>Folding (compact pack, 1.23.2)</h2>
+ * Across its width the plank is a centre strip ({@link #stripHalf}: half the width) and two side wings (a quarter each),
+ * hinged lengthwise to the strip on axes {@link #WING_PIVOT} over the walking surface and {@link #WING_GAP} outboard of
+ * its edges ({@link #wingPivot}); along its length it is {@link #segments} telescoping segments of equal length
+ * {@code s} (segment {@code k} spans {@code u} in [k s, (k+1) s]), each one sliding inside the previous one. Stowed,
+ * every segment is nested in segment 0 and both wings are folded over the strip's walking surface (handrails telescoped
+ * down between them, chains retracted onto their gallows posts, which sink into the rail): a small flat pack one
+ * segment high and half the plank wide, {@link Fold#thickness} thick, hanging flat against the OUTSIDE of the hull side
+ * just under the hinge (inner face {@link Fold#standoff} outboard of the hinge line, touching the hull, see
+ * {@link #fold}), its outer face the wings' undersides, painted like the hull there (the camouflage cells of
+ * textures/entity/gangplank.png). Deploying: a short unlock, the pack swings out and up, the wings open out, the
+ * segments slide out one after the other, the straight plank lowers to the target slope, the handrails rise, and it
+ * lands exactly as a one-piece plank at the target angle ({@link #foldPose}); retracting is the reverse. Points of the
+ * model go through {@link #plankPoint} (and {@link #railPoint} for a handrail):
  * <pre>
- *   X = cx_k + u cos a_k + v sin a_k,   Y = cy_k - u sin a_k + v cos a_k
+ *   X = cx + u' cos a + v' sin a,   Y = cy - u' sin a + v' cos a
  * </pre>
- * (straight: every {@code a_k = a}, {@code cx_k = cy_k = 0}: the formula above). {@link Spec#stowedAngle} (default -90,
- * raised upright, the stowed position of 1.23.0) is now only the start of the swing that {@link #clearance} sweeps,
- * so the deploy rules are unchanged.
+ * with (u', v', w') the point after its wing's fold and its segment's slide (straight: every fold 0, every segment out,
+ * {@code cx = cy = 0}: the formula above). A segment still nested is not drawn ({@link #visible}). {@link Spec#stowedAngle}
+ * (default -90, raised upright, the stowed position of 1.23.0) is only the start of the swing that {@link #clearance}
+ * sweeps, so the deploy rules are unchanged.
  *
  * <h2>Models</h2>
  * {@code models/entity/gangplank_<ship id>.bbmodel} (tools/gangplank/gangplanklib.py): model-local
  * (u, v, w) = (x, y, z): hinge line along the model's z axis through the origin, the plank along +x, its
- * top surface at y = 0, centred on z, straight. One bone per segment, {@code seg_<k>} (origin at its inner end,
- * {@code (k s, 0, 0)}), each with its two handrails {@code rail_<k>_0} (-z side) and {@code rail_<k>_1} (+z side)
- * as children. The renderer maps each segment with its pose: translate to the hinge, rotate 180 degrees about y for
- * a starboard plank, translate by (cx_k, cy_k, 0), then rotate by -a_k about z (the model's +x end goes down for a
- * positive angle); a handrail is first turned inwards about its pivot line (along x) by the rail fold
- * ({@link #railPoint}). {@code models/entity/gangplank_lever_<style>.bbmodel}: the base at the
+ * top surface at y = 0, centred on z, straight. One bone per segment, {@code seg_<k>} (the centre strip, origin at its
+ * inner end, {@code (k s, 0, 0)}), its two wings {@code wing_<k>_0} (-z) and {@code wing_<k>_1} (+z) as children (origin
+ * on their hinge axis), each with its handrail {@code rail_<k>_0} / {@code rail_<k>_1} as child (origin at its post's
+ * foot). The renderer translates to the hinge, rotates 180 degrees about y for a starboard plank and maps every point
+ * of a part by {@link #plankPoint} (a handrail first by {@link #railPoint}); nested segments are skipped.
+ * {@code models/entity/gangplank_lever_<style>.bbmodel}: the base at the
  * origin on the deck, a bone {@code handle} pivoting at the base and tilting in the model's x-y plane, the
  * lever facing the model's +x. The renderer turns it about +y by {@link Spec#leverYaw} degrees
  * ({@code RotationAxis.POSITIVE_Y}: 0 = facing the ship's +x, 90 = facing -z, 180 = facing -x); by default
@@ -172,14 +172,19 @@ public final class Gangplank {
 	 * @param maxDrop     largest drop hinge -> landing it may bridge (blocks)
 	 * @param chainX      fixed point the support chains / ropes run from (NaN: above the hinge)
 	 * @param stowedAngle start of the swing the clearance check sweeps (default -90, raised; see the class doc)
-	 * @param segments    folding segments (0: {@code ceil(length / SEGMENT)}, at least 2), see {@link Gangplank#segments}
-	 * @param stowOffset  least gap between the hinge line and the stowed pack's inner face, outboard (0: from the hull
-	 *                    shape only), see {@link Gangplank#fold}
+	 * @param segments    telescoping segments (0: {@code ceil(length / SEGMENT)}, at least 2), see {@link Gangplank#segments}
+	 * @param stowOffset  outermost surface of the ship model over the stowed pack's footprint, outboard of the hinge
+	 *                    line (negative: inboard of it), at the pack's top (NaN: from the hull shape), see
+	 *                    {@link Gangplank#fold}
+	 * @param stowDrop    the stowed pack's top hangs this far under the hinge height (default {@link Gangplank#STOW_DROP})
+	 * @param stowTilt    the stowed pack leans out at the bottom by this many degrees, to lie along a flaring hull side
+	 *                    (negative: leaning in, along a tumblehome)
+	 *                    (default 0: hanging straight down), see {@link Gangplank#fold}
 	 */
 	public record Spec(String shipId, Side side, double hx, double hy, double hz, double width, double length, String style,
 			double leverX, double leverY, double leverZ, double leverYaw, Box step, double railGapZ0, double railGapZ1,
 			double minAngle, double maxAngle, double maxDrop, double chainX, double chainY, double chainZ, double stowedAngle,
-			int segments, double stowOffset) {
+			int segments, double stowOffset, double stowDrop, double stowTilt) {
 
 		public int o() {
 			return side.sign;
@@ -225,7 +230,7 @@ public final class Gangplank {
 
 	private static final Map<String, Spec> CACHE = new ConcurrentHashMap<>();
 	private static final Spec NONE = new Spec("", Side.PORT, 0, 0, 0, 0, 0, "", 0, 0, 0, 0, null, Double.NaN, Double.NaN,
-			0, 0, 0, Double.NaN, Double.NaN, Double.NaN, STOWED_ANGLE, 0, 0);
+			0, 0, 0, Double.NaN, Double.NaN, Double.NaN, STOWED_ANGLE, 0, Double.NaN, 0.12, 0);
 
 	/** The gangplank of a ship type, or null if it has none (no spec file). Cached. */
 	public static Spec of(String shipId) {
@@ -278,14 +283,19 @@ public final class Gangplank {
 		if (segments != 0 && (segments < 2 || segments > MAX_SEGMENTS)) {
 			throw new IllegalArgumentException(shipId + ": gangplank segments out of [2, " + MAX_SEGMENTS + "]: " + segments);
 		}
-		double stowOffset = num(o, "stow_offset", 0);
-		if (!(stowOffset >= 0 && stowOffset <= 2)) {
-			throw new IllegalArgumentException(shipId + ": gangplank stow_offset out of [0, 2]: " + stowOffset);
+		double stowOffset = num(o, "stow_offset", Double.NaN);
+		if (!Double.isNaN(stowOffset) && !(stowOffset >= -0.5 && stowOffset <= 2)) {
+			throw new IllegalArgumentException(shipId + ": gangplank stow_offset out of [-0.5, 2]: " + stowOffset);
+		}
+		double stowDrop = num(o, "stow_drop", STOW_DROP);
+		double stowTilt = num(o, "stow_tilt", 0);
+		if (!(stowDrop >= 0 && stowDrop <= 1) || !(stowTilt >= -20 && stowTilt <= 40)) {
+			throw new IllegalArgumentException(shipId + ": gangplank stow_drop / stow_tilt out of [0, 1] / [-20, 40]: " + stowDrop + " / " + stowTilt);
 		}
 		return new Spec(shipId, side, hinge[0], hinge[1], hinge[2], width, length, style, lever[0], lever[1], lever[2], leverYaw, step,
 				gap == null ? Double.NaN : Math.min(gap[0], gap[1]), gap == null ? Double.NaN : Math.max(gap[0], gap[1]),
 				minA, maxA, maxDrop, chain == null ? Double.NaN : chain[0], chain == null ? Double.NaN : chain[1],
-				chain == null ? Double.NaN : chain[2], stowed, segments, stowOffset);
+				chain == null ? Double.NaN : chain[2], stowed, segments, stowOffset, stowDrop, stowTilt);
 	}
 
 	private static double num(JsonObject o, String key, double def) {
@@ -384,61 +394,99 @@ public final class Gangplank {
 		};
 	}
 
-	// ------------------------------------------------------------------ folding (accordion)
+	// ------------------------------------------------------------------ folding (compact pack, 1.23.2)
 
-	/** Longest segment of the folding plank (blocks): {@code ceil(length / SEGMENT)} segments, at least 2. */
-	public static final double SEGMENT = 1.6;
+	/** Longest telescoping segment (blocks): {@code ceil(length / SEGMENT)} segments, at least 2; one segment is the pack's height. */
+	public static final double SEGMENT = 0.8;
 	/** Most segments a plank may have (the {@code segments} override included). */
-	public static final int MAX_SEGMENTS = 12;
-	/** Depth of a segment under its walking surface (boards, stringers, straps), blocks: the "bottom" fold pivot. */
-	public static final double FOLD_UNDER = 0.27;
-	/** Height of a segment over its walking surface, handrails folded flat (cleats, flat stanchions, caps): the "top" fold pivot. */
-	public static final double FOLD_OVER = 0.135;
-	/** The handrails' stanchions fold about a line along the plank this high over the walking surface... */
-	public static final double RAIL_PIVOT_V = 0.075;
-	/** ...this far inside the plank's side edges. */
-	public static final double RAIL_PIVOT_INSET = 0.04;
-	/** Gap kept between the stowed pack and the hull side (blocks). */
-	public static final double STOW_CLEARANCE = 0.06;
-	/** The stowed pack's top (the hinge end of segment 0) hangs this far under the hinge height. */
+	public static final int MAX_SEGMENTS = 20;
+	/** Thickness of the boards; the walking surface is at v = 0. */
+	public static final double BOARD = 0.05;
+	/** Depth of the centre strip under its walking surface (boards and stringers): the pack's inner layer. */
+	public static final double STRIP_DEPTH = 0.11;
+	/** Depth of a side wing under its walking surface (boards, camouflage skin, trim frame): the pack's outer layer. */
+	public static final double WING_DEPTH = 0.074;
+	/** The wings' hinge axes run along the plank this high over the walking surface... */
+	public static final double WING_PIVOT = 0.07;
+	/** ...this far outboard of the centre strip's edges (the folded wings leave twice this between them). */
+	public static final double WING_GAP = 0.02;
+	/** The handrails' posts stand this far inside the plank's side edges (on the wings' outer edges). */
+	public static final double RAIL_INSET = 0.04;
+	/** Stowed or moving, the handrails' posts are telescoped down to this part of their height. */
+	public static final double RAIL_LOW = 0.1;
+	/** A segment sliding out of the previous one runs this much lower than it (its boards inside the previous ones)... */
+	public static final double NEST_DROP = 0.04;
+	/** ...and this much narrower (its sides inside the previous one's). */
+	public static final double NEST_SHRINK = 0.985;
+	/** The last part of a segment's slide where it rises (and widens) into line with the previous one. */
+	private static final double NEST_RAMP = 0.15;
+	/** Gap kept between the stowed pack and the outermost surface of the hull under the hinge (blocks): it touches. */
+	public static final double STOW_CLEARANCE = 0.02;
+	/** By default the stowed pack's top (the hinge end of segment 0) hangs this far under the hinge height. */
 	public static final double STOW_DROP = 0.12;
-	/** Stowed, segment 0 hangs straight down (degrees, down positive). */
+	/** Stowed, the pack hangs straight down (degrees, down positive), less the spec's {@code stow_tilt}. */
 	public static final double HANG = 90.0;
 	/** While unfolding, the plank is held this far over the horizontal (or over the target if it slopes up). */
 	public static final double RAISE = 20.0;
-	// deploy timeline (progress 0..1): unlock, lift out, unfold, lower, settle; the handrails stand up near the end
-	private static final double LIFT_END = 0.40;
-	private static final double UNFOLD_START = 0.30;
-	private static final double UNFOLD_END = 0.76;
-	private static final double LOWER_START = 0.62;
-	private static final double RAIL_START = 0.76;
+	/** The chains' gallows posts at the hinge: telescoped into the rail when stowed (top this far over the hinge)... */
+	public static final double POST_LOW = 0.08;
+	/** ...and this high once the plank has lifted out. */
+	public static final double POST_HIGH = 2.5;
+	/** The chains' eyes on the last segment's wings: this far inside the plank's side edges, 0.25 from the tip. */
+	public static final double EYE_INSET = 0.16;
+	// deploy timeline (progress 0..1): unlock, lift out, open the wings, telescope, lower, settle; handrails up at the end
+	private static final double LIFT_END = 0.36;
+	private static final double WING_START = 0.30;
+	private static final double WING_END = 0.46;
+	private static final double TELE_START = 0.47;
+	private static final double TELE_END = 0.74;
+	private static final double LOWER_START = 0.66;
+	private static final double RAIL_START = 0.74;
+	/** Pose array layout ({@link #foldPose}): angle, offset x, offset y, wing fold, rail rise, chain, then one extension per segment. */
+	public static final int POSE_A = 0, POSE_X = 1, POSE_Y = 2, POSE_WING = 3, POSE_RAIL = 4, POSE_CHAIN = 5, POSE_EXT = 6;
 
-	/** Number of folding segments of a plank: the spec's override, else {@code ceil(length / SEGMENT)}, at least 2. */
+	/** Number of telescoping segments of a plank: the spec's override, else {@code ceil(length / SEGMENT)}, at least 2. */
 	public static int segments(Spec spec) {
 		int n = spec.segments() > 0 ? spec.segments() : (int) Math.ceil(spec.length() / SEGMENT - 1e-9);
 		return Math.max(2, Math.min(MAX_SEGMENTS, n));
 	}
 
+	/** Half the width of the centre strip (the plank is half strip, two quarter wings). */
+	public static double stripHalf(Spec spec) {
+		return spec.width() / 4;
+	}
+
+	/** Lateral position (model-local w, &gt; 0) of the +z wing's hinge axis; the -z one is at minus this. */
+	public static double wingPivot(Spec spec) {
+		return stripHalf(spec) + WING_GAP;
+	}
+
+	/** Length of the pose array of a plank of {@code n} segments ({@link #foldPose}). */
+	public static int poseLength(int n) {
+		return POSE_EXT + n;
+	}
+
 	/**
-	 * A plank's folding geometry: {@code n} segments of {@code seg} blocks; the stowed pack's inner face {@code standoff}
-	 * outboard of the hinge line; segment 0's pose offset ({@code offX}, {@code offY}) when stowed; {@code stowed}: the
-	 * stowed pose ({@link #foldPose} at progress 0), computed once (never write it).
+	 * A plank's folding geometry: {@code n} telescoping segments of {@code seg} blocks; the stowed pack's inner face
+	 * {@code standoff} outboard of the hinge line at its top, the pack at angle {@code hang} ({@link #HANG} less the
+	 * spec's tilt); the stowed offset ({@code offX}, {@code offY}) of the plank's frame;
+	 * {@code stowed}: the stowed pose ({@link #foldPose} at progress 0), computed once (never write it).
 	 */
-	public record Fold(int n, double seg, double standoff, double offX, double offY, double[] stowed) {
-		/** Thickness of the stowed pack, outboard (blocks). */
+	public record Fold(int n, double seg, double standoff, double hang, double offX, double offY, double[] stowed) {
+		/** Thickness of the stowed pack, outboard of its inner face (strip, wing hinge gap, folded wing). */
 		public double thickness() {
-			return n * (FOLD_UNDER + FOLD_OVER);
+			return STRIP_DEPTH + 2 * WING_PIVOT + WING_DEPTH;
 		}
 	}
 
 	private static final Map<Spec, Fold> FOLDS = new ConcurrentHashMap<>();
 
 	/**
-	 * The folding geometry of a plank (cached). The stowed pack keeps clear of the hull: its inner face is
-	 * {@link #STOW_CLEARANCE} outboard of the hull's outer face (the largest {@link HullShape#halfWidth} over the plank's
-	 * width, hinge plates included) or of the spec's {@code stow_offset} (fittings of the model standing out of the hull
-	 * under the hinge: wales, port lids, channels; measured on the models by tools/gangplank/ships_g2.py), whichever is
-	 * further out.
+	 * The folding geometry of a plank (cached). The stowed pack lies flat against the hull: its inner face is
+	 * {@link #STOW_CLEARANCE} outboard of the spec's {@code stow_offset} at its top (the outermost surface of the ship
+	 * model over the pack's footprint: planking, rail cap, wales, port lids; measured, with the {@code stow_tilt} that
+	 * makes the pack follow a flaring side, by tools/gangplank/ships_g2.py compact), or without one of the hull shape's
+	 * outer face (the largest {@link HullShape#halfWidth} over the pack's width, which ignores tumblehome).
 	 */
 	public static Fold fold(Spec spec) {
 		return FOLDS.computeIfAbsent(spec, sp -> {
@@ -451,19 +499,22 @@ public final class Gangplank {
 	public static Fold fold(Spec spec, HullShape hull) {
 		int n = segments(spec);
 		double seg = spec.length() / n;
-		double standoff = Math.max(spec.stowOffset(), hullStandoff(spec, hull)) + STOW_CLEARANCE;
-		double[] stowed = new double[3 * n + 1];
-		Fold f = new Fold(n, seg, standoff, standoff + FOLD_UNDER, -STOW_DROP, stowed);
+		double standoff = (Double.isNaN(spec.stowOffset()) ? hullStandoff(spec, hull) : spec.stowOffset()) + STOW_CLEARANCE;
+		double hang = HANG - spec.stowTilt();
+		double r = Math.toRadians(hang);
+		double[] stowed = new double[poseLength(n)];
+		// the strip's underside (v = -STRIP_DEPTH) passes through (standoff, -stowDrop) at the pack's top (u = 0)
+		Fold f = new Fold(n, seg, standoff, hang, standoff + STRIP_DEPTH * Math.sin(r), -spec.stowDrop() + STRIP_DEPTH * Math.cos(r), stowed);
 		foldPose(f, 0.0, 0.0, stowed);
 		return f;
 	}
 
-	/** How far the hull's outer face stands outboard of the hinge line over the plank's width (0 if inboard). */
+	/** How far the hull's outer face stands outboard of the hinge line over the stowed pack's width (0 if inboard). */
 	public static double hullStandoff(Spec spec, HullShape hull) {
 		if (hull == null) {
 			return 0.0;
 		}
-		double hw = spec.width() / 2 + 0.1;
+		double hw = wingPivot(spec) + 0.06;
 		double max = 0.0;
 		for (int i = 0; i <= 16; i++) {
 			double z = spec.hz() - hw + 2 * hw * i / 16.0;
@@ -482,44 +533,33 @@ public final class Gangplank {
 		};
 	}
 
-	/** How open joint {@code j} (1..n-1) is at progress p: 0 folded .. 1 straight; joint 1 opens first. */
-	public static double jointOpening(double p, int j, int n) {
-		int m = n - 1;
-		double span = UNFOLD_END - UNFOLD_START;
-		double w = m <= 1 ? span : span * 0.5;
-		double start = m <= 1 ? UNFOLD_START : UNFOLD_START + (j - 1) * (span - w) / (m - 1);
-		return ease((p - start) / w);
-	}
-
-	/** Handrail fold at progress p, degrees: 90 = flat on the walking surface (stowed, moving), 0 = upright. */
-	public static double railFold(double p) {
-		return 90.0 * (1.0 - ease((p - RAIL_START) / (1.0 - SETTLE - RAIL_START)));
-	}
-
 	/**
-	 * The pose of every segment at progress p (0 stowed .. 1 resting straight at {@code target}), see the class doc:
-	 * {@code out[3k] = a_k} (degrees, down positive), {@code out[3k+1] = cx_k}, {@code out[3k+2] = cy_k} (blocks, relative
-	 * to the hinge, X outboard, Y up), {@code out[3n]} = the handrail fold ({@link #railFold}). Allocation free.
-	 * Timeline: a short unlock (the pack lifts off the hull a little), the folded pack swings out and up about the hinge
-	 * to {@link #RAISE} degrees over the horizontal (or over the target), unfolds there segment by segment, the straight
-	 * plank lowers to the target and bounces a little as it lands (as {@link #deployCurve}).
+	 * The pose of the plank at progress p (0 stowed .. 1 resting straight at {@code target}), see the class doc:
+	 * {@code out[POSE_A]} its angle (degrees, down positive), {@code out[POSE_X]}, {@code out[POSE_Y]} the offset of its
+	 * frame from the hinge (X outboard, Y up), {@code out[POSE_WING]} the wings' fold (degrees: 180 folded over the
+	 * strip .. 0 flat), {@code out[POSE_RAIL]} the handrails' rise (0 telescoped down .. 1 up), {@code out[POSE_CHAIN]}
+	 * the chains (0 retracted .. 1 out, the gallows posts with them), {@code out[POSE_EXT + k]} how far segment k has
+	 * slid out of segment k-1 (0 nested .. 1 out; always 1 for segment 0). Allocation free. Timeline: a short unlock,
+	 * the pack swings out and up about the hinge to {@link #RAISE} degrees over the horizontal (or over the target)
+	 * while the chains pay out, the wings open, the segments slide out one after the other, the straight plank lowers
+	 * to the target, the handrails rise, and it bounces a little as it lands (as {@link #deployCurve}).
 	 */
 	public static void foldPose(Fold f, double p, double target, double[] out) {
 		int n = f.n();
-		double s = f.seg();
 		double raised = Math.min(target, 0.0) - RAISE;
 		double swingEnd = 1.0 - SETTLE;
 		double a0;
 		double g; // part of the stowed offset left
+		double hang = f.hang();
 		if (p <= 0) {
-			a0 = HANG;
+			a0 = hang;
 			g = 1;
 		} else if (p < UNLOCK) {
-			a0 = HANG - 3.0 * Math.sin(Math.PI * p / UNLOCK);
+			a0 = hang - 3.0 * Math.sin(Math.PI * p / UNLOCK);
 			g = 1;
 		} else if (p < LIFT_END) {
 			double e = ease((p - UNLOCK) / (LIFT_END - UNLOCK));
-			a0 = HANG + (raised - HANG) * e;
+			a0 = hang + (raised - hang) * e;
 			g = 1 - e;
 		} else if (p < LOWER_START) {
 			a0 = raised;
@@ -535,28 +575,23 @@ public final class Gangplank {
 			a0 = target;
 			g = 0;
 		}
-		out[0] = a0;
-		out[1] = g * f.offX();
-		out[2] = g * f.offY();
-		for (int j = 1; j < n; j++) {
-			boolean top = (j & 1) == 1;
-			double theta = (top ? -180.0 : 180.0) * (1.0 - (p >= 1 ? 1.0 : jointOpening(p, j, n)));
-			double pu = j * s, pv = top ? FOLD_OVER : -FOLD_UNDER;
-			double ap = Math.toRadians(out[3 * (j - 1)]), c = Math.cos(ap), sn = Math.sin(ap);
-			// the pivot, carried by segment j-1, stays put; segment j turns about it
-			double wx = out[3 * (j - 1) + 1] + pu * c + pv * sn;
-			double wy = out[3 * (j - 1) + 2] - pu * sn + pv * c;
-			double ak = out[3 * (j - 1)] + theta, rk = Math.toRadians(ak), ck = Math.cos(rk), sk = Math.sin(rk);
-			out[3 * j] = ak;
-			out[3 * j + 1] = wx - (pu * ck + pv * sk);
-			out[3 * j + 2] = wy - (-pu * sk + pv * ck);
+		boolean done = p >= 1;
+		out[POSE_A] = a0;
+		out[POSE_X] = g * f.offX();
+		out[POSE_Y] = g * f.offY();
+		out[POSE_WING] = done ? 0.0 : 180.0 * (1.0 - ease((p - WING_START) / (WING_END - WING_START)));
+		out[POSE_RAIL] = done ? 1.0 : ease((p - RAIL_START) / (swingEnd - RAIL_START));
+		out[POSE_CHAIN] = done ? 1.0 : ease(p / LIFT_END);
+		double ext = (n - 1) * (done ? 1.0 : ease((p - TELE_START) / (TELE_END - TELE_START)));
+		out[POSE_EXT] = 1.0;
+		for (int k = 1; k < n; k++) {
+			out[POSE_EXT + k] = Math.max(0.0, Math.min(1.0, ext - (k - 1)));
 		}
-		out[3 * n] = p >= 1 ? 0.0 : railFold(p);
 	}
 
 	/**
 	 * The pose of a plank in a state ({@link #foldPose} at {@link #foldProgress}): the shared stowed pose when retracted
-	 * (never write it), else computed into {@code scratch} (at least {@code 3 n + 1} long).
+	 * (never write it), else computed into {@code scratch} (at least {@link #poseLength} long).
 	 */
 	public static double[] foldPose(Spec spec, State state, double ticks, double target, double[] scratch) {
 		Fold f = fold(spec);
@@ -567,27 +602,73 @@ public final class Gangplank {
 		return scratch;
 	}
 
-	/** Ship-local point (u, v, w) (model-local coordinates) of segment k in a pose ({@link #foldPose}), into out[0..2]. */
-	public static void foldPoint(Spec spec, double[] pose, int k, double u, double v, double w, double[] out) {
-		double r = Math.toRadians(pose[3 * k]), c = Math.cos(r), sn = Math.sin(r);
-		double x = pose[3 * k + 1] + u * c + v * sn;
-		double y = pose[3 * k + 2] - u * sn + v * c;
-		out[0] = spec.hx() + spec.o() * x;
-		out[1] = spec.hy() + y;
+	/** Is segment k drawn in a pose? A segment still nested in the previous one is inside it (segment 0 always shows). */
+	public static boolean visible(double[] pose, int k) {
+		return k == 0 || pose[POSE_EXT + k] > 0.0;
+	}
+
+	/** Are segment k's handrails drawn? Once it has slid all the way out (segment 0's always). */
+	public static boolean railVisible(double[] pose, int k) {
+		return k == 0 || pose[POSE_EXT + k] >= 1.0;
+	}
+
+	/** How far segment k is slid back along the plank (blocks, &gt;= 0): it rides inside the segments not yet out. */
+	public static double nestShift(Fold f, double[] pose, int k) {
+		double back = 0;
+		for (int j = 1; j <= k; j++) {
+			back += 1.0 - pose[POSE_EXT + j];
+		}
+		return back * f.seg();
+	}
+
+	/** How much of the nesting offset ({@link #NEST_DROP}, {@link #NEST_SHRINK}) segment k carries: 1 while sliding, 0 out. */
+	public static double nestOffset(double[] pose, int k) {
+		return k == 0 ? 0.0 : Math.min(1.0, (1.0 - pose[POSE_EXT + k]) / NEST_RAMP);
+	}
+
+	/**
+	 * Ship-local point of the model-local point (u, v, w) of segment k, part 0 (the centre strip) or -1 / +1 (the -z /
+	 * +z wing, its handrail first through {@link #railPoint}), in a pose ({@link #foldPose}), into out[0..2]: the wing
+	 * turns about its hinge axis by the wing fold, the segment slides back by {@link #nestShift} (lower and narrower by
+	 * {@link #nestOffset}), then the plank's frame maps (u, v) to X = cx + u cos a + v sin a, Y = cy - u sin a + v cos a.
+	 */
+	public static void plankPoint(Spec spec, Fold f, double[] pose, int k, int part, double u, double v, double w, double[] out) {
+		if (part != 0) {
+			double pz = part * wingPivot(spec);
+			double ph = Math.toRadians(pose[POSE_WING]), c = Math.cos(ph), sn = Math.sin(ph);
+			double dv = v - WING_PIVOT, dw = w - pz;
+			w = pz + dw * c - part * dv * sn;
+			v = WING_PIVOT + part * dw * sn + dv * c;
+		}
+		u -= nestShift(f, pose, k);
+		double nest = nestOffset(pose, k);
+		v -= NEST_DROP * nest;
+		w *= 1.0 - (1.0 - NEST_SHRINK) * nest;
+		double r = Math.toRadians(pose[POSE_A]), c = Math.cos(r), sn = Math.sin(r);
+		out[0] = spec.hx() + spec.o() * (pose[POSE_X] + u * c + v * sn);
+		out[1] = spec.hy() + pose[POSE_Y] - u * sn + v * c;
 		out[2] = spec.hz() + spec.o() * w;
 	}
 
 	/**
-	 * Model-local point (u, v, w) of a handrail ({@code side} -1: the -z one, +1: the +z one) with its stanchions folded
-	 * inwards by {@code fold} degrees about their pivot line, in its segment's straight frame; into out[0..2].
+	 * Model-local point (u, v, w) of a handrail with its posts telescoped to {@code rise} (0 down .. 1 up): scaled along
+	 * v from the walking surface to {@link #RAIL_LOW} of their height; into out[0..2] (then {@link #plankPoint} with the
+	 * handrail's wing as the part).
 	 */
-	public static void railPoint(Spec spec, int side, double fold, double u, double v, double w, double[] out) {
-		double pz = side * (spec.width() / 2 - RAIL_PIVOT_INSET);
-		double psi = Math.toRadians(-side * fold), c = Math.cos(psi), sn = Math.sin(psi);
-		double dv = v - RAIL_PIVOT_V, dw = w - pz;
+	public static void railPoint(double rise, double u, double v, double w, double[] out) {
 		out[0] = u;
-		out[1] = RAIL_PIVOT_V + dv * c - dw * sn;
-		out[2] = pz + dv * sn + dw * c;
+		out[1] = v * railScale(rise);
+		out[2] = w;
+	}
+
+	/** Height factor of the handrails at a rise (0 .. 1): {@link #RAIL_LOW} .. 1. */
+	public static double railScale(double rise) {
+		return RAIL_LOW + (1.0 - RAIL_LOW) * rise;
+	}
+
+	/** Height of the chains' gallows posts' tops over the hinge at a chain value ({@code pose[POSE_CHAIN]}). */
+	public static double postHeight(double chain) {
+		return POST_LOW + (POST_HIGH - POST_LOW) * chain;
 	}
 
 	// ------------------------------------------------------------------ collisions

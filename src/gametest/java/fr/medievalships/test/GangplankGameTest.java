@@ -97,41 +97,51 @@ public final class GangplankGameTest {
 	}
 
 	/**
-	 * Highest point (ship-local y) of the stowed, folded plank: every segment and folded handrail of the model the client
-	 * loaded, placed by the stowed fold pose ({@link Gangplank#foldPose}); NaN without the model.
+	 * The stowed pack's extent (ship-local): {top y, height, width along the hull}: every visible part of the model the
+	 * client loaded (segment 0's strip, its folded wings and telescoped handrails; nested segments are hidden), placed by
+	 * the stowed fold pose ({@link Gangplank#foldPose}, {@link Gangplank#plankPoint}); null without the model.
 	 */
-	private static double stowedTop(ClientGameTestContext context, Gangplank.Spec spec) {
+	private static double[] stowedPack(ClientGameTestContext context, Gangplank.Spec spec) {
 		return context.computeOnClient(mc -> {
 			fr.medievalships.client.model.BbModel m = fr.medievalships.client.render.ShipModels.gangplank(spec.shipId());
 			fr.medievalships.client.model.BbModel.Pose[] poses = fr.medievalships.client.render.ShipModels.gangplankPoses(spec.shipId());
 			if (m == null || poses == null) {
-				return Double.NaN;
+				return null;
 			}
 			Gangplank.Fold f = Gangplank.fold(spec);
 			double[] pose = f.stowed();
-			double fold = pose[3 * f.n()];
-			double[] top = {Double.NEGATIVE_INFINITY};
+			double[] lo = {Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY}, hi = {Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY};
 			double[] q = new double[3], r = new double[3];
 			for (int k = 0; k < f.n(); k++) {
+				if (!Gangplank.visible(pose, k)) {
+					continue;
+				}
 				int kk = k;
-				m.renderPart(poses[0], "seg_" + k, (pt, uv, n, glow) -> {
-					for (int c = 0; c < 4; c++) {
-						Gangplank.foldPoint(spec, pose, kk, pt[c * 3], pt[c * 3 + 1], pt[c * 3 + 2], q);
-						top[0] = Math.max(top[0], q[1]);
-					}
-				});
-				for (int side = 0; side < 2; side++) {
-					int sd = side == 0 ? -1 : 1;
-					m.renderPart(poses[1], "rail_" + k + "_" + side, (pt, uv, n, glow) -> {
+				for (int part = -1; part <= 1; part++) {
+					int pt = part;
+					String bone = part == 0 ? "seg_" + k : "wing_" + k + "_" + (part < 0 ? 0 : 1);
+					m.renderPart(poses[part == 0 ? 0 : 1], bone, (p, uv, n, glow) -> {
 						for (int c = 0; c < 4; c++) {
-							Gangplank.railPoint(spec, sd, fold, pt[c * 3], pt[c * 3 + 1], pt[c * 3 + 2], r);
-							Gangplank.foldPoint(spec, pose, kk, r[0], r[1], r[2], q);
-							top[0] = Math.max(top[0], q[1]);
+							Gangplank.plankPoint(spec, f, pose, kk, pt, p[c * 3], p[c * 3 + 1], p[c * 3 + 2], q);
+							lo[0] = Math.min(lo[0], q[1]);
+							hi[0] = Math.max(hi[0], q[1]);
+							lo[1] = Math.min(lo[1], q[2]);
+							hi[1] = Math.max(hi[1], q[2]);
 						}
 					});
+					if (part != 0 && Gangplank.railVisible(pose, k)) {
+						m.renderPart(poses[2], "rail_" + k + "_" + (part < 0 ? 0 : 1), (p, uv, n, glow) -> {
+							for (int c = 0; c < 4; c++) {
+								Gangplank.railPoint(pose[Gangplank.POSE_RAIL], p[c * 3], p[c * 3 + 1], p[c * 3 + 2], r);
+								Gangplank.plankPoint(spec, f, pose, kk, pt, r[0], r[1], r[2], q);
+								lo[0] = Math.min(lo[0], q[1]);
+								hi[0] = Math.max(hi[0], q[1]);
+							}
+						});
+					}
 				}
 			}
-			return top[0];
+			return new double[] {hi[0], hi[0] - lo[0], hi[1] - lo[1]};
 		});
 	}
 
@@ -237,11 +247,17 @@ public final class GangplankGameTest {
 		lookLocal(server, p, -11, 6, 9, spec.hx(), spec.hy() + 1, spec.hz());
 		context.waitTicks(15);
 		shot.accept("passerelle_0_rangee");
-		// the folded pack (accordion), from the model the client loaded: entirely under the hinge (the rail top)
-		double top = stowedTop(context, spec);
-		log.accept(String.format(Locale.ROOT, "gangplank: stowed pack top %.3f, hinge %.3f", top, spec.hy()));
-		check.accept(top <= spec.hy() + 0.02,
-				String.format(Locale.ROOT, "gangplank: the stowed pack hangs under the rail top (top %.2f, hinge %.2f)", top, spec.hy()));
+		// the compact pack (1.23.2), from the model the client loaded: under the hinge (the rail top), small
+		double[] pack = stowedPack(context, spec);
+		check.accept(pack != null, "gangplank: plank model loaded by the client");
+		if (pack != null) {
+			log.accept(String.format(Locale.ROOT, "gangplank: stowed pack top %.3f (hinge %.3f), %.2f high, %.2f wide (plank %.2f x %.2f)", pack[0],
+					spec.hy(), pack[1], pack[2], spec.width(), spec.length()));
+			check.accept(pack[0] <= spec.hy() + 0.02,
+					String.format(Locale.ROOT, "gangplank: the stowed pack hangs under the rail top (top %.2f, hinge %.2f)", pack[0], spec.hy()));
+			check.accept(pack[1] <= Gangplank.SEGMENT + 0.15 && pack[2] <= spec.width() / 2 + 0.2,
+					String.format(Locale.ROOT, "gangplank: the stowed pack is small (%.2f high, %.2f wide)", pack[1], pack[2]));
+		}
 		lookLocal(server, p, spec.hx() + spec.o() * 4.5, spec.hy() + 0.9, spec.hz() + 3.6, spec.hx() + spec.o() * 0.8, spec.hy() - 0.8, spec.hz());
 		context.waitTicks(15);
 		shot.accept("passerelle_0b_paquet_replie");

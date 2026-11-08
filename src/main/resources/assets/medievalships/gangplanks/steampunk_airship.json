@@ -10,5 +10,7 @@
  "angles": [-20, 30],
  "max_drop": 2.0,
  "chain_anchor": null,
- "stow_offset": 0.3
+ "segments": 7,
+ "stow_offset": 0.03,
+ "stow_drop": 1.0
 }

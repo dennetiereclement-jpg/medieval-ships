@@ -148,6 +148,13 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.23.2 rend la passerelle rangée **presque invisible** : ses deux ailes latérales se rabattent sur la bande
+centrale et ses segments coulissent les uns dans les autres, en un petit paquet plat (la moitié de la largeur de la
+planche, un segment de haut, un tiers de bloc d'épaisseur) posé à plat contre le flanc, sous le bastingage, et peint
+aux couleurs de la coque à cet endroit (bleu et or sur la frégate, noir sur le navire de guerre…) ; rambardes
+télescopées, chaînes rentrées, potences enfoncées dans le bastingage. Au levier, le paquet se soulève, les ailes
+s'ouvrent, les segments sortent l'un après l'autre et la planche se pose sur le quai, identique à avant.
+
 La version 1.23.1 replie les passerelles **en accordéon** : rangée, la planche n'est plus dressée au-dessus du
 bastingage mais pliée en zigzag (segments d'au plus 1,6 bloc reliés par des charnières, rambardes rabattues à plat)
 en un paquet compact suspendu contre le flanc, sous le haut du bastingage ; au levier, le paquet se soulève, se
@@ -433,7 +440,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.23.1.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.23.2.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
