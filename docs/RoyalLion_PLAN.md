@@ -93,6 +93,20 @@ plancher (`RoyalLionShipTest.helmAndSeats`).
   fenêtres en arc et une galerie ; l'intérieur entier (aucune image) ; la voile d'artimon est carrée comme sur 071 (126
   montre une voile latine). 071 montre des huniers, 044 n'en montre pas : huniers gardés (071 est l'image principale).
 
+## 5 bis. Itérations de comparaison (rendus aux angles des références, mer à la flottaison)
+
+| Itération | Écarts relevés | Corrections |
+|---|---|---|
+| 1 | coque presque toute bleue (la référence a ≈ 40 % de bois sombre au-dessus de l'eau) ; mâts trop hauts (pomme 33) et voiles trop petites en proportion ; voiles vues par la tranche sur 071 (vergues orientées de 24°) ; lion de proue petit, informe ; lion des voiles fin et peu lisible ; pas de cargaison sur le pont | bandes redistribuées (bois sombre jusqu'à 2,0 avec les sabords, préceintes d'or à 2,0 et 3,3, bandes bleues au-dessus) ; mâts à 30,5 / 29 / 22,5 ; lion des voiles agrandi (72 % et 64 % de la hauteur) ; écus remontés ; flammes plus longues ; caisses, tonneaux et sacs sur le pont et le gaillard d'avant |
+| 2 | voiles encore étroites ; enfléchures trop fines et sombres ; quille visible sous la coque dans les rendus (pas d'eau) | vergues moins orientées ; enfléchures en chanvre clair plus épaisses ; plan d'eau ajouté aux rendus de comparaison |
+| 3 | lion de proue : silhouette de « singe » ; grand-voile et misaine un peu étroites ; caméra de 071 trop lointaine (perspective plus forte sur la référence) | figure de proue refaite (grosse tête à crinière, gueule rugissante, pattes avant tendues, console sculptée) ; voiles élargies ; caméra rapprochée, focale plus large |
+| 4 | les références vues de bâbord (044, 123, 126) montrent la face des voiles, 071 (tribord) aussi : impossible des deux côtés à la fois ; lion de proue encore petit devant 123 ; lions des emblèmes sans détails ; auvent rayé caché par la voile d'artimon ; pavois du milieu trop bleu | vergues orientées de 6° (vers bâbord : trois références sur quatre) ; figure de proue agrandie (×1,35, sondes déplacées) ; traits ciselés dans le lion (crinière, œil, gueule, pattes) ; auvent élargi à tout le gaillard et abaissé ; pavois du milieu en bois sombre |
+
+Écarts restants (pour la phase 3) : voiles un peu moins grandes que sur les images (qui les exagèrent) ; la coque
+reste plus longue et plus basse que sur 071 (perspective exagérée de l'image) ; les bannières pendantes de 044 sont
+remplacées par les écus demandés ; la cargaison des références (ballots blancs) est seulement esquissée (phase 2) ;
+la tête du lion de proue reste plus simple que la sculpture de 126.
+
 ## 6. Passerelle d'embarquement
 
 Système existant (`docs/PASSERELLES.md`, `core/Gangplank.java`) : spécification ajoutée à `tools/gangplank/ships_g2.py`
