@@ -1,0 +1,54 @@
+{
+ "blocks": [
+  {
+   "block": "minecraft:amethyst_cluster",
+   "x": 1.1,
+   "y": 1.0,
+   "z": -1.61,
+   "yaw": 180.0,
+   "scale": 0.5,
+   "fallback": "fallback_0",
+   "glow": true
+  },
+  {
+   "block": "landsoficaria:green_storage_vase",
+   "x": -2.35,
+   "y": 0.0,
+   "z": 0.85,
+   "yaw": 180.0,
+   "scale": 0.7,
+   "fallback": "fallback_1"
+  },
+  {
+   "block": "farmhouse_decorations:pile_of_books",
+   "x": -4.05,
+   "y": 0.95,
+   "z": 2.05,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_2"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": -4.05,
+   "y": 0.0,
+   "z": -0.75,
+   "yaw": 90.0,
+   "scale": 0.85,
+   "fallback": "fallback_3",
+   "alt": "minecraft:barrel"
+  },
+  {
+   "block": "farmersdelight:wooden_basket",
+   "x": -4.05,
+   "y": 0.85,
+   "z": -0.75,
+   "yaw": 180.0,
+   "scale": 0.55,
+   "fallback": "fallback_4"
+  }
+ ],
+ "seats": [],
+ "paintings": [],
+ "switches": []
+}

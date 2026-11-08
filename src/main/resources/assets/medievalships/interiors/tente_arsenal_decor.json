@@ -1,0 +1,65 @@
+{
+ "blocks": [
+  {
+   "block": "mebahelcreaturesdwarven:dwemer_metal_pipe_gear",
+   "x": 0.1,
+   "y": 1.8,
+   "z": -2.98,
+   "yaw": 270.0,
+   "scale": 0.5,
+   "fallback": "fallback_0"
+  },
+  {
+   "block": "farmhouse_decorations:kerosene_lantern",
+   "x": 1.45,
+   "y": 1.0,
+   "z": -1.37,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_1",
+   "glow": true,
+   "alt": "minecraft:lantern"
+  },
+  {
+   "block": "farmhouse_decorations:workbench",
+   "x": -2.98,
+   "y": 0.0,
+   "z": -1.5,
+   "yaw": 270.0,
+   "scale": 0.9,
+   "fallback": "fallback_2"
+  },
+  {
+   "block": "farmhouse_decorations:tool_board",
+   "x": -3.35,
+   "y": 1.55,
+   "z": -1.5,
+   "yaw": 270.0,
+   "scale": 0.9,
+   "fallback": "fallback_3"
+  },
+  {
+   "block": "mebahelcreaturesdwarven:dwemer_chest",
+   "x": 4.35,
+   "y": 0.0,
+   "z": 2.0,
+   "yaw": 90.0,
+   "scale": 0.85,
+   "fallback": "fallback_4",
+   "alt": "minecraft:chest"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": 2.85,
+   "y": 0.0,
+   "z": 1.6,
+   "yaw": 90.0,
+   "scale": 0.75,
+   "fallback": "fallback_5",
+   "alt": "minecraft:barrel"
+  }
+ ],
+ "seats": [],
+ "paintings": [],
+ "switches": []
+}
