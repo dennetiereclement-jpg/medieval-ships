@@ -102,5 +102,11 @@
   "block.medievalships.deco_sechoir": "Séchoir à herbes",
   "block.medievalships.deco_lanterne": "Lanterne suspendue",
   "block.medievalships.deco_banniere": "Bannière de la Couronne",
-  "block.medievalships.deco_ombrage": "Toiles d'ombrage"
+  "block.medievalships.deco_ombrage": "Toiles d'ombrage",
+  "block.medievalships.tente_militaire": "Tente militaire",
+  "block.medievalships.tente_commandement": "Tente de commandement militaire",
+  "block.medievalships.tente_marchande": "Tente marchande",
+  "block.medievalships.pieu_defensif": "Pieu défensif",
+  "death.attack.medievalships.stake": "%1$s s'est empalé sur un pieu",
+  "death.attack.medievalships.stake.player": "%1$s s'est empalé sur un pieu en fuyant %2$s"
 }

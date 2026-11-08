@@ -59,7 +59,7 @@ public final class DecorationGameTest {
 		server.runCommand(String.format(Locale.ROOT, "fill %d -63 %d %d %d %d stone", X - 12, Z - 10, X + 12, GROUND, Z + 10));
 		server.runCommand(String.format(Locale.ROOT, "fill %d %d %d %d %d %d air", X - 12, GROUND + 1, Z - 10, X + 12, GROUND + 9, Z + 10));
 		context.waitTicks(10);
-		check.accept(TentTypes.DECORATIONS.size() == 8, "the eight street decorations are placed once each below (" + TentTypes.DECORATIONS.size()
+		check.accept(TentTypes.DECORATIONS.size() == 9, "the eight street decorations and the defensive stake are placed once each below (" + TentTypes.DECORATIONS.size()
 				+ ")");
 		context.runOnClient((MinecraftClient c) -> c.options.hudHidden = true);
 		BlockPos a = new BlockPos(X, GROUND + 1, Z);

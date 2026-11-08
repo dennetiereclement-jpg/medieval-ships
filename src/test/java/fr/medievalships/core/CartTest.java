@@ -32,10 +32,10 @@ public class CartTest {
 		assertEquals(10, TentTypes.CARTS.size(), "the eight carts, the nomad tavern and the decorative rowboat");
 		assertSame(TentTypes.TAVERN, TentTypes.CARTS.get(8), "the tavern after the eight carts");
 		assertSame(TentTypes.ROWBOAT_DECO, TentTypes.CARTS.get(9), "the decorative rowboat last in the carts' tab");
-		assertEquals(6 + 6 + 5 + 2 + 2 + 1, TentTypes.ALL.size(),
-				"the tents' list: six camp tents, merchant tents I (6), II (5), III (2), IV (2) and V (1, the jeweller's)");
-		assertEquals(6 + 6 + 5 + 2 + 2 + 1 + 10 + 8 + 3 + 8 + 1, TentTypes.PROPS.size()); // tents, merchant tents I to V, carts and the
-		// tavern, workshops, the training areas, the street decorations (1.20.0), the cannon
+		assertEquals(6 + 6 + 5 + 2 + 2 + 1 + 3, TentTypes.ALL.size(),
+				"the tents' list: six camp tents, merchant tents I (6), II (5), III (2), IV (2), V (1, the jeweller's), the military camp (3)");
+		assertEquals(6 + 6 + 5 + 2 + 2 + 1 + 3 + 10 + 8 + 3 + 9 + 1, TentTypes.PROPS.size()); // tents, merchant tents I to V, the camp (1.24.0), carts and the
+		// tavern, workshops, the training areas, the street decorations (1.20.0) and the stake (1.24.0), the cannon
 		Set<String> ids = new HashSet<>();
 		for (TentType t : WAGONS) {
 			assertTrue(IDS.contains(t.id()), t.id());
@@ -52,6 +52,9 @@ public class CartTest {
 			if (TentTypes.MERCHANTS.contains(t) || TentTypes.MERCHANTS2.contains(t) || TentTypes.MERCHANTS3.contains(t)
 					|| TentTypes.MERCHANTS4.contains(t) || TentTypes.MERCHANTS5.contains(t)) {
 				assertTrue(t.texture().startsWith("textures/entity/tente_"), t.id() + ": a merchant tent has its own atlas " + t.texture());
+			} else if (TentTypes.CAMP_TENTS.contains(t)) {
+				// the military camp (1.24.0): its own atlas, or the tents' shared one (each builder's choice)
+				assertTrue(t.texture().startsWith("textures/entity/tente_") || t.texture().equals(TentType.DEFAULT_TEXTURE), t.id() + " " + t.texture());
 			} else {
 				assertEquals(TentType.DEFAULT_TEXTURE, t.texture(), t.id());
 			}

@@ -102,5 +102,11 @@
   "block.medievalships.deco_sechoir": "Herb Drying Rack",
   "block.medievalships.deco_lanterne": "Hanging Lantern",
   "block.medievalships.deco_banniere": "Crown Banner",
-  "block.medievalships.deco_ombrage": "Shade Sails"
+  "block.medievalships.deco_ombrage": "Shade Sails",
+  "block.medievalships.tente_militaire": "Military Tent",
+  "block.medievalships.tente_commandement": "Military Command Tent",
+  "block.medievalships.tente_marchande": "Merchant Tent",
+  "block.medievalships.pieu_defensif": "Defensive Stake",
+  "death.attack.medievalships.stake": "%1$s was impaled on a stake",
+  "death.attack.medievalships.stake.player": "%1$s was impaled on a stake while fighting %2$s"
 }
