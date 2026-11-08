@@ -125,7 +125,8 @@ pieu demande au monde les entités vivantes dans cette petite boîte (pas de rec
 
 - blesse chaque **mob hostile** vivant (`Monster` : zombies, squelettes, creepers, araignées…) qui touche la pointe :
   dégâts du type `medievalships:stake` (« %1$s s'est empalé sur un pieu » / « %1$s was impaled on a stake ») et petit
-  recul **vers l'extérieur, dans l'axe de la pointe** ;
+  recul **vers l'extérieur, dans l'axe de la pointe** — seulement si le coup porte, comme en vanilla (pas de recul
+  pendant l'invulnérabilité qui suit un coup plus fort, contre un mob invulnérable ou un bouclier qui pare tout) ;
 - pas deux fois de suite : un délai par entité (`cooldownTicks`, 20 ticks = 1 s ; mémoire passagère dans l'entité de
   bloc, nettoyée, jamais sauvegardée) ;
 - **épargne** les joueurs par défaut (réglage `damagePlayers` ; jamais en créatif ni en spectateur), et **toujours** les
@@ -158,9 +159,11 @@ Sûr sur serveur dédié (aucune classe client sur ce chemin).
 - En jeu `StakeGameTest` (plateforme x 1300 z 80) : pieu posé par `/deco place`, bloc / orientation / entité de bloc,
   un ticker serveur pour lui et aucun pour une autre décoration ou une tente, le tronc collisionne, la place de la
   pointe est libre ; un zombie (NoAI, casque contre le soleil) mis à la pointe est blessé en moins de 10 ticks et
-  repoussé vers l'extérieur, pas blessé de nouveau avant le délai, de nouveau après ; un zombie au pied, un à côté du
-  tronc et un villageois à la pointe ne le sont jamais ; le joueur de test en survie à la pointe n'est pas blessé par
-  défaut, l'est avec `damagePlayers = true` (posé par l'API, puis rétabli) ; trois pieux côte à côte à un bloc d'écart
+  repoussé vers l'extérieur, pas blessé de nouveau avant le délai, de nouveau après ; un zombie au pied (collé à la face
+  avant de la première boîte du tronc), un contre le flanc du tronc à mi-longueur et un villageois à la pointe ne le
+  sont jamais ; le joueur de test en survie (sa Résistance V, qui annulerait tout dégât, retirée le temps de l'essai puis
+  rendue) à la pointe n'est ni blessé ni touché par le pieu par défaut, l'est avec `damagePlayers = true` (posé par
+  l'API, puis rétabli) ; trois pieux côte à côte à un bloc d'écart
   se posent tous ; captures ; un pieu cassé rend son objet.
 - JUnit `DecorationTest` : les huit JSON se chargent dans l'ordre, groupe `decorations` entre les aires
   d'entraînement et le canon, emprises de 1 à 8 blocs de large et au plus 6 de haut au sol, seules de fines boîtes de

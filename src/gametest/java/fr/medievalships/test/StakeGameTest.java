@@ -18,6 +18,9 @@ import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.SpawnReason;
+import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -31,7 +34,9 @@ import net.minecraft.world.Difficulty;
 import fr.medievalships.core.TentType;
 import fr.medievalships.core.TentTypes;
 import fr.medievalships.data.ConfigManager;
+import fr.medievalships.tent.StakeHazard;
 import fr.medievalships.tent.TentBlock;
+import fr.medievalships.tent.TentBlockEntity;
 import fr.medievalships.tent.TentCollisions;
 import fr.medievalships.tent.Tents;
 
@@ -41,9 +46,10 @@ import fr.medievalships.tent.Tents;
  * away from the player who would have planted it looking north), block / facing / block entity, a server ticker (and
  * none for another prop), its boxes registered and its trunk colliding. Then the point: a zombie (NoAI, a helmet against
  * the sun) put at the point is hurt within 10 ticks and pushed outward (north), not hurt again before the cooldown, hurt
- * again after it; a zombie at the foot and one beside the trunk, and a villager at the point, are never hurt. The test
- * player in survival at the point is not hurt by default, is hurt once "damagePlayers" is set through the config API
- * (restored after). Three stakes placed side by side one block apart all stand; a screenshot from the reference's angle;
+ * again after it; a zombie at the foot (against the front face of the trunk's first box) and one against the trunk's
+ * side at mid-length, and a villager at the point, are never hurt. The test player in survival at the point (its
+ * Resistance V, which would cancel any damage, taken away meanwhile and given back after) is neither hurt nor hit by the
+ * stake by default, is hurt once "damagePlayers" is set through the config API (restored after). Three stakes placed side by side one block apart all stand; a screenshot from the reference's angle;
  * a stake broken drops its item. Called once from {@link ShipClientGameTest}.
  */
 public final class StakeGameTest {
@@ -153,11 +159,14 @@ public final class StakeGameTest {
 		check.accept(hits[0] >= 1, "pieu_defensif its trunk collides (" + hits[0] + " shape(s))");
 		check.accept(hits[1] == 0, "pieu_defensif nothing collides at the point's place (" + hits[1] + ")");
 
-		// the point (facing south: to the north, -z): a zombie at it, a zombie at the foot, one beside the trunk, a villager at it
+		// the point (facing south: to the north, -z): a zombie at it, a villager at it; a zombie at the foot, against the front
+		// face of the trunk's first box (z1 0.236 + half a zombie 0.3 + 0.02), one against the trunk's side at mid-length,
+		// beside its second box (x 0.29 + 0.3 + 0.02, z -0.6): both nearly touch the trunk, a hazard box any longer or wider
+		// than the point would catch them (NoAI mobs do not move: they stay where they are put)
 		double px = a.getX() + 0.5, py = a.getY(), pz = a.getZ() + 0.5 - 1.9;
 		UUID zPoint = spawn(server, EntityType.ZOMBIE, px + 0.12, py, pz);
-		UUID zFoot = spawn(server, EntityType.ZOMBIE, px, py, a.getZ() + 0.5 + 1.1);
-		UUID zSide = spawn(server, EntityType.ZOMBIE, px + 1.1, py, a.getZ() + 0.5 - 0.5);
+		UUID zFoot = spawn(server, EntityType.ZOMBIE, px, py, a.getZ() + 0.5 + 0.556);
+		UUID zSide = spawn(server, EntityType.ZOMBIE, px + 0.61, py, a.getZ() + 0.5 - 0.6);
 		UUID villager = spawn(server, EntityType.VILLAGER, px - 0.12, py, pz);
 		check.accept(zPoint != null && zFoot != null && zSide != null && villager != null, "the zombies and the villager are spawned");
 		double h0 = health(server, zPoint);
@@ -213,32 +222,66 @@ public final class StakeGameTest {
 			});
 		}
 
-		// the test player in survival at the point: spared by default, hurt with damagePlayers = true (restored after)
+		// the test player in survival at the point: spared by default, hurt with damagePlayers = true (restored after). The
+		// scenario gave it an infinite Resistance V (amplifier 4: every damage times 0), taken away meanwhile, given back
 		boolean savedPlayers = server.computeOnServer(srv -> ConfigManager.server().stake.damagePlayers);
+		StatusEffectInstance savedResistance = server.computeOnServer(srv -> {
+			StatusEffectInstance r = srv.getPlayerManager().getPlayerList().get(0).getStatusEffect(StatusEffects.RESISTANCE);
+			return r == null ? null : new StatusEffectInstance(r);
+		});
 		try {
 			server.runOnServer(srv -> ConfigManager.server().stake.damagePlayers = false);
+			server.runCommand("effect clear @a minecraft:resistance");
 			server.runCommand("gamemode survival @a");
 			server.runCommand(String.format(Locale.ROOT, "tp @p %.3f %d %.3f 180 0", px, a.getY(), pz));
 			server.runOnServer(srv -> {
 				ServerPlayerEntity pl = srv.getPlayerManager().getPlayerList().get(0);
 				pl.setHealth(pl.getMaxHealth());
 			});
-			context.waitTicks(25);
-			double hp = server.computeOnServer(srv -> (double) srv.getPlayerManager().getPlayerList().get(0).getHealth());
-			check.accept(hp >= 19.99, "a survival player at the point is not hurt by default (" + hp + ")");
+			boolean resisting = server.computeOnServer(srv -> srv.getPlayerManager().getPlayerList().get(0).hasStatusEffect(StatusEffects.RESISTANCE));
+			check.accept(!resisting, "the test player's Resistance is taken away for the stake's checks");
+			// by default: over 25 ticks (5 looks of the stake) never hurt, never hit by a stake, never remembered by it
+			double hp = 20.0, lowest = Double.MAX_VALUE;
+			boolean struck = false;
+			for (int t = 0; t < 25; t++) {
+				context.waitTick();
+				Object[] r = server.computeOnServer(srv -> {
+					ServerWorld w = srv.getOverworld();
+					ServerPlayerEntity pl = srv.getPlayerManager().getPlayerList().get(0);
+					DamageSource last = pl.getRecentDamageSource();
+					boolean remembered = w.getBlockEntity(a) instanceof TentBlockEntity be && !be.hazardReady(pl.getUuid(), w.getTime(), Integer.MAX_VALUE);
+					return new Object[] {(double) pl.getHealth(), last != null && last.isOf(StakeHazard.STAKE_DAMAGE) || remembered};
+				});
+				hp = (Double) r[0];
+				lowest = Math.min(lowest, hp);
+				struck |= Boolean.TRUE.equals(r[1]);
+			}
+			check.accept(lowest >= 19.99 && !struck, String.format(Locale.ROOT,
+					"a survival player at the point is not hurt nor hit by the stake by default (lowest %.1f hp, hit %s)", lowest, struck));
 			server.runOnServer(srv -> ConfigManager.server().stake.damagePlayers = true);
 			server.runCommand(String.format(Locale.ROOT, "tp @p %.3f %d %.3f 180 0", px, a.getY(), pz));
 			double hurt = hp;
+			boolean byStake = false;
 			for (int t = 0; t < 14 && hurt >= hp - 0.5; t++) {
 				context.waitTick();
-				hurt = server.computeOnServer(srv -> (double) srv.getPlayerManager().getPlayerList().get(0).getHealth());
+				Object[] r = server.computeOnServer(srv -> {
+					ServerPlayerEntity pl = srv.getPlayerManager().getPlayerList().get(0);
+					DamageSource last = pl.getRecentDamageSource();
+					return new Object[] {(double) pl.getHealth(), last != null && last.isOf(StakeHazard.STAKE_DAMAGE)};
+				});
+				hurt = (Double) r[0];
+				byStake = Boolean.TRUE.equals(r[1]);
 			}
-			check.accept(hurt < hp - 0.5, String.format(Locale.ROOT, "with damagePlayers = true the player at the point is hurt (%.1f -> %.1f)", hp, hurt));
+			check.accept(hurt < hp - 0.5 && byStake, String.format(Locale.ROOT,
+					"with damagePlayers = true the player at the point is hurt by the stake (%.1f -> %.1f, stake damage %s)", hp, hurt, byStake));
 		} finally {
 			server.runOnServer(srv -> ConfigManager.server().stake.damagePlayers = savedPlayers);
 			server.runOnServer(srv -> {
 				ServerPlayerEntity pl = srv.getPlayerManager().getPlayerList().get(0);
 				pl.setHealth(pl.getMaxHealth());
+				if (savedResistance != null) {
+					pl.addStatusEffect(new StatusEffectInstance(savedResistance));
+				}
 			});
 			server.runCommand("gamemode spectator @a");
 		}

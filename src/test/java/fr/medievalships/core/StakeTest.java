@@ -138,10 +138,23 @@ public class StakeTest {
 		// the point's direction: outward, towards the back
 		assertEquals(0.0, h.dirX(), 1e-6);
 		assertEquals(-1.0, h.dirZ(), 1e-6);
-		// a zombie (0.6 x 1.95) standing at the tip touches it; one at the foot or beside the trunk does not
+		// a zombie (0.6 x 1.95) standing at the tip touches it; one at the foot or beside the trunk does not, even pressed
+		// against the trunk: at the foot against the front face of the first box (z1 0.236 + 0.3 + 0.02), against the side
+		// at mid-length beside the second box (x 0.29 + 0.3 + 0.02, z -0.6), the places StakeGameTest puts its zombies
 		assertTrue(touches(h.box(), 0, -1.9), "a mob at the point");
-		assertFalse(touches(h.box(), 0, 1.0), "a mob at the foot, in front");
-		assertFalse(touches(h.box(), 1.0, -0.5), "a mob beside the trunk");
+		double[][] nearTrunk = {{0, 0.556}, {0.61, -0.6}, {-0.61, -0.6}};
+		for (double[] p : nearTrunk) {
+			assertFalse(touches(h.box(), p[0], p[1]), "a mob against the trunk (" + p[0] + ", " + p[1] + ") is not at the point");
+			// meaningful places: inside the stake's extent (a hazard as big as the whole stake would hurt it), free of
+			// collision but within a few hundredths of a trunk box (it can stand there, pressed against the trunk)
+			assertTrue(touches(e, p[0], p[1]), "a mob against the trunk is within the stake's extent " + p[0] + ", " + p[1]);
+			boolean pressed = false;
+			for (TentType.Box c : S.colliders()) {
+				assertFalse(overlap(c, p[0], p[1]), "a mob against the trunk is not inside a collision box " + c);
+				pressed |= overlap(new TentType.Box(c.x0() - 0.05, c.y0(), c.z0() - 0.05, c.x1() + 0.05, c.y1(), c.z1() + 0.05), p[0], p[1]);
+			}
+			assertTrue(pressed, "a mob against the trunk nearly touches a trunk box " + p[0] + ", " + p[1]);
+		}
 		assertFalse(touches(h.box(), -1.0, -1.5), "a mob beside the point, one block aside");
 		// and the zombie at the point is not inside a collision box (it can stand there)
 		for (TentType.Box c : S.colliders()) {

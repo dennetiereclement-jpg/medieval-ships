@@ -26,7 +26,7 @@ import fr.medievalships.data.ConfigManager;
  * {@link TentBlock#getTicker} only for a type with a hazard and only on the server: every other prop stays tick-free.
  * Every {@link #PERIOD} ticks (staggered by position so a row of stakes does not work on the same tick) it asks the
  * world for the living entities inside the small hazard box (no area scan), then hurts each hostile mob
- * ({@link Monster}) found there with the damage type {@code medievalships:stake} and pushes it outward along the point;
+ * ({@link Monster}) found there with the damage type {@code medievalships:stake} and, when the hit lands, pushes it outward along the point;
  * the same entity is not hit again before the cooldown (a transient map in the block entity, never saved). Players only
  * when {@link StakeSettings#damagePlayers} (never in creative or spectator mode); villagers, animals, NPCs never. The
  * values come from the server config ({@link StakeSettings}), which overrides the model's. No client class here.
@@ -62,10 +62,12 @@ public final class StakeHazard {
 			if (!be.hazardReady(e.getUuid(), now, s.cooldownTicks)) {
 				continue;
 			}
+			// remembered even when the hit is refused (invulnerability frames, an invulnerable mob, a shield blocking it
+			// all): not tried again before the cooldown
 			be.hazardHit(e.getUuid(), now);
-			e.damage(sw, source(sw), (float) s.damage);
-			if (s.knockback > 0 && e.isAlive()) {
-				// takeKnockback pushes away from (x, z): towards the point's direction, outward
+			boolean hurt = e.damage(sw, source(sw), (float) s.damage);
+			if (hurt && s.knockback > 0 && e.isAlive()) {
+				// pushed only when really hit, as vanilla; takeKnockback pushes away from (x, z): along the point, outward
 				e.takeKnockback(s.knockback, -h.dirX(), -h.dirZ());
 			}
 		}
