@@ -1,12 +1,76 @@
-# Passerelles d'embarquement (1.23.0, pliage en accordéon 1.23.1)
+# Passerelles d'embarquement (1.23.0, paquet compact 1.23.2)
 
 Chaque navire et chaque grand dirigeable porte une **passerelle d'embarquement** médiévale : une planche de bois
-renforcée (planches, taquets antidérapants, longerons, ferrures latérales, charnières visibles, petites rambardes,
-bout biseauté qui se pose sur le quai), **pliée en accordéon** contre le flanc quand elle est rangée, et un
-**levier** sur le pont qui la déploie et la replie. Les chaînes (ou cordages) de soutien suivent le bout de la
-planche.
+renforcée (planches, taquets antidérapants, longerons, ferrures, charnières, petites rambardes, bout biseauté qui se
+pose sur le quai), **repliée en un petit paquet plat aux couleurs de la coque** contre le flanc quand elle est
+rangée, et un **levier** sur le pont qui la déploie et la replie. Les chaînes (ou cordages) de soutien suivent le
+bout de la planche.
 
-## Pliage en accordéon (1.23.1)
+## Paquet compact (1.23.2)
+
+Demande du joueur sur l'accordéon de 1.23.1 : « moins large quand il n'est pas déployé, contre le bateau, que ça se
+remarque à peine, que ça prenne le moins de place possible ». Le paquet en accordéon faisait toute la largeur de la
+planche (3 blocs sur la frégate), un segment de haut et jusqu'à 2,9 blocs d'épaisseur. Désormais :
+
+* **En largeur**, la planche est une **bande centrale** (la moitié de la largeur) et **deux ailes** (un quart chacune),
+  articulées dans la longueur sur des charnières à 0,07 au-dessus de la face de marche, 0,02 au-delà des bords de la
+  bande. Rangée, chaque aile se rabat **par-dessus** la bande (face de marche contre face de marche) : les deux ailes
+  se rejoignent au milieu, le paquet n'a plus que la moitié de la largeur de la planche.
+* **En longueur**, la planche est faite de **segments télescopiques** d'au plus 0,8 bloc (`ceil(longueur / 0,8)`,
+  au moins 2 ; champ `segments` pour en imposer un autre nombre) qui **coulissent les uns dans les autres** : rangés,
+  tous sont dans le segment 0 (invisibles), le paquet fait un segment de haut.
+* **Épaisseur** : bande (0,11) + écart des charnières (0,14) + aile (0,074) = **0,32 bloc**, posé à 0,02 de la coque :
+  au plus 0,35 bloc de saillie. Les poteaux des rambardes **se télescopent** (10 % de leur hauteur) entre l'aile et la
+  bande, les **chaînes rentrent** sur leurs poulies et les **potences** qui les portent s'enfoncent dans le bastingage
+  (0,08 au-dessus de la charnière) : rien ne dépasse.
+* **À plat contre le flanc** : le paquet pend sous la charnière (à `stow_drop` sous elle, 0,12 par défaut), sa face
+  intérieure à 0,02 de la surface la plus saillante du modèle du navire sur son emprise (`stow_offset`), incliné de
+  `stow_tilt` degrés si le flanc s'évase ; ces valeurs sont mesurées sur les modèles par
+  `tools/gangplank/ships_g2.py compact` (rayons tirés de l'extérieur sur l'emprise du paquet, ajustement plat qui ne
+  rentre jamais dans la coque). Le nombre de segments et la hauteur ont été choisis pour que le paquet tombe sur un
+  pan lisse, entre les préceintes et les bandeaux (navire de guerre : sous la moulure du bastingage ; galion, bateau à
+  vapeur : au-dessus de la préceinte ; voilier elfique : sous le décrochement du bordé ; dirigeable steampunk : sous
+  son bandeau saillant).
+* **Camouflage** : la face extérieure du paquet est le dessous des ailes, une **peau peinte aux couleurs de la coque à
+  cet endroit** (planches et liseré, échantillonnés sur la texture du navire par `ships_g2.py camo` : or et doré sur la
+  frégate bleue au niveau de sa lisse, noir sur le navire de guerre, bois sombre sur le galion, rouge sur la galère
+  médiévale, acier sombre sur le bateau à vapeur…), une case de l'atlas par navire. La **face de marche reste en
+  bois** : déployée, la passerelle est la même planche (on aperçoit seulement la peau et son liseré sous la planche et
+  sur ses chants).
+* **Déploiement** (mêmes 3 secondes, même levier, mêmes sons, mêmes règles) : petit déverrouillage, le paquet se
+  soulève et pivote vers l'extérieur et le haut (20° au-dessus de l'horizontale, ou de la pente visée si elle monte)
+  pendant que les chaînes se déroulent et que les potences montent, **les ailes s'ouvrent**, **les segments sortent
+  l'un après l'autre** (chacun glisse hors du précédent, un peu plus bas et plus étroit, puis se met dans l'alignement),
+  la planche droite descend sur le quai (petit rebond) et les rambardes se redressent. Déployée, c'est exactement la
+  planche d'une seule pièce de 1.23.0 (mêmes points, mêmes boîtes de collision, même angle). **Repli** : l'inverse.
+* Rendu : par segment un os `seg_<k>` (la bande, origine à son bout intérieur), ses deux ailes `wing_<k>_0` / `wing_<k>_1`
+  (origine sur leur axe de charnière) et la rambarde de chaque aile `rail_<k>_0` / `rail_<k>_1` ; chaque point passe
+  par `Gangplank.plankPoint` (pli de l'aile, coulissement du segment, pose de la planche), sans allocation par image ;
+  les segments encore emboîtés ne sont pas dessinés ; la pose rangée est calculée une fois par navire.
+
+Taille du paquet rangé (largeur le long de la coque × hauteur × saillie), avant (1.23.1) → après (1.23.2) :
+
+| Navire | 1.23.1 (accordéon) | 1.23.2 (compact) | Emprise |
+| --- | --- | --- | --- |
+| `galley` (galère) | 2,14 × 1,32 × 1,27 | 1,11 × 0,76 × 0,34 | 30 % |
+| `galleon` (galion) | 2,14 × 1,53 × 1,71 | 1,11 × 0,54 × 0,34 | 18 % |
+| `warship` (navire de guerre) | 2,54 × 1,66 × 2,51 | 1,31 × 0,79 × 0,34 | 25 % |
+| `medieval_galley` (galère médiévale) | 2,14 × 1,16 × 1,70 | 1,11 × 0,84 × 0,34 | 38 % |
+| `steam_paddleboat` (bateau à vapeur) | 2,14 × 1,53 × 1,71 | 1,11 × 0,59 × 0,34 | 20 % |
+| `elven_sailboat` (voilier elfique) | 2,34 × 1,49 × 1,27 | 1,21 × 0,84 × 0,34 | 29 % |
+| `old_corsair` (corsaire) | 3,14 × 1,76 × 2,08 | 1,61 × 0,77 × 0,34 | 23 % |
+| `blue_frigate` (frégate bleue) | 3,14 × 1,59 × 2,89 | 1,61 × 0,80 × 0,35 | 26 % |
+| `crystal_airship` (dirigeable de cristal) | 3,64 × 1,53 × 1,71 | 1,86 × 0,83 × 0,34 | 28 % |
+| `sky_leviathan` (Léviathan des cieux) | 3,14 × 1,53 × 1,71 | 1,61 × 0,83 × 0,34 | 28 % |
+| `dragon_junk` (jonque du dragon) | 3,14 × 1,53 × 1,71 | 1,61 × 0,83 × 0,34 | 28 % |
+| `steampunk_airship` (dirigeable steampunk) | 3,14 × 1,66 × 1,27 | 1,61 × 0,69 × 0,34 | 21 % |
+
+(saillie : au-delà de la surface de coque sur laquelle le paquet est posé ; emprise : largeur × hauteur, en part de
+celle de 1.23.1.)
+
+## Pliage en accordéon (1.23.1, remplacé)
+
+Pour mémoire (remplacé en 1.23.2 par le paquet compact ci-dessus) :
 
 * La planche est faite de **segments** d'au plus 1,6 bloc (`ceil(longueur / 1,6)` segments, au moins 2 ; champ `segments`
   pour en imposer un autre nombre), reliés par des **charnières** visibles sur les côtés (plaques et nœuds de fer
@@ -28,9 +92,6 @@ planche.
   1.23.0 (mêmes points, mêmes boîtes de collision, même angle). **Repli** : l'inverse.
 * Le balayage vérifié au clic (« Un bloc gêne le déploiement ») reste celui de 1.23.0 (de la verticale à la pente
   visée) : les règles ne changent pas.
-* Rendu : un os par segment (`seg_<k>`, origine à son bout intérieur) et un par rambarde, ses enfants (`rail_<k>_0`, `rail_<k>_1`)
-  dans `gangplank_<id>.bbmodel` ; chaque segment est placé par sa pose de pliage (angles cumulés des charnières), sans
-  allocation par image ; la pose rangée est calculée une fois par navire.
 
 ## Utilisation
 
@@ -97,8 +158,8 @@ non chargée n'a pas d'appui (et compte comme pleine pour le balayage).
 
 Fichier par navire : `assets/medievalships/gangplanks/<id>.json` (repère local du navire : +x bâbord, y vers le
 haut, +z vers la proue, voir l'en-tête de `core/Gangplank.java`), modèle pliant `models/entity/gangplank_<id>.bbmodel`,
-levier `models/entity/gangplank_lever_<style>.bbmodel`, atlas commun `textures/entity/gangplank.png`, tous générés
-par `tools/gangplank/gangplanklib.py`.
+levier `models/entity/gangplank_lever_<style>.bbmodel`, atlas commun `textures/entity/gangplank.png` (styles en haut,
+camouflage de chaque navire en bas), tous générés par `tools/gangplank/gangplanklib.py`.
 
 | Navire | Côté | Largeur × longueur | Style | Remarques |
 | --- | --- | --- | --- | --- |
@@ -137,8 +198,10 @@ par `tools/gangplank/gangplanklib.py`.
  "angles": [-15, 35],              // pentes permises, positif vers le bas
  "max_drop": 2.6,                  // plus grande hauteur charnière -> appui
  "chain_anchor": null,             // point fixe des chaînes (null : deux petits poteaux à la charnière)
- "segments": 4,                    // facultatif : nombre de segments pliants (défaut ceil(longueur / 1,6), au moins 2)
- "stow_offset": 0.2                // facultatif : écart mini charnière -> face intérieure du paquet rangé (ferrures)
+ "segments": 7,                    // facultatif : segments télescopiques (défaut ceil(longueur / 0,8), au moins 2, au plus 20)
+ "stow_offset": 0.05,              // surface la plus saillante du modèle sous le paquet, au-delà de la charnière (mesurée)
+ "stow_drop": 0.12,                // facultatif : le haut du paquet rangé, sous la charnière (défaut 0,12)
+ "stow_tilt": 0                    // facultatif : inclinaison du paquet (bas vers l'extérieur) pour un flanc évasé, degrés
 }
 ```
 
@@ -148,11 +211,16 @@ rangée (la planche est pliée) : c'est le début du balayage vérifié au dépl
 
 ## Limites
 
-* Le paquet rangé fait `n` × 0,4 bloc d'épaisseur (2,8 blocs sur la frégate bleue, 7 segments) : bien moins visible
-  qu'une planche de 10 blocs dressée, mais c'est un vrai paquet de planches.
-* Galère : deux de ses avirons passent dans la largeur de la passerelle ; ils traversent le paquet rangé (ils passent
-  déjà sous la planche déployée et dans son escalier). Galère médiévale : 4 segments au lieu de 3 pour que le paquet
-  reste au-dessus des sabords de nage.
+* Les segments télescopiques sont une licence : une vraie planche de 10 blocs repliée en un paquet de 0,7 × 1,5 bloc
+  et d'un tiers de bloc d'épaisseur n'est pas possible ; les segments emboîtés ne sont pas dessinés (on ne voit que le
+  segment 0 et ses ailes) et chacun sort du précédent, légèrement plus bas et plus étroit, sans épaisseur cumulée.
+* La planche est un peu plus mince qu'en 1.23.0 (0,11 sous la face de marche au lieu de 0,25 ; boîtes de collision
+  inchangées) et le dessous de ses ailes est peint aux couleurs de la coque.
+* Le camouflage est une couleur moyenne échantillonnée (planches et liseré), pas une copie de la texture : de près, on
+  voit encore le contour du paquet et ses lignes de planches.
+* Le flanc derrière le paquet n'est pas parfaitement plan (bordages, sabords, moulures) : le paquet est plat et posé
+  sur la partie la plus saillante, il peut rester un jour de quelques centièmes à 0,2 bloc ailleurs ; le dirigeable
+  steampunk porte son paquet un bloc sous la charnière (sous son bandeau saillant).
 * Pendant le mouvement (3 s), le paquet qui se déplie peut traverser un bloc voisin (un quai très haut collé à la
   coque) : seul le balayage de 1.23.0 est vérifié, et aucune collision n'existe pendant le mouvement.
 
@@ -165,11 +233,16 @@ rangée (la planche est pliée) : c'est le début du balayage vérifié au dépl
 
 ## Tests
 
-* JUnit `GangplankFoldTest` (1.23.1) : nombre de segments et os du modèle ; pour chaque navire équipé, chaque
-  segment et chaque rambarde rabattue du paquet rangé (sommets du vrai modèle) sous la charnière, hors de la forme de
-  coque, hors des solides du navire et au-delà des ferrures mesurées ; couches empilées sans se croiser ; charnières
-  jamais disjointes et mouvement continu du paquet à la planche droite ; déployée = planche de 1.23.0 (mêmes sommets,
-  mêmes boîtes de collision) ; champs `segments` et `stow_offset`.
+* JUnit `GangplankFoldTest` (1.23.2) : nombre de segments, os du modèle (bandes, ailes, rambardes) et place de
+  chaque pièce ; pour chaque navire équipé, sur les sommets du vrai modèle de passerelle : paquet rangé sous la
+  charnière, au plus la moitié de la planche de large et un segment de haut, **emprise <= 40 % de celle du paquet en
+  accordéon de 1.23.1**, face intérieure à 0,02 de la surface de coque mesurée, **saillie <= 0,35**, faces extérieures
+  dans les cases de camouflage de l'atlas, segments emboîtés cachés, rambardes télescopées, chaînes rentrées, potences
+  basses ; sur le **vrai modèle du navire** (rayons tirés à travers l'emprise du paquet) : le paquet n'entre jamais dans
+  la coque et dépasse d'au plus 0,36 du flanc, à plat contre lui ; mouvement continu (ailes ouvertes avant que les
+  segments sortent, un segment à la fois, chacun apparaissant dans le précédent, rambardes levées une fois la planche
+  sortie) ; déployée = planche de 1.23.0 (mêmes sommets, ailes et rambardes comprises, mêmes boîtes de collision), face
+  de marche en bois ; champs `segments`, `stow_offset`, `stow_drop`, `stow_tilt`.
 * JUnit `GangplankTest` : repère et formule de rotation (identique à la transformation du rendu), animation
   (début, fin, sens du pivot, levier), marches de la pente franchissables dans les deux sens (montée ≤ 0,25, sans
   trou, sur la pente), escalier (marches ≤ 0,45 jusqu'à la charnière), recherche d'appui sur un monde factice (quai
@@ -182,5 +255,6 @@ rangée (la planche est pliée) : c'est le début du balayage vérifié au dépl
   revient ; repli refusé tant qu'il est dessus, accepté ensuite ; commandes du pilote ignorées (la galère ne bouge
   pas) ; déploiement refusé avec un bloc dans l'arc ; aller-retour NBT cohérent ; rechargement après la disparition
   du quai → repli ; dirigeable : refus en plein ciel, déploiement à côté d'un ponton, marche du ponton au pont ;
-  (1.23.1) point le plus haut du paquet rangé (modèle chargé par le client) sous la charnière. Captures :
+  (1.23.2) paquet rangé (modèle chargé par le client) sous la charnière et petit (un segment de haut, la moitié de la
+  planche de large). Captures :
   `passerelle_*` (dont `passerelle_0b_paquet_replie`).

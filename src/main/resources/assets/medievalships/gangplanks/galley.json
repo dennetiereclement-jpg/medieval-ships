@@ -30,5 +30,7 @@
     25.0
   ],
   "max_drop": 1.47,
-  "stow_offset": 0.1
+  "stow_offset": 0.05,
+  "stow_drop": 0.18,
+  "stow_tilt": -3
 }

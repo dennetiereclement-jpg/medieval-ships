@@ -26,5 +26,6 @@
     45.0
   ],
   "max_drop": 3.88,
-  "stow_offset": 0.35
+  "stow_offset": 0.05,
+  "stow_drop": 0.24
 }

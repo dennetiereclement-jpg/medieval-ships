@@ -162,7 +162,10 @@ public final class ShipModels {
 		return GANGPLANKS.get(shipId);
 	}
 
-	/** Reused poses of each plank model: [0] its handrails hidden (the segments), [1] nothing hidden (the handrails). */
+	/**
+	 * Reused poses of each plank model: [0] its wings hidden (the segments' centre strips), [1] its handrails hidden (the
+	 * wings), [2] nothing hidden (the handrails).
+	 */
 	private static final Map<String, BbModel.Pose[]> GANGPLANK_POSES = new java.util.HashMap<>();
 
 	/** The two poses the renderer draws a plank model with (see {@link #GANGPLANK_POSES}), or null. */
@@ -205,12 +208,15 @@ public final class ShipModels {
 				MedievalShips.LOGGER.error("Missing gangplank model for {}", v.type().id());
 			} else {
 				GANGPLANKS.put(v.type().id(), plank);
-				BbModel.Pose segments = plank.newPose();
+				BbModel.Pose strips = plank.newPose();
+				BbModel.Pose wings = plank.newPose();
 				for (int k = 0; k < fr.medievalships.core.Gangplank.MAX_SEGMENTS; k++) {
-					plank.hide(segments, "rail_" + k + "_0");
-					plank.hide(segments, "rail_" + k + "_1");
+					for (int side = 0; side < 2; side++) {
+						plank.hide(strips, "wing_" + k + "_" + side);
+						plank.hide(wings, "rail_" + k + "_" + side);
+					}
 				}
-				GANGPLANK_POSES.put(v.type().id(), new BbModel.Pose[] {segments, plank.newPose()});
+				GANGPLANK_POSES.put(v.type().id(), new BbModel.Pose[] {strips, wings, plank.newPose()});
 			}
 			if (!LEVERS.containsKey(spec.style())) {
 				BbModel lever = load(manager, model("gangplank_lever_" + spec.style()));
