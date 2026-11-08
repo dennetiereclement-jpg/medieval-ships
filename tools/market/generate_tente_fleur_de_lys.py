@@ -3,20 +3,23 @@
 scratchpad/ref2/tente_fleur_de_lys_ref.png, picture 139).
 
 A tall pointed red-and-cream marquee, one block (TentType group "tents"), about 9 blocks wide with the two lantern arms
-and the goods outside, the gold spire at about 7.3:
+and the goods outside, the gold spire at about 6.9:
 
-  - a HIGH four-sided pointed roof, sagging between its hips, wide wine-red and cream stripes radiating from the apex,
+  - a HIGH four-sided pointed roof with a concave marquee outline (its hips curve in), sagging between its hips, wide
+    wine-red and cream stripes radiating from the apex,
     a gold spire on top with a wooden spreader bar and its knobs below it;
   - the BIG FLEUR-DE-LIS BANNER: wine red, gold border, two gold fleurs-de-lis, it lies on the front roof slope from
     near the apex and hangs on below the eave to a V point with a long gold fringe;
-  - red SWAGS with long GOLD FRINGES draped along the eaves (two across the front, meeting under the banner), gold
-    TASSELS where they are hooked up;
+  - red SWAGS with short GOLD FRINGES: across the front two big swags hang from the front posts' tops (just under the
+    crossbars) down to their hooks beside the banner, their hems nearly level; shallower swags along the other eaves;
+    gold TASSELS where they are hooked up;
   - square wooden posts, the two front ones with a CROSSBAR at the top (brace and a hanging lantern on the outer arm),
-    rope lashings round the posts; CREAM DRAPES tied back with ropes on both front posts; the sides are red-and-cream
-    skirts sloping out to the ground, guy ropes to pegs;
+    rope lashings round the posts; wide CREAM DRAPES gathered high on both front posts by thick ropes and flaring to the
+    ground; the sides are red-and-cream skirts sloping out to the ground, guy ropes to pegs;
   - inside: a rail with GARLIC, RED PEPPERS, LAVENDER and a cream cloth hanging from it, a framed fleur-de-lis hanging
     on the back-left, red drapes on the back wall, the counter under a red cloth with a gold fringe (rolled cloths, a
-    bowl of tomatoes, green bottles, a lamp, a sack), a shelf of CLOTH BOLTS (cream, red, blue), hanging blue and red
+    bowl of tomatoes, green bottles, a lamp, a sack), a tall rack of CLOTH BOLTS seen side on (red, cream, blue), hanging
+    blue and red
     fabrics, CHEESE on a crate, a chest with a folded blanket, barrels, a bell rope;
   - in front: a box of yellow flowers, an iron-bound chest painted red and gold, a sack, a wicker basket of grain, the
     RED RUG with a cream-and-gold border.
@@ -56,11 +59,12 @@ PD = 0.5
 EAVE = 3.55                 # the eave beams' top = the roof's lower edge
 RW, RD = HW + 0.25, HD + 0.25
 APEX = 6.0
-POST_TOP = 4.35             # the front posts (crossbars at the top)
+POST_TOP = 4.1              # the front posts (crossbars at the top; not much above the swags, as in the picture)
 COUNTER = (-1.25, 1.25, 0.55, 1.15)
 COUNTER_H = 1.0
 NPC_SPOT = (-0.6, -0.75)
-BAR_Y = 4.05                # the front posts' crossbars
+BAR_Y = 3.82                # the front posts' crossbars
+HIP_SAG = 0.32              # the roof's concave marquee outline (its hips curve in)
 
 
 def paint_banner(img):
@@ -80,7 +84,7 @@ def paint_swag(img):
     w, h = img.size
     pe.weave(img, WINE, rng)
     px = img.load()
-    body = int(h * 0.56)
+    body = int(h * 0.78)    # the red cloth; a short gold fringe below it, as in the picture
     for y in range(h):
         for x in range(w):
             r, g, b, a = px[x, y]
@@ -89,7 +93,31 @@ def paint_swag(img):
     for y in range(body - 4, body):
         for x in range(w):
             px[x, y] = ml._jitter(_scale(GOLD, 0.9 if y in (body - 4, body - 1) else 1.08), rng, 8) + (255,)
-    pe.fringe_rows(px, w, h, body, GOLD, rng, tassel=4)
+    pe.fringe_rows(px, w, h, body, _scale(GOLD, 0.94), rng, tassel=3)
+
+
+def paint_swag_body(img):
+    """The front swags' red cloth (no fringe: that is its own strip, of constant height): wine red, deep folds."""
+    rng = random.Random(3905)
+    w, h = img.size
+    pe.weave(img, WINE, rng)
+    px = img.load()
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = px[x, y]
+            k = 0.8 + 0.24 * math.sin(math.pi * ((x * 5.0 / w + 0.1 * y / h) % 1.0)) - 0.1 * (y < 2)
+            px[x, y] = _scale((r, g, b), k) + (255,)
+
+
+def paint_fringe(img):
+    """A gold braid band over a gold fringe of tassel groups (cut-out), for the hem of the front swags."""
+    rng = random.Random(3906)
+    w, h = img.size
+    px = img.load()
+    for y in range(3):
+        for x in range(w):
+            px[x, y] = ml._jitter(_scale(GOLD, 0.82 if y == 2 else 1.06), rng, 8) + (255,)
+    pe.fringe_rows(px, w, h, 3, _scale(GOLD, 0.94), rng, tassel=3)
 
 
 def paint_tassel(img):
@@ -137,11 +165,13 @@ def add_regions(atlas):
     atlas.add("fl_roof", 160, 96, pe.trap_stripes([WINE, CREAM], 5, s + 10, pe.roof_wfrac(0.0, 1.0), fold=0.18))
     atlas.add("fl_banner", 48, 160, paint_banner)
     atlas.add("fl_rug", 128, 96, pe.rug("8a1e26", "5a1218", "e8b848", "d8c49a", s + 11))
-    atlas.add("fl_curtain", 48, 96, pe.stripes([CREAM, _scale(CREAM, 0.9)], 3, s + 12, fold=0.4, seams=False))
+    atlas.add("fl_curtain", 48, 96, pe.stripes([CREAM, _scale(CREAM, 0.92)], 4, s + 12, fold=0.6, seams=False))
     atlas.add("fl_wall", 128, 64, pe.stripes([WINE, CREAM], 6, s + 13, fold=0.25))
     atlas.add("fl_skirt", 128, 64, pe.stripes([WINE, _scale(WINE, 0.86)], 6, s + 34, fold=0.35, seams=False, hem=(_scale(WINE, 0.6), 3)))
     atlas.add("fl_back", 64, 64, pe.stripes([_scale(WINE, 0.8), _scale(WINE, 0.72)], 4, s + 14, fold=0.4, seams=False))
     atlas.add("fl_swag", 128, 32, paint_swag)
+    atlas.add("fl_swag_body", 128, 32, paint_swag_body)
+    atlas.add("fl_fringe", 128, 8, paint_fringe)
     atlas.add("fl_cloth_hang", 64, 32, pe.panel(WINE, s + 15, fringe=10, motif=None, gold=GOLD))
     atlas.add("fl_sign", 32, 40, pe.framed_sign("6a1a26", s + 16))
     atlas.add("fl_chest", 32, 32, paint_chest)
@@ -190,6 +220,27 @@ def roof_banner(bone, name, face, xc, w, t0, hang, region, ny_roof=4, ny_hang=2)
     loft(bone, name, P, 2, n, region, th=0.02, u_hint=X, v_hint=-UP)
 
 
+def swag2(bone, name, a, b, hem_y, drop, belly=0.1, fringe=0.24, nx=5):
+    """A front swag as in the picture: its top edge runs straight from a (high, at the post top) to b (low, at the
+    hook over the eave); the red cloth falls to a hem at hem_y (= (y at a, y at b)) that dips `drop` in the middle,
+    bellying out (+z); a gold fringe strip of constant height `fringe` hangs from the hem."""
+    a, b = v3(*a), v3(*b)
+
+    def hem(s):
+        x = a[0] + (b[0] - a[0]) * s
+        z = a[2] + (b[2] - a[2]) * s + belly * math.sin(math.pi * s) + 0.02
+        return v3(x, hem_y[0] + (hem_y[1] - hem_y[0]) * s - drop * math.sin(math.pi * s), z)
+
+    def P(s, t):
+        top = a + (b - a) * s
+        return top * (1 - t) + hem(s) * t + Z * (belly * 0.6 * math.sin(math.pi * s) * math.sin(math.pi * t))
+    loft(bone, name, P, nx, 2, "fl_swag_body", th=0.03, overlap=0.015)
+
+    def F(s, t):
+        return hem(s) - UP * (fringe * t) + Z * (0.015 * t)
+    loft(bone, name + "_fringe", F, nx, 1, "fl_fringe", th=0.02, overlap=0.015)
+
+
 # ---------------------------------------------------------------- the build
 def build(atlas, decor):
     rng = random.Random(139)
@@ -214,16 +265,16 @@ def build(atlas, decor):
              width=0.24)
         beam(shell, "bar_brace_%d" % k, (x + sx * 0.2, BAR_Y - 0.75, HD), (x + sx * 0.75, BAR_Y - 0.08, HD), 0.14, "wood_dark", extend=0.04)
         pe.rope_wrap(det, "bar_lash_%d" % k, x, HD, BAR_Y - 0.06, PD / 2, turns=2, th=0.08)
-        pe.rope_wrap(det, "post_lash_%d" % k, x, HD, 1.92, PD / 2, turns=3, th=0.09)
-        pe.rope_wrap(det, "post_foot_%d" % k, x, HD, 0.75, PD / 2, turns=1, th=0.12)
+        pe.rope_wrap(det, "post_lash_%d" % k, x, HD, 2.6, PD / 2, turns=3, th=0.09)
+        pe.rope_wrap(det, "post_foot_%d" % k, x, HD, 1.35, PD / 2, turns=2, th=0.1)
         tip = v3(x + sx * 1.0, BAR_Y - 0.12, HD)
         ml.rope(det, "lamp_rope_%d" % k, tip, tip - UP * 0.32, d=0.04)
         pe.lamp(shell, det, "lamp_%d" % k, tip - UP * 0.56, size=0.4, chain_to=None)
     # ---- the high pointed roof, stripes radiating from the apex
     eave = [(-RW, EAVE, RD), (RW, EAVE, RD), (RW, EAVE, -RD), (-RW, EAVE, -RD)]
-    faces = pe.pyramid_roof2(shell, "roof", eave, [(0, APEX, 0)] * 4, ["fl_roof"] * 4, sag=0.42, nx=5, ny=8)
+    faces = pe.pyramid_roof2(shell, "roof", eave, [(0, APEX, 0)] * 4, ["fl_roof"] * 4, sag=0.42, nx=5, ny=8, hip_sag=HIP_SAG)
     for k in range(4):
-        ml.rope(det, "hip_%d" % k, v3(0, APEX, 0), v3(*eave[k]) + UP * 0.03, d=0.06, segs=3)
+        ml.rope(det, "hip_%d" % k, v3(0, APEX, 0) + UP * 0.03, v3(*eave[k]) + UP * 0.03, d=0.06, sag=HIP_SAG, segs=4)
     # the spire, the spreader bar with its knobs below it
     ml.octo(shell, "spire_base", (0, APEX - 0.1, 0), 0.16, 0.22, "wood_dark")
     ml.octo(shell, "spire_collar", (0, APEX + 0.12, 0), 0.12, 0.1, "gold")
@@ -237,20 +288,22 @@ def build(atlas, decor):
     beam(shell, "cross_post", (-0.75, sy, 0.0), (-0.75, sy + 0.6, 0.0), 0.12, "wood_dark")
     beam(shell, "cross_arm", (-0.95, sy + 0.4, 0.0), (-0.55, sy + 0.4, 0.0), 0.1, "wood_dark")
     # ---- the big fleur-de-lis banner: on the front slope from near the apex, then hanging below the eave
-    roof_banner(shell, "banner", faces[0], 0.05, 1.28, 0.12, 1.85, "fl_banner")
-    beam(det, "banner_rod", (-0.66, APEX - 0.5, 0.42), (0.76, APEX - 0.5, 0.42), 0.06, "wood_dark")
+    roof_banner(shell, "banner", faces[0], 0.05, 1.12, 0.12, 1.82, "fl_banner", ny_roof=3, ny_hang=3)   # (the lower fleur on the hanging half)
+    beam(det, "banner_rod", (-0.56, APEX - 0.5, 0.42), (0.66, APEX - 0.5, 0.42), 0.06, "wood_dark")
     # ---- swags with gold fringes along the eaves, tassels at the hooks
     zf = RD + 0.06
-    pe.swag(shell, "swag_fl", (-RW - 0.05, EAVE + 0.08, zf), (-0.55, EAVE + 0.08, zf), 0.3, 0.85, Z, "fl_swag", nx=5)
-    pe.swag(shell, "swag_fr", (0.65, EAVE + 0.08, zf), (RW + 0.05, EAVE + 0.08, zf), 0.3, 0.85, Z, "fl_swag", nx=5)
+    # the two front swags lie over the roof's lower slope (rising towards the banner) and fall in a curve below the eave
+    # (each hangs from the front post's top, high, down to its hook beside the banner, low; the hems nearly level)
+    swag2(shell, "swag_fl", (-RW + 0.05, BAR_Y - 0.12, zf - 0.08), (-0.5, EAVE + 0.06, zf), (3.12, 3.16), 0.2, belly=0.18)
+    swag2(shell, "swag_fr", (0.6, EAVE + 0.06, zf), (RW - 0.05, BAR_Y - 0.12, zf - 0.08), (3.16, 3.12), 0.2, belly=0.18)
     for k, sx in enumerate((-1, 1)):
         xs = sx * (RW + 0.06)
-        pe.swag(shell, "swag_side_%d" % k, (xs, EAVE + 0.08, RD if sx < 0 else -RD), (xs, EAVE + 0.08, -RD if sx < 0 else RD), 0.3, 0.75,
+        pe.swag(shell, "swag_side_%d" % k, (xs, EAVE + 0.08, RD if sx < 0 else -RD), (xs, EAVE + 0.08, -RD if sx < 0 else RD), 0.22, 0.5,
                 v3(sx, 0, 0), "fl_swag", nx=6)
-    pe.swag(shell, "swag_back", (RW, EAVE + 0.08, -RD - 0.06), (-RW, EAVE + 0.08, -RD - 0.06), 0.3, 0.75, -Z, "fl_swag", nx=6)
-    for k, x in enumerate((-RW, -0.55, 0.65, RW)):
-        pe.tassel(det, "tassel_%d" % k, (x, EAVE + 0.02, zf + 0.06), h=0.42, w=0.16)
-        add_cube(det, "tassel_cord_%d" % k, (x, EAVE - 0.0, zf + 0.06), EYE, (0.04, 0.1, 0.04), "gold")
+    pe.swag(shell, "swag_back", (RW, EAVE + 0.08, -RD - 0.06), (-RW, EAVE + 0.08, -RD - 0.06), 0.22, 0.5, -Z, "fl_swag", nx=6)
+    for k, (x, y) in enumerate(((-RW + 0.05, BAR_Y - 0.1), (-0.5, EAVE + 0.06), (0.6, EAVE + 0.06), (RW - 0.05, BAR_Y - 0.1))):
+        pe.tassel(det, "tassel_%d" % k, (x, y - 0.04, zf + 0.08), h=0.46, w=0.18)
+        add_cube(det, "tassel_cord_%d" % k, (x, y - 0.02, zf + 0.08), EYE, (0.05, 0.1, 0.05), "gold")
     # ---- the side skirts (red-and-cream, sloping out to the ground), the back wall, guy ropes
     for k, sx in enumerate((-1, 1)):
         za, zb = (-HD, 1.15) if sx < 0 else (1.0, -HD)
@@ -271,33 +324,36 @@ def build(atlas, decor):
     # ---- cream drapes tied back with ropes on the two front posts (an outer one hanging from the crossbar, an inner one)
     for k, sx in enumerate((-1, 1)):
         x = sx * HW
+        # (gathered high on the post by a thick rope, as in the picture, and flaring wide again down to the ground)
         pe.drape(shell, det, "drape_out_%d" % k, (x + sx * 1.12, BAR_Y - 0.12, HD + 0.08), (x + sx * 0.25, BAR_Y - 0.12, HD + 0.08),
-                 (x + sx * 0.32, 2.05, HD + 0.14), (x + sx * 0.4, 0.04, HD + 0.16), (x + sx * 1.15, 0.04, HD + 0.3), Z, "fl_curtain", nx=3,
-                 tie_region="rope", tie_size=(0.36, 0.16, 0.26))
-        pe.drape(shell, det, "drape_in_%d" % k, (x - sx * 0.28, by - 0.15, HD - 0.05), (x - sx * 1.15, by - 0.15, HD - 0.05),
-                 (x - sx * 0.34, 2.0, HD - 0.14), (x - sx * 0.3, 0.04, HD - 0.12), (x - sx * 0.7, 0.04, HD - 0.15), Z, "fl_curtain", nx=3,
-                 tie_region="rope", tie_size=(0.32, 0.14, 0.22))
+                 (x + sx * 0.34, 2.72, HD + 0.16), (x + sx * 0.3, 0.04, HD + 0.22), (x + sx * 1.45, 0.04, HD + 0.5), Z, "fl_curtain", nx=3,
+                 tie_region="rope", tie_size=(0.4, 0.2, 0.3))
+        pe.drape(shell, det, "drape_in_%d" % k, (x - sx * 0.26, by - 0.12, HD + 0.04), (x - sx * 1.2, by - 0.12, HD + 0.04),
+                 (x - sx * 0.38, 2.68, HD + 0.14), (x - sx * 0.28, 0.04, HD + 0.22), (x - sx * 1.3, 0.04, HD + 0.42), Z, "fl_curtain", nx=3,
+                 tie_region="rope", tie_size=(0.36, 0.18, 0.26))
     # ---- inside: the rail with the hanging garlic, peppers, lavender and a cloth; the framed fleur; hanging fabrics
-    beam(shell, "rail", (-HW + 0.2, 2.72, 1.55), (HW - 0.2, 2.72, 1.55), 0.12, "wood")
+    RY = 2.95   # the rail (in the picture the bunches hang just under the swags, well in view)
+    beam(shell, "rail", (-HW + 0.2, RY, 1.55), (HW - 0.2, RY, 1.55), 0.12, "wood")
     for k, x in enumerate((-2.3, -0.9, 0.6, 2.2)):
-        pe.rope_wrap(det, "rail_lash_%d" % k, x, 1.55, 2.66, 0.07, turns=1, th=0.06)
-    for k, (x, kind, ln, wd) in enumerate(((-2.05, "e_lavender", 0.62, 0.3), (-1.72, "e_lavender", 0.55, 0.28), (-1.35, "e_garlic", 0.56, 0.28),
-                                           (-0.35, "e_peppers", 0.62, 0.28), (1.65, "e_lavender", 0.5, 0.26))):
-        ml.hanging_bunch(det, "bunch_%d" % k, (x, 2.66, 1.55), kind=kind, length=ln, width=wd, string=0.06)
-    pe.lamp(shell, det, "lamp_in", (0.95, 2.2, 1.55), size=0.34, chain_to=(0.95, 2.66, 1.55))
-    pe.hang_panel(det, "rag", (-0.8, 2.68, 1.6), 0.36, 0.5, (0, 0, 1), "fl_rag", wave=0.04, ny=2)
+        pe.rope_wrap(det, "rail_lash_%d" % k, x, 1.55, RY - 0.06, 0.07, turns=1, th=0.06)
+    for k, (x, kind, ln, wd) in enumerate(((-1.62, "e_lavender", 0.78, 0.36), (-1.3, "e_lavender", 0.7, 0.34), (-0.98, "e_garlic", 0.72, 0.36),
+                                           (-0.6, "e_peppers", 0.8, 0.34), (1.65, "e_lavender", 0.62, 0.3))):
+        ml.hanging_bunch(det, "bunch_%d" % k, (x, RY - 0.06, 1.55), kind=kind, length=ln, width=wd, string=0.06)
+    pe.lamp(shell, det, "lamp_in", (0.55, 2.2, 1.55), size=0.38, chain_to=(0.55, RY - 0.06, 1.55))
+    pe.hang_panel(det, "rag", (-0.08, RY - 0.04, 1.6), 0.42, 0.6, (0, 0, 1), "fl_rag", wave=0.04, ny=2)
     ml.plate(shell, "sign", (-1.9, 2.0, -HD + 0.22), 0.62, 0.78, "fl_sign", normal=(0, 0, 1), th=0.04, edge="wood_dark")
     beam(det, "sign_rope", (-2.1, 2.55, -HD + 0.22), (-1.7, 2.55, -HD + 0.22), 0.03, "rope")
-    for k, (x, reg) in enumerate(((1.15, "fl_fab_red"), (1.42, "fl_fab_blue"), (1.68, "fl_fab_red"))):
+    for k, (x, reg) in enumerate(((0.62, "fl_fab_red"), (0.9, "fl_fab_blue"), (1.18, "fl_fab_red"))):
         pe.hang_panel(shell, "fabric_%d" % k, (x, 2.5, -1.25 + 0.03 * k), 0.26, 1.55, (0, 0, 1), reg, wave=0.04, ny=2)
-    beam(det, "fabric_rod", (0.95, 2.52, -1.25), (1.9, 2.52, -1.25), 0.05, "wood_dark")
-    # the bolt shelf on the right (cream, red, blue cloth bolts)
-    levels = ml.shelf_unit(shell, "bolt_shelf", 1.95, 2.75, -1.6, -0.6, levels=(0.55, 1.05, 1.55, 2.05), h=2.35, back=False, uprights=2, detail=det)
-    regs = ("e_bolt_cream", "cloth_red", "e_bolt_cream", "cloth_blue", "cloth_red")
+    beam(det, "fabric_rod", (0.45, 2.52, -1.25), (1.35, 2.52, -1.25), 0.05, "wood_dark")
+    # the bolt shelf on the right: in the picture a tall rack of cloth bolts seen side on (red, cream, blue bodies)
+    levels = ml.shelf_unit(shell, "bolt_shelf", 1.5, 2.8, -1.45, -0.85, levels=(0.5, 0.95, 1.4, 1.85, 2.3), h=2.55, back=True, uprights=3, detail=det)
+    regs = ("cloth_red", "e_bolt_cream", "cloth_blue", "cloth_red", "e_bolt_cream", "cloth_dark")
     for j, (x0, x1, yy, zf_, zb) in enumerate(sorted(levels, key=lambda s: s[2])):
-        for i in range(2):
-            pe.bolt(det, "bolt_%d_%d" % (j, i), ((x0 + x1) / 2, yy + 0.1 + 0.19 * i, (zf_ + zb) / 2), length=0.95, r=0.1, yaw=math.pi / 2,
-                    region=regs[(i + j) % len(regs)], end="cloth_white")
+        zc = (zf_ + zb) / 2
+        for i, (dz, dy) in enumerate(((0.13, 0.0), (-0.13, 0.0), (0.0, 0.18))[:3 if j % 2 else 2]):
+            pe.bolt(det, "bolt_%d_%d" % (j, i), ((x0 + x1) / 2 + 0.03 * (i - 1), yy + 0.1 + dy, zc + dz), length=1.12 - 0.08 * (i == 2), r=0.1,
+                    yaw=0.03 * (j - 2), region=regs[(i + 2 * j) % len(regs)], end="e_bolt_cream")
     # ---- the counter with the red cloth with a gold fringe and its goods
     cx0, cx1, cz0, cz1 = COUNTER
     top = ml.counter(shell, "counter", cx0, cx1, cz0, cz1, h=COUNTER_H, detail=det)

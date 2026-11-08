@@ -3,16 +3,18 @@
 scratchpad/ref2/tente_draperie_ref.png, picture 122).
 
 A square red-and-cream merchant tent, one block (TentType group "tents"), about 10 blocks wide with its right awning,
-the guy rope and the goods outside, the finial at about 6.8:
+the guy rope and the goods outside, the finial at about 7.2:
 
   - four big squared dark-wood posts with grey riveted iron bands, the two front ones tall with stacked cap blocks
-    rising above the roof, the back ones lower; heavy eave beams, a capped block in the middle of the front eave;
+    rising above the roof, the back ones lower; heavy eave beams high up (a tall shop opening, as in the picture), a
+    capped block in the middle of the front eave and another on the left, each carrying a lantern on a chain;
   - the four-sided roof, sagging between the hips, red stripes sprinkled with small gold motifs alternating with cream
     stripes, rising to a small square CUPOLA framed by wooden corner blocks, hung with red gold-fringed panels, under a
     little red pyramid and a gold onion finial; thick ropes from the cupola down to the front post caps and a guy rope
     from the front-left post to a peg on the ground;
-  - the gold-fringed RED DRAPES: two staggered rows of hanging panels under the front eave (red with a gold border, a
-    gold fringe and a gold diamond motif, and cream ones), more panels on the sides;
+  - the gold-fringed RED DRAPES: two staggered rows of SHORT hanging panels under the front eave (red with a gold border,
+    a gold fringe and a gold diamond motif, and cream ones; two longer ones in front) leaving the lit shop in view below
+    them, more panels on the sides;
   - a deep red-purple CURTAIN tied back with a gold band on the front-right post, a red patterned drape over the left
     side, red-and-cream striped back wall;
   - BUNTING on a rope from the front-right post to a pole on the right awning (red, purple, cream, gold pennants);
@@ -20,10 +22,10 @@ the guy rope and the goods outside, the finial at about 6.8:
     it (flower pots, a basket of red apples, a basket of lemons on crates);
   - inside: back shelves full of potions (orange, purple, red, green) and jars, the long counter (cheese blocks, a tub,
     potions, the BLUE runner with gold motifs and a dagged gold hem), bunches of grapes, lavender and herbs hanging from
-    a rail under the front eave, four glowing lanterns;
+    a rail under the front panels, glowing lanterns;
   - outside left: ROLLED CARPETS standing against the front-left post (cream, red and purple with gold patterns),
-    iron-banded barrels, cream sacks, a crate with a pot of herbs; in front: two crates with a basket of red flowers and
-    a basket of oranges and apples; the RED patterned RUG in front of the counter.
+    iron-banded barrels, cream sacks, a crate with a pot of herbs; in front: two light X-braced crates with a basket of
+    red flowers and a basket of oranges and apples; the RED patterned RUG in front of the counter.
 
 The merchant's place (an EasyNPC, 1 x 1 x 2.2 free) is behind the counter (NPC_SPOT); players walk in by the gap between
 the counter's right end and the front-right post (under the tied curtain). No trade system, nothing ticks.
@@ -59,11 +61,11 @@ GOLD = pe.GOLD
 # ---------------------------------------------------------------- dimensions (tent-local blocks, +z = the open front)
 HW, HD = 3.0, 2.3           # main posts at x = +-HW, z = +-HD
 PD = 0.58                   # post section
-EAVE = 3.5                  # top of the eave beams (the roof's lower edge)
-FRONT_TOP, BACK_TOP = 4.45, 3.9
+EAVE = 3.85                 # top of the eave beams (the roof's lower edge): a tall opening, as in the picture
+FRONT_TOP, BACK_TOP = 4.75, 4.25
 RW, RD = HW + 0.3, HD + 0.3  # the roof's eave half sizes
 CUP = 0.64                  # the cupola's half size
-CUP_Y0, CUP_Y1 = 5.15, 5.85  # the roof's top square / the cupola's top
+CUP_Y0, CUP_Y1 = 5.45, 6.15  # the roof's top square / the cupola's top
 EXT_X = 4.95                # the right awning's outer posts
 EXT_Z = (1.85, -1.15)
 COUNTER = (-2.5, 1.6, 0.9, 1.5)   # x0, x1, z0, z1
@@ -91,7 +93,7 @@ def add_regions(atlas):
     atlas.add("dr_awn_edge", 128, 16, pe.panel(_scale(RED, 0.8), s + 12, fringe=0, motif=None, dags=10))
     atlas.add("dr_roll_red", 32, 48, pe.carpet_roll("a42430", "e8a830", s + 13))
     atlas.add("dr_roll_plum", 32, 48, pe.carpet_roll("5a1e5a", "e0a030", s + 14))
-    atlas.add("dr_roll_cream", 32, 48, pe.carpet_roll("e8dcc0", "c8b080", s + 15, cream=True))
+    atlas.add("dr_roll_cream", 32, 48, pe.carpet_roll("e8dcc0", "a8783c", s + 15, cream=True))
     atlas.add("e_post", 64, 16, pe.wood("74482a", "3a2412", s + 16))
     atlas.add("e_grapes", 24, 40, pe.bunch("grapes", s + 17))
     atlas.add("e_lavender", 24, 40, pe.bunch("lavender", s + 18))
@@ -107,6 +109,7 @@ def add_regions(atlas):
     atlas.add("e_band", 32, 8, pe.iron_band(s + 28))
     atlas.add("e_gold_band", 16, 8, pe.panel(GOLD, s + 29, fringe=0, motif=None, gold=_rgb("a87018")))
     atlas.add("e_carpet_end", 16, 16, paint_spiral)
+    atlas.add("e_xcrate", 32, 32, pe.xcrate(s + 31))
     atlas.add("e_soil", 16, 16, pe.heap(["3a2a1a", "4a3420"], s + 30, bg="2a1c10", r=2))
     for k, c in enumerate((RED, _rgb("6a2a7a"), CREAM, GOLD)):
         atlas.add("dr_pen_%d" % k, 16, 24, pe.panel(c, s + 40 + k, fringe=0, motif=None, point=0.45, gold=_scale(c, 0.7) if k == 3 else GOLD))
@@ -136,7 +139,7 @@ def build(atlas, decor):
     corners = [(-HW, HD), (HW, HD), (HW, -HD), (-HW, -HD)]    # FL, FR, BR, BL
     tops = [FRONT_TOP, FRONT_TOP, BACK_TOP, BACK_TOP]
     for k, (x, z) in enumerate(corners):
-        pe.post(shell, det, "post_%d" % k, x, z, tops[k], d=PD, bands=(0.3, 1.55, 2.75, 3.85) if k < 2 else (0.3, 1.55, 2.75),
+        pe.post(shell, det, "post_%d" % k, x, z, tops[k], d=PD, bands=(0.3, 1.05, 2.6, 4.15) if k < 2 else (0.3, 1.55, 2.9),
                 caps=2 if k < 2 else 1, cap_w=0.84, solid_to=EAVE)
     by = EAVE - 0.17
     for k in range(4):
@@ -148,7 +151,7 @@ def build(atlas, decor):
     pe.band(det, "mid_block_band", 0.0, HD, 0.25, EAVE - 0.1, 0.12)
     # tie beam and rail for the hanging bunches, inner braces
     beam(shell, "tie_beam", (-HW, by - 0.05, 0.0), (HW, by - 0.05, 0.0), 0.22, "wood_dark", extend=0.1)
-    beam(det, "herb_rail", (-HW, 2.68, 2.0), (0.4, 2.68, 2.0), 0.08, "wood_dark")
+    beam(det, "herb_rail", (-HW, 3.05, 2.0), (0.4, 3.05, 2.0), 0.08, "wood_dark")
     for k, sx in enumerate((-1, 1)):
         beam(shell, "brace_f_%d" % k, (sx * (HW - 0.2), EAVE - 1.1, HD), (sx * (HW - 0.95), by - 0.12, HD), 0.15, "wood_dark", extend=0.04)
     # ---- the roof: four sagging faces, red stripes with gold crosses / cream, up to the cupola
@@ -185,17 +188,19 @@ def build(atlas, decor):
     pe.rope_wrap(det, "guy_wrap", -HW, HD, FRONT_TOP - 0.38, PD / 2, turns=2)
     # ---- the hanging panels: two staggered rows draped over the front roof edge, more on the sides and the back
     zf = RD + 0.02
-    back_row = [(-2.5, 1.0, "dr_pan_red", 1.05, 0.42), (-1.5, 1.0, "dr_pan_red", 1.15, 0.45), (0.6, 0.95, "dr_pan_cream", 1.3, 0.45),
-                (1.6, 1.0, "dr_pan_red", 1.05, 0.4), (2.5, 0.95, "dr_pan_cream", 1.0, 0.38)]
-    front_row = [(-2.0, 1.0, "dr_pan_long", 1.5, 0.25), (-0.55, 0.95, "dr_pan_cream", 1.05, 0.28), (1.1, 1.02, "dr_pan_long", 1.72, 0.22),
-                 (2.1, 0.95, "dr_pan_red", 1.25, 0.24)]
+    # (x, width, region, hanging depth below the eave, how far up the roof it starts): short valances (the shop's
+    # interior stays in view under them, as in the picture), a few longer panels with the gold diamond in front
+    back_row = [(-2.5, 1.0, "dr_pan_red", 0.78, 0.42), (-1.5, 1.0, "dr_pan_red", 0.82, 0.45), (-0.55, 0.9, "dr_pan_red", 0.74, 0.45),
+                (0.6, 0.9, "dr_pan_cream", 0.72, 0.45), (1.6, 1.0, "dr_pan_red", 0.86, 0.4), (2.5, 0.95, "dr_pan_cream", 0.7, 0.38)]
+    front_row = [(-1.75, 0.82, "dr_pan_long", 1.22, 0.25), (-0.85, 0.6, "dr_pan_red", 0.92, 0.28), (1.3, 0.86, "dr_pan_long", 1.38, 0.22),
+                 (2.3, 0.7, "dr_pan_cream", 0.78, 0.24)]
     for row, (lst, lift, dz) in enumerate(((back_row, 0.05, 0.0), (front_row, 0.1, 0.07))):
         for k, (x, w, reg, h, up) in enumerate(lst):
             t = 1.0 - up / 2.0
             p = pe.roof_point(faces[0], x, t, axis=0) + UP * lift
             pe.drape_over(shell, "pan_%d_%d" % (row, k), p, (x, EAVE + 0.04 + lift * 0.5, zf + dz), w, h, (0, 0, 1), reg, wave=0.05 + 0.02 * row)
     for k, sx in enumerate((-1, 1)):
-        for j, (z, reg, h) in enumerate(((1.25, "dr_pan_red", 1.15), (0.0, "dr_pan_cream", 1.0), (-1.25, "dr_pan_red", 1.2))):
+        for j, (z, reg, h) in enumerate(((1.25, "dr_pan_red", 0.95), (0.0, "dr_pan_cream", 0.8), (-1.25, "dr_pan_red", 0.95))):
             face = faces[3] if sx < 0 else faces[1]
             p = pe.roof_point(face, z, 0.8, axis=2) + UP * 0.05
             pe.drape_over(shell, "pan_s_%d_%d" % (k, j), p, (sx * (RW + 0.03), EAVE + 0.06, z), 1.05, h, (sx, 0, 0), reg, wave=0.05)
@@ -216,10 +221,12 @@ def build(atlas, decor):
     pe.drape(shell, det, "curtain_l", (-HW - 0.12, by - 0.2, 1.0), (-HW - 0.12, by - 0.2, HD - 0.3), (-HW - 0.14, 1.5, 1.9),
              (-HW - 0.12, 0.04, 1.75), (-HW - 0.12, 0.04, 2.0), -X, "dr_drape_l", nx=2)
     # ---- lanterns
-    pe.lamp(shell, det, "lamp_l", (-2.1, 2.3, 2.0), size=0.36, chain_to=(-2.1, 2.66, 2.0))
-    
-    pe.lamp(shell, det, "lamp_c", (0.05, 2.62, 1.55), size=0.44, chain_to=(0.05, by - 0.12, 1.55))
-    pe.lamp(shell, det, "lamp_in", (0.95, 2.4, 0.15), size=0.34, chain_to=(0.95, by - 0.1, 0.0))
+    # the left and centre lanterns hang on chains from wooden blocks under the front eave, as in the picture
+    box(shell, "lamp_l_block", (-2.35, EAVE - 0.72, HD - 0.2), (-1.95, EAVE - 0.3, HD + 0.2), {"all": "wood", "-2": "end_grain"})
+    pe.band(det, "lamp_l_block_band", -2.15, HD, 0.215, EAVE - 0.62, 0.1)
+    pe.lamp(shell, det, "lamp_l", (-2.15, 2.42, HD), size=0.38, chain_to=(-2.15, EAVE - 0.72, HD))
+    pe.lamp(shell, det, "lamp_c", (0.0, 2.72, HD), size=0.46, chain_to=(0.0, EAVE - 0.4, HD))
+    pe.lamp(shell, det, "lamp_in", (1.05, 2.55, 0.15), size=0.34, chain_to=(1.05, by - 0.1, 0.0))
     mount, tip = v3(HW + 0.29, 3.0, HD), v3(HW + 0.62, 3.0, HD)
     beam(det, "lamp_r_arm", mount, tip, 0.05, "iron", extend=0.02)
     beam(det, "lamp_r_brace", mount - UP * 0.35, tip - UP * 0.02, 0.04, "iron")
@@ -227,7 +234,7 @@ def build(atlas, decor):
     # ---- the hanging bunches (grapes, lavender, herbs) from the rail under the front eave
     for k, (x, kind, ln) in enumerate(((-1.45, "e_herbs", 0.62), (-1.18, "e_grapes", 0.5), (-0.92, "e_lavender", 0.6), (-0.66, "e_herbs", 0.55),
                                        (-0.42, "e_grapes", 0.48), (-0.18, "e_lavender", 0.56))):
-        ml.hanging_bunch(det, "bunch_%d" % k, (x, 2.64, 2.0), kind=kind, length=ln, width=0.26, string=0.04 + 0.04 * (k % 2))
+        ml.hanging_bunch(det, "bunch_%d" % k, (x, 3.01, 2.0), kind=kind, length=ln + 0.16, width=0.28, string=0.04 + 0.04 * (k % 2))
     # ---- the right awning: posts, beams, the sagging red cloth with a gold border, fringed outer edge; bunting
     for k, z in enumerate(EXT_Z):
         top = pe.post(shell, det, "epost_%d" % k, EXT_X, z, 2.5, d=0.38, bands=(0.3, 1.4), caps=1, cap_w=0.5)
@@ -247,12 +254,12 @@ def build(atlas, decor):
 
     def AWE(s, t):  # the outer edge falls a little, dagged
         p = AW(s, 1.0)
-        return p - UP * (0.32 * t) + X * (0.04 * t)
+        return p - UP * (0.4 * t) + X * (0.04 * t)
     loft(shell, "awning_edge", AWE, 4, 1, "dr_awn_edge", th=0.025)
 
     def AWF(s, t):  # the front hem: a curved swag between the main post and the outer post
         p = AW(0.0, s)
-        return p - UP * ((0.12 + 0.3 * math.sin(math.pi * s)) * t) + Z * (0.03 * t)
+        return p - UP * ((0.14 + 0.42 * math.sin(math.pi * s)) * t) + Z * (0.03 * t)
     loft(shell, "awning_front", AWF, 4, 1, "dr_awn_edge", th=0.025)
     pe.lamp(shell, det, "lamp_aw", (3.55, 2.2, EXT_Z[0]), size=0.34, chain_to=(3.55, 2.72, EXT_Z[0]))
     pe.bunting(det, "bunting", (HW + 0.3, FRONT_TOP + 0.1, HD), (EXT_X, 3.7, EXT_Z[0]), 0.28,
@@ -292,11 +299,12 @@ def build(atlas, decor):
     # ---- the RUG in front of the counter
     ml.rug(shell, "rug", -0.3, 2.62, 2.4, 4.5, y=0.0, region="dr_rug")
     # ---- front crates with the basket of red flowers and the basket of oranges and apples
-    ml.crate(shell, "fcrate_0", (-1.55, 0.0, 2.95), size=(0.74, 0.62, 0.62), yaw=0.04, solid=True)
-    ml.crate(shell, "fcrate_1", (-0.75, 0.0, 3.0), size=(0.72, 0.58, 0.6), yaw=-0.05, solid=True)
-    ml.basket(det, "fl_basket", (-1.55, 0.62, 2.95), r=0.24, h=0.22, content="basket_top", handle=False)
-    pe.plant(det, "fl_red", (-1.55, 0.62, 2.95), 0.6, 0.48, "e_fl_red", pot=None, pot_h=0.2)
-    ml.basket(det, "fruit_basket", (-0.75, 0.58, 3.0), r=0.3, h=0.2, content="e_oranges", handle=True)
+    # (light X-braced crates, as big as in the picture; the right one stops short of the aisle at x = -0.3)
+    ml.crate(shell, "fcrate_0", (-1.64, 0.0, 2.98), size=(0.88, 0.7, 0.74), yaw=0.04, region="e_xcrate", solid=True)
+    ml.crate(shell, "fcrate_1", (-0.77, 0.0, 3.02), size=(0.8, 0.64, 0.72), yaw=-0.04, region="e_xcrate", solid=True)
+    ml.basket(det, "fl_basket", (-1.64, 0.7, 2.98), r=0.28, h=0.22, content="basket_top", handle=False)
+    pe.plant(det, "fl_red", (-1.64, 0.7, 2.98), 0.66, 0.5, "e_fl_red", pot=None, pot_h=0.2)
+    ml.basket(det, "fruit_basket", (-0.77, 0.64, 3.02), r=0.32, h=0.2, content="e_oranges", handle=True)
     # ---- outside left: rolled carpets against the front-left post, barrels, cream sacks, a crate with herbs
     for k, (x, z, r, h, reg, lean) in enumerate(((-3.38, 2.85, 0.19, 1.62, "dr_roll_cream", (0.12, -0.08)), (-3.72, 2.62, 0.2, 1.95, "dr_roll_red", (0.16, -0.05)),
                                                  (-3.92, 3.1, 0.18, 1.7, "dr_roll_plum", (0.3, -0.12)), (-2.82, 3.05, 0.17, 1.5, "dr_roll_red", (-0.05, -0.2)))):
@@ -309,7 +317,7 @@ def build(atlas, decor):
     decor.block("furnish:spruce_crate", -4.55, 0.0, 1.1, facing="front", alt="minecraft:barrel", fallback="crate")
     pe.plant(det, "lpot", (-4.55, 1.0, 1.1), 0.5, 0.42, "e_herbs", pot="e_post", pot_r=0.2, pot_h=0.22)
     decor.block("farmersdelight:rice_bag", -4.45, 0.0, 0.0, facing="front", fallback="sack")
-    ml.crate(shell, "lcrate", (-3.95, 0.0, 1.6), size=(0.7, 0.62, 0.62), yaw=0.15, solid=True)
+    ml.crate(shell, "lcrate", (-3.95, 0.0, 1.6), size=(0.7, 0.62, 0.62), yaw=0.15, region="e_xcrate", solid=True)
     ml.basket(det, "lcheese_tub", (-3.95, 0.62, 1.6), r=0.26, h=0.2, content="e_cheese_top", handle=False)
     # ---- the right awning's fruit stand: table, flower pots, apples, lemons on crates
     bh = pe.bench_table(shell, det, "stand", 3.25, 4.6, -0.8, 1.2, h=0.95)
@@ -318,7 +326,7 @@ def build(atlas, decor):
     ml.basket(det, "apples", (4.15, bh, 0.5), r=0.3, h=0.18, content="e_redapples", handle=False)
     ml.crate(det, "rbox", (3.6, bh, -0.3), size=(0.42, 0.3, 0.4), yaw=0.2, solid=False)
     decor.block("furnish:oak_crate", 3.55, 0.0, 2.0, facing="front", scale=0.8, alt="minecraft:barrel", fallback="crate")
-    ml.crate(shell, "rcrate", (4.4, 0.0, 1.95), size=(0.78, 0.72, 0.7), yaw=-0.06, solid=True)
+    ml.crate(shell, "rcrate", (4.4, 0.0, 1.95), size=(0.82, 0.74, 0.72), yaw=-0.06, region="e_xcrate", solid=True)
     ml.basket(det, "lemons", (4.35, 0.72, 1.95), r=0.3, h=0.18, content="e_lemons", handle=False)
     decor.block("landsoficaria:cypress_barrel", 3.85, 0.0, -1.75, facing="pos_x", alt="minecraft:barrel", fallback="barrel")
     pe.check_free(NAME, (NPC_SPOT[0], 0.0, NPC_SPOT[1], NPC_SPOT[0] + 1.0, 2.2, NPC_SPOT[1] + 1.0))

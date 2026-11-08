@@ -3,23 +3,26 @@
 scratchpad/ref2/tente_cordages_ref.png, picture 143).
 
 A red merchant tent hung from a rope-lashed wooden scaffold, one block (TentType group "tents"), about 10.5 blocks wide
-with its two awnings, the gold spire at about 7:
+with its two awnings, the gold spire at about 6.7:
 
-  - the main pointed pavilion roof, sagging between its hips, red sprinkled with small gold stars and fleurs-de-lis
+  - the main pointed pavilion roof with a concave marquee outline, sagging between its hips, red sprinkled with small
+    gold stars and fleurs-de-lis
     with one cream stripe per face, a gold spire; under its eaves a VALANCE of swagged panels, red and cream in turn,
     edged with a stepped gold border and dags, hooked up on rope rings;
   - the SCAFFOLD: tall squared posts lashed with thick rope at every joint, rope-wrapped crossbeams, a tall HOIST
     GANTRY behind the left half (two posts, two crossbeams, iron brackets) with PULLEYS and their ropes, a pulley and
     rope on the far-left post, many diagonal ROPES (from the gantry to the front-left post, guy ropes to pegs, the
     crossed ropes bracing the right awning);
-  - the LEFT AWNING: a cream canopy with a dagged edge over a big RED CURTAIN with gold fleurs-de-lis falling to the
-    ground and gathered on the far-left post, the far-left posts wrapped with rope;
+  - the LEFT AWNING: a cream canopy, high at the scaffold post, with a dagged edge in front of a big RED CURTAIN with
+    gold fleurs-de-lis falling to the ground and gathered on the far-left post, the far-left posts wrapped with rope;
   - the RIGHT AWNING: red with gold-edged dags, sloping down to its own posts;
-  - the RED FLEUR-DE-LIS BANNER hanging from the front beam beside the front-left post;
+  - the RED FLEUR-DE-LIS BANNER hanging high from a lashed arm at the front-left scaffold post's top, in front of the
+    roof's left corner;
   - inside: back shelves of pink and red potions, hanging bunches of herbs and flowers, the big lantern on its chain
     at the front, a lantern inside, a table of FOLDED CLOTH STACKS (blue, red, purple, teal) with a standing lantern,
     the counter under a red-and-gold cloth and a cream lace cloth (candles, a scroll, pots of violet flowers, a box);
-  - in front: crates, an iron-bound CHEST, a burlap sack, a box of white flowers on a crate, a barrel heaped with red
+  - in front: crates (light X-braced ones), an iron-bound CHEST, a burlap sack, a box of white flowers on a crate, a
+    barrel heaped with red
     apples, a basket of green apples, the dark RED RUG with a cream border.
 
 The merchant's place (an EasyNPC, 1 x 1 x 2.2 free) is behind the counter (NPC_SPOT); players walk in between the
@@ -128,6 +131,7 @@ def add_regions(atlas):
     atlas.add("e_greenapples", 32, 32, pe.heap(["6aa83a", "88c048", "c02a20"], s + 19, r=4))
     atlas.add("e_sack", 32, 32, pe.burlap("a88a60", s + 20))
     atlas.add("e_band", 32, 8, pe.iron_band(s + 21))
+    atlas.add("e_xcrate", 32, 32, pe.xcrate(s + 24))
     atlas.add("e_soil", 16, 16, pe.heap(["3a2a1a", "4a3420"], s + 22, bg="2a1c10", r=2))
     atlas.add("e_gold_band", 16, 8, pe.panel(GOLD, s + 23, fringe=0, motif=None, gold=_rgb("a87018")))
     print("atlas", atlas.size)
@@ -168,13 +172,14 @@ def build(atlas, decor):
         (xa, za), (xb, zb) = corners[k], corners[(k + 1) % 4]
         rope_beam(shell, det, "eave_%d" % k, (xa, by, za), (xb, by, zb), d=0.28)
     beam(shell, "tie_beam", (X0, by - 0.04, CZ), (X1, by - 0.04, CZ), 0.2, "wood_dark", extend=0.08)
-    beam(det, "herb_rail", (X0, 2.75, 1.5), (X1, 2.75, 1.5), 0.08, "wood_dark")
+    beam(det, "herb_rail", (X0, 2.95, 1.5), (X1, 2.95, 1.5), 0.08, "wood_dark")
     # ---- the main roof: four sagging faces up to the spire
     RW0, RW1, RD0, RD1 = X0 - 0.4, X1 + 0.4, Z0 - 0.35, Z1 + 0.4
     eave = [(RW0, EAVE, RD1), (RW1, EAVE, RD1), (RW1, EAVE, RD0), (RW0, EAVE, RD0)]
-    faces = pe.pyramid_roof2(shell, "roof", eave, [(CX, APEX, CZ)] * 4, ["co_roof"] * 4, sag=0.58, nx=5, ny=8)
+    # (the hips curve in: the concave marquee outline of the picture)
+    faces = pe.pyramid_roof2(shell, "roof", eave, [(CX, APEX, CZ)] * 4, ["co_roof"] * 4, sag=0.58, nx=5, ny=8, hip_sag=0.32)
     for k in range(4):
-        ml.rope(det, "hip_%d" % k, v3(CX, APEX, CZ), v3(*eave[k]) + UP * 0.04, d=0.07, segs=3)
+        ml.rope(det, "hip_%d" % k, v3(CX, APEX, CZ) + UP * 0.03, v3(*eave[k]) + UP * 0.04, d=0.07, sag=0.32, segs=4)
     ml.octo(shell, "spire_base", (CX, APEX - 0.12, CZ), 0.17, 0.24, "gold")
     ml.octo(shell, "spire_mid", (CX, APEX + 0.12, CZ), 0.11, 0.24, "gold")
     add_cube(shell, "spire_cross", (CX, APEX + 0.3, CZ), ry(math.pi / 4), (0.34, 0.08, 0.08), "gold")
@@ -224,15 +229,16 @@ def build(atlas, decor):
     # ---- the left awning: far-left posts, the rope-wrapped beam, cream canopy, the big red curtain
     lashed_post(shell, det, "lpost_f", LX, Z1 - 0.1, 2.85, d=0.36, caps=1, wraps=((0.4, 2), (1.4, 2), (2.6, 2)), bands=())
     lashed_post(shell, det, "lpost_b", LX + 0.25, Z0 + 0.5, 2.6, d=0.34, caps=1, wraps=((2.3, 2),), bands=(0.3,))
-    rope_beam(shell, det, "lbeam_front", (X0, 3.05, Z1 - 0.05), (LX, 2.6, Z1 - 0.1), d=0.24, wraps=(0.1, 0.5, 0.92))
-    rope_beam(shell, det, "lbeam_back", (X0, 2.85, Z0 + 0.5), (LX + 0.25, 2.4, Z0 + 0.5), d=0.2, wraps=(0.9,))
+    rope_beam(shell, det, "lbeam_front", (X0, 3.5, Z1 - 0.05), (LX, 2.65, Z1 - 0.1), d=0.24, wraps=(0.1, 0.5, 0.92))
+    rope_beam(shell, det, "lbeam_back", (X0, 3.3, Z0 + 0.5), (LX + 0.25, 2.42, Z0 + 0.5), d=0.2, wraps=(0.9,))
     beam(shell, "lbeam_side", (LX, 2.5, Z1 - 0.1), (LX + 0.25, 2.3, Z0 + 0.5), 0.18, "beam", extend=0.08)
     cz0, cz1 = Z0 + 0.3, Z1 + 0.25
 
     def CAN(s, t):   # s along z (front -> back, seen from the left), t from the main tent out to the far-left posts
         z = cz1 + (cz0 - cz1) * s
         x = X0 - 0.2 + (LX - 0.2 - X0 + 0.2) * t
-        y = 3.3 - 1.0 * t - 0.22 * math.sin(math.pi * t) - 0.04 * math.sin(s * math.pi * 3)
+        # (high at the scaffold post, as in the picture, falling to the far-left posts)
+        y = 3.78 - 1.45 * t - 0.22 * math.sin(math.pi * t) - 0.04 * math.sin(s * math.pi * 3)
         return v3(x, y, z)
     loft(shell, "canopy", lambda s, t: CAN(1 - s, t), 4, 3, "co_canopy", th=0.035, overlap=0.03)
 
@@ -241,7 +247,8 @@ def build(atlas, decor):
         return p - UP * (0.38 * t) + Z * (0.03 * t)
     loft(shell, "canopy_edge", CANF, 4, 1, "co_can_edge", th=0.025)
     # the big red curtain: hangs from the canopy's front edge, swept to the left and gathered on the far-left post
-    top_a, top_b = CAN(0.0, 0.08) - UP * 0.25, CAN(0.0, 0.95) - UP * 0.25
+    # (hung just behind the canopy's dagged cream edge, which stays in view in front of it, as in the picture)
+    top_a, top_b = CAN(0.0, 0.08) - UP * 0.25 - Z * 0.16, CAN(0.0, 0.95) - UP * 0.25 - Z * 0.16
     pe.drape(shell, det, "lcurtain", top_b, top_a, (LX + 0.3, 1.25, Z1 + 0.05), (LX + 0.2, 0.04, Z1 + 0.1), (LX + 1.1, 0.04, Z1 + 0.3), Z,
              "co_curtain", nx=4, tie_region="rope", tie_size=(0.36, 0.16, 0.26))
     pe.wall(shell, "lwall_back", (LX + 0.25, 0, Z0 + 0.45), (X0, 0, Z0 + 0.45), 0.0, 2.55, -Z, "co_curtain", nx=4)
@@ -271,16 +278,19 @@ def build(atlas, decor):
     ml.tl.peg(det, "peg_r", (5.0, 0.0, 3.2), (X1, 3.95, Z1), length=0.45, d=0.1, region="wood")
     pe.rope_wrap(det, "guy_r_knot", X1, Z1, 3.75, PD / 2, turns=1, th=0.11)
     # ---- the fleur-de-lis banner from the front beam beside the front-left post
-    beam(det, "banner_rod", (X0 + 0.32, by - 0.22, Z1 + 0.2), (X0 + 1.22, by - 0.22, Z1 + 0.2), 0.06, "wood_dark")
-    pe.hang_panel(shell, "banner", (X0 + 0.77, by - 0.2, Z1 + 0.22), 0.8, 1.55, (0, 0, 1), "co_banner", wave=0.03)
+    # (in the picture it hangs high, from a lashed arm at the scaffold post's top, in front of the roof's left corner)
+    BY = 4.32
+    rope_beam(shell, det, "banner_arm", (X0, BY, Z1), (X0 + 1.2, BY, Z1 + 0.72), d=0.2, wraps=(0.12, 0.85))
+    beam(det, "banner_rod", (X0 + 0.28, BY - 0.16, Z1 + 0.66), (X0 + 1.18, BY - 0.16, Z1 + 0.66), 0.06, "wood_dark")
+    pe.hang_panel(shell, "banner", (X0 + 0.73, BY - 0.14, Z1 + 0.68), 0.82, 1.72, (0, 0, 1), "co_banner", wave=0.03)
     # ---- lanterns: the big one on its chain at the front, one inside, one on a stand on the cloth table
     pe.lamp(shell, det, "lamp_front", (-0.85, 2.35, Z1 + 0.05), size=0.46, chain_to=(-0.85, by - 0.14, Z1 + 0.05))
     pe.lamp(shell, det, "lamp_in", (1.45, 2.5, -0.35), size=0.34, chain_to=(1.45, by - 0.1, CZ))
-    pe.lamp(shell, det, "lamp_r", (2.25, 2.45, 1.5), size=0.3, chain_to=(2.25, 2.78, 1.5))
+    pe.lamp(shell, det, "lamp_r", (2.25, 2.5, 1.5), size=0.32, chain_to=(2.25, 2.91, 1.5))
     # ---- hanging bunches of herbs and flowers
-    for k, (x, kind, ln) in enumerate(((-0.2, "e_herbs_fl", 0.55), (0.1, "e_herbs", 0.62), (0.4, "e_herbs", 0.5), (0.7, "e_herbs_fl", 0.58),
-                                       (2.0, "e_lavender", 0.5), (2.35, "e_herbs_fl", 0.55))):
-        ml.hanging_bunch(det, "bunch_%d" % k, (x, 2.71, 1.5), kind=kind, length=ln, width=0.26, string=0.05 + 0.04 * (k % 2))
+    for k, (x, kind, ln) in enumerate(((-0.25, "e_herbs_fl", 0.72), (0.08, "e_herbs", 0.8), (0.4, "e_herbs", 0.7), (0.72, "e_herbs_fl", 0.76),
+                                       (2.0, "e_lavender", 0.66), (2.35, "e_herbs_fl", 0.72))):
+        ml.hanging_bunch(det, "bunch_%d" % k, (x, 2.91, 1.5), kind=kind, length=ln, width=0.32, string=0.05 + 0.04 * (k % 2))
     # ---- the back shelves of potions
     levels = ml.shelf_unit(shell, "shelves", X0 + 0.35, X1 - 0.35, SHELF_Z[0], SHELF_Z[1], levels=(0.62, 1.22, 1.82, 2.42), h=2.7, back=True,
                            uprights=4, detail=det)
@@ -319,23 +329,23 @@ def build(atlas, decor):
     # ---- the rug
     ml.rug(shell, "rug", -0.3, 2.6, 2.15, 4.0, y=0.0, region="co_rug")
     # ---- front left: crates, the iron-bound chest, the sack, the white flowers on a crate
-    decor.block("furnish:spruce_crate", -2.95, 0.0, 3.05, facing="front", alt="minecraft:barrel", fallback="crate")
+    decor.block("furnish:spruce_crate", -2.95, 0.0, 3.05, facing="front", scale=0.78, alt="minecraft:barrel", fallback="crate")
     ml.barrel(shell, "fl_barrel", (-3.65, 0.0, 2.55), r=0.34, h=0.86)
-    ml.crate(shell, "fl_crate_1", (-2.75, 0.0, 2.2), size=(0.8, 0.7, 0.6), yaw=-0.08, solid=True)
+    ml.crate(shell, "fl_crate_1", (-2.75, 0.0, 2.2), size=(0.8, 0.7, 0.6), yaw=-0.08, region="e_xcrate", solid=True)
     ml.crate(shell, "chest", (-2.0, 0.0, 3.15), size=(0.82, 0.55, 0.58), yaw=0.04, region="crate", top="crate_top", solid=True)
     ml.rbox(shell, "chest_lid", (-2.0, 0.55, 3.15), (0.84, 0.14, 0.6), 0.04, {"all": "crate"}, stretch=True)
     for k, s_ in enumerate((-0.3, 0.3)):
         add_cube(det, "chest_band_%d" % k, (-2.0 + s_, 0.35, 3.15), ry(0.04), (0.08, 0.72, 0.62), "iron")
     add_cube(det, "chest_lock", (-2.0, 0.5, 3.46), ry(0.04), (0.14, 0.18, 0.04), "iron")
     pe.round_sack(shell, det, "fsack", (-1.28, 0.0, 3.38), region="e_sack", yaw=0.2, w=0.6, h=0.78)
-    ml.crate(shell, "flower_crate", (-0.68, 0.0, 2.68), size=(0.6, 0.62, 0.58), yaw=-0.05, solid=True)
+    ml.crate(shell, "flower_crate", (-0.68, 0.0, 2.68), size=(0.6, 0.62, 0.58), yaw=-0.05, region="e_xcrate", solid=True)
     ml.crate(det, "flower_box", (-0.68, 0.62, 2.68), size=(0.56, 0.18, 0.4), yaw=-0.05, top="e_soil", solid=False)
     pe.plant(det, "white_fl", (-0.68, 0.62, 2.68), 0.62, 0.44, "e_fl_white", pot=None, pot_h=0.14)
     # ---- front right: the barrel heaped with apples, the basket of green apples, a crate
     ml.barrel(shell, "apple_barrel", (3.35, 0.0, 1.85), r=0.38, h=0.9, content="e_redapples")
     ml.basket(shell, "green_basket", (4.05, 0.0, 2.45), r=0.36, h=0.38, content="e_greenapples", handle=True, solid=True)
     decor.block("farmersdelight:wooden_basket", 3.55, 0.0, 0.7, facing="front", scale=0.7, fallback="basket")
-    ml.crate(shell, "r_crate", (3.6, 0.0, -0.4), size=(0.7, 0.62, 0.62), yaw=0.1, solid=True)
+    ml.crate(shell, "r_crate", (3.6, 0.0, -0.4), size=(0.7, 0.62, 0.62), yaw=0.1, region="e_xcrate", solid=True)
     decor.block("landsoficaria:cypress_barrel", -3.9, 0.0, -0.7, facing="neg_x", alt="minecraft:barrel", fallback="barrel")
     pe.check_free(NAME, (NPC_SPOT[0], 0.0, NPC_SPOT[1], NPC_SPOT[0] + 1.0, 2.2, NPC_SPOT[1] + 1.0))
     return root

@@ -274,6 +274,33 @@ def wood(base, dark, seed, plank=None, vertical=False):
     return paint
 
 
+def xcrate(seed, base="9a6a38", dark="4e3218"):
+    """A light wooden crate side: horizontal planks in a darker frame with a diagonal brace (the X-braced crates of
+    the pictures), nail heads at the corners."""
+    def paint(img):
+        rng = random.Random(seed)
+        w, h = img.size
+        ml.fine_wood(img, (0, 0, w, h), _rgb(base), _rgb(dark), max(4, h // 4), rng, joints=False, knots=0.06, grain=0.14, shade=0.08)
+        px = img.load()
+        fr = max(2, w // 8)
+        frame = _scale(_rgb(base), 0.82)
+        for y in range(h):
+            for x in range(w):
+                e = min(x, y, w - 1 - x, h - 1 - y)
+                # the diagonal brace from the bottom left to the top right
+                d = abs((x - fr) * (h - 2 * fr) - (h - 1 - fr - y) * (w - 2 * fr)) / math.hypot(w - 2 * fr, h - 2 * fr)
+                if e < fr:
+                    c = _scale(frame, 0.7) if e == 0 or e == fr - 1 else frame
+                elif d < fr * 0.75:
+                    c = _scale(frame, 0.72) if d > fr * 0.75 - 1.0 else _scale(frame, 1.06)
+                else:
+                    continue
+                px[x, y] = _jitter(c, rng, 8) + (255,)
+        for (x, y) in ((fr // 2, fr // 2), (w - 1 - fr // 2, fr // 2), (fr // 2, h - 1 - fr // 2), (w - 1 - fr // 2, h - 1 - fr // 2)):
+            px[x, y] = (60, 56, 52, 255)
+    return paint
+
+
 def burlap(base, seed):
     def paint(img):
         rng = random.Random(seed)
@@ -912,9 +939,10 @@ def trap_face(bone, name, P, wf, nx, ny, region, th=0.035, overlap=0.012):
             ml.gn.set_sub(cube, (u0, t0, u1, t1))
 
 
-def pyramid_roof2(bone, name, eave, top, regions, sag=0.25, nx=4, ny=8, th=0.035, hang=None):
+def pyramid_roof2(bone, name, eave, top, regions, sag=0.25, nx=4, ny=8, th=0.035, hang=None, hip_sag=0.0):
     """pyramid_roof with straight radiating stripes: each face is lofted by trap_face (regions = (front/back region,
     sides region) or 4 regions, each painted by trap_stripes with roof_wfrac(top width, bottom width) of its face).
+    hip_sag: the whole roof dips by hip_sag * sin(pi t) (t only: the hips stay shared), a concave marquee outline.
     Returns the faces' P(s, t) functions (as pyramid_roof)."""
     eave = [v3(*p) for p in eave]
     top = [v3(*p) for p in top]
@@ -935,6 +963,7 @@ def pyramid_roof2(bone, name, eave, top, regions, sag=0.25, nx=4, ny=8, th=0.035
             taper = min(1.0, 1.6 * t) if w0 < 0.3 * W else 1.0
             p = p + inward * (sag * math.sin(math.pi * t) * taper * math.sin(math.pi * sc))
             p = p + out * (0.03 * t * t * math.sin(sc * math.pi * 4))
+            p = p - UP * (hip_sag * math.sin(math.pi * t))
             return p
 
         def wf(t, W=W, w0=w0):
