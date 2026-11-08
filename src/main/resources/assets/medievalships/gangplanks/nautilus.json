@@ -1,0 +1,21 @@
+{
+  "side": "starboard",
+  "hinge": [
+    -2.3,
+    9.0,
+    9.0
+  ],
+  "width": 3.0,
+  "length": 12.0,
+  "style": "copper",
+  "lever": [
+    -1.4,
+    9.0,
+    7.1
+  ],
+  "angles": [
+    -10.0,
+    46.0
+  ],
+  "max_drop": 8.63
+}
