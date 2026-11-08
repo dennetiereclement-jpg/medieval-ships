@@ -9,5 +9,6 @@
  "rail_gap": [-4.8, -1.8],
  "angles": [-20, 30],
  "max_drop": 2.0,
- "chain_anchor": null
+ "chain_anchor": null,
+ "stow_offset": 0.3
 }

@@ -29,5 +29,7 @@
     -25.0,
     30.0
   ],
-  "max_drop": 1.99
+  "max_drop": 1.99,
+  "segments": 4,
+  "stow_offset": 0.07
 }

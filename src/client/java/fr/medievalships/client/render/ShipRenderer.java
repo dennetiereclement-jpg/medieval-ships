@@ -91,7 +91,9 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 		if (state.gangplank != null) {
 			double ticks = entity.gangplankTicks(tickProgress);
 			fr.medievalships.core.Gangplank.State gp = entity.gangplankState();
-			state.gangplankAngle = fr.medievalships.core.Gangplank.angle(state.gangplank, gp, ticks, entity.gangplankTarget());
+			state.gangplankState = gp;
+			state.gangplankTicks = ticks;
+			state.gangplankTarget = entity.gangplankTarget();
 			state.gangplankLever = (float) fr.medievalships.core.Gangplank.leverPosition(gp, ticks);
 			state.gangplankOut = gp.out();
 		}

@@ -27,8 +27,10 @@ accepté ensuite ; les commandes du pilote sont ignorées passerelle sortie (le 
 refusé avec un bloc dans l'arc ; aller-retour NBT cohérent (mouvement en cours → état final) ; rechargement après la
 disparition du quai → la passerelle se replie, puis refus faute d'appui ; dirigeable steampunk : refus en plein ciel
 (« dans le vide »), déploiement à côté d'un ponton, maintien sur place, marche du ponton au pont. JUnit
-`GangplankTest` : repère, animation, marches, escalier, recherche d'appui, balayage, fichiers et modèles. Voir
-[PASSERELLES.md](PASSERELLES.md).
+`GangplankTest` : repère, animation, marches, escalier, recherche d'appui, balayage, fichiers et modèles.
+1.23.1 (pliage en accordéon) : le point le plus haut du paquet rangé reste sous la charnière, capture
+`passerelle_0b_paquet_replie` ; JUnit `GangplankFoldTest` (paquet sous le bastingage et hors de la coque pour chaque
+navire, déployée = planche de 1.23.0). Voir [PASSERELLES.md](PASSERELLES.md).
 
 ### Fonctions communes (aperçu de placement, tableau de bord, inclinaison, permissions, destinations)
 

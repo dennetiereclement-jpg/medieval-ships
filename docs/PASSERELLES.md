@@ -1,9 +1,36 @@
-# Passerelles d'embarquement (1.23.0)
+# Passerelles d'embarquement (1.23.0, pliage en accordéon 1.23.1)
 
 Chaque navire et chaque grand dirigeable porte une **passerelle d'embarquement** médiévale : une planche de bois
 renforcée (planches, taquets antidérapants, longerons, ferrures latérales, charnières visibles, petites rambardes,
-bout biseauté qui se pose sur le quai), relevée contre le bordé quand elle est rangée, et un **levier** sur le pont
-qui la déploie et la replie. Les chaînes (ou cordages) de soutien suivent le mouvement.
+bout biseauté qui se pose sur le quai), **pliée en accordéon** contre le flanc quand elle est rangée, et un
+**levier** sur le pont qui la déploie et la replie. Les chaînes (ou cordages) de soutien suivent le bout de la
+planche.
+
+## Pliage en accordéon (1.23.1)
+
+* La planche est faite de **segments** d'au plus 1,6 bloc (`ceil(longueur / 1,6)` segments, au moins 2 ; champ `segments`
+  pour en imposer un autre nombre), reliés par des **charnières** visibles sur les côtés (plaques et nœuds de fer
+  autour de l'axe de pliage). Chaque segment porte ses propres petits poteaux et sa rambarde.
+* **Rangée**, elle est pliée en zigzag en un **paquet compact suspendu contre l'extérieur du flanc**, juste sous la
+  charnière (le haut du bastingage) : le segment 0 pend de la charnière, le segment 1 remonte contre lui, etc. Le
+  paquet fait la hauteur d'un segment et `n` épaisseurs de planche (0,4 bloc chacune : 1,2 bloc pour 3 segments, 2,8
+  pour les 7 de la frégate bleue) ; rien ne dépasse au-dessus du bastingage. Les joints impairs plient les faces de
+  marche l'une contre l'autre (axe 0,135 au-dessus de la face de marche), les joints pairs les dessous (axe 0,27
+  dessous) : les couches s'empilent sans se croiser. Les poteaux des rambardes se rabattent à plat, vers l'intérieur,
+  sur leur segment.
+* Le paquet ne touche jamais la coque : sa face intérieure est à 0,06 bloc au-delà de la face extérieure de la coque
+  (forme de coque du navire, `HullShape`) ou des ferrures du modèle sous la charnière (préceintes, sabords, porte-
+  haubans : `stow_offset`, mesuré sur le modèle par `tools/gangplank/ships_g2.py stow`), selon ce qui dépasse le plus.
+* **Déploiement** (mêmes 3 secondes, même levier, mêmes sons, mêmes règles) : petit déverrouillage, le paquet se
+  soulève et pivote vers l'extérieur et le haut (20° au-dessus de l'horizontale, ou de la pente visée si elle monte),
+  se déplie segment par segment (le joint le plus proche du bord d'abord), puis la planche droite descend sur le quai
+  (petit rebond) ; les rambardes se redressent à la fin. Déployée, c'est exactement la planche d'une seule pièce de
+  1.23.0 (mêmes points, mêmes boîtes de collision, même angle). **Repli** : l'inverse.
+* Le balayage vérifié au clic (« Un bloc gêne le déploiement ») reste celui de 1.23.0 (de la verticale à la pente
+  visée) : les règles ne changent pas.
+* Rendu : un os par segment (`seg_<k>`, origine à son bout intérieur) et un par rambarde, ses enfants (`rail_<k>_0`, `rail_<k>_1`)
+  dans `gangplank_<id>.bbmodel` ; chaque segment est placé par sa pose de pliage (angles cumulés des charnières), sans
+  allocation par image ; la pose rangée est calculée une fois par navire.
 
 ## Utilisation
 
@@ -15,7 +42,7 @@ qui la déploie et la replie. Les chaînes (ou cordages) de soutien suivent le m
 * **On marche dessus** : depuis le quai on monte la pente jusqu'au pont, puis on descend l'escalier intérieur — et
   l'inverse — sans sauter ni être téléporté. La pente est découpée en petites marches invisibles (au plus 0,25 bloc
   chacune), l'escalier intérieur en marches de 0,45 bloc au plus.
-* Rangée, la passerelle suit le navire normalement (elle ne gêne rien et ne heurte rien).
+* Rangée, la passerelle pliée suit le navire normalement (elle ne gêne rien et ne heurte rien).
 
 ## Règles de sécurité (côté serveur)
 
@@ -69,7 +96,7 @@ non chargée n'a pas d'appui (et compte comme pleine pour le balayage).
 ## Navires équipés
 
 Fichier par navire : `assets/medievalships/gangplanks/<id>.json` (repère local du navire : +x bâbord, y vers le
-haut, +z vers la proue, voir l'en-tête de `core/Gangplank.java`), modèle `models/entity/gangplank_<id>.bbmodel`,
+haut, +z vers la proue, voir l'en-tête de `core/Gangplank.java`), modèle pliant `models/entity/gangplank_<id>.bbmodel`,
 levier `models/entity/gangplank_lever_<style>.bbmodel`, atlas commun `textures/entity/gangplank.png`, tous générés
 par `tools/gangplank/gangplanklib.py`.
 
@@ -109,15 +136,25 @@ par `tools/gangplank/gangplanklib.py`.
  "rail_gap": [1.9, 3.8],           // portion du bastingage sans collision au-dessus de la charnière (déployée)
  "angles": [-15, 35],              // pentes permises, positif vers le bas
  "max_drop": 2.6,                  // plus grande hauteur charnière -> appui
- "chain_anchor": null              // point fixe des chaînes (null : deux petits poteaux à la charnière)
+ "chain_anchor": null,             // point fixe des chaînes (null : deux petits poteaux à la charnière)
+ "segments": 4,                    // facultatif : nombre de segments pliants (défaut ceil(longueur / 1,6), au moins 2)
+ "stow_offset": 0.2                // facultatif : écart mini charnière -> face intérieure du paquet rangé (ferrures)
 }
 ```
 
 La boîte `step` devient un escalier qui monte vers le bordé : n marches de 0,45 au plus, du bas de la boîte (le pont)
-jusqu'à son haut (la hauteur de la charnière). `stowed_angle` (facultatif, défaut −90 : relevée à la verticale)
-règle la position rangée.
+jusqu'à son haut (la hauteur de la charnière). `stowed_angle` (facultatif, défaut −90) n'est plus la position
+rangée (la planche est pliée) : c'est le début du balayage vérifié au déploiement (règles de 1.23.0).
 
 ## Limites
+
+* Le paquet rangé fait `n` × 0,4 bloc d'épaisseur (2,8 blocs sur la frégate bleue, 7 segments) : bien moins visible
+  qu'une planche de 10 blocs dressée, mais c'est un vrai paquet de planches.
+* Galère : deux de ses avirons passent dans la largeur de la passerelle ; ils traversent le paquet rangé (ils passent
+  déjà sous la planche déployée et dans son escalier). Galère médiévale : 4 segments au lieu de 3 pour que le paquet
+  reste au-dessus des sabords de nage.
+* Pendant le mouvement (3 s), le paquet qui se déplie peut traverser un bloc voisin (un quai très haut collé à la
+  coque) : seul le balayage de 1.23.0 est vérifié, et aucune collision n'existe pendant le mouvement.
 
 * Les collisions ne suivent pas le roulis dessiné (il est coupé quand la passerelle est sortie).
 * Les rambardes de la planche sont décoratives (on peut tomber par le côté).
@@ -128,6 +165,11 @@ règle la position rangée.
 
 ## Tests
 
+* JUnit `GangplankFoldTest` (1.23.1) : nombre de segments et os du modèle ; pour chaque navire équipé, chaque
+  segment et chaque rambarde rabattue du paquet rangé (sommets du vrai modèle) sous la charnière, hors de la forme de
+  coque, hors des solides du navire et au-delà des ferrures mesurées ; couches empilées sans se croiser ; charnières
+  jamais disjointes et mouvement continu du paquet à la planche droite ; déployée = planche de 1.23.0 (mêmes sommets,
+  mêmes boîtes de collision) ; champs `segments` et `stow_offset`.
 * JUnit `GangplankTest` : repère et formule de rotation (identique à la transformation du rendu), animation
   (début, fin, sens du pivot, levier), marches de la pente franchissables dans les deux sens (montée ≤ 0,25, sans
   trou, sur la pente), escalier (marches ≤ 0,45 jusqu'à la charnière), recherche d'appui sur un monde factice (quai
@@ -139,5 +181,6 @@ règle la position rangée.
   boîtes enregistrées sur le client ; un joueur en survie marche du quai jusqu'au pont (touche avancer seulement) et
   revient ; repli refusé tant qu'il est dessus, accepté ensuite ; commandes du pilote ignorées (la galère ne bouge
   pas) ; déploiement refusé avec un bloc dans l'arc ; aller-retour NBT cohérent ; rechargement après la disparition
-  du quai → repli ; dirigeable : refus en plein ciel, déploiement à côté d'un ponton, marche du ponton au pont.
-  Captures : `passerelle_*`.
+  du quai → repli ; dirigeable : refus en plein ciel, déploiement à côté d'un ponton, marche du ponton au pont ;
+  (1.23.1) point le plus haut du paquet rangé (modèle chargé par le client) sous la charnière. Captures :
+  `passerelle_*` (dont `passerelle_0b_paquet_replie`).

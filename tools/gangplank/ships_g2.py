@@ -5,8 +5,9 @@ steampunk_airship, see gangplanklib.py / core/Gangplank.java): their specs, plan
     python3 tools/gangplank/ships_g2.py models           # gangplank_<id>.bbmodel (+ the levers of the styles used)
     python3 tools/gangplank/ships_g2.py probe <id> ys zs # outer face of the hull model at (y, z) on both sides
     python3 tools/gangplank/ships_g2.py deck <id> xs zs  # model surfaces under (x, z) (TOP=<y> to start lower)
-    python3 tools/gangplank/ships_g2.py sheet <out.png> [ids...]   # contact sheet: one row per vessel
-    python3 tools/gangplank/ships_g2.py single <dir> ids...        # the four 640x480 views of each vessel
+    python3 tools/gangplank/ships_g2.py sheet <out.png> [ids...]   # contact sheet: one row per vessel (before / after)
+    python3 tools/gangplank/ships_g2.py single <dir> ids...        # the 640x480 views of each vessel
+    python3 tools/gangplank/ships_g2.py stow [ids...]              # model surface under the hinge (stow_offset)
 
 Frame: the ship-local frame of core/Gangplank.java (+x port, y up, +z bow, blocks; the frame preview.py emits).
 
@@ -19,7 +20,12 @@ How each plank was placed (see also docs/PASSERELLES_NAVIRES.md):
   stairs of at most 0.45 (one per 0.45 of rise, 0.45 deep each);
 - the lever stands on the deck beside the stairs (never on them), within 4 blocks of the hinge;
 - the length lets the plank reach a quay one block above the water (ships) within its slope limits, or a landing
-  platform about 3.9 blocks under the deck (airships, whose max_drop is the platform reach).
+  platform about 3.9 blocks under the deck (airships, whose max_drop is the platform reach);
+- stowed, the plank folds like an accordion into a pack hanging against the hull side under the hinge (1.23.1):
+  stow_offset is the outermost surface of the ship model over the pack's height and width, outboard of the hinge line
+  (`stow` measures it; core/Gangplank.fold keeps the pack STOW_CLEARANCE beyond it, or beyond the hull shape if that
+  stands further out); segments overrides the number of folding segments (the medieval galley's 4 keep its pack
+  above the oar ports).
 GangplankSpecsTest (JUnit) checks all of this against the ships' geometry.
 """
 import base64
@@ -50,15 +56,19 @@ def spec(ship, **kw):
     SPECS[ship] = kw
 
 
+# placed here for reference only: no gangplank (the player asked for none), its spec and model are not written
+NOT_EQUIPPED = {"nautilus"}
+
+
 def write_specs(ids=None):
     d = os.path.join(ASSETS, "gangplanks")
     os.makedirs(d, exist_ok=True)
     for ship, s in SPECS.items():
-        if ids and ship not in ids:
+        if (ids and ship not in ids) or ship in NOT_EQUIPPED:
             continue
         out = {}
         for k in ("side", "hinge", "width", "length", "style", "lever", "lever_yaw", "step", "rail_gap", "angles",
-                  "max_drop", "chain_anchor", "stowed_angle", "handrails"):
+                  "max_drop", "chain_anchor", "stowed_angle", "handrails", "segments", "stow_offset"):
             if k in s:
                 v = s[k]
                 if isinstance(v, (list, tuple)):
@@ -76,9 +86,9 @@ def make_models(ids=None):
     import gangplanklib as gp
     styles = set()
     for ship, s in SPECS.items():
-        if ids and ship not in ids:
+        if (ids and ship not in ids) or ship in NOT_EQUIPPED:
             continue
-        gp.make_plank(ship, s["width"], s["length"], s["style"], handrails=s.get("handrails", True))
+        gp.make_plank(ship, s["width"], s["length"], s["style"], handrails=s.get("handrails", True), segments=s.get("segments"))
         styles.add(s["style"])
     for st in sorted(styles):
         if not os.path.exists(os.path.join(MODELS, "gangplank_lever_%s.bbmodel" % st)):
@@ -154,16 +164,150 @@ def plank_point(s, a, u, v, w):
     return np.array([hx + o * (u * c + v * sn), hy - u * sn + v * c, hz + o * w])
 
 
-def lever_yaw(s):
-    if "lever_yaw" in s:
-        return s["lever_yaw"]
-    return 0.0 if s["side"] == "starboard" else 180.0
+# ---- the accordion folding, as core/Gangplank.java (fold, foldPose, foldPoint, railPoint)
+STOW_CLEARANCE, STOW_DROP, HANG, RAISE = 0.06, 0.12, 90.0, 20.0
+UNLOCK, SETTLE, LIFT_END, UNFOLD_START, UNFOLD_END, LOWER_START, RAIL_START = 0.1, 0.12, 0.40, 0.30, 0.76, 0.62, 0.76
 
 
-def placed_quads(s, plank, lever, angle, tex_offset):
+def _ease(t):
+    t = max(0.0, min(1.0, t))
+    return 4 * t * t * t if t < 0.5 else 1 - (-2 * t + 2) ** 3 / 2
+
+
+def fold_of(ship, s):
+    """core/Gangplank.fold. The hull shape is Java only: the specs' stow_offset is at least the hull's standoff
+    (STOW_OFFSET is rounded up from both), so max(stow_offset, hull) is stow_offset here as in game."""
+    import gangplanklib as gp
+    n = gp.segment_count(s["length"], s.get("segments"))
+    seg = s["length"] / n
+    standoff = s.get("stow_offset", 0.0) + STOW_CLEARANCE
+    return dict(n=n, seg=seg, standoff=standoff, offX=standoff + gp.FOLD_UNDER, offY=-STOW_DROP)
+
+
+def joint_opening(p, j, n):
+    m = n - 1
+    span = UNFOLD_END - UNFOLD_START
+    w = span if m <= 1 else span * 0.5
+    start = UNFOLD_START if m <= 1 else UNFOLD_START + (j - 1) * (span - w) / (m - 1)
+    return _ease((p - start) / w)
+
+
+def fold_pose(f, p, target):
+    """core/Gangplank.foldPose: [(a_k, cx_k, cy_k)] per segment and the handrail fold (degrees)."""
+    import gangplanklib as gp
+    n, s = f["n"], f["seg"]
+    raised = min(target, 0.0) - RAISE
+    swing_end = 1.0 - SETTLE
+    if p <= 0:
+        a0, g = HANG, 1.0
+    elif p < UNLOCK:
+        a0, g = HANG - 3.0 * math.sin(math.pi * p / UNLOCK), 1.0
+    elif p < LIFT_END:
+        e = _ease((p - UNLOCK) / (LIFT_END - UNLOCK))
+        a0, g = HANG + (raised - HANG) * e, 1 - e
+    elif p < LOWER_START:
+        a0, g = raised, 0.0
+    elif p < swing_end:
+        a0, g = raised + (target - raised) * _ease((p - LOWER_START) / (swing_end - LOWER_START)), 0.0
+    elif p < 1:
+        r = (p - swing_end) / SETTLE
+        a0, g = target - 1.5 * math.sin(math.pi * r) * (1 - r * 0.5), 0.0
+    else:
+        a0, g = target, 0.0
+    pose = [(a0, g * f["offX"], g * f["offY"])]
+    for j in range(1, n):
+        top = j % 2 == 1
+        theta = (-180.0 if top else 180.0) * (1.0 - (1.0 if p >= 1 else joint_opening(p, j, n)))
+        pu, pv = j * s, (gp.FOLD_OVER if top else -gp.FOLD_UNDER)
+        ap, cx, cy = pose[-1]
+        c, sn = math.cos(math.radians(ap)), math.sin(math.radians(ap))
+        wx, wy = cx + pu * c + pv * sn, cy - pu * sn + pv * c
+        ak = ap + theta
+        ck, sk = math.cos(math.radians(ak)), math.sin(math.radians(ak))
+        pose.append((ak, wx - (pu * ck + pv * sk), wy - (-pu * sk + pv * ck)))
+    rail = 0.0 if p >= 1 else 90.0 * (1.0 - _ease((p - RAIL_START) / (1.0 - SETTLE - RAIL_START)))
+    return pose, rail
+
+
+def fold_point(s, pose, k, u, v, w):
+    o = 1 if s["side"] == "port" else -1
+    hx, hy, hz = s["hinge"]
+    a, cx, cy = pose[k]
+    c, sn = math.cos(math.radians(a)), math.sin(math.radians(a))
+    return np.array([hx + o * (cx + u * c + v * sn), hy + cy - u * sn + v * c, hz + o * w])
+
+
+def rail_point(s, side, fold, p):
+    import gangplanklib as gp
+    pz = side * (s["width"] / 2 - gp.RAIL_PIVOT_INSET)
+    psi = math.radians(-side * fold)
+    c, sn = math.cos(psi), math.sin(psi)
+    dv, dw = p[1] - gp.RAIL_PIVOT_V, p[2] - pz
+    return np.array([p[0], gp.RAIL_PIVOT_V + dv * c - dw * sn, pz + dv * sn + dw * c])
+
+
+def part_quads(model, name, children=False):
+    """Quads (model-local) of one bone of a model, with or without its child bones."""
+    import preview
+
+    def find(g):
+        if g["name"] == name:
+            return g
+        for c in g["children"]:
+            if isinstance(c, dict):
+                r = find(c)
+                if r is not None:
+                    return r
+        return None
+    g = find(model["outliner"][0])
+    if g is None:
+        return []
+    g2 = dict(g)
+    if not children:
+        g2["children"] = [c for c in g["children"] if not isinstance(c, dict)]
+    m2 = dict(model)
+    m2["outliner"] = [g2]
+    return preview.build_mesh(m2, {})
+
+
+def plank_parts(ship):
+    """{"seg_k": quads, "rail_k_s": quads} of a folding plank model, and its texture."""
+    with open(os.path.join(MODELS, "gangplank_" + ship + ".bbmodel")) as f:
+        model = json.load(f)
+    from PIL import Image
+    tex = [np.array(Image.open(io.BytesIO(base64.b64decode(t["source"].split(",", 1)[1]))).convert("RGBA")).astype(float)
+           for t in model["textures"]]
+    parts = {}
+    k = 0
+    while True:
+        q = part_quads(model, "seg_%d" % k)
+        if not q:
+            break
+        parts["seg_%d" % k] = q
+        for side in (0, 1):
+            parts["rail_%d_%d" % (k, side)] = part_quads(model, "rail_%d_%d" % (k, side), children=True)
+        k += 1
+    return parts, tex
+
+
+def folded_quads(s, parts, pose, rail, tex_offset):
     out = []
-    for corners, uvs, glow, ti in plank:
-        out.append(([plank_point(s, angle, p[0], p[1], p[2]) for p in corners], uvs, glow, ti + tex_offset))
+    for name, quads in parts.items():
+        bits = name.split("_")
+        k = int(bits[1])
+        side = (1 if bits[2] == "1" else -1) if bits[0] == "rail" else 0
+        for corners, uvs, glow, ti in quads:
+            pts = []
+            for p in corners:
+                if side:
+                    p = rail_point(s, side, rail, p)
+                pts.append(fold_point(s, pose, k, p[0], p[1], p[2]))
+            out.append((pts, uvs, glow, ti + tex_offset))
+    return out
+
+
+def lever_quads(s, lever, tex_offset):
+    out = []
     th = math.radians(lever_yaw(s))
     c, sn = math.cos(th), math.sin(th)
     lx, ly, lz = s["lever"]
@@ -171,6 +315,20 @@ def placed_quads(s, plank, lever, angle, tex_offset):
         out.append(([np.array([lx + p[0] * c + p[2] * sn, ly + p[1], lz - p[0] * sn + p[2] * c]) for p in corners],
                     uvs, glow, ti + tex_offset))
     return out
+
+
+def lever_yaw(s):
+    if "lever_yaw" in s:
+        return s["lever_yaw"]
+    return 0.0 if s["side"] == "starboard" else 180.0
+
+
+def placed_quads(s, plank, lever, angle, tex_offset):
+    """The one-piece plank (1.23.0) at an angle, and the lever."""
+    out = []
+    for corners, uvs, glow, ti in plank:
+        out.append(([plank_point(s, angle, p[0], p[1], p[2]) for p in corners], uvs, glow, ti + tex_offset))
+    return out + lever_quads(s, lever, tex_offset)
 
 
 POST, POST_HEIGHT, STAIR_RISE = 0.13, 2.5, 0.45   # as GangplankRenderer / core/Gangplank.java
@@ -217,9 +375,10 @@ def stair_boxes(s):
     return out
 
 
-def chain_quads(s, angle, tex_offset, deployed):
+def chain_quads(s, tip, tex_offset, deployed):
     """Stand-in for what GangplankRenderer draws besides the models: the two chains / ropes (from the chain anchor, or
-    from a small gallows post at each end of the hinge) and, while the plank is out, the inboard stairs."""
+    from a small gallows post at each end of the hinge) to tip(w) (the plank's outer corner eyes) and, while the plank
+    is out, the inboard stairs."""
     import gangplanklib as gp
     o = 1 if s["side"] == "port" else -1
     cord, rail, metal = (gp.REGIONS["%s_%s" % (s["style"], k)] for k in ("cord", "rail", "metal"))
@@ -236,7 +395,7 @@ def chain_quads(s, angle, tex_offset, deployed):
             out += _box_quads(px - POST / 2, hy - 0.1, pz - POST / 2, px + POST / 2, hy + POST_HEIGHT, pz + POST / 2, rail, tex_offset)
             out += _box_quads(px - 0.1, hy + POST_HEIGHT - 0.2, pz - 0.1, px + 0.1, hy + POST_HEIGHT + 0.04, pz + 0.1, metal, tex_offset)
             a = np.array([px, hy + POST_HEIGHT - 0.08, pz])
-        b = plank_point(s, angle, s["length"] - 0.25, 0.06, w)
+        b = tip(w)
         d = b - a
         n = np.linalg.norm(d)
         if n < 1e-6:
@@ -257,13 +416,22 @@ def chain_quads(s, angle, tex_offset, deployed):
     return out
 
 
-def render_views(ship, s, ship_mesh=None, size=(640, 480)):
-    """[(title, image)]: stowed 3/4, deployed 20 degrees 3/4, deployed cut section along the keel, deployed seen from
-    outboard. Everything in ship-local space, centred on the hinge."""
+def folded_scene(ship, s, parts, lever, off, p, target):
+    f = fold_of(ship, s)
+    pose, rail = fold_pose(f, p, target)
+    k = f["n"] - 1
+    tip = lambda w: fold_point(s, pose, k, s["length"] - 0.25, 0.06, w)  # noqa: E731
+    return folded_quads(s, parts, pose, rail, off) + lever_quads(s, lever, off) + chain_quads(s, tip, off, p > 0)
+
+
+def render_views(ship, s, ship_mesh=None, size=(640, 480), old_plank=None):
+    """[(title, image)]: (with old_plank, the one-piece plank of 1.23.0 stowed upright: "avant"), the folded pack stowed
+    (same camera), the pack close up from outboard, half deployed (unfolding), deployed at 20 degrees. Ship-local space,
+    centred on the hinge."""
     import preview
     from PIL import ImageDraw
     quads, tex = ship_mesh or load_model(ship)
-    plank, ptex = load_model("gangplank_" + ship)
+    parts, ptex = plank_parts(ship)
     lever, _ = load_model("gangplank_lever_" + s["style"])
     off = len(tex)
     textures = list(tex) + [ptex[0]]
@@ -272,28 +440,39 @@ def render_views(ship, s, ship_mesh=None, size=(640, 480)):
     L = s["length"]
     W, H = size
     hinge = np.array([hx, hy, hz])
-    stowed = placed_quads(s, plank, lever, s.get("stowed_angle", -90.0), off) + chain_quads(s, s.get("stowed_angle", -90.0), off, False)
-    deployed = placed_quads(s, plank, lever, 20.0, off) + chain_quads(s, 20.0, off, True)
     k = max(4.0, L)
     eye34 = hinge + np.array([o * 1.25 * k, 0.8 * k, 1.05 * k])
-    tgt34 = hinge + np.array([o * 0.35 * L, -0.25 * L, 0])
+    tgt_old = tuple(hinge + np.array([0, 0.4 * L, 0]))
     views = []
-    im = preview.render(quads + stowed, textures, W, H, eye=tuple(eye34), target=tuple(hinge + np.array([0, 0.4 * L, 0])), fov=55)
-    views.append(("rangee", im))
-    im = preview.render(quads + deployed, textures, W, H, eye=tuple(eye34), target=tuple(tgt34), fov=55)
-    views.append(("deployee 20 deg", im))
-    # cut section: only the ship parts behind the plank's front edge, seen from the bow side along -z
-    cut = hz + s["width"] / 2 + 0.6
-    behind = [q for q in quads if np.mean([p[2] for p in q[0]]) < cut]
-    span = max(2.4 * L, 9.0)
-    ctr = hinge + np.array([o * (L * 0.5 - span * 0.12), -L * 0.15, 0])
-    im = preview.render(behind + deployed, textures, W, H, eye=(ctr[0], ctr[1], hz + 80), target=(ctr[0], ctr[1], hz), ortho=span)
-    views.append(("coupe (vue de l'avant)", im))
-    im = preview.render(quads + deployed, textures, W, H, eye=(hx + o * 80, hy + 1, hz), target=(hx, hy - 1, hz), ortho=max(1.6 * L, 7.0))
-    views.append(("vue du flanc", im))
+    if old_plank is not None:
+        tip = lambda w: plank_point(s, -90.0, L - 0.25, 0.06, w)  # noqa: E731
+        old = placed_quads(s, old_plank, lever, -90.0, off) + chain_quads(s, tip, off, False)
+        views.append(("avant : rangee (1.23.0)", preview.render(quads + old, textures, W, H, eye=tuple(eye34), target=tgt_old, fov=55)))
+    stowed = folded_scene(ship, s, parts, lever, off, 0.0, 20.0)
+    views.append(("apres : rangee", preview.render(quads + stowed, textures, W, H, eye=tuple(eye34), target=tgt_old, fov=55)))
+    f = fold_of(ship, s)
+    pack = hinge + np.array([o * (f["standoff"] + f["n"] * 0.2), -0.9, 0])
+    eye_c = pack + np.array([o * 4.5, 1.6, 3.2])
+    views.append(("apres : paquet replie", preview.render(quads + stowed, textures, W, H, eye=tuple(eye_c), target=tuple(pack), fov=50)))
+    tgt34 = hinge + np.array([o * 0.35 * L, -0.25 * L, 0])
+    half = folded_scene(ship, s, parts, lever, off, 0.5, 20.0)
+    views.append(("depliage (mi-course)", preview.render(quads + half, textures, W, H, eye=tuple(eye34), target=tuple(tgt34), fov=55)))
+    deployed = folded_scene(ship, s, parts, lever, off, 1.0, 20.0)
+    views.append(("deployee 20 deg", preview.render(quads + deployed, textures, W, H, eye=tuple(eye34), target=tuple(tgt34), fov=55)))
     for title, im in views:
         ImageDraw.Draw(im).text((8, 6), "%s - %s" % (ship, title), fill=(255, 240, 160))
     return views
+
+
+def old_plank_mesh(ship):
+    """The one-piece plank model of 1.23.0 (git show 75d23ffc), for the before / after sheet; None if unavailable."""
+    import subprocess
+    import preview
+    try:
+        raw = subprocess.check_output(["git", "-C", ROOT, "show", "75d23ffc:src/main/resources/assets/medievalships/models/entity/gangplank_%s.bbmodel" % ship])
+    except Exception:
+        return None
+    return preview.build_mesh(json.loads(raw), {})
 
 
 def sheet(out, ids):
@@ -302,7 +481,7 @@ def sheet(out, ids):
     rows = []
     for ship in ids:
         s = SPECS[ship] if ship in SPECS else load_spec(ship)
-        views = render_views(ship, s)
+        views = render_views(ship, s, old_plank=old_plank_mesh(ship))
         row = Image.new("RGB", (cw * len(views), ch), (20, 22, 30))
         for i, (_t, im) in enumerate(views):
             row.paste(im.resize((cw, ch), Image.LANCZOS), (i * cw, 0))
@@ -317,11 +496,35 @@ def sheet(out, ids):
 
 
 def single(ship, outdir):
-    """The four 640x480 views of one vessel, for close inspection."""
+    """The 640x480 views of one vessel, for close inspection."""
     s = SPECS[ship] if ship in SPECS else load_spec(ship)
-    for i, (_t, im) in enumerate(render_views(ship, s)):
+    for i, (_t, im) in enumerate(render_views(ship, s, old_plank=old_plank_mesh(ship))):
         im.save(os.path.join(outdir, "%s_%d.png" % (ship, i)))
     print("rendered", ship)
+
+
+def stow_probe(ship, s=None):
+    """Outermost surface of the ship model over the stowed pack's height and width, outboard of the hinge line (the
+    spec's stow_offset should be at least this; core/Gangplank.fold adds STOW_CLEARANCE). Returns (max, rows)."""
+    import gangplanklib as gp
+    s = s or (SPECS[ship] if ship in SPECS else load_spec(ship))
+    o = 1 if s["side"] == "port" else -1
+    hx, hy, hz = s["hinge"]
+    n = gp.segment_count(s["length"], s.get("segments"))
+    seg = s["length"] / n
+    quads, _ = load_model(ship)
+    tris = _tris(quads)
+    hw = s["width"] / 2 + 0.1
+    worst, rows = 0.0, []
+    for dy in np.arange(-STOW_DROP + 0.1, -STOW_DROP - seg - 0.12, -0.08):
+        m = -9.0
+        for z in np.linspace(hz - hw, hz + hw, 17):
+            t = raycast(tris, (o * 40, hy + dy, z), (-o, 0, 0))
+            if len(t):
+                m = max(m, o * (o * 40 - o * t[0]) - o * hx)
+        rows.append((round(float(dy), 2), round(m, 3)))
+        worst = max(worst, m)
+    return worst, rows
 
 
 def load_spec(ship):
@@ -367,7 +570,7 @@ place("warship", "starboard", -5.25, 2.4, 5.83, 6.33, 4.5, 6.25, 9.0, "dark_wood
       lever=[-4.6, 4.5, -6.25])
 # medieval galley: the shields cover the whole rail (top 2.15): the plank lies on top of the shield rims; oar ports are
 # low (0.75), far under it. Between the mast (0.6) and the bench at 3.6.
-place("medieval_galley", "starboard", 1.8, 2.0, 2.15, 2.6, 0.45, 2.26, 4.0, "wood", (-25, 30), lever_end=-1,
+place("medieval_galley", "starboard", 1.8, 2.0, 2.15, 2.6, 0.45, 2.26, 4.0, "wood", (-25, 30), lever_end=-1, segments=4,
       lever=[-1.6, 0.45, 0.45])
 # steam paddleboat: steel; on the open railing aft of the deckhouse and of the paddle box, beside the stern gun's
 # barbette (x +-0.95, z -8.55..-6.65).
@@ -400,6 +603,16 @@ place("dragon_junk", "starboard", 9.5, 3.0, 1.14, 3.98, 0.0, 3.5, 5.5, "jade", (
       lever=[-3.1, 0.0, 7.2])
 
 
+# Stowed pack (1.23.1): the outermost surface of the model under each hinge, over the pack's height and width (`stow`),
+# or the hull shape's outer face (core/Gangplank.hullStandoff) if further out, rounded up. The galley's is its hull
+# side: two of its oars cross the pack's span (they already pass under the deployed plank and through its stairs).
+STOW_OFFSET = {"galley": 0.10, "galleon": 0.24, "warship": 0.22, "medieval_galley": 0.07, "steam_paddleboat": 0.29,
+               "elven_sailboat": 0.18, "old_corsair": 0.30, "blue_frigate": 0.55, "crystal_airship": 0.11,
+               "sky_leviathan": 0.17, "dragon_junk": 0.35}
+for _ship, _off in STOW_OFFSET.items():
+    SPECS[_ship]["stow_offset"] = _off
+
+
 def main():
     args = sys.argv[1:]
     cmd = args[0] if args else "all"
@@ -420,6 +633,12 @@ def main():
     if cmd == "single":
         for ship in args[2:]:
             single(ship, args[1])
+    if cmd == "stow":
+        for ship in args[1:] or list(SPECS):
+            worst, rows = stow_probe(ship)
+            print("%s: model surface up to %.3f outboard of the hinge under it (spec stow_offset %s)" % (
+                ship, worst, (SPECS.get(ship) or load_spec(ship)).get("stow_offset")), flush=True)
+            print("   ", " ".join("%.2f:%.2f" % r for r in rows), flush=True)
 
 
 if __name__ == "__main__":

@@ -11,10 +11,13 @@ of each style, and their shared atlas textures/entity/gangplank.png.
 
 Model frame (model-local blocks, the frame BbModel.render emits, x = -bbX/16, y = bbY/16, z = -bbZ/16):
 - the plank: hinge line along the z axis through the origin, the plank extending along +x when horizontal, its walking
-  (top) surface at y = 0, centred on z (z in [-width/2, width/2]); boards, cleats, side stringers under the boards,
-  iron (or copper...) side straps, hinge knuckles at x = 0, posts and handrails, a bevelled tip at x = length, eyes for
-  the support chains at the outer corners (x = length - 0.25, z = +-(width/2 - 0.08)). No animation: the mod rotates
-  the whole model about the hinge (core/Gangplank.java documents how the model frame maps to the ship).
+  (top) surface at y = 0, centred on z (z in [-width/2, width/2]), drawn straight; boards, cleats, side stringers under
+  the boards, iron (or copper...) side straps, hinge knuckles at x = 0, posts and handrails, a bevelled tip at
+  x = length, eyes for the support chains at the outer corners (x = length - 0.25, z = +-(width/2 - 0.08)). It folds
+  like an accordion: one bone "seg_<k>" per segment (segment_count, origin (k s, 0, 0)), side hinge plates and knuckles
+  at each joint, the handrails of each segment in its bones "rail_<k>_0" / "rail_<k>_1". No animation: the mod places
+  each segment (and folds its handrails) itself (core/Gangplank.java documents the folding and how the model frame maps
+  to the ship).
 - the lever: its base on the deck at the origin (y = 0 = the deck surface), a bone "handle" pivoting at
   (0, PIVOT_Y, 0) that the mod tilts about the model's z axis (positive = towards +x); the lever faces +x (the
   side the handle is pulled towards when deploying).
@@ -248,111 +251,184 @@ def _knuckle(bone, name, x, y, z0, z1, r, region):
 
 
 # ---------------------------------------------------------------- the plank
-def make_plank(ship_id, width, length, style, handrails=True, out=None):
-    """gangplank_<ship_id>.bbmodel: a medieval boarding plank of the given width and length (blocks) in a style.
-    handrails: posts and rails along both sides (rope for the wooden styles, rails for the others)."""
+# Folding (accordion) geometry, as core/Gangplank.java (SEGMENT, FOLD_UNDER, FOLD_OVER, RAIL_PIVOT_V, RAIL_PIVOT_INSET)
+SEGMENT = 1.6
+MAX_SEGMENTS = 12
+FOLD_UNDER = 0.27
+FOLD_OVER = 0.135
+RAIL_PIVOT_V = 0.075
+RAIL_PIVOT_INSET = 0.04
+HINGE_R = 0.055      # radius of the side knuckles of a joint between two segments
+PLATE = 0.18         # length of a joint's side hinge plate along the plank
+
+
+def segment_count(length, segments=None):
+    """core/Gangplank.segments: the override, else ceil(length / SEGMENT), at least 2."""
+    n = int(segments) if segments else int(math.ceil(length / SEGMENT - 1e-9))
+    return max(2, min(MAX_SEGMENTS, n))
+
+
+def make_plank(ship_id, width, length, style, handrails=True, segments=None, out=None):
+    """gangplank_<ship_id>.bbmodel: a medieval folding boarding plank of the given width and length (blocks) in a style,
+    drawn straight: one bone "seg_<k>" per segment (origin at its inner end, (k s, 0, 0)), hinged to the next one by
+    side plates and knuckles around the joint's fold pivot (odd joints: FOLD_OVER over the walking surface, even ones:
+    FOLD_UNDER under it, see core/Gangplank.java), each with its two handrails "rail_<k>_0" (-z) and "rail_<k>_1" (+z),
+    whose stanchions fold flat inwards about the line (RAIL_PIVOT_V, +-(width/2 - RAIL_PIVOT_INSET)).
+    handrails: posts and rails along both sides of every segment (rope for the wooden styles, rails for the others)."""
     _setup("gangplank_" + ship_id)
     plank, dark, rail, metal, cord, accent, rope_rail, chain = _style(style)
     W, L = float(width), float(length)
     hw = W / 2
+    N = segment_count(L, segments)
+    S = L / N
     root = Bone("gangplank")
-    deck = Bone("boards", parent=root)
-    frame = Bone("frame", parent=root)
-    fit = Bone("fittings", parent=root)
-    detail = Bone("detail", parent=root)
+    segs = [Bone("seg_%d" % k, origin=(k * S, 0, 0), parent=root) for k in range(N)]
+    pz = hw - RAIL_PIVOT_INSET
+    rails = [[Bone("rail_%d_%d" % (k, side), origin=(k * S, RAIL_PIVOT_V, (1 if side else -1) * pz), parent=segs[k])
+              for side in (0, 1)] for k in range(N)]
+
+    def seg_at(x):
+        return max(0, min(N - 1, int(x // S)))
+
+    def span(i):
+        return i * S, (i + 1) * S
+
     bevel = 0.28
-    # boards along the plank (slightly irregular widths and lengths), top at y = 0
+    gap = 0.012          # half the gap between two segments
+    # boards along the plank (slightly irregular widths and lengths), top at y = 0, cut at the joints
     n = max(3, int(round(W / 0.42)))
     bw = W / n
-    rng = random.Random(hash((ship_id, style)) & 0xffff)
     for k in range(n):
         z0 = -hw + k * bw
-        x0 = 0.04 + (0.03 if k % 2 else 0.0)
-        x1 = L - bevel - (0.02 if k % 3 == 1 else 0.0)
+        bx0 = 0.04 + (0.03 if k % 2 else 0.0)
+        bx1 = L - bevel - (0.02 if k % 3 == 1 else 0.0)
         top = 0.0 if k % 2 == 0 else -0.006
-        _box(deck, "board_%d" % k, x0, top - BOARD_TH, z0 + 0.01, x1, top, z0 + bw - 0.01,
-             {"all": R(style, "plank"), "+1": R(style, "end"), "-1": R(style, "end")}, u_dir=v3(1, 0, 0))
+        for i in range(N):
+            u0, u1 = span(i)
+            x0, x1 = max(bx0, u0 + gap), min(bx1, u1 - gap)
+            if x1 - x0 < 0.05:
+                continue
+            _box(segs[i], "board_%d_%d" % (i, k), x0, top - BOARD_TH, z0 + 0.01, x1, top, z0 + bw - 0.01,
+                 {"all": R(style, "plank"), "+1": R(style, "end"), "-1": R(style, "end")}, u_dir=v3(1, 0, 0))
         # the bevelled tip: the last bit of each board tilted down to meet the quay
         a = math.radians(14)
-        c = v3(x1 + bevel / 2 * math.cos(a), top - BOARD_TH / 2 - bevel / 2 * math.sin(a), z0 + bw / 2)
-        add_cube(deck, "tip_%d" % k, c, gg.rz(-a), (bevel + 0.02, BOARD_TH, bw - 0.02),
+        c = v3(bx1 + bevel / 2 * math.cos(a), top - BOARD_TH / 2 - bevel / 2 * math.sin(a), z0 + bw / 2)
+        add_cube(segs[N - 1], "tip_%d" % k, c, gg.rz(-a), (bevel + 0.02, BOARD_TH, bw - 0.02),
                  {"all": R(style, "plank"), "+1": R(style, "end"), "-1": R(style, "end")}, u_dir=v3(1, 0, 0))
-    # cleats across the walking surface (grip), every ~0.45 block
+    # cleats across the walking surface (grip), every ~0.45 block, none on a joint
     nc = max(3, int((L - 0.6) / 0.45))
     for k in range(nc):
         x = 0.35 + k * (L - 0.75) / max(1, nc - 1)
         if style == "worn" and k == nc // 2:
             continue   # one cleat lost
-        _box(deck, "cleat_%d" % k, x - 0.05, 0.0, -hw + 0.12, x + 0.05, 0.035, hw - 0.12, R(style, "board"), u_dir=v3(0, 0, 1))
-    # side stringers under the boards, and two cross battens
-    for side in (-1, 1):
-        z = side * (hw - 0.07)
-        _box(frame, "stringer_%d" % (side > 0), 0.0, -BOARD_TH - STRINGER_H, z - 0.065, L - 0.05, -BOARD_TH + 0.005, z + 0.065,
-             {"all": R(style, "rail"), "+1": R(style, "end"), "-1": R(style, "end")}, u_dir=v3(1, 0, 0))
-    for k, x in enumerate((0.5, L * 0.5, L - 0.55)):
-        _box(frame, "batten_%d" % k, x - 0.08, -BOARD_TH - 0.1, -hw + 0.14, x + 0.08, -BOARD_TH + 0.002, hw - 0.14, R(style, "board"),
-             u_dir=v3(0, 0, 1))
-    # metal side straps wrapping the stringers and the board ends, and the tip shoe
-    ns = max(2, int(round(L / 1.2)))
-    for k in range(ns + 1):
-        x = 0.25 + k * (L - 0.6) / ns
+        if any(abs(x - j * S) < 0.1 for j in range(1, N)):
+            continue
+        _box(segs[seg_at(x)], "cleat_%d" % k, x - 0.05, 0.0, -hw + 0.12, x + 0.05, 0.035, hw - 0.12, R(style, "board"), u_dir=v3(0, 0, 1))
+    for i in range(N):
+        u0, u1 = span(i)
+        sg = segs[i]
+        # side stringers under the boards, cross battens at both ends of the segment
         for side in (-1, 1):
-            z = side * (hw + 0.004)
-            _box(fit, "strap_%d_%d" % (k, side > 0), x - 0.045, -BOARD_TH - STRINGER_H - 0.012, z - 0.012, x + 0.045, 0.012, z + 0.012,
-                 R(style, "metal"))
-        _box(fit, "strap_bottom_%d" % k, x - 0.045, -BOARD_TH - STRINGER_H - 0.014, -hw, x + 0.045, -BOARD_TH - STRINGER_H + 0.002, hw,
-             R(style, "metal"))
+            z = side * (hw - 0.07)
+            _box(sg, "stringer_%d_%d" % (i, side > 0), u0 + (0.0 if i == 0 else gap), -BOARD_TH - STRINGER_H, z - 0.065,
+                 min(u1 - gap, L - 0.05), -BOARD_TH + 0.005, z + 0.065,
+                 {"all": R(style, "rail"), "+1": R(style, "end"), "-1": R(style, "end")}, u_dir=v3(1, 0, 0))
+        for k, x in enumerate((u0 + (0.5 if i == 0 else 0.2), min(u1 - 0.2, L - 0.55))):
+            _box(sg, "batten_%d_%d" % (i, k), x - 0.08, -BOARD_TH - 0.1, -hw + 0.14, x + 0.08, -BOARD_TH + 0.002, hw - 0.14,
+                 R(style, "board"), u_dir=v3(0, 0, 1))
+        # metal side straps wrapping the stringers and the board ends
+        for k, x in enumerate((u0 + 0.3, min(u1 - 0.3, L - 0.35))):
+            for side in (-1, 1):
+                z = side * (hw + 0.004)
+                _box(sg, "strap_%d_%d_%d" % (i, k, side > 0), x - 0.045, -BOARD_TH - STRINGER_H - 0.012, z - 0.012, x + 0.045, 0.012,
+                     z + 0.012, R(style, "metal"))
+            _box(sg, "strap_bottom_%d_%d" % (i, k), x - 0.045, -BOARD_TH - STRINGER_H - 0.014, -hw, x + 0.045,
+                 -BOARD_TH - STRINGER_H + 0.002, hw, R(style, "metal"))
     a = math.radians(14)
     c = v3(L - bevel - 0.02 + (bevel + 0.06) / 2 * math.cos(a), -BOARD_TH - 0.012 - (bevel / 2) * math.sin(a), 0)
-    add_cube(fit, "tip_shoe", c, gg.rz(-a), (bevel + 0.08, 0.025, W - 0.06), R(style, "metal"))
-    # hinge: a pin along the hinge line, knuckles on the plank and leaves on the boards
-    _knuckle(fit, "hinge_pin", 0.0, -0.06, -hw + 0.02, hw - 0.02, 0.035, R(style, "metal"))
+    add_cube(segs[N - 1], "tip_shoe", c, gg.rz(-a), (bevel + 0.08, 0.025, W - 0.06), R(style, "metal"))
+    # the hinge on the ship: a pin along the hinge line, knuckles on the plank and leaves on the boards
+    _knuckle(segs[0], "hinge_pin", 0.0, -0.06, -hw + 0.02, hw - 0.02, 0.035, R(style, "metal"))
     for k, zc in enumerate(np.linspace(-hw + 0.22, hw - 0.22, 3 if W >= 2.5 else 2)):
-        _knuckle(fit, "knuckle_%d" % k, 0.0, -0.06, zc - 0.13, zc + 0.13, 0.075, R(style, "metal"))
-        _box(fit, "leaf_%d" % k, 0.04, 0.0, zc - 0.1, 0.42, 0.014, zc + 0.1, R(style, "metal"))
+        _knuckle(segs[0], "knuckle_%d" % k, 0.0, -0.06, zc - 0.13, zc + 0.13, 0.075, R(style, "metal"))
+        _box(segs[0], "leaf_%d" % k, 0.04, 0.0, zc - 0.1, 0.42, 0.014, zc + 0.1, R(style, "metal"))
+    # the joints between segments: a side plate on each segment reaching the fold pivot, a knuckle round it, a pin
+    for j in range(1, N):
+        x = j * S
+        top = j % 2 == 1
+        pv = FOLD_OVER if top else -FOLD_UNDER
+        lo, hi = (-0.13, pv) if top else (pv, -0.05)
+        for side in (-1, 1):
+            # (plate z band, knuckle z band inside it: no coplanar faces closer than zfight.TOL, so nothing is pushed)
+            for which, (zi, zo, ki, ko, x0, x1) in enumerate(((0.012, 0.035, 0.02, 0.027, x - PLATE, x),
+                                                              (0.042, 0.064, 0.05, 0.056, x, x + PLATE))):
+                b = segs[j - 1 + which]
+                z0, z1 = sorted((side * (hw + zi), side * (hw + zo)))
+                _box(b, "joint_plate_%d_%d_%d" % (j, side > 0, which), x0, lo, z0, x1, hi, z1, R(style, "metal"))
+                z0, z1 = sorted((side * (hw + ki), side * (hw + ko)))
+                # one cube each (the two crossed cubes of _knuckle would share their end faces and be pushed apart)
+                add_cube(b, "joint_knuckle_%d_%d_%d" % (j, side > 0, which), (x, pv, (z0 + z1) / 2), gg.rz(math.pi / 4),
+                         (HINGE_R * 1.7, HINGE_R * 1.7, z1 - z0), R(style, "metal"))
+            z0, z1 = sorted((side * (hw + 0.004), side * (hw + 0.072)))
+            _box(segs[j - 1], "joint_pin_%d_%d" % (j, side > 0), x - 0.017, pv - 0.017, z0, x + 0.017, pv + 0.017, z1, R(style, "accent"))
     # eyes at the outer corners for the support chains / ropes
     for side in (-1, 1):
         z = side * (hw - 0.08)
-        _knuckle(fit, "eye_%d" % (side > 0), L - 0.25, 0.06, z - 0.03, z + 0.03, 0.06, R(style, "metal"))
-        _box(fit, "eye_plate_%d" % (side > 0), L - 0.36, 0.0, z - 0.06, L - 0.14, 0.012, z + 0.06, R(style, "metal"))
-    # handrails: posts along both sides and a rail (rope for the wooden styles)
+        _knuckle(segs[N - 1], "eye_%d" % (side > 0), L - 0.25, 0.06, z - 0.03, z + 0.03, 0.06, R(style, "metal"))
+        _box(segs[N - 1], "eye_plate_%d" % (side > 0), L - 0.36, 0.0, z - 0.06, L - 0.14, 0.012, z + 0.06, R(style, "metal"))
+    # handrails: on every segment, posts along both sides (in a socket on the board edge, folding flat inwards about
+    # it) and a rail between them (rope for the wooden styles)
     if handrails and L >= 2.0:
-        npost = max(2, int(round((L - 0.5) / 1.3)) + 1)
+        hgt = 0.82
+        for i in range(N):
+            u0, u1 = span(i)
+            xa, xb = u0 + 0.25, min(u1 - 0.25, L - 0.55)
+            npost = 3 if xb - xa > 1.3 else 2
+            xs = [xa + k * (xb - xa) / (npost - 1) for k in range(npost)]
+            for side in (-1, 1):
+                rb = rails[i][side > 0]
+                z = side * pz
+                tops = []
+                for k, x in enumerate(xs):
+                    _box(segs[i], "socket_%d_%d_%d" % (i, side > 0, k), x - 0.06, 0.0, z - 0.055, x + 0.06, 0.07, z + 0.055,
+                         R(style, "metal"))
+                    beam(rb, "post_%d_%d_%d" % (i, side > 0, k), v3(x, RAIL_PIVOT_V - 0.04, z), v3(x, hgt, z), 0.075, R(style, "rail"))
+                    if style in ("crystal", "jade", "elven", "copper"):
+                        _box(rb, "post_cap_%d_%d_%d" % (i, side > 0, k), x - 0.055, hgt, z - 0.055, x + 0.055, hgt + 0.06, z + 0.055,
+                             R(style, "accent"))
+                    tops.append(v3(x, hgt - 0.05, z))
+                for k in range(npost - 1):
+                    a, b = tops[k], tops[k + 1]
+                    if rope_rail:
+                        sag = 0.07 if style != "worn" else 0.12
+                        pts = [a + (b - a) * t - UP * (4 * sag * t * (1 - t)) for t in (0.0, 0.25, 0.5, 0.75, 1.0)]
+                        for q in range(4):
+                            beam(rb, "rope_%d_%d_%d_%d" % (i, side > 0, k, q), pts[q], pts[q + 1], 0.04, R(style, "cord"), extend=0.01)
+                    else:
+                        beam(rb, "rail_%d_%d_%d" % (i, side > 0, k), a, b, 0.06, R(style, "rail"), extend=0.03)
+                        m = (a + b) / 2 - UP * 0.36
+                        beam(rb, "midrail_%d_%d_%d" % (i, side > 0, k), a - UP * 0.36, b - UP * 0.36, 0.04, R(style, "rail"), extend=0.02)
+                        if style in ("copper", "steel", "crystal"):
+                            beam(rb, "brace_%d_%d_%d" % (i, side > 0, k), a - UP * 0.68, m + UP * 0.02, 0.03, R(style, "metal"))
+    # style touches, cut at the joints (clear of the hinge plates)
+    for i in range(N):
+        u0, u1 = span(i)
+        x0, x1 = max(0.1, u0 + PLATE + 0.04), min(L - 0.4, u1 - PLATE - 0.04)
+        if x1 - x0 < 0.1:
+            continue
         for side in (-1, 1):
-            z = side * (hw - 0.04)
-            tops = []
-            for k in range(npost):
-                x = 0.45 + k * (L - 1.0) / (npost - 1)
-                hgt = 0.82
-                beam(detail, "post_%d_%d" % (side > 0, k), v3(x, -0.04, z), v3(x, hgt, z), 0.075, R(style, "rail"))
-                if style in ("crystal", "jade", "elven", "copper"):
-                    _box(detail, "post_cap_%d_%d" % (side > 0, k), x - 0.055, hgt, z - 0.055, x + 0.055, hgt + 0.06, z + 0.055,
-                         R(style, "accent"))
-                tops.append(v3(x, hgt - 0.05, z))
-            for k in range(npost - 1):
-                a, b = tops[k], tops[k + 1]
-                if rope_rail:
-                    sag = 0.07 if style != "worn" else 0.12
-                    pts = [a + (b - a) * t - UP * (4 * sag * t * (1 - t)) for t in (0.0, 0.25, 0.5, 0.75, 1.0)]
-                    for j in range(4):
-                        beam(detail, "rope_%d_%d_%d" % (side > 0, k, j), pts[j], pts[j + 1], 0.04, R(style, "cord"), extend=0.01)
-                else:
-                    beam(detail, "rail_%d_%d" % (side > 0, k), a, b, 0.06, R(style, "rail"), extend=0.03)
-                    m = (a + b) / 2 - UP * 0.36
-                    beam(detail, "midrail_%d_%d" % (side > 0, k), a - UP * 0.36, b - UP * 0.36, 0.04, R(style, "rail"), extend=0.02)
-                    if style in ("copper", "steel", "crystal"):
-                        beam(detail, "brace_%d_%d" % (side > 0, k), a - UP * 0.72, m + UP * 0.02, 0.03, R(style, "metal"))
-    # style touches
-    if style == "jade":
-        for side in (-1, 1):
-            _box(detail, "lacquer_band_%d" % (side > 0), 0.1, -BOARD_TH - STRINGER_H * 0.6, side * (hw + 0.01) - 0.008,
-                 L - 0.4, -BOARD_TH - STRINGER_H * 0.3, side * (hw + 0.01) + 0.008, R(style, "accent"))
-    if style == "crystal":
-        for side in (-1, 1):
-            _box(detail, "glow_strip_%d" % (side > 0), 0.2, -BOARD_TH - 0.06, side * (hw + 0.012) - 0.006, L - 0.4, -BOARD_TH - 0.035,
-                 side * (hw + 0.012) + 0.006, R(style, "accent"))
+            if style == "jade":
+                _box(segs[i], "lacquer_band_%d_%d" % (i, side > 0), x0, -BOARD_TH - STRINGER_H * 0.6, side * (hw + 0.01) - 0.008,
+                     x1, -BOARD_TH - STRINGER_H * 0.3, side * (hw + 0.01) + 0.008, R(style, "accent"))
+            if style == "crystal":
+                _box(segs[i], "glow_strip_%d_%d" % (i, side > 0), max(x0, 0.2), -BOARD_TH - 0.06, side * (hw + 0.012) - 0.006, x1,
+                     -BOARD_TH - 0.035, side * (hw + 0.012) + 0.006, R(style, "accent"))
     if style == "worn":
-        _box(detail, "patch", L * 0.42, 0.002, -hw * 0.3, L * 0.42 + 0.34, 0.03, hw * 0.25, R(style, "board"), u_dir=v3(0, 0, 1))
+        x0 = L * 0.42
+        i = seg_at(x0)
+        x0 = max(x0, i * S + 0.1)
+        x1 = min(x0 + 0.34, (i + 1) * S - 0.1)
+        _box(segs[i], "patch", x0, 0.002, -hw * 0.3, x1, 0.03, hw * 0.25, R(style, "board"), u_dir=v3(0, 0, 1))
     return export(root, "gangplank_" + ship_id, out)
 
 
@@ -400,7 +476,8 @@ def main():
     for s in STYLES:
         make_lever(s)
     for ship, spec in specs().items():
-        make_plank(ship, spec["width"], spec["length"], spec["style"], handrails=spec.get("handrails", True))
+        make_plank(ship, spec["width"], spec["length"], spec["style"], handrails=spec.get("handrails", True),
+                   segments=spec.get("segments"))
 
 
 if __name__ == "__main__":
