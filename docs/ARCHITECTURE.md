@@ -242,9 +242,10 @@ fr.medievalships.client.bridge DrawbridgeClient (registre client, angle depuis l
   statiques ferment les extrémités pendant la manœuvre. Les joueurs ne reçoivent pas les vantaux mobiles côté
   serveur (comme les coques : leur client les a), seulement les barrières.
 * **Synchronisation.** Un paquet par changement (définition, transition du cycle, connexion, changement de monde)
-  : repères, blocs (positions + états), chenal, et le mouvement (état, angle de départ, tick de départ, degrés par
-  tick). Chaque client calcule le même angle que le serveur à partir de l'heure du monde ; le rendu interpole au
-  tick fractionnaire. Les blocs sont dessinés par `submitBlock` dans un repère tourné (`RotationAxis.of(v × up)`),
+  : repères, blocs (positions + états), chenal, et le mouvement (état, angle de départ et d'arrivée, tick de départ,
+  durée, courbe d'amortissement `BridgeCycle.ease` partagée). Chaque client calcule le même angle que le serveur à
+  partir de l'heure du monde ; le rendu interpole au tick fractionnaire. Les chaînes de levage sont de simples
+  poutres texturées (atlas des passerelles) entre le bout libre et des ancres au-dessus de la charnière. Les blocs sont dessinés par `submitBlock` dans un repère tourné (`RotationAxis.of(v × up)`),
   éclairés depuis leur position du moment.
 * **Détection** toutes les 5 ticks : navires du mod depuis `ShipTracker` (jamais un parcours de toutes les
   entités), barques vanilla et véhicules à profil par une requête de boîte indexée sur la zone de détection.

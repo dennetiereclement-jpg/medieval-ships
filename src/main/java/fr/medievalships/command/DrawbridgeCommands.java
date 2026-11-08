@@ -115,6 +115,12 @@ public final class DrawbridgeCommands {
 				.executes(ctx -> tune(ctx, t -> t.withMargin(DoubleArgumentType.getDouble(ctx, "blocs")), "marge de gabarit"))));
 		bridge.then(CommandManager.literal("arret").then(CommandManager.argument("blocs", DoubleArgumentType.doubleArg(0, 64))
 				.executes(ctx -> tune(ctx, t -> t.withStopDistance(DoubleArgumentType.getDouble(ctx, "blocs")), "distance d'arrêt du pilote automatique"))));
+		bridge.then(CommandManager.literal("chaines")
+				.then(CommandManager.literal("on").executes(ctx -> chains(ctx, true, Double.NaN)))
+				.then(CommandManager.literal("off").executes(ctx -> chains(ctx, false, Double.NaN)))
+				.then(CommandManager.literal("auto").executes(ctx -> chains(ctx, true, 0)))
+				.then(CommandManager.argument("hauteur", DoubleArgumentType.doubleArg(1, 128))
+						.executes(ctx -> chains(ctx, true, DoubleArgumentType.getDouble(ctx, "hauteur")))));
 		// preview, check, convert, run
 		bridge.then(CommandManager.literal("apercu")
 				.then(CommandManager.literal("on").executes(ctx -> preview(ctx, true)))
@@ -328,6 +334,17 @@ public final class DrawbridgeCommands {
 				"Pont « %s », %s réglé(e). Approche %.0f (+%.0f), angle %.0f°, durée %.1f s, délai %.1f s, sécurité %.1f s, marge %.2f, arrêt à %.0f blocs.",
 				b.id, what, t.approach(), t.hysteresis(), t.openAngle(), t.durationTicks() / 20.0, t.closeDelayTicks() / 20.0, t.warningTicks() / 20.0, t.margin(),
 				t.stopDistance()));
+		return 1;
+	}
+
+	/** {@code chaines on|off|auto|<hauteur>}: the lifting chains drawn from the free ends to anchors over the hinges. */
+	private static int chains(CommandContext<ServerCommandSource> ctx, boolean on, double height) throws CommandSyntaxException {
+		Drawbridge b = bridge(ctx);
+		b.setChains(on, Double.isNaN(height) ? b.chainHeight() : height);
+		saved(ctx, b);
+		ShipCommands.ok(ctx, !on ? "Pont « " + b.id + " » : chaînes de levage masquées."
+				: b.chainHeight() <= 0 ? "Pont « " + b.id + " » : chaînes de levage dessinées, ancres à hauteur automatique (longueur du vantail + 1,5)."
+				: String.format(Locale.ROOT, "Pont « %s » : chaînes de levage dessinées, ancres à %.1f blocs au-dessus des charnières.", b.id, b.chainHeight()));
 		return 1;
 	}
 

@@ -34,7 +34,14 @@ côtés du chenal (cyan), passage (rouge), hauteur libre (violet).*
   (PNJ, créatures, coques des navires) comme sur chaque client (le joueur local, simulé par son client) ; les
   clients dessinent les blocs capturés tournés du même angle (`submitBlock`, comme le jeu dessine un bloc). Pas de
   `block_display`, pas de centaines d'entités : **zéro entité**, un paquet par changement d'état, l'angle est
-  calculé par chacun à partir du tick de départ et de la vitesse angulaire.
+  calculé par chacun à partir du tick de départ du mouvement. Le mouvement est **amorti** : départ lent, pleine
+  vitesse au milieu, arrivée lente (un tablier lourd sur son treuil), la durée d'un mouvement interrompu étant
+  proportionnelle au chemin restant ; collisions et dessin suivent exactement la même courbe.
+* **Chaînes de levage** : deux chaînes par vantail relient les coins de son bout libre à des ancres situées au-dessus
+  de la charnière, côté rive (à la hauteur de la longueur du vantail + 1,5 par défaut, réglable : `/pontlevis <id>
+  chaines <hauteur>`, `off` pour les masquer). Tendues en diagonale pont fermé, presque verticales pont ouvert, elles
+  sont dessinées dans tous les états (anneau à l'ancre, manille au tablier). De la poussière du matériau du tablier
+  s'échappe aux charnières pendant le mouvement et à l'arrivée, avec le choc du bois et de la ferrure.
 * **Ouvert** : les vantaux sont dressés le long des tours (angle réglable, 80° par défaut) : le volume de
   navigation est **réellement libre**, rien ne retient un joueur à l'emplacement de l'ancien tablier.
 * **Fermeture** : les vantaux redescendent ; à l'angle 0 les blocs d'origine sont remis **avec leurs états et le
@@ -174,6 +181,7 @@ Rien n'est inventé à partir de coordonnées de capture d'écran : vous visez l
 /pontlevis port_nord angle 80        /pontlevis port_nord duree 8
 /pontlevis port_nord delai 5         /pontlevis port_nord securite 4
 /pontlevis port_nord marge 0.5       /pontlevis port_nord arret 6
+/pontlevis port_nord chaines auto    # chaînes de levage : auto | <hauteur des ancres> | off
 
 # 6. voir : sélections (vert A / bleu B), charnières (jaune), arcs balayés et vantaux levés (orange), barrières
 #    (rouge), zones d'approche des deux côtés (cyan, hystérésis plus sombre), passage (rouge), hauteur libre (violet)

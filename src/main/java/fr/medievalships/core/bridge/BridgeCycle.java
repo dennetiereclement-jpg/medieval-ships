@@ -11,8 +11,10 @@ package fr.medievalships.core.bridge;
  * <li>ATTENTE_SÉCURITÉ: the opening is announced; after the warning time, the leaves rise only once nobody stands
  * on the deck and nothing is in the volume they sweep. The wait goes on, with a diagnostic, while something is in the
  * way; it is cancelled if nothing needs the opening any more.</li>
- * <li>OUVERTURE / FERMETURE: the angle changes at a constant rate. A closing is reversed (the leaves rise again)
- * when a vessel needs the opening again or something enters the volume under the leaves.</li>
+ * <li>OUVERTURE / FERMETURE: the angle eases from where it is to the target over a time proportional to the way to
+ * go (slow start, slow arrival: a heavy deck on its winch, {@link #ease}). A closing is reversed (the leaves rise
+ * again from their current angle) when a vessel needs the opening again or something enters the volume under the
+ * leaves.</li>
  * <li>OUVERT: stays open while a vessel needs it or occupies the passage; once free, waits the closing delay (reset
  * by any new need), then closes if the swept volume is clear.</li>
  * <li>ERREUR: the leaves are down but the deck's blocks cannot be put back (a block occupies their place): the leaves
@@ -114,7 +116,11 @@ public final class BridgeCycle {
 
 	private State state = State.FERME;
 	private double angle;
-	private double angleAtStart;
+	/** The current move: from this angle to that one, over this many ticks, this many done (see {@link #ease}). */
+	private double moveFrom;
+	private double moveTo = Double.NaN;
+	private int moveTicks;
+	private int moveDone;
 	private int ticksInState;
 	private int closeCountdown;
 	private boolean suspended;
@@ -133,9 +139,49 @@ public final class BridgeCycle {
 		return angle;
 	}
 
-	/** The angle when the current state started (clients animate from it). */
-	public double angleAtStart() {
-		return angleAtStart;
+	/** The angle the current move started from (clients animate from it). */
+	public double moveFrom() {
+		return moveFrom;
+	}
+
+	/** The angle the current move goes to (NaN before a move is set up). */
+	public double moveTo() {
+		return moveTo;
+	}
+
+	/** Ticks the current move takes in all. */
+	public int moveTicks() {
+		return moveTicks;
+	}
+
+	/** Ticks of the current move already done (the clients animate from {@code now - moveDone}). */
+	public int moveDone() {
+		return moveDone;
+	}
+
+	/**
+	 * The easing of a move: progress 0..1 in time to progress 0..1 in angle, slow at both ends (smoothstep). The
+	 * server's collision boxes and every client's drawing use it, so they agree at every tick.
+	 */
+	public static double ease(double p) {
+		p = Math.max(0, Math.min(1, p));
+		return p * p * (3 - 2 * p);
+	}
+
+	/** The angle of a move after {@code done} of its {@code ticks} ticks. */
+	public static double angleOf(double from, double to, int ticks, double done) {
+		if (ticks <= 0 || Double.isNaN(to)) {
+			return from;
+		}
+		return from + (to - from) * ease(done / ticks);
+	}
+
+	/** Sets up a move from the current angle to {@code to}: its time is proportional to the way to go. */
+	private void startMove(double to, BridgeTuning t) {
+		moveFrom = angle;
+		moveTo = to;
+		moveTicks = Math.max(1, (int) Math.round(t.durationTicks() * Math.abs(to - angle) / Math.max(1e-9, t.openAngle())));
+		moveDone = 0;
 	}
 
 	public int ticksInState() {
@@ -163,7 +209,10 @@ public final class BridgeCycle {
 	public void restore(State state, double angle, boolean blocksInWorld, boolean suspended) {
 		this.state = state;
 		this.angle = angle;
-		this.angleAtStart = angle;
+		this.moveFrom = angle;
+		this.moveTo = Double.NaN; // set up at the first tick, with the tuning
+		this.moveTicks = 0;
+		this.moveDone = 0;
 		this.ticksInState = 0;
 		this.blocksInWorld = blocksInWorld;
 		this.suspended = suspended;
@@ -193,7 +242,10 @@ public final class BridgeCycle {
 
 	private void enter(State next) {
 		state = next;
-		angleAtStart = angle;
+		moveFrom = angle;
+		moveTo = Double.NaN;
+		moveTicks = 0;
+		moveDone = 0;
 		ticksInState = 0;
 		diagnostic = "";
 		diagnosticCooldown = 0;
@@ -217,7 +269,6 @@ public final class BridgeCycle {
 			diagnostic = "tronçons du pont non chargés : pont figé";
 			return;
 		}
-		double step = t.step();
 		double target = t.openAngle();
 		switch (state) {
 			case FERME -> {
@@ -247,21 +298,28 @@ public final class BridgeCycle {
 				boolean remove = blocksInWorld;
 				blocksInWorld = false;
 				enter(State.OUVERTURE);
+				startMove(target, t);
 				l.opening(remove);
 			}
 			case OUVERTURE -> {
-				angle = Math.min(target, angle + step);
-				if (angle >= target - 1e-9) {
-					angle = target;
+				if (moveTicks <= 0 || Double.isNaN(moveTo)) {
+					startMove(target, t); // restored in the middle of a move
+				}
+				moveDone++;
+				angle = angleOf(moveFrom, moveTo, moveTicks, moveDone);
+				if (moveDone >= moveTicks) {
+					angle = moveTo;
 					enter(State.OUVERT);
 					closeCountdown = t.closeDelayTicks();
 					l.opened();
 				}
 			}
 			case OUVERT -> {
-				if (angle < target - 1e-9 && !manualClose) {
-					// the target angle was raised while open: finish rising
-					angle = Math.min(target, angle + step);
+				if (Math.abs(angle - target) > 1e-9 && !manualClose) {
+					// the open angle was changed while open: go there
+					enter(State.OUVERTURE);
+					startMove(target, t);
+					return;
 				}
 				boolean hold = !manualClose && (in.passageOccupied() || (!suspended && in.demand()) || manualOpen);
 				if (manualOpen) {
@@ -289,16 +347,22 @@ public final class BridgeCycle {
 				}
 				manualClose = false;
 				enter(State.FERMETURE);
+				startMove(0, t);
 				l.closing();
 			}
 			case FERMETURE -> {
 				if ((!suspended && in.demand()) || in.passageOccupied() || !in.sweptClear() || manualOpen) {
 					enter(State.OUVERTURE);
+					startMove(target, t);
 					l.reversed();
 					return;
 				}
-				angle = Math.max(0, angle - step);
-				if (angle <= 1e-9) {
+				if (moveTicks <= 0 || Double.isNaN(moveTo)) {
+					startMove(0, t); // restored in the middle of a move
+				}
+				moveDone++;
+				angle = angleOf(moveFrom, moveTo, moveTicks, moveDone);
+				if (moveDone >= moveTicks) {
 					angle = 0;
 					if (in.footprintFree()) {
 						blocksInWorld = true;

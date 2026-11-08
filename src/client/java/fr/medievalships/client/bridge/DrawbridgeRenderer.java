@@ -38,6 +38,7 @@ public final class DrawbridgeRenderer {
 	private static final double DRAW_DISTANCE = 192.0;
 	private static final int[] CORD = Gangplank.region("dark_wood", "cord");
 	private static final float CHAIN = 0.07f;
+	private static final float LIFT_CHAIN = 0.11f;
 	private static final float LINE_WIDTH = 2.5f;
 
 	private DrawbridgeRenderer() {
@@ -65,10 +66,73 @@ public final class DrawbridgeRenderer {
 				leaves(b, now, cam, world, matrices, queue);
 				chains(b, cam, world, matrices, queue);
 			}
+			if (b.converted && b.chains) {
+				liftingChains(b, now, cam, world, matrices, queue);
+			}
 			if (b.preview) {
 				preview(b, cam, matrices, queue);
 			}
 		}
+	}
+
+	/**
+	 * The lifting chains of the mechanism: from the two corners of each leaf's free end up to anchors over its hinge
+	 * (on the shore side, where the tower or the winch house stands), drawn whatever the state: taut diagonals over
+	 * the closed deck, nearly vertical once the leaves stand up. The anchors' height is the leaf's length plus 1.5 by
+	 * default, or the bridge's setting.
+	 */
+	private static void liftingChains(DrawbridgeClient.ClientBridge b, double now, Vec3d cam, ClientWorld world, MatrixStack matrices,
+			OrderedRenderCommandQueue queue) {
+		RenderLayer layer = RenderLayers.entityCutoutNoCull(ShipModels.GANGPLANK_TEXTURE);
+		double angle = b.leavesOut() ? b.angle(now) : 0;
+		matrices.push();
+		matrices.translate(-cam.x, -cam.y, -cam.z);
+		for (int i = 0; i < 2; i++) {
+			LeafShape s = b.shapes[i];
+			if (s == null || s.isEmpty()) {
+				continue;
+			}
+			LeafFrame f = s.frame();
+			double length = s.maxB() - Math.min(0, s.minB());
+			double height = b.chainHeight > 0 ? b.chainHeight : length + 1.5;
+			double inset = Math.min(0.4, (s.maxA() - s.minA()) / 4);
+			for (double a : new double[] {s.minA() + inset, s.maxA() - inset}) {
+				double[] anchor = f.toWorld(a, -0.45, height, 0);
+				double[] end = f.toWorld(a, s.maxB() - 0.25, s.maxC() + 0.05, angle);
+				double[] mid = {(anchor[0] + end[0]) / 2, (anchor[1] + end[1]) / 2, (anchor[2] + end[2]) / 2};
+				int light = WorldRenderer.getLightmapCoordinates(world, BlockPos.ofFloored(mid[0], mid[1], mid[2]));
+				queue.submitCustom(matrices, layer, (entry, vertices) -> {
+					beam(entry, vertices, light, anchor, end, LIFT_CHAIN);
+					// a ring at the anchor and a shackle at the deck's corner
+					box(entry, vertices, light, anchor, 0.16);
+					box(entry, vertices, light, end, 0.12);
+				});
+			}
+		}
+		matrices.pop();
+	}
+
+	/** A small cube centred on a point, textured as the chain (a ring, a shackle). */
+	private static void box(MatrixStack.Entry e, VertexConsumer v, int light, double[] c, double size) {
+		double h = size / 2;
+		double[][] p = {{c[0] - h, c[1] - h, c[2] - h}, {c[0] + h, c[1] + h, c[2] + h}};
+		double[] n;
+		float u0 = CORD[0] / (float) Gangplank.ATLAS, v0 = CORD[1] / (float) Gangplank.ATLAS;
+		float u1 = (CORD[0] + CORD[2] / 4) / (float) Gangplank.ATLAS, v1 = (CORD[1] + CORD[3] / 2) / (float) Gangplank.ATLAS;
+		double x0 = p[0][0], y0 = p[0][1], z0 = p[0][2], x1 = p[1][0], y1 = p[1][1], z1 = p[1][2];
+		double[][] k = {{x0, y0, z0}, {x1, y0, z0}, {x1, y1, z0}, {x0, y1, z0}, {x0, y0, z1}, {x1, y0, z1}, {x1, y1, z1}, {x0, y1, z1}};
+		n = new double[] {0, 0, -1};
+		quad(e, v, light, n, k[1], k[0], k[3], k[2], u0, v0, u1, v1);
+		n = new double[] {0, 0, 1};
+		quad(e, v, light, n, k[4], k[5], k[6], k[7], u0, v0, u1, v1);
+		n = new double[] {-1, 0, 0};
+		quad(e, v, light, n, k[0], k[4], k[7], k[3], u0, v0, u1, v1);
+		n = new double[] {1, 0, 0};
+		quad(e, v, light, n, k[5], k[1], k[2], k[6], u0, v0, u1, v1);
+		n = new double[] {0, 1, 0};
+		quad(e, v, light, n, k[3], k[7], k[6], k[2], u0, v0, u1, v1);
+		n = new double[] {0, -1, 0};
+		quad(e, v, light, n, k[0], k[1], k[5], k[4], u0, v0, u1, v1);
 	}
 
 	private static boolean near(DrawbridgeClient.ClientBridge b, Vec3d cam) {

@@ -118,10 +118,13 @@ class GaugeAndCycleTest {
 		assertEquals(BridgeCycle.State.OUVERTURE, c.state());
 		assertEquals("opening+remove", ev.log.get(ev.log.size() - 1));
 		assertFalse(c.blocksInWorld());
-		// 160 ticks to 80 degrees
-		ticks(c, demand, 159, ev);
+		// 160 ticks to 80 degrees, slow at both ends (smoothstep): 40 degrees at half time, nearly there one tick before
+		ticks(c, demand, 80, ev);
 		assertEquals(BridgeCycle.State.OUVERTURE, c.state());
-		assertTrue(c.angle() < 80 && c.angle() > 79);
+		assertEquals(40, c.angle(), 1e-9);
+		ticks(c, demand, 79, ev);
+		assertEquals(BridgeCycle.State.OUVERTURE, c.state());
+		assertTrue(c.angle() < 80 && c.angle() > 79.9, "angle " + c.angle());
 		c.tick(demand, T, ev);
 		assertEquals(BridgeCycle.State.OUVERT, c.state());
 		assertEquals(80, c.angle(), 1e-9);
@@ -166,6 +169,14 @@ class GaugeAndCycleTest {
 		assertEquals(mid, c.angle(), 1e-9); // no jump
 		c.tick(quiet.withDemand(true), T, ev);
 		assertTrue(c.angle() > mid);
+		// the way back up takes a time proportional to the way to go, eased again
+		int up = 0;
+		while (c.state() == BridgeCycle.State.OUVERTURE && up < 400) {
+			c.tick(quiet.withDemand(true), T, ev);
+			up++;
+		}
+		assertEquals(BridgeCycle.State.OUVERT, c.state());
+		assertEquals(Math.round(160 * (80 - mid) / 80) - 1, up, 1);
 		// an obstacle under the leaves while closing does the same
 		BridgeCycle c2 = openBridge(new Events());
 		ticks(c2, quiet, 130, new Events());
@@ -273,6 +284,22 @@ class GaugeAndCycleTest {
 	}
 
 	@Test
+	void easing() {
+		assertEquals(0, BridgeCycle.ease(0), 1e-12);
+		assertEquals(1, BridgeCycle.ease(1), 1e-12);
+		assertEquals(0.5, BridgeCycle.ease(0.5), 1e-12);
+		assertTrue(BridgeCycle.ease(0.1) < 0.1 && BridgeCycle.ease(0.9) > 0.9, "slow at both ends");
+		double prev = 0;
+		for (int i = 1; i <= 100; i++) {
+			double e = BridgeCycle.ease(i / 100.0);
+			assertTrue(e >= prev, "monotonic");
+			prev = e;
+		}
+		assertEquals(10, BridgeCycle.angleOf(10, 80, 0, 5), 1e-12); // no move set up yet
+		assertEquals(45, BridgeCycle.angleOf(10, 80, 100, 50), 1e-9);
+	}
+
+	@Test
 	void restoreAndTuning() {
 		BridgeCycle c = new BridgeCycle();
 		c.restore(BridgeCycle.State.OUVERTURE, 33, false, false);
@@ -281,6 +308,12 @@ class GaugeAndCycleTest {
 		Events ev = new Events();
 		ticks(c, BridgeCycle.Input.QUIET, 1, ev);
 		assertTrue(c.angle() > 33);
+		// the rest of the way (47 of 80 degrees) takes 94 ticks in all
+		ticks(c, BridgeCycle.Input.QUIET, 92, ev);
+		assertEquals(BridgeCycle.State.OUVERTURE, c.state());
+		c.tick(BridgeCycle.Input.QUIET, T, ev);
+		assertEquals(BridgeCycle.State.OUVERT, c.state());
+		assertEquals(80, c.angle(), 1e-9);
 		BridgeTuning t = T.withOpenAngle(200).withDurationTicks(1);
 		assertEquals(90, t.openAngle(), 1e-9);
 		assertEquals(10, t.durationTicks());

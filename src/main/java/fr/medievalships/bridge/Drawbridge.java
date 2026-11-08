@@ -176,6 +176,10 @@ public final class Drawbridge implements DrawbridgeCollisions.Source {
 		public double stopDistance = 6;
 		public boolean converted;
 		public boolean suspended;
+		/** Draw the lifting chains (free end of each leaf to anchors over its hinge). */
+		public boolean chains = true;
+		/** Height of the chains' anchors over the hinge, 0 = automatic (the leaf's length plus 1.5). */
+		public double chainHeight;
 		public String state = "FERME";
 		public double angle;
 		public boolean blocksInWorld = true;
@@ -330,6 +334,21 @@ public final class Drawbridge implements DrawbridgeCollisions.Source {
 	}
 
 	public void markDirty() {
+		dirty = true;
+	}
+
+	public boolean chains() {
+		return def.chains;
+	}
+
+	public double chainHeight() {
+		return def.chainHeight;
+	}
+
+	/** Lifting chains on or off, and the height of their anchors over the hinge (0: automatic). */
+	public void setChains(boolean on, double height) {
+		def.chains = on;
+		def.chainHeight = Double.isNaN(height) ? 0 : Math.max(0, Math.min(128, height));
 		dirty = true;
 	}
 
@@ -1145,6 +1164,7 @@ public final class Drawbridge implements DrawbridgeCollisions.Source {
 			public void opened() {
 				sound(world, SoundEvents.BLOCK_CHAIN_PLACE, 0.8f, 0.5f);
 				sound(world, SoundEvents.BLOCK_WOOD_PLACE, 0.8f, 0.6f);
+				dust(world, 3, 0.05);
 				tellPilots(world, Text.literal("Pont-levis « " + id + " » ouvert : passage libre.").formatted(Formatting.AQUA));
 			}
 
@@ -1160,6 +1180,7 @@ public final class Drawbridge implements DrawbridgeCollisions.Source {
 				placeBlocks(world, false);
 				sound(world, SoundEvents.BLOCK_WOOD_PLACE, 1.0f, 0.6f);
 				sound(world, SoundEvents.BLOCK_IRON_DOOR_CLOSE, 0.7f, 0.5f);
+				dust(world, 6, 0.08);
 			}
 
 			@Override
@@ -1355,15 +1376,47 @@ public final class Drawbridge implements DrawbridgeCollisions.Source {
 		}
 	}
 
-	/** Chains and winch every half second, a creak now and then, while the leaves move. */
+	/** Chains and winch every half second, a creak and a little dust now and then, while the leaves move. */
 	private void motionSounds(ServerWorld world) {
 		soundTicks++;
 		if (soundTicks % 10 == 0) {
 			sound(world, SoundEvents.BLOCK_CHAIN_STEP, 0.6f, 0.6f + 0.2f * world.random.nextFloat());
+			dust(world, 1, 0.02);
 		}
 		if (soundTicks % 35 == 0) {
 			sound(world, SoundEvents.BLOCK_WOODEN_DOOR_OPEN, 0.45f, 0.4f + 0.1f * world.random.nextFloat());
 		}
+	}
+
+	/** Dust of the deck's own material along each hinge line (the mechanism working, the deck landing). */
+	private void dust(ServerWorld world, int perBlock, double speed) {
+		if (shapes == null || ConfigManager.drawbridges().soundVolume <= 0) {
+			return;
+		}
+		for (int i = 0; i < 2; i++) {
+			LeafShape sh = shapes[i];
+			BlockState state = dustState(i);
+			net.minecraft.particle.BlockStateParticleEffect effect = new net.minecraft.particle.BlockStateParticleEffect(
+					net.minecraft.particle.ParticleTypes.BLOCK, state);
+			double len = sh.maxA() - sh.minA();
+			int n = Math.max(1, (int) Math.round(len));
+			for (int k = 0; k < n; k++) {
+				double a = sh.minA() + (k + 0.5) * len / n;
+				double[] w = sh.frame().toWorld(a, 0.2, sh.maxC() - 0.3, 0);
+				world.spawnParticles(effect, w[0], w[1], w[2], perBlock, 0.3, 0.1, 0.3, speed);
+			}
+		}
+	}
+
+	/** The block state the dust of a leaf is made of: its first captured block (planks, usually). */
+	private BlockState dustState(int leaf) {
+		for (BlockRecord r : def.leaves[leaf].blocks) {
+			BlockState st = parseState(r.state);
+			if (st != null && st.isOpaque()) {
+				return st;
+			}
+		}
+		return Blocks.OAK_PLANKS.getDefaultState();
 	}
 
 	/** A message to the players around the bridge. */

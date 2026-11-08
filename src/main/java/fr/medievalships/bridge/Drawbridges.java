@@ -206,9 +206,10 @@ public final class Drawbridges {
 		DrawbridgeSyncPayload.Zones zones = z == null ? new DrawbridgeSyncPayload.Zones(0, 0, 0, 1, 0, 0, 0, 0, 0, 0)
 				: new DrawbridgeSyncPayload.Zones(z.cx(), z.cz(), z.dx(), z.dz(), z.halfWidth(), z.halfSpan(), z.approach(), z.hysteresis(), b.waterY(),
 						b.undersideY());
-		DrawbridgeSyncPayload.Motion motion = new DrawbridgeSyncPayload.Motion(b.cycle().state().ordinal(), b.cycle().angleAtStart(),
-				now - b.cycle().ticksInState(), b.tuning().step(), b.tuning().openAngle(), b.cycle().blocksInWorld());
-		return new DrawbridgeSyncPayload(b.id, false, b.converted() && b.analysed(), leaves, zones, motion, preview);
+		DrawbridgeSyncPayload.Motion motion = new DrawbridgeSyncPayload.Motion(b.cycle().state().ordinal(), b.cycle().moveFrom(),
+				Double.isNaN(b.cycle().moveTo()) ? b.cycle().moveFrom() : b.cycle().moveTo(), now - b.cycle().moveDone(), b.cycle().moveTicks(),
+				b.tuning().openAngle(), b.cycle().blocksInWorld());
+		return new DrawbridgeSyncPayload(b.id, false, b.converted() && b.analysed(), leaves, zones, motion, preview, b.chains(), b.chainHeight());
 	}
 
 	private static void send(ServerPlayerEntity player, DrawbridgeSyncPayload payload) {

@@ -50,12 +50,15 @@ public final class DrawbridgeClient {
 		public ChannelZones zones;
 		public double waterY, undersideY;
 		public BridgeCycle.State state = BridgeCycle.State.FERME;
-		public double angleAtStart;
+		public double moveFrom;
+		public double moveTo;
 		public long startTick;
-		public double step;
+		public int moveTicks;
 		public double openAngle;
 		public boolean blocksInWorld = true;
 		public boolean preview;
+		public boolean chains = true;
+		public double chainHeight;
 		private List<double[]> barriers = List.of();
 		@Nullable
 		private double[] bounds;
@@ -67,11 +70,10 @@ public final class DrawbridgeClient {
 			this.world = world;
 		}
 
-		/** The leaves' angle at a world time (ticks, fractional while rendering). */
+		/** The leaves' angle at a world time (ticks, fractional while rendering): the server's eased move, replayed. */
 		public double angle(double now) {
 			return switch (state) {
-				case OUVERTURE -> Math.min(openAngle, angleAtStart + step * Math.max(0, now - startTick));
-				case FERMETURE -> Math.max(0, angleAtStart - step * Math.max(0, now - startTick));
+				case OUVERTURE, FERMETURE -> BridgeCycle.angleOf(moveFrom, moveTo, moveTicks, Math.max(0, Math.min(moveTicks, now - startTick)));
 				case OUVERT -> openAngle;
 				default -> 0;
 			};
@@ -191,11 +193,14 @@ public final class DrawbridgeClient {
 		}
 		DrawbridgeSyncPayload.Motion m = p.motion();
 		b.state = BridgeCycle.State.of(m.state());
-		b.angleAtStart = m.angleAtStart();
+		b.moveFrom = m.moveFrom();
+		b.moveTo = m.moveTo();
 		b.startTick = m.startTick();
-		b.step = m.step();
+		b.moveTicks = m.moveTicks();
 		b.openAngle = m.openAngle();
 		b.blocksInWorld = m.blocksInWorld();
+		b.chains = p.chains();
+		b.chainHeight = p.chainHeight();
 		b.finish();
 		map.put(p.id(), b);
 		if (old != null) {

@@ -25,9 +25,11 @@ import fr.medievalships.MedievalShips;
  * @param zones     channel geometry (for the preview and the client's diagnostics)
  * @param motion    cycle state and animation parameters
  * @param preview   this player sees the selections, zones and swept volumes drawn
+ * @param chains    draw the lifting chains (from the free end of each leaf to anchors over its hinge)
+ * @param chainHeight height of the chains' anchors over the hinge (0: the leaf's length plus 1.5)
  */
-public record DrawbridgeSyncPayload(String id, boolean removed, boolean converted, List<Leaf> leaves, Zones zones, Motion motion, boolean preview)
-		implements CustomPayload {
+public record DrawbridgeSyncPayload(String id, boolean removed, boolean converted, List<Leaf> leaves, Zones zones, Motion motion, boolean preview,
+		boolean chains, double chainHeight) implements CustomPayload {
 
 	/** One captured block of a leaf: its original position and its block state ({@code minecraft:oak_planks[...]}). */
 	public record Block(int x, int y, int z, String state) {
@@ -74,15 +76,16 @@ public record DrawbridgeSyncPayload(String id, boolean removed, boolean converte
 	}
 
 	/**
-	 * The cycle: state ordinal, the angle when the state started, the world tick it started at, degrees per tick,
-	 * the open angle, whether the deck's blocks are in the world.
+	 * The cycle: state ordinal, the current move (from this angle to that one, started at this world tick, over this
+	 * many ticks, eased as {@code BridgeCycle.ease}), the open angle, whether the deck's blocks are in the world.
 	 */
-	public record Motion(int state, double angleAtStart, long startTick, double step, double openAngle, boolean blocksInWorld) {
+	public record Motion(int state, double moveFrom, double moveTo, long startTick, int moveTicks, double openAngle, boolean blocksInWorld) {
 		public static final PacketCodec<ByteBuf, Motion> CODEC = PacketCodec.tuple(
 				PacketCodecs.VAR_INT, Motion::state,
-				PacketCodecs.DOUBLE, Motion::angleAtStart,
+				PacketCodecs.DOUBLE, Motion::moveFrom,
+				PacketCodecs.DOUBLE, Motion::moveTo,
 				PacketCodecs.VAR_LONG, Motion::startTick,
-				PacketCodecs.DOUBLE, Motion::step,
+				PacketCodecs.VAR_INT, Motion::moveTicks,
 				PacketCodecs.DOUBLE, Motion::openAngle,
 				PacketCodecs.BOOLEAN, Motion::blocksInWorld,
 				Motion::new);
@@ -98,11 +101,14 @@ public record DrawbridgeSyncPayload(String id, boolean removed, boolean converte
 			Zones.CODEC, DrawbridgeSyncPayload::zones,
 			Motion.CODEC, DrawbridgeSyncPayload::motion,
 			PacketCodecs.BOOLEAN, DrawbridgeSyncPayload::preview,
+			PacketCodecs.BOOLEAN, DrawbridgeSyncPayload::chains,
+			PacketCodecs.DOUBLE, DrawbridgeSyncPayload::chainHeight,
 			DrawbridgeSyncPayload::new);
 
 	/** The payload that makes a client forget a bridge. */
 	public static DrawbridgeSyncPayload removal(String id) {
-		return new DrawbridgeSyncPayload(id, true, false, List.of(), new Zones(0, 0, 0, 1, 1, 1, 1, 0, 0, 0), new Motion(0, 0, 0, 0, 0, true), false);
+		return new DrawbridgeSyncPayload(id, true, false, List.of(), new Zones(0, 0, 0, 1, 1, 1, 1, 0, 0, 0), new Motion(0, 0, 0, 0, 0, 0, true), false,
+				false, 0);
 	}
 
 	@Override
