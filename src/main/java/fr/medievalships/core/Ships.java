@@ -1292,10 +1292,13 @@ public final class Ships {
 	public static final ShipType ROWBOAT = RowboatLayout.type();
 	/** The trade sloop: a small merchant sailing boat with blue strakes, a gaff mainsail and a jib (see {@link SloopLayout}). */
 	public static final ShipType TRADE_SLOOP = SloopLayout.type();
+	/** The Gear Steamship: an iron-plated steamer with brass gears, a copper dome and black sails (see {@link GearSteamLayout}). */
+	public static final ShipType GEAR_STEAMSHIP = GearSteamLayout.type();
 
 	public static final List<ShipType> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT, STEAMPUNK_AIRSHIP, NAUTILUS,
 			OLD_CORSAIR, SKY_LEVIATHAN, CRYSTAL_AIRSHIP,
-			RUSTIC_SKIFF, DRAGON_JUNK, HOT_AIR_BALLOON, BLUE_FRIGATE, ROWBOAT, TRADE_SLOOP);
+			RUSTIC_SKIFF, DRAGON_JUNK, HOT_AIR_BALLOON, BLUE_FRIGATE, ROWBOAT, TRADE_SLOOP,
+			GEAR_STEAMSHIP);
 
 	/**
 	 * Other names accepted by the commands (the ids used in saves and configs never change):
