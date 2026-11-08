@@ -12,6 +12,32 @@
     "playerDestinations": true,
     "playerDestinationMaxDistance": 1000.0
   },
+  "drawbridges": {
+    "approach": 50.0,
+    "hysteresis": 8.0,
+    "openAngle": 80.0,
+    "openSeconds": 8.0,
+    "closeDelaySeconds": 5.0,
+    "warningSeconds": 4.0,
+    "margin": 0.5,
+    "stopDistance": 6.0,
+    "detectionIntervalTicks": 5,
+    "idleIgnoreSeconds": 60.0,
+    "unloadedGraceSeconds": 120.0,
+    "detectionDepth": 8.0,
+    "soundVolume": 0.6,
+    "announce": true,
+    "announceRadius": 48.0,
+    "profiles": {
+      "vanilla_boat": {
+        "height": 0.6,
+        "heightOffset": 0.0,
+        "width": 1.4,
+        "occupants": true,
+        "ignore": false
+      }
+    }
+  },
   "ships": {
     "galley": {
       "slowSpeed": 2.5,

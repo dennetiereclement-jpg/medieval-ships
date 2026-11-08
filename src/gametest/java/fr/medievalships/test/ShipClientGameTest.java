@@ -49,23 +49,38 @@ public class ShipClientGameTest implements FabricClientGameTest {
 
 	private String tag = "";
 
+	/**
+	 * {@code -Dmedievalships.test.only=drawbridge} (Gradle: {@code -PgametestOnly=drawbridge}) plays only the drawbridge
+	 * scenario (a few minutes instead of the whole run), for a local check of that feature.
+	 */
+	private static final String ONLY = System.getProperty("medievalships.test.only", "");
+
 	@Override
 	public void runTest(ClientGameTestContext context) {
 		log("lithium installed: %s", net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("lithium"));
+		if (!ONLY.isEmpty()) {
+			log("only the scenario '%s' is played", ONLY);
+		}
 		net.fabricmc.fabric.api.client.gametest.v1.world.TestWorldSave save = null;
 		try (TestSingleplayerContext sp = context.worldBuilder().create()) {
 			tag = "solo";
 			scenario(context, new Env(sp.getServer(), sp.getClientWorld()));
-			nautilusBeforeRestart(context, new Env(sp.getServer(), sp.getClientWorld()));
+			if (ONLY.isEmpty()) {
+				nautilusBeforeRestart(context, new Env(sp.getServer(), sp.getClientWorld()));
+			}
+			DrawbridgeGameTest.beforeRestart(context, sp.getServer(), (ok, m) -> check(ok, "%s", m));
 			save = sp.getWorldSave();
 		} catch (Throwable t) {
 			fail("solo: exception: " + t);
 		}
-		// the same world reopened: the Nautilus finds its state again (persistence across a restart)
+		// the same world reopened: the Nautilus and the drawbridge find their state again (persistence across a restart)
 		if (save != null) {
 			try (TestSingleplayerContext sp = save.open()) {
 				tag = "solo-redemarrage";
-				nautilusAfterRestart(context, new Env(sp.getServer(), sp.getClientWorld()));
+				if (ONLY.isEmpty()) {
+					nautilusAfterRestart(context, new Env(sp.getServer(), sp.getClientWorld()));
+				}
+				DrawbridgeGameTest.afterRestart(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), n -> shot(context, n));
 			} catch (Throwable t) {
 				fail("solo-redemarrage: exception: " + t);
 			}
@@ -87,6 +102,18 @@ public class ShipClientGameTest implements FabricClientGameTest {
 	}
 
 	private void scenario(ClientGameTestContext context, Env sp) {
+		if (ONLY.equals("drawbridge")) {
+			var server = sp.getServer();
+			server.runCommand("gamerule doDaylightCycle false");
+			server.runCommand("gamerule doWeatherCycle false");
+			server.runCommand("gamerule doMobSpawning false");
+			server.runCommand("time set 6000");
+			server.runCommand("weather clear");
+			// the dedicated server has no restart: the restoration is checked at the end of its scenario
+			DrawbridgeGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n),
+					!tag.equals("solo"));
+			return;
+		}
 		{
 			var server = sp.getServer();
 			log("world loaded");
@@ -274,6 +301,9 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			SeatGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 			TrainingTargetGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 			GangplankGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
+			// the drawbridge (1.24.0); the dedicated server has no restart: its restoration is checked at the end
+			DrawbridgeGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n),
+					!tag.equals("solo"));
 		}
 	}
 

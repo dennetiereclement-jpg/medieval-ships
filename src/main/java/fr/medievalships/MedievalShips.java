@@ -194,7 +194,10 @@ public final class MedievalShips implements ModInitializer {
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			ShipCommands.register(dispatcher);
 			fr.medievalships.command.TentCommands.register(dispatcher);
+			fr.medievalships.command.DrawbridgeCommands.register(dispatcher);
 		});
+		// the drawbridges (1.24.0): their data, their tick, their sync to the clients
+		fr.medievalships.bridge.Drawbridges.init();
 
 		ServerLifecycleEvents.SERVER_STARTED.register(MedievalShips::reloadFerries);
 		ServerTickEvents.END_SERVER_TICK.register(MedievalShips::processRejoins);
@@ -246,7 +249,8 @@ public final class MedievalShips implements ModInitializer {
 				continue;
 			}
 			// players walking on a ship are not flying, whatever the blocks under the raised decks say
-			if (ShipTracker.shipUnder(player) != null || ShipTracker.onGangplank(player)) {
+			if (ShipTracker.shipUnder(player) != null || ShipTracker.onGangplank(player)
+					|| fr.medievalships.bridge.DrawbridgeCollisions.standsOn(player)) {
 				((ServerPlayNetworkHandlerAccessor) player.networkHandler).medievalships$setFloatingTicks(0);
 			}
 			// a real fall, not a teleport: moving down at most at terminal speed, barely sideways

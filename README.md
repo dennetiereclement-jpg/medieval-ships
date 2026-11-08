@@ -148,6 +148,22 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.24.0 ajoute le **pont-levis automatique à deux vantaux** : un pont déjà construit (tours, travée entre les
+berges) voit **uniquement les deux moitiés de son tablier** devenir mobiles. Elles pivotent vers le haut depuis leur
+charnière côté rive, ensemble, quand un bateau **qui ne passe pas dessous** arrive à 50 blocs d'un côté **ou** de
+l'autre du chenal (proue comprise, hystérésis), et redescendent quand les navires qui en avaient besoin ont dégagé
+la zone (délai réglable, jamais sur un navire dans le passage, inversion si un nouveau arrive pendant la fermeture).
+La décision vient du **gabarit réel** du navire (mâts et superstructures du modèle, occupants, largeur entre les
+tours) comparé à la hauteur libre mesurée sous le tablier, avec une marge réglable : une barque passe sans rien
+déclencher, une galère ouvre. Fermé, le tablier est fait de **ses vrais blocs** ; en mouvement et ouvert, les vantaux
+sont de vraies **collisions** (joueurs, PNJ, coques), dessinées tournées à partir des blocs capturés, sans aucune
+entité, avec un mouvement amorti, un axe de charnière, une poutre de treuil, des tambours et des chaînes à vrais
+maillons qui s'y enroulent. Sécurités (personne sur le tablier avant la montée, rien dans le volume balayé avant et pendant la descente,
+barrières aux extrémités), pilote automatique des ferries retenu devant le pont tant qu'il n'est pas ouvert, état
+global sauvegardé (reprise cohérente après redémarrage), commandes `/pontlevis` (création, sélection en visant les
+blocs, pivots, chenal, réglages, aperçu, vérification du volume balayé contre les tours, conversion, test d'un
+navire, débogage, demande scriptée, restauration ciblée). Guide : [docs/PONT_LEVIS.md](docs/PONT_LEVIS.md).
+
 La version 1.23.2 rend la passerelle rangée **presque invisible** : ses deux ailes latérales se rabattent sur la bande
 centrale et ses segments coulissent les uns dans les autres, en un petit paquet plat (la moitié de la largeur de la
 planche, un segment de haut, un tiers de bloc d'épaisseur) posé à plat contre le flanc, sous le bastingage, et peint
@@ -440,7 +456,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.23.2.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.24.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
@@ -459,6 +475,7 @@ pour 1.21.11 sur <https://fabricmc.net/develop>.
 ## Documentation
 
 * [Guide des commandes administrateur](docs/COMMANDES.md)
+* [Le pont-levis automatique : installation sur votre tablier, détection, gabarit, cycle, sécurités, réglages](docs/PONT_LEVIS.md)
 * [Le Nautilus : salles, équipements, commandes, itinéraires sous-marins](docs/NAUTILUS.md)
 * [Le Grand Dirigeable de Cristal](docs/CRYSTAL_PLAN.md), [le Navire Volant Rustique](docs/SKIFF_PLAN.md),
   [la Jonque du Dragon](docs/JUNK_PLAN.md) : plans, pièces, pilotage, réglages, limites
@@ -474,7 +491,8 @@ pour 1.21.11 sur <https://fabricmc.net/develop>.
 
 `config/medievalships.json` (créé au premier lancement, rechargeable avec `/ship reload`) —
 la configuration par défaut se trouve dans [`config/medievalships.json`](config/medievalships.json).
-Elle a deux parties : `server` (réglages communs) et `ships` (un bloc par navire, `galley`,
+Elle a trois parties : `server` (réglages communs), `drawbridges` (ponts-levis : défauts et profils de gabarit, voir
+[docs/PONT_LEVIS.md](docs/PONT_LEVIS.md#configuration-configmedievalshipsjson-section-drawbridges-ship-reload)) et `ships` (un bloc par navire, `galley`,
 `galleon`, `warship`, `medieval_galley`, `steam_paddleboat` et `elven_sailboat` ; les blocs des
 nouveaux navires sont ajoutés automatiquement à un fichier existant). Un ancien fichier (version 1.0/1.1, réglages « à plat ») est converti
 automatiquement : ses valeurs deviennent celles de la galère.

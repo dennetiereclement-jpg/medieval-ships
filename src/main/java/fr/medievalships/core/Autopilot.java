@@ -145,6 +145,16 @@ public final class Autopilot {
 		phase = Phase.IDLE;
 	}
 
+	/**
+	 * Something outside the route makes the vessel wait on purpose (a drawbridge not yet open, see
+	 * {@code Drawbridges.gate}): it is not stuck, its progress watch restarts.
+	 */
+	public void externalHold() {
+		progressX = Double.NaN;
+		resetProgress();
+		stuckReported = false;
+	}
+
 	/** Skips the remaining waiting time at a stop. */
 	public void departNow() {
 		if (phase == Phase.DOCKED) {

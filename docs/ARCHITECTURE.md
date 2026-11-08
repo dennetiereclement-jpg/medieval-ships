@@ -216,6 +216,48 @@ suivre chaque mise à jour. Notre approche ne touche qu'une méthode de collisio
   60 archipels aléatoires (57 réussis ; les 3 échecs étaient des ports encombrés d'îlots à
   7 blocs, où l'administrateur doit ajouter un point de passage — le navire l'a signalé).
 
+## Pont-levis automatique (1.24.0)
+
+```
+fr.medievalships.core.bridge   Java pur, testé : LeafFrame (charnière, axe, rotation), LeafShape (boîtes d'un
+                               vantail, volume balayé, dessous), ChannelZones (axe du chenal, approche des deux
+                               côtés, passage, hystérésis, portée d'une coque), Gauge (gabarit -> verdict),
+                               BridgeCycle (FERMÉ / ATTENTE_SÉCURITÉ / OUVERTURE / OUVERT / FERMETURE / ERREUR),
+                               BridgeTuning, DrawbridgeConfig et VesselProfile (configuration)
+fr.medievalships.bridge        Drawbridge (définition, blocs capturés, analyse du monde, retrait / remise des
+                               blocs, tick, sons, messages), Drawbridges (chargement, tick serveur, sauvegarde,
+                               synchronisation, API gate/request), VesselScanner (navires -> enveloppes),
+                               DrawbridgeCollisions (registre des boîtes, serveur et clients), DrawbridgeData
+fr.medievalships.command       DrawbridgeCommands (/pontlevis)
+fr.medievalships.network       DrawbridgeSyncPayload (serveur -> client)
+fr.medievalships.client.bridge DrawbridgeClient (registre client, angle depuis le tick de départ),
+                               DrawbridgeRenderer (blocs tournés, chaînes, aperçu)
+```
+
+* **Pas d'entité.** Un pont est une donnée du monde (`PersistentState`, JSON) tickée par le serveur. Fermé, le
+  tablier est fait de ses vrais blocs ; ouvert ou en mouvement, chaque vantail est une liste de boîtes de collision
+  (les boîtes de collision des blocs capturés, tournées autour de la charnière par l'angle courant et englobées),
+  ajoutées aux collisions des entités par le même mixin que les coques (`ShipCollisions` → `DrawbridgeCollisions`,
+  chemin vanilla et chemin Lithium), et obstacle pour les sondes des coques (`ShipWorld.blocked`). Des barrières
+  statiques ferment les extrémités pendant la manœuvre. Les joueurs ne reçoivent pas les vantaux mobiles côté
+  serveur (comme les coques : leur client les a), seulement les barrières.
+* **Synchronisation.** Un paquet par changement (définition, transition du cycle, connexion, changement de monde)
+  : repères, blocs (positions + états), chenal, et le mouvement (état, angle de départ et d'arrivée, tick de départ,
+  durée, courbe d'amortissement `BridgeCycle.ease` partagée). Chaque client calcule le même angle que le serveur à
+  partir de l'heure du monde ; le rendu interpole au tick fractionnaire. Les chaînes de levage sont de simples
+  poutres texturées (atlas des passerelles) entre le bout libre et des ancres au-dessus de la charnière. Les blocs sont dessinés par `submitBlock` dans un repère tourné (`RotationAxis.of(v × up)`),
+  éclairés depuis leur position du moment.
+* **Détection** toutes les 5 ticks : navires du mod depuis `ShipTracker` (jamais un parcours de toutes les
+  entités), barques vanilla et véhicules à profil par une requête de boîte indexée sur la zone de détection.
+  Enveloppe : `ShipGeometry.topY` (mâts, châteaux), occupants, largeur pour le cap ; profils éditables. Les
+  dimensions statiques des modèles sont déjà calculées une fois par type.
+* **Pilote automatique** : `Drawbridges.gate` borne la vitesse d'un navire qui attend l'ouverture (freinage
+  `√(2ad)`, arrêt à `stopDistance` de la proue au tablier) et appelle `Autopilot.externalHold` pour qu'il ne se croie
+  pas bloqué ; rien d'autre n'est changé dans la navigation.
+* **Persistance** : définition, blocs capturés (états + NBT des block entities), état et angle ; reprise au
+  redémarrage à l'angle sauvegardé, boîtes recréées, 5 s de maintien le temps que les entités du passage se
+  chargent, tickets de tronçons (5 × 5) tant que le pont n'est pas fermé.
+
 ## Fonctions communes à tous les vaisseaux
 
 * **Aperçu de placement** (`client/PlacementPreview`) : à chaque tick où le joueur local tient
