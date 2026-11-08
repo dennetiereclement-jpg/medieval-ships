@@ -1,0 +1,400 @@
+[20:33:09] [Server thread/INFO]: Player619 stopped riding Medieval Galley
+[20:33:09] [Server thread/INFO]: Teleported Player619 to 1222.500000, -48.641000, -0.500000
+[20:33:10] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] gangplank: retract accepted when clear (La passerelle se replie.)
+[20:33:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] gangplank: back to RETRACTED, no collision left on the client (0, 0)
+[20:33:13] [Server thread/INFO]: Changed the block at 1218, -46, 3
+[20:33:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] gangplank: deploy refused with a block in the swing (Un bloc gêne le déploiement de la passerelle.)
+[20:33:13] [Server thread/INFO]: Changed the block at 1218, -46, 3
+[20:33:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] gangplank: deploys again (La passerelle se déploie.)
+[20:33:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] gangplank NBT: a deploy in progress reloads deployed (ok)
+[20:33:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] gangplank NBT: deployed reloads deployed, same angle
+[20:33:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] gangplank NBT: a retraction in progress reloads stowed
+[20:33:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] gangplank NBT: stowed reloads stowed
+[20:33:22] [Server thread/INFO]: Successfully filled 1225 block(s)
+[20:33:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] gangplank: no environment scan every tick (still deployed)
+[20:33:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] gangplank: the deployed sloop saved and loaded again (ok)
+[20:33:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] gangplank: after the reload its quay is gone, it retracts (RETRACTING)
+[20:33:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] gangplank: stowed again
+[20:33:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] gangplank: no quay, deploy refused (Aucun quai ni ponton à portée : la passerelle ne peut pas être déployée dans le vide.)
+[20:33:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steampunk_airship has a gangplank spec
+[20:33:26] [Server thread/INFO]: Player619 is not riding any vehicle
+[20:33:26] [Server thread/INFO]: Set Player619's game mode to Spectator Mode
+[20:33:26] [Server thread/INFO]: Teleported Player619 to 1304.000000, -31.000000, 0.000000
+[20:33:26] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[20:33:26] [Server thread/INFO]: Marked 9 chunks in minecraft:overworld from [81, -1] to [83, 1] to be force loaded
+[20:33:26] [Server thread/INFO]: Too many blocks in the specified area (maximum 32768, but specified 35937)
+[20:33:26] [Server thread/INFO]: Aéronef mis en place : Dirigeable steampunk [1320 -32 0]
+[20:33:29] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] gangplank: the airship hovers in the sky
+[20:33:29] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] gangplank: airship refused in the air with no platform (Aucun quai ni ponton à portée : la passerelle ne peut pas être déployée dans le vide.)
+[20:33:29] [Server thread/INFO]: Successfully filled 63 block(s)
+[20:33:29] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] gangplank: airship deploys beside a platform (La passerelle se déploie.)
+[20:33:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] gangplank: airship plank deployed and walkable on the client (90 boxes, 11.5 degrees)
+[20:33:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] gangplank: the airship is held in place while its plank is out
+[20:33:34] [Server thread/INFO]: Teleported Player619 to 1308.500000, -27.970000, 9.500000
+[20:33:35] [Server thread/INFO]: Set Player619's game mode to Survival Mode
+[20:33:35] [Server thread/INFO]: Teleported Player619 to 1313.451000, -31.980000, -2.800000
+[20:33:35] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[20:33:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] gangplank: airship walk ends at local 0.33 0.00 -3.30
+[20:33:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] gangplank: walked from the platform onto the airship's deck (local 0.33 0.00 -3.30)
+[20:33:38] [Server thread/INFO]: Set Player619's game mode to Spectator Mode
+[20:33:38] [Server thread/INFO]: Unmarked 9 chunks in minecraft:overworld from [81, -1] to [83, 1] for force loading
+[20:33:38] [Server thread/INFO]: Player619 is not riding any vehicle
+[20:33:38] [Server thread/INFO]: Unmarked 16 chunks in minecraft:overworld from [74, -2] to [77, 1] for force loading
+[20:33:38] [Server thread/INFO]: Set Player619's game mode to Survival Mode
+[20:33:38] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[20:33:38] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[20:33:38] [Server thread/INFO]: Player619 is not riding any vehicle
+[20:33:38] [Server thread/INFO]: Set Player619's game mode to Spectator Mode
+[20:33:38] [Server thread/INFO]: Marked 30 chunks in minecraft:overworld from [12, -5] to [14, 4] to be force loaded
+[20:33:38] [Server thread/INFO]: Teleported Player619 to 215.500000, -20.000000, -49.500000
+[20:33:38] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[20:33:40] [Server thread/INFO]: Navire mis à l'eau : Nautilus [215 -35 -19]
+[20:33:44] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 2044ms or 40 ticks behind
+[20:33:46] [Server thread/INFO]: Teleported Player619 to 215.500000, -25.000000, -34.500000
+[20:33:47] [Server thread/INFO]: Le canot est à l'eau. Ramenez-le près de la coque et actionnez le levier pour le rembarquer.
+[20:34:16] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 17102ms or 342 ticks behind
+[20:34:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] nautilus before the restart: at 215.50 -41.88 -19.50, depth 5.93
+[20:34:21] [Server thread/INFO]: Teleported Player619 to 215.500000, -20.000000, -49.500000
+[20:34:23] [Server thread/INFO]: Player619 lost connection: Disconnected
+[20:34:23] [Server thread/INFO]: Player619 left the game
+[20:34:23] [Server thread/INFO]: Stopping singleplayer server as player logged out
+[20:34:23] [Server thread/INFO]: Stopping server
+[20:34:23] [Server thread/INFO]: Saving players
+[20:34:23] [Server thread/INFO]: Saving worlds
+[20:34:23] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:overworld
+[20:34:23] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_end
+[20:34:23] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_nether
+[20:34:23] [Server thread/INFO]: ThreadedAnvilChunkStorage (New World): All chunks are saved
+[20:34:23] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[20:34:23] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[20:34:23] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[20:34:24] [Render thread/INFO]: Loaded 2170 recipes
+[20:34:24] [Render thread/ERROR]: Failed to load function farmhouse_decorations:cleanup_legacy_seats
+java.util.concurrent.CompletionException: java.lang.IllegalArgumentException: Whilst parsing command on line 1: Expected end of options at position 61: ...ecorations<--[HERE]
+	at java.base/java.util.concurrent.CompletableFuture.encodeThrowable(CompletableFuture.java:315)
+	at java.base/java.util.concurrent.CompletableFuture.completeThrowable(CompletableFuture.java:320)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1770)
+	at knot//net.minecraft.class_4014.method_67576(class_4014.java:51)
+	at java.base/java.util.concurrent.ForkJoinTask$RunnableExecuteAction.exec(ForkJoinTask.java:1423)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:387)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312)
+	at java.base/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+Caused by: java.lang.IllegalArgumentException: Whilst parsing command on line 1: Expected end of options at position 61: ...ecorations<--[HERE]
+	at knot//net.minecraft.class_2158.method_9195(class_2158.java:80)
+	at knot//net.minecraft.class_5349.method_29451(class_5349.java:85)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1768)
+	... 7 more
+[20:34:24] [Render thread/ERROR]: Couldn't load tag minecraft:load as it is missing following references: farmhouse_decorations:cleanup_legacy_seats (from farmhouse_decorations)
+[20:34:24] [Render thread/INFO]: Loaded 2115 advancements
+[20:34:24] [Render thread/INFO]: World loading finished: null screen: net.minecraft.class_424@664f3ecc
+[20:34:24] [Render thread/INFO]: Applied 81 biome modifications to 44 of 65 new biomes in 2.203 ms
+[20:34:24] [Server thread/INFO]: Starting integrated minecraft server version 1.21.11
+[20:34:24] [Server thread/INFO]: Generating keypair
+[20:34:24] [Server thread/INFO]: Loading 98 persistent chunks...
+[20:34:24] [Server thread/INFO]: Preparing spawn area: 6%
+[20:34:24] [Render thread/INFO]: World loading finished: null screen: net.minecraft.class_3928@d55a9fb
+[20:34:24] [Render thread/INFO]: World loading finished: null screen: net.minecraft.class_3928@d55a9fb
+[20:34:24] [Render thread/INFO]: World loading finished: null screen: net.minecraft.class_3928@d55a9fb
+[20:34:24] [Server thread/INFO]: Loading 0 chunks for player spawn...
+[20:34:24] [Server thread/INFO]: Time elapsed: 311 ms
+[20:34:25] [Render thread/INFO]: World loading finished: null screen: net.minecraft.class_3928@d55a9fb
+[20:34:25] [Server thread/INFO]: Player619[local:E:e000b075] logged in with entity id 816 at (215.5, -20.0, -49.5)
+[20:34:25] [Server thread/INFO]: Player619 joined the game
+[20:34:25] [Server thread/INFO]: Changing view distance to 5, from 10
+[20:34:25] [Server thread/INFO]: Changing simulation distance to 12, from 0
+[20:34:25] [Render thread/INFO]: Loaded 30 advancements
+[20:34:25] [Render thread/INFO]: World loading finished: ClientLevel screen: net.minecraft.class_3928@d55a9fb
+[20:34:25] [Render thread/INFO]: World loading finished: ClientLevel screen: null
+[20:34:28] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 2046ms or 40 ticks behind
+[20:34:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo-redemarrage] nautilus reloaded after the restart
+[20:34:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo-redemarrage] nautilus after the restart: at 215.50 -41.88 -19.50, state [true, true, false, 0.5, true, true, true, true, true, 6.0, 5.9712687]
+[20:34:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo-redemarrage] nautilus restart: same place and depth (y -41.88, before -41.88)
+[20:34:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo-redemarrage] nautilus restart: the doors open before are still open, the others shut
+[20:34:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo-redemarrage] nautilus restart: airlock half full (0.50)
+[20:34:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo-redemarrage] nautilus restart: shutters closed, projector on, lamps off
+[20:34:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo-redemarrage] nautilus restart: the lifeboat is still on the water and known to the Nautilus
+[20:34:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo-redemarrage] nautilus restart: ordered depth kept (6.0)
+[20:34:35] [Server thread/INFO]: Teleported Player619 to 255.500000, -31.502000, 10.500000
+[20:34:37] [Server thread/INFO]: Teleported Player619 to 215.500000, -32.862000, -2.500000
+[20:34:37] [Server thread/INFO]: Set Player619's game mode to Survival Mode
+[20:34:37] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[20:34:38] [Server thread/INFO]: Le canot a repris sa place dans son logement.
+[20:34:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo-redemarrage] nautilus restart: the lifeboat is taken back aboard
+[20:34:38] [Server thread/INFO]: Unmarked 30 chunks in minecraft:overworld from [12, -5] to [14, 4] for force loading
+[20:34:38] [Server thread/INFO]: Player619 lost connection: Disconnected
+[20:34:38] [Server thread/INFO]: Player619 left the game
+[20:34:39] [Server thread/INFO]: Stopping singleplayer server as player logged out
+[20:34:39] [Server thread/INFO]: Stopping server
+[20:34:39] [Server thread/INFO]: Saving players
+[20:34:39] [Server thread/INFO]: Saving worlds
+[20:34:39] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:overworld
+[20:34:39] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_end
+[20:34:39] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_nether
+[20:34:39] [Server thread/INFO]: ThreadedAnvilChunkStorage (New World): All chunks are saved
+[20:34:39] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[20:34:39] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[20:34:39] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[20:34:39] [Render thread/INFO]: Loaded 2170 recipes
+[20:34:39] [Render thread/ERROR]: Failed to load function farmhouse_decorations:cleanup_legacy_seats
+java.util.concurrent.CompletionException: java.lang.IllegalArgumentException: Whilst parsing command on line 1: Expected end of options at position 61: ...ecorations<--[HERE]
+	at java.base/java.util.concurrent.CompletableFuture.encodeThrowable(CompletableFuture.java:315)
+	at java.base/java.util.concurrent.CompletableFuture.completeThrowable(CompletableFuture.java:320)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1770)
+	at knot//net.minecraft.class_4014.method_67576(class_4014.java:51)
+	at java.base/java.util.concurrent.ForkJoinTask$RunnableExecuteAction.exec(ForkJoinTask.java:1423)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:387)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312)
+	at java.base/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+Caused by: java.lang.IllegalArgumentException: Whilst parsing command on line 1: Expected end of options at position 61: ...ecorations<--[HERE]
+	at knot//net.minecraft.class_2158.method_9195(class_2158.java:80)
+	at knot//net.minecraft.class_5349.method_29451(class_5349.java:85)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1768)
+	... 7 more
+[20:34:39] [Render thread/ERROR]: Couldn't load tag minecraft:load as it is missing following references: farmhouse_decorations:cleanup_legacy_seats (from farmhouse_decorations)
+[20:34:39] [Render thread/INFO]: Loaded 2115 advancements
+[20:34:40] [Thread-58/INFO]: Environment: Environment[sessionHost=https://sessionserver.mojang.com, servicesHost=https://api.minecraftservices.com, profilesHost=https://api.mojang.com, name=PROD]
+[20:34:40] [Thread-58/INFO]: Loaded 2170 recipes
+[20:34:40] [Thread-58/ERROR]: Failed to load function farmhouse_decorations:cleanup_legacy_seats
+java.util.concurrent.CompletionException: java.lang.IllegalArgumentException: Whilst parsing command on line 1: Expected end of options at position 61: ...ecorations<--[HERE]
+	at java.base/java.util.concurrent.CompletableFuture.encodeThrowable(CompletableFuture.java:315)
+	at java.base/java.util.concurrent.CompletableFuture.completeThrowable(CompletableFuture.java:320)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1770)
+	at knot//net.minecraft.class_4014.method_67576(class_4014.java:51)
+	at java.base/java.util.concurrent.ForkJoinTask$RunnableExecuteAction.exec(ForkJoinTask.java:1423)
+	at java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:387)
+	at java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312)
+	at java.base/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843)
+	at java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808)
+	at java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)
+Caused by: java.lang.IllegalArgumentException: Whilst parsing command on line 1: Expected end of options at position 61: ...ecorations<--[HERE]
+	at knot//net.minecraft.class_2158.method_9195(class_2158.java:80)
+	at knot//net.minecraft.class_5349.method_29451(class_5349.java:85)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1768)
+	... 7 more
+[20:34:40] [Thread-58/ERROR]: Couldn't load tag minecraft:load as it is missing following references: farmhouse_decorations:cleanup_legacy_seats (from farmhouse_decorations)
+[20:34:40] [Thread-58/INFO]: Loaded 2115 advancements
+[20:34:40] [Thread-58/INFO]: Applied 81 biome modifications to 44 of 65 new biomes in 1.321 ms
+[20:34:40] [Server thread/INFO]: Starting minecraft server version 1.21.11
+[20:34:40] [Server thread/INFO]: Loading properties
+[20:34:40] [Server thread/INFO]: Default game type: SURVIVAL
+[20:34:40] [Server thread/INFO]: Generating keypair
+[20:34:40] [Server thread/INFO]: Starting Minecraft server on *:25565
+[20:34:40] [Server thread/WARN]: **** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!
+[20:34:40] [Server thread/WARN]: The server will make no attempt to authenticate usernames. Beware.
+[20:34:40] [Server thread/WARN]: While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.
+[20:34:40] [Server thread/WARN]: To change this, set "online-mode" to "true" in the server.properties file.
+[20:34:40] [Server thread/INFO]: Preparing level "world"
+[20:34:40] [Server thread/INFO]: Selecting global world spawn...
+[20:34:40] [Server thread/INFO]: Loading 0 persistent chunks...
+[20:34:40] [Server thread/INFO]: Preparing spawn area: 100%
+[20:34:40] [Server thread/INFO]: Time elapsed: 97 ms
+[20:34:40] [Server thread/INFO]: Done (0.100s)! For help, type "help"
+[20:34:41] [Render thread/ERROR]: ########## GL ERROR ##########
+[20:34:41] [Render thread/ERROR]: @ Render
+[20:34:41] [Render thread/ERROR]: 65547: X11: Standard cursor shape unavailable
+[20:34:41] [Render thread/INFO]: Connecting to localhost, 25565
+[20:34:41] [Render thread/INFO]: World loading finished: null screen: net.minecraft.class_412@f65fd03
+[20:34:41] [Render thread/INFO]: World loading finished: null screen: net.minecraft.class_412@f65fd03
+[20:34:41] [Download-3/ERROR]: Failed to retrieve profile key pair
+com.mojang.authlib.exceptions.MinecraftClientHttpException: Status: 401
+	at knot//com.mojang.authlib.minecraft.client.MinecraftClient.readInputStream(MinecraftClient.java:103)
+	at knot//com.mojang.authlib.minecraft.client.MinecraftClient.post(MinecraftClient.java:64)
+	at knot//com.mojang.authlib.yggdrasil.YggdrasilUserApiService.getKeyPair(YggdrasilUserApiService.java:61)
+	at knot//net.minecraft.class_7434.method_43605(class_7434.java:128)
+	at knot//net.minecraft.class_7434.method_44291(class_7434.java:77)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1768)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1144)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:642)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+[20:34:41] [Render thread/INFO]: World loading finished: null screen: net.minecraft.class_412@f65fd03
+[20:34:41] [Render thread/INFO]: World loading finished: null screen: net.minecraft.class_412@f65fd03
+[20:34:41] [Render thread/INFO]: World loading finished: null screen: net.minecraft.class_412@f65fd03
+[20:34:41] [Render thread/INFO]: World loading finished: null screen: net.minecraft.class_412@f65fd03
+[20:34:41] [Render thread/INFO]: World loading finished: null screen: net.minecraft.class_412@f65fd03
+[20:34:41] [Render thread/INFO]: World loading finished: null screen: net.minecraft.class_412@f65fd03
+[20:34:41] [Render thread/INFO]: World loading finished: null screen: net.minecraft.class_412@f65fd03
+[20:34:41] [Render thread/INFO]: World loading finished: null screen: net.minecraft.class_412@f65fd03
+[20:34:41] [Render thread/INFO]: World loading finished: null screen: net.minecraft.class_412@f65fd03
+[20:34:41] [Render thread/INFO]: World loading finished: null screen: net.minecraft.class_412@f65fd03
+[20:34:41] [Render thread/INFO]: World loading finished: null screen: net.minecraft.class_412@f65fd03
+[20:34:41] [Render thread/INFO]: World loading finished: null screen: net.minecraft.class_412@f65fd03
+[20:34:41] [Server thread/INFO]: Player619[/127.0.0.1:46082] logged in with entity id 820 at (9.5, -60.0, 4.5)
+[20:34:41] [Server thread/INFO]: Player619 joined the game
+[20:34:42] [Render thread/INFO]: Loaded 2 advancements
+[20:34:42] [Render thread/INFO]: World loading finished: ClientLevel screen: net.minecraft.class_3928@3888f2a9
+[20:34:42] [Render thread/INFO]: World loading finished: ClientLevel screen: net.minecraft.class_3928@3888f2a9
+[20:34:42] [Render thread/INFO]: World loading finished: ClientLevel screen: net.minecraft.class_3928@3888f2a9
+[20:34:42] [Render thread/INFO]: World loading finished: ClientLevel screen: net.minecraft.class_3928@3888f2a9
+[20:34:42] [Render thread/INFO]: World loading finished: ClientLevel screen: null
+[20:34:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] world loaded
+[20:34:42] [Server thread/INFO]: Incorrect argument for command
+[20:34:42] [Server thread/INFO]: gamerule doDaylightCycle false<--[HERE]
+[20:34:42] [Server thread/INFO]: Incorrect argument for command
+[20:34:42] [Server thread/INFO]: gamerule doWeatherCycle false<--[HERE]
+[20:34:42] [Server thread/INFO]: Incorrect argument for command
+[20:34:42] [Server thread/INFO]: gamerule doMobSpawning false<--[HERE]
+[20:34:42] [Server thread/INFO]: Set the time to 6000
+[20:34:42] [Server thread/INFO]: Set the weather to clear
+[20:34:42] [Server thread/INFO]: Successfully filled 4611 block(s)
+[20:34:42] [Server thread/INFO]: Successfully filled 7685 block(s)
+[20:34:42] [Server thread/INFO]: Successfully filled 312 block(s)
+[20:34:42] [Server thread/INFO]: Navire mis à l'eau : Galère [0 -58 0]
+[20:34:42] [Render thread/INFO]: Loaded 12 advancements
+[20:34:47] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] ship at 0.50 -58.11 0.50 yaw 0.0
+[20:34:47] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] expected main deck top -57.661
+[20:34:47] [Server thread/INFO]: Set Player619's game mode to Spectator Mode
+[20:34:47] [Server thread/INFO]: Teleported Player619 to 16.500000, -50.000000, -15.500000
+[20:34:47] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[20:34:48] [Server thread/INFO]: Teleported Player619 to -12.500000, -55.000000, 3.500000
+[20:34:50] [Server thread/INFO]: Teleported Player619 to 2.500000, -50.000000, 22.500000
+[20:34:51] [Server thread/INFO]: Set Player619's game mode to Survival Mode
+[20:34:51] [Server thread/INFO]: Applied effect Resistance to Player619
+[20:34:51] [Server thread/INFO]: Applied effect Saturation to Player619
+[20:34:51] [Server thread/INFO]: Applied effect Water Breathing to Player619
+[20:34:51] [Server thread/INFO]: Teleported Player619 to 1.500000, -53.000000, -2.500000
+[20:34:51] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[20:34:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] after drop: player y=-57.661 onGround=true
+[20:34:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] falling: player should stand on the deck (y=-57.661, deck=-57.661)
+[20:34:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] after jumps: y=-57.661, lowest=-57.661
+[20:34:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] jumping: player must land back on the deck (y=-57.661 min=-57.661)
+[20:35:02] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] after walking forward: local x=1.00 y=0.95 z=7.56
+[20:35:02] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] walking: player must still be aboard (local 1.00 0.95 7.56)
+[20:35:02] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] walking: player should have climbed onto the fore deck (z=7.56)
+[20:35:02] [Server thread/INFO]: Teleported Player619 to 6.500000, -57.000000, 0.500000
+[20:35:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie]   jump tick 0: local x=4.168 y=1.531 ground=false
+[20:35:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie]   jump tick 1: local x=3.883 y=1.864 ground=false
+[20:35:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie]   jump tick 2: local x=3.597 y=2.112 ground=false
+[20:35:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie]   jump tick 3: local x=3.312 y=2.277 ground=false
+[20:35:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie]   jump tick 4: local x=3.027 y=2.360 ground=false
+[20:35:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie]   jump tick 5: local x=2.742 y=2.363 ground=false
+[20:35:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie]   jump tick 6: local x=2.457 y=2.288 ground=false
+[20:35:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie]   jump tick 7: local x=2.173 y=2.136 ground=false
+[20:35:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie]   jump tick 8: local x=1.888 y=1.908 ground=false
+[20:35:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie]   jump tick 9: local x=1.604 y=1.606 ground=false
+[20:35:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie]   jump tick 10: local x=1.320 y=1.232 ground=false
+[20:35:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie]   jump tick 11: local x=1.036 y=0.788 ground=false
+[20:35:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie]   jump tick 12: local x=0.752 y=0.450 ground=true
+[20:35:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie]   jump tick 13: local x=0.366 y=0.450 ground=true
+[20:35:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie]   jump tick 14: local x=0.028 y=0.450 ground=true
+[20:35:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie]   jump tick 15: local x=-0.157 y=0.450 ground=true
+[20:35:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie]   jump tick 16: local x=-0.258 y=0.450 ground=true
+[20:35:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie]   jump tick 17: local x=-0.313 y=0.450 ground=true
+[20:35:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie]   jump tick 18: local x=-0.343 y=0.450 ground=true
+[20:35:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie]   jump tick 19: local x=-0.359 y=0.450 ground=true
+[20:35:06] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] after jumping from the quay: local x=-0.37 y=0.45 z=0.00
+[20:35:06] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] quay: player should have landed on the deck (local -0.37 0.45 0.00)
+[20:35:06] [Server thread/INFO]: Summoned new Armor Stand
+[20:35:09] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] zombie at y=-57.661
+[20:35:09] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] mob: armor stand should stand on the deck
+[20:35:09] [Server thread/INFO]: Teleported Player619 to 1.100000, -61.610000, -1.500000
+[20:35:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] swimming up under the hull: highest head y=-59.276, hull bottom=-59.226
+[20:35:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] under the hull: the swimmer must be stopped by the hull bottom
+[20:35:13] [Server thread/INFO]: Teleported Player619 to 1.500000, -55.000000, -2.500000
+[20:35:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] ship moved 9.00 blocks under player control
+[20:35:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] steering: the ship should move forward (moved 9.00)
+[20:35:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] zombie local after sailing: 0.80 0.45 3.00
+[20:35:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] carry: zombie should still be aboard
+[20:35:20] [Server thread/INFO]: Player619 stopped riding Medieval Galley
+[20:35:20] [Server thread/INFO]: Set Player619's game mode to Spectator Mode
+[20:35:20] [Server thread/INFO]: Successfully filled 18315 block(s)
+[20:35:20] [Server thread/INFO]: Teleported Player619 to 46.500000, -40.000000, 20.500000
+[20:35:20] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[20:35:21] [Server thread/INFO]: Navire mis à l'eau : Grand galion [46 -56 -7]
+[20:35:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] galleon at 46.50 -56.61 -7.50 yaw 0.0
+[20:35:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon: the galley is still there (both ships coexist)
+[20:35:23] [Server thread/INFO]: Teleported Player619 to 72.500000, -42.231000, 16.500000
+[20:35:25] [Server thread/INFO]: Teleported Player619 to 12.500000, -51.231000, -5.500000
+[20:35:26] [Server thread/INFO]: Teleported Player619 to 37.500000, -52.231000, -38.500000
+[20:35:27] [Server thread/INFO]: Teleported Player619 to 56.500000, -49.231000, 26.500000
+[20:35:28] [Server thread/INFO]: Set Player619's game mode to Survival Mode
+[20:35:28] [Server thread/INFO]: Teleported Player619 to 48.000000, -52.611000, -4.500000
+[20:35:28] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[20:35:31] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon falling: player on the main deck (y=-55.611, deck=-55.611)
+[20:35:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon jumping: back on the deck (y=-55.611 min=-55.611)
+[20:35:35] [Server thread/INFO]: Teleported Player619 to 46.500000, -55.591000, -13.500000
+[20:35:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] galleon cabin: local 0.00 1.00 -12.08
+[20:35:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon cabin: player walked into the cabin (local z=-12.08 y=1.00)
+[20:35:38] [Server thread/INFO]: Teleported Player619 to 46.500000, -55.591000, -22.500000
+[20:35:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] galleon balcony: local 0.00 1.00 -17.88
+[20:35:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon balcony: player on the balcony, held by the balustrade (local z=-17.88 y=1.00)
+[20:35:42] [Server thread/INFO]: Teleported Player619 to 49.250000, -55.591000, -12.500000
+[20:35:46] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] galleon quarterdeck: local 2.75 3.60 -13.90
+[20:35:46] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon stairs: player climbed onto the quarterdeck (local y=3.60 z=-13.90)
+[20:35:46] [Server thread/INFO]: Teleported Player619 to 48.750000, -55.591000, 0.100000
+[20:35:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] galleon forecastle: local 2.25 3.00 13.16
+[20:35:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon stairs: player climbed onto the forecastle (local y=3.00 z=13.16)
+[20:35:50] [Server thread/INFO]: Summoned new Armor Stand
+[20:35:50] [Server thread/INFO]: Summoned new Armor Stand
+[20:35:50] [Server thread/INFO]: Summoned new Armor Stand
+[20:35:50] [Server thread/INFO]: Summoned new Armor Stand
+[20:35:50] [Server thread/INFO]: Summoned new Armor Stand
+[20:35:50] [Server thread/INFO]: Summoned new Armor Stand
+[20:35:50] [Server thread/INFO]: Summoned new Armor Stand
+[20:35:50] [Server thread/INFO]: Summoned new Armor Stand
+[20:35:50] [Server thread/INFO]: Summoned new Armor Stand
+[20:35:50] [Server thread/INFO]: Summoned new Armor Stand
+[20:35:50] [Server thread/INFO]: Summoned new Armor Stand
+[20:35:50] [Server thread/INFO]: Summoned new Armor Stand
+[20:35:50] [Server thread/INFO]: Summoned new Armor Stand
+[20:35:50] [Server thread/INFO]: Summoned new Armor Stand
+[20:35:50] [Server thread/INFO]: Summoned new Armor Stand
+[20:35:50] [Server thread/INFO]: Summoned new Armor Stand
+[20:35:50] [Server thread/INFO]: Summoned new Armor Stand
+[20:35:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] galleon seats: 15 crew seated, pilot 1, passengers 16, refusals 17/17
+[20:35:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon seats: 16 passengers seated (15 + 1)
+[20:35:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon seats: a 17th passenger is refused
+[20:36:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] galleon handling: 0.68 blocks in 2 s, 11.13 in 8 s, speed 2.77, 9.35 blocks coasting in 4 s while turning 9.2 deg
+[20:36:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon handling: slow acceleration (0.68 in 2 s, 11.13 in 8 s)
+[20:36:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon handling: inertia, keeps going without power (9.35)
+[20:36:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon handling: turns, but slowly (9.2 deg in 4 s)
+[20:36:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon carry: the 16 passengers are still seated (16)
+[20:36:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] galleon deck mob local after sailing: 2.13 1.00 2.56
+[20:36:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon carry: the mob standing on deck is carried
+[20:36:04] [Server thread/INFO]: Player619 stopped riding Great Galleon
+[20:36:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon dismount: the pilot steps off onto the quarterdeck (local 1.17 3.60 -10.42)
+[20:36:05] [Server thread/INFO]: Player619 stopped riding Great Galleon
+[20:36:06] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon dismount: a passenger steps off beside his seat (local 2.33 1.00 -1.56, 0.06 from its spot)
+[20:36:06] [Server thread/INFO]: Set Player619's game mode to Spectator Mode
+[20:36:06] [Server thread/INFO]: Teleported Player619 to 63.215000, -45.231000, 41.850000
+[20:36:06] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[20:36:07] [Server thread/INFO]: Teleported Player619 to 31.641000, -49.231000, 43.611000
+[20:36:07] [Server thread/INFO]: Set Player619's game mode to Survival Mode
+[20:36:07] [Server thread/INFO]: Teleported Player619 to 42.492000, -46.611000, 20.459000
+[20:36:07] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[20:36:10] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] no collisions, drop 0: local -1.47 1.00 2.18
+[20:36:10] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] safety net: without collisions the player is still caught by the main deck (local y=1.00)
+[20:36:10] [Server thread/INFO]: Teleported Player619 to 46.040000, -44.011000, 9.457000
+[20:36:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] no collisions, drop 1: local -1.52 3.60 -12.57
+[20:36:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] safety net: without collisions the player is still caught by the quarterdeck (local y=3.60)
+[20:36:13] [Server thread/INFO]: No items were found on player Player619
+[20:36:13] [Server thread/INFO]: Grand galion donné(e) à 1 joueur(s).
+[20:36:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon item: /ship give galleon gives the item (1)
+[20:36:13] [Server thread/INFO]: Player619 is not riding any vehicle
+[20:36:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] warship: the galley and the galleon are still there before the third ship is launched
+[20:36:13] [Server thread/INFO]: Set Player619's game mode to Spectator Mode
+[20:36:13] [Server thread/INFO]: Teleported Player619 to -89.500000, -30.000000, 10.500000
+[20:36:13] [Server thread/INFO]: Player619 has made the advancement [Carpet Everything]
+[20:36:13] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[20:36:13] [Render thread/INFO]: [System] [CHAT] Player619 has made the advancement [Carpet Everything]
+[20:36:13] [Render thread/INFO]: Loaded 28 advancements
+[20:36:15] [Server thread/INFO]: Successfully filled 28905 block(s)
+[20:36:15] [Server thread/INFO]: Navire mis à l'eau : Grand vaisseau de guerre [-89 -57 -19]
+[20:36:15] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 2078ms or 41 ticks behind
+[20:36:18] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] warship at -89.50 -57.01 -19.50 yaw 0.0
+[20:36:18] [Server thread/INFO]: Teleported Player619 to -49.500000, -36.631000, 14.500000
+[20:36:20] [Server thread/INFO]: Teleported Player619 to -139.500000, -48.631000, -15.500000
+[20:36:21] [Server thread/INFO]: Teleported Player619 to -103.500000, -47.631000, -69.500000
+[20:36:22] [Server thread/INFO]: Teleported Player619 to -73.500000, -46.631000, 32.500000
+[20:36:24] [Server thread/INFO]: Set Player619's game mode to Survival Mode
+[20:36:24] [Server thread/INFO]: Teleported Player619 to -87.500000, -47.511000, -14.000000
+[20:36:24] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[20:36:27] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] warship falling: player on the main deck (y=-52.511, deck=-52.511)
+[20:36:30] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] warship jumping: back on the deck (y=-52.511 min=-52.511)
+[20:36:30] [Server thread/INFO]: Teleported Player619 to -89.500000, -52.491000, -27.500000
+[20:36:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] warship cabin: local 0.00 4.50 -13.88
+[20:36:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] warship cabin: player walked into the great cabin (local z=-13.88 y=4.50)
+[20:36:34] [Server thread/INFO]: Teleported Player619 to -86.300000, -52.491000, -26.300000
