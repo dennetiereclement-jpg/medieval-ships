@@ -21,9 +21,9 @@
   },
   {
    "block": "farmhouse_decorations:pile_of_books",
-   "x": -4.05,
+   "x": -4.4,
    "y": 0.95,
-   "z": 2.05,
+   "z": 2.35,
    "yaw": 90.0,
    "scale": 1.0,
    "fallback": "fallback_2"

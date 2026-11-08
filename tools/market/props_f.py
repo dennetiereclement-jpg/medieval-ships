@@ -205,6 +205,69 @@ def fur(base, dark, seed, spots=None, shag=10, tuft_top=True, hide_shape=True):
     return paint
 
 
+def shaggy(base, dark, seed, shag=16, locks=260, warm=(150, 118, 80), lock_w=(2.0, 4.0), lock_l=(6, 13), rag_top=True):
+    """A thick shaggy fleece (cut-out): overlapping clumps of long locks, each lit at its root and shading to a warm
+    brown tip, dark gaps between the clumps, a deep fringe of pointed locks hanging below (shag px) and a ragged top.
+    Reads as a heavy fur thrown over a roof, unlike fur() (a flat combed hide)."""
+    def paint(img):
+        rng = random.Random(seed)
+        w, h = img.size
+        px = img.load()
+        body = h - shag
+        for y in range(h):
+            for x in range(w):
+                px[x, y] = _jitter(_mix(dark, warm, 0.5), rng, 6) + (0,)
+        # the locks, row after row so the lower ones overlap the upper ones
+        cells = []
+        for k in range(locks):
+            cells.append((rng.uniform(-2, w + 2), rng.uniform(-3, body - 2)))
+        cells.sort(key=lambda c: c[1])
+        for cx, cy in cells:
+            lw = rng.uniform(*lock_w)
+            ll = rng.uniform(*lock_l)
+            bend = rng.uniform(-0.25, 0.25)
+            tone = rng.uniform(0.86, 1.06)
+            for j in range(int(ll) + 1):
+                f = j / max(1.0, ll)
+                half = lw * (1 - 0.75 * f) / 2
+                yy = int(cy + j)
+                xc = cx + bend * j
+                for x in range(int(xc - half - 1), int(xc + half + 2)):
+                    if 0 <= x < w and 0 <= yy < h and abs(x + 0.5 - xc) <= half + 0.3:
+                        edge = abs(x + 0.5 - xc) / max(0.5, half + 0.3)
+                        c = _mix(warm, base, (1 - f) ** 0.7 * (1 - 0.45 * edge))
+                        px[x, yy] = _jitter(_scale(c, tone), rng, 5) + (255,)
+        # the hanging fringe: pointed locks from the body's lower edge
+        x = 0
+        while x < w:
+            lw = rng.randint(3, 7)
+            ll = shag * rng.uniform(0.45, 1.0)
+            for dx in range(lw):
+                for j in range(int(ll * (1 - abs(dx - (lw - 1) / 2) / lw))):
+                    yy = body - 2 + j
+                    if 0 <= x + dx < w and yy < h:
+                        f = j / max(1.0, ll)
+                        px[x + dx, yy] = _jitter(_scale(_mix(warm, base, (1 - f) * 0.85), 0.95 + 0.08 * (dx % 2)), rng, 5) + (255,)
+            x += lw - (1 if rng.random() < 0.4 else 0)
+        # ragged top and sides
+        for x in range(w if rag_top else 0):
+            top = 1.0 + 1.6 * abs(math.sin(x * 0.7 + seed))
+            for y in range(int(top)):
+                px[x, y] = (0, 0, 0, 0)
+        for y in range(h):
+            for x in range(w):
+                side = min(x, w - 1 - x)
+                if side < 1.2 + 1.2 * math.sin(y * 0.9 + x * 0.3):
+                    px[x, y] = (0, 0, 0, 0)
+        # the dark gaps between clumps stay opaque inside the body
+        for y in range(3 if rag_top else 0, body - 1):
+            for x in range(3, w - 3):
+                r, g, b, a = px[x, y]
+                if a == 0:
+                    px[x, y] = (r, g, b, 255)
+    return paint
+
+
 def bark(base, dark, seed, moss=None, moss_n=6):
     """Gnarled bark: wandering vertical fissures (v along the branch), lighter ridges, knots, optional moss patches."""
     def paint(img):
@@ -834,8 +897,9 @@ def hang_wall(bone, name, a, b, y0, y1, out, region, nx=4, fold=0.05, flare=0.0,
     a, b, out = v3(*a), v3(*b), v3(*out)
 
     def P(s, t):
+        # the pleats alternate in and out at the strip edges (a sine through the edges would vanish on every one)
         p = a + (b - a) * s
-        return v3(p[0], y1 - (y1 - y0) * t, p[2]) + out * (fold * math.sin(s * math.pi * nx) * (0.4 + 0.6 * t) + flare * t * t)
+        return v3(p[0], y1 - (y1 - y0) * t, p[2]) + out * (fold * math.cos(s * math.pi * nx) * (0.4 + 0.6 * t) + flare * t * t)
     loft(bone, name, P, nx, ny, region, th=0.03)
     return P
 
@@ -870,7 +934,7 @@ def gear_plate(bone, det, name, center, normal, r, plate_region, hub_region, th=
     add_cube(det, name + "_bolt", c + n * (th / 2 + 0.08), axes, (r * 0.16, r * 0.16, 0.05), "iron")
 
 
-def bull_skull(bone, det, name, base, facing=(0, 0, 1), s=1.0, tilt=0.0, face="fr_skull", bone_reg="fr_bone"):
+def bull_skull(bone, det, name, base, facing=(0, 0, 1), s=1.0, tilt=0.0, face="fr_skull", bone_reg="fr_bone", horn=0.27):
     """A horned bull skull, its back at `base` (the middle of the cranium's back), facing `facing`, tilted forward by
     `tilt` (radians): a cranium, a tapering snout with the painted face, cheek bones, two big crescent horns curving
     out, up and a little forward."""
@@ -892,11 +956,11 @@ def bull_skull(bone, det, name, base, facing=(0, 0, 1), s=1.0, tilt=0.0, face="f
     for sx in (-1, 1):
         add_cube(det, "%s_cheek_%d" % (name, sx), at(sx * 0.33, -0.16, 0.4), R @ rz(sx * 0.25), (0.09 * s, 0.38 * s, 0.13 * s), bone_reg)
         # the horn: out from the side of the cranium, then curving up and forward into a point
-        pts = [at(sx * 0.28, 0.08, 0.2), at(sx * 0.62, 0.12, 0.22), at(sx * 0.95, 0.32, 0.25), at(sx * 1.12, 0.72, 0.3), at(sx * 1.05, 1.1, 0.4),
-               at(sx * 0.9, 1.3, 0.48)]
+        pts = [at(sx * 0.28, 0.08, 0.2), at(sx * 0.62, 0.12, 0.22), at(sx * 0.98, 0.3, 0.25), at(sx * 1.2, 0.7, 0.3), at(sx * 1.18, 1.12, 0.38),
+               at(sx * 1.02, 1.36, 0.46)]
         P = curve(pts, 7)
         for k in range(7):
-            d = (0.27 - 0.03 * k) * s
+            d = (horn - horn * 0.11 * k) * s
             beam(bone if k < 4 else det, "%s_horn_%d_%d" % (name, sx, k), P[k], P[k + 1], d, bone_reg, extend=d * 0.3)
         add_cube(det, "%s_horn_ring_%d" % (name, sx), P[1], R, (0.1 * s, 0.25 * s, 0.25 * s), "leather_dark")
 

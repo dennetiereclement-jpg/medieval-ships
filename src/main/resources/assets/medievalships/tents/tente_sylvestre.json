@@ -3,11 +3,11 @@
  "texture": "textures/entity/tente_sylvestre.png",
  "decor": "/assets/medievalships/interiors/tente_sylvestre_decor.json",
  "extent": [
-  -4.787,
+  -4.89,
   0.0,
   -4.316,
   4.502,
-  7.54,
+  6.59,
   4.417
  ],
  "colliders": [
@@ -116,12 +116,12 @@
    1.157
   ],
   [
-   -4.49,
+   -4.84,
    0.0,
-   1.71,
-   -3.61,
+   2.01,
+   -3.96,
    0.95,
-   3.19
+   3.49
   ],
   [
    -4.475,

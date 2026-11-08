@@ -4,14 +4,15 @@ scratchpad/ref2/tente_frontiere_ref.png, the top-right tent of the board tentes_
 
 A rustic frontier trading tent, one block (TentType group "tents", the integrator's list MARKET_TENTS):
 
-  - a HIPPED roof (ridge along x, four sagging slopes) of worn crimson canvas patched with cream hide pieces and an
-    olive patch, ragged red edges on the sides and the back, a tattered beige rag valance along the open front;
+  - a HIPPED roof (the ridge runs from the front to the back, so the open front is a steep triangular hip under the
+    skull; four sagging slopes) of worn crimson canvas patched with big cream hide pieces and olive patches, ragged red edges on the sides and the back, a tattered beige rag valance along the open front;
   - a rustic frame: six weathered dark posts (four corners and the middle of each side) with iron bands, pointed gold
     finials on the front posts and iron spikes on the others, rough eave beams, hip rafters up to the ridge, little
-    carved wooden totems on the two ridge ends;
-  - a big HORNED ANIMAL SKULL (bull) on the top of the front slope, its crescent horns rising above the ridge;
-  - FURS and HIDES: a big white shaggy fur thrown over the front-left corner of the roof and hanging down the corner,
-    a cowhide down the corner post, a cowhide on the left side, tan hides on the right side and inside;
+    carved wooden totems along the ridge;
+  - a big HORNED ANIMAL SKULL (bull) on the front end of the ridge, its thick crescent horns rising above it;
+  - FURS and HIDES: a big white shaggy fleece thrown over the front half of the left slope, wrapping the front-left
+    corner and hanging in a deep fringe past the eave, a cream fleece and a cowhide hanging on the left side, tan hides
+    on the right side and inside;
   - two red banners with the white frontier RUNE (a spiked diamond) and a gold fringe under the front beam, a round
     wooden shield with CROSSED AXES on the left middle post, a lit lantern on an iron arm of the front-right post;
   - red canvas walls at the back and the back half of the sides, the front halves drawn back as red drapes tied to
@@ -53,7 +54,7 @@ HW, HD = 3.6, 3.4            # posts: x = +-HW, z = +-HD (corners) and (+-HW, 0)
 EAVE = 3.1                   # top of the eave beams
 EY = EAVE + 0.06             # the roof's eave line
 W, D = HW + 0.3, HD + 0.3    # the roof's eave half length / half depth
-RIDGE, RL = 4.8, 2.2         # ridge height, half length
+RIDGE, RL = 5.3, 1.45        # ridge height, half length (the ridge runs from the front to the back, along z)
 COUNTER = (-1.25, 2.7, -1.66, -1.08)   # x0, x1, z0, z1
 COUNTER_H = 1.0
 SHELF_Z = (-3.18, -2.78)
@@ -131,17 +132,17 @@ def lock_emblem(d, x0, y0, x1, y1, S):
 
 def add_regions(atlas):
     """This tent's regions, packed in the free band of the 512 px atlas (three rows)."""
-    atlas.add("fr_roof", 256, 128, pf.patchwork(RED, 3101, patches=((CREAM, 3, 4, 9), (OLIVE, 2, 7, 12), (RED_DARK, 6, 5, 11),
-                                                                    (_rgb("c8b890"), 2, 3, 6)), folds=6, shade=(0.8, 1.02)))
+    atlas.add("fr_roof", 256, 128, pf.patchwork(RED, 3101, patches=((CREAM, 5, 10, 19), (OLIVE, 4, 9, 17), (RED_DARK, 5, 6, 12),
+                                                                    (_rgb("c8b890"), 3, 5, 10)), folds=6, shade=(0.8, 1.02)))
     atlas.add("fr_rug", 128, 96, pf.rug(_rgb("962820"), _rgb("4e1410"), _rgb("d8c09a"), 3102, rings=2, fringe=_rgb("e8dcbc")))
     atlas.add("fr_banner", 48, 96, pf.banner(_rgb("962622"), _rgb("d8b878"), pf.rune, 3103, fringe=GOLDF, point="dags",
                                              emblem_box=(0.1, 0.1, 0.9, 0.62)))
     atlas.add("fr_drape", 64, 96, pf.patchwork(RED, 3104, patches=((CREAM, 2, 5, 9), (RED_DARK, 3, 4, 8)), folds=3, shade=(0.8, 1.0)))
     atlas.add("fr_wall", 128, 64, pf.patchwork(_scale(RED, 0.92), 3105, patches=((CREAM, 3, 5, 10), (RED_DARK, 4, 5, 9)), folds=5,
                                                shade=(0.78, 0.98)))
-    atlas.add("fr_fur", 96, 64, pf.fur(FUR, FUR_DARK, 3106, shag=18, spots=(_rgb("c8b08a"), 5, 4, 9)))
+    atlas.add("fr_fur", 96, 64, pf.shaggy(FUR, FUR_DARK, 3106, shag=22))
     atlas.add("fr_cow", 64, 64, pf.fur(_rgb("e0d0b0"), _rgb("9a8460"), 3107, spots=(_rgb("5a3e2a"), 7, 4, 9), shag=10))
-    atlas.add("fr_tan", 64, 48, pf.fur(TAN, TAN_DARK, 3108, shag=8))
+    atlas.add("fr_fur_top", 80, 48, pf.shaggy(FUR, FUR_DARK, 3120, shag=0, rag_top=False, locks=200))
     atlas.add("fr_skull", 32, 32, pf.skull_face(3112))
     atlas.add("fr_crate", 32, 32, pf.crate_face(_rgb("8a5c34"), _rgb("462c16"), 3113, emblem=lock_emblem))
     atlas.add("fr_shield", 32, 32, paint_shield)
@@ -154,6 +155,7 @@ def add_regions(atlas):
     atlas.add("fr_ledger", 32, 16, paint_ledger)
     atlas.add("fr_beam", 64, 16, pf.wood(_rgb("76563a"), _rgb("3a2a1a"), 3118, plank=16))
     atlas.add("f_flame", 8, 8, pf.flames(3119))
+    atlas.add("fr_tan", 64, 32, pf.fur(TAN, TAN_DARK, 3108, shag=6))
     if atlas.size != 512:
         raise AssertionError("the atlas grew to %d px: repack the regions" % atlas.size)
 
@@ -230,37 +232,40 @@ def build(atlas, decor):
         beam(shell, "eave_%d" % k, (xa, by, za), (xb, by, zb), 0.24, {"all": "fr_beam", "+1": "end_grain", "-1": "end_grain"}, width=0.22,
              extend=0.2)
     for k, (x, z) in enumerate(corners):
-        rx_ = -RL if x < 0 else RL
-        beam(shell, "hip_rafter_%d" % k, (x, by + 0.1, z), (rx_, RIDGE - 0.2, 0.0), 0.13, "wood_dark", extend=0.05)
+        rz_ = -RL if z < 0 else RL
+        beam(shell, "hip_rafter_%d" % k, (x, by + 0.1, z), (0.0, RIDGE - 0.2, rz_), 0.13, "wood_dark", extend=0.05)
     for k, sx in enumerate((-1, 1)):
-        beam(shell, "side_rafter_%d" % k, (sx * HW, by + 0.1, 0.0), (sx * RL, RIDGE - 0.2, 0.0), 0.13, "wood_dark", extend=0.05)
-    beam(shell, "ridge_pole", (-RL - 0.1, RIDGE - 0.1, 0), (RL + 0.1, RIDGE - 0.1, 0), 0.18, {"all": "fr_beam", "+1": "end_grain", "-1": "end_grain"})
-    for k, sx in enumerate((-1, 1)):
-        totem(shell, det, "totem_%d" % k, sx * RL, RIDGE + 0.05, 0.0)
-    # ---- the hipped roof: front / back slopes, left / right hips, all sagging; ragged edges
+        beam(shell, "side_rafter_%d" % k, (sx * HW, by + 0.1, 0.0), (0.0, RIDGE - 0.2, 0.0), 0.13, "wood_dark", extend=0.05)
+    beam(shell, "ridge_pole", (0, RIDGE - 0.1, -RL - 0.1), (0, RIDGE - 0.1, RL + 0.1), 0.18, {"all": "fr_beam", "+1": "end_grain", "-1": "end_grain"})
+    for k, z in enumerate((-RL, -0.35)):   # little carved totems along the ridge, behind the skull
+        totem(shell, det, "totem_%d" % k, 0.0, RIDGE + 0.05, z)
+    # ---- the hipped roof: the ridge runs from the front to the back, so the open front is a steep triangular hip
+    # (the skull on its apex) and the long left / right slopes carry the furs; all sagging, ragged edges
     C = (0.0, 2.0, 0.0)
-    P_front = pf.roof_face(shell, "roof_front", (-RL, RIDGE, 0), (RL, RIDGE, 0), (-W, EY, D), (W, EY, D), "fr_roof", nx=6, ny=4, sag=0.26,
-                           concave=0.35, folds=3, fold=0.06, centre=C, droop=0.22)
-    P_back = pf.roof_face(shell, "roof_back", (RL, RIDGE, 0), (-RL, RIDGE, 0), (W, EY, -D), (-W, EY, -D), "fr_roof", nx=6, ny=4, sag=0.26,
-                          concave=0.35, folds=3, fold=0.06, centre=C, droop=0.22)
-    P_left = pf.roof_face(shell, "roof_left", (-RL, RIDGE, 0), (-RL, RIDGE, 0), (-W, EY, -D), (-W, EY, D), "fr_roof", nx=4, ny=4, sag=0.2,
-                          concave=0.35, centre=C, droop=0.18)
-    P_right = pf.roof_face(shell, "roof_right", (RL, RIDGE, 0), (RL, RIDGE, 0), (W, EY, D), (W, EY, -D), "fr_roof", nx=4, ny=4, sag=0.2,
-                           concave=0.35, centre=C, droop=0.18)
+    P_front = pf.roof_face(shell, "roof_front", (0, RIDGE, RL), (0, RIDGE, RL), (-W, EY, D), (W, EY, D), "fr_roof", nx=6, ny=8, sag=0.2,
+                           concave=0.3, folds=3, fold=0.05, centre=C, droop=0.22)
+    P_back = pf.roof_face(shell, "roof_back", (0, RIDGE, -RL), (0, RIDGE, -RL), (W, EY, -D), (-W, EY, -D), "fr_roof", nx=6, ny=8, sag=0.2,
+                          concave=0.3, folds=3, fold=0.05, centre=C, droop=0.22)
+    P_left = pf.roof_face(shell, "roof_left", (0, RIDGE, -RL), (0, RIDGE, RL), (-W, EY, -D), (-W, EY, D), "fr_roof", nx=7, ny=7, sag=0.24,
+                          concave=0.3, folds=3, fold=0.05, centre=C, droop=0.2)
+    P_right = pf.roof_face(shell, "roof_right", (0, RIDGE, RL), (0, RIDGE, -RL), (W, EY, D), (W, EY, -D), "fr_roof", nx=7, ny=7, sag=0.24,
+                           concave=0.3, folds=3, fold=0.05, centre=C, droop=0.2)
     pf.flap(shell, "flap_front", P_front, 0.62, "fr_flap", nx=4, out=0.05)
     pf.flap(shell, "flap_back", P_back, 0.42, "fr_flap_red", nx=3)
     pf.flap(shell, "flap_left", P_left, 0.42, "fr_flap_red", nx=3)
     pf.flap(shell, "flap_right", P_right, 0.42, "fr_flap_red", nx=3)
-    # ---- the horned skull on the top of the front slope
-    pf.bull_skull(shell, det, "skull", (0.45, RIDGE + 0.32, 0.42), facing=(0, 0, 1), s=1.1, tilt=0.32)
+    # ---- the horned skull on the front end of the ridge, leaning down the front hip
+    pf.bull_skull(shell, det, "skull", (0.0, RIDGE + 0.08, RL + 0.12), facing=(-0.12, 0, 1), s=1.25, tilt=0.4, horn=0.36)
     # ---- furs and hides
-    # the big white shaggy fur over the front-left corner of the roof, hanging down past the eave
-    pf.drape_on(shell, "fur_front", P_front, 0.0, 0.42, 0.3, 1.0, "fr_fur", nx=3, ny=2, lift=0.06, hang=0.6, centre=C)
-    pf.drape_on(shell, "fur_hip", P_left, 0.55, 1.0, 0.3, 1.0, "fr_fur", nx=2, ny=2, lift=0.06, hang=0.75, centre=C)
+    # the big white shaggy fleece thrown over the front half of the left slope, wrapping the front-left corner and
+    # hanging in a deep shaggy fringe past the eave (the picture's most striking piece)
+    pf.drape_on(shell, "fur_left", P_left, 0.48, 1.0, 0.12, 1.0, "fr_fur_top", nx=3, ny=3, lift=0.07, hang=0.85, hang_region="fr_fur",
+                centre=C)
+    pf.drape_on(shell, "fur_front", P_front, 0.0, 0.3, 0.5, 1.0, "fr_fur_top", nx=2, ny=2, lift=0.08, hang=0.6, hang_region="fr_fur",
+                centre=C)
     # a cowhide down the front-left corner, another on the left side, tan hides on the right side and inside
-    hanging_hide(shell, "cow_corner", (-W - 0.08, EY - 0.1, D - 0.5), (-W + 0.45, EY - 0.1, D + 0.12), 2.0, (-1, 0, 1), "fr_cow")
     hanging_hide(shell, "cow_left", (-HW - 0.16, by - 0.05, -HD + 0.4), (-HW - 0.16, by - 0.05, -0.4), 2.0, (-1, 0, 0), "fr_cow", nx=3)
-    hanging_hide(shell, "tan_left", (-HW - 0.16, by - 0.05, 0.45), (-HW - 0.16, by - 0.05, 1.6), 1.45, (-1, 0, 0), "fr_tan")
+    hanging_hide(shell, "hide_left", (-HW - 0.18, by - 0.05, 0.4), (-HW - 0.18, by - 0.05, 2.0), 1.75, (-1, 0, 0), "fr_fur", nx=3)
     hanging_hide(shell, "tan_right", (HW + 0.16, by - 0.05, -0.45), (HW + 0.16, by - 0.05, -HD + 0.5), 1.55, (1, 0, 0), "fr_tan")
     hanging_hide(shell, "tan_in", (-HW + 0.3, by - 0.16, HD - 0.18), (-HW + 0.95, by - 0.16, HD - 0.18), 0.95, (0, 0, 1), "fr_tan")
     # ---- walls: the back and the back half of the sides; the front halves drawn back as red drapes
@@ -286,7 +291,7 @@ def build(atlas, decor):
         pf.guy(det, "guy_%d" % k, top, peg, sag=0.05, d=0.06)
     pf.leaning_pole(shell, "spear_0", (-HW - 1.5, 0.0, -HD + 0.85), (-HW - 0.22, 3.0, -HD + 0.65), d=0.08, wrap="leather", head="steel")
     pf.leaning_pole(shell, "staff_1", (-HW - 1.25, 0.0, -0.75), (-HW - 0.22, 2.6, -0.42), d=0.08, wrap="leather_dark")
-    ml.lantern(shell, "lamp_in", (-0.6, 2.7, -0.1), size=0.34, metal="iron", chain_to=(-0.6, RIDGE - 0.18, 0.0))
+    ml.lantern(shell, "lamp_in", (0.0, 2.75, 0.3), size=0.34, metal="iron", chain_to=(0.0, RIDGE - 0.2, 0.3))
     # ---- inside: the back shelves (candle lanterns, pelts, horns, jars)
     sx0, sx1 = -HW + 0.75, HW - 0.75
     levels = ml.shelf_unit(shell, "shelves", sx0, sx1, SHELF_Z[0], SHELF_Z[1], levels=(0.55, 1.15, 1.75), h=2.25, back=True, uprights=4, detail=det)
@@ -298,8 +303,10 @@ def build(atlas, decor):
         pf.candle(det, "candle_%d" % i, (x, lv[2][2], zc + 0.05), h=0.16)
     for i, x in enumerate((-1.15, 0.45, 2.05)):   # candle lanterns on the middle shelf too (the warm back of the picture)
         ml.lantern(shell, "shelf_lamp_mid_%d" % i, (x, lv[1][2] + 0.14, zc + 0.03), size=0.2, metal="iron")
-    for i, x in enumerate((-1.9, 1.7)):           # two lanterns hanging from the back beam above the shelves
-        ml.lantern(shell, "back_lamp_%d" % i, (x, 2.62, -HD + 0.55), size=0.3, metal="iron", chain_to=(x, by - 0.1, -HD + 0.55))
+    for i, x in enumerate((-1.9, 2.0)):           # two lanterns hanging from the back hip rafters above the shelves
+        f = (HW - abs(x)) / HW                     # where the rafter (corner -> ridge end) passes above x
+        ry_, rz_ = by + 0.1 + f * (RIDGE - 0.3 - by), -HD + f * (HD - RL)
+        ml.lantern(shell, "back_lamp_%d" % i, (x, 2.62, rz_), size=0.3, metal="iron", chain_to=(x, ry_ - 0.06, rz_))
     x0, x1, y2, _, _ = lv[2]
     for i, x in enumerate((-1.45, 0.15, 1.6)):
         roll(det, "roll_hi_%d" % i, (x, y2 + 0.08, zc), 0.5, 0.08, 0.0, ("fr_fur", "fr_tan", "fr_cow")[i])

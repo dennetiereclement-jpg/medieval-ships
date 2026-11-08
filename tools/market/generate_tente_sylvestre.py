@@ -13,8 +13,8 @@ An elven merchant tent grown rather than built, one block (TentType group "tents
   - mottled cream-and-green canvas walls flaring out to the ground at the back and the sides, a big mottled drape
     tied back to the front-left post, a smaller one at the front-right, green curtains with gold ties inside the back
     corners, a green panel with a golden leaf rune hanging at the front of the left side;
-  - WISTERIA: purple clusters hanging from the front arch and near the front-right post; ivy and vines all over the
-    branches and posts;
+  - WISTERIA: big purple clusters hanging from the left arch near the front corner and from the front arch near the
+    front-right post, framing the entrance; ivy and vines all over the branches and posts;
   - a cream BANNER with the green TREE emblem and a gold fringe on the back-left branch, hanging LANTERNS (inside the
     front arch, on the front-right arm) and a glowing GREEN CRYSTAL lantern on a slim staff by the front-left post;
   - inside: back shelves with candles, books, potions and pots of plants; the right counter with the big glowing
@@ -53,7 +53,7 @@ HW, HD = 3.1, 3.6            # tree posts at x = +-HW, z = +-HD
 EAVE = 3.35                  # where the arches spring from the posts
 EY = 3.3                     # the roof's corners
 W, D = HW + 0.45, HD + 0.35  # the roof's eave half length / half depth
-APEX = 6.7                   # the peak (the finial above it)
+APEX = 5.75                  # the peak (the finial above it)
 ARCH = 0.65                  # how much the roof edge rises between the posts
 COUNTER = (0.2, 2.45, -1.9, -1.32)   # the right counter: x0, x1, z0, z1
 COUNTER_H = 1.0
@@ -73,10 +73,10 @@ def add_regions(atlas):
     atlas.add("sy_banner", 48, 96, pf.banner(CREAM, _rgb("b89a58"), pf.tree, 3203, fringe=GOLDF, point="dags", emblem_box=(0.12, 0.1, 0.88, 0.7)))
     atlas.add("sy_rune", 48, 96, pf.banner(_scale(GREEN, 0.9), _rgb("2c4a1a"), pf.leaf_rune, 3204, fringe=_rgb("c8b07a"), point="v",
                                            emblem_box=(0.2, 0.18, 0.8, 0.66)))
-    atlas.add("sy_drape", 64, 96, pf.patchwork(CREAM, 3205, patches=((GREEN, 16, 3, 7), (_rgb("8aa45a"), 8, 2, 5)), stitches=False, folds=3,
-                                               shade=(0.84, 1.02)))
-    atlas.add("sy_wall", 128, 64, pf.patchwork(_scale(CREAM, 0.86), 3206, patches=((_rgb("6a8a40"), 9, 2, 6), (_rgb("9aae6a"), 8, 2, 5)), stitches=False, folds=5,
-                                               shade=(0.78, 0.98)))
+    atlas.add("sy_drape", 64, 96, pf.patchwork(CREAM, 3205, patches=((GREEN, 26, 3, 7), (_rgb("8aa45a"), 12, 2, 5), (GREEN_DARK, 5, 1, 3)),
+                                               stitches=False, folds=3, shade=(0.84, 1.02)))
+    atlas.add("sy_wall", 128, 64, pf.patchwork(CREAM, 3206, patches=((GREEN, 26, 2, 6), (_rgb("8aa45a"), 14, 2, 5), (GREEN_DARK, 6, 1, 3)),
+                                               stitches=False, folds=6, shade=(0.8, 1.0)))
     atlas.add("sy_bark", 64, 32, pf.bark(BARK, BARK_DARK, 3207, moss=MOSS, moss_n=7))
     atlas.add("sy_wisteria", 32, 64, pf.wisteria(3208))
     atlas.add("sy_curtain", 32, 64, pf.canvas(_rgb("3e6a26"), 3209, folds=3, fold_k=0.3, hem=GOLDF, shade=(0.8, 1.0)))
@@ -120,8 +120,10 @@ def ivy_on(det, name, pts, every=2, length=0.6, rng=None):
 
 
 def wisteria(det, name, top, length=0.9, w=0.34):
-    """A wisteria cluster: two crossed cut-out planes and a little stem."""
+    """A full wisteria cluster: two pairs of crossed cut-out planes (turned 45 degrees, the second a little shorter and
+    lower) so it reads as a heavy hanging mass from every side."""
     ml.crossed(det, name, v3(*top) - UP * length / 2, w, length, "sy_wisteria", yaw=0.3)
+    ml.crossed(det, name + "_b", v3(*top) - UP * (length * 0.45 + 0.05), w * 0.85, length * 0.8, "sy_wisteria", yaw=0.3 + math.pi / 4)
 
 
 # ---------------------------------------------------------------- the build
@@ -154,7 +156,7 @@ def build(atlas, decor):
     C = (0.0, 2.0, 0.0)
     faces = []
     for k, ((xa, za), (xb, zb)) in enumerate((((-W, D), (W, D)), ((W, D), (W, -D)), ((W, -D), (-W, -D)), ((-W, -D), (-W, D)))):
-        P = pf.roof_face(shell, "roof_%d" % k, apex, apex, (xa, EY, za), (xb, EY, zb), "sy_roof", nx=4, ny=5, sag=0.14, concave=0.85,
+        P = pf.roof_face(shell, "roof_%d" % k, apex, apex, (xa, EY, za), (xb, EY, zb), "sy_roof", nx=4, ny=12, sag=0.16, concave=0.72,
                          centre=C, droop=-ARCH)
         faces.append(P)
         pf.flap(shell, "hem_%d" % k, P, 0.32, "sy_hem", nx=4, out=0.05)
@@ -164,11 +166,11 @@ def build(atlas, decor):
     add_cube(det, "finial_tip", (0, APEX + 0.72, 0), ry(math.pi / 4), (0.06, 0.14, 0.06), "gold")
     # ---- walls: mottled canvas flaring out at the back and the sides; drapes at the front; green curtains inside
     wall_top = EY - 0.2
-    pf.hang_wall(shell, "wall_back", (-HW, 0, -HD), (HW, 0, -HD), 0.0, wall_top, -Z, "sy_wall", nx=6, flare=0.35)
+    pf.hang_wall(shell, "wall_back", (-HW, 0, -HD), (HW, 0, -HD), 0.0, wall_top, -Z, "sy_wall", nx=8, flare=0.35, fold=0.13)
     collide((-HW, 0.0, -HD - 0.2, HW, wall_top, -HD + 0.05))
-    pf.hang_wall(shell, "wall_left", (-HW, 0, -HD), (-HW, 0, -0.1), 0.0, wall_top, -X, "sy_wall", nx=4, flare=0.45)
+    pf.hang_wall(shell, "wall_left", (-HW, 0, -HD), (-HW, 0, -0.1), 0.0, wall_top, -X, "sy_wall", nx=6, flare=0.45, fold=0.13)
     collide((-HW - 0.25, 0.0, -HD, -HW + 0.05, wall_top, -0.1))
-    pf.hang_wall(shell, "wall_right", (HW, 0, 1.2), (HW, 0, -HD), 0.0, wall_top, X, "sy_wall", nx=5, flare=0.45)
+    pf.hang_wall(shell, "wall_right", (HW, 0, 1.2), (HW, 0, -HD), 0.0, wall_top, X, "sy_wall", nx=8, flare=0.45, fold=0.13)
     collide((HW - 0.05, 0.0, -HD, HW + 0.25, wall_top, 1.2))
     # the big mottled drape tied to the front-left post, a smaller one at the front-right
     pf.tied_drape(shell, det, "drape_l", (-HW - 0.05, wall_top + 0.2, -0.15), (-HW + 0.1, wall_top + 0.35, HD + 0.1), (-HW + 0.05, 1.3, HD - 0.1),
@@ -192,11 +194,16 @@ def build(atlas, decor):
         for j, (dx, dz) in enumerate(((0.26, 0), (0, 0.26) if z > 0 else (0, -0.26))):
             ml.vine(det, "post_ivy_%d_%d" % (k, j), (x + dx * np.sign(x), EAVE - 0.1, z + dz), 1.3 + 0.5 * j, 0.36,
                     normal=(np.sign(x) if dx else 0, 0, np.sign(z) if dz else 0))
+    # big clusters on the left arch near the front corner and on the front arch near the front-right post (as in the
+    # picture: the two purple masses framing the entrance), a few more along the front arch
+    Pl = pf.curve([T[3], (-HW - 0.2, EAVE + 0.9, -0.5), (-HW - 0.15, EAVE + 0.75, 1.2), T[0]], 20)
+    for k, i in enumerate((10, 12, 14, 16)):
+        wisteria(det, "wisteria_s_%d" % k, Pl[i] - UP * 0.08 + v3(0.12, 0, 0), length=1.35 + 0.35 * (k % 2), w=0.72)
     Pf = pf.curve([T[0], (-1.6, EAVE + 0.75, fz), (0.3, EAVE + 1.55, fz), (1.75, EAVE + 2.3, fz)], 20)
-    for k, i in enumerate((1, 2, 3, 4, 5)):
-        wisteria(det, "wisteria_l_%d" % k, Pf[i] - UP * 0.1 + v3(0, 0, -0.05), length=1.15 + 0.3 * (k % 2), w=0.56)
-    for k, (x, y) in enumerate(((2.55, EAVE + 0.9), (2.85, EAVE + 0.55), (3.1, EAVE + 0.2))):
-        wisteria(det, "wisteria_r_%d" % k, (x, y, fz - 0.05), length=1.15 + 0.25 * (k % 2), w=0.54)
+    for k, i in enumerate((2, 4)):
+        wisteria(det, "wisteria_l_%d" % k, Pf[i] - UP * 0.1 + v3(0, 0, -0.05), length=1.2 + 0.3 * (k % 2), w=0.56)
+    for k, (x, y) in enumerate(((2.3, EAVE + 1.05), (2.6, EAVE + 0.8), (2.85, EAVE + 0.55), (3.1, EAVE + 0.25))):
+        wisteria(det, "wisteria_r_%d" % k, (x, y, fz - 0.05), length=1.35 + 0.35 * (k % 2), w=0.72)
     # ---- lanterns: inside the front arch, on the front-right arm; the green crystal lantern on its staff
     ml.lantern(shell, "lamp_front", (-0.35, 2.75, HD - 0.1), size=0.42, metal="iron", chain_to=(-0.35, EAVE + 1.12, fz))
     ml.lantern(shell, "lamp_arm", (HW + 1.0, EAVE - 0.6, HD + 0.05), size=0.42, metal="iron", chain_to=(HW + 1.0, EAVE - 0.02, HD + 0.05))
@@ -255,7 +262,7 @@ def build(atlas, decor):
     # ---- the dark blue rug with the golden rune
     ml.rug(shell, "rug", -1.6, 1.9, -0.6, 3.0, y=0.0, region="sy_rug")
     # ---- outside along the left side: the desk with books, a crate with a basket of moss and flowers
-    dx0, dx1, dz0, dz1 = -HW - 1.35, -HW - 0.55, HD - 1.85, HD - 0.45
+    dx0, dx1, dz0, dz1 = -HW - 1.7, -HW - 0.9, HD - 1.55, HD - 0.15   # in front of the drape's foot, clear of it
     dtop = ml.counter(shell, "desk", dx0, dx1, dz0, dz1, h=0.95, detail=det)
     decor.block("farmhouse_decorations:pile_of_books", (dx0 + dx1) / 2, 0.95, dz0 + 0.3, facing="neg_x", fallback="leather", solid=False)
     ml.plate(det, "open_book", ((dx0 + dx1) / 2, 0.97, (dz0 + dz1) / 2 + 0.15), 0.4, 0.3, "beige", normal=(0, 1, 0), up=(1, 0, 0), th=0.03)

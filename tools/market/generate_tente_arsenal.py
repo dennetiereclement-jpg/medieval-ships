@@ -4,17 +4,17 @@ scratchpad/ref2/tente_arsenal_ref.png, the bottom-right tent of the board tentes
 
 A steampunk workshop marquee, one block (TentType group "tents", the integrator's list MARKET_TENTS):
 
-  - a pointed, sweeping marquee roof of rust-orange and cream stripes (twelve stripes radiating from the peak),
+  - a pointed, sweeping marquee roof of rust-orange and cream stripes (sixteen stripes radiating from the peak),
     stained, a crenellated valance of orange and cream tabs, some painted with little gears;
   - an iron-clad frame: four heavy posts of orange wood sheathed in riveted steel plates and brackets, iron caps and
-    brass finials (the back-left one taller, carrying the banner arm), riveted steel girders for eave beams, a big
-    BRASS GEAR (and a smaller one) bolted on the front girder;
-  - on top: an iron-and-brass crown on the peak, COPPER PIPES with brass flanges and elbows running from the crown
+    brass finials (the back-left one taller, carrying the banner arm), riveted steel girders for eave beams, big
+    BRASS GEARS bolted over the front valance (two by the front-left post, one on the right) and one on the left side;
+  - on top: an iron-and-brass crown on the peak, thick dark IRON PIPES with brass flanges and elbows running from the crown
     (one rising and bending into it on the left, one stepping down the right slope) to a riveted iron BOILER with a
     domed top, brass bands and a little CHIMNEY whose brass cap lets out a rare puff of smoke;
   - a brown BANNER with the golden GEAR emblem and a gold fringe on a brass pipe arm of the back-left post, a lit
     lantern hanging from an iron bracket by the front-left post, braided ropes to pegs on both sides;
-  - rust canvas walls at the back and the back half of the sides;
+  - dark rust canvas walls, softly pleated, at the back and the back half of the sides;
   - inside: back shelves with glowing lamps, brass gadgets, cogs and bottles; the central workbench counter with a
     vice, a little brass machine, gears and a lamp; a workbench and a tool board along the left wall; the
     orange-brown rug with a gear;
@@ -77,8 +77,8 @@ def add_regions(atlas):
                                                                                           colour=(222, 164, 64), dark=(120, 70, 20))))
     atlas.add("ar_banner", 48, 96, pf.banner(_rgb("5e3018"), GOLDF, lambda d, x0, y0, x1, y1, S: pf.gear_emblem(d, x0, y0, x1, y1, S, teeth=10),
                                              3303, fringe=GOLDF, point="v", emblem_box=(0.12, 0.16, 0.88, 0.6)))
-    atlas.add("ar_wall", 128, 64, pf.patchwork(RUST, 3304, patches=((_rgb("6a3418"), 6, 4, 9), (_rgb("a85a2e"), 4, 4, 8)), folds=5,
-                                               shade=(0.7, 0.92)))
+    atlas.add("ar_wall", 128, 64, pf.canvas(_rgb("7a3c1c"), 3304, stains=3, folds=6, fold_k=0.22, shade=(0.62, 0.9), hem=_rgb("4a2410"),
+                                            hem_px=3))
     atlas.add("ar_valance", 192, 32, pf.crenels([ORANGE, CREAM], _rgb("6a3214"), 3305, n=12, depth=0.62,
                                                 deco=lambda d, x0, y0, x1, y1, S: pf.gear_emblem(d, x0, y0, x1, y1, S, colour=(214, 150, 50),
                                                                                                  dark=(110, 64, 20), teeth=8),
@@ -90,7 +90,7 @@ def add_regions(atlas):
     atlas.add("ar_brass", 32, 32, pf.metal(BRASS, 3309))
     atlas.add("ar_copper", 32, 32, pf.metal(COPPER, 3310))
     atlas.add("ar_tank", 32, 32, pf.steel(_rgb("44464c"), 3311, rivets=4, plates=2))
-    atlas.add("ar_post", 64, 16, pf.wood(_rgb("a8622e"), _rgb("4e2a10"), 3312, plank=16))
+    atlas.add("ar_post", 64, 16, pf.wood(_rgb("8a5028"), _rgb("3e200c"), 3312, plank=16))
     atlas.add("f_flame", 8, 8, pf.flames(3313))
     if atlas.size != 512:
         raise AssertionError("the atlas grew to %d px: repack the regions" % atlas.size)
@@ -189,8 +189,8 @@ def build(atlas, decor):
     C = (0.0, 2.0, 0.0)
     faces = []
     for k, ((xa, za), (xb, zb)) in enumerate((((-W, D), (W, D)), ((W, D), (W, -D)), ((W, -D), (-W, -D)), ((-W, -D), (-W, D)))):
-        P = pf.roof_face(shell, "roof_%d" % k, apex, apex, (xa, EY, za), (xb, EY, zb), "ar_roof", nx=4, ny=6, sag=0.2, concave=0.75, centre=C,
-                         droop=0.12)
+        P = pf.roof_face(shell, "roof_%d" % k, apex, apex, (xa, EY, za), (xb, EY, zb), "ar_roof", nx=4, ny=12, sag=0.2, concave=0.75, centre=C,
+                         droop=0.3)
         faces.append(P)
         pf.flap(shell, "valance_%d" % k, P, 0.62, "ar_valance", nx=4, out=0.04, sway=0.0)
     # ---- the crown on the peak and the copper pipes to the boiler
@@ -203,18 +203,21 @@ def build(atlas, decor):
         add_cube(det, "crown_prong_%d" % k, (math.cos(a) * 0.2, APEX + 0.48, math.sin(a) * 0.2), ry(a), (0.07, 0.2, 0.07), "ar_brass")
     add_cube(det, "crown_spike", (0, APEX + 0.68, 0), ry(math.pi / 4), (0.08, 0.3, 0.08), "black_iron")
     # pipe A: rises from the left slope and bends into the crown
-    pf.pipe(shell, det, "pipe_a", [(-0.95, 5.32, 0.15), (-0.95, APEX + 0.35, 0.15), (-0.24, APEX + 0.35, 0.15)], 0.12)
+    pf.pipe(shell, det, "pipe_a", [(-0.95, 5.32, 0.15), (-0.95, APEX + 0.35, 0.15), (-0.24, APEX + 0.35, 0.15)], 0.16, region="ar_tank")
     # pipe B: from the crown down the right slope in steps to the boiler
     bx, bz = BOILER
     pf.pipe(shell, det, "pipe_b", [(0.24, APEX + 0.1, 0.0), (1.1, APEX + 0.1, 0.0), (1.1, 5.95, 0.0), (1.1, 5.95, bz), (bx - 0.42, 5.95, bz),
-                                   (bx - 0.42, 5.3, bz)], 0.12)
+                                   (bx - 0.42, 5.3, bz)], 0.16, region="ar_tank")
     tb = bx / W
     roof_y = faces[1](0.5 - bz / (2 * D * tb), tb)[1]
     CHIMNEY_TOP = boiler(shell, det, "boiler", (bx, roof_y + 0.12, bz), r=0.62, h=0.86)
     # ---- gears on the front girder, the banner on its brass arm, the lantern, ropes
+    # (in front of the valance, which hangs at the roof's eave line D: behind it they were hidden)
     gy = EAVE - 0.2
-    pf.gear_plate(shell, det, "gear_big", (-1.75, gy, HD + 0.2), (0, 0, 1), 0.62, "ar_gear", "ar_brass")
-    pf.gear_plate(shell, det, "gear_small", (-0.85, gy + 0.12, HD + 0.18), (0, 0, 1), 0.32, "ar_gear", "ar_brass")
+    pf.gear_plate(shell, det, "gear_big", (-2.35, gy, D + 0.14), (0, 0, 1), 0.62, "ar_gear", "ar_brass")
+    pf.gear_plate(shell, det, "gear_small", (-1.45, gy + 0.18, D + 0.12), (0, 0, 1), 0.32, "ar_gear", "ar_brass")
+    pf.gear_plate(shell, det, "gear_front", (1.35, gy + 0.05, D + 0.14), (0, 0, 1), 0.48, "ar_gear", "ar_brass")
+    pf.gear_plate(shell, det, "gear_side", (-W - 0.14, gy, 0.9), (-1, 0, 0), 0.52, "ar_gear", "ar_brass")
     ay = tops[3] - 0.15
     pf.pipe(shell, det, "banner_arm", [(-HW - 0.25, ay, -HD), (-HW - 1.55, ay, -HD)], 0.07, region="ar_brass", flange="ar_copper", elbow=False)
     add_cube(det, "banner_arm_valve", (-HW - 1.6, ay + 0.12, -HD), EYE, (0.14, 0.14, 0.14), "ar_brass")
@@ -229,12 +232,12 @@ def build(atlas, decor):
         ml.lantern(shell, "lamp_in_%d" % k, (x, 2.7, -0.3), size=0.34, metal="iron", chain_to=(x, EAVE - 0.25, -0.3))
     # ---- walls: rust canvas at the back and the back half of the sides
     wall_top = EAVE - 0.38
-    pf.hang_wall(shell, "wall_back", (-HW, 0, -HD + 0.12), (HW, 0, -HD + 0.12), 0.0, wall_top, -Z, "ar_wall", nx=6)
+    pf.hang_wall(shell, "wall_back", (-HW, 0, -HD + 0.12), (HW, 0, -HD + 0.12), 0.0, wall_top, -Z, "ar_wall", nx=8, fold=0.09)
     collide((-HW, 0.0, -HD + 0.06, HW, wall_top, -HD + 0.18))
     for k, sx in enumerate((-1, 1)):
         x = sx * (HW - 0.12)
         zf = -0.9 if sx < 0 else 0.3
-        pf.hang_wall(shell, "wall_side_%d" % k, (x, 0, -HD), (x, 0, zf), 0.0, wall_top, v3(sx, 0, 0), "ar_wall", nx=4)
+        pf.hang_wall(shell, "wall_side_%d" % k, (x, 0, -HD), (x, 0, zf), 0.0, wall_top, v3(sx, 0, 0), "ar_wall", nx=6, fold=0.09)
         collide((x - 0.06, 0.0, -HD, x + 0.06, wall_top, zf))
     # ---- inside: the back shelves (glowing lamps, brass gadgets, cogs, bottles)
     sx0, sx1 = -HW + 0.7, HW - 0.7
