@@ -30,7 +30,7 @@ public final class ShipCollisions {
 
 	public static List<VoxelShape> withHulls(List<VoxelShape> collisions, @Nullable Entity entity, Vec3d movement, Box box, World world) {
 		boolean hulls = wantsHulls(entity, world);
-		if (!hulls && !fr.medievalships.tent.TentCollisions.any(world)) {
+		if (!hulls && !fr.medievalships.tent.TentCollisions.any(world) && !fr.medievalships.bridge.DrawbridgeCollisions.any(world)) {
 			return collisions;
 		}
 		List<VoxelShape> out = new ArrayList<>(collisions);
@@ -38,6 +38,8 @@ public final class ShipCollisions {
 		boolean added = hulls && appendHulls(out, entity, query, world);
 		// the posts, platforms and furniture of the tents (static boxes, see TentCollisions)
 		added |= fr.medievalships.tent.TentCollisions.append(out, entity, query, world);
+		// the raised or moving leaves of the drawbridges and the barriers across their ends (1.24.0)
+		added |= fr.medievalships.bridge.DrawbridgeCollisions.append(out, entity, query, world);
 		return added ? out : collisions;
 	}
 
@@ -49,6 +51,7 @@ public final class ShipCollisions {
 	 */
 	public static boolean appendHulls(List<VoxelShape> out, @Nullable Entity entity, Box query, World world) {
 		boolean tents = fr.medievalships.tent.TentCollisions.append(out, entity, query, world);
+		tents |= fr.medievalships.bridge.DrawbridgeCollisions.append(out, entity, query, world);
 		if (!wantsHulls(entity, world)) {
 			return tents;
 		}

@@ -672,6 +672,8 @@ public abstract class ShipEntity extends Entity {
 		if (!Double.isNaN(speedLimit) && !Double.isNaN(controls.targetSpeed())) {
 			controls = new ShipPhysics.Controls(Math.max(-speedLimit, Math.min(speedLimit, controls.targetSpeed())), controls.helmTarget());
 		}
+		// a drawbridge ahead that is not open yet holds an autopilot vessel before it (1.24.0)
+		controls = fr.medievalships.bridge.Drawbridges.gate(this, before, controls);
 		ShipPhysics.Step step = physics.step(controls, cfg, DT);
 
 		// ---- buoyancy: follow the water surface under the hull
@@ -844,6 +846,7 @@ public abstract class ShipEntity extends Entity {
 		if (!Double.isNaN(speedLimit) && !Double.isNaN(controls.targetSpeed())) {
 			controls = new ShipPhysics.Controls(Math.max(-speedLimit, Math.min(speedLimit, controls.targetSpeed())), controls.helmTarget());
 		}
+		controls = fr.medievalships.bridge.Drawbridges.gate(this, before, controls); // a drawbridge ahead (1.24.0)
 		Dive.Result result = Dive.tick(geometry(), before, physics, dive, controls, vy, surfacedY, cfg, shipWorld, DT);
 		ShipPose after = result.pose();
 		setPosition(after.x(), after.y(), after.z());

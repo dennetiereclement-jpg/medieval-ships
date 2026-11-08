@@ -85,7 +85,8 @@ final class ShipWorld implements ShipMover.Obstacles, Autopilot.Navigator, Fligh
 				}
 			}
 		}
-		return insideOtherHull(wx, wy, wz);
+		// the raised or moving leaves of a drawbridge, out of the world's blocks (1.24.0)
+		return insideOtherHull(wx, wy, wz) || fr.medievalships.bridge.DrawbridgeCollisions.blocked(world, wx, wy, wz);
 	}
 
 	private boolean insideOtherHull(double wx, double wy, double wz) {

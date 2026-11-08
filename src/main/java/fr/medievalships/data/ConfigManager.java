@@ -22,6 +22,7 @@ import fr.medievalships.core.ServerSettings;
 import fr.medievalships.core.ShipConfig;
 import fr.medievalships.core.ShipType;
 import fr.medievalships.core.Ships;
+import fr.medievalships.core.bridge.DrawbridgeConfig;
 
 /**
  * Loads / writes {@code config/medievalships.json}:
@@ -31,6 +32,7 @@ import fr.medievalships.core.Ships;
 public final class ConfigManager {
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 	private static ServerSettings server = new ServerSettings();
+	private static DrawbridgeConfig drawbridges = new DrawbridgeConfig();
 	private static final Map<String, ShipConfig> SHIPS = new LinkedHashMap<>();
 
 	private ConfigManager() {
@@ -38,6 +40,11 @@ public final class ConfigManager {
 
 	public static ServerSettings server() {
 		return server;
+	}
+
+	/** The drawbridges' settings and vessel profiles ({@code "drawbridges"} section, 1.24.0). */
+	public static DrawbridgeConfig drawbridges() {
+		return drawbridges;
 	}
 
 	public static ShipConfig ship(ShipType type) {
@@ -81,7 +88,18 @@ public final class ConfigManager {
 	public static void apply(JsonObject root) {
 		SHIPS.clear();
 		server = new ServerSettings();
+		drawbridges = new DrawbridgeConfig();
 		if (root != null) {
+			if (root.has("drawbridges") && root.get("drawbridges").isJsonObject()) {
+				try {
+					DrawbridgeConfig d = GSON.fromJson(root.get("drawbridges"), DrawbridgeConfig.class);
+					if (d != null) {
+						drawbridges = d;
+					}
+				} catch (Exception e) {
+					MedievalShips.LOGGER.warn("medievalships.json: invalid \"drawbridges\" section, defaults used", e);
+				}
+			}
 			boolean legacy = !root.has("ships") && root.has("normalSpeed");
 			if (legacy) {
 				// 1.0 / 1.1: one flat object holding the galley and the server settings
@@ -113,6 +131,7 @@ public final class ConfigManager {
 			server = new ServerSettings();
 		}
 		server.sanitize();
+		drawbridges.sanitize();
 		for (String unknown : server.unknownVessels()) {
 			MedievalShips.LOGGER.warn("medievalships.json: placeAdminOnly names no vessel: \"{}\" (ids: {})", unknown,
 					Ships.ALL.stream().map(ShipType::id).toList());
@@ -144,6 +163,7 @@ public final class ConfigManager {
 			ships.add(t.id(), GSON.toJsonTree(ship(t)));
 		}
 		root.add("ships", ships);
+		root.add("drawbridges", GSON.toJsonTree(drawbridges));
 		return root;
 	}
 }

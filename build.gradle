@@ -120,4 +120,8 @@ tasks.register("runProductionClientGameTest", net.fabricmc.loom.task.prod.Client
 		"-Dfabric.client.gametest",
 		"-Dfabric.client.gametest.disableNetworkSynchronizer=true"
 	])
+	// -PgametestOnly=drawbridge plays one scenario only (see ShipClientGameTest.ONLY)
+	if (project.hasProperty("gametestOnly")) {
+		jvmArgs.add("-Dmedievalships.test.only=" + project.property("gametestOnly"))
+	}
 }

@@ -60,6 +60,8 @@ public final class MedievalShipsClient implements ClientModInitializer {
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
 			ShipTracker.clearClientWorlds();
 			fr.medievalships.tent.TentCollisions.clearClientWorlds();
+			fr.medievalships.client.bridge.DrawbridgeClient.clear();
+			fr.medievalships.bridge.DrawbridgeCollisions.clearClientWorlds();
 			fr.medievalships.client.render.TrainingTargetRenderer.clear();
 			SyncedConfig.clear();
 		});
@@ -67,6 +69,10 @@ public final class MedievalShipsClient implements ClientModInitializer {
 		ClientPlayNetworking.registerGlobalReceiver(ServerConfigPayload.ID, (payload, context) -> SyncedConfig.receive(payload));
 		// the ghost of the vessel whose item the player holds, and the pilot's panel
 		WorldRenderEvents.BEFORE_ENTITIES.register(PlacementPreview::render);
+		// the drawbridges (1.24.0): what the server sends, drawn and solid on this client
+		ClientPlayNetworking.registerGlobalReceiver(fr.medievalships.network.DrawbridgeSyncPayload.ID,
+				(payload, context) -> fr.medievalships.client.bridge.DrawbridgeClient.receive(payload, context.client().world));
+		WorldRenderEvents.AFTER_ENTITIES.register(fr.medievalships.client.bridge.DrawbridgeRenderer::render);
 		HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, MedievalShips.id("pilot_panel"), PilotHudOverlay::render);
 	}
 }

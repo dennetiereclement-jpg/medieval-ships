@@ -71,7 +71,7 @@ public final class ShipCommands {
 	private static final SuggestionProvider<ServerCommandSource> ENDS = (ctx, builder) ->
 			CommandSource.suggestMatching(new String[] {"stay", "despawn", "despawn_item"}, builder);
 	/** Vessel selectors ({@code /ship as}, {@code /ship test}): names, {@code nearest}, types and UUIDs of the loaded vessels. */
-	private static final SuggestionProvider<ServerCommandSource> SHIPS = (ctx, builder) -> {
+	static final SuggestionProvider<ServerCommandSource> SHIPS = (ctx, builder) -> {
 		List<String> out = new ArrayList<>();
 		out.add(ShipSelector.NEAREST);
 		for (ServerWorld world : ctx.getSource().getServer().getWorlds()) {

@@ -17,6 +17,64 @@ Le test (`src/gametest/.../ShipClientGameTest.java`) crée un monde, des bassins
 à l'eau puis vérifie (résultats et captures publiés sur les branches `test-results-vanilla` et
 `test-results-lithium`) :
 
+### Pont-levis automatique — 1.24.0
+
+`DrawbridgeGameTest` (joué par le vrai client, en solo **avec redémarrage du monde** puis sur serveur dédié) construit par
+commandes un canal de 240 blocs (eau de 9 de profondeur, berges au niveau du tablier, quatre tours d'angle, passerelle
+fixe en hauteur entre les tours, tablier de planches 5 blocs au-dessus de l'eau avec garde-corps et lanternes
+suspendues), puis **n'utilise que les vraies commandes `/pontlevis`** :
+
+* **définition et vérification** : un bloc posé dans l'arc de montée du vantail A est **refusé et nommé** par
+  `verifier` (« heurteraient des blocs fixes … 2678 -42 -8 ») ; retiré, la vérification passe ; eau trouvée à −49,1,
+  dessous du tablier mesuré **aux lanternes suspendues** (−44,44), chenal 19 de large (écart des charnières), travée de
+  5 le long du chenal, axe le long de x, charnières automatiques sur les arêtes basses côté rive (z −9 et z 10,
+  y −44) ;
+* **conversion** : le pont est fermé et **ses planches sont toujours dans le monde** ; une seconde conversion est
+  refusée sans rien changer ; aperçu (capture `pontlevis_1_apercu`) ;
+* **barque** : une barque vide sur son pilote automatique traverse le pont **fermé** (aucune levée, verdict « passe
+  sous le pont fermé ») ; avec un occupant (porte-armure assis), toujours aucune levée et le verdict compte sa tête
+  (« occupants +… ») ; avec une **marge de 3 blocs**, la même barque chargée déclenche l'attente de sécurité puis la
+  montée **80 ticks plus tard** : les planches quittent le monde, le client a les vantaux (boîtes) et les deux
+  barrières (capture `pontlevis_2_ouverture`), le pont est ouvert (`pontlevis_3_ouvert`), se referme **5 s après le
+  départ de la barque** et remet planches, garde-corps et lanternes ;
+* **galère depuis l'ouest puis depuis l'est** (pilote automatique, destination de l'autre côté) : la levée se
+  déclenche quand **la proue** est à 50 blocs du tablier (mesuré entre 44 et 52), le pilote automatique **attend
+  devant le tablier** tant que le pont n'est pas ouvert (point le plus proche ≥ 2,5 blocs), la galère passe, le pont
+  reste ouvert tout le temps qu'elle est dans le passage (`pontlevis_5_passage_*`), aucune fermeture ne commence tant
+  qu'elle est comptée, le pont se referme une fois la zone de maintien quittée, les planches reviennent ;
+* **joueur et sécurités** : un joueur en survie debout sur le tablier fermé ; une demande scriptée lance l'attente de
+  sécurité ; **7 s plus tard rien n'a bougé** et le diagnostic nomme le tablier ; le joueur descend, les vantaux
+  montent ; en marchant depuis la berge vers le tablier absent, **la barrière l'arrête** au bout de la berge
+  (`pontlevis_4_barriere`) ; ouvert, un joueur téléporté à l'emplacement du tablier **tombe à l'eau** (le volume est
+  réellement libre) ; la demande retirée, la fermeture commence ; **une nouvelle demande en pleine descente inverse le
+  mouvement sans saut d'angle** ; retour à fermé, tablier en place ;
+* **redémarrage (solo)** : le pont laissé ouvert (demande longue) est retrouvé **ouvert à 80° après la réouverture du
+  monde**, ses planches toujours absentes, le client le reçoit à la connexion (`pontlevis_6_apres_redemarrage`) ; il se
+  referme à la demande annulée et remet le tablier ;
+* **restauration et suppression** : `restaurer` remet planches et garde-corps, **les tours et la passerelle fixe
+  sont intactes**, le pont n'est plus converti ; `supprimer` l'oublie.
+
+__RESULTATS__
+
+Tests unitaires (`LeafGeometryTest`, `ChannelZonesTest`, `GaugeAndCycleTest`, 19 tests, Java pur) : repère et
+rotation des vantaux (le bout libre monte, axe de rendu `v × up`, vantail de l'autre rive symétrique), boîtes fermées
+identiques aux blocs, vantail dressé, centre du chenal libre une fois levé, volume balayé, dessous mesuré aux saillies
+dans la bande navigable ; zones des deux côtés du chenal avec la proue qui compte, hystérésis, passage, bande navigable
+qui ignore une barque amarrée sur la berge, portée d'une coque selon son cap, boîtes des zones (chenal en diagonale
+compris) ; gabarit (barque qui passe, barque chargée qui passe avec la marge par défaut mais pas avec une plus
+grande, galère au mât de 13,2 qui ouvre, bateau à vapeur trop large, égalité à la limite) ; cycle complet (attente de
+sécurité 80 ticks, 160 ticks de montée, délai de 100 ticks, descente), inversion sans saut sur une nouvelle demande ou
+une entité sous les vantaux, navire arrêté dans le passage qui tient le pont ouvert et fait refuser une fermeture
+manuelle, joueur sur le tablier qui retient la montée avec diagnostic toutes les 5 s puis disparition de la demande
+sans mouvement, bloc dans l'emprise → ERREUR puis reprise, automatisme suspendu et ordres manuels, gel quand les
+tronçons ne sont pas chargés, restauration d'un état et réglages bornés.
+
+Vérifié **par inspection seulement** (pas de test automatique) : la compatibilité Lithium du chemin de collision des
+vantaux (même hook que les coques, `appendHulls`), le son (inaudible pour le test), plusieurs joueurs réels à la fois,
+un navire d'un autre mod par profil, une largeur de navire supérieure au chenal (le verdict « trop large » n'est couvert
+que par le test unitaire), le déchargement d'un tronçon pendant qu'un navire est en approche (la règle de grâce n'est
+couverte que par relecture du code).
+
 ### Passerelles d'embarquement — 1.23.0
 
 `GangplankGameTest` (en solo **et** sur serveur dédié) : quai de pierre et bassin construits par commandes, sloop

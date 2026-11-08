@@ -318,6 +318,33 @@ les affiche) et ne s'exécutent qu'à l'arrivée à une **escale** (pas pour une
 `adminPermissionLevel` vaut 0 ou 1, ces commandes n'ont donc pas le niveau d'un opérateur : `tellraw`,
 `setblock`, `give`… (niveau 2) échoueraient — c'est voulu.
 
+## Pont-levis automatique — `/pontlevis` (1.24.0)
+
+Même niveau de permission que `/ship` ; `/drawbridge` est un alias. Le guide complet (principe, installation pas à
+pas, détection, gabarit, sécurités, configuration, limites) est dans [PONT_LEVIS.md](PONT_LEVIS.md).
+
+| Commande | Effet |
+|---|---|
+| `/pontlevis liste` | Les ponts définis, leur état. |
+| `/pontlevis creer <id>` | Crée un pont (dans votre dimension). |
+| `/pontlevis <id> supprimer` (ou `/pontlevis supprimer <id>`) | Supprime un pont (ses blocs d'origine sont remis s'ils étaient levés). |
+| `/pontlevis <id> vantail <A\|B> pos1\|pos2 [<x y z>]` | Un coin de la sélection d'un vantail : le bloc visé, ou des coordonnées. |
+| `/pontlevis <id> vantail <A\|B> charniere auto [bas\|haut] \| <x y z>` | Pivot du vantail : arête côté rive (défaut : basse), ou un point de la ligne de charnière. |
+| `/pontlevis <id> axe x\|z\|auto\|<dx dz>` | Sens de circulation des bateaux sous le pont. |
+| `/pontlevis <id> chenal largeur <blocs>\|auto`, `chenal centre [<x y z>\|auto]` | Largeur navigable entre les tours, centre du chenal. |
+| `/pontlevis <id> eau <y>\|auto` | Niveau de l'eau. |
+| `/pontlevis <id> approche\|hysteresis\|marge\|arret <blocs>`, `angle <degrés>`, `duree\|delai\|securite <secondes>` | Réglages du pont. |
+| `/pontlevis <id> apercu on\|off` | Sélections, charnières, volume balayé, barrières, zones d'approche, passage, hauteur libre, dessinés pour vous. |
+| `/pontlevis <id> verifier` | Analyse : blocs, charnières, chenal, eau, hauteur libre, volume balayé contre les blocs fixes. |
+| `/pontlevis <id> convertir` | Met le pont en service (ses blocs restent en place tant qu'il est fermé). |
+| `/pontlevis <id> etat` | État complet : cycle, angle, attente, réglages, navires pris en compte et leur verdict. |
+| `/pontlevis <id> tester <navire>` | Mesure un navire (hauteur, largeur, occupants, verdict, position dans les zones). |
+| `/pontlevis <id> debug on\|off` | Diagnostic continu dans la barre d'action. |
+| `/pontlevis <id> auto on\|off` | Active ou suspend l'automatisme. |
+| `/pontlevis <id> ouvrir`, `fermer` | Manœuvre manuelle, sécurités respectées. |
+| `/pontlevis <id> demande <clé> [secondes]`, `demande annuler <clé>` | Demande scriptée d'ouverture (quêtes, PNJ, blocs de commande). |
+| `/pontlevis <id> restaurer` | Remet les blocs d'origine et rend la main (seule la zone mobile est touchée). |
+
 ## Commandes de pilotage (joueurs)
 
 | Action | Touche (AZERTY) |
