@@ -332,6 +332,12 @@ def bulwarks(bone, detail, lights):
         p = hp(z, fs.sheer_y(z), side, -0.3)
         add_cube(detail, "lantern_fc_post_%s" % sn, p + v3(0, 1.4, 0), EYE, (0.18, 1.0, 0.18), "wood_dark")
         lantern(lights, "lantern_fc_%s" % sn, p + v3(0, 1.9, 0), hang=False, s=1.2)
+        # and the big lantern on a tall post at the bow end of the forecastle (main reference)
+        z = 15.4
+        p = hp(z, fs.sheer_y(z), side, -0.3)
+        add_cube(detail, "lantern_bow_post_%s" % sn, p + v3(0, 0.9, 0), EYE, (0.2, 1.8, 0.2), "wood_dark")
+        add_cube(detail, "lantern_bow_cap_%s" % sn, p + v3(0, 1.82, 0), EYE, (0.34, 0.08, 0.34), "iron")
+        lantern(lights, "lantern_bow_%s" % sn, p + v3(0, 1.86, 0), hang=False, s=1.45)
 
 
 def crenels(bone, name, side, z0, z1, y, out=-0.26, spacing=2.0, w=0.9, h=0.8, d=0.62, skip=None):
@@ -382,8 +388,8 @@ def castle(bone, detail, lights):
         wall(bone, "castle_wall", side, TZ, CF + 0.3, yb, Q - 0.3, th=0.34, region="timber")
         wall(bone, "castle_parapet", side, TZ, CF + 0.3, Q - 0.32, fs.QD_TOP, th=0.34, region="stone_stud", out=0.06)
         # the keep, over the aft part: red panels between the pilasters, its battlements standing out on corbels
-        wall(bone, "keep_wall", side, TZ, KF + 0.3, fs.QD_TOP - 0.02, K - 0.02, th=0.34, region="red_panel")
-        wall(bone, "keep_parapet", side, TZ - 0.25, KF + 0.55, K - 0.05, fs.KEEP_TOP, th=0.34, out=0.3, region="stone_stud")
+        wall(bone, "keep_wall", side, TZ - 0.74, KF + 0.3, fs.QD_TOP - 0.02, K - 0.02, th=0.34, region="red_panel")
+        wall(bone, "keep_parapet", side, TZ - 0.93, KF + 0.55, K - 0.05, fs.KEEP_TOP, th=0.34, out=0.3, region="stone_stud")
         for j, z in enumerate(np.arange(TZ + 0.3, KF + 0.3, 1.0)):
             p, u, v, n = side_frame(z, K - 0.35, side)
             add_cube(bone, "keep_corbel_%s%d" % (sn, j), p + n * 0.15, np.column_stack([u, v, n]), (0.5, 0.5, 0.42), "stone_light")
@@ -465,25 +471,37 @@ def castle(bone, detail, lights):
     ys = fs.sheer_y(z)
     xs_ = fs.hull_x(z, ys)
     add_cube(bone, "stern_wall", (0, (ys + K) / 2, z + 0.12), EYE, (2 * xs_ - 0.1, K - ys + 0.4, 0.3), {"all": "stone", "+3": "wall_wood"})
-    add_cube(bone, "stern_parapet", (0, (K + fs.KEEP_TOP) / 2 - 0.05, z - 0.18), EYE, (2 * xs_ + 0.5, fs.KEEP_TOP - K + 0.1, 0.62),
+    # the keep's storey hangs out over the transom on a row of big corbels (the castle overhanging the stern of the
+    # main reference): red panels between stone corner posts, its battlements standing out further still
+    oz = z - 0.45
+    add_cube(bone, "stern_overhang", (0, (Q - 0.25 + K) / 2, oz), EYE, (2 * xs_ - 0.2, K - Q + 0.25, 0.62),
+             {"all": "red_panel", "+2": "stone", "-2": "stone"})
+    for s in (1, -1):
+        add_cube(detail, "stern_overhang_post_%d" % (s > 0), (s * (xs_ - 0.35), (Q - 0.25 + K) / 2, oz - 0.05), EYE, (0.6, K - Q + 0.3, 0.66),
+                 "stone_stud")
+    for j, x in enumerate(np.arange(-xs_ + 0.6, xs_ - 0.4, 1.2)):
+        add_cube(detail, "stern_overhang_corbel_%d" % j, (x, Q - 0.55, z - 0.32), EYE, (0.5, 0.6, 0.64), "stone_light")
+    add_cube(bone, "stern_parapet", (0, (K + fs.KEEP_TOP) / 2 - 0.05, z - 0.62), EYE, (2 * xs_ + 0.5, fs.KEEP_TOP - K + 0.1, 0.62),
              {"all": "stone_stud", "+2": "stone_light"})
+    add_cube(bone, "stern_parapet_floor", (0, K - 0.1, z - 0.22), EYE, (2 * xs_ - 0.2, 0.2, 0.3), "stone_light")
     for j, x in enumerate(np.arange(-xs_ - 0.05, xs_ + 0.1, 1.6)):
-        merlon(detail, "stern_merlon_%d" % j, v3(x, fs.KEEP_TOP, z - 0.18), w=0.62, d=0.9)
-        add_cube(detail, "stern_corbel_%d" % j, (x, K - 0.35, z - 0.2), EYE, (0.5, 0.5, 0.42), "stone_light")
+        merlon(detail, "stern_merlon_%d" % j, v3(x, fs.KEEP_TOP, z - 0.62), w=0.62, d=0.9)
+        add_cube(detail, "stern_corbel_%d" % j, (x, K - 0.35, z - 0.86), EYE, (0.5, 0.5, 0.42), "stone_light")
     for j, x in enumerate((-2.5, 0.0, 2.5)):
         add_cube(detail, "glow_stern_window_%d" % j, (x, 6.3, z - 0.04), EYE, (1.0, 1.25, 0.04), "glow_window", stretch=True)
         add_cube(detail, "stern_window_sill_%d" % j, (x, 5.6, z - 0.1), EYE, (1.3, 0.16, 0.2), "stone_light")
         add_cube(detail, "stern_window_lintel_%d" % j, (x, 7.0, z - 0.1), EYE, (1.3, 0.16, 0.2), "stone_light")
         add_cube(detail, "stern_window_in_%d" % j, (x, 6.3, z + 0.3), EYE, (1.0, 1.25, 0.03), {"all": None, "+3": "window_in"}, stretch=True)
     for j, x in enumerate((-2.2, 2.2)):
-        add_cube(detail, "glow_stern_window2_%d" % j, (x, Q + 1.35, z - 0.04), EYE, (0.9, 1.15, 0.04), "glow_window", stretch=True)
-        add_cube(detail, "stern_window2_sill_%d" % j, (x, Q + 0.7, z - 0.1), EYE, (1.2, 0.16, 0.2), "stone_light")
+        add_cube(detail, "glow_stern_window2_%d" % j, (x, Q + 1.35, oz - 0.33), EYE, (0.9, 1.15, 0.04), "glow_window", stretch=True)
+        add_cube(detail, "stern_window2_sill_%d" % j, (x, Q + 0.7, oz - 0.38), EYE, (1.2, 0.16, 0.2), "stone_light")
+        add_cube(detail, "stern_window2_lintel_%d" % j, (x, Q + 2.0, oz - 0.38), EYE, (1.2, 0.16, 0.2), "stone_light")
     add_cube(detail, "stern_string", (0, Q - 0.15, z - 0.1), EYE, (2 * xs_ + 0.1, 0.24, 0.2), "stone_light")
-    banner(lights, "banner_stern", v3(0, fs.KEEP_TOP - 0.25, z - 0.52), 0, 1.6, 3.6, facing=v3(0, 0, -1))
+    banner(lights, "banner_stern", v3(0, fs.KEEP_TOP - 0.25, z - 0.96), 0, 1.6, 3.6, facing=v3(0, 0, -1))
     for side, sn in SIDES:
         x = side * (xs_ + 0.05)
-        beam(detail, "stern_lantern_arm_" + sn, v3(x, K - 0.6, z + 0.2), v3(x + side * 0.55, K - 0.6, z - 0.4), 0.1, "iron")
-        lantern(lights, "lantern_stern_" + sn, v3(x + side * 0.55, K - 0.65, z - 0.4), drop=0.3, s=1.4)
+        beam(detail, "stern_lantern_arm_" + sn, v3(x, K - 0.6, oz), v3(x + side * 0.55, K - 0.6, z - 1.0), 0.1, "iron")
+        lantern(lights, "lantern_stern_" + sn, v3(x + side * 0.55, K - 0.65, z - 1.0), drop=0.3, s=1.4)
     # lanterns at the front corners of the quarterdeck and of the keep's battlements
     for side, sn in SIDES:
         p = hp(CF - 0.3, fs.QD_TOP, side, -0.3)

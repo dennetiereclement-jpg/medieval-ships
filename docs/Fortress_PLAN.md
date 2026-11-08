@@ -37,7 +37,9 @@ au couronnement du château).
 
 **Parties reconstruites** (non visibles ou variables selon les images) : le flanc tribord est le symétrique du flanc
 bâbord de 112 ; le tableau arrière (non visible en 112 / 151) reprend le château de 149 : trois fenêtres éclairées pour
-la cabine, deux pour le donjon, parapet crénelé sur consoles, grande bannière centrale, lanternes d'angle ; l'avant
+la cabine, l'étage du donjon en encorbellement au-dessus du tableau sur une rangée de grosses consoles (le château
+déborde l'arrière en 112) avec deux fenêtres, parapet crénelé sur consoles, grande bannière centrale, lanternes
+d'angle ; l'avant
 reprend 112 (gaillard à balustrade de bois sur bordure de pierre, bec de pierre) avec le beaupré et la bannière de 149
 (112 n'en montre qu'un étai) ; 151 (château plus massif à trois étages, voiles rouge sombre déchirées) est une variante
 dont on garde la grue, le taud et les créneaux de pierre du passavant.
@@ -91,7 +93,7 @@ phase 2 (décoration) complète le mobilier.
 * **Contraintes** : coque, ponts, pavois et pièces dessinés sur la grille (ce qui est dessiné est ce qui collisionne :
   surfaces des pièces tirées des cellules, doublage intérieur des pavois sur la face de collision) ; grille fermée sous
   le pont principal (aucune sortie par la coque, vérifié par `FortressShipTest`) ; sondes du pilote automatique au bout
-  du beaupré, au bec, au safran, au parapet arrière et aux bouts de vergues ; ≈ 4 250 cubes.
+  du beaupré, au bec, au safran, au parapet arrière et aux bouts de vergues ; ≈ 4 300 cubes.
 * **Physique** (le plus lourd des voiliers) : accélération 0,18 bloc/s², freinage 0,35, virage 5°/s au plus, longue
   erre (`waterDrag` 0,045), roulis 0,55 ; vitesses 1,3 / 3,2 / 5,4 ; pilote automatique : rayon 15, anticipation 30,
   sondes 80.
