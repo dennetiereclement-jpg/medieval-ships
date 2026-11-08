@@ -291,6 +291,53 @@ def crown_painter(red, cream, n, seed, band=(0.5, 0.16), zig=0.08, ratio=0.4, ri
     return paint
 
 
+def pyramid_painter(red, cream, n, seed, top=0.5, bottom=1.0, steps=3, base=0.78, ridge=0.06, ridge_n=0, fold=0.18, grad=(0.82, 1.04),
+                    gap_col=None):
+    """A marquee slope like the great scales marquee (u across, v from the ridge down): deep red with, in each of the n
+    gores, a CREAM STEPPED PYRAMID rising from `bottom` to `top` (v) in `steps` blocky steps (base = its width share of
+    the gore at the bottom; red gaps between the pyramids), a thin cream band along the ridge (ridge = its height;
+    ridge_n > 0: only on every ridge_n-th gore, a cream stripe down from the peak); dark seams, soft folds, a gradient."""
+    def paint(img):
+        rng = random.Random(seed)
+        w, h = img.size
+        weave(img, red, rng, stains=1)
+        cr = Image_new_like(img)
+        weave(cr, cream, random.Random(seed + 1), stains=0)
+        px, cpx = img.load(), cr.load()
+        sw = w / n
+        y_top, y_bot = top * h, bottom * h
+        step_h = (y_bot - y_top) / steps
+        for x in range(w):
+            g = int(x // sw)
+            lx = (x - g * sw) / sw
+            d = abs(lx - 0.5) * 2.0          # 0 in the middle of the gore, 1 at its seams
+            for y in range(h):
+                use = False
+                if y < ridge * h and (ridge_n == 0 or g % ridge_n == 0):
+                    use = True
+                elif ridge_n and g % ridge_n == 0 and y < (top - 0.08) * h and d < 0.22:
+                    use = True
+                elif y_top <= y < y_bot:
+                    k = min(steps - 1, int((y - y_top) / step_h))   # 0 = the top step (narrowest)
+                    half = base * (k + 1) / steps
+                    if d < half:
+                        use = True
+                if use:
+                    px[x, y] = cpx[x, y]
+        for y in range(h):
+            gg = grad[0] + (grad[1] - grad[0]) * (y / max(1, h - 1))
+            for x in range(w):
+                r, g_, b, a = px[x, y]
+                fx = (x % sw) / sw
+                k = gg * (1.0 - fold / 2 + fold * math.sin(math.pi * fx))
+                if int(x % sw) == 0:
+                    k *= 0.74
+                if y < 2:
+                    k *= 0.82
+                px[x, y] = _scale((r, g_, b), k) + (255,)
+    return paint
+
+
 def Image_new_like(img):
     from PIL import Image
     return Image.new("RGBA", img.size, (0, 0, 0, 0))
@@ -937,19 +984,20 @@ def add_regions(atlas, regions, size=None):
 
 
 # ---------------------------------------------------------------- geometry
-def roof_drop(t, a=0.45):
-    """Fraction of the drop at t (0 = ridge / apex, 1 = eave): steep at the top, flatter at the eave (a marquee)."""
-    return a * t + (1 - a) * (1 - (1 - t) ** 2)
+def roof_drop(t, a=0.45, power=2.0):
+    """Fraction of the drop at t (0 = ridge / apex, 1 = eave): steep at the top, flatter at the eave (a marquee); a
+    higher `power` flares the skirt more (a big top: nearly flat at the eave)."""
+    return a * t + (1 - a) * (1 - (1 - t) ** power)
 
 
-def skirt(bone, name, top, bot, region, nx, ny, a=0.45, folds=0, sag=0.06, belly=0.08, th=0.035, overlap=0.03):
+def skirt(bone, name, top, bot, region, nx, ny, a=0.45, folds=0, sag=0.06, belly=0.08, th=0.035, overlap=0.03, power=2.0):
     """A marquee roof skirt between a top curve top(s) (on the ridge / apex) and an eave curve bot(s), s in [0, 1]:
     linear in plan, the height falling steeply from the top and flattening to the eave (roof_drop); the cloth bellies
     down by `belly` mid-slope and by `sag` between `folds` seams (soft, not boxy). Returns P(s, t)."""
     def P(s, t):
         a0, b0 = top(s), bot(s)
         p = a0 + (b0 - a0) * t
-        y = a0[1] - (a0[1] - b0[1]) * roof_drop(t, a)
+        y = a0[1] - (a0[1] - b0[1]) * roof_drop(t, a, power)
         dip = belly * math.sin(math.pi * t)
         if folds:
             frac = (s * folds) % 1.0
@@ -1192,8 +1240,10 @@ def square_sack(shell, det, name, foot, size=(0.8, 0.75, 0.6), yaw=0.0, region="
     R = ry(yaw)
     w, h, d = size
     add_cube(shell, name + "_body", f + UP * (h * 0.4), R, (w, h * 0.8, d), region, stretch=True)
-    add_cube(shell, name + "_top", f + UP * (h * 0.86), R, (w * 0.86, h * 0.14, d * 0.84), region, stretch=True)
-    add_cube(det, name + "_knot", f + UP * (h * 0.97), R, (w * 0.3, h * 0.12, d * 0.3), region, stretch=True)
+    add_cube(shell, name + "_belly", f + UP * (h * 0.36), R @ ry(0.05), (w * 1.07, h * 0.42, d * 1.08), region, stretch=True)
+    add_cube(shell, name + "_top", f + UP * (h * 0.86), R @ ry(0.08), (w * 0.86, h * 0.14, d * 0.84), region, stretch=True)
+    add_cube(det, name + "_knot", f + UP * (h * 0.99), R @ ry(0.5), (w * 0.3, h * 0.14, d * 0.3), region, stretch=True)
+    add_cube(det, name + "_tie", f + UP * (h * 0.93), R @ ry(0.5), (w * 0.34, 0.05, d * 0.34), "rope")
     if solid:
         ex = abs(math.cos(yaw)) * w / 2 + abs(math.sin(yaw)) * d / 2
         ez = abs(math.sin(yaw)) * w / 2 + abs(math.cos(yaw)) * d / 2

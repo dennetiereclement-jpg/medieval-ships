@@ -5,24 +5,27 @@ reference: scratchpad/ref2/tente_balance_chapiteau_ref.png, picture 048).
 A big red-and-cream marquee, one block (TentType group "tents"), about 9 blocks wide (the main marquee and its striped
 side awning) and 7.5 deep (the rug and the rolled carpets in front), the left king post at about 7.8:
 
-  - the main roof: a HIPPED MARQUEE in deep crimson with cream stripes rising like flames from the eave (cream along
-    the ridge), steep at the top and flaring out to the eaves, soft folds between the seams; two KING POSTS of warm
+  - the main roof: a HIPPED MARQUEE in deep crimson with blocky CREAM STEPPED PYRAMIDS rising from the eave and a cream
+    stripe down from the peaks, steep at the top and flaring out flat to the eaves (a big top), soft folds between the
+    seams; two KING POSTS of warm
     wood with grey riveted iron bands pierce it (the left one higher, a capped block on top; the right one carries a
     red swallow-tailed flag), the cloth gathered up to them;
   - the big SCALES BANNER (crimson, gold stepped border and stepped point, the gold scales) laid down the front slope;
-  - curved red SWAG VALANCES with gold stepped dags along the front and the left side, the roof's cream lower band
-    above them;
+  - deep U-shaped red SWAG VALANCES (festoons) with gold stepped dags along the front and the left side, the roof's
+    cream pyramids above them;
   - the frame: big squared posts of warm orange wood on grey stone feet with riveted iron bands and capped tops, eave
     beams, a tall FLAG POST on the left side (red swallow-tailed flag), thick twisted ROPES from the king posts down to
     the posts, guy ropes to pegs behind;
-  - the right SIDE AWNING in orange and cream stripes with square-dagged edges on two front posts and a back post,
-    glowing LANTERNS on brackets on its front posts;
-  - the left side: open at the front with a side counter (two big potions) under a rod of hanging HERBS, the back half
+  - the right AWNING in orange and cream stripes running front to back, sloping down to the front (its striped top seen
+    from the front as in the picture), square-dagged edges, on two front posts and a back post, glowing LANTERNS on
+    brackets on its front posts;
+  - two big bunches of hanging HERBS under the front-left swag, over the counter;
+  - the left side: open at the front with a side counter (potions) under a rod of hanging herbs, the back half
     closed by the striped wall with a red drape bearing the scales, a cream curtain tied to the flag post;
   - inside: the front-left COUNTER (potions, books, scroll), the back SHELVES (books, potions, bottles, jars), a red
     curtain tied at the left of the entrance and a cream one at the right, lanterns hanging from the front beam and
     inside;
-  - in front: the iron-banded CHEST on a crate by the front-left post, two ROLLED CARPETS (red and gold), cream grain
+  - in front: the iron-banded CHEST on a crate by the front-left post, two big ROLLED CARPETS (red and gold), burlap grain
     sacks and an iron-banded crate; the red RUG with its gold medallion and fringe running out of the entrance;
   - under the awning: the counter under a cream-and-red cloth with a gold lozenge (potions, books), a big iron-banded
     chest with an OPEN BOOK on a box, crates, a lying barrel, sacks.
@@ -51,7 +54,7 @@ box, collide = pc.box, pc.collide
 _rgb, _scale, _mix = pc._rgb, pc._scale, pc._mix
 
 NAME = "tente_balance_chapiteau"
-P = pc.Pal(red="9e2026", red_dark="5a0e14", red_light="c23a3a", cream="eadcc4", gold="eaa62c", gold_dark="8e5a12", gold_light="ffd884")
+P = pc.Pal(red="921c24", red_dark="520e14", red_light="b8323a", cream="dfc9a8", gold="eaa62c", gold_dark="8e5a12", gold_light="ffd884")
 ORANGE = _rgb("e2962a")
 
 # ---------------------------------------------------------------- dimensions (tent-local blocks, +z = the open front)
@@ -78,13 +81,13 @@ SHELF_Z = (-2.2, -1.72)
 def regions():
     red, rd, rl, cr, g, gd, gl = P.red, P.red_dark, P.red_light, P.cream, P.gold, P.gold_dark, P.gold_light
     return [
-        ("c1_roof", 192, 80, pc.crown_painter(red, cr, 6, 4801, band=(0.5, 0.15), zig=0.1, ratio=0.42)),
-        ("c1_hip", 96, 80, pc.crown_painter(red, cr, 3, 4802, band=(0.5, 0.15), zig=0.1, ratio=0.42)),
+        ("c1_roof", 192, 80, pc.pyramid_painter(red, cr, 4, 4801, top=0.36, bottom=0.97, steps=3, base=0.72, ridge=0.05, ridge_n=2)),
+        ("c1_hip", 96, 80, pc.pyramid_painter(red, cr, 2, 4802, top=0.36, bottom=0.97, steps=3, base=0.72, ridge=0.05, ridge_n=2)),
         ("c1_rug", 80, 112, pc.carpet_painter(red, rd, g, gd, 4803, style="medallion")),
         ("c1_banner", 40, 112, pc.banner_painter(red, rd, g, gd, gl, 4804, point="steps", border=3, emblem_y=0.34, emblem_w=0.78, body=0.7)),
         ("c1_sidebanner", 24, 64, pc.banner_painter(red, rd, g, gd, gl, 4805, point="v", border=2, emblem_y=0.33, emblem_w=0.8, body=0.76)),
         ("c1_wall", 96, 56, pc.stripes_painter([red, cr], 6, 4806, fold=0.2, hem=g, hem_h=3, grad=(0.8, 0.95), ratio=0.3)),
-        ("c1_awning", 128, 48, pc.stripes_painter([ORANGE, cr], 8, 4807, fold=0.12, grad=(0.92, 1.06))),
+        ("c1_awning", 112, 112, pc.stripes_painter([ORANGE, cr], 8, 4807, fold=0.14, grad=(0.9, 1.06))),
         ("c1_drape_red", 32, 56, pc.stripes_painter([red, _scale(red, 0.92)], 3, 4808, fold=0.34, seam=0.86, hem=g, hem_h=4, grad=(0.82, 1.0))),
         ("c1_drape_cream", 32, 56, pc.stripes_painter([cr, _scale(cr, 0.94)], 3, 4809, fold=0.3, seam=0.88, hem=red, hem_h=10, grad=(0.85, 1.0))),
         ("c1_runner", 48, 40, pc.runner_painter(red, rd, g, 4810, motif="diamond", top_col=cr)),
@@ -93,7 +96,7 @@ def regions():
         ("c1_roll", 48, 24, pc.roll_painter(red, g, 4813)),
         ("c1_end", 16, 16, pc.spiral_painter(red, g)),
         ("c1_flag", 48, 24, pc.flag_painter(red, rd, g, 4814)),
-        ("c_burlap", 32, 32, pc.burlap_painter("dcc6a4", 4815)),
+        ("c_burlap", 32, 32, pc.burlap_painter("d0b48a", 4815)),
         ("c_chest", 32, 32, pc.chest_painter(4816, base="7e3c22", dark="3c1a0c")),
         ("c_post", 64, 16, pc.wood_painter("c0843e", "6a3e18", 4817)),
         ("c_band", 32, 8, pc.band_painter(4818)),
@@ -117,12 +120,12 @@ X0, X1, ZE = XL - OV, XR + OV, ZF + OV   # the eave rectangle
 
 def roof(shell, det):
     ex = lambda s: X0 + (X1 - X0) * s  # noqa: E731
-    front = pc.skirt(shell, "roof_front", lambda s: ridge_pt(ex(s)), lambda s: v3(ex(s), EY, ZE), "c1_roof", 14, 5, a=0.3, folds=8, sag=0.05,
-                     belly=0.1)
-    pc.skirt(shell, "roof_back", lambda s: ridge_pt(ex(1 - s)), lambda s: v3(ex(1 - s), EY, -ZE), "c1_roof", 14, 5, a=0.3, folds=8, sag=0.05,
-             belly=0.1)
-    pc.skirt(shell, "roof_left", lambda s: ridge_pt(RA), lambda s: v3(X0, EY, -ZE + 2 * ZE * s), "c1_hip", 5, 5, a=0.3, folds=4, sag=0.05, belly=0.1)
-    pc.skirt(shell, "roof_right", lambda s: ridge_pt(RB), lambda s: v3(X1, EY, ZE - 2 * ZE * s), "c1_hip", 5, 5, a=0.3, folds=4, sag=0.05, belly=0.1)
+    front = pc.skirt(shell, "roof_front", lambda s: ridge_pt(ex(s)), lambda s: v3(ex(s), EY, ZE), "c1_roof", 14, 5, a=0.22, folds=8, sag=0.05,
+                     belly=0.1, power=2.2)
+    pc.skirt(shell, "roof_back", lambda s: ridge_pt(ex(1 - s)), lambda s: v3(ex(1 - s), EY, -ZE), "c1_roof", 14, 5, a=0.22, folds=8, sag=0.05,
+             belly=0.1, power=2.2)
+    pc.skirt(shell, "roof_left", lambda s: ridge_pt(RA), lambda s: v3(X0, EY, -ZE + 2 * ZE * s), "c1_hip", 5, 5, a=0.22, folds=4, sag=0.05, belly=0.1, power=2.2)
+    pc.skirt(shell, "roof_right", lambda s: ridge_pt(RB), lambda s: v3(X1, EY, ZE - 2 * ZE * s), "c1_hip", 5, 5, a=0.22, folds=4, sag=0.05, belly=0.1, power=2.2)
     # the big scales banner laid down the front slope (right of the middle), just above the cloth
     s0, s1 = (-0.95 - X0) / (X1 - X0), (0.22 - X0) / (X1 - X0)
     t0, t1 = 0.05, 0.86
@@ -175,9 +178,9 @@ def build(decor):
     # ---- the roof and its scales banner, the swag valances
     roof(shell, det)
     for k, (a, b) in enumerate((((XL - 0.1, by + 0.1, ZF + 0.2), (-1.0, by + 0.1, ZF + 0.2)), ((-1.0, by + 0.1, ZF + 0.2), (XR + 0.1, by + 0.1, ZF + 0.2)))):
-        pc.swag(shell, "swag_front_%d" % k, a, b, 0.66, "c1_swag", out=Z, sag=0.42, nx=3)
+        pc.swag(shell, "swag_front_%d" % k, a, b, 0.42, "c1_swag", out=Z, sag=0.62, nx=4)
     for k, (a, b) in enumerate((((XL - 0.2, by + 0.1, ZF + 0.1), (XL - 0.2, by + 0.1, 0.0)), ((XL - 0.2, by + 0.1, 0.0), (XL - 0.2, by + 0.1, ZB - 0.1)))):
-        pc.swag(shell, "swag_left_%d" % k, a, b, 0.66, "c1_swag", out=-X, sag=0.4, nx=3)
+        pc.swag(shell, "swag_left_%d" % k, a, b, 0.42, "c1_swag", out=-X, sag=0.6, nx=4)
     # ---- ropes: king posts down to the posts, the flag post; guy ropes behind
     for k, (a, b) in enumerate((((RA - 0.15, KING_L - 0.45, 0.1), (XL, 4.0, ZF)), ((RA - 0.15, KING_L - 0.5, -0.05), (XL, 4.75, 0.0)),
                                 ((RB + 0.12, KING_R - 0.3, 0.05), (XR, 4.0, ZB)), ((RB + 0.12, KING_R - 0.35, 0.1), (XR + 0.25, 3.95, ZF)))):
@@ -199,29 +202,32 @@ def build(decor):
              (-1.1, 0.03, ZF - 0.14), (-0.75, 0.03, ZF - 0.14), Z, "c1_drape_red", nx=3)
     pc.drape(shell, det, "drape_entr_r", (XR - 0.62, by - 0.15, ZF - 0.12), (XR - 0.05, by - 0.15, ZF - 0.12), (XR - 0.22, 1.4, ZF - 0.16),
              (XR - 0.38, 0.03, ZF - 0.14), (XR - 0.12, 0.03, ZF - 0.14), Z, "c1_drape_cream", nx=3)
-    # ---- the right side awning (orange and cream), its posts and lanterns
+    # ---- the right awning (orange and cream stripes running front to back, as in the picture) sloping down to the
+    #      front, on two front posts and a back post; lanterns on brackets on its front posts
     for k, (x, z) in enumerate(((3.1, AZ1), (AX, AZ1), (AX, AZ0))):
-        top = AY_OUT + 0.45 if x == AX else AY_IN - 0.25 + 0.0
-        top = AY_IN - (AY_IN - AY_OUT) * (x - XR) / (AX - XR) + 0.38
+        top = (AY_OUT if z == AZ1 else AY_IN) + 0.38
         pc.banded_post(shell, det, "apost_%d" % k, x, z, top, d=0.36, foot_h=0.45, bands=(0.55, 1.5, top - 0.6), cap=(0.46, 0.22), collide_to=top)
-    beam(shell, "a_beam_front", (XR, AY_IN - 0.2, AZ1), (AX, AY_OUT - 0.2, AZ1), 0.22, "beam", extend=0.25)
-    beam(shell, "a_beam_back", (XR, AY_IN - 0.2, AZ0), (AX, AY_OUT - 0.2, AZ0), 0.22, "beam", extend=0.25)
-    beam(shell, "a_beam_side", (AX, AY_OUT - 0.08, AZ0), (AX, AY_OUT - 0.08, AZ1), 0.22, "beam", extend=0.2)
+    beam(shell, "a_beam_front", (XR, AY_OUT - 0.2, AZ1), (AX, AY_OUT - 0.2, AZ1), 0.22, "beam", extend=0.25)
+    beam(shell, "a_beam_back", (XR, AY_IN - 0.2, AZ0), (AX, AY_IN - 0.2, AZ0), 0.22, "beam", extend=0.25)
+    beam(shell, "a_beam_side", (AX, AY_IN - 0.08, AZ0), (AX, AY_OUT - 0.08, AZ1), 0.22, "beam", extend=0.2)
+    za0, za1 = AZ0 - 0.3, AZ1 + 0.38     # the cloth's back and front edges
 
-    def AW(s, t):   # s along z (front -> back), t from the main tent out to the outer posts
-        z = (AZ1 + 0.35) - (AZ1 - AZ0 + 0.6) * s
-        x = XR + 0.1 + (AX + 0.3 - XR - 0.1) * t
-        y = AY_IN - (AY_IN - AY_OUT) * t - 0.1 * math.sin(math.pi * t) - 0.05 * math.sin(math.pi * ((s * 8) % 1.0)) + 0.06
+    def ay(z):
+        return AY_IN + (AY_OUT - AY_IN) * (z - za0) / (za1 - za0)
+
+    def AW(s, t):   # s across, from the main tent out to the outer posts; t from the back down to the front
+        x = XR + 0.1 + (AX + 0.3 - XR - 0.1) * s
+        z = za0 + (za1 - za0) * t
+        y = ay(z) - 0.12 * math.sin(math.pi * t) - 0.05 * math.sin(math.pi * ((s * 8) % 1.0)) * math.sin(math.pi * min(1.0, t * 1.2)) + 0.06
         return v3(x, y, z)
     loft(shell, "awning", AW, 8, 3, "c1_awning", th=0.035, overlap=0.03)
-    pc.valance(shell, "a_val_front", (XR + 0.1, AY_IN + 0.04, AZ1 + 0.37), (AX + 0.3, AY_OUT + 0.04, AZ1 + 0.37), Z, h=0.42, region="c1_awning_val", n=3)
-    pc.valance(shell, "a_val_side", (AX + 0.32, AY_OUT + 0.04, AZ1 + 0.35), (AX + 0.32, AY_OUT + 0.04, AZ0 - 0.25), X, h=0.42, region="c1_awning_val", n=3)
-    ml.rope(det, "a_rope", (RB + 0.1, KING_R - 0.4, -0.1), (AX + 0.25, AY_OUT + 0.2, AZ0 - 0.2), d=0.07, sag=0.35, segs=4)
+    pc.valance(shell, "a_val_front", (XR + 0.1, AY_OUT + 0.04, za1), (AX + 0.3, AY_OUT + 0.04, za1), Z, h=0.42, region="c1_awning_val", n=3)
+    pc.valance(shell, "a_val_side", (AX + 0.32, AY_OUT + 0.04, za1 - 0.02), (AX + 0.32, AY_IN + 0.04, za0), X, h=0.42, region="c1_awning_val", n=3)
+    ml.rope(det, "a_rope", (RB + 0.1, KING_R - 0.4, -0.1), (AX + 0.25, AY_IN + 0.2, AZ0 - 0.2), d=0.07, sag=0.35, segs=4)
     for k, x in enumerate((3.1, AX)):
-        ytop = AY_IN - (AY_IN - AY_OUT) * (x - XR) / (AX - XR)
-        pc.lantern_bracket(shell, det, "lamp_aw_%d" % k, (x, ytop - 0.55, AZ1 + 0.19), (0.25 if k else -0.25, 0, 1), drop=0.55, size=0.36)
+        pc.lantern_bracket(shell, det, "lamp_aw_%d" % k, (x, AY_OUT - 0.55, AZ1 + 0.19), (0.25 if k else -0.25, 0, 1), drop=0.55, size=0.36)
     # ---- lanterns under the front beam and inside
-    for k, x in enumerate((-2.15, 0.85)):
+    for k, x in enumerate((-1.75, 0.85)):
         ml.lantern(shell, "lamp_front_%d" % k, (x, 2.5, ZF - 0.05), size=0.36, metal="iron", chain_to=(x, by - 0.15, ZF - 0.05))
     ml.lantern(shell, "lamp_in", (-0.6, 2.55, -0.4), size=0.34, metal="iron", chain_to=(-0.6, by - 0.1, -0.4))
     # ---- inside: front-left counter, side counter with herbs above, back shelves
@@ -240,7 +246,9 @@ def build(decor):
     side_x = (sx0 + sx1) / 2
     for i, (z, col) in enumerate(((0.5, "green"), (0.83, "yellow"), (1.15, "blue"))):
         ml.bottle(det, "side_potion_%d" % i, (side_x, stop[1], z), col, r=0.1 - 0.015 * (i == 1), h=0.24, shape="round" if i != 1 else "tall", neck_h=0.08)
-    pc.herbs_rod(shell, det, "herbs", (XL + 0.14, 2.85, 0.35), (XL + 0.14, 2.85, 2.05), 3, kinds=("herbs",), length=(0.62, 0.78), width=0.5, rng=rng)
+    pc.herbs_rod(shell, det, "herbs", (XL + 0.14, 2.85, 0.35), (XL + 0.14, 2.85, 1.25), 2, kinds=("herbs",), length=(0.62, 0.78), width=0.5, rng=rng)
+    pc.herbs_rod(shell, det, "herbs_front", (XL + 0.3, 2.6, ZF - 0.3), (-2.15, 2.6, ZF - 0.3), 2, kinds=("herbs",), length=(0.78, 0.86), width=0.6,
+                 rng=rng)
     levels = ml.shelf_unit(shell, "shelves", XL + 0.4, XR - 0.4, SHELF_Z[0], SHELF_Z[1], levels=(0.6, 1.2, 1.8, 2.4), h=2.7, back=True, uprights=4,
                            detail=det)
     lv = sorted(levels, key=lambda s: s[2])
@@ -268,9 +276,9 @@ def build(decor):
     # ---- in front: chest on a crate, rolled carpets, sacks and an iron crate
     pc.iron_crate(shell, det, "chest_crate", (-2.62, 0.0, 2.85), size=(0.76, 0.52, 0.6), yaw=0.05)
     pc.chest(shell, det, "chest_front", (-2.62, 0.52, 2.85), size=(0.82, 0.58, 0.56), yaw=0.05)
-    for k, (p0, p1) in enumerate((((-2.05, 0.26, 2.9), (-0.92, 0.26, 2.82)), ((-1.95, 0.26, 3.48), (-0.88, 0.26, 3.6)))):
-        pc.carpet_roll(shell, "carpet_roll_%d" % k, p0, p1, 0.25, "c1_roll", "c1_end")
-    collide((-2.1, 0.0, 2.62, -0.84, 0.5, 3.86))
+    for k, (p0, p1) in enumerate((((-2.05, 0.31, 2.95), (-0.92, 0.31, 2.87)), ((-1.95, 0.31, 3.6), (-0.88, 0.31, 3.7)))):
+        pc.carpet_roll(shell, "carpet_roll_%d" % k, p0, p1, 0.31, "c1_roll", "c1_end")
+    collide((-2.1, 0.0, 2.6, -0.84, 0.62, 4.02))
     pc.square_sack(shell, det, "sack_l0", (-4.1, 0.0, 2.75), size=(0.66, 0.62, 0.52), yaw=0.15)
     pc.square_sack(shell, det, "sack_l1", (-3.9, 0.0, 3.32), size=(0.56, 0.5, 0.46), yaw=-0.2)
     pc.iron_crate(shell, det, "crate_l", (-3.32, 0.0, 3.15), size=(0.55, 0.6, 0.5), yaw=0.1)

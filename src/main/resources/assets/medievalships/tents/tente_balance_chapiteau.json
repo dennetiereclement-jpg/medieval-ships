@@ -3,7 +3,7 @@
  "texture": "textures/entity/tente_balance_chapiteau.png",
  "decor": "/assets/medievalships/interiors/tente_balance_chapiteau_decor.json",
  "extent": [
-  -4.515,
+  -4.552,
   0.0,
   -3.587,
   5.763,
@@ -80,7 +80,7 @@
    0.0,
    2.19,
    3.36,
-   3.461,
+   3.16,
    2.71
   ],
   [
@@ -96,7 +96,7 @@
    0.0,
    -1.76,
    5.56,
-   3.16,
+   3.68,
    -1.24
   ],
   [
@@ -142,10 +142,10 @@
   [
    -2.1,
    0.0,
-   2.62,
+   2.6,
    -0.84,
-   0.5,
-   3.86
+   0.62,
+   4.02
   ],
   [
    -4.465,

@@ -47,7 +47,7 @@ box, collide = pc.box, pc.collide
 _rgb, _scale, _mix = pc._rgb, pc._scale, pc._mix
 
 NAME = "tente_balance_bourse"
-P = pc.Pal(red="b0262c", red_dark="64121a", red_light="d2463e", cream="ecdcc0", gold="eea62a", gold_dark="94600e", gold_light="ffdc80")
+P = pc.Pal(red="9e2028", red_dark="580e16", red_light="c03a38", cream="e0cba8", gold="eea62a", gold_dark="94600e", gold_light="ffdc80")
 
 # ---------------------------------------------------------------- dimensions (tent-local blocks, +z = the open front)
 XL, XM, XR = -2.3, -0.45, 2.6   # front posts: left, middle (the lintel's right end), right (the gallows post)
@@ -76,11 +76,11 @@ def regions():
         ("c3_wall", 96, 64, pc.stripes_painter([cr, red], 4, 15405, fold=0.22, grad=(0.78, 0.96))),
         ("c3_awning", 128, 48, pc.stripes_painter([red, cr], 8, 15406, fold=0.14, grad=(0.9, 1.05))),
         ("c3_sign", 64, 64, pc.sign_painter("purse", 15407, board="5e3a1e", board_dark="34200e", frame="8a5a2c", gold=g, gold_dark=gd, gold_light=gl)),
-        ("c3_val", 192, 32, pc.valance_painter([cr, red], 8, 15408, kind="square", edge=g, edge_dark=gd, solid=0.45)),
+        ("c3_val", 192, 32, pc.valance_painter([red, cr], 8, 15408, kind="square", edge=g, edge_dark=gd, solid=0.5)),
         ("c3_runner", 40, 40, pc.runner_painter(red, rd, g, 15409, motif="meander")),
         ("c3_flag", 48, 24, pc.flag_painter(red, rd, g, 15410)),
         ("c3_awning_val", 128, 20, pc.valance_painter([cr, _scale(cr, 0.92)], 6, 15411, kind="square", edge=_scale(cr, 0.78), solid=0.42)),
-        ("c_burlap", 32, 32, pc.burlap_painter("e4d4b6", 15412)),
+        ("c_burlap", 32, 32, pc.burlap_painter("d2b68a", 15412)),
         ("c_chest", 32, 32, pc.chest_painter(15413, base="8a5428", dark="40220c")),
         ("c_post", 64, 16, pc.wood_painter("b8783c", "62381a", 15414)),
         ("c_band", 32, 8, pc.band_painter(15415)),
@@ -120,7 +120,7 @@ def roof(shell, det):
             ss = s if part in (1, 2) else 1 - s
             ss = 1 - s if part in (0, 3) else s
             p, out = eave(ss if part in (1, 2) else ss, part)
-            return p + out * (0.03 + 0.04 * t) - UP * (0.56 * t) + UP * 0.02
+            return p + out * (0.03 + 0.04 * t) - UP * (0.64 * t) + UP * 0.02
         loft(shell, "valance_%d" % part, (lambda s, t, V=V: V(1 - s, t)) if part in (0, 3) else V, n, 1, "c3_val", th=0.025)
     # finials: the wooden cross on the left peak, a capped block on the right one; rope coils on the gathered cloth
     for k, (x, peak) in enumerate(((RA, ridge_y(RA)), (RB, ridge_y(RB)))):
@@ -265,7 +265,7 @@ def build(decor):
     pc.standing_lantern(shell, det, "lamp_barrel", (-1.72, 0.95, 3.02), size=0.42)
     pc.square_sack(shell, det, "big_sack", (-0.62, 0.0, 3.22), size=(0.9, 0.82, 0.72), yaw=0.05)
     for k, sx in enumerate((-0.2, 0.2)):
-        box(det, "big_sack_strap_%d" % k, (-0.62 + sx - 0.04, 0.3, 3.22 - 0.375), (-0.62 + sx + 0.04, 0.84, 3.22 + 0.375), "cloth_red", stretch=True)
+        box(det, "big_sack_strap_%d" % k, (-0.62 + sx - 0.04, 0.3, 3.22 - 0.4), (-0.62 + sx + 0.04, 0.84, 3.22 + 0.4), "cloth_red", stretch=True)
     decor.block("farmhouse_decorations:pile_of_books", -0.62, 0.82, 3.2, facing="front", scale=1.5, solid=False, fallback="leather")
     pc.iron_crate(shell, det, "crate_fl_0", (-3.55, 0.0, 2.75), size=(0.82, 0.66, 0.72), yaw=0.05)
     pc.iron_crate(shell, det, "crate_fl_1", (-3.5, 0.66, 2.7), size=(0.62, 0.5, 0.56), yaw=-0.12)
