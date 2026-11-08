@@ -51,7 +51,8 @@ jobs:
         run: sudo apt-get update -q && sudo apt-get install -y -q xvfb mesa-utils
       - name: Run the real client with the mod
         # 1.9.0 (three more flying vessels and the shared features): ~48 min with the decoration mods
-        timeout-minutes: 75
+        # 1.27.0 (lot 2 ships): ~74 min with the decoration mods (one run hit 75): 90
+        timeout-minutes: 90
         run: |
           set -o pipefail
           # the decoration mods need a newer Fabric Loader than the one the mod is built against
