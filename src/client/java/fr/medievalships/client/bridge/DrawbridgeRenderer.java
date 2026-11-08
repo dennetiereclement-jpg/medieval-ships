@@ -38,6 +38,7 @@ public final class DrawbridgeRenderer {
 	private static final double DRAW_DISTANCE = 192.0;
 	private static final int[] CORD = Gangplank.region("dark_wood", "cord");
 	private static final float CHAIN = 0.07f;
+	private static final float LINE_WIDTH = 2.5f;
 
 	private DrawbridgeRenderer() {
 	}
@@ -203,8 +204,9 @@ public final class DrawbridgeRenderer {
 			return;
 		}
 		float nx = (float) (dx / len), ny = (float) (dy / len), nz = (float) (dz / len);
-		v.vertex(e, (float) x0, (float) y0, (float) z0).color(color).normal(e, nx, ny, nz);
-		v.vertex(e, (float) x1, (float) y1, (float) z1).color(color).normal(e, nx, ny, nz);
+		// the lines layer of 1.21.11 wants position, colour, normal and a line width for every vertex
+		v.vertex(e, (float) x0, (float) y0, (float) z0).color(color).normal(e, nx, ny, nz).lineWidth(LINE_WIDTH);
+		v.vertex(e, (float) x1, (float) y1, (float) z1).color(color).normal(e, nx, ny, nz).lineWidth(LINE_WIDTH);
 	}
 
 	private static void box(MatrixStack.Entry e, VertexConsumer v, double x0, double y0, double z0, double x1, double y1, double z1, int color) {
