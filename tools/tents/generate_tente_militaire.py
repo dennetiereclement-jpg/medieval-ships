@@ -45,14 +45,16 @@ HL = 3.7               # half length: the front gable at z = +HL, the back at -H
 OV = 0.28              # roof overhang beyond the gables
 POST_X = 2.35          # the entrance posts
 DOOR_X = 1.5           # half width of the entrance at the ground
-ARCH_Y = 3.7           # top of the entrance arch (under the ridge)
+OPEN_X = 1.75          # half width of the gable cloth's opening (the drapes come in to DOOR_X in front of it)
+BANNER_Y = 4.24        # the cross beam carrying the banner, just under the front ridge-post block
 NPC_SPOTS = ((-0.5, -2.7, 0.5, -1.7), (-0.5, -0.6, 0.5, 0.4))   # x0, z0, x1, z1: free 1 x 1 x 2.2 places for NPCs
-WINDOW = (0.35, 1.4, 0.62, 1.55)   # z0, z1, y0, y1 of the window in the left wall
+WINDOW = (0.2, 1.4, 0.45, 1.6)     # z0, z1, y0, y1 of the window in the left wall
 
 # ---------------------------------------------------------------- colours
-OLIVE = (84, 100, 36)
-OLIVE_D = (50, 63, 22)
-OLIVE_L = (112, 128, 50)
+OLIVE = (94, 96, 44)       # olive drab as in the picture (red ~ green, muted), not grass green
+OLIVE_D = (74, 78, 35)
+OLIVE_DD = (58, 62, 28)
+OLIVE_L = (114, 113, 54)
 BEIGE = (214, 196, 150)
 BEIGE_D = (160, 140, 96)
 GREEN_B = (40, 72, 38)       # banner / rug / blanket green
@@ -92,24 +94,46 @@ def _put(img, arr, alpha=None):
     img.paste(Image.fromarray(np.dstack([a, al]), "RGBA"), (0, 0))
 
 
-def _olive(w, h, seed, folds=0, fold_dir="v", seams=0):
-    """Mottled olive canvas: soft darker patches and lighter ones, a fine weave, fold shadows, seams."""
-    n = _noise(w, h, seed, scale=7.0)
-    m = _noise(w, h, seed + 7, scale=3.0)
-    t = np.clip((n - 0.36) * 2.6, 0, 1)
-    col = np.array(OLIVE_D)[None, None, :] * (1 - t[..., None]) + np.array(OLIVE)[None, None, :] * t[..., None]
-    hi = np.clip((n - 0.66) * 2.2, 0, 1)[..., None] * 0.7
-    col = col * (1 - hi) + np.array(OLIVE_L)[None, None, :] * hi
-    col *= (0.93 + 0.14 * m)[..., None]
-    yy, xx = np.mgrid[0:h, 0:w]
-    col *= (1.0 + 0.03 * (((xx + yy) % 2) * 2 - 1))[..., None]
+def _noise2(w, h, seed, sx, sy, octaves=3):
+    """Value noise in [0, 1] (w x h) with different feature sizes along x (sx) and y (sy)."""
+    rng = np.random.default_rng(seed)
+    out = np.zeros((h, w))
+    amp, tot = 1.0, 0.0
+    for o in range(octaves):
+        ax, ay = max(1.0, sx / (2 ** o)), max(1.0, sy / (2 ** o))
+        gw, gh = int(w / ax) + 2, int(h / ay) + 2
+        g = rng.random((gh, gw))
+        ys, xs = np.arange(h) / ay, np.arange(w) / ax
+        y0, x0 = np.floor(ys).astype(int), np.floor(xs).astype(int)
+        fy, fx = (ys - y0)[:, None], (xs - x0)[None, :]
+        fy, fx = fy * fy * (3 - 2 * fy), fx * fx * (3 - 2 * fx)
+        out += amp * ((g[y0][:, x0] * (1 - fx) + g[y0][:, x0 + 1] * fx) * (1 - fy) + (g[y0 + 1][:, x0] * (1 - fx) + g[y0 + 1][:, x0 + 1] * fx) * fy)
+        tot += amp
+        amp *= 0.45
+    return out / tot
+
+
+def _olive(w, h, seed, folds=0, fold_dir="v", seams=0, along="u"):
+    """Mottled olive canvas as in the picture: crisp blocky patches of four olive shades (pixel-art camouflage, the
+    patches stretched along the cloth: u for the roof and walls, v for hanging cloth), a fine weave, fold shadows,
+    seams."""
+    sx, sy = (7.0, 3.0) if along == "u" else (3.0, 7.0)
+    n = _noise2(w, h, seed, sx, sy)
     rng = np.random.default_rng(seed + 3)
-    col *= (1.0 + rng.integers(-6, 7, (h, w, 1)) / 100.0)
+    n = n + rng.uniform(-0.03, 0.03, n.shape)    # dithered patch edges (crisp texels, no blur)
+    lv = np.digitize(n, [0.37, 0.48, 0.62])
+    pal = np.array([OLIVE_DD, OLIVE_D, OLIVE, OLIVE_L], float)
+    col = pal[lv]
+    m = _noise(w, h, seed + 7, scale=3.0)
+    col *= (0.95 + 0.1 * m)[..., None]
+    yy, xx = np.mgrid[0:h, 0:w]
+    col *= (1.0 + 0.025 * (((xx + yy) % 2) * 2 - 1))[..., None]
+    col *= (1.0 + rng.integers(-4, 5, (h, w, 1)) / 100.0)
     if folds:
         coord = xx if fold_dir == "v" else yy
         span = w if fold_dir == "v" else h
         f = np.sin(coord / span * math.pi * 2 * folds + 0.6 + 0.5 * np.sin(coord * 0.37))
-        col *= (1.0 + 0.10 * f - 0.12 * np.exp(-((f + 1.0) / 0.08) ** 2))[..., None]
+        col *= (1.0 + 0.12 * f - 0.16 * np.exp(-((f + 1.0) / 0.1) ** 2))[..., None]
     if seams:
         for k in range(1, seams + 1):
             s = int(k * (h if fold_dir == "v" else w) / (seams + 1))
@@ -140,16 +164,20 @@ def paint_wall(img):
 
 
 def paint_curtain(img):
-    """The front curtains: olive with deep vertical folds (along v), a beige edging along the inner edge (right)."""
+    """The front curtains and swags: olive with deep folds (along v), a slightly darker hem; no beige (as in the
+    picture: the drapes are plain olive, only the banner and the rug have beige borders)."""
     w, h = img.size
-    col = _olive(w, h, 2403, folds=3, fold_dir="v")
-    xx = np.arange(w)[None, :]
-    edge = xx >= w - 5
-    col[np.broadcast_to(edge, (h, w))] = np.array(BEIGE) * 1.0
-    col[:, w - 6, :] = np.array(BEIGE_D)
-    col[:, w - 1, :] = np.array(BEIGE_D)
-    rng = np.random.default_rng(2413)
-    col[:, w - 5:, :] += rng.integers(-8, 9, (h, 5, 1))
+    col = _olive(w, h, 2403, folds=4, fold_dir="v", along="v") * 0.74    # the gable cloth, in the shade of the roof
+    col[:, :1, :] *= 0.8
+    col[:, w - 1:, :] *= 0.8
+    _put(img, col)
+
+
+def paint_drape(img):
+    """The curtains pulled aside beside the entrance posts: olive, deep vertical folds, a darker hem."""
+    w, h = img.size
+    col = _olive(w, h, 2423, folds=4, fold_dir="v", along="v") * 0.92
+    col[h - 3:, :, :] *= 0.75
     _put(img, col)
 
 
@@ -163,42 +191,56 @@ def paint_gable(img):
 
 
 def paint_banner(img):
-    """Green banner, gold border, pointed bottom, a gold sword point down in a laurel wreath."""
-    w, h = img.size    # 64 x 96
+    """Green banner as in the picture: a cream-gold border, a stepped (dagged) pointed bottom, a gold sword point down
+    between two laurel branches that meet under its point."""
+    w, h = img.size    # 64 x 112
     rng = np.random.default_rng(2405)
     n = _noise(w, h, 2415, scale=6.0)
     col = np.array(GREEN_B)[None, None, :] * (0.88 + 0.24 * n[..., None])
     col += rng.integers(-4, 5, (h, w, 1))
     yy, xx = np.mgrid[0:h, 0:w]
-    body = h - 22
-    tip = body + (1 - np.abs(xx - (w - 1) / 2) / ((w - 1) / 2)) * 21
+    body = h - 26
+    dx = np.abs(xx - (w - 1) / 2)
+    tip = body + np.floor((1 - dx / ((w - 1) / 2)) * 25 / 4.0) * 4.0 + 1      # stepped V (4 px steps)
     alpha = np.where(yy <= tip, 255, 0)
-    # border: 4 px beige-gold along the sides, the top and the V
     dist_side = np.minimum(xx, w - 1 - xx)
-    dist_v = tip - yy
-    border = (dist_side < 4) | (yy < 4) | ((yy > body - 4) & (dist_v < 4.5))
-    col[border] = np.array(GOLD) * 1.0
-    col[border & ((dist_side == 3) | (yy == 3) | ((dist_v >= 3.5) & (dist_v < 4.5) & (yy > body - 4)))] = np.array(GOLD_D) * 1.0
-    col[border] += rng.integers(-10, 11, (int(border.sum()), 1))
+    border = (dist_side < 4) | (yy < 4) | ((yy > body - 6) & (tip - yy < 5))
+    trim = np.array((222, 198, 140))
+    col[border] = trim * 1.0
+    col[border & ((dist_side == 3) | (yy == 3))] = np.array((168, 140, 86)) * 1.0
+    col[border] += rng.integers(-10, 9, (int(border.sum()), 1))
     from PIL import Image, ImageDraw
     em = Image.new("RGBA", (w, h), (0, 0, 0, 0))
     d = ImageDraw.Draw(em)
-    cx, cy = w / 2 - 0.5, 44
-    g, gd = GOLD + (255,), GOLD_D + (255,)
-    # laurel wreath: two arcs of leaves
+    cx = w / 2 - 0.5
+    g, gd, gl = GOLD + (255,), GOLD_D + (255,), (240, 206, 120, 255)
+    # laurel: two branches rising from a point under the sword, curving out and up, paired leaves along them
     for side in (-1, 1):
-        for k in range(7):
-            th = math.radians(105 + k * 23)
-            r = 19
-            px_, py_ = cx + side * -r * math.cos(th), cy + 4 + r * math.sin(th) * 0.95
-            d.ellipse([px_ - 3.4, py_ - 1.9, px_ + 3.4, py_ + 1.9], fill=g, outline=gd)
-        d.line([(cx + side * -r * math.cos(math.radians(105)), cy + 4 + r * 0.95 * math.sin(math.radians(105))), (cx, cy + 24)], fill=gd, width=2)
-    # sword, point down: pommel, grip, guard, blade
-    d.ellipse([cx - 3, 14, cx + 3, 20], fill=g, outline=gd)
-    d.rectangle([cx - 1.5, 20, cx + 1.5, 28], fill=gd)
-    d.rectangle([cx - 11, 28, cx + 11, 31], fill=g, outline=gd)
-    d.polygon([(cx - 3, 31), (cx + 3, 31), (cx + 3, 64), (cx, 70), (cx - 3, 64)], fill=(236, 214, 140, 255), outline=gd)
-    d.line([(cx, 32), (cx, 66)], fill=gd)
+        pts = []
+        for k in range(9):
+            a = math.radians(-90 + k * 17.5)
+            pts.append((cx + side * 15.5 * math.cos(a), 60 - 23 * math.sin(a)))
+        d.line(pts, fill=gd, width=2)
+        for k in range(2, len(pts), 1):
+            x0, y0 = pts[k - 1]
+            x1, y1 = pts[k]
+            tx, ty = x1 - x0, y1 - y0
+            L = math.hypot(tx, ty) or 1.0
+            tx, ty = tx / L, ty / L
+            for o in (-1, 1):            # a leaf on each side of the stem, pointing along it
+                nx_, ny_ = -ty * o, tx * o
+                lx, ly = x1 + nx_ * 3.2, y1 + ny_ * 3.2
+                d.polygon([(lx - tx * 3.0, ly - ty * 3.0), (lx + nx_ * 1.7, ly + ny_ * 1.7), (lx + tx * 3.4, ly + ty * 3.4),
+                           (lx - nx_ * 1.7, ly - ny_ * 1.7)], fill=gl, outline=g)
+        tx_, ty_ = pts[-1][0] - pts[-2][0], pts[-1][1] - pts[-2][1]   # a leaf at the tip of the branch
+        d.polygon([(pts[-1][0], pts[-1][1]), (pts[-1][0] + tx_ * 0.9 - 1.5, pts[-1][1] + ty_ * 0.9), (pts[-1][0] + tx_ * 1.6, pts[-1][1] + ty_ * 1.6),
+                   (pts[-1][0] + tx_ * 0.9 + 1.5, pts[-1][1] + ty_ * 0.9)], fill=gl, outline=g)
+    # sword, point down: pommel, grip, guard, blade with a fuller
+    d.polygon([(cx, 9), (cx + 3, 13), (cx, 17), (cx - 3, 13)], fill=gl, outline=gd)
+    d.rectangle([cx - 1.5, 17, cx + 1.5, 25], fill=g, outline=gd)
+    d.rectangle([cx - 10, 25, cx + 10, 28], fill=gl, outline=gd)
+    d.polygon([(cx - 3, 29), (cx + 3, 29), (cx + 3, 70), (cx, 77), (cx - 3, 70)], fill=gl, outline=gd)
+    d.line([(cx, 30), (cx, 72)], fill=gd)
     ea = np.array(em).astype(float)
     m = ea[..., 3:4] / 255.0
     col = col * (1 - m) + ea[..., :3] * m
@@ -253,9 +295,9 @@ def paint_lattice(img):
     col = np.zeros((h, w, 3)) + np.array((34, 28, 18)) + rng.integers(-3, 4, (h, w, 1))
     yy, xx = np.mgrid[0:h, 0:w]
     wood = np.array((150, 112, 62))
-    bars = ((xx % 10) < 2) | ((yy % 10) < 2) | (xx >= w - 2) | (yy >= h - 2)
+    bars = ((xx % 8) < 2) | ((yy % 8) < 2) | (xx >= w - 2) | (yy >= h - 2)
     col[bars] = wood * (0.85 + 0.25 * _noise(w, h, 2419, scale=3.0)[bars][:, None])
-    col[bars & (((xx % 10) == 1) | ((yy % 10) == 1))] *= 0.78
+    col[bars & (((xx % 8) == 1) | ((yy % 8) == 1))] *= 0.78
     _put(img, col)
 
 
@@ -285,6 +327,30 @@ def paint_post(img):
     _put(img, col)
 
 
+def paint_ridge(img):
+    """The light wooden ridge beam of the picture: pale weathered wood, the grain along u."""
+    w, h = img.size
+    rng = np.random.default_rng(2425)
+    n = _noise(w, h, 2426, scale=5.0)
+    yy, xx = np.mgrid[0:h, 0:w]
+    streak = np.sin(yy * 2.1 + 0.9 * np.sin(xx / 6.0)) * 0.5 + 0.5
+    col = np.array((162, 134, 90))[None, None, :] * (0.8 + 0.2 * n[..., None] + 0.08 * streak[..., None]) + rng.integers(-6, 7, (h, w, 1))
+    col[(yy % 8) == 0] *= 0.82
+    col[:, (xx[0] % 32) == 0] *= 0.7
+    _put(img, col)
+
+
+def paint_strap(img):
+    """Dark olive canvas straps holding the roof to the ridge beam, with stitching."""
+    w, h = img.size
+    rng = np.random.default_rng(2427)
+    col = np.zeros((h, w, 3)) + np.array((50, 56, 30)) + rng.integers(-5, 6, (h, w, 1))
+    yy, xx = np.mgrid[0:h, 0:w]
+    col[(xx == 1) | (xx == w - 2)] *= 1.3
+    col[(yy % 4 == 0) & ((xx == 1) | (xx == w - 2))] *= 0.6
+    _put(img, col)
+
+
 def paint_burlap(img):
     """Burlap of a stuffed sack: coarse weave, lighter in the bulging middle, darker towards the seams."""
     w, h = img.size
@@ -299,29 +365,72 @@ def paint_burlap(img):
 
 
 def paint_valance(img):
-    """The draped valance: olive with folds, a beige edging along a scalloped lower edge (cut out below)."""
+    """The heavy swag along the front edge of the roof: olive folds, a lighter crest where the rolled cloth catches
+    the light, a darker hem along a gently scalloped lower edge (cut out below)."""
     w, h = img.size
-    col = _olive(w, h, 2414, folds=4, fold_dir="v")
+    col = _olive(w, h, 2414, folds=5, fold_dir="v")
     yy, xx = np.mgrid[0:h, 0:w]
-    bottom = h - 1 - 3 * (1 - np.abs(np.sin(xx / w * math.pi * 4)))
-    band = (yy > bottom - 5) & (yy <= bottom)
-    col[band] = np.array(BEIGE) * (0.92 + 0.1 * _noise(w, h, 2424, scale=3.0)[band][:, None])
-    col[(yy > bottom - 6) & (yy <= bottom - 5)] = np.array(BEIGE_D) * 1.0
+    bottom = h - 1 - 2 * (1 - np.abs(np.sin(xx / w * math.pi * 4)))
+    col *= (1.0 + 0.3 * np.exp(-((yy - h * 0.3) / (h * 0.14)) ** 2) - 0.42 * (yy / h) ** 2)[..., None]
+    col[(yy > bottom - 2) & (yy <= bottom)] *= 0.55
     _put(img, col, np.where(yy <= bottom, 255, 0))
+
+
+def _inside(painter, f=0.62):
+    """The same cloth seen from inside the tent: darker and a little warmer (the picture's dim interior, lit by the
+    lantern), alpha kept."""
+    def paint(img):
+        painter(img)
+        a = np.array(img).astype(float)
+        a[..., :3] *= np.array((f * 1.08, f, f * 0.86))
+        _put(img, a[..., :3], a[..., 3])
+    return paint
+
+
+def loft_io(bone, name, P, nx, ny, region, region_in, th=0.03, overlap=0.004, ref=(0.0, 1.2, 0.0)):
+    """tentlib.loft with the face that looks into the tent (towards ref) painted region_in, the outer one region."""
+    ref = v3(*ref)
+    for i in range(nx):
+        for j in range(ny):
+            s0, s1, t0, t1 = i / nx, (i + 1) / nx, j / ny, (j + 1) / ny
+            a1, b1, a0, b0 = P(s0, t0), P(s1, t0), P(s0, t1), P(s1, t1)
+            c = (a0 + a1 + b0 + b1) / 4
+            u = ((b0 + b1) - (a0 + a1)) / 2
+            L = np.linalg.norm(u)
+            if L < 1e-5:
+                u, L = v3(1, 0, 0), 1e-3
+            u = u / L
+            vp = ((a0 - a1) + (b0 - b1)) / 2
+            H = np.linalg.norm(vp)
+            if H < 1e-5:
+                continue
+            v = norm(vp - np.dot(vp, u) * u)
+            n = np.cross(u, v)
+            out = np.dot(n, c - ref) > 0
+            regions = {"all": None, "+3": region if out else region_in, "-3": region_in if out else region}
+            cube = add_cube(bone, "%s_%d_%d" % (name, i, j), c, np.column_stack([u, v, n]), (L + overlap, H + overlap, th), regions,
+                            stretch=True, u_dir=u, v_dir=v)
+            ml.tl.gn.set_sub(cube, (s0, t0, s1, t1))
 
 
 def add_regions(atlas):
     atlas.add("mil_roof", 128, 64, paint_roof)
     atlas.add("mil_wall", 128, 32, paint_wall)
+    atlas.add("mil_roof_in", 128, 64, _inside(paint_roof))
+    atlas.add("mil_wall_in", 128, 32, _inside(paint_wall))
+    atlas.add("mil_gable_in", 96, 48, _inside(paint_gable))
     atlas.add("mil_curtain", 48, 96, paint_curtain)
+    atlas.add("mil_drape", 32, 64, paint_drape)
     atlas.add("mil_gable", 96, 48, paint_gable)
-    atlas.add("mil_banner", 64, 96, paint_banner)
+    atlas.add("mil_banner", 64, 112, paint_banner)
     atlas.add("mil_rug", 48, 64, paint_rug)
     atlas.add("mil_blanket", 32, 32, paint_blanket)
     atlas.add("mil_map", 32, 24, paint_map)
     atlas.add("mil_lattice", 32, 32, paint_lattice)
     atlas.add("mil_band", 32, 8, paint_band)
     atlas.add("mil_post", 64, 16, paint_post)
+    atlas.add("mil_ridge", 64, 16, paint_ridge)
+    atlas.add("mil_strap", 8, 16, paint_strap)
     atlas.add("mil_burlap", 32, 32, paint_burlap)
     atlas.add("mil_valance", 64, 24, paint_valance)
 
@@ -354,7 +463,7 @@ def roof(sh):
             y -= 0.07 * math.sin(math.pi * t) * abs(math.sin(z * 1.35))  # folds down the slope
             y -= 0.22 * edge * edge * math.sin(math.pi * min(1.0, t * 1.2))   # the edge droops at the gables
             return v3(x, y, z)
-        loft(sh, "roof_%d" % k, P, 7, 4, "mil_roof", th=0.04)
+        loft_io(sh, "roof_%d" % k, P, 7, 4, "mil_roof", "mil_roof_in", th=0.04)
     # a canvas strip over the ridge pole
     beam(sh, "ridge_cap", (0, RIDGE_Y + 0.02, z0 + 0.05), (0, RIDGE_Y + 0.02, z1 - 0.05), 0.08, "mil_roof", width=0.3)
 
@@ -367,7 +476,7 @@ def side_walls(sh, det):
             x = sx * (HX + (FOOT_X - HX) * t * t + 0.05 * math.sin(math.pi * t))
             x += sx * 0.035 * math.sin(z * 2.3) * t
             return v3(x, EAVE_Y + 0.04 - (EAVE_Y + 0.04) * t, z)
-        loft(sh, "wall_%d" % k, P, 6, 2, "mil_wall", th=0.035)
+        loft_io(sh, "wall_%d" % k, P, 6, 2, "mil_wall", "mil_wall_in", th=0.035)
         collide((min(sx * HX, sx * FOOT_X) - 0.05, 0.0, -HL, max(sx * HX, sx * FOOT_X) + 0.05, EAVE_Y, HL))
     # the window: dark opening, lattice, frame, and the rolled-up flap above it
     z0, z1, y0, y1 = WINDOW
@@ -387,13 +496,16 @@ def side_walls(sh, det):
         pa[0] -= (a[1] - yc) * math.tan(tilt) * -1
         pb[0] -= (b[1] - yc) * math.tan(tilt) * -1
         beam(det, "window_frame_%d" % j, pa, pb, 0.08, "mil_post", width=0.08, extend=0.04)
-    # the flap rolled up above the window, and a small sloping hood
+    # the awning: the canvas flap propped out over the window (sloping, sagging a little), its thick rolled hem,
+    # two cheeks closing its sides, and a fold of canvas under the window (the sill)
     def A(s, t):
-        return v3(xw + 0.03 - 0.5 * t, y1 + 0.38 - 0.3 * t - 0.05 * math.sin(math.pi * t), z0 - 0.18 + (z1 - z0 + 0.36) * s)
-    loft(sh, "window_hood", A, 2, 1, "mil_wall", th=0.03)
-    beam(sh, "window_roll", (xw - 0.5, y1 + 0.03, z0 - 0.2), (xw - 0.5, y1 + 0.03, z1 + 0.2), 0.14, "mil_curtain", width=0.14)
-    for j, z in enumerate((z0 - 0.05, z1 + 0.05)):
-        beam(det, "window_tie_%d" % j, (xw - 0.02, y1 + 0.4, z), (xw - 0.5, y1 + 0.0, z), 0.04, "rope", width=0.04)
+        return v3(xw + 0.06 - 0.62 * t, y1 + 0.34 - 0.26 * t - 0.05 * math.sin(math.pi * t) * math.sin(math.pi * s),
+                  z0 - 0.22 + (z1 - z0 + 0.44) * s)
+    loft(sh, "window_hood", A, 3, 2, "mil_wall", th=0.06)
+    beam(sh, "window_roll", (xw - 0.58, y1 + 0.06, z0 - 0.24), (xw - 0.58, y1 + 0.06, z1 + 0.24), 0.11, "mil_wall", width=0.13)
+    for j, z in enumerate((z0 - 0.2, z1 + 0.2)):
+        add_cube(det, "window_cheek_%d" % j, v3(xw - 0.27, y1 + 0.14, z), rz(0.35), (0.5, 0.26, 0.04), "mil_wall", stretch=True)
+    beam(det, "window_sill", (xw - 0.06, y0 - 0.06, z0 - 0.15), (xw - 0.06, y0 - 0.06, z1 + 0.15), 0.12, "mil_wall", width=0.16)
 
 
 def gables(sh, det):
@@ -403,53 +515,74 @@ def gables(sh, det):
     def B(s, t):
         x = -HX + 2 * HX * s
         return v3(x, EAVE_Y + 0.02 - (EAVE_Y + 0.02) * t, -HL - 0.04 - 0.05 * math.sin(math.pi * t) + 0.03 * math.sin(x * 2.0))
-    loft(sh, "back_wall", B, 4, 2, "mil_wall", th=0.035)
-    ml.plate(sh, "back_gable", (0, (EAVE_Y + RIDGE_Y) / 2 - 0.02, -HL - 0.06), 2 * HX + 0.1, RIDGE_Y - EAVE_Y + 0.02, "mil_gable", normal=(0, 0, -1),
-             th=0.02)
+    loft_io(sh, "back_wall", B, 4, 2, "mil_wall", "mil_wall_in", th=0.035)
+    # the back gable: its outer face looks out (-z), the inner one (+z) is the darker inside
+    gu, gup, gnorm = v3(-1, 0, 0), v3(0, 1, 0), v3(0, 0, -1)
+    add_cube(sh, "back_gable", v3(0, (EAVE_Y + RIDGE_Y) / 2 - 0.02, -HL - 0.06), np.column_stack([gu, gup, gnorm]),
+             (2 * HX + 0.1, RIDGE_Y - EAVE_Y + 0.02, 0.02), {"all": None, "+3": "mil_gable", "-3": "mil_gable_in"}, stretch=True,
+             u_dir=gu, v_dir=-gup)
     collide((-HX, 0.0, -HL - 0.15, HX, EAVE_Y, -HL + 0.02))
     collide((-1.4, EAVE_Y, -HL - 0.15, 1.4, 3.3, -HL + 0.02))
-    # front curtains
-    s_e = EAVE_Y / (EAVE_Y + math.hypot(HX, RIDGE_Y - EAVE_Y))
+    # the front gable cloth, in horizontal bands: from the outline of the tent (foot of the wall, eave, roof edge) in
+    # to the opening, which has straight sides (x = +-OPEN_X) up to the swags, closes in a curve under the banner beam
+    # and is shut above it (behind the beam and the banner)
+    top_y = BANNER_Y - 0.02
+    rows = (0.0, 1.0, 2.0, 2.7, 3.25, 3.7, top_y - 0.05, RIDGE_Y - 0.06)
     for k, sx in enumerate((-1, 1)):
-        def outer(s, sx=sx):
-            if s <= s_e:
-                return v3(sx * (FOOT_X - (FOOT_X - HX) * (s / s_e)), EAVE_Y * s / s_e, HL + 0.04)
-            q = (s - s_e) / (1 - s_e)
-            return v3(sx * HX * (1 - q), EAVE_Y + (RIDGE_Y - 0.06 - EAVE_Y) * q, HL + 0.04)
-
-        def inner(s, sx=sx):
-            x = DOOR_X * (1 - s ** 2.6) * (1 - 0.15 * s) + 0.5 * math.exp(-((s - 0.28) / 0.13) ** 2)   # tied back near s = 0.28
-            y = ARCH_Y * (s ** 0.9)
-            return v3(sx * x, y, HL + 0.1)
-
         def P(a, b, sx=sx):
-            s = 1.0 - b                       # loft t runs down: s = 1 at the top
-            o, i = outer(s), inner(s)
-            p = o * (1 - a) + i * a
-            gather = math.exp(-((s - 0.28) / 0.16) ** 2)
-            p[2] += 0.1 * math.sin(math.pi * a) * (1 - 0.5 * s) + 0.07 * math.sin(a * math.pi * 3.0 + s * 2.0) * (1 - gather * 0.5)
-            p[2] += 0.12 * gather * a
-            return p
-        loft(sh, "curtain_%d" % k, P, 3, 7, "mil_curtain", th=0.035)
-        # the tie round the gathered curtain
-        tp = inner(0.28) * 0.65 + outer(0.28) * 0.35
-        add_cube(det, "curtain_tie_%d" % k, tp + v3(0, 0, 0.18), EYE, (0.5, 0.07, 0.07), "rope")
+            q = (1.0 - b) * (len(rows) - 1)   # loft t runs down
+            j = min(int(q), len(rows) - 2)
+            y = rows[j] + (rows[j + 1] - rows[j]) * (q - j)
+            if y <= EAVE_Y:
+                xo = FOOT_X - (FOOT_X - HX) * (y / EAVE_Y)
+            else:
+                xo = HX * (RIDGE_Y - 0.06 - y) / (RIDGE_Y - 0.06 - EAVE_Y)
+            if y <= 2.6:
+                xi = OPEN_X
+            elif y < top_y:
+                xi = 0.3 + (OPEN_X - 0.3) * math.cos(math.pi / 2 * (y - 2.6) / (top_y - 2.6))
+            else:
+                xi = 0.0
+            xi = max(0.0, min(xi, xo - 0.12))
+            x = xo + (xi - xo) * a
+            z = HL + 0.04 + 0.04 * a + 0.06 * math.sin(math.pi * a) + 0.05 * math.sin(a * math.pi * 3.0 + y * 0.9)
+            return v3(sx * x, y, z)
+        loft(sh, "curtain_%d" % k, P, 3, len(rows) - 1, "mil_curtain", th=0.035)
         collide((min(sx * DOOR_X, sx * HX) if sx > 0 else -HX - 0.05, 0.0, HL - 0.05, (HX + 0.05) if sx > 0 else -DOOR_X - 0.05, EAVE_Y, HL + 0.3))
-    # the inner valance swag under the ridge: a curved strip with the beige edging, across the top of the entrance
-    def V(s, t):
-        x = -0.95 + 1.9 * s
-        y = ARCH_Y + 0.25 - 0.32 * t - 0.12 * math.sin(math.pi * s) * t
-        return v3(x, y, HL + 0.14 + 0.05 * t)
-    loft(sh, "front_swag", V, 3, 1, "mil_curtain", th=0.03)
+
+        # the curtain pulled aside: a heavy drape hanging from under the swags to the ground beside the entrance post,
+        # deep vertical folds, gathered and tied at hip height
+        def C(a, b, sx=sx):
+            y = 3.05 * (1 - b)
+            g = math.exp(-((y - 1.15) / 0.38) ** 2)
+            xi = DOOR_X - 0.03 + 0.32 * g + 0.08 * (y / 3.05)
+            xo = POST_X - 0.2
+            x = xi + (xo - xi) * a
+            z = HL + 0.28 + 0.1 * math.sin(a * math.pi * 3.0 + 0.4) * (1 - 0.6 * g) + 0.05 * g
+            return v3(sx * x, y, z)
+        loft(sh, "drape_%d" % k, C, 3, 4, "mil_drape", th=0.05)
+        add_cube(det, "drape_tie_%d" % k, v3(sx * (DOOR_X + 0.42), 1.15, HL + 0.36), ry(0.1 * sx), (0.62, 0.08, 0.1), "rope")
+
+        # the swags: two heavy rolled folds of canvas looped from under the ridge to the entrance post, one under the
+        # other (the lower one hangs over the top of the opening)
+        for j, (xa, ya, xb, yb, dep, sag, zz) in enumerate(((0.42, BANNER_Y - 0.25, POST_X + 0.05, 3.0, 0.34, 0.26, HL + 0.22),
+                                                            (0.4, BANNER_Y - 0.72, POST_X - 0.1, 2.72, 0.3, 0.2, HL + 0.3))):
+            def S(a, b, sx=sx, xa=xa, ya=ya, xb=xb, yb=yb, dep=dep, sag=sag, zz=zz):
+                x = xa + (xb - xa) * a
+                top = ya + (yb - ya) * a - 0.1 * math.sin(math.pi * a)
+                y = top - (dep + sag * math.sin(math.pi * a)) * b
+                z = zz + 0.22 * math.sin(math.pi * b) * (0.55 + 0.45 * math.sin(math.pi * a)) + 0.04 * math.sin(a * math.pi * 4)
+                return v3(sx * x, y, z)
+            loft(sh, "swag_%d_%d" % (k, j), S, 5, 2, "mil_valance", th=0.08)
     # the heavy draped valance along the front edge of the roof, from under the ridge down past the entrance posts
     for k, sx in enumerate((-1, 1)):
         def D(s, t, sx=sx):
             x = sx * (0.15 + (HX + 0.1) * s)
             ytop = RIDGE_Y - 0.12 - (RIDGE_Y - EAVE_Y - 0.1) * s - 0.18 * math.sin(math.pi * s)
-            drop = 0.55 + 0.25 * math.sin(math.pi * s)
-            z = HL + OV + 0.04 + 0.1 * t + 0.04 * math.sin(s * math.pi * 5)
-            return v3(x, ytop - drop * t - 0.12 * t * abs(math.sin(s * math.pi * 2.5)), z)
-        loft(sh, "valance_%d" % k, D, 5, 1, "mil_valance", th=0.03)
+            drop = 0.28 + 0.12 * math.sin(math.pi * s)
+            z = HL + OV + 0.04 + 0.05 * t + 0.13 * math.sin(math.pi * t) + 0.03 * math.sin(s * math.pi * 5)
+            return v3(x, ytop - drop * t - 0.1 * t * abs(math.sin(s * math.pi * 2.5)), z)
+        loft(sh, "valance_%d" % k, D, 6, 2, "mil_valance", th=0.04)
 
 
 def frame(sh, det):
@@ -462,9 +595,9 @@ def frame(sh, det):
     for k, (sx, sz) in enumerate(((-1, -1), (1, -1))):
         iron_post(sh, det, "post_corner_%d" % k, sx * (HX + 0.12), sz * (HL - 0.05), EAVE_Y + 0.35, d=0.34, bands=(0.3, None))
     beam(sh, "ridge_pole", (0, RIDGE_Y + 0.1, -HL - OV - 0.1), (0, RIDGE_Y + 0.1, HL + OV + 0.1), 0.22,
-         {"all": "mil_post", "+1": "end_grain", "-1": "end_grain"})
+         {"all": "mil_ridge", "+1": "end_grain", "-1": "end_grain"})
     # ridge-end posts sticking out above the roof
-    for k, (z, foot) in enumerate(((zf + 0.04, ARCH_Y + 0.1), (zb - 0.04, 0.0))):
+    for k, (z, foot) in enumerate(((zf + 0.04, BANNER_Y - 0.1), (zb - 0.04, 0.0))):
         top = RIDGE_Y + 0.85
         beam(sh, "ridge_post_%d" % k, (0, foot, z), (0, top, z), 0.36, {"all": "mil_post", "+1": "end_grain", "-1": "end_grain"})
         box(sh, "ridge_post_%d_cross" % k, (-0.42, RIDGE_Y + 0.12, z - 0.17), (0.42, RIDGE_Y + 0.42, z + 0.17),
@@ -476,43 +609,43 @@ def frame(sh, det):
         if foot == 0.0:
             collide((-0.18, 0.0, z - 0.18, 0.18, EAVE_Y + 0.6, z + 0.18))
     # beams on the ridge with iron straps (as in the picture)
-    for j, z in enumerate((-2.3, -0.4, 1.5)):
-        box(det, "ridge_strap_%d" % j, (-0.16, RIDGE_Y - 0.02, z - 0.08), (0.16, RIDGE_Y + 0.25, z + 0.08), "mil_band", stretch=True)
+    for j, z in enumerate((-3.0, -1.6, -0.2, 1.2, 2.6)):
+        box(det, "ridge_strap_%d" % j, (-0.17, RIDGE_Y - 0.06, z - 0.09), (0.17, RIDGE_Y + 0.25, z + 0.09), "mil_strap", stretch=True)
     # the cross beam under the front ridge carrying the banner
-    yb = ARCH_Y + 0.05
-    beam(sh, "banner_beam", (-1.15, yb, zf + 0.12), (1.15, yb, zf + 0.12), 0.18, {"all": "mil_post", "+1": "end_grain", "-1": "end_grain"})
+    yb = BANNER_Y
+    beam(sh, "banner_beam", (-0.78, yb, zf + 0.14), (0.78, yb, zf + 0.14), 0.18, {"all": "mil_post", "+1": "end_grain", "-1": "end_grain"})
     for k, sx in enumerate((-1, 1)):
-        box(det, "banner_beam_band_%d" % k, (sx * 0.95 - 0.07, yb - 0.11, zf + 0.01), (sx * 0.95 + 0.07, yb + 0.11, zf + 0.23), "mil_band",
+        box(det, "banner_beam_band_%d" % k, (sx * 0.62 - 0.06, yb - 0.11, zf + 0.03), (sx * 0.62 + 0.06, yb + 0.11, zf + 0.25), "mil_band",
             stretch=True)
-        beam(sh, "banner_brace_%d" % k, (sx * 1.15, yb, zf + 0.1), (sx * POST_X * 0.95, 2.7 if sx < 0 else 2.6, zf + 0.06), 0.12, "mil_post")
 
 
 def banner_and_lantern(sh, det):
     zf = HL + 0.24
-    yb = ARCH_Y + 0.05
-    ml.banner(sh, "banner", (0.0, yb - 0.08, zf + 0.26), 1.12, 1.62, normal=(0, 0, 1), region="mil_banner", rod=True, wave=0.03,
+    yb = BANNER_Y
+    # the banner: about 1 x 1.75 like the picture, its point at 2.45 (players walk in under it)
+    ml.banner(sh, "banner", (0.0, yb - 0.07, zf + 0.28), 0.96, 1.72, normal=(0, 0, 1), region="mil_banner", rod=True, wave=0.03,
               rod_region="mil_post", knobs="iron")
-    lx, lz = -0.62, HL - 0.05
-    ml.lantern(sh, "lamp_entrance", (lx, 2.55, lz), size=0.34, metal="iron", chain_to=(lx, ARCH_Y - 0.18, lz))
+    lx, lz = -0.7, HL + 0.02
+    ml.lantern(sh, "lamp_entrance", (lx, 2.66, lz), size=0.34, metal="iron", chain_to=(lx, 3.95, lz))
 
 
 def guy_ropes(sh, det):
     """Six beige twisted guy ropes with a slight sag to wooden pegs with iron caps."""
     ropes = (((-POST_X, 3.1, HL + 0.3), (-3.95, 0.0, HL + 0.75)),
              ((POST_X, 2.85, HL + 0.3), (3.6, 0.0, HL + 1.2)),
-             ((-HX - 0.05, EAVE_Y - 0.05, 1.3), (-4.0, 0.0, 1.6)),
-             ((HX + 0.05, EAVE_Y - 0.05, 1.3), (4.0, 0.0, 1.6)),
+             ((-HX - 0.05, EAVE_Y - 0.05, 2.0), (-4.0, 0.0, 2.35)),
+             ((HX + 0.05, EAVE_Y - 0.05, 2.0), (4.0, 0.0, 2.35)),
              ((-HX - 0.05, EAVE_Y - 0.05, -2.2), (-4.0, 0.0, -2.5)),
              ((HX + 0.05, EAVE_Y - 0.05, -2.2), (4.0, 0.0, -2.5)))
     for k, (a, b) in enumerate(ropes):
         bb = v3(*b) + UP * 0.32
-        ml.rope(det if k >= 2 else sh, "guy_%d" % k, a, bb, d=0.07, sag=0.07, segs=3, region="rope")
+        ml.rope(det if k >= 2 else sh, "guy_%d" % k, a, bb, d=0.1, sag=0.07, segs=3, region="rope")
         p = v3(*b)
         box(sh, "peg_%d" % k, p + v3(-0.09, 0.0, -0.09), p + v3(0.09, 0.38, 0.09), {"all": "mil_post", "+2": "end_grain"})
         box(det, "peg_%d_cap" % k, p + v3(-0.115, 0.3, -0.115), p + v3(0.115, 0.44, 0.115), "mil_band", stretch=True)
     # the light ropes inside the entrance (curtain ties down to the ground)
     for k, sx in enumerate((-1, 1)):
-        ml.rope(det, "door_rope_%d" % k, (sx * 1.25, 3.05, HL + 0.12), (sx * 1.85, 0.05, HL - 0.25), d=0.06, sag=0.02, segs=2, region="rope")
+        ml.rope(det, "door_rope_%d" % k, (sx * 1.15, 2.95, HL + 0.14), (sx * 1.7, 0.05, HL - 0.3), d=0.08, sag=0.02, segs=2, region="rope")
 
 
 # ---------------------------------------------------------------- furniture
@@ -551,11 +684,11 @@ def interior(sh, det, decor):
     decor.block("furnish:spruce_crate", -2.3, 0.0, -2.9, facing="front", alt="minecraft:barrel", fallback="crate")
     ml.crate(sh, "crate_back", (-2.45, 0.0, -1.95), size=(0.62, 0.55, 0.62), yaw=0.2)
     ml.crate(sh, "crate_bed", (2.6, 0.0, -0.75), size=(0.55, 0.5, 0.55), yaw=-0.15)
-    ml.rug(sh, "rug", -1.2, 1.2, 1.0, HL + 0.15, y=0.0, region="mil_rug")
-    # a few planks at the threshold under the rug
+    ml.rug(sh, "rug", -1.2, 1.2, 1.0, HL + 0.5, y=0.05, region="mil_rug")
+    # a few planks at the threshold under the rug, sticking out in front of it
     for k in range(5):
         x = -1.25 + 0.5 * k + 0.25
-        box(det, "threshold_%d" % k, (x - 0.24, 0.0, HL - 0.05 + 0.03 * (k % 2)), (x + 0.24, 0.05, HL + 0.45), "plank", stretch=True)
+        box(det, "threshold_%d" % k, (x - 0.24, 0.0, HL - 0.1 + 0.03 * (k % 2)), (x + 0.24, 0.05, HL + 0.72 - 0.04 * (k % 3)), "plank", stretch=True)
 
 
 def sacks(sh, det):
@@ -568,6 +701,7 @@ def sacks(sh, det):
         R = ry(yaw) @ rz(0.06 * (1 if k % 2 else -1))
         add_cube(sh, "sack_%d" % k, c, R, (w, h * 0.8, d), "mil_burlap", stretch=True)
         add_cube(sh, "sack_%d_puff" % k, c + UP * 0.03, R, (w * 0.84, h, d * 0.8), "mil_burlap", stretch=True)
+        add_cube(det, "sack_%d_mid" % k, c + UP * 0.015, R, (w * 0.94, h * 0.92, d * 0.9), "mil_burlap", stretch=True)
         add_cube(det, "sack_%d_end" % k, c + R @ v3(w / 2 + 0.05, 0, 0), R, (0.12, h * 0.45, d * 0.45), "mil_burlap", stretch=True)
         add_cube(det, "sack_%d_tie" % k, c + R @ v3(w / 2 + 0.01, 0, 0), R, (0.04, h * 0.55, d * 0.55), "rope")
     collide((x0, 0.0, z0, x0 + 3 * w * 0.95, 0.8, z0 + d + 0.1))
