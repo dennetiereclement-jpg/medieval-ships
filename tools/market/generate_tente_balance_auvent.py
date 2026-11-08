@@ -7,28 +7,30 @@ from the front left:
 
   - the MAIN TENT on the left: a hipped roof on a short ridge between two tall ridge posts with golden finials, the
     ridge wrapped in red cloth with iron brackets; the cloth falls from the ridge in broad irregular cream and red
-    stripes, bunched round the left ridge post (the cone look of the picture), down to a cream valance with red dags
-    under the eaves; four corner posts with iron bands and golden finials; thick twisted ropes along the hip edges and
-    swagged along the front eave; the LEFT WALL is closed, cream canvas flaring out on the ground, with a big red scales
-    banner on it; the back and right walls are closed; the front is open between cream drapes tied to the posts;
+    stripes fanning straight down (props_d.loft_down), bunched round the left ridge post (the cone look of the
+    picture), down to a cream valance with ragged cream dags (a few red) under the eaves; four corner posts with iron
+    bands and small golden knob finials; thick twisted ropes along the hip edges and swagged along the front eave; the
+    LEFT WALL is closed, cream canvas flaring out on the ground, with a big red scales banner on it; the back and
+    right walls are closed; the front is open between cream drapes tied to the posts;
   - a big red SCALES BANNER laid on the front slope of the roof, hanging from a crossbar near the right ridge post;
     small scales banners on brackets on the back-left post and on the awning's front-right post;
   - the long red patterned AWNING on the front right: from the main tent's front eave down to a front beam on two
-    posts with finials, red with cream bands and a gold meander, edged with a dagged valance of red, gold and cream
-    tabs; a lantern hangs under it and another from its front beam;
-  - under the awning the COUNTER (running front to back, its front facing the carpet on the left): a red runner with a
-    gold border and a pointed hem, an open book, potion bottles, a ribboned parcel, a scroll; the merchant stands
-    behind it (NPC_SPOT); at the front a planter box of purple flowers, crates and a cream canvas bale at the posts;
+    posts with finials, red with cream bands running its length and a gold meander, edged with a dagged valance of
+    red, gold and cream tabs; a lantern hangs under it and another from its front beam;
+  - under the awning the long COUNTER along the front, its face towards the street as in the picture (its left end
+    standing on the carpet): a red cloth and a red runner with a gold border and a pointed hem, an open book, potion
+    bottles, ribboned parcels, a scroll; the merchant stands behind it, in front of the main tent's opening (NPC); at
+    the front a planter box of purple flowers, crates and a cream canvas bale at the posts;
   - inside the main tent: back shelves of potions (blue, purple, pink, green), books, cloth rolls and small sacks, a
     gold-trimmed chest, crates, an open sack of grain, a crate under a red cloth, a lantern in the opening and one on
     the front-left post;
   - outside the left wall: a big iron-banded crate with cloth rolls on it, crates of red and green produce (Farmer's
     Delight crates when the mod is installed), a rice sack;
-  - the RED-AND-GOLD carpet in front of the main tent's opening, along the counter.
+  - the big RED-AND-GOLD carpet in front of the main tent's opening and the counter's left end.
 
-The merchant's place (an EasyNPC, 1 x 1 x 2.2 free) is behind the counter under the awning; players reach it through
-the gap at the front of the awning (between the bale and the flower box), from the awning's open right side, or
-through the main tent. No trade system, nothing ticks.
+The merchant's place (an EasyNPC, 1 x 1 x 2.2 free) is behind the counter under the awning, between it and the main
+tent's opening; players reach it from the carpet (round the counter's left end) or from the awning's open right side.
+No trade system, nothing ticks.
 
 Usage:  python3 tools/market/generate_tente_balance_auvent.py   (MERCHANT_OUT=<file.bbmodel>: preview model only)
 Writes (merchantlib.export): tents/tente_balance_auvent.json, models/entity + blockbench/tente_balance_auvent.bbmodel,
@@ -54,7 +56,7 @@ box, collide = pd.box, pd.collide
 _rgb, _jitter, _scale, _mix = pd._rgb, pd._jitter, pd._scale, pd._mix
 
 PAL = pd.Pal(cream="eec29c", red="ab3430", red_dark="64190f", red_light="c8483c", gold="ec9c3c", gold_dark="8a5414",
-             gold_light="fcd27a", wood="7a4a26", wood_dark="3e2412", finial="e69232")
+             gold_light="fcd27a", wood="7a4a26", wood_dark="3e2412", finial="eca83c")
 
 # ---------------------------------------------------------------- dimensions (design coordinates, +z = the front;
 # the whole tent is moved at the end so that its extent is centred on the anchor block: see SHIFT)
@@ -65,40 +67,46 @@ OV = 0.32                                  # roof overhang beyond the posts
 RIDGE = 5.0
 ZR = (ZF + ZB) / 2                         # the ridge line (z)
 CX, DX = -3.2, 0.2                         # the two ridge posts (x)
-AX0, AX1, AZ = -1.5, 2.2, 4.4              # the awning's front posts F (AX0) and G (AX1), the back-right post H (AX1, ZF)
-AY_BACK, AY_FRONT = EAVE - 0.22, 2.45      # the awning: under the main eave -> top of its front beam
-COUNTER = (-1.45, -0.8, 1.5, 3.9)          # x0, x1, z0, z1 (it runs front to back, its front facing -x)
+AX0, AX1, AZ = -1.35, 2.2, 4.4             # the awning's front posts F (AX0) and G (AX1), the back-right post H (AX1, ZF)
+AY_BACK, AY_FRONT = EAVE - 0.22, 2.85      # the awning: under the main eave -> top of its front beam (nearly flat, high, as
+                                           # in the picture: its front beam about level with the main eave's valance)
+COUNTER = (-1.3, 1.4, 2.3, 2.95)           # x0, x1, z0, z1 (along the front under the awning, its front facing +z)
 COUNTER_H = 1.05
-RUG = (-3.75, -1.62, 1.15, 4.95)           # x0, x1, z0, z1
-NPC = (-0.55, 2.0)                         # (x0, z0) of the merchant's free 1 x 1 x 2.2 place (design coordinates)
+RUG = (-3.75, -0.25, 1.15, 4.95)           # x0, x1, z0, z1 (in front of the opening, the counter's left end on it)
+NPC = (-0.4, 1.15)                         # (x0, z0) of the merchant's free 1 x 1 x 2.2 place (design coordinates)
 
 
 # ---------------------------------------------------------------- textures
 def paint_awning(img):
-    """The awning: deep red, two cream bands along its length, gold diamond chain and meander near the front edge."""
+    """The awning: deep red, cream bands running its length (from the main tent out to the front beam, as in the
+    picture) edged with thin gold lines, small gold lozenges between them, a gold meander along the front edge."""
     rng = random.Random(8001)
     pd.weave(img, PAL.red, rng, stains=2)
     w, h = img.size
     px = img.load()
-    bands = ((0.16, 0.06, PAL.cream), (0.5, 0.07, PAL.cream), (0.78, 0.03, PAL.gold))
+    bands = ((0.17, 0.045), (0.5, 0.06), (0.83, 0.045))
     for y in range(h):
         fy = y / h
         for x in range(w):
             r, g, b, a = px[x, y]
             c = (r, g, b)
-            for c0, hw, col in bands:
-                if abs(fy - c0) < hw:
-                    c = _jitter(_scale(col, 0.96 + 0.06 * math.sin(x * 0.4)), rng, 8)
-            # a gold meander between the bands
-            ly = y - int(h * 0.62)
+            fx = (x + 0.5) / w
+            for c0, hw in bands:
+                d = abs(fx - c0)
+                if d < hw:
+                    c = _jitter(_scale(PAL.cream, 0.95 + 0.06 * math.sin(y * 0.5)), rng, 8)
+                elif d < hw + 1.6 / w:
+                    c = _jitter(PAL.gold, rng, 10)
+            # a gold meander along the front edge
+            ly = y - int(h * 0.84)
             if 0 <= ly < 7:
                 lx = x % 8
                 if (ly in (0, 6)) or (lx == 0 and ly < 5) or (lx == 4 and ly > 1) or (ly == 3 and 1 <= lx <= 4):
                     c = _jitter(PAL.gold, rng, 10)
-            # small gold lozenges on the back half
-            if 0.27 < fy < 0.42 and (x % 16, y % 14) in ((8, 5), (7, 6), (9, 6), (8, 7)):
+            # small gold lozenges between the bands
+            if fy < 0.8 and min(abs(fx - 0.335), abs(fx - 0.665)) < 0.05 and ((x + 4) % 12, y % 14) in ((4, 5), (3, 6), (5, 6), (4, 7)):
                 c = _jitter(PAL.gold, rng, 10)
-            # long soft folds across the cloth
+            # long soft folds across the cloth (one per loft column)
             k = 0.9 + 0.1 * math.sin(math.pi * ((x * 6.0 / w) % 1.0))
             px[x, y] = _scale(c, k * (0.92 + 0.12 * fy)) + (255,)
 
@@ -145,7 +153,7 @@ def add_regions(atlas):
     # row 1 (y 224, after the shell regions): 96 high
     atlas.add("pd_roof", 224, 96, pd.stripes_painter(PAL, [(0.12, "r"), (0.2, "c"), (0.14, "r"), (0.2, "c"), (0.12, "r"), (0.12, "c"),
                                                           (0.1, "r")], s + 1, fold=0.16))
-    atlas.add("pd_rug", 160, 96, pd.rug_painter(PAL, s + 2, motif="key"))
+    atlas.add("pd_rug", 160, 96, pd.rug_painter(PAL, s + 2, motif="key", field=_scale(PAL.red, 0.8), stains=4))
     atlas.add("pd_banner", 32, 88, pd.banner_painter(PAL, s + 3, point="v", stars=True, border=2, body=0.78))
     # row 2: 96 high
     atlas.add("pd_awning", 192, 96, paint_awning)
@@ -156,7 +164,8 @@ def add_regions(atlas):
     # row 3: 64 high
     atlas.add("pd_runner", 48, 64, pd.runner_painter(PAL, s + 7, point="v"))
     atlas.add("pd_drape", 32, 64, pd.canvas_painter(PAL, s + 8, folds=3, hem=PAL.gold))
-    atlas.add("pd_valance", 192, 24, pd.valance_painter(PAL, s + 9, [(1.0, "c", 1.0), (0.5, "d", 0.75), (1.0, "c", 0.9), (0.5, "r", 0.7)] * 4,
+    # (the picture's valance: cream with ragged cream dags of uneven length, a few red ones)
+    atlas.add("pd_valance", 192, 24, pd.valance_painter(PAL, s + 9, [(1.0, "c", 1.0), (0.6, "c", 0.55), (0.8, "c", 0.85), (0.45, "r", 0.5)] * 4,
                                                         band=0.4, band_colour="c", band_line=PAL.red_dark))
     atlas.add("pd_valance_aw", 192, 28, pd.valance_painter(PAL, s + 10, [(1.0, "r", 1.0), (0.8, "g", 0.75), (1.0, "r", 0.9), (0.8, "c", 0.7)] * 4,
                                                            band=0.36, band_colour="r", band_line=PAL.gold))
@@ -256,12 +265,12 @@ def build(atlas, decor):
         box(det, "ridge_bracket_%d" % k, (x - 0.06, RIDGE - 0.26, ZR - 0.19), (x + 0.06, RIDGE + 0.1, ZR + 0.19), "iron")
 
     # ---- the roof: front and back faces, the two hips (cloth bunched round the ridge posts)
-    loft(shell, "roof_front", FRONT, 14, 5, "pd_roof", th=0.04, overlap=0.05)
-    loft(shell, "roof_back", roof_surface(D3, C3, BR, BL, 7), 14, 5, "pd_roof", th=0.04, overlap=0.05)
+    pd.loft_down(shell, "roof_front", FRONT, 14, 5, "pd_roof", th=0.04, overlap=0.05)
+    pd.loft_down(shell, "roof_back", roof_surface(D3, C3, BR, BL, 7), 14, 5, "pd_roof", th=0.04, overlap=0.05)
     # (the hip faces share the eave corners and the ridge ends with the front and back faces; ropes cover the seams)
     eps = v3(0, 0, 0.02)
-    loft(shell, "roof_hip_l", roof_surface(C3 - eps, C3 + eps, BL, FL, 5, depth=0.07, sag=0.12), 8, 4, "pd_hip", th=0.04, overlap=0.03)
-    loft(shell, "roof_hip_r", roof_surface(D3 + eps, D3 - eps, FR, BR, 5, depth=0.07, sag=0.12), 8, 4, "pd_hip", th=0.04, overlap=0.03)
+    pd.loft_down(shell, "roof_hip_l", roof_surface(C3 - eps, C3 + eps, BL, FL, 5, depth=0.07, sag=0.12), 8, 4, "pd_hip", th=0.04, overlap=0.03)
+    pd.loft_down(shell, "roof_hip_r", roof_surface(D3 + eps, D3 - eps, FR, BR, 5, depth=0.07, sag=0.12), 8, 4, "pd_hip", th=0.04, overlap=0.03)
     # rafters under the cloth, following the concave front and back faces (the back face is the front one turned
     # half round about the tent's centre)
     xc = (XL + XR) / 2
@@ -358,7 +367,7 @@ def build(atlas, decor):
                tab_len=1.4)
 
     # ---- scales banners on brackets: back-left post (small, outwards), awning front-right post (bigger, outwards)
-    for k, (x, z, sx, y, w, h) in enumerate(((XL, ZB, -1, 2.75, 0.44, 1.0), (AX1, AZ, 1, 2.25, 0.62, 1.4))):
+    for k, (x, z, sx, y, w, h) in enumerate(((XL, ZB, -1, 2.75, 0.44, 1.0), (AX1, AZ, 1, 2.62, 0.62, 1.4))):
         tip = v3(x + sx * (w + 0.45), y, z)
         beam(shell, "flag_arm_%d" % k, (x + sx * 0.15, y, z), tip, 0.1, {"all": "pd_post", "+1": "end_grain", "-1": "end_grain"}, extend=0.05)
         beam(det, "flag_arm_brace_%d" % k, (x + sx * 0.17, y - 0.45, z), (x + sx * 0.6, y - 0.03, z), 0.06, "iron")
@@ -378,26 +387,25 @@ def build(atlas, decor):
     ml.lantern(shell, "lamp_awning", (AX0 + 0.05, yl - 0.62, zl), size=0.34, metal="iron", chain_to=(AX0 + 0.05, yl - 0.1, zl))
     ml.lantern(shell, "lamp_front", (1.45, fb - 0.62, AZ), size=0.36, metal="iron", chain_to=(1.45, fb - 0.1, AZ))
 
-    # ---- the counter (front to back, its front facing -x) with its runner and goods
+    # ---- the counter (along the front under the awning, its front facing +z, as in the picture) with its runner and goods
     cx0, cx1, cz0, cz1 = COUNTER
     top = ml.counter(shell, "counter", cx0, cx1, cz0, cz1, h=COUNTER_H, detail=det)
     y = top[1]
-    box(shell, "counter_cloth", (cx0 - 0.04, y, cz0 + 0.25), (cx0 + 0.3, y + 0.015, cz1 - 0.25), {"all": "cloth_red"}, stretch=True, u_dir=Z)
-    ml.plate(shell, "runner", (cx0 - 0.06, y - 0.42, (cz0 + cz1) / 2), cz1 - cz0 - 0.55, 0.86, "pd_runner", normal=(-1, 0, 0), th=0.012,
-             edge="cloth_red")
-    for k, (z, hgt) in enumerate(((cz0 + 0.12, 0.55), (cz1 - 0.12, 0.55))):
-        box(det, "counter_band_%d" % k, (cx0 - 0.02, 0.12, z - 0.05), (cx1 + 0.02, 0.12 + hgt, z + 0.05), "iron")
-    xm = (cx0 + cx1) / 2
-    pd.open_book(det, "book", (xm, y + 0.015, 3.3), yaw=math.pi / 2)
-    ml.bottle(det, "flask", (xm + 0.05, y, 2.82), "orange", r=0.1, h=0.2, shape="round", neck_h=0.09)
-    ml.bottle(det, "flask_blue", (xm - 0.08, y, 2.55), "blue", r=0.075, h=0.18, shape="tall", neck_h=0.07)
-    ml.bottle(det, "flask_red", (xm + 0.12, y, 2.45), "red", r=0.06, h=0.14, shape="round", neck_h=0.05)
-    pd.parcel(det, "parcel_0", (xm, y, 2.1), size=(0.42, 0.24, 0.34), yaw=0.1)
-    pd.parcel(det, "parcel_1", (xm + 0.02, y + 0.24, 2.12), size=(0.3, 0.16, 0.26), yaw=-0.25)
-    pd.scroll(det, "counter_scroll", (xm - 0.05, y + 0.06, 1.72), length=0.42, r=0.06, yaw=math.pi / 2 + 0.2)
-    ml.crate(det, "counter_box", (xm + 0.05, y, 3.72), size=(0.3, 0.16, 0.24), yaw=0.2, solid=False)
+    box(shell, "counter_cloth", (cx0 + 0.2, y, cz1 - 0.32), (cx1 - 0.35, y + 0.015, cz1 + 0.05), {"all": "cloth_red"}, stretch=True, u_dir=X)
+    ml.plate(shell, "runner", (cx0 + 0.95, y - 0.42, cz1 + 0.06), 1.3, 0.86, "pd_runner", normal=(0, 0, 1), th=0.012, edge="cloth_red")
+    for k, (x, hgt) in enumerate(((cx0 + 0.12, 0.55), (cx1 - 0.12, 0.55))):
+        box(det, "counter_band_%d" % k, (x - 0.05, 0.12, cz0 - 0.02), (x + 0.05, 0.12 + hgt, cz1 + 0.02), "iron")
+    zm = (cz0 + cz1) / 2
+    pd.open_book(det, "book", (cx0 + 0.5, y + 0.015, zm + 0.05), yaw=0.1)
+    ml.bottle(det, "flask", (cx0 + 0.98, y, zm - 0.05), "orange", r=0.1, h=0.2, shape="round", neck_h=0.09)
+    ml.bottle(det, "flask_blue", (cx0 + 1.3, y, zm + 0.08), "blue", r=0.075, h=0.18, shape="tall", neck_h=0.07)
+    ml.bottle(det, "flask_red", (cx0 + 1.45, y, zm - 0.12), "red", r=0.06, h=0.14, shape="round", neck_h=0.05)
+    pd.parcel(det, "parcel_0", (cx0 + 1.85, y, zm), size=(0.42, 0.24, 0.34), yaw=0.1)
+    pd.parcel(det, "parcel_1", (cx0 + 1.87, y + 0.24, zm + 0.02), size=(0.3, 0.16, 0.26), yaw=-0.25)
+    pd.scroll(det, "counter_scroll", (cx0 + 0.95, y + 0.06, zm + 0.18), length=0.42, r=0.06, yaw=0.2)
+    ml.crate(det, "counter_box", (cx1 - 0.3, y, zm), size=(0.3, 0.16, 0.24), yaw=0.2, solid=False)
 
-    # ---- the carpet (along the counter, in front of the main tent's opening): its texture runs along z
+    # ---- the carpet (in front of the main tent's opening, the counter's left end standing on it): its texture runs along z
     rx0, rx1, rz0, rz1 = RUG
     add_cube(shell, "rug", ((rx0 + rx1) / 2, 0.015, (rz0 + rz1) / 2), EYE, (rx1 - rx0, 0.03, rz1 - rz0), {"all": "cloth", "+2": "pd_rug", "-2": None},
              stretch=True, u_dir=Z, v_dir=-X)

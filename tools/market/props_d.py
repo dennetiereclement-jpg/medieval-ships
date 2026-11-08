@@ -6,9 +6,10 @@ what they need is copied or adapted here, as tools/tents/generate_tente_marchand
   - painters (PIL, for ml.Atlas.add): woven stripes with soft folds, the scales emblem, banners (V, stepped or shield
     point, corner stars, a diamond), dagged valances, a red-and-gold rug, the counter runner, warm wood, iron bands,
     golden finials, cut-out flowers and lavender, burlap, grain, an open book, a ribboned parcel, a gold-trimmed chest;
-  - geometry: squared posts on foot blocks with riveted iron bands, a cap and a pointed golden finial, rope wraps and
-    tassels, dagged valances, tied-back drapes, hanging canvas walls, a flower box, a chest, scrolls, an open book, a
-    ribboned parcel, an open grain sack, a banner laid along a roof slope;
+  - geometry: squared posts on foot blocks with riveted iron bands, a cap (wood or a gilded collar) and the small
+    golden knob finial of the pictures, rope wraps and tassels, dagged valances, tied-back drapes, hanging canvas walls,
+    a flower box, a chest, scrolls, an open book, a ribboned parcel, an open grain sack, a banner laid along a roof
+    slope; loft_down(), a striped-roof variant of tentlib.loft whose strips keep the stripes straight down the slope;
   - shift_all(): moves the whole built tent (cubes, collision boxes, mod blocks) so that its extent is centred on the
     anchor block.
 
@@ -273,12 +274,13 @@ def valance_painter(pal, seed, tabs, shape="square", band=0.42, edge=True, gold_
     return paint
 
 
-def rug_painter(pal, seed, motif="key", field=None):
+def rug_painter(pal, seed, motif="key", field=None, glyphs=True, stains=2):
     """A red rug: dark rim, a gold border band with a pixel motif ("key": little meander hooks, "chain": gold crosses
-    in a row), a thin gold frame round the field, gold glyphs in rows on the field."""
+    in a row), a thin gold frame round the field, gold glyphs in rows on the field (glyphs=False: a plain mottled
+    field, as the gabled tent's rug)."""
     def paint(img):
         rng = random.Random(seed)
-        weave(img, field or pal.red, rng, stains=2)
+        weave(img, field or pal.red, rng, stains=stains)
         w, h = img.size
         px = img.load()
         for y in range(h):
@@ -300,7 +302,7 @@ def rug_painter(pal, seed, motif="key", field=None):
                     else:
                         px[x, y] = _jitter(_scale(field or pal.red, 0.86), rng, 5) + (255,)
         motif_ = ("0010100", "0111110", "1101011", "0111110", "0010100")
-        for r_, cy in enumerate(range(26, h - 22, 22)):
+        for r_, cy in enumerate(range(26, h - 22, 22) if glyphs else ()):
             for cx in range(26 + (r_ % 2) * 11, w - 22, 22):
                 for j, row in enumerate(motif_):
                     for i, ch in enumerate(row):
@@ -530,11 +532,13 @@ def band(bone, name, x, z, half, y, h, region="pd_band"):
 
 
 def finial(shell, det, name, x, y, z, w=0.42, region="pd_finial", cap_region="pd_post", tall=1.0):
-    """A cap block on a post top at height y, then a stepped golden point (three blocks and a tip); returns the tip's
-    height."""
-    box(shell, name + "_cap", (x - w / 2, y, z - w / 2), (x + w / 2, y + 0.16, z + w / 2), {"all": cap_region, "+2": "end_grain"})
+    """A cap block on a post top at height y (wood, or a gilded collar with cap_region="pd_finial"), then the small
+    golden knob finial of the pictures: a narrow neck, a wider knob, a short spire and its tip (no big cone); returns
+    the tip's height."""
+    box(shell, name + "_cap", (x - w / 2, y, z - w / 2), (x + w / 2, y + 0.16, z + w / 2),
+        {"all": cap_region, "+2": cap_region if cap_region == region else "end_grain"})
     yy = y + 0.16
-    for k, (f, hh) in enumerate(((0.78, 0.1), (0.56, 0.16 * tall), (0.36, 0.14 * tall), (0.18, 0.16 * tall))):
+    for k, (f, hh) in enumerate(((0.34, 0.11 * tall), (0.62, 0.13), (0.32, 0.13 * tall), (0.14, 0.08 * tall))):
         bone = shell if k < 2 else det
         box(bone, "%s_pt_%d" % (name, k), (x - w * f / 2, yy, z - w * f / 2), (x + w * f / 2, yy + hh, z + w * f / 2), region)
         yy += hh
@@ -542,11 +546,11 @@ def finial(shell, det, name, x, y, z, w=0.42, region="pd_finial", cap_region="pd
 
 
 def post(shell, det, name, x, z, top, d=0.36, foot=(0.55, 0.5), bands=(), eave=None, cap_w=None, finial_on=True,
-         region="pd_post", collide_top=None, tall=1.0, foot_region="wood_dark", base=None, solid=True):
-    """A squared wooden post from a foot block to `top`: iron bands (heights in `bands`), a collar, a cap and a pointed
-    golden finial; collides (foot width) from the ground to collide_top (default the post top) when solid; base = the
-    height its shaft starts at (default the foot's top: a king post on a beam starts higher). Returns the finial's tip
-    height (or the top)."""
+         region="pd_post", collide_top=None, tall=1.0, foot_region="wood_dark", base=None, solid=True, cap_region="pd_post"):
+    """A squared wooden post from a foot block to `top`: iron bands (heights in `bands`), a collar, a cap (cap_region:
+    wood, or "pd_finial" for a gilded collar) and the small golden knob finial; collides (foot width) from the ground
+    to collide_top (default the post top) when solid; base = the height its shaft starts at (default the foot's top: a
+    king post on a beam starts higher). Returns the finial's tip height (or the top)."""
     fh, fw = foot
     if fh > 0:
         box(shell, name + "_foot", (x - fw / 2, 0.0, z - fw / 2), (x + fw / 2, fh, z + fw / 2), {"all": foot_region, "+2": "end_grain"})
@@ -557,7 +561,7 @@ def post(shell, det, name, x, z, top, d=0.36, foot=(0.55, 0.5), bands=(), eave=N
     band(det, name + "_collar", x, z, d / 2 + 0.025, top - 0.14, 0.12)
     tip = top
     if finial_on:
-        tip = finial(shell, det, name + "_fin", x, top, z, w=cap_w or d + 0.1, tall=tall)
+        tip = finial(shell, det, name + "_fin", x, top, z, w=cap_w or d + 0.1, tall=tall, cap_region=cap_region)
     hw = max(fw, d) / 2 if fh > 0 else d / 2
     if solid:
         collide((x - hw, 0.0, z - hw, x + hw, collide_top if collide_top is not None else top, z + hw))
@@ -577,6 +581,39 @@ def tassel(det, name, top, length=0.45, region="rope", tuft="trim_gold"):
     beam(det, name + "_cord", top, top - UP * length, 0.05, region)
     add_cube(det, name + "_knot", top - UP * (length + 0.02), EYE, (0.1, 0.07, 0.1), region)
     add_cube(det, name + "_tuft", top - UP * (length + 0.14), EYE, (0.11, 0.18, 0.11), tuft, stretch=True)
+
+
+def loft_down(bone, name, P, nx, ny, region, th=0.03, overlap=0.004, both=True, u_hint=None, v_hint=None):
+    """tentlib.loft adapted for striped roofs whose stripes run DOWN the slope (t): each tilted strip keeps its sides
+    on the slope lines (v from the cell's left and right edges, u made square to it) instead of keeping its top and
+    bottom on the cell's edges. On a roof whose ridge or eave curves (the cells are slanted trapezoids), tentlib's
+    strips lean sideways and the stripes come out jagged; these keep them straight (the small slant moves to the
+    row seams, which lie inside one stripe colour)."""
+    for i in range(nx):
+        for j in range(ny):
+            s0, s1, t0, t1 = i / nx, (i + 1) / nx, j / ny, (j + 1) / ny
+            a1, b1, a0, b0 = P(s0, t0), P(s1, t0), P(s0, t1), P(s1, t1)   # a = left, b = right, 1 = top, 0 = bottom
+            c = (a0 + a1 + b0 + b1) / 4
+            vp = ((a0 - a1) + (b0 - b1)) / 2
+            H = np.linalg.norm(vp)
+            if H < 1e-5:
+                continue
+            v = vp / H
+            up_ = ((b0 + b1) - (a0 + a1)) / 2
+            up_ = up_ - np.dot(up_, v) * v
+            L = np.linalg.norm(up_)
+            if L < 1e-5:
+                continue
+            u = up_ / L
+            # the strip spans the cell's mean width measured square to the slope
+            L = (np.linalg.norm(np.cross(b1 - a1, v)) + np.linalg.norm(np.cross(b0 - a0, v))) / 2
+            n = np.cross(u, v)
+            axes = np.column_stack([u, v, n])
+            regions = {"all": None, "+3": region, "-3": region} if both else {"all": None, "+3": region}
+            cube = add_cube(bone, "%s_%d_%d" % (name, i, j), c, axes, (L + overlap, H + overlap, th), regions, stretch=True,
+                            u_dir=u if u_hint is None else u_hint, v_dir=v if v_hint is None else v_hint)
+            ml.tl.gn.set_sub(cube, (s0, t0, s1, t1))
+    return None
 
 
 def valance(bone, name, c0, c1, out, h=0.5, region="pd_valance", tab_len=2.4, flare=0.06, droop=0.0):

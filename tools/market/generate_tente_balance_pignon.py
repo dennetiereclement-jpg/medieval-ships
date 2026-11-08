@@ -5,19 +5,21 @@ scratchpad/ref2/tente_balance_pignon_ref.png, picture 097).
 A red-and-cream gabled merchant pavilion of the scales (balance) merchants, one block (TentType group "tents"), with two
 side awnings, seen in the picture from the front (a little from the left):
 
-  - the MAIN TENT: four tall squared corner posts that rise well above the eaves, with iron bands, coiled ropes and
-    golden finials; a gabled roof (ridge along x) in regular broad red and cream stripes running down the slopes, the
-    ridge rising in a soft curve to a raised middle (the "pignon"): a short crossbar on two small posts with finials
-    from which the big red SCALES BANNER hangs down the front slope (gold border, stepped point, gold diamond); striped
-    gable ends; a stepped dagged valance edged in gold along the eaves, curving between the posts; thick ropes from the
-    front posts up to the crossbar and down to the side awnings' posts, with tassels;
+  - the MAIN TENT: four tall squared corner posts that rise well above the eaves, with iron bands, coiled ropes,
+    gilded collars and small golden knob finials; a gabled roof (ridge along x) in regular broad red and cream stripes
+    running straight down the slopes (props_d.loft_down), the ridge rising in a soft curve to a raised middle (the
+    "pignon"): a short crossbar resting on it, its gilded ends with small knob finials, from which the big red SCALES
+    BANNER hangs down the front slope (gold border, stepped point, gold diamond); striped gable ends; a deep stepped
+    dagged valance edged in gold along the eaves, curving between the posts; thick ropes from the front posts up to the
+    crossbar and down to the side awnings' posts, with tassels; the walls a dusky canvas in the shade of the roof;
   - under the front eave three banners: two red scales banners (left of the middle, and under the right awning by the
     front-right post) and a middle banner with a faded emblem;
   - the two SIDE AWNINGS sloping out from the gable ends to outer posts with finials, striped red and cream, edged with
     the same dagged gold-edged valance;
-  - inside: the COUNTER along the front under a red runner (gold border, meander, stepped point, diamond) with an open
-    book, three bottles, a scroll and a blue book; back shelves of bottles and potions with two sacks; a lantern hanging
-    at the front left (and one inside at the back);
+  - inside: the COUNTER along the front under a cream top cloth dripping over its edge in gold-edged points and a red
+    runner (gold border, meander, stepped point, diamond), with an open book, three bottles, a scroll and a blue book;
+    back shelves of bottles and potions with two sacks; a lantern hanging at the front left (and one inside at the
+    back);
   - under the left awning the produce: a big iron-banded crate under a crate of red apples, stacked crates of tomatoes
     and cabbages (Farmer's Delight crates when installed), a crate of lavender, an open crate of grain, rice sacks, a
     barrel by the front-left post;
@@ -52,7 +54,7 @@ box, collide = pd.box, pd.collide
 _rgb, _jitter, _scale, _mix = pd._rgb, pd._jitter, pd._scale, pd._mix
 
 PAL = pd.Pal(cream="ecb880", red="8e2620", red_dark="561410", red_light="b03a30", gold="f0a030", gold_dark="8a5010",
-             gold_light="ffd27a", wood="8a5028", wood_dark="442410", finial="e88a24")
+             gold_light="ffd27a", wood="8a5028", wood_dark="442410", finial="f0a83a")
 
 # ---------------------------------------------------------------- dimensions (design coordinates, +z = the front; the
 # whole tent is moved at the end so that its extent is centred on the anchor block)
@@ -141,13 +143,16 @@ def add_regions(atlas):
     atlas.add("pd_banner", 32, 80, pd.banner_painter(PAL, s + 3, point="step", diamond=True, border=2, body=0.68))
     atlas.add("pd_finial", 16, 16, pd.finial_painter(PAL, s + 4))
     # row 2: 96 high
-    atlas.add("pd_rug", 160, 96, pd.rug_painter(PAL, s + 5, motif="chain"))
+    # (chunkier pixels than the other regions: the picture's rug has a bold border of big gold squares)
+    atlas.add("pd_rug", 120, 80, pd.rug_painter(PAL, s + 5, motif="chain", glyphs=False, stains=5))
     atlas.add("pd_awning", 160, 64, pd.stripes_painter(PAL, [(1, "r" if k % 2 == 0 else "c") for k in range(7)], s + 6, fold=0.14))
     atlas.add("pd_gable", 160, 48, paint_gable)
     atlas.add("pd_banner_mid", 32, 80, pd.banner_painter(PAL, s + 7, point="step", diamond=True, border=2, body=0.68, faded=True))
     # row 3: 64 high
     atlas.add("pd_runner", 48, 64, pd.runner_painter(PAL, s + 8, point="step"))
-    atlas.add("pd_wall", 96, 64, pd.canvas_painter(PAL, s + 9, base=_mix(PAL.cream, PAL.red, 0.12), folds=5, hem=PAL.red_dark, bottom_red=6))
+    # (the walls are in the shade of the roof and the awnings in the picture: a dusky canvas, not bright cream)
+    atlas.add("pd_wall", 96, 64, pd.canvas_painter(PAL, s + 9, base=_mix(_mix(PAL.cream, PAL.red, 0.12), PAL.wood_dark, 0.42), folds=5,
+                                                   hem=PAL.red_dark, bottom_red=6))
     atlas.add("pd_valance", 224, 32, pd.valance_painter(PAL, s + 10, [(1, "r" if k % 2 == 0 else "c", 1.0) for k in range(STRIPES)], shape="step",
                                                         band=0.4, gold_edge=PAL.gold))
     atlas.add("pd_valance_aw", 128, 32, pd.valance_painter(PAL, s + 11, [(1, "r" if k % 2 == 0 else "c", 1.0) for k in range(7)], shape="step",
@@ -164,12 +169,15 @@ def add_regions(atlas):
     atlas.add("pd_fb_red", 32, 32, produce_crate_painter([_rgb("e03a22"), _rgb("f05a30"), _rgb("a01a10")], s + 19))
     atlas.add("pd_fb_green", 32, 32, produce_crate_painter([_rgb("7ab83a"), _rgb("5a9a2a"), _rgb("9ad04a")], s + 20))
     atlas.add("pd_fb_orange", 32, 32, produce_crate_painter([_rgb("f08a20"), _rgb("e06a10"), _rgb("ffb040")], s + 21))
+    atlas.add("pd_cream", 32, 16, lambda img: pd.weave(img, PAL.cream, random.Random(s + 23), stains=1))
+    atlas.add("pd_drip", 64, 16, pd.valance_painter(PAL, s + 22, [(1, "c", 0.55), (1, "c", 1.0)] * 6, shape="step", band=0.45,
+                                                    gold_edge=PAL.gold))
     if atlas.size != 512:
         raise AssertionError("the atlas grew to %d px: repack the regions" % atlas.size)
 
 
 # ---------------------------------------------------------------- roof geometry
-def roof_face(sgn, folds=STRIPES, depth=0.065, sag=0.16):
+def roof_face(sgn, folds=STRIPES, depth=0.05, sag=0.16):
     """The front (sgn = 1) or back (sgn = -1) roof face: s along x (left to right as seen from its side), t from the
     ridge down to the eave."""
     def P(s, t):
@@ -231,8 +239,8 @@ def awning(shell, det, name, sx, x_out, y_out, region="pd_awning"):
         y = yi + (ye - yi) * f - 0.06 * math.sin(math.pi * t) * (yi - ye) - 0.035 * math.sin(math.pi * frac) * math.sin(math.pi * t)
         return v3(x, y, z)
     loft(shell, name, A, 14, 4, region, th=0.035, overlap=0.05)
-    pd.valance(shell, name + "_val_front", (x0, EY, z1 + 0.02), (x1, ye, z1 + 0.02), Z, h=0.6, region="pd_valance_aw", tab_len=1.2, droop=0.06)
-    pd.valance(shell, name + "_val_out", (x1 + sx * 0.02, ye, z1), (x1 + sx * 0.02, ye, z0), v3(sx, 0, 0), h=0.6, region="pd_valance_aw", tab_len=1.3,
+    pd.valance(shell, name + "_val_front", (x0, EY, z1 + 0.02), (x1, ye, z1 + 0.02), Z, h=0.72, region="pd_valance_aw", tab_len=1.2, droop=0.06)
+    pd.valance(shell, name + "_val_out", (x1 + sx * 0.02, ye, z1), (x1 + sx * 0.02, ye, z0), v3(sx, 0, 0), h=0.72, region="pd_valance_aw", tab_len=1.3,
                droop=0.06)
     # a canvas wall at the back of the awning
     pd.wall(shell, name + "_wall", (x_out, 0, AZ0 - 0.06), (sx * HW, 0, AZ0 - 0.06), 0.0, fb - 0.12, -Z, region="pd_wall", nx=4, fold=0.05, flare=0.12)
@@ -252,9 +260,9 @@ def build(atlas, decor):
     tops = []
     for k, (x, z) in enumerate(corners):
         tip = pd.post(shell, det, "post_%d" % k, x, z, POST_TOP, d=0.46, foot=(0.7, 0.68), bands=(1.3, 2.6, EAVE - 0.05, POST_TOP - 0.62),
-                      collide_top=EAVE, cap_w=0.56, tall=1.25)
+                      collide_top=EAVE, cap_w=0.56, tall=1.25, cap_region="pd_finial")
         tops.append(v3(x, POST_TOP + 0.08, z))
-        pd.rope_wrap(det, "post_coil_%d" % k, x, z, POST_TOP - 0.32, 0.23, turns=3)
+        pd.rope_wrap(det, "post_coil_%d" % k, x, z, POST_TOP - 0.36, 0.23, turns=1)
         pd.rope_wrap(det, "post_coil_low_%d" % k, x, z, EAVE + 0.32, 0.23, turns=2)
     by = EAVE - 0.26
     for k in range(4):
@@ -282,26 +290,28 @@ def build(atlas, decor):
                 beam(shell, "rafter_%d_%d_%d" % (k, j, i), ps[i], ps[i + 1], 0.12, "wood_dark", extend=0.03)
 
     # ---- the roof: two faces, the striped gables, the ridge cover, the stepped valance
-    loft(shell, "roof_front", FRONT, 2 * STRIPES, 5, "pd_roof", th=0.04, overlap=0.05)
-    loft(shell, "roof_back", roof_face(-1), 2 * STRIPES, 5, "pd_roof", th=0.04, overlap=0.05)
+    pd.loft_down(shell, "roof_front", FRONT, 2 * STRIPES, 5, "pd_roof", th=0.04, overlap=0.05)
+    pd.loft_down(shell, "roof_back", roof_face(-1), 2 * STRIPES, 5, "pd_roof", th=0.04, overlap=0.05)
     for k, sx in enumerate((-1, 1)):
         ml.plate(shell, "gable_%d" % k, (sx * (W - 0.02), (EY + RY_END) / 2, ZR), 2 * D, RY_END - EY, "pd_gable", normal=(sx, 0, 0), th=0.02)
     rc = [v3(x, ridge_y(x) + 0.02, ZR) for x in np.linspace(-W, W, 9)]
     for i in range(8):
         beam(shell, "ridge_cover_%d" % i, rc[i], rc[i + 1], 0.06, "pd_post", width=0.16, extend=0.04)
-    pd.valance(shell, "valance_front", (-W - 0.02, EY, ZF + OV + 0.02), (W + 0.02, EY, ZF + OV + 0.02), Z, h=0.5, region="pd_valance", droop=DROOP,
+    pd.valance(shell, "valance_front", (-W - 0.02, EY, ZF + OV + 0.02), (W + 0.02, EY, ZF + OV + 0.02), Z, h=0.75, region="pd_valance", droop=DROOP,
                tab_len=1.0)
-    pd.valance(shell, "valance_back", (W + 0.02, EY, ZB - OV - 0.02), (-W - 0.02, EY, ZB - OV - 0.02), -Z, h=0.5, region="pd_valance", droop=DROOP,
+    pd.valance(shell, "valance_back", (W + 0.02, EY, ZB - OV - 0.02), (-W - 0.02, EY, ZB - OV - 0.02), -Z, h=0.75, region="pd_valance", droop=DROOP,
                tab_len=1.0)
 
     # ---- the raised middle: two small posts on the ridge, the crossbar, finials, the big scales banner down the slope
     yc = RY_MID + 0.42
+    # (as in the picture: the crossbar sits right on the raised middle, its two ends capped in gold with small upright
+    # knob finials; the short posts under it stop at the bar)
     for k, x in enumerate((-0.62, 0.62)):
-        beam(shell, "peak_post_%d" % k, (x, ridge_y(x) - 0.2, ZR), (x, yc + 0.12, ZR), 0.16, {"all": "pd_post", "+1": "end_grain", "-1": "end_grain"})
-        pd.finial(shell, det, "peak_fin_%d" % k, x, yc + 0.12, ZR, w=0.24, tall=0.9)
+        beam(shell, "peak_post_%d" % k, (x, ridge_y(x) - 0.2, ZR), (x, yc - 0.06, ZR), 0.16, {"all": "pd_post", "+1": "end_grain", "-1": "end_grain"})
     beam(shell, "peak_bar", (-0.85, yc, ZR + 0.02), (0.85, yc, ZR + 0.02), 0.13, {"all": "pd_post", "+1": "end_grain", "-1": "end_grain"})
-    for k, x in enumerate((-0.92, 0.92)):
-        add_cube(det, "peak_bar_knob_%d" % k, (x, yc, ZR + 0.02), EYE, (0.16, 0.16, 0.16), "pd_finial")
+    for k, x in enumerate((-0.86, 0.86)):
+        add_cube(shell, "peak_bar_cap_%d" % k, (x, yc, ZR + 0.02), EYE, (0.2, 0.2, 0.2), "pd_finial")
+        pd.finial(shell, det, "peak_fin_%d" % k, x, yc + 0.1, ZR + 0.02, w=0.22, tall=0.85, cap_region="pd_finial")
     bw, blen = 1.05, 1.95
     path = [v3(0, yc - 0.04, ZR + 0.1), v3(0, RY_MID + 0.1, ZR + 0.1)]
     for t in np.linspace(0.04, 0.9, 12):
@@ -363,6 +373,9 @@ def build(atlas, decor):
     y = top[1]
     box(shell, "counter_cloth", (-0.35, y, cz1 - 0.45), (1.25, y + 0.015, cz1 + 0.05), {"all": "cloth_red"}, stretch=True, u_dir=X)
     ml.plate(shell, "runner", (0.45, y - 0.44, cz1 + 0.06), 1.6, 0.9, "pd_runner", normal=(0, 0, 1), th=0.012, edge="cloth_red")
+    # the cream cloth on the counter top dripping over its front edge in gold-edged points (picture)
+    box(shell, "counter_top_cloth", (cx0 - 0.05, y, cz0 + 0.1), (cx1 + 0.05, y + 0.012, cz1 + 0.05), {"all": "pd_cream"}, stretch=True, u_dir=X)
+    ml.plate(shell, "counter_drip", ((cx0 + cx1) / 2, y - 0.1, cz1 + 0.05), cx1 - cx0 + 0.1, 0.22, "pd_drip", normal=(0, 0, 1), th=0.01)
     zc = (cz0 + cz1) / 2
     for k, (x, col, h) in enumerate(((-1.15, "green", 0.24), (-0.92, "orange", 0.2), (-0.7, "red", 0.17))):
         ml.bottle(det, "bottle_%d" % k, (x, y, zc + 0.05 * (k % 2)), col, r=0.065, h=h, shape="tall" if k != 1 else "round", neck_h=0.09)

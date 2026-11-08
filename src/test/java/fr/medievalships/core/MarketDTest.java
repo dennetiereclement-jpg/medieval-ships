@@ -27,8 +27,8 @@ import fr.medievalships.client.model.BbModel;
  * generate_tente_balance_pignon.py on props_d / merchantlib): two red-and-cream tents of the scales merchants.
  * <ul>
  * <li>{@code tente_balance_auvent}: a hipped main tent on a short ridge between two ridge posts, its left wall closed with
- * a scales banner, and a long red patterned awning on posts over the front right; the counter runs front to back under
- * the awning, its front facing the carpet (-x); the merchant stands behind it (+x).</li>
+ * a scales banner, and a long red patterned awning on posts over the front right; the counter runs along the front under
+ * the awning, its face towards the street (+z); the merchant stands behind it, in front of the main tent's opening.</li>
  * <li>{@code tente_balance_pignon}: a gabled pavilion with four tall corner posts rising above the roof, a raised middle
  * carrying the big scales banner, and two side awnings sweeping out of the gable ends; the counter runs along the front;
  * the merchant stands behind it, in front of the shelves.</li>
@@ -51,8 +51,8 @@ public class MarketDTest {
 		}
 	}
 
-	static final Spec AUVENT = new Spec("tente_balance_auvent", "Tente à la balance et à l'auvent", "Scales Tent with Awning", 13, 4, 0.6, 1.0,
-			"-x", new double[] {-1.7, -0.6, 0.2, 4.2}, 4, 3.2, 0.45, 3, 2.7,
+	static final Spec AUVENT = new Spec("tente_balance_auvent", "Tente à la balance et à l'auvent", "Scales Tent with Awning", 13, 4, 0.75, 0.15,
+			"+z", new double[] {-1.75, -0.55, -0.1, 3.2}, 4, 3.2, 0.45, 3, 2.7,
 			Set.of("farmersdelight:tomato_crate", "farmersdelight:cabbage_crate", "farmersdelight:rice_bag", "furnish:spruce_crate",
 					"furnish:book_pile"));
 	static final Spec PIGNON = new Spec("tente_balance_pignon", "Tente à pignon à la balance", "Gabled Scales Tent", 12, 2, -0.45, -1.85,
