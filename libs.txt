@@ -1,0 +1,4 @@
+total 888
+drwxr-xr-x  2 runner runner   4096 Nov  8 19:25 .
+drwxr-xr-x 14 runner runner   4096 Nov  8 19:26 ..
+-rw-r--r--  1 runner runner 900462 Nov  8 19:25 lithium.jar
