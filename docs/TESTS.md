@@ -71,10 +71,12 @@ de temps tiennent avec la courbe amortie (montée 80 ticks après le début de l
 le dernier navire, inversion en pleine descente sans saut : 65,2° → 68,4°) ; les chaînes se dessinent sans erreur sur
 le client solo comme sur le client du serveur dédié, dans tous les états (`pontlevis_2_ouverture` les montre tendues
 vers les ancres pendant la montée) ; le pont rouvert après redémarrage est retrouvé à 80° avec ses chaînes.
-Le même test est rejoué avec le mécanisme complet (axe et paliers de charnière, poutre de treuil et tambours,
-chaînes à vrais maillons, poteaux de barrière, lanternes qui gardent leur lumière), avec deux captures rapprochées en
-plus (`pontlevis_1b_mecanisme_ferme` : les chaînes des coins du tablier aux tambours sous la passerelle fixe, pont
-fermé ; `pontlevis_6b_mecanisme_ouvert` : le vantail dressé, son axe et ses chaînes enroulées, après le redémarrage).
+Rejoué une troisième fois avec le mécanisme complet (axe et paliers de charnière, poutre de treuil et tambours,
+chaînes à vrais maillons, poteaux de barrière, lanternes qui gardent leur lumière) : **118 vérifications, toutes
+réussies** (53 solo, 9 après réouverture, 56 dédié), aucune erreur de rendu, mêmes repères de temps ; deux captures
+rapprochées en plus (`pontlevis_1b_mecanisme_ferme` : les chaînes des coins du tablier aux tambours sous la passerelle
+fixe, pont fermé ; `pontlevis_6b_mecanisme_ouvert` : le vantail dressé, son axe et ses chaînes enroulées, après le
+redémarrage).
 
 Tests unitaires (`LeafGeometryTest`, `ChannelZonesTest`, `GaugeAndCycleTest`, 19 tests, Java pur) : repère et
 rotation des vantaux (le bout libre monte, axe de rendu `v × up`, vantail de l'autre rive symétrique), boîtes fermées
