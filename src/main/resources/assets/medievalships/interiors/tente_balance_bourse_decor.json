@@ -1,0 +1,45 @@
+{
+ "blocks": [
+  {
+   "block": "furnish:spruce_crate",
+   "x": -3.5,
+   "y": 0.0,
+   "z": 0.1,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_0",
+   "alt": "minecraft:barrel"
+  },
+  {
+   "block": "furnish:book_pile",
+   "x": 0.85,
+   "y": 1.05,
+   "z": 1.145,
+   "yaw": 180.0,
+   "scale": 0.55,
+   "fallback": "fallback_1"
+  },
+  {
+   "block": "farmhouse_decorations:pile_of_books",
+   "x": -0.62,
+   "y": 0.82,
+   "z": 3.2,
+   "yaw": 180.0,
+   "scale": 1.5,
+   "fallback": "fallback_2"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": 3.6,
+   "y": 0.0,
+   "z": 0.35,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_3",
+   "alt": "minecraft:barrel"
+  }
+ ],
+ "seats": [],
+ "paintings": [],
+ "switches": []
+}
