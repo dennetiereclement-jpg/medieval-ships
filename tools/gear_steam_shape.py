@@ -62,7 +62,7 @@ GALLERY_BULWARK_TOP = 6.0
 # ---- masts, funnel, dome, crane, bow boom (as measured on the reference)
 MAIN_MAST_Z, MAIN_MAST_TOP = 7.5, 19.6     # stepped on the keel, through the hold and the waist
 MIZZEN_Z, MIZZEN_TOP = -15.9, 18.0         # stepped on the poop deck
-MAIN_YARD_Y, MAIN_SAIL_FOOT = 17.2, 9.6
+MAIN_YARD_Y, MAIN_SAIL_FOOT = 17.2, 10.6
 MIZZEN_YARD_Y, MIZZEN_SAIL_FOOT = 15.5, 10.4
 MAIN_YARD_HALF, MIZZEN_YARD_HALF = 5.6, 3.0
 YARD_TILT_DEG = 22.0       # and peaked: the aft (starboard) arm higher, the sails slanting down forward

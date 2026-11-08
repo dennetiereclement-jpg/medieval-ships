@@ -41,8 +41,8 @@ cap 106°, champ 40°).
 | Dôme | tambour x 600–770, chapeau cuivré à côtes de laiton, garde-corps rond au sommet | tambour Ø 5,7 de 9,0 à 12,4, dôme jusqu'à 14,2, couronne-garde-corps Ø 2,9 |
 | Rouf du capitaine | 3 fenêtres éclairées (x 355–500), toit à garde-corps, lanterne | rouf 6 × 7 sur la dunette (7,5 → 11), 3 fenêtres par bord, passerelle de commandement (11,0) sur le toit |
 | Grand mât | x ≈ 960, haut coupé par l'image (≈ 27 blocs bruts), cage au sommet, collier de laiton | z 7,5, sommet 19,6, cage 18,5 → 20 ; vergue à 17,2 |
-| Grand-voile | noire, liseré doré à droite et en bas, montant doré à 31 %, engrenage doré Ø 36 % | 10,4 × 7,6, coupée en trapèze (bas plus étroit), engrenage à 8 rayons et 10 dents |
-| Artimon | x ≈ 270, sommet ≈ 23 bruts, petite cage | z −15,9, sommet 18, cage 16,9 → 18,1 ; voile 4,2 × 5 (montant doré à 25 %, sans emblème comme sur l'image) |
+| Grand-voile | noire, liseré doré à droite et en bas, montant doré à 31 %, engrenage doré Ø 36 % ; son pied passe au-dessus du toit des machines | 10,4 × 6,6 (vergue 17,2, pied 10,6), coupée en trapèze (bas plus étroit), engrenage à 8 rayons et 10 dents |
+| Artimon | x ≈ 270, sommet ≈ 23 bruts, petite cage, voile étroite | z −15,9, sommet 18, cage 16,9 → 18,1 ; voile 3,9 × 5,1 (montant doré à 25 %, sans emblème comme sur l'image) |
 | Vergues | inclinées (extrémité arrière plus haute, ≈ 19° apparents) | brassées de 62° (bras tribord vers l'arrière) et apiquées de 22° (bout tribord plus haut) |
 | Grue | poteau sur la dunette arrière, flèche vers l'arrière, caisse sur 2 chaînes (x 63–130, y 395–435) | poteau z −18,8, flèche jusqu'à z −23,6 / y 12,8, caisse 1,7 × 1,3 × 1,6 à y 7,2–8,5 |
 | Galerie de poupe | balcon sous le surplomb de la dunette, engrenage et lanterne sur ses faces | galerie z −20 → −17,5 (plancher 4,5), toit = la dunette prolongée sur deux poteaux |

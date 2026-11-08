@@ -713,7 +713,7 @@ MASTS = {
 SQUARE_SAILS = [
     # mast, name, yard y, foot y, half width at the head, at the foot, belly, texture region, yard half
     ("main", "main_sail", gs.MAIN_YARD_Y, gs.MAIN_SAIL_FOOT, 5.2, 4.5, 1.3, "main_sail", gs.MAIN_YARD_HALF),
-    ("mizzen", "mizzen_sail", gs.MIZZEN_YARD_Y, gs.MIZZEN_SAIL_FOOT, 2.1, 1.85, 0.6, "mizzen_sail", gs.MIZZEN_YARD_HALF),
+    ("mizzen", "mizzen_sail", gs.MIZZEN_YARD_Y, gs.MIZZEN_SAIL_FOOT, 1.95, 1.7, 0.6, "mizzen_sail", gs.MIZZEN_YARD_HALF),
 ]
 
 
@@ -726,7 +726,9 @@ def mast(root, fittings, name):
     add_cube(mb, name + "_partners", (0, deck + 0.15, z), EYE, (d + 0.4, 0.3, d + 0.4), "brass_band")
     bands = (8.5, 13.0, 17.0) if name == "main" else (10.0, 14.0)
     for k, y in enumerate(bands):
-        add_cube(mb, "%s_band_%d" % (name, k), (0, y, z), EYE, (d + 0.22, 0.5 if k == 0 and name == "main" else 0.24, d + 0.22), "brass_band")
+        big = k == 0 and name == "main"   # the broad brass collar of the reference, level with the engine house roof
+        add_cube(mb, "%s_band_%d" % (name, k), (0, y, z), EYE, (d + (0.55 if big else 0.22), 0.6 if big else 0.24, d + (0.55 if big else 0.22)),
+                 "brass_band")
     # the lookout box at the masthead: a dark frame with brass corners and a cap, lit inside
     s = bs
     add_cube(mb, name + "_box_floor", (0, b0 + 0.06, z), EYE, (s, 0.12, s), "dark_wood")
