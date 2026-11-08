@@ -51,8 +51,7 @@ EAVE = 3.4                   # top of the eave beams
 EY = 3.45                    # the roof's lower edge
 AY = 5.45                    # the roof's apex (a low, wide bell roof)
 W, D = HW + 0.45, HD + 0.45  # the roof's eave corners
-GW = 1.6                     # the front cross gable: half width at the eave (its ridge runs from the apex)
-PX, PZ = -HW - 0.55, HD + 0.85   # the tall banner pole
+PX, PZ = -HW - 0.8, HD - 0.3    # the tall banner pole (outside the left side, near the front corner)
 POLE_TOP = 5.95
 COUNTER = (-2.4, -0.35, 0.85, 1.5)   # x0, x1, z0, z1
 COUNTER_H = 1.0
@@ -65,10 +64,10 @@ def regions(atlas):
         ("roof", 128, 96, pa.stripes([BLUE, CREAM], 4, 3201, fold=0.17)),
         ("rug", 96, 112, pa.rug(3202, scrolls="lattice")),
         ("cross", 40, 80, pa.banner(3203, emblem="cross", bottom="point", box=(0.16, 0.1, 0.84, 0.56))),
-        ("crest", 48, 72, pa.crest(3204)),
+        ("crest", 48, 84, pa.crest(3204)),
         ("wall", 128, 64, pa.stripes([BLUE, CREAM], 8, 3205, fold=0.2)),
         ("drape", 48, 64, pa.drape(3206)),
-        ("pennant", 28, 48, pa.pennant(3207)),
+        ("pennant", 24, 56, pa.pennant(3207)),
         ("fdl", 32, 48, pa.banner(3208, emblem="fdl", bottom="point", box=(0.18, 0.12, 0.82, 0.56))),
         ("cloth", 96, 40, pa.counter_cloth(3209)),
         ("valance", 256, 24, pa.dag_valance(12, 3210)),
@@ -76,6 +75,7 @@ def regions(atlas):
         ("chest", 32, 32, pa.chest_wood(3212)),
         ("map", 32, 24, pa.parchment(3213)),
         ("post", 64, 16, pa.post_wood(3224)),
+        ("burlap", 32, 32, pa.burlap(3226)),
         ("wall_r", 32, 32, pa.stripes([pa._rgb("a82a26"), CREAM], 4, 3225, fold=0.1)),
         ("runner", 32, 32, pa.drape(3223, cloth=pa.CREAM, folds=1, motif="fdl")),
         ("bunt_b", 16, 24, pa.bunting_flag(3214, BLUE)),
@@ -123,26 +123,17 @@ def build(atlas, decor):
     for k, (c0, c1, o) in enumerate((((-W, EY, D + 0.02), (W, EY, D + 0.02), Z), ((W + 0.02, EY, D), (W + 0.02, EY, -D), X),
                                      ((W, EY, -D - 0.02), (-W, EY, -D - 0.02), -Z), ((-W - 0.02, EY, -D), (-W - 0.02, EY, D), -X))):
         pa.valance(shell, "valance_%d" % k, c0, c1, o, h=0.6, region="pv_valance", segs=6, sag=0.06)
-    # ---- the front cross gable: its ridge runs level from the apex to the front, two slopes down to the eave, the
-    # striped gable face, cream barge boards edged in gold
-    R0 = v3(0, AY - 0.02, 0.0)
-    R1 = v3(0, AY - 0.62, D + 0.08)
-    EL, ER = v3(-GW, EY + 0.02, D + 0.08), v3(GW, EY + 0.02, D + 0.08)
-    pa.tri_plate(shell, atlas, "gable_l", R0, R1, EL, n=3, size=64, seed=3220, colours=(CREAM, BLUE))
-    pa.tri_plate(shell, atlas, "gable_r", R0, ER, R1, n=3, size=64, seed=3221, colours=(BLUE, CREAM))
-    pa.tri_plate(shell, atlas, "gable_face", R1 - v3(0, 0.02, 0.0), EL, ER, n=4, size=64, seed=3222, colours=(BLUE, CREAM))
-    for k, e in enumerate((EL, ER)):
-        mid = (R1 + e) / 2
-        dd = norm(e - R1)
-        beam(shell, "barge_%d" % k, R1 + dd * 0.08 + v3(0, 0.05, 0.05), e + dd * 0.12 + v3(0, 0.0, 0.05), 0.07, {"all": "cloth_beige"}, width=0.2)
-        beam(det, "barge_gold_%d" % k, R1 + dd * 0.1 + v3(0, 0.14, 0.09), e + dd * 0.12 + v3(0, 0.09, 0.09), 0.04, "gold", width=0.05)
-    beam(shell, "gable_ridge", R0 + v3(0, 0.04, 0), R1 + v3(0, 0.04, 0), 0.1, "cloth_beige", extend=0.05)
-    # the lion crest on its gold rod, the two cream fleur-de-lis pennants beside it hanging from the barge boards
-    ml.banner(shell, "crest", (0, AY - 0.55, D + 0.17), 1.5, 2.15, normal=(0, 0, 1), region="pv_crest", rod=True, wave=0.03, rod_region="gold")
+    # ---- the lion crest lying on the roof's front face high under the finial (a gold rod across its top), hanging on
+    # down past the valance; the two cream fleur-de-lis pennants beside it, lower on the slope
+    pa.roof_plaque(shell, "crest", roof_y, -0.82, 0.82, 0.75, D, 0.55, "pv_crest", nx=2, ny=6)
+    yr = roof_y(0, 0.75) + 0.14
+    beam(shell, "crest_rod", (-0.95, yr, 0.78), (0.95, yr, 0.78), 0.07, "gold", width=0.07)
     for k, sx in enumerate((-1, 1)):
-        xp = sx * 1.1
-        ml.banner(shell, "pennant_%d" % k, (xp, EY + (R1[1] - EY) * (1 - abs(xp) / GW) - 0.05, D + 0.13), 0.62, 1.2, normal=(0, 0, 1),
-                  region="pv_pennant", rod=True, wave=0.03, rod_region="wood_dark")
+        add_cube(det, "crest_knob_%d" % k, (sx * 0.98, yr, 0.78), EYE, (0.1, 0.1, 0.1), "gold")
+        xp = sx * 1.32
+        pa.roof_plaque(shell, "pennant_%d" % k, roof_y, xp - 0.37, xp + 0.37, 1.75, D, 0.62, "pv_pennant", nx=1, ny=4)
+        yq = roof_y(xp, 1.75) + 0.12
+        beam(det, "pennant_rod_%d" % k, (xp - 0.45, yq, 1.77), (xp + 0.45, yq, 1.77), 0.05, "wood_dark", width=0.05)
     # ---- the tall banner pole at the front left: stone foot, rope wound round it, cross bar, the cross banner
     pa.post(shell, det, "pole", PX, PZ, POLE_TOP, d=0.34, stone_w=0.62, stone_h=0.55, bands=(1.4, 2.6), cap=0.46, stone_region="pv_stone", post_region="pv_post")
     pa.rope_coil_post(det, "pole_rope", PX, PZ, 3.3, 5.9, d=0.34, turns=5)
@@ -154,8 +145,8 @@ def build(atlas, decor):
     for k, dx in enumerate((-0.3, 0.3)):
         add_cube(det, "pole_ring_%d" % k, (PX + 0.6 + dx, bar_y - 0.03, PZ + 0.25), EYE, (0.05, 0.12, 0.05), "iron")
     # the bunting from the pole top to the finial
-    pa.bunting(det, det, "bunting", (PX + 0.1, POLE_TOP - 0.05, PZ - 0.1), (0, AY + 0.3, 0.1), 8, ["pv_bunt_b", "pv_bunt_c"], sag=0.55,
-               size=(0.34, 0.5))
+    pa.bunting(det, det, "bunting", (PX + 0.1, POLE_TOP - 0.05, PZ - 0.1), (0, AY + 0.35, 0.1), 8, ["pv_bunt_b", "pv_bunt_c"], sag=0.62,
+               size=(0.38, 0.56))
     # ---- walls: the back, the closed back half of the sides (blue / cream stripes)
     pa.wall(shell, "wall_back", (-HW, 0, -HD - 0.06), (HW, 0, -HD - 0.06), 0.0, by - 0.15, -Z, "pv_wall", nx=8)
     collide((-HW, 0.0, -HD - 0.12, HW, by - 0.15, -HD))
@@ -229,12 +220,12 @@ def build(atlas, decor):
     # ---- the rug from the counter out past the front
     ml.rug(shell, "rug", -2.0, 1.55, -0.1, 3.95, y=0.0, region="pv_rug")
     # ---- outside: the big sacks at the front left, crates on the left and the right
-    pa.sack_big(shell, det, "sack_0", (-2.4, 0.0, 3.05), yaw=0.2, w=0.8, h=1.12)
-    pa.sack_big(shell, det, "sack_1", (-1.6, 0.0, 3.3), yaw=-0.3, w=0.74, h=1.02)
+    pa.sack_big(shell, det, "sack_0", (-2.4, 0.0, 3.05), yaw=0.2, w=0.8, h=1.12, region="pv_burlap")
+    pa.sack_big(shell, det, "sack_1", (-1.6, 0.0, 3.3), yaw=-0.3, w=0.74, h=1.02, region="pv_burlap")
     collide((-2.8, 0.0, 2.65, -1.23, 1.0, 3.67))
-    decor.block("furnish:spruce_crate", -3.8, 0.0, 1.55, facing="front", alt="minecraft:barrel", fallback="crate")
-    ml.crate(shell, "crate_l_top", (-3.8, 1.0, 1.55), size=0.62, yaw=0.15, solid=True)
-    ml.crate(shell, "crate_l_low", (-3.75, 0.0, 0.5), size=(0.7, 0.55, 0.62), yaw=-0.1, solid=True)
+    decor.block("furnish:spruce_crate", -3.85, 0.0, 1.05, facing="front", alt="minecraft:barrel", fallback="crate")
+    ml.crate(shell, "crate_l_top", (-3.85, 1.0, 1.05), size=0.62, yaw=0.15, solid=True)
+    ml.crate(shell, "crate_l_low", (-3.8, 0.0, 0.05), size=(0.7, 0.55, 0.62), yaw=-0.1, solid=True)
     ml.crate(shell, "crate_r_0", (3.7, 0.0, 1.35), size=0.62, yaw=0.1, solid=True)
     ml.crate(shell, "crate_r_1", (3.72, 0.62, 1.38), size=0.45, yaw=-0.2, solid=True)
     ml.crate(det, "crate_r_small", (3.6, 0.0, 2.15), size=(0.4, 0.3, 0.36), yaw=0.3, solid=False)

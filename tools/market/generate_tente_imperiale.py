@@ -49,10 +49,10 @@ NAME = "tente_imperiale"
 HW, HD = 3.0, 2.7            # corner posts
 EAVE = 3.5                   # top of the eave beams
 EY = 3.55                    # the roof's lower edge
-AY = 6.1                     # the roof's apex
+AY = 5.85                    # the roof's apex
 W, D = HW + 0.3, HD + 0.3
 BULGE = 0.22                 # the eaves bow out between the corners: a rounder marquee
-FLAG_X, FLAG_Z, FLAG_TOP = HW + 0.15, -HD - 0.15, 7.7
+FLAG_X, FLAG_Z, FLAG_TOP = HW + 0.15, -HD - 0.15, 7.5
 COUNTER_L = (-2.5, -0.6, 0.0, 0.6)    # x0, x1, z0, z1
 COUNTER_R = (0.6, 2.5, 0.0, 0.6)
 COUNTER_H = 1.0
@@ -191,9 +191,12 @@ def build(atlas, decor):
     pa.valance(shell, "rags", (-HW + 0.3, EY - 0.62, D - 0.12), (HW - 0.3, EY - 0.62, D - 0.12), Z, h=0.5, region="im_rags", segs=4, flare=0.02,
                bulge=BULGE * 0.8)
     # ---- banners: long ones down the two sides near the front, the fringed one in front off the centre
-    ml.banner(shell, "banner_l", (-W - 0.12 - BULGE * math.sin(math.pi * (1.3 + D) / (2 * D)), EY - 0.05, 1.3), 1.0, 3.0, normal=(-1, 0, 0), region="im_banner", rod=True, wave=0.04, rod_region="gold")
-    ml.banner(shell, "banner_r", (W + 0.12 + BULGE * math.sin(math.pi * (1.3 + D) / (2 * D)), EY - 0.05, 1.3), 1.0, 3.0, normal=(1, 0, 0), region="im_banner", rod=True, wave=0.04, rod_region="gold")
-    ml.banner(shell, "banner_c", (0.65, EY - 0.05, D + 0.12 + BULGE * math.sin(math.pi * (0.65 + W) / (2 * W))), 1.05, 1.85, normal=(0, 0, 1), region="im_banner_c", rod=True, wave=0.03, rod_region="gold")
+    xl = -W - 0.12 - BULGE * math.sin(math.pi * (1.3 + D) / (2 * D))
+    ml.banner(shell, "banner_l", (xl, EY - 0.05, 1.3), 1.0, 3.0, normal=(-1, 0, 0), region="im_banner", rod=True, wave=0.04, rod_region="gold")
+    zf = D + 0.12 + BULGE * math.sin(math.pi * (2.2 + W) / (2 * W))
+    ml.banner(shell, "banner_r", (2.2, EY - 0.05, zf), 1.0, 2.9, normal=(0, 0, 1), region="im_banner", rod=True, wave=0.04, rod_region="gold")
+    ml.banner(shell, "banner_c", (0.1, EY - 0.05, D + 0.12 + BULGE * math.sin(math.pi * (0.1 + W) / (2 * W))), 1.05, 1.85, normal=(0, 0, 1),
+              region="im_banner_c", rod=True, wave=0.03, rod_region="gold")
     # ---- walls (blue), curtains drawn back at the entrance
     pa.wall(shell, "wall_back", (-HW, 0, -HD - 0.06), (HW, 0, -HD - 0.06), 0.0, by - 0.15, -Z, "im_wall", nx=8)
     collide((-HW, 0.0, -HD - 0.12, HW, by - 0.15, -HD))

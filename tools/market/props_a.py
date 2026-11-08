@@ -877,6 +877,45 @@ def bunting(bone, det, name, a, b, n, regions, sag=0.3, size=(0.26, 0.42), rope_
         plate(bone, "%s_%d" % (name, i), p - UP * (size[1] / 2 + 0.01), size[0], size[1], regions[i % len(regions)], normal=nrm, th=0.01)
 
 
+def roof_plaque(bone, name, roof_y, x0, x1, z_top, z_eave, hang, region, offset=0.07, nx=2, ny=5, out=0.12):
+    """A cloth plaque (a crest, a pennant) lying on a roof's front face from z_top down to the eave z_eave, then hanging
+    straight down by `hang` in front of the valance; roof_y(x, z) = the roof cloth's height (hip_roof's return)."""
+    def seg_len(xm):
+        n = 8
+        L = 0.0
+        for i in range(n):
+            za, zb = z_top + (z_eave - z_top) * i / n, z_top + (z_eave - z_top) * (i + 1) / n
+            L += math.hypot(zb - za, roof_y(xm, zb) - roof_y(xm, za))
+        return L
+    L1 = seg_len((x0 + x1) / 2)
+    t1 = L1 / (L1 + hang)
+
+    def P(s, t):
+        x = x0 + (x1 - x0) * s
+        if t <= t1:
+            z = z_top + (z_eave - z_top) * (t / t1)
+            return v3(x, roof_y(x, z) + offset, z + 0.02)
+        y0 = roof_y(x, z_eave) + offset
+        u = (t - t1) / (1 - t1)
+        return v3(x, y0 - hang * u, z_eave + 0.02 + out * min(1.0, u * 3.0))
+    loft(bone, name, P, nx, ny, region, th=0.02, u_hint=X, v_hint=-UP)
+
+
+def burlap(seed, base=_rgb("dcc49a")):
+    """Pale burlap: a coarse weave, darker vertical fold streaks, lighter in the middle."""
+    def p(img):
+        rng = random.Random(seed)
+        w, h = img.size
+        ml._weave(img, (0, 0, w, h), base, rng, stains=0)
+        px = img.load()
+        for y in range(h):
+            for x in range(w):
+                r, g, b, a = px[x, y]
+                k = 0.84 + 0.22 * math.sin(math.pi * (x + 0.5) / w) - 0.09 * (abs(math.sin(x * 0.55 + y * 0.08)) > 0.92)
+                px[x, y] = _scale((r, g, b), k) + (255,)
+    return p
+
+
 def tri_painter(pts, n, seed, colours, dark=0.74, seam=None):
     """Paints a triangle (pts: apex, base_a, base_b in the unit square, y down) cut out of its rectangle, in n gores
     radiating from the apex (colours in turn), darker seams and edges."""

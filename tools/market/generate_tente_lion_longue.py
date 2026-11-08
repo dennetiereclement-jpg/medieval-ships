@@ -51,24 +51,25 @@ NAME = "tente_lion_longue"
 HD = 2.0                      # half depth of the pavilion and the hall (posts at z = +-HD)
 PX0, PX1 = -3.0, -0.4         # the pavilion's posts in x
 PCX = (PX0 + PX1) / 2         # the pavilion's centre
-P_EAVE, P_APEX = 3.5, 6.0
+P_EAVE, P_APEX = 3.5, 5.6
 HX1 = 2.6                     # the hall's right posts (its left posts are the pavilion's right ones)
-H_EAVE, H_RIDGE = 3.4, 5.15
+H_EAVE, H_RIDGE = 3.4, 4.95
 LX = -5.0                     # the left awning's outer posts
 RX = 4.75                     # the right awning's outer posts
 AW_Y_OUT = 2.75               # the awnings' outer edge height
-FLAG_TOP = 8.1
+FLAG_TOP = 7.75
 DESK = (-0.35, 1.0, 0.45, 1.05)   # the writing desk (the merchant's counter): x0, x1, z0, z1
 DESK_H = 1.0
 NPC_SPOT = (-0.4, -0.85)      # (x0, z0) of the free 1 x 1 x 2.2 place behind the desk (the merchant)
 
 
 def cross_valance(seed):
-    """The hall's front valance: a cream band between gold rules, dark iron crosses in a row, round gold dags below."""
+    """The hall's front valance: a pale gold band between darker gold rules, dark iron crosses in a row, round gold
+    dags below."""
     def p(img):
         rng = random.Random(seed)
         w, h = img.size
-        pa.weave(img, CREAM, rng)
+        pa.weave(img, pa._mix(GOLD, CREAM, 0.35), rng)
         px = img.load()
         b = int(h * 0.66)
         n = 18
@@ -85,7 +86,7 @@ def cross_valance(seed):
                     px[x, y] = pa._jitter(pa.GOLD_D if edge else GOLD, rng, 8) + (255,)
                     continue
                 if y < 2 or y >= b - 1:
-                    px[x, y] = pa._jitter(GOLD if y != 0 else pa.GOLD_D, rng, 8) + (255,)
+                    px[x, y] = pa._jitter(pa.GOLD_D, rng, 8) + (255,)
                 elif y == 2 or y == b - 2:
                     px[x, y] = pa._jitter(pa._scale(GOLD, 0.8), rng, 8) + (255,)
         s = int(min(w / 6 * 0.5, b - 6))
@@ -232,9 +233,9 @@ def build(atlas, decor):
     top = ml.counter(shell, "pcounter", PX0 + 0.3, PX1 - 0.65, 1.42, 2.0, h=0.95, detail=det)
     pa.book_stack(det, "pbooks", (PX0 + 1.2, 0.95, 1.7), n=2, yaw=0.1, rng=rng, w=0.42, d=0.3, th=0.09)
     # crates in front of the pavilion: gold bars, cloth bundles
-    ml.crate(shell, "gold_crate", (-2.15, 0.0, 2.75), size=(0.8, 0.82, 0.7), yaw=0.03, solid=True)
-    pa.gold_bars(det, "gold", (-2.15, 0.82, 2.75), rows=2, yaw=math.pi / 2)
-    pa.gold_bars(det, "gold_b", (-1.95, 0.82, 2.55), rows=1, yaw=0.0)
+    ml.crate(shell, "gold_crate", (-2.15, 0.0, 2.75), size=(0.86, 0.86, 0.76), yaw=0.03, solid=True)
+    pa.gold_bars(det, "gold", (-2.15, 0.86, 2.75), rows=2, yaw=math.pi / 2)
+    pa.gold_bars(det, "gold_b", (-1.95, 0.86, 2.52), rows=1, yaw=0.0)
     ml.crate(shell, "bundle_crate", (-1.18, 0.0, 2.8), size=(0.75, 0.7, 0.66), yaw=-0.05, solid=True)
     for k, (dx, dz) in enumerate(((-0.17, -0.1), (0.17, -0.08), (0.0, 0.14), (-0.12, 0.12))):
         add_cube(det, "bundle_%d" % k, (-1.18 + dx, 0.82 + 0.06 * (k == 2), 2.8 + dz), ry(0.3 * k), (0.32, 0.22, 0.26), "cloth_beige")
