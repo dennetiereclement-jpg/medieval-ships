@@ -514,6 +514,62 @@ et les objets du joaillier (`bust`, `ring_tray`, `gem_tray`, `coffer`, `vitrine_
   faîtage, comme une ferme.
 - L'image de référence n'était pas disponible : le modèle suit sa description écrite.
 
+## Camp militaire (1.24.0)
+
+Trois nouvelles tentes dans l'onglet **Tentes** (liste `TentTypes.CAMP_TENTS`, ajoutée à la fin de `ALL`), des modèles
+**nouveaux**, différents de la « grande tente de commandement » (`tent_command`) et du « grand abri de marché »
+(`tent_market`) qui restent inchangés. Même système que les autres tentes : un objet, un bloc d'ancrage, un modèle
+statique, tournée vers le joueur qui la pose, persistante, retirée en cassant le bloc (rend l'objet) ou par commande.
+Pour défendre le camp, voir aussi le [pieu défensif](DECORATIONS.md#pieu-défensif-1240) (onglet Décorations).
+
+| id | nom | English | générateur |
+|----|-----|---------|------------|
+| `tente_militaire` | Tente militaire | Military Tent | `tools/tents/generate_tente_militaire.py` |
+| `tente_commandement` | Tente de commandement militaire | Military Command Tent | `tools/tents/generate_tente_commandement.py` |
+| `tente_marchande` | Tente marchande | Merchant Tent | `tools/tents/generate_tente_marchande.py` |
+
+```
+/give @p medievalships:tente_militaire        (ou tente_commandement, tente_marchande ; /tent give <id>)
+/tent place tente_commandement ~ ~ ~ south
+/tent remove nearest
+```
+
+Noms courts acceptés par les commandes : `militaire`, `commandement`, `marchande`.
+
+### Tente militaire
+
+Tente à faîtage vert olive (environ 6 × 7-8 blocs, faîtage vers 4,5-5) : toile olive marbrée aux pentes affaissées,
+fenêtre à croisillons de bois, poteaux sombres cerclés de fer, cordes de haubanage vers des piquets, entrée ouverte sous
+le pignon avec rabats retenus, bannière verte à l'épée d'or dans une couronne de laurier, lanterne allumée ; dedans un
+lit de camp, une table avec une carte, des caisses, un petit tapis vert ; dehors des sacs de toile, une caisse avec un
+rouleau de corde. Au moins deux places libres pour un PNJ EasyNPC (1 × 1 × 2,2). *(Détails, blocs de mods et places
+PNJ : paragraphe du constructeur à compléter à l'intégration.)*
+
+### Tente de commandement militaire
+
+Grand chapiteau rectangulaire (environ 10-11 × 12-13 blocs, faîtage vers 6-7) : toile olive marbrée, bandes « camouflage »
+beige et olive, lambrequin beige en dents de scie, poteaux cerclés de fer, cordes vers des ancres de pierre et de fer,
+grande ouverture sous un pignon avec rideaux retenus, trois bannières vertes aux épées croisées d'or, lanternes allumées,
+petit drapeau vert à queue d'aronde au faîtage ; dedans une grande table de stratégie avec une carte, des rouleaux, des
+livres, des caisses d'équipement, un tapis rouge orné, de la place pour au moins quatre PNJ ; devant, une table de cartes,
+une pile de caisses surmontée d'un heaume, un coffre, une roue de charrette. *(Paragraphe du constructeur à compléter.)*
+
+### Tente marchande
+
+Grand pavillon de marchand (environ 8-9 × 7-8 blocs, drapeau vers 7) : toit à pignon à larges bandes rouges et crème,
+lambrequin doré crénelé, charpente sombre aux gros chapeaux de poteaux et bandes de fer, cordes drapées le long des
+avant-toits, petit drapeau rouge et or, deux auvents latéraux (caisses et coffre à gauche, tonneaux et caisses à
+droite), enseigne suspendue aux pièces d'or, bannière rouge à la bourse d'or, lanternes ; un comptoir drapé de rouge
+bordé d'or, des étagères de potions, livres et marchandises, un coffre doré, des tonneaux cerclés, un gros sac, un tapis
+rouge et or ; une place libre derrière le comptoir pour un marchand EasyNPC (accès par un passage latéral). Pas de
+système d'échange. *(Paragraphe du constructeur à compléter.)*
+
+**Tests** : `TentGameTest` pose chacune des trois tentes une fois (bloc, orientation, entité de bloc, boîtes de
+collision, tient sur la plateforme, capture, retrait) et place un villageois sur une place libre à l'intérieur (une
+colonne 1 × 1 × 2,2 hors de toute boîte de collision, cherchée depuis le centre) : il n'est dans aucune boîte de
+collision et ne bouge pas. Les tests JUnit `CampMilitaireTest`, `CampCommandementTest`, `CampMarchandeTest` arrivent avec
+chaque modèle.
+
 ## Performances
 
 - **Aucun tick** : l'entité de bloc n'a pas de ticker, pas de particules, pas d'animation ; le serveur ne fait rien

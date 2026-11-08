@@ -148,6 +148,14 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.24.0 ajoute **un camp militaire** : le **pieu défensif** (`/give @p medievalships:pieu_defensif`, onglet
+« Décorations ») — un seul pieu taillé incliné, bande de fer, tissu rouge, pointe de bois clair, qu'on plante la pointe
+vers l'extérieur du camp ; sa pointe blesse et repousse les mobs hostiles qui la touchent (jamais les villageois, PNJ ni
+animaux ; les joueurs seulement si `"stake": {"damagePlayers": true}`), réglages `"stake"` dans
+`config/medievalships.json` — et trois tentes : `tente_militaire`, `tente_commandement`, `tente_marchande` (onglet
+« Tentes »). Voir [docs/DECORATIONS.md](docs/DECORATIONS.md#pieu-défensif-1240) et
+[docs/TENTES.md](docs/TENTES.md#camp-militaire-1240).
+
 La version 1.23.2 rend la passerelle rangée **presque invisible** : ses deux ailes latérales se rabattent sur la bande
 centrale et ses segments coulissent les uns dans les autres, en un petit paquet plat (la moitié de la largeur de la
 planche, un segment de haut, un tiers de bloc d'épaisseur) posé à plat contre le flanc, sous le bastingage, et peint
@@ -440,7 +448,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.23.2.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.24.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation

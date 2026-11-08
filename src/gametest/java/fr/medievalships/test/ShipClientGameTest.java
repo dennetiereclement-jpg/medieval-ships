@@ -269,6 +269,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			SloopGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 			TentGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 			DecorationGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
+			StakeGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 			CartGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 			WorkshopGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 			SeatGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));

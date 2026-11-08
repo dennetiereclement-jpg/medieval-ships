@@ -12,6 +12,8 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.BlockWithEntity;
 import net.minecraft.block.ShapeContext;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.BlockEntityTicker;
+import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
@@ -103,6 +105,19 @@ public class TentBlock extends BlockWithEntity {
 	@Nullable
 	public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
 		return new TentBlockEntity(pos, state);
+	}
+
+	/**
+	 * Only the props whose JSON has a hazard (1.24.0: the defensive stake) tick, on the server only ({@link StakeHazard});
+	 * every other prop has no ticker at all.
+	 */
+	@Override
+	@Nullable
+	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> blockEntityType) {
+		if (world.isClient() || !type.hasHazard()) {
+			return null;
+		}
+		return validateTicker(blockEntityType, Tents.BLOCK_ENTITY, StakeHazard::tick);
 	}
 
 	@Override

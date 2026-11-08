@@ -51,8 +51,14 @@ public final class ServerSettings {
 	 * the keys, removes a leading {@code /} and drops blank entries.
 	 */
 	public Map<String, String> workshopCommands = new LinkedHashMap<>();
+	/**
+	 * The defensive stakes (1.24.0): {@code "stake": {"damage": 4.0, "knockback": 0.4, "cooldownTicks": 20,
+	 * "damagePlayers": false}} ({@link StakeSettings}), applied to every stake of the server.
+	 */
+	public StakeSettings stake = new StakeSettings();
 
 	public void sanitize() {
+		stake = (stake == null ? new StakeSettings() : stake).sanitize();
 		announceRadius = Math.max(0, Math.min(512, Double.isNaN(announceRadius) ? 40 : announceRadius));
 		chunkLoadRadius = Math.max(2, Math.min(4, chunkLoadRadius)); // below 2 the centre chunk does not tick entities
 		adminPermissionLevel = Math.max(0, Math.min(4, adminPermissionLevel));
