@@ -1,0 +1,74 @@
+{
+ "blocks": [
+  {
+   "block": "farmhouse_decorations:kerosene_lantern",
+   "x": 0.15,
+   "y": 1.0,
+   "z": 0.85,
+   "yaw": 180.0,
+   "scale": 1.1,
+   "fallback": "fallback_0",
+   "glow": true,
+   "alt": "minecraft:lantern"
+  },
+  {
+   "block": "farmhouse_decorations:wine_bottle",
+   "x": 0.45,
+   "y": 1.0,
+   "z": 0.8,
+   "yaw": 180.0,
+   "scale": 1.25,
+   "fallback": "fallback_1"
+  },
+  {
+   "block": "farmhouse_decorations:wine_bottle",
+   "x": 0.62,
+   "y": 1.0,
+   "z": 0.84,
+   "yaw": 180.0,
+   "scale": 1.25,
+   "fallback": "fallback_2"
+  },
+  {
+   "block": "farmhouse_decorations:wine_bottle",
+   "x": 0.79,
+   "y": 1.0,
+   "z": 0.88,
+   "yaw": 180.0,
+   "scale": 1.25,
+   "fallback": "fallback_3"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": 1.55,
+   "y": 0.0,
+   "z": 0.35,
+   "yaw": 180.0,
+   "scale": 0.85,
+   "fallback": "fallback_4",
+   "alt": "minecraft:barrel"
+  },
+  {
+   "block": "landsoficaria:cypress_barrel",
+   "x": -2.3,
+   "y": 0.88,
+   "z": -1.4,
+   "yaw": 180.0,
+   "scale": 0.6,
+   "fallback": "fallback_5",
+   "alt": "minecraft:barrel"
+  },
+  {
+   "block": "farmersdelight:rice_bag",
+   "x": 3.55,
+   "y": 0.0,
+   "z": 1.55,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_6"
+  }
+ ],
+ "seats": [],
+ "paintings": [],
+ "switches": []
+}
