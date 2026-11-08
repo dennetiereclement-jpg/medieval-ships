@@ -148,7 +148,7 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
-La version 1.23.0 ajoute des **passerelles d'embarquement** à tous les navires et aux grands dirigeables : une planche
+La version 1.23.0 ajoute des **passerelles d'embarquement** aux navires (sauf la barque, le petit sloop et le Nautilus) et aux grands dirigeables : une planche
 médiévale renforcée (ferrures, charnières, rambardes, chaînes ou cordages) relevée contre le bordé, qu'un **levier**
 sur le pont déploie jusqu'au quai ou au ponton puis replie. On y marche vraiment, du quai au pont et retour. Le
 déploiement est refusé si le navire avance, si un bloc gêne, si quelqu'un est sur le chemin ou s'il n'y a pas d'appui

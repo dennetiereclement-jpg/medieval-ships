@@ -75,14 +75,23 @@ par `tools/gangplank/gangplanklib.py`.
 
 | Navire | Côté | Largeur × longueur | Style | Remarques |
 | --- | --- | --- | --- | --- |
-| `trade_sloop` (navire de référence) | tribord, en avant du mât | 1,8 × 4,0 | bois clair, cordages | charnière sur le plat-bord (2,38), escalier de 4 marches depuis le pont, angles −15°…35°, chute 2,6 max |
-| `steampunk_airship` (dirigeable de référence) | tribord, à l'arrière de la nacelle | 3,0 × 4,5 | cuivre, chaînes, rambardes | charnière sur la lisse (1,35), escalier de 3 marches, angles −20°…30°, ponton à 2 blocs sous la charnière au plus |
-| galley, galleon, warship, medieval_galley, steam_paddleboat, elven_sailboat, nautilus (en surface), old_corsair, blue_frigate | | | | rempli par la branche `gangplank-ships` |
-| crystal_airship, sky_leviathan, dragon_junk | | | | rempli par la branche `gangplank-ships` |
+| `galley` (galère) | tribord | 2,0 × 3,5 | bois clair | charnière à 1,63, angles -25.0°…25.0°, chute 1,47 max |
+| `galleon` (galion) | tribord | 2,0 × 5,5 | bois sombre ferré | charnière à 2,22, angles -20.0°…38.0°, chute 3,38 max |
+| `warship` (navire de guerre) | tribord | 2,4 × 9,0 | bois sombre ferré | charnière à 5,83, angles -15.0°…42.0°, chute 6,02 max |
+| `medieval_galley` (galère médiévale) | tribord | 2,0 × 4,0 | bois clair | charnière à 2,15, angles -25.0°…30.0°, chute 1,99 max |
+| `steam_paddleboat` (bateau à vapeur) | tribord | 2,0 × 5,5 | acier | charnière à 3,37, angles -20.0°…40.0°, chute 3,53 max |
+| `elven_sailboat` (voilier elfique) | tribord | 2,2 × 4,0 | bois elfique | charnière à 1,94, angles -25.0°…35.0°, chute 2,29 max |
+| `old_corsair` (corsaire) | tribord | 3,0 × 8,0 | bois usé | charnière à 6,0, angles -15.0°…42.0°, chute 5,35 max |
+| `blue_frigate` (frégate bleue) | tribord | 3,0 × 10,0 | bois sombre ferré | charnière à 7,55, angles -15.0°…42.0°, chute 6,69 max |
+| `steampunk_airship` (dirigeable steampunk) | tribord | 3,0 × 4,5 | cuivre, chaînes | charnière à 1,35, angles -20°…30°, chute 2,0 max |
+| `crystal_airship` (dirigeable de cristal) | tribord | 3,5 × 5,5 | cristal | charnière à 1,13, angles -25.0°…45.0°, chute 3,88 max |
+| `sky_leviathan` (Léviathan des cieux) | tribord | 3,0 × 5,5 | bois sombre ferré | charnière à 1,14, angles -25.0°…45.0°, chute 3,88 max |
+| `dragon_junk` (jonque du dragon) | tribord | 3,0 × 5,5 | jade | charnière à 1,14, angles -25.0°…45.0°, chute 3,88 max |
 
 **Non équipés** (volontairement) :
 
-* `rowboat` (barque) : on y embarque d'un clic, elle n'a pas de pont où marcher ;
+* `rowboat` (barque) et `trade_sloop` (petit sloop marchand) : petits bateaux, pas de passerelle (demande du joueur) ;
+* `nautilus` : pas de passerelle (demande du joueur) ;
 * `hot_air_balloon` (montgolfière) : une nacelle, on y monte d'un clic ;
 * `rustic_skiff` : petit volant qui a déjà son propre escalier d'embarquement le long du bordé.
 
@@ -128,7 +137,7 @@ règle la position rangée.
 * Jeu réel `GangplankGameTest` (appelé par `ShipClientGameTest`, en solo **et** sur serveur dédié) : quai de pierre
   et bassin construits par commandes ; levier visé et cliqué pour de vrai → DÉPLOIEMENT → DÉPLOYÉE ~3 s plus tard,
   boîtes enregistrées sur le client ; un joueur en survie marche du quai jusqu'au pont (touche avancer seulement) et
-  revient ; repli refusé tant qu'il est dessus, accepté ensuite ; commandes du pilote ignorées (le sloop ne bouge
+  revient ; repli refusé tant qu'il est dessus, accepté ensuite ; commandes du pilote ignorées (la galère ne bouge
   pas) ; déploiement refusé avec un bloc dans l'arc ; aller-retour NBT cohérent ; rechargement après la disparition
   du quai → repli ; dirigeable : refus en plein ciel, déploiement à côté d'un ponton, marche du ponton au pont.
   Captures : `passerelle_*`.

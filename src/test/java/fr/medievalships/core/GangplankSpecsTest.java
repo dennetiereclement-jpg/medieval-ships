@@ -27,11 +27,11 @@ import fr.medievalships.client.model.BbModel;
 class GangplankSpecsTest {
 	/** The vessels equipped by tools/gangplank/ships_g2.py. */
 	static final List<String> SHIPS = List.of("galley", "galleon", "warship", "medieval_galley", "steam_paddleboat", "elven_sailboat",
-			"nautilus", "old_corsair", "blue_frigate", "crystal_airship", "sky_leviathan", "dragon_junk");
+			"old_corsair", "blue_frigate", "crystal_airship", "sky_leviathan", "dragon_junk");
 	/** The two reference vessels (specs written with the system itself); checked the same way when present. */
-	static final List<String> REFERENCE = List.of("trade_sloop", "steampunk_airship");
+	static final List<String> REFERENCE = List.of(); // the airship's spec is checked by GangplankTest
 	/** Vessels without a gangplank (see docs): boarded by a click, a basket, their own boarding staircase. */
-	static final List<String> EXCLUDED = List.of("rowboat", "hot_air_balloon", "rustic_skiff");
+	static final List<String> EXCLUDED = List.of("rowboat", "trade_sloop", "nautilus", "hot_air_balloon", "rustic_skiff");
 	static final Set<String> STYLES = Set.of("wood", "dark_wood", "worn", "elven", "copper", "crystal", "jade", "steel");
 	static final double STAIR_RISE = 0.45;
 
@@ -96,7 +96,7 @@ class GangplankSpecsTest {
 		}
 		for (ShipType t : Ships.ALL) {
 			if (!EXCLUDED.contains(t.id())) {
-				assertTrue(SHIPS.contains(t.id()) || REFERENCE.contains(t.id()), t.id() + " is neither equipped nor excluded");
+				assertTrue(SHIPS.contains(t.id()) || REFERENCE.contains(t.id()) || "steampunk_airship".equals(t.id()), t.id() + " is neither equipped nor excluded");
 			}
 		}
 	}

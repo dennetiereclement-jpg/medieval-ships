@@ -356,7 +356,7 @@ class GangplankTest {
 	/** The two reference vessels: hinge on the hull side at the rail, stairs from the deck, lever on the deck, clear of the furniture. */
 	@Test
 	void referenceVesselsFitTheirHull() {
-		for (ShipType type : new ShipType[] {Ships.TRADE_SLOOP, Ships.STEAMPUNK_AIRSHIP}) {
+		for (ShipType type : new ShipType[] {Ships.STEAMPUNK_AIRSHIP}) {
 			Gangplank.Spec s = Gangplank.of(type.id());
 			assertNotNull(s, type.id());
 			HullShape h = type.geometry().hull();

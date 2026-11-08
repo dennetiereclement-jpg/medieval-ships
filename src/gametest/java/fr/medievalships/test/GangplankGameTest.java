@@ -39,7 +39,7 @@ import fr.medievalships.entity.ShipTracker;
  * {@link ShipClientGameTest} (solo and on the dedicated server).
  */
 public final class GangplankGameTest {
-	private static final ShipType SLOOP = Ships.TRADE_SLOOP;
+	private static final ShipType SLOOP = Ships.GALLEY; // the boat at the quay (small boats have no gangplank)
 	private static final ShipType AIRSHIP = Ships.STEAMPUNK_AIRSHIP;
 	/** The dock: a stone quay (top y -48) west of a water basin (surface about -49.1). */
 	private static final int X0 = 1190, X1 = 1242, Z0 = -18, Z1 = 18;
@@ -166,7 +166,7 @@ public final class GangplankGameTest {
 	public static void run(ClientGameTestContext context, TestServerContext server, TestClientWorldContext world,
 			BiConsumer<Boolean, String> check, Consumer<String> log, Consumer<String> shot) {
 		Gangplank.Spec spec = Gangplank.of(SLOOP.id());
-		check.accept(spec != null, "trade_sloop has a gangplank spec");
+		check.accept(spec != null, "the galley has a gangplank spec");
 		if (spec == null) {
 			return;
 		}
