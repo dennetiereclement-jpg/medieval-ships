@@ -305,6 +305,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			// the drawbridge (1.24.0); the dedicated server has no restart: its restoration is checked at the end
 			DrawbridgeGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n),
 					!tag.equals("solo"));
+			FortressShipGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 		}
 	}
 

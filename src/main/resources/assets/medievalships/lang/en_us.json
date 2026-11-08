@@ -34,6 +34,8 @@
   "entity.medievalships.rowboat": "Rowboat",
   "item.medievalships.trade_sloop": "Trade Sloop",
   "entity.medievalships.trade_sloop": "Trade Sloop",
+  "item.medievalships.fortress_ship": "Fortress Ship",
+  "entity.medievalships.fortress_ship": "Fortress Ship",
   "itemGroup.medievalships.tents": "Tents",
   "block.medievalships.tent_command": "Command Tent",
   "block.medievalships.tent_adventurer": "Adventurer Tent",

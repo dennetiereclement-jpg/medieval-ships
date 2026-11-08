@@ -63,6 +63,7 @@ import fr.medievalships.entity.RusticSkiffEntity;
 import fr.medievalships.entity.DragonJunkEntity;
 import fr.medievalships.entity.SteampunkAirshipEntity;
 import fr.medievalships.entity.TradeSloopEntity;
+import fr.medievalships.entity.FortressShipEntity;
 import fr.medievalships.entity.SteamPaddleboatEntity;
 import fr.medievalships.entity.WarshipEntity;
 import fr.medievalships.core.ShipType;
@@ -108,6 +109,8 @@ public final class MedievalShips implements ModInitializer {
 	public static Item HOT_AIR_BALLOON_ITEM;
 	public static EntityType<BlueFrigateEntity> BLUE_FRIGATE;
 	public static Item BLUE_FRIGATE_ITEM;
+	public static EntityType<FortressShipEntity> FORTRESS_SHIP;
+	public static Item FORTRESS_SHIP_ITEM;
 	public static EntityType<RowboatEntity> ROWBOAT;
 	public static Item ROWBOAT_ITEM;
 
@@ -170,6 +173,8 @@ public final class MedievalShips implements ModInitializer {
 		ROWBOAT_ITEM = ITEMS.get(Ships.ROWBOAT);
 		TRADE_SLOOP = registerShip(Ships.TRADE_SLOOP, TradeSloopEntity::new, 3.0f, 0.4f, 14);
 		TRADE_SLOOP_ITEM = ITEMS.get(Ships.TRADE_SLOOP);
+		FORTRESS_SHIP = registerShip(Ships.FORTRESS_SHIP, FortressShipEntity::new, 6.0f, 0.4f, 24);
+		FORTRESS_SHIP_ITEM = ITEMS.get(Ships.FORTRESS_SHIP);
 
 		// the six tents: one block each, their items in the tab "Tentes"
 		fr.medievalships.tent.Tents.register();

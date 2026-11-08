@@ -118,9 +118,13 @@ public final class ShipModels {
 	public static final Visual ROWBOAT = new Visual(Ships.ROWBOAT, model("rowboat"), List.of(texture("rowboat")), 0.6f, 5, 4, false);
 	/** The trade sloop: a small boat that rocks on the waves, foam at its bow under way. */
 	public static final Visual TRADE_SLOOP = new Visual(Ships.TRADE_SLOOP, model("trade_sloop"), List.of(texture("trade_sloop")), 1.1f, 14, 18, true);
+	/** The Fortress Ship: its sails (with their castle towers) are a texture of their own; heavy, it rocks little; foam at the bow. */
+	public static final Visual FORTRESS_SHIP = new Visual(Ships.FORTRESS_SHIP, model("fortress_ship"),
+			List.of(texture("fortress_ship"), texture("fortress_ship_sails")), 0.35f, 34, 36, true);
 	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT,
 			STEAMPUNK_AIRSHIP, NAUTILUS, OLD_CORSAIR, SKY_LEVIATHAN, CRYSTAL_AIRSHIP,
-			RUSTIC_SKIFF, DRAGON_JUNK, HOT_AIR_BALLOON, BLUE_FRIGATE, ROWBOAT, TRADE_SLOOP);
+			RUSTIC_SKIFF, DRAGON_JUNK, HOT_AIR_BALLOON, BLUE_FRIGATE, ROWBOAT, TRADE_SLOOP,
+			FORTRESS_SHIP);
 
 	@Nullable
 	public static Visual of(ShipType type) {
