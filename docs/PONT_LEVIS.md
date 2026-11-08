@@ -22,6 +22,8 @@ côtés du chenal (cyan), passage (rouge), hauteur libre (violet).*
 
 ![La barrière au bout de la berge pendant la montée](pont_levis_barriere.png)
 
+![Les vantaux qui montent, chaînes de levage tendues vers les ancres au-dessus des charnières](pont_levis_ouverture.png)
+
 *Pendant la montée, un joueur qui avance depuis la berge est arrêté au bout de celle-ci, devant le vantail qui se dresse.*
 
 ## Comment ça marche

@@ -65,6 +65,13 @@ des lignes de 1.21.11 : largeur de ligne obligatoire). Il tourne aussi dans la t
 (sans et avec Lithium, avec les mods de décoration), à la suite des autres scénarios ; en local,
 `./gradlew runProductionClientGameTest -PgametestOnly=drawbridge` ne joue que lui (≈ 9 min).
 
+Rejoué tel quel après les changements visuels (mouvement amorti, chaînes de levage, poussière et choc en fin de
+course) : **118 vérifications, toutes réussies** (53 solo, 9 après réouverture, 56 dédié), mêmes mesures. Les repères
+de temps tiennent avec la courbe amortie (montée 80 ticks après le début de l'avertissement, fermeture 100 ticks après
+le dernier navire, inversion en pleine descente sans saut : 65,2° → 68,4°) ; les chaînes se dessinent sans erreur sur
+le client solo comme sur le client du serveur dédié, dans tous les états (`pontlevis_2_ouverture` les montre tendues
+vers les ancres pendant la montée) ; le pont rouvert après redémarrage est retrouvé à 80° avec ses chaînes.
+
 Tests unitaires (`LeafGeometryTest`, `ChannelZonesTest`, `GaugeAndCycleTest`, 19 tests, Java pur) : repère et
 rotation des vantaux (le bout libre monte, axe de rendu `v × up`, vantail de l'autre rive symétrique), boîtes fermées
 identiques aux blocs, vantail dressé, centre du chenal libre une fois levé, volume balayé, dessous mesuré aux saillies
