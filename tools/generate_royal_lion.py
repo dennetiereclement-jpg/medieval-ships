@@ -743,11 +743,11 @@ MASTS = {
 MAST_FOOT = {"fore": L - 0.4, "main": L - 0.4, "mizzen": Q}
 # square sails: mast, name, yard y, foot y, half width at the head, at the foot, belly, texture region
 SQUARE_SAILS = [
-    ("fore", "fore_course", 18.2, 8.6, 7.6, 8.4, 2.1, "fore_course"),
-    ("fore", "fore_topsail", 24.4, 19.8, 5.1, 6.0, 1.4, "fore_topsail"),
-    ("main", "main_course", 19.0, 8.0, 8.3, 9.1, 2.3, "main_course"),
-    ("main", "main_topsail", 25.6, 20.6, 5.5, 6.4, 1.5, "main_topsail"),
-    ("mizzen", "mizzen_course", 17.4, 11.2, 5.4, 6.0, 1.3, "mizzen_course"),
+    ("fore", "fore_course", 18.2, 8.6, 8.1, 8.9, 2.2, "fore_course"),
+    ("fore", "fore_topsail", 24.4, 19.8, 5.6, 6.5, 1.5, "fore_topsail"),
+    ("main", "main_course", 19.0, 8.0, 8.8, 9.6, 2.4, "main_course"),
+    ("main", "main_topsail", 25.6, 20.6, 6.0, 6.9, 1.6, "main_topsail"),
+    ("mizzen", "mizzen_course", 17.4, 11.2, 5.8, 6.4, 1.4, "mizzen_course"),
 ]
 
 

@@ -59,7 +59,7 @@ public final class RoyalLionLayout {
 	/** The square yards are braced round by this angle (port arms aft), as in the model. */
 	public static final double BRACE_DEG = 6.0;
 	/** Half span of the longest yard (the main course's). */
-	public static final double YARD_HALF = 8.8;
+	public static final double YARD_HALF = 9.3;
 	public static final double HELM_Z = -14.0;
 	public static final double PILOT_Z = -14.8;
 	/** Stairs: main deck -> quarterdeck and main deck -> forecastle (both sides), the companionways down. */
@@ -150,11 +150,11 @@ public final class RoyalLionLayout {
 		probes.add(FIGUREHEAD_PAW_PROBE.clone());
 		probes.add(HEAD_RAIL_PROBE.clone());
 		// the ends of the braced yards: the courses, the topsails, the mizzen course
-		yardArms(probes, 18.2, FORE_MAST_Z, 0.67, 8.1);
+		yardArms(probes, 18.2, FORE_MAST_Z, 0.67, 8.6);
 		yardArms(probes, 19.0, MAIN_MAST_Z, 0.7, YARD_HALF);
-		yardArms(probes, 24.4, FORE_MAST_Z + 0.45, 0.5, 5.6);
-		yardArms(probes, 25.6, MAIN_MAST_Z + 0.45, 0.52, 6.0);
-		yardArms(probes, 17.4, MIZZEN_Z, 0.57, 5.9);
+		yardArms(probes, 24.4, FORE_MAST_Z + 0.45, 0.5, 6.1);
+		yardArms(probes, 25.6, MAIN_MAST_Z + 0.45, 0.52, 6.5);
+		yardArms(probes, 17.4, MIZZEN_Z, 0.57, 6.3);
 		spec.extraProbes = List.copyOf(probes);
 		spec.boundingRadius = BOWSPRIT_TIP[2] + 1.0;
 		spec.aiReach = BOWSPRIT_TIP[2];

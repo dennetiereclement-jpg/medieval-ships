@@ -26,7 +26,7 @@ Mesures (044, la vue la moins déformée ; 1 bloc ≈ 34 px au maître-couple) :
 | Franc-bord | flottaison ≈ y 900 → lisse du milieu ≈ y 690 | ≈ 6 blocs : **lisse à 6,2** au-dessus de l'eau |
 | Château arrière | sommet du toit ≈ y 480 | ≈ 12,4 blocs : **toit à 12,1 (+ lanterne de faîte à 15,5)** |
 | Grand mât | pomme ≈ y 30 (044) ; plus haut sur 071 (huniers) | 25,6 (044) à ≈ 34 (071) : **30,5** (misaine 29, artimon 22,5) |
-| Grand-voile | vergue ≈ y 215, bordure ≈ y 560, largeur ≈ 410 px | **8 → 19 de haut, 16,6 → 18,2 de large** |
+| Grand-voile | vergue ≈ y 215, bordure ≈ y 560, largeur ≈ 410 px | **8 → 19 de haut, 17,6 → 19,2 de large** (élargie, voir § 5 bis) |
 | Hune du grand mât | ≈ y 130 | **20,0** (misaine 19,2, artimon 18,4) |
 | Bandes de coque (071) | bois sombre ≈ 40 % du franc-bord, puis or / bleu / or / bleu / or | brun jusqu'à 2,0 (sabords éclairés à 1,3), préceinte d'or 2,0–2,3, bande bleue, préceinte d'or 3,3–3,6, bande bleue des écus, lisse d'or à 5,0 |
 | Écus (071) | 2 visibles par bord sur la moitié vue, ≈ 1,7 × 2 blocs | **5 écus par bord** (z −14,5, −8,5, −2,5, 6,5, 12,5), lanternes entre eux |
@@ -101,6 +101,8 @@ plancher (`RoyalLionShipTest.helmAndSeats`).
 | 2 | voiles encore étroites ; enfléchures trop fines et sombres ; quille visible sous la coque dans les rendus (pas d'eau) | vergues moins orientées ; enfléchures en chanvre clair plus épaisses ; plan d'eau ajouté aux rendus de comparaison |
 | 3 | lion de proue : silhouette de « singe » ; grand-voile et misaine un peu étroites ; caméra de 071 trop lointaine (perspective plus forte sur la référence) | figure de proue refaite (grosse tête à crinière, gueule rugissante, pattes avant tendues, console sculptée) ; voiles élargies ; caméra rapprochée, focale plus large |
 | 4 | les références vues de bâbord (044, 123, 126) montrent la face des voiles, 071 (tribord) aussi : impossible des deux côtés à la fois ; lion de proue encore petit devant 123 ; lions des emblèmes sans détails ; auvent rayé caché par la voile d'artimon ; pavois du milieu trop bleu | vergues orientées de 6° (vers bâbord : trois références sur quatre) ; figure de proue agrandie (×1,35, sondes déplacées) ; traits ciselés dans le lion (crinière, œil, gueule, pattes) ; auvent élargi à tout le gaillard et abaissé ; pavois du milieu en bois sombre |
+
+| 5 | les voiles restent moins larges que sur les quatre images (qui remplissent presque l'espace entre les mâts) | basses voiles, huniers et voile d'artimon élargis (≈ +1 bloc), sondes des vergues suivies |
 
 Écarts restants (pour la phase 3) : voiles un peu moins grandes que sur les images (qui les exagèrent) ; la coque
 reste plus longue et plus basse que sur 071 (perspective exagérée de l'image) ; les bannières pendantes de 044 sont
