@@ -8,10 +8,11 @@ about 7 blocks:
   - the main gabled roof, ridge along x, WIDE regular red and cream stripes running down the two slopes, soft folds
     between the stripes and a curved eave, striped gable ends, a GOLD crenellated valance along all the eaves,
     decorative twisted ropes draped along the front eave and coiled on the post tops;
-  - the dark-wood post frame: big squared posts on iron-banded foot blocks, grey iron bands and rivets, big post caps
-    standing above the roof, eave beams with iron straps, braces;
+  - the dark-wood post frame: big squared posts (0.6) on iron-banded foot blocks, grey riveted iron bands, big caps on
+    the roof corners, eave beams with iron straps, braces; the ridge pole ends in big capped blocks above the ridge;
+  - the main roof's slopes end in a vertical striped hanging edge above the gold valance (soft cloth, as in the picture);
   - a small red-and-gold swallow-tailed FLAG on a pole on the ridge; a HANGING SIGN painted with gold coins on a beam
-    at the top right; a RED BANNER with the gold coin purse on the front-left post; glowing LANTERNS on the two front
+    rising from the right ridge end; a RED BANNER with the gold coin purse on the front-left post; glowing LANTERNS on the two front
     posts, inside above the counter and under the right extension;
   - the left extension: a smaller red-and-cream striped awning with gold valance, red-and-cream drapes tied back, a
     gold-trimmed chest on a cross-braced stand, crates and a barrel under it, the big tied burlap sack in front;
@@ -47,15 +48,18 @@ EYE, UP, X, Z = ml.EYE, ml.UP, ml.X, ml.Z
 ry, rx, rz = ml.ry, ml.rx, ml.rz
 box, collide = ml.box, ml.collide
 _rgb, _jitter, _scale, _mix = ml._rgb, ml._jitter, ml._scale, ml._mix
-GOLD, GOLD_DARK, BEIGE = ml.GOLD, ml.GOLD_DARK, ml.BEIGE
-RED, RED_DARK, RED_LIGHT = ml.COLOURS["red"]
+BEIGE = ml.BEIGE
+# the picture's warm orange gold and bright warm red (merchantlib's gold is paler and its red darker); this tent's own
+# regions only (valances, banner, flag, counter cloth, carpet)
+GOLD, GOLD_DARK = _rgb("f0a42a"), _rgb("9a5a10")
+RED, RED_DARK, RED_LIGHT = _rgb("bc3430"), _rgb("6a1614"), _rgb("d65042")
 
 # ---------------------------------------------------------------- dimensions (tent-local blocks, +z = the open front)
 HW, HD = 2.7, 2.3            # main posts: x = +-HW, z = +-HD
-EAVE, RIDGE = 3.4, 5.35      # eave and ridge heights
+EAVE, RIDGE = 3.7, 5.8       # eave and ridge heights
 W, D = HW + 0.32, HD + 0.48  # the main roof's half length (x) and half depth (z)
 EY = EAVE + 0.02
-FRONT_TOP, BACK_TOP = 4.95, 5.75   # post tops (above the roof: the big caps)
+FRONT_TOP, BACK_TOP = 4.4, 4.4     # post tops (the big caps sit on the roof corners)
 STRIPES = 7
 LX, RX = -4.5, 4.45          # outer post lines of the left / right extensions
 COUNTER = (-1.2, 2.0, 1.4, 2.05)   # x0, x1, z0, z1
@@ -76,11 +80,11 @@ def paint_valance(img):
     w, h = img.size
     px = img.load()
     band = int(h * 0.42)
-    tab = w / 14.0
+    tab = w / 7.0
     for x in range(w):
         lx = (x % tab) / tab
-        in_tab = 0.14 <= lx <= 0.86
-        edge = abs(lx - 0.14) * tab < 1.0 or abs(lx - 0.86) * tab < 1.0
+        in_tab = 0.12 <= lx <= 0.88
+        edge = abs(lx - 0.12) * tab < 1.5 or abs(lx - 0.88) * tab < 1.5
         for y in range(h):
             if y > band and not in_tab:
                 px[x, y] = (0, 0, 0, 0)
@@ -94,7 +98,7 @@ def paint_valance(img):
                 c = _scale(GOLD, 0.72)
             elif y >= h - 2 or (y > band and edge):
                 c = _scale(GOLD, 0.66)
-            k = 1.0 + 0.04 * math.sin(x * 0.7) - (0.08 if (y > band and lx > 0.7) else 0.0)
+            k = 1.0 + 0.04 * math.sin(x * 0.7) - (0.1 if (y > band and lx > 0.72) else 0.0) + (0.08 if (y > band and lx < 0.3) else 0.0)
             px[x, y] = _jitter(_scale(c, k), rng, 9) + (255,)
         if int(x % tab) == int(tab / 2):
             px[x, band // 2] = (120, 84, 30, 255)   # a rivet / stitch in each tab's band
@@ -137,13 +141,18 @@ def paint_carpet(img):
             elif 6 <= e <= 9 and (x + y) % 6 < 2:
                 px[x, y] = _jitter(_mix(RED, GOLD, 0.55), rng, 6) + (255,)
     # gold glyph motifs in rows on the field
-    motif = ("01110", "10101", "11011", "10101", "01110")
-    for cy in range(18, h - 14, 14):
-        for cx in range(18 + (cy // 14) % 2 * 8, w - 16, 16):
+    motif = ("1100011", "0110110", "0011100", "0110110", "1100011")
+    for r_, cy in enumerate(range(24, h - 18, 24)):
+        for cx in range(24 + (r_ % 2) * 12, w - 20, 24):
             for j, row in enumerate(motif):
                 for i, ch in enumerate(row):
                     if ch == "1":
-                        px[cx + i - 2, cy + j - 2] = _jitter(GOLD, rng, 12) + (255,)
+                        px[cx + i - 3, cy + j - 2] = _jitter(GOLD, rng, 12) + (255,)
+    # a thin gold line framing the field
+    for y in range(16, h - 16):
+        for x in range(16, w - 16):
+            if min(x - 16, y - 16, w - 17 - x, h - 17 - y) == 0:
+                px[x, y] = _jitter(_scale(GOLD, 0.92), rng, 8) + (255,)
 
 
 def _purse(img, box_, scale=4):
@@ -154,15 +163,19 @@ def _purse(img, box_, scale=4):
     im = Image.new("RGBA", (w * S, h * S), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
     W_, H_ = w * S, h * S
-    gold, gold_d, gold_l = (232, 178, 56), (138, 92, 22), (252, 222, 130)
-    d.ellipse((W_ * 0.12, H_ * 0.36, W_ * 0.88, H_ * 0.98), fill=gold_d)
-    d.ellipse((W_ * 0.16, H_ * 0.39, W_ * 0.84, H_ * 0.94), fill=gold)
-    d.ellipse((W_ * 0.26, H_ * 0.5, W_ * 0.5, H_ * 0.7), fill=gold_l)
-    d.polygon([(W_ * 0.38, H_ * 0.42), (W_ * 0.62, H_ * 0.42), (W_ * 0.56, H_ * 0.3), (W_ * 0.44, H_ * 0.3)], fill=gold)
-    d.rectangle((W_ * 0.34, H_ * 0.3, W_ * 0.66, H_ * 0.36), fill=gold_d)
-    d.polygon([(W_ * 0.3, H_ * 0.04), (W_ * 0.42, H_ * 0.16), (W_ * 0.5, H_ * 0.02), (W_ * 0.58, H_ * 0.16), (W_ * 0.7, H_ * 0.04),
-               (W_ * 0.62, H_ * 0.3), (W_ * 0.38, H_ * 0.3)], fill=gold)
-    d.line((W_ * 0.5, H_ * 0.62, W_ * 0.5, H_ * 0.82), fill=gold_d, width=S)
+    gold, gold_d, gold_l = (246, 170, 40), (150, 84, 14), (255, 220, 120)
+    # the bag: a wide round bottom narrowing to the neck (outline, body, light on the upper left)
+    d.ellipse((W_ * 0.06, H_ * 0.42, W_ * 0.94, H_ * 0.99), fill=gold_d)
+    d.polygon([(W_ * 0.3, H_ * 0.36), (W_ * 0.7, H_ * 0.36), (W_ * 0.9, H_ * 0.66), (W_ * 0.1, H_ * 0.66)], fill=gold_d)
+    d.ellipse((W_ * 0.1, H_ * 0.45, W_ * 0.9, H_ * 0.95), fill=gold)
+    d.polygon([(W_ * 0.33, H_ * 0.39), (W_ * 0.67, H_ * 0.39), (W_ * 0.86, H_ * 0.66), (W_ * 0.14, H_ * 0.66)], fill=gold)
+    d.ellipse((W_ * 0.2, H_ * 0.52, W_ * 0.44, H_ * 0.74), fill=gold_l)
+    # the tied neck and the rounded ruffle above it
+    d.rectangle((W_ * 0.3, H_ * 0.3, W_ * 0.7, H_ * 0.38), fill=gold_d)
+    d.ellipse((W_ * 0.22, H_ * 0.06, W_ * 0.78, H_ * 0.34), fill=gold_d)
+    d.ellipse((W_ * 0.26, H_ * 0.09, W_ * 0.74, H_ * 0.31), fill=gold)
+    d.line((W_ * 0.5, H_ * 0.1, W_ * 0.5, H_ * 0.3), fill=gold_d, width=S)
+    d.line((W_ * 0.64, H_ * 0.7, W_ * 0.6, H_ * 0.86), fill=gold_d, width=S)
     im = im.resize((w, h), Image.NEAREST)
     img.alpha_composite(im, (x0, y0))
 
@@ -307,8 +320,9 @@ def paint_chest(img):
                 px[x, y] = _jitter(GOLD, rng, 10) + (255,)
 
 
-CREAM = _rgb("d9c2a2")            # the picture's warm cream (merchantlib's beige is paler)
-CRIMSON = (_rgb("9c2430"), _rgb("561018"), _rgb("bc3a44"))   # the picture's deep crimson red
+CREAM = _rgb("f2cca0")            # the picture's warm peach cream (merchantlib's beige is paler and greyer)
+CRIMSON = (RED, RED_DARK, RED_LIGHT)   # the picture's bright warm red (stripes, walls, drapes)
+FLAP = 0.5                        # the main roof's hanging front / back edge (vertical striped cloth above the valance)
 
 
 def _recoloured(painter):
@@ -321,6 +335,60 @@ def _recoloured(painter):
         finally:
             ml.BEIGE, ml.COLOURS["red"] = old_b, old_r
     return paint
+
+
+def paint_gable(img):
+    """A gable end of the main roof: 5 vertical stripes, cut out above the roof profile (steep at the ridge, flatter
+    at the eave, then the vertical hanging edge of FLAP), a dark hem along the slopes."""
+    rng = random.Random(2413)
+    w, h = img.size
+    ml._stripes(img, "red", 5, rng)
+    px = img.load()
+    slope = (RIDGE - EY - FLAP) / (RIDGE - EY)
+    for x in range(w):
+        t = abs((x + 0.5) / w * 2.0 - 1.0)
+        top = roof_drop(min(t, 1.0)) * slope * h - 1.0
+        for y in range(h):
+            r, g, b, a = px[x, y]
+            if y + 0.5 < top - 0.5:
+                px[x, y] = (0, 0, 0, 0)
+            elif y + 0.5 < top + 2.0:
+                px[x, y] = _scale((r, g, b), 0.72) + (255,)
+            else:
+                px[x, y] = _scale((r, g, b), 0.84 + 0.12 * (y / h)) + (255,)
+
+
+def paint_band(img):
+    """The posts' grey iron bands: hammered dark iron, a lighter top edge, one big square rivet in the middle of each
+    face and small ones near the ends."""
+    rng = random.Random(2414)
+    w, h = img.size
+    px = img.load()
+    for y in range(h):
+        for x in range(w):
+            c = _rgb("5a5c62")
+            if y == 0:
+                c = _rgb("8a8c92")
+            elif y == h - 1:
+                c = _rgb("34363a")
+            px[x, y] = _jitter(c, rng, 7) + (255,)
+    for cx, r in ((w // 2, 2), (4, 1), (w - 5, 1)):
+        for y in range(max(1, h // 2 - r), min(h - 1, h // 2 + r + 1)):
+            for x in range(cx - r, cx + r + 1):
+                px[x, y] = (40, 40, 44, 255) if (x == cx + r or y == h // 2 + r) else (176, 178, 184, 255)
+
+
+def paint_burlap(img):
+    """The big sack's light warm burlap: a coarse weave, darker vertical fold streaks, a lighter middle."""
+    rng = random.Random(2415)
+    w, h = img.size
+    ml._weave(img, (0, 0, w, h), _rgb("d8b88a"), rng, stains=0)
+    px = img.load()
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = px[x, y]
+            k = 0.86 + 0.2 * math.sin(math.pi * (x + 0.5) / w) - 0.08 * (abs(math.sin(x * 0.55 + y * 0.08)) > 0.93)
+            px[x, y] = _scale((r, g, b), k) + (255,)
 
 
 def paint_post(img):
@@ -340,13 +408,15 @@ def add_regions(atlas):
     atlas.add("mv_roof_l", 32 * 5, 64, _recoloured(ml._stall_roof_painter("red", 5, seed + 2)))
     atlas.add("mv_awning_r", 128, 64, _recoloured(paint_awning_r))
     atlas.add("mv_runner", 64, 48, paint_runner)
-    atlas.add("mv_gable", 32 * 5, 48, _recoloured(ml._stall_gable_painter("red", 5, seed + 1)))
+    atlas.add("mv_gable", 32 * 5, 48, _recoloured(paint_gable))
     atlas.add("mv_sign", 64, 44, paint_sign)
     atlas.add("mv_flag", 64, 32, paint_flag)
     atlas.add("mv_chest", 32, 32, paint_chest)
     atlas.add("mv_post", 64, 16, paint_post)
     atlas.add("mv_valance", 224, 24, paint_valance)
     atlas.add("mv_drape", 32, 64, _recoloured(paint_drape))
+    atlas.add("mv_band", 32, 8, paint_band)
+    atlas.add("mv_burlap", 32, 32, paint_burlap)
     if atlas.size != 512:
         raise AssertionError("the atlas grew to %d px: repack the regions" % atlas.size)
 
@@ -357,34 +427,41 @@ def roof_drop(t, a=0.5):
     return a * t + (1 - a) * (1 - (1 - t) ** 2)
 
 
-def post(shell, det, name, x, z, top, eave, d=0.42, foot=0.7, cap=0.56, rope_coil=False):
+def post(shell, det, name, x, z, top, eave, d=0.6, foot=0.75, cap=0.86, rope_coil=False):
     """A big squared dark-wood post: iron-banded foot block, the post, grey iron bands with rivets, a big cap block on
     top (iron collar under it); collides from the ground up to the eave."""
-    box(shell, name + "_foot", (x - 0.3, 0.0, z - 0.3), (x + 0.3, foot, z + 0.3), {"all": "wood_dark", "+2": "end_grain"})
-    for k, y in enumerate((0.04, foot - 0.13)):
-        box(det, "%s_fband_%d" % (name, k), (x - 0.315, y, z - 0.315), (x + 0.315, y + 0.1, z + 0.315), "iron")
+    fh = d / 2 + 0.1
+    box(shell, name + "_foot", (x - fh, 0.0, z - fh), (x + fh, foot, z + fh), {"all": "wood_dark", "+2": "end_grain"})
+    for k, y in enumerate((0.04, foot - 0.15)):
+        band(det, "%s_fband_%d" % (name, k), x, z, fh + 0.015, y, 0.12)
     beam(shell, name, (x, foot, z), (x, top, z), d, {"all": "mv_post", "+1": "end_grain", "-1": "end_grain"})
-    for k, y in enumerate((1.55, eave - 0.75)):
-        box(det, "%s_band_%d" % (name, k), (x - d / 2 - 0.02, y, z - d / 2 - 0.02), (x + d / 2 + 0.02, y + 0.12, z + d / 2 + 0.02), "iron")
-    box(det, name + "_collar", (x - d / 2 - 0.03, top - 0.14, z - d / 2 - 0.03), (x + d / 2 + 0.03, top, z + d / 2 + 0.03), "iron")
-    box(shell, name + "_cap", (x - cap / 2, top, z - cap / 2), (x + cap / 2, top + 0.3, z + cap / 2), {"all": "wood", "+2": "end_grain"})
-    box(det, name + "_cap_top", (x - cap / 2 + 0.08, top + 0.3, z - cap / 2 + 0.08), (x + cap / 2 - 0.08, top + 0.4, z + cap / 2 - 0.08),
+    for k, y in enumerate((1.55, eave - 0.8)):
+        band(det, "%s_band_%d" % (name, k), x, z, d / 2 + 0.02, y, 0.14)
+    band(det, name + "_collar", x, z, d / 2 + 0.03, top - 0.16, 0.16)
+    box(shell, name + "_cap", (x - cap / 2, top, z - cap / 2), (x + cap / 2, top + 0.34, z + cap / 2), {"all": "wood", "+2": "end_grain"})
+    box(det, name + "_cap_top", (x - cap / 2 + 0.1, top + 0.34, z - cap / 2 + 0.1), (x + cap / 2 - 0.1, top + 0.46, z + cap / 2 - 0.1),
         {"all": "wood_dark", "+2": "end_grain"})
     if rope_coil:
         for k in range(2):
-            y = top - 0.42 - 0.12 * k
-            box(det, "%s_coil_%d" % (name, k), (x - d / 2 - 0.06, y, z - d / 2 - 0.06), (x + d / 2 + 0.06, y + 0.1, z + d / 2 + 0.06), "rope")
-    collide((x - 0.3, 0.0, z - 0.3, x + 0.3, eave, z + 0.3))
+            y = top - 0.46 - 0.13 * k
+            box(det, "%s_coil_%d" % (name, k), (x - d / 2 - 0.07, y, z - d / 2 - 0.07), (x + d / 2 + 0.07, y + 0.12, z + d / 2 + 0.07), "rope")
+    collide((x - 0.34, 0.0, z - 0.34, x + 0.34, eave, z + 0.34))
 
 
-def small_post(shell, det, name, x, z, top, d=0.3):
-    """An extension post: foot block, squared post, two iron bands, a small cap; collides up to its top."""
-    box(shell, name + "_foot", (x - 0.22, 0.0, z - 0.22), (x + 0.22, 0.45, z + 0.22), {"all": "wood_dark", "+2": "end_grain"})
-    box(det, name + "_fband", (x - 0.235, 0.32, z - 0.235), (x + 0.235, 0.41, z + 0.235), "iron")
-    beam(shell, name, (x, 0.45, z), (x, top, z), d, {"all": "mv_post", "+1": "end_grain", "-1": "end_grain"})
-    box(det, name + "_band", (x - d / 2 - 0.02, top - 0.55, z - d / 2 - 0.02), (x + d / 2 + 0.02, top - 0.45, z + d / 2 + 0.02), "iron")
-    box(shell, name + "_cap", (x - 0.2, top, z - 0.2), (x + 0.2, top + 0.18, z + 0.2), {"all": "wood", "+2": "end_grain"})
-    collide((x - 0.22, 0.0, z - 0.22, x + 0.22, top, z + 0.22))
+def band(bone, name, x, z, half, y, h):
+    """A grey iron band round a squared post (centre x, z): a riveted face on each side, plain iron on top and below."""
+    box(bone, name, (x - half, y, z - half), (x + half, y + h, z + half), {"all": "mv_band", "+2": "iron", "-2": "iron"}, stretch=True)
+
+
+def small_post(shell, det, name, x, z, top, d=0.36):
+    """An extension post: foot block, squared post, two iron bands, a cap standing above the awning; collides up to its
+    top."""
+    box(shell, name + "_foot", (x - 0.25, 0.0, z - 0.25), (x + 0.25, 0.5, z + 0.25), {"all": "wood_dark", "+2": "end_grain"})
+    band(det, name + "_fband", x, z, 0.265, 0.34, 0.11)
+    beam(shell, name, (x, 0.5, z), (x, top, z), d, {"all": "mv_post", "+1": "end_grain", "-1": "end_grain"})
+    band(det, name + "_band", x, z, d / 2 + 0.02, top - 0.95, 0.12)
+    box(shell, name + "_cap", (x - 0.26, top, z - 0.26), (x + 0.26, top + 0.22, z + 0.26), {"all": "wood", "+2": "end_grain"})
+    collide((x - 0.24, 0.0, z - 0.24, x + 0.24, top, z + 0.24))
 
 
 def valance(bone, name, c0, c1, out, h=0.56, region="mv_valance"):
@@ -458,12 +535,16 @@ def big_sack(shell, det, name, foot, yaw=0.0, w=0.72, h=1.05):
     """The big tied burlap sack of the picture: a tall bulging body narrowing upwards, a tied neck, a flared top."""
     foot = v3(*foot)
     R = ry(yaw)
-    for k, (y0, y1, s) in enumerate(((0.0, 0.18, 0.86), (0.18, 0.55, 1.0), (0.55, 0.78, 0.86), (0.78, 0.86, 0.6))):
-        add_cube(shell, "%s_%d" % (name, k), foot + UP * (h * (y0 + y1) / 2), R @ ry(0.08 * k), (w * s, h * (y1 - y0), w * s * 0.92), "sack",
+    for k, (y0, y1, s) in enumerate(((0.0, 0.1, 0.84), (0.1, 0.42, 1.0), (0.42, 0.62, 0.86), (0.62, 0.76, 0.62))):
+        for j in range(2):   # two boxes turned 45 degrees: an octagon, the sack reads round
+            q = 0.84 if j else 1.0
+            add_cube(shell, "%s_%d_%d" % (name, k, j), foot + UP * (h * (y0 + y1) / 2), R @ ry(math.pi / 4 * j + 0.06 * k),
+                     (w * s * q, h * (y1 - y0), w * s * q), "mv_burlap", stretch=True)
+    add_cube(shell, name + "_neck", foot + UP * (h * 0.81), R, (w * 0.32, h * 0.1, w * 0.32), "mv_burlap", stretch=True)
+    add_cube(det, name + "_tie", foot + UP * (h * 0.8), R, (w * 0.38, 0.07, w * 0.38), "rope")
+    for j in range(2):   # the flared, bunched top
+        add_cube(shell, "%s_top_%d" % (name, j), foot + UP * (h * 0.92), R @ ry(0.4 + math.pi / 4 * j), (w * 0.5, h * 0.16, w * 0.46), "mv_burlap",
                  stretch=True)
-    add_cube(shell, name + "_neck", foot + UP * (h * 0.9), R, (w * 0.3, h * 0.08, w * 0.3), "sack", stretch=True)
-    add_cube(det, name + "_tie", foot + UP * (h * 0.9), R, (w * 0.34, 0.05, w * 0.34), "rope")
-    add_cube(shell, name + "_top", foot + UP * (h * 0.98), R @ ry(0.4), (w * 0.52, h * 0.1, w * 0.5), "sack", stretch=True)
 
 
 # ---------------------------------------------------------------- the build
@@ -492,26 +573,40 @@ def build(atlas, decor):
         beam(shell, "brace_%d" % k, p, q, 0.16, "wood_dark", extend=0.05)
     # tie beam across the middle (the inside lantern hangs from it), the ridge pole, king posts and rafters at the ends
     beam(shell, "tie_beam", (-HW, by, 0.0), (HW, by, 0.0), 0.22, "wood_dark", extend=0.1)
-    beam(shell, "ridge_pole", (-W - 0.22, RIDGE - 0.12, 0), (W + 0.22, RIDGE - 0.12, 0), 0.22, {"all": "wood_dark", "+1": "end_grain", "-1": "end_grain"})
+    beam(shell, "ridge_pole", (-W - 0.3, RIDGE - 0.12, 0), (W + 0.3, RIDGE - 0.12, 0), 0.24, {"all": "wood_dark", "+1": "end_grain", "-1": "end_grain"})
     for k, sx in enumerate((-1, 1)):
         x = sx * HW
         beam(shell, "king_post_%d" % k, (x, by + 0.17, 0), (x, RIDGE - 0.2, 0), 0.18, "wood_dark")
         for j, sz in enumerate((-1, 1)):
             beam(shell, "rafter_%d_%d" % (k, j), (x, by + 0.1, sz * (HD + 0.05)), (x, RIDGE - 0.16, 0), 0.15, "wood_dark", extend=0.05)
-        box(det, "ridge_cap_%d" % k, (sx * (W + 0.22) - 0.08, RIDGE - 0.26, -0.15), (sx * (W + 0.22) + 0.08, RIDGE + 0.02, 0.15), "iron")
+        ex = sx * (W + 0.3)
+        box(shell, "ridge_end_%d" % k, (ex - 0.25, RIDGE - 0.45, -0.27), (ex + 0.25, RIDGE + 0.22, 0.27), {"all": "wood", "+2": "end_grain"})
+        band(det, "ridge_end_band_%d" % k, ex, 0.0, 0.27, RIDGE - 0.3, 0.16)
+        box(shell, "ridge_end_cap_%d" % k, (ex - 0.32, RIDGE + 0.22, -0.32), (ex + 0.32, RIDGE + 0.5, 0.32), {"all": "wood", "+2": "end_grain"})
+        box(det, "ridge_end_top_%d" % k, (ex - 0.22, RIDGE + 0.5, -0.22), (ex + 0.22, RIDGE + 0.6, 0.22), {"all": "wood_dark", "+2": "end_grain"})
     # ---- the main roof: two sagging slopes, stripes down the slope, a soft fold in each stripe
+    T1 = 0.8   # the slope takes 4 rows of the loft, the vertical hanging edge (FLAP) the 5th
+
     def roof_pt(s, t, sgn):
         x = -W + 2 * W * s
         frac = (s * STRIPES) % 1.0
-        y = RIDGE - (RIDGE - EY) * roof_drop(t) - 0.08 * math.sin(math.pi * s) * math.sin(math.pi * t)
+        fold = 0.07 * math.sin(math.pi * frac)
+        drop = RIDGE - EY - FLAP
+        u = min(t / T1, 1.0)
         # each stripe bellies a little between its seams (soft folds), pushed in along the slope's normal so that the
         # strips stay flush (no wedge gaps between them)
-        dy = -(RIDGE - EY) * (0.5 + 0.5 * 2 * (1 - t))
-        nrm = norm(v3(0.0, D, -dy))
-        fold = 0.07 * math.sin(math.pi * frac)
-        return v3(x if sgn > 0 else -x, y - nrm[1] * fold, sgn * (D * t - nrm[2] * fold))
-    loft(shell, "roof_front", lambda s, t: roof_pt(s, t, 1), STRIPES * 2, 4, "mv_roof", th=0.04, overlap=0.03)
-    loft(shell, "roof_back", lambda s, t: roof_pt(s, t, -1), STRIPES * 2, 4, "mv_roof", th=0.04, overlap=0.03)
+        nrm = norm(v3(0.0, D, drop * (0.5 + (1 - u))))
+        if t <= T1:
+            y = RIDGE - drop * roof_drop(u) - 0.08 * math.sin(math.pi * s) * math.sin(math.pi * u)
+            p = v3(x, y, D * u) - nrm * fold
+        else:
+            # the hanging edge: the cloth falls straight down from the end of the slope, the folds turning inwards
+            w = (t - T1) / (1 - T1)
+            n2 = norm(nrm * (1 - w) + v3(0, 0, 1) * w)
+            p = v3(x, EY + FLAP * (1 - w), D + 0.03 * math.sin(math.pi * w)) - n2 * fold
+        return v3(p[0] if sgn > 0 else -p[0], p[1], sgn * p[2])
+    loft(shell, "roof_front", lambda s, t: roof_pt(s, t, 1), STRIPES * 2, 5, "mv_roof", th=0.04, overlap=0.03)
+    loft(shell, "roof_back", lambda s, t: roof_pt(s, t, -1), STRIPES * 2, 5, "mv_roof", th=0.04, overlap=0.03)
     # the ridge cover: a cream band along the ridge
     box(shell, "ridge_cover", (-W, RIDGE - 0.02, -0.18), (W, RIDGE + 0.06, 0.18), {"all": "cloth_beige"}, stretch=True, u_dir=X)
     for k, sx in enumerate((-1, 1)):
@@ -522,13 +617,15 @@ def build(atlas, decor):
     valance(shell, "valance_left", (-W - 0.02, EY, -D), (-W - 0.02, EY, D), -X)
     valance(shell, "valance_right", (W + 0.02, EY, D), (W + 0.02, EY, -D), X)
     # decorative twisted ropes draped along the front eave (three swags, knots at the hooks) and along the left gable
-    pts = [-W + 0.1, -W / 3, W / 3, W - 0.1]
-    for k in range(3):
-        ml.rope(det, "eave_rope_%d" % k, (pts[k], EY + 0.02, D + 0.12), (pts[k + 1], EY + 0.02, D + 0.12), d=0.07, sag=0.26, segs=3)
-    for k, x in enumerate(pts[1:3]):
-        add_cube(det, "rope_knot_%d" % k, (x, EY - 0.02, D + 0.13), EYE, (0.14, 0.16, 0.12), "rope")
-    ml.rope(det, "gable_rope", (-W - 0.08, EY + 0.02, D - 0.1), (-W - 0.08, EY + 0.02, -D + 0.1), d=0.07, sag=0.3, segs=3)
-    ml.rope(det, "back_rope", (-W + 0.1, EY + 0.02, -D - 0.12), (W - 0.1, EY + 0.02, -D - 0.12), d=0.07, sag=0.3, segs=3)
+    for k, sx in enumerate((-1, 1)):
+        xa, xb = sx * (W - 0.12), sx * (W - 0.95)
+        ml.rope(det, "eave_rope_%d" % k, (xa, EY + 0.08, D + 0.14), (xb, EY + 0.08, D + 0.14), d=0.12, sag=0.24, segs=4)
+        add_cube(det, "rope_knot_%d" % k, (xb, EY + 0.04, D + 0.15), EYE, (0.2, 0.24, 0.17), "rope")
+        ml.rope(det, "rope_tail_%d" % k, (xb, EY, D + 0.15), (xb, EY - 0.5, D + 0.15), d=0.09, segs=1)
+    ml.rope(det, "gable_edge_rope", (-W - 0.12, RIDGE - 0.05, 0.3), (-W - 0.12, EY + FLAP + 0.05, D - 0.05), d=0.12, sag=0.12, segs=3)
+    for k in range(2):
+        y = RIDGE - 0.2 + 0.14 * k
+        box(det, "ridge_coil_%d" % k, (-W - 0.3 - 0.3, y, -0.3), (-W - 0.3 + 0.3, y + 0.12, 0.3), "rope")
     # ---- the flag on the ridge
     fx = -0.9
     box(shell, "flag_base", (fx - 0.2, RIDGE - 0.05, -0.2), (fx + 0.2, RIDGE + 0.22, 0.2), {"all": "wood", "+2": "end_grain"})
@@ -541,19 +638,20 @@ def build(atlas, decor):
                   0.16 * math.sin(s * math.pi * 1.6) + 0.02 * t)
     loft(shell, "flag", F, 5, 1, "mv_flag", th=0.025)
     # ---- the banner with the gold purse on the front-left post
-    bx, bz, byy = -2.28, HD + 0.26, 3.05
-    box(det, "banner_arm", (-HW - 0.05, byy - 0.05, HD + 0.2), (-HW + 0.05, byy + 0.05, bz + 0.05), "iron")
-    beam(shell, "banner_rod", (-HW - 0.05, byy, bz), (bx + 0.48, byy, bz), 0.08, "wood_dark")
-    add_cube(det, "banner_rod_knob", (bx + 0.5, byy, bz), EYE, (0.12, 0.12, 0.12), "gold")
-    ml.banner(shell, "banner", (bx, byy - 0.04, bz + 0.01), 0.82, 1.78, normal=(0, 0, 1), region="mv_banner", rod=False)
+    bx, bz, byy = -HW + 0.34 + 0.48, HD + 0.22, by - 0.2
+    beam(shell, "banner_rod", (-HW + 0.3, byy, bz), (bx + 0.52, byy, bz), 0.08, "wood_dark")
+    add_cube(det, "banner_rod_knob", (bx + 0.55, byy, bz), EYE, (0.12, 0.12, 0.12), "gold")
+    for k, dx in enumerate((-0.3, 0.3)):
+        add_cube(det, "banner_ring_%d" % k, (bx + dx, byy + 0.13, bz - 0.04), EYE, (0.05, 0.2, 0.05), "iron")
+    ml.banner(shell, "banner", (bx, byy - 0.04, bz + 0.01), 0.86, 1.72, normal=(0, 0, 1), region="mv_banner", rod=False)
     # ---- lanterns: front posts (outer sides), inside above the counter, under the right extension
-    for k, (x, z, dx, dz) in enumerate(((-HW, HD, -1, 0.6), (HW, HD, 0.35, 1))):
-        mount = v3(x + dx * 0.21, 2.95, z + dz * 0.21)
-        tip = v3(x + dx * 0.55, 2.95, z + dz * 0.55)
+    for k, (x, z, dx, dz) in enumerate(((-HW, HD, 0.35, 1), (HW, HD, 0.35, 1))):
+        mount = v3(x + dx * 0.31, 3.05, z + dz * 0.31)
+        tip = v3(x + dx * 0.68, 3.05, z + dz * 0.68)
         beam(det, "lamp_arm_%d" % k, mount, tip, 0.05, "iron", extend=0.02)
         beam(det, "lamp_brace_%d" % k, mount - UP * 0.4, tip - UP * 0.02, 0.04, "iron")
-        ml.lantern(shell, "lamp_%d" % k, tip - UP * 0.5, size=0.38, metal="iron", chain_to=tip)
-    ml.lantern(shell, "lamp_in", (1.0, 2.55, 0.0), size=0.34, metal="iron", chain_to=(1.0, by - 0.1, 0.0))
+        ml.lantern(shell, "lamp_%d" % k, tip - UP * 0.52, size=0.44, metal="iron", chain_to=tip)
+    ml.lantern(shell, "lamp_in", (1.0, 2.75, 0.0), size=0.36, metal="iron", chain_to=(1.0, by - 0.1, 0.0))
     # ---- side and back walls (striped, hanging canvas), tied-back drapes at the front corners
     wall(shell, "wall_back", (-HW, 0, -HD - 0.08), (HW, 0, -HD - 0.08), 0.0, by - 0.15, -Z)
     collide((-HW, 0.0, -HD - 0.14, HW, by - 0.15, -HD - 0.02))
@@ -562,16 +660,16 @@ def build(atlas, decor):
         wall(shell, "wall_side_%d" % k, (x, 0, -HD), (x, 0, -0.55), 0.0, by - 0.15, v3(sx, 0, 0), nx=4)
         collide((x - 0.06, 0.0, -HD, x + 0.06, by - 0.15, -0.55))
         # drapes tied back at the front corners (inside the front posts) and at the open middle of the sides
-        xa, xb = sx * (HW - 0.2), sx * (HW - 1.0)
-        drape(shell, det, "drape_front_%d" % k, (xa, by - 0.15, HD - 0.26), (xb, by - 0.15, HD - 0.26), (sx * (HW - 0.32), 1.45, HD - 0.3),
-              (sx * (HW - 0.22), 0.04, HD - 0.3), (sx * (HW - 0.62), 0.04, HD - 0.3), Z)
+        xa, xb = sx * (HW - 0.34), sx * (HW - 1.1)
+        drape(shell, det, "drape_front_%d" % k, (xa, by - 0.15, HD - 0.4), (xb, by - 0.15, HD - 0.4), (sx * (HW - 0.46), 1.45, HD - 0.44),
+              (sx * (HW - 0.36), 0.04, HD - 0.44), (sx * (HW - 0.76), 0.04, HD - 0.44), Z)
         drape(shell, det, "drape_side_%d" % k, (x, by - 0.15, -0.5), (x, by - 0.15, 0.45), (x, 1.5, -0.42),
               (x, 0.04, -0.5), (x, 0.04, -0.12), v3(sx, 0, 0), nx=2)
     # ---- the left extension: striped awning, gold valance, posts, tied-back drapes
     lz0, lz1 = -1.85, 2.15
-    ly_in, ly_out = 3.2, 2.55
+    ly_in, ly_out = 3.9, 2.95
     for k, z in enumerate((lz1, lz0)):
-        small_post(shell, det, "lpost_%d" % k, LX, z, ly_out - 0.1)
+        small_post(shell, det, "lpost_%d" % k, LX, z, ly_out + 0.32)
     beam(shell, "l_beam_front", (-HW, ly_out - 0.2, lz1), (LX, ly_out - 0.2, lz1), 0.22, "beam", extend=0.15)
     beam(shell, "l_beam_back", (-HW, ly_out - 0.2, lz0), (LX, ly_out - 0.2, lz0), 0.22, "beam", extend=0.15)
     beam(shell, "l_beam_side", (LX, ly_out - 0.08, lz0), (LX, ly_out - 0.08, lz1), 0.22, "beam", extend=0.15)
@@ -591,9 +689,9 @@ def build(atlas, decor):
     collide((LX, 0.0, lz0 - 0.1, -HW, ly_out - 0.3, lz0))
     # ---- the right extension: lower cream awning with fine red stripes on two posts
     rz0, rz1 = -1.8, 1.95
-    ry_in, ry_out = 2.95, 2.4
+    ry_in, ry_out = 3.6, 2.95
     for k, z in enumerate((rz1, rz0)):
-        small_post(shell, det, "rpost_%d" % k, RX, z, ry_out - 0.1)
+        small_post(shell, det, "rpost_%d" % k, RX, z, ry_out + 0.3)
     beam(shell, "r_beam_front", (HW, ry_out - 0.2, rz1), (RX, ry_out - 0.2, rz1), 0.22, "beam", extend=0.15)
     beam(shell, "r_beam_back", (HW, ry_out - 0.2, rz0), (RX, ry_out - 0.2, rz0), 0.22, "beam", extend=0.15)
     beam(shell, "r_beam_side", (RX, ry_out - 0.08, rz0), (RX, ry_out - 0.08, rz1), 0.22, "beam", extend=0.15)
@@ -608,17 +706,18 @@ def build(atlas, decor):
     valance(shell, "r_valance_front", (HW + 0.05, ry_in - 0.02, rz1 + 0.38), (RX + 0.32, ry_out - 0.02, rz1 + 0.38), Z, h=0.36)
     valance(shell, "r_valance_side", (RX + 0.34, ry_out - 0.02, rz0 - 0.2), (RX + 0.34, ry_out - 0.02, rz1 + 0.35), X, h=0.36)
     ml.rope(det, "r_rope", (HW + 0.1, ry_in - 0.05, rz1 + 0.45), (RX + 0.3, ry_out - 0.05, rz1 + 0.45), d=0.06, sag=0.22, segs=3)
-    ml.lantern(shell, "lamp_r", (3.55, 1.72, rz1), size=0.34, metal="iron", chain_to=(3.55, ry_out - 0.3, rz1))
+    ml.lantern(shell, "lamp_r", (3.55, 2.15, rz1), size=0.38, metal="iron", chain_to=(3.55, ry_out - 0.3, rz1))
     # ---- the hanging sign with the gold coins, on a beam at the top right
-    sy = 4.7
-    beam(shell, "sign_beam", (HW, sy, HD), (4.95, sy, HD), 0.26, {"all": "beam", "+1": "end_grain", "-1": "end_grain"}, width=0.26, extend=0.12)
-    beam(shell, "sign_brace", (HW + 0.05, sy - 0.95, HD), (HW + 0.95, sy - 0.08, HD), 0.16, "wood_dark", extend=0.04)
-    box(det, "sign_strap_0", (HW + 0.25, sy - 0.15, HD - 0.15), (HW + 0.35, sy + 0.15, HD + 0.15), "iron")
-    box(det, "sign_strap_1", (4.75, sy - 0.15, HD - 0.15), (4.85, sy + 0.15, HD + 0.15), "iron")
-    sx0 = 4.1
-    for k, dx in enumerate((-0.38, 0.38)):
-        add_cube(det, "sign_ring_%d" % k, (sx0 + dx, sy - 0.22, HD), EYE, (0.06, 0.2, 0.12), "iron")
-    box(shell, "sign", (sx0 - 0.55, sy - 1.1, HD - 0.05), (sx0 + 0.55, sy - 0.3, HD + 0.05), {"all": "wood_dark", "+3": "mv_sign", "-3": "mv_sign"},
+    sy, sz = RIDGE + 0.36, 0.0
+    beam(shell, "sign_beam", (W + 0.5, sy, sz), (4.95, sy + 0.2, sz), 0.28, {"all": "beam", "+1": "end_grain", "-1": "end_grain"}, width=0.28, extend=0.12)
+    beam(shell, "sign_brace", (W + 0.42, sy - 0.85, sz), (W + 1.2, sy + 0.04, sz), 0.16, "wood_dark", extend=0.04)
+    box(det, "sign_strap_0", (W + 0.62, sy - 0.12, sz - 0.16), (W + 0.72, sy + 0.22, sz + 0.16), "iron")
+    box(det, "sign_strap_1", (4.82, sy + 0.04, sz - 0.16), (4.92, sy + 0.38, sz + 0.16), "iron")
+    sx0 = 4.35
+    for k, dx in enumerate((-0.42, 0.42)):
+        bya = sy + 0.2 * (sx0 + dx - W - 0.5) / (4.95 - W - 0.5)   # the beam's axis above the ring
+        add_cube(det, "sign_ring_%d" % k, (sx0 + dx, (bya - 0.12 + sy - 0.27) / 2, sz), EYE, (0.07, bya - 0.12 - sy + 0.27, 0.14), "rope")
+    box(shell, "sign", (sx0 - 0.64, sy - 1.24, sz - 0.06), (sx0 + 0.64, sy - 0.27, sz + 0.06), {"all": "wood_dark", "+3": "mv_sign", "-3": "mv_sign"},
         stretch=True, u_dir=X, v_dir=-UP)
     # ---- the counter with the red cloth with a gold border, and its goods
     cx0, cx1, cz0, cz1 = COUNTER
@@ -632,12 +731,12 @@ def build(atlas, decor):
     ml.plate(det, "scroll_open", (-0.5, y + 0.012, zc + 0.18), 0.36, 0.26, "beige", normal=(0, 1, 0), up=(0, 0, -1), th=0.008)
     ml.crate(shell, "fruit_crate", (0.6, y + 0.015, zc), size=(0.6, 0.28, 0.42), yaw=0.08, content="apples", solid=False)
     for k, (dx, dz) in enumerate(((-0.12, 0.0), (0.1, 0.06), (0.0, -0.1))):
-        add_cube(det, "fruit_%d" % k, (0.6 + dx, y + 0.34, zc + dz), ry(0.4 * k), (0.13, 0.12, 0.13), "cloth_red")
+        add_cube(det, "fruit_%d" % k, (0.6 + dx * 1.3, y + 0.38, zc + dz), ry(0.4 * k), (0.19, 0.17, 0.19), "cloth_red")
     ml.crate(shell, "small_crate_0", (1.62, y, zc - 0.02), size=(0.42, 0.3, 0.38), yaw=-0.12, solid=False)
     ml.crate(shell, "small_crate_1", (1.6, y + 0.3, zc - 0.02), size=(0.3, 0.22, 0.28), yaw=0.15, solid=False)
     # ---- the back shelves: potions, bottles, books, cloth rolls, small sacks
     levels = ml.shelf_unit(shell, "shelves", -HW + 0.45, HW - 0.45, SHELF_Z[0], SHELF_Z[1], levels=(0.62, 1.22, 1.82, 2.42), h=2.75,
-                           back=False, uprights=4, detail=det)
+                           back=True, uprights=4, detail=det)
     lv = sorted(levels, key=lambda s: s[2])
     pot = ("blue", "red", "red", "blue", "red", "green", "red", "blue")
     for j, (x0, x1, yy, zf, zb) in enumerate(lv):
@@ -680,8 +779,7 @@ def build(atlas, decor):
     decor.block("furnish:spruce_crate", -3.65, 0.0, 0.05, facing="front", alt="minecraft:barrel", fallback="crate")
     ml.crate(shell, "l_crate_top", (-3.65, 1.0, 0.05), size=0.55, yaw=0.2, solid=True)
     ml.barrel(shell, "l_barrel", (-3.75, 0.0, -1.15), r=0.34, h=0.85)
-    big_sack(shell, det, "big_sack", (-3.55, 0.0, 3.0), yaw=0.25)
-    ml.sack(det, "small_sack", (-4.15, 0.0, 2.75), s=0.45, yaw=-0.4)
+    big_sack(shell, det, "big_sack", (-3.55, 0.0, 3.0), yaw=0.25, w=0.8, h=1.25)
     collide((-3.95, 0.0, 2.62, -3.15, 0.8, 3.38))
     # the iron-banded barrel in front of the front-left post, a low crate beside the counter
     ml.barrel(shell, "fl_barrel", (-2.68, 0.0, 2.98), r=0.33, h=0.86)
