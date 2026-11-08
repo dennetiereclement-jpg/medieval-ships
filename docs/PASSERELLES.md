@@ -28,7 +28,7 @@ planche.
   1.23.0 (mêmes points, mêmes boîtes de collision, même angle). **Repli** : l'inverse.
 * Le balayage vérifié au clic (« Un bloc gêne le déploiement ») reste celui de 1.23.0 (de la verticale à la pente
   visée) : les règles ne changent pas.
-* Rendu : un os par segment (`seg_<k>`, origine à son bout intérieur) et deux par rambarde (`rail_<k>_0`, `rail_<k>_1`)
+* Rendu : un os par segment (`seg_<k>`, origine à son bout intérieur) et un par rambarde, ses enfants (`rail_<k>_0`, `rail_<k>_1`)
   dans `gangplank_<id>.bbmodel` ; chaque segment est placé par sa pose de pliage (angles cumulés des charnières), sans
   allocation par image ; la pose rangée est calculée une fois par navire.
 

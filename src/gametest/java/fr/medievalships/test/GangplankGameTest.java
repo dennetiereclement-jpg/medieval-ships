@@ -242,8 +242,7 @@ public final class GangplankGameTest {
 		log.accept(String.format(Locale.ROOT, "gangplank: stowed pack top %.3f, hinge %.3f", top, spec.hy()));
 		check.accept(top <= spec.hy() + 0.02,
 				String.format(Locale.ROOT, "gangplank: the stowed pack hangs under the rail top (top %.2f, hinge %.2f)", top, spec.hy()));
-		int o = spec.o();
-		lookLocal(server, p, spec.hx() + o * 4.5, spec.hy() + 0.9, spec.hz() + 3.6, spec.hx() + o * 0.8, spec.hy() - 0.8, spec.hz());
+		lookLocal(server, p, spec.hx() + spec.o() * 4.5, spec.hy() + 0.9, spec.hz() + 3.6, spec.hx() + spec.o() * 0.8, spec.hy() - 0.8, spec.hz());
 		context.waitTicks(15);
 		shot.accept("passerelle_0b_paquet_replie");
 
