@@ -1,0 +1,26 @@
+{
+ "blocks": [
+  {
+   "block": "furnish:spruce_stool",
+   "x": -1.925,
+   "y": 0.0,
+   "z": 0.2,
+   "yaw": 0.0,
+   "scale": 1.0,
+   "fallback": "fallback_0"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": -2.3,
+   "y": 0.0,
+   "z": -2.9,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_1",
+   "alt": "minecraft:barrel"
+  }
+ ],
+ "seats": [],
+ "paintings": [],
+ "switches": []
+}
