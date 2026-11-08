@@ -1,0 +1,54 @@
+{
+ "blocks": [
+  {
+   "block": "furnish:spruce_crate",
+   "x": -1.55,
+   "y": 0.08,
+   "z": 1.95,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_0",
+   "alt": "minecraft:barrel"
+  },
+  {
+   "block": "farmersdelight:rice_bag",
+   "x": -1.95,
+   "y": 0.83,
+   "z": -1.55,
+   "yaw": 180.0,
+   "scale": 0.6,
+   "fallback": "fallback_1"
+  },
+  {
+   "block": "farmhouse_decorations:pile_of_books",
+   "x": -3.4,
+   "y": 1.9,
+   "z": -0.95,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_2"
+  },
+  {
+   "block": "farmersdelight:cabbage_crate",
+   "x": 3.5,
+   "y": 0.0,
+   "z": -0.15,
+   "yaw": 180.0,
+   "scale": 0.8,
+   "fallback": "fallback_3"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": 4.3,
+   "y": 0.0,
+   "z": 1.25,
+   "yaw": 180.0,
+   "scale": 0.8,
+   "fallback": "fallback_4",
+   "alt": "minecraft:barrel"
+  }
+ ],
+ "seats": [],
+ "paintings": [],
+ "switches": []
+}
