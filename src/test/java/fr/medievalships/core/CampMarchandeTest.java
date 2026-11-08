@@ -102,7 +102,7 @@ public class CampMarchandeTest {
 				backWall = true;
 			}
 			// the entrance and the aisle in front of the counter: nothing solid up to 2.2 high from the counter to the front
-			boolean aisle = b.x0() < 1.8 && b.x1() > -1.1 && b.z1() > 1.7 && b.y0() < 2.2;
+			boolean aisle = b.x0() < 1.9 && b.x1() > -1.1 && b.z1() > 2.15 && b.y0() < 2.2;
 			assertFalse(aisle, "the front is open and walkable up to the counter " + b);
 			// no invisible wall above the counter and the goods: only posts and walls rise above 2.0 inside
 			boolean wall = b.width() < 0.2 || b.depth() < 0.2;

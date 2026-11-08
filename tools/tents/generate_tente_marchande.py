@@ -58,7 +58,7 @@ EY = EAVE + 0.02
 FRONT_TOP, BACK_TOP = 4.95, 5.75   # post tops (above the roof: the big caps)
 STRIPES = 7
 LX, RX = -4.5, 4.45          # outer post lines of the left / right extensions
-COUNTER = (-1.2, 1.85, 0.95, 1.6)  # x0, x1, z0, z1
+COUNTER = (-1.2, 2.0, 1.4, 2.05)   # x0, x1, z0, z1
 COUNTER_H = 1.05
 NPC_SPOT = (-0.2, -1.25)     # (x0, z0) of the free 1 x 1 x 2.2 place behind the counter (the merchant)
 SHELF_Z = (-2.2, -1.7)
@@ -279,6 +279,22 @@ def paint_wall(img):
                 px[x, y] = _scale((r, g, b), k) + (255,)
 
 
+def paint_drape(img):
+    """A tied-back curtain: one wide crimson band and one wide cream band, darker folds, a gold hem."""
+    rng = random.Random(2412)
+    w, h = img.size
+    ml._stripes(img, "red", 2, rng)
+    px = img.load()
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = px[x, y]
+            k = 0.84 + 0.18 * math.sin(math.pi * ((x * 2.0 / w) % 1.0))
+            if y >= h - 4:
+                px[x, y] = _jitter(GOLD if y >= h - 3 else GOLD_DARK, rng, 8) + (255,)
+            else:
+                px[x, y] = _scale((r, g, b), k) + (255,)
+
+
 def paint_chest(img):
     """The chest's wood: warm planks, gold corner plates (the gold trim boxes add the bands)."""
     rng = random.Random(2409)
@@ -311,7 +327,7 @@ def paint_post(img):
     """The posts' warm orange-brown wood (lighter than merchantlib's carved dark post), grain along u."""
     rng = random.Random(2411)
     w, h = img.size
-    ml.fine_wood(img, (0, 0, w, h), _rgb("9a6434"), _rgb("4e2e14"), h, rng, joints=False, knots=0.08, grain=0.14, shade=0.08)
+    ml.fine_wood(img, (0, 0, w, h), _rgb("b87a40"), _rgb("6a4020"), h, rng, joints=False, knots=0.08, grain=0.14, shade=0.08)
 
 
 def add_regions(atlas):
@@ -330,6 +346,7 @@ def add_regions(atlas):
     atlas.add("mv_chest", 32, 32, paint_chest)
     atlas.add("mv_post", 64, 16, paint_post)
     atlas.add("mv_valance", 224, 24, paint_valance)
+    atlas.add("mv_drape", 32, 64, _recoloured(paint_drape))
     if atlas.size != 512:
         raise AssertionError("the atlas grew to %d px: repack the regions" % atlas.size)
 
@@ -381,7 +398,7 @@ def valance(bone, name, c0, c1, out, h=0.56, region="mv_valance"):
     loft(bone, name, V, max(1, int(round(L / 3.0))), 1, region, th=0.025)
 
 
-def drape(bone, det, name, top_a, top_b, tie, bot_a, bot_b, normal, region="mv_wall", nx=3):
+def drape(bone, det, name, top_a, top_b, tie, bot_a, bot_b, normal, region="mv_drape", nx=3):
     """A curtain tied back: hangs from the edge top_a - top_b, gathered at `tie` (a rope band), flaring again below
     to bot_a - bot_b; soft folds (ripples along `normal`)."""
     top_a, top_b, tie, bot_a, bot_b, n = (v3(*p) for p in (top_a, top_b, tie, bot_a, bot_b, normal))
@@ -486,12 +503,15 @@ def build(atlas, decor):
     def roof_pt(s, t, sgn):
         x = -W + 2 * W * s
         frac = (s * STRIPES) % 1.0
-        y = RIDGE - (RIDGE - EY) * roof_drop(t) - 0.09 * math.sin(math.pi * s) * math.sin(math.pi * t)
-        y -= 0.07 * math.sin(math.pi * frac) * (0.25 + 0.75 * t)
-        zz = D * t + 0.05 * math.sin(math.pi * frac) * t
-        return v3(x if sgn > 0 else -x, y, sgn * zz)
-    loft(shell, "roof_front", lambda s, t: roof_pt(s, t, 1), STRIPES * 2, 4, "mv_roof", th=0.04)
-    loft(shell, "roof_back", lambda s, t: roof_pt(s, t, -1), STRIPES * 2, 4, "mv_roof", th=0.04)
+        y = RIDGE - (RIDGE - EY) * roof_drop(t) - 0.08 * math.sin(math.pi * s) * math.sin(math.pi * t)
+        # each stripe bellies a little between its seams (soft folds), pushed in along the slope's normal so that the
+        # strips stay flush (no wedge gaps between them)
+        dy = -(RIDGE - EY) * (0.5 + 0.5 * 2 * (1 - t))
+        nrm = norm(v3(0.0, D, -dy))
+        fold = 0.07 * math.sin(math.pi * frac)
+        return v3(x if sgn > 0 else -x, y - nrm[1] * fold, sgn * (D * t - nrm[2] * fold))
+    loft(shell, "roof_front", lambda s, t: roof_pt(s, t, 1), STRIPES * 2, 4, "mv_roof", th=0.04, overlap=0.03)
+    loft(shell, "roof_back", lambda s, t: roof_pt(s, t, -1), STRIPES * 2, 4, "mv_roof", th=0.04, overlap=0.03)
     # the ridge cover: a cream band along the ridge
     box(shell, "ridge_cover", (-W, RIDGE - 0.02, -0.18), (W, RIDGE + 0.06, 0.18), {"all": "cloth_beige"}, stretch=True, u_dir=X)
     for k, sx in enumerate((-1, 1)):
@@ -560,9 +580,9 @@ def build(atlas, decor):
         z = (lz0 - 0.2) + (lz1 - lz0 + 0.55) * s
         frac = (s * 5) % 1.0
         x = -HW - 0.05 + (LX - 0.3 + HW + 0.05) * t
-        y = ly_in - (ly_in - ly_out) * t - 0.1 * math.sin(math.pi * t) - 0.05 * math.sin(math.pi * frac) * t
+        y = ly_in - (ly_in - ly_out) * t - 0.1 * math.sin(math.pi * t) - 0.05 * math.sin(math.pi * frac)
         return v3(x, y, z)
-    loft(shell, "l_awning", lambda s, t: LA(1 - s, t), 10, 3, "mv_roof_l", th=0.035)
+    loft(shell, "l_awning", lambda s, t: LA(1 - s, t), 10, 3, "mv_roof_l", th=0.035, overlap=0.03)
     valance(shell, "l_valance_front", (-HW - 0.05, ly_in - 0.02, lz1 + 0.38), (LX - 0.3, ly_out - 0.02, lz1 + 0.38), Z, h=0.4)
     valance(shell, "l_valance_side", (LX - 0.32, ly_out - 0.02, lz1 + 0.35), (LX - 0.32, ly_out - 0.02, lz0 - 0.2), -X, h=0.4)
     drape(shell, det, "l_drape", (LX + 0.18, ly_out - 0.3, lz1 + 0.05), (LX + 0.95, ly_out - 0.32, lz1 + 0.05), (LX + 0.25, 1.25, lz1 + 0.02),
@@ -582,9 +602,9 @@ def build(atlas, decor):
         z = (rz0 - 0.2) + (rz1 - rz0 + 0.55) * s
         frac = (s * 6) % 1.0
         x = HW + 0.05 + (RX + 0.32 - HW - 0.05) * t
-        y = ry_in - (ry_in - ry_out) * t - 0.08 * math.sin(math.pi * t) - 0.04 * math.sin(math.pi * frac) * t
+        y = ry_in - (ry_in - ry_out) * t - 0.08 * math.sin(math.pi * t) - 0.04 * math.sin(math.pi * frac)
         return v3(x, y, z)
-    loft(shell, "r_awning", RA, 12, 3, "mv_awning_r", th=0.035)
+    loft(shell, "r_awning", RA, 12, 3, "mv_awning_r", th=0.035, overlap=0.03)
     valance(shell, "r_valance_front", (HW + 0.05, ry_in - 0.02, rz1 + 0.38), (RX + 0.32, ry_out - 0.02, rz1 + 0.38), Z, h=0.36)
     valance(shell, "r_valance_side", (RX + 0.34, ry_out - 0.02, rz0 - 0.2), (RX + 0.34, ry_out - 0.02, rz1 + 0.35), X, h=0.36)
     ml.rope(det, "r_rope", (HW + 0.1, ry_in - 0.05, rz1 + 0.45), (RX + 0.3, ry_out - 0.05, rz1 + 0.45), d=0.06, sag=0.22, segs=3)
@@ -604,16 +624,17 @@ def build(atlas, decor):
     cx0, cx1, cz0, cz1 = COUNTER
     top = ml.counter(shell, "counter", cx0, cx1, cz0, cz1, h=COUNTER_H, detail=det)
     y = top[1]
-    box(shell, "runner", (-0.45, y, cz0 + 0.02), (1.35, y + 0.015, cz1 + 0.05), {"all": "cloth_red"}, stretch=True, u_dir=X)
-    ml.plate(shell, "runner_front", (0.45, y - 0.43, cz1 + 0.06), 1.8, 0.88, "mv_runner", normal=(0, 0, 1), th=0.012, edge="cloth_red")
-    for k, (x, z, yaw) in enumerate(((-0.95, 1.38, 0.15), (-0.72, 1.2, -0.2), (-0.85, 1.28, 0.05))):
-        scroll(det, "scroll_%d" % k, (x, y + 0.06 + 0.1 * (k == 2), z), length=0.42, r=0.06, yaw=yaw)
-    ml.plate(det, "scroll_open", (-0.55, y + 0.012, 1.42), 0.36, 0.26, "beige", normal=(0, 1, 0), up=(0, 0, -1), th=0.008)
-    ml.crate(shell, "fruit_crate", (0.55, y + 0.015, 1.27), size=(0.6, 0.28, 0.42), yaw=0.08, content="apples", solid=False)
+    zc = (cz0 + cz1) / 2
+    box(shell, "runner", (-0.4, y, cz0 + 0.02), (1.45, y + 0.015, cz1 + 0.05), {"all": "cloth_red"}, stretch=True, u_dir=X)
+    ml.plate(shell, "runner_front", (0.52, y - 0.43, cz1 + 0.06), 1.85, 0.88, "mv_runner", normal=(0, 0, 1), th=0.012, edge="cloth_red")
+    for k, (x, dz, yaw) in enumerate(((-0.95, 0.15, 0.15), (-0.72, -0.05, -0.2), (-0.85, 0.05, 0.05))):
+        scroll(det, "scroll_%d" % k, (x, y + 0.06 + 0.1 * (k == 2), zc + dz), length=0.42, r=0.06, yaw=yaw)
+    ml.plate(det, "scroll_open", (-0.5, y + 0.012, zc + 0.18), 0.36, 0.26, "beige", normal=(0, 1, 0), up=(0, 0, -1), th=0.008)
+    ml.crate(shell, "fruit_crate", (0.6, y + 0.015, zc), size=(0.6, 0.28, 0.42), yaw=0.08, content="apples", solid=False)
     for k, (dx, dz) in enumerate(((-0.12, 0.0), (0.1, 0.06), (0.0, -0.1))):
-        add_cube(det, "fruit_%d" % k, (0.55 + dx, y + 0.34, 1.27 + dz), ry(0.4 * k), (0.13, 0.12, 0.13), "cloth_red")
-    ml.crate(shell, "small_crate_0", (1.5, y, 1.25), size=(0.42, 0.3, 0.38), yaw=-0.12, solid=False)
-    ml.crate(shell, "small_crate_1", (1.48, y + 0.3, 1.25), size=(0.3, 0.22, 0.28), yaw=0.15, solid=False)
+        add_cube(det, "fruit_%d" % k, (0.6 + dx, y + 0.34, zc + dz), ry(0.4 * k), (0.13, 0.12, 0.13), "cloth_red")
+    ml.crate(shell, "small_crate_0", (1.62, y, zc - 0.02), size=(0.42, 0.3, 0.38), yaw=-0.12, solid=False)
+    ml.crate(shell, "small_crate_1", (1.6, y + 0.3, zc - 0.02), size=(0.3, 0.22, 0.28), yaw=0.15, solid=False)
     # ---- the back shelves: potions, bottles, books, cloth rolls, small sacks
     levels = ml.shelf_unit(shell, "shelves", -HW + 0.45, HW - 0.45, SHELF_Z[0], SHELF_Z[1], levels=(0.62, 1.22, 1.82, 2.42), h=2.75,
                            back=False, uprights=4, detail=det)
@@ -647,7 +668,7 @@ def build(atlas, decor):
             ml.bottle(det, "jar_top", (x1 - 0.6, yy, zc), "green", r=0.1, h=0.22, shape="tall", neck_h=0.06)
             scroll(det, "shelf_scroll", (x1 - 0.25, yy + 0.07, zc), length=0.36, r=0.06, yaw=math.pi / 2)
     # ---- the carpet in front of the counter
-    ml.rug(shell, "carpet", -1.55, 2.0, 1.78, 4.5, y=0.0, region="mv_carpet")
+    ml.rug(shell, "carpet", -1.5, 2.15, 2.2, 4.75, y=0.0, region="mv_carpet")
     # ---- the left extension's goods: the gold-trimmed chest on a cross-braced stand, crates, a barrel; the big sack
     stx, stz = -3.6, 1.35
     box(shell, "stand", (stx - 0.5, 0.0, stz - 0.36), (stx + 0.5, 0.55, stz + 0.36), {"all": "crate", "+2": "plank"}, stretch=True)
@@ -664,7 +685,7 @@ def build(atlas, decor):
     collide((-3.95, 0.0, 2.62, -3.15, 0.8, 3.38))
     # the iron-banded barrel in front of the front-left post, a low crate beside the counter
     ml.barrel(shell, "fl_barrel", (-2.68, 0.0, 2.98), r=0.33, h=0.86)
-    ml.crate(shell, "fl_crate", (-1.75, 0.0, 2.75), size=(0.5, 0.42, 0.45), yaw=0.1, solid=True)
+    ml.crate(shell, "fl_crate", (-1.98, 0.0, 3.35), size=(0.5, 0.42, 0.45), yaw=0.1, solid=True)
     # ---- the right extension's goods: stacked barrels and crates
     ml.barrel(shell, "r_barrel_0", (3.35, 0.0, 1.25), r=0.36, h=0.88)
     ml.crate(shell, "r_crate_on_barrel", (3.35, 0.88, 1.25), size=0.55, yaw=-0.1, solid=True)
