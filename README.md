@@ -148,6 +148,13 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.23.0 ajoute des **passerelles d'embarquement** à tous les navires et aux grands dirigeables : une planche
+médiévale renforcée (ferrures, charnières, rambardes, chaînes ou cordages) relevée contre le bordé, qu'un **levier**
+sur le pont déploie jusqu'au quai ou au ponton puis replie. On y marche vraiment, du quai au pont et retour. Le
+déploiement est refusé si le navire avance, si un bloc gêne, si quelqu'un est sur le chemin ou s'il n'y a pas d'appui
+au bout (jamais dans le vide) ; passerelle sortie, le navire reste amarré (« Repliez d'abord la passerelle ») et le
+pilote automatique la replie lui-même avant de repartir. Détails : [docs/PASSERELLES.md](docs/PASSERELLES.md).
+
 La version 1.22.0 ajoute **l'établi du joaillier**, huitième atelier (`/give @p medievalships:workshop_jeweler`) :
 établi en chêne noir d'environ 2 x 1 blocs, tiroirs, ferrures rivetées, chemin violet au diamant d'or, machine à
 tailler les gemmes avec sa manivelle, lingots d'or, gemmes taillées lumineuses, plateau de pierres, bagues, outils.
@@ -421,7 +428,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.22.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.23.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation

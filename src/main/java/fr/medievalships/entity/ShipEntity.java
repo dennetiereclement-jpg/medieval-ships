@@ -1061,6 +1061,17 @@ public abstract class ShipEntity extends Entity {
 		}
 	}
 
+	/** Does this entity stand on (or just above) the deployed plank or its stairs (the server's anti-flight check)? */
+	public boolean standsOnGangplank(Entity e) {
+		if (gangplankState() != Gangplank.State.DEPLOYED) {
+			return false;
+		}
+		Box b = e.getBoundingBox();
+		boolean[] hit = {false};
+		collectGangplankBoxes(b.minX, b.minY - 0.6, b.minZ, b.maxX, b.minY + 0.1, b.maxZ, (x0, y0, z0, x1, y1, z1) -> hit[0] = true);
+		return hit[0];
+	}
+
 	/** The lever was used (a player's click, a test): deploys or retracts the plank. Returns the message for the action bar. */
 	@Nullable
 	public Text useGangplankLever(ServerWorld world) {

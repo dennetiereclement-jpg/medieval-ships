@@ -17,6 +17,19 @@ Le test (`src/gametest/.../ShipClientGameTest.java`) crée un monde, des bassins
 à l'eau puis vérifie (résultats et captures publiés sur les branches `test-results-vanilla` et
 `test-results-lithium`) :
 
+### Passerelles d'embarquement — 1.23.0
+
+`GangplankGameTest` (en solo **et** sur serveur dédié) : quai de pierre et bassin construits par commandes, sloop
+marchand à quai ; le levier est visé et cliqué pour de vrai (sélection côté client, paquet, serveur) → déploiement →
+passerelle posée sur le quai ~3 s plus tard, boîtes de marche enregistrées sur le client ; un joueur en survie marche
+du quai jusqu'au pont (touche avancer seulement) puis redescend sur le quai ; repli refusé tant qu'il est dessus,
+accepté ensuite ; les commandes du pilote sont ignorées passerelle sortie (le sloop ne bouge pas) ; déploiement
+refusé avec un bloc dans l'arc ; aller-retour NBT cohérent (mouvement en cours → état final) ; rechargement après la
+disparition du quai → la passerelle se replie, puis refus faute d'appui ; dirigeable steampunk : refus en plein ciel
+(« dans le vide »), déploiement à côté d'un ponton, maintien sur place, marche du ponton au pont. JUnit
+`GangplankTest` : repère, animation, marches, escalier, recherche d'appui, balayage, fichiers et modèles. Voir
+[PASSERELLES.md](PASSERELLES.md).
+
 ### Fonctions communes (aperçu de placement, tableau de bord, inclinaison, permissions, destinations)
 
 `SharedFeaturesGameTest` (≈ 2 min de jeu, en solo **et** sur serveur dédié, avec et sans Lithium et

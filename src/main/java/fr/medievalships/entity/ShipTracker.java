@@ -60,6 +60,16 @@ public final class ShipTracker {
 		return SHIPS.getOrDefault(world, NONE);
 	}
 
+	/** Does this entity stand on (or just above) a deployed gangplank or its stairs? */
+	public static boolean onGangplank(Entity entity) {
+		for (ShipEntity ship : ships(entity.getEntityWorld())) {
+			if (!ship.isRemoved() && ship.standsOnGangplank(entity)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/** The ship whose deck volume contains this entity's feet, if any. */
 	public static ShipEntity shipUnder(Entity entity) {
 		for (ShipEntity ship : ships(entity.getEntityWorld())) {
