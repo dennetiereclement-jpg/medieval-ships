@@ -33,7 +33,6 @@ z vers la proue, en blocs. Angles : positifs vers le bas.
 | galère médiévale (`medieval_galley`) | tribord | -2.60, 2.15, 1.80 | 2.0 × 4.0 | wood | 4 marches de 0.42 (pont 0.45 → 2.15) | -25° à 30° | 1.99 | -1.60, 0.45, 0.45 |
 | vapeur à aubes (`steam_paddleboat`) | tribord | -3.60, 3.37, -6.70 | 2.0 × 5.5 | steel | 3 marches de 0.32 (pont 2.40 → 3.37) | -20° à 40° | 3.53 | -2.20, 2.40, -5.30 |
 | voilier elfique (`elven_sailboat`) | tribord | -2.80, 1.94, -3.80 | 2.2 × 4.0 | elven | 3 marches de 0.45 (pont 0.60 → 1.94) | -25° à 35° | 2.29 | -1.05, 0.60, -2.55 |
-| Nautilus (en surface) (`nautilus`) | tribord | -2.30, 9.00, 9.00 | 3.0 × 12.0 | copper | aucun (plate-forme de plain-pied) | -10° à 46° | 8.63 | -1.40, 9.00, 7.10 |
 | vieux corsaire (`old_corsair`) | tribord | -4.70, 6.00, 0.00 | 3.0 × 8.0 | worn | 4 marches de 0.38 (pont 4.50 → 6.00) | -15° à 42° | 5.35 | -3.50, 4.50, 1.95 |
 | frégate bleue (`blue_frigate`) | tribord | -4.60, 7.55, 1.00 | 3.0 × 10.0 | dark_wood | 5 marches de 0.41 (pont 5.50 → 7.55) | -15° à 42° | 6.69 | -3.50, 5.50, 2.95 |
 | dirigeable de cristal (`crystal_airship`) | tribord | -6.03, 1.13, -0.50 | 3.5 × 5.5 | crystal | 3 marches de 0.38 (pont 0.00 → 1.13) | -25° à 45° | 3.88 | -5.00, 0.00, -2.80 |
@@ -80,3 +79,6 @@ z vers la proue, en blocs. Angles : positifs vers le bas.
   sa rotation et rangée ; modèle aux dimensions de la spec.
 * Rendus de contrôle : `python3 tools/gangplank/ships_g2.py sheet <sortie.png>` (une ligne par navire : rangée,
   déployée à 20°, coupe le long de la quille, vue du flanc).
+
+> Retirés à la demande du joueur (1.23.0) : `trade_sloop` (petit sloop) et `nautilus` n'ont pas de passerelle ; leurs
+> fichiers ont été supprimés. Le test en jeu se fait avec la galère à quai et le dirigeable steampunk.
