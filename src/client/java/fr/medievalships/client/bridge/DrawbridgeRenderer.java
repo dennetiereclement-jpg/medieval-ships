@@ -8,6 +8,7 @@ import org.joml.Vector3f;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderLayers;
@@ -16,30 +17,42 @@ import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.command.OrderedRenderCommandQueue;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
 
-import fr.medievalships.client.render.ShipModels;
-import fr.medievalships.core.Gangplank;
 import fr.medievalships.core.bridge.ChannelZones;
 import fr.medievalships.core.bridge.LeafFrame;
 import fr.medievalships.core.bridge.LeafShape;
 
 /**
- * Draws the drawbridges whose leaves are out of the world: every captured block of a leaf, as the game draws a
- * block, turned about the hinge by the angle the client computes from the synced motion and the world time (the
- * same angle as the collision boxes), lit from where it is now; a chain stretched across each end of the deck while
- * the leaves are out (the barrier players feel); and, for the administrator who asked for it, the preview: the two
+ * Draws the drawbridges. For a converted bridge, whatever its state: the hinge of each leaf (an iron axle along the
+ * hinge line, a bearing at each end) and, unless the bridge's {@code chaines} option is off, its mechanism: a winch
+ * beam over the hinge, from tower to tower, two drums on it, and from each drum a chain down to a shackle at the
+ * corner of the leaf's free end, drawn as the game draws its chain block (two crossed strips, the link pattern every
+ * block, counted from the shackle so that a chain which shortens winds its links into the drum). While the leaves
+ * are out of the world: every captured block of a leaf, as the game draws a block, turned about the hinge by the
+ * angle the client computes from the synced motion and the world time (the same angle as the collision boxes), lit
+ * from where it is now (a lantern keeps its own light); and across each end of the deck two posts and a sagging
+ * chain, where the barrier players feel stands. For the administrator who asked for it, the preview: the two
  * selections, the hinge lines, the arcs the free ends sweep, the raised leaves, the approach zones on both sides of
  * the channel, the passage and the free height. Runs after the entities ({@code WorldRenderEvents.AFTER_ENTITIES}).
  */
 public final class DrawbridgeRenderer {
 	private static final double DRAW_DISTANCE = 192.0;
-	private static final int[] CORD = Gangplank.region("dark_wood", "cord");
-	private static final float CHAIN = 0.07f;
-	private static final float LIFT_CHAIN = 0.11f;
+	/** The game's chain block texture (named iron_chain since the copper chains): two strips of 3 px in 16. */
+	private static final Identifier CHAIN_TEXTURE = Identifier.ofVanilla("textures/block/iron_chain.png");
+	private static final Identifier IRON_TEXTURE = Identifier.ofVanilla("textures/block/iron_block.png");
+	private static final Identifier WOOD_TEXTURE = Identifier.ofVanilla("textures/block/stripped_dark_oak_log.png");
+	private static final float CHAIN_HALF = 1.5f / 16f;
+	/** The iron block darkened to wrought iron. */
+	private static final int IRON = 0xFF55555C;
+	private static final int WOOD = 0xFFFFFFFF;
+	private static final int WHITE = 0xFFFFFFFF;
 	private static final float LINE_WIDTH = 2.5f;
+	/** Set back of the winch beam's axis from the hinge line, towards the shore. */
+	private static final double BEAM_BACK = -0.45;
 
 	private DrawbridgeRenderer() {
 	}
@@ -62,77 +75,22 @@ public final class DrawbridgeRenderer {
 			if (!near(b, cam)) {
 				continue;
 			}
-			if (b.leavesOut()) {
-				leaves(b, now, cam, world, matrices, queue);
-				chains(b, cam, world, matrices, queue);
+			boolean out = b.leavesOut();
+			double angle = out ? b.angle(now) : 0;
+			if (out) {
+				leaves(b, angle, cam, world, matrices, queue);
+				barrier(b, cam, world, matrices, queue);
 			}
-			if (b.converted && b.chains) {
-				liftingChains(b, now, cam, world, matrices, queue);
+			if (b.converted) {
+				hinges(b, cam, world, matrices, queue);
+				if (b.chains) {
+					mechanism(b, angle, cam, world, matrices, queue);
+				}
 			}
 			if (b.preview) {
 				preview(b, cam, matrices, queue);
 			}
 		}
-	}
-
-	/**
-	 * The lifting chains of the mechanism: from the two corners of each leaf's free end up to anchors over its hinge
-	 * (on the shore side, where the tower or the winch house stands), drawn whatever the state: taut diagonals over
-	 * the closed deck, nearly vertical once the leaves stand up. The anchors' height is the leaf's length plus 1.5 by
-	 * default, or the bridge's setting.
-	 */
-	private static void liftingChains(DrawbridgeClient.ClientBridge b, double now, Vec3d cam, ClientWorld world, MatrixStack matrices,
-			OrderedRenderCommandQueue queue) {
-		RenderLayer layer = RenderLayers.entityCutoutNoCull(ShipModels.GANGPLANK_TEXTURE);
-		double angle = b.leavesOut() ? b.angle(now) : 0;
-		matrices.push();
-		matrices.translate(-cam.x, -cam.y, -cam.z);
-		for (int i = 0; i < 2; i++) {
-			LeafShape s = b.shapes[i];
-			if (s == null || s.isEmpty()) {
-				continue;
-			}
-			LeafFrame f = s.frame();
-			double length = s.maxB() - Math.min(0, s.minB());
-			double height = b.chainHeight > 0 ? b.chainHeight : length + 1.5;
-			double inset = Math.min(0.4, (s.maxA() - s.minA()) / 4);
-			for (double a : new double[] {s.minA() + inset, s.maxA() - inset}) {
-				double[] anchor = f.toWorld(a, -0.45, height, 0);
-				double[] end = f.toWorld(a, s.maxB() - 0.25, s.maxC() + 0.05, angle);
-				double[] mid = {(anchor[0] + end[0]) / 2, (anchor[1] + end[1]) / 2, (anchor[2] + end[2]) / 2};
-				int light = WorldRenderer.getLightmapCoordinates(world, BlockPos.ofFloored(mid[0], mid[1], mid[2]));
-				queue.submitCustom(matrices, layer, (entry, vertices) -> {
-					beam(entry, vertices, light, anchor, end, LIFT_CHAIN);
-					// a ring at the anchor and a shackle at the deck's corner
-					box(entry, vertices, light, anchor, 0.16);
-					box(entry, vertices, light, end, 0.12);
-				});
-			}
-		}
-		matrices.pop();
-	}
-
-	/** A small cube centred on a point, textured as the chain (a ring, a shackle). */
-	private static void box(MatrixStack.Entry e, VertexConsumer v, int light, double[] c, double size) {
-		double h = size / 2;
-		double[][] p = {{c[0] - h, c[1] - h, c[2] - h}, {c[0] + h, c[1] + h, c[2] + h}};
-		double[] n;
-		float u0 = CORD[0] / (float) Gangplank.ATLAS, v0 = CORD[1] / (float) Gangplank.ATLAS;
-		float u1 = (CORD[0] + CORD[2] / 4) / (float) Gangplank.ATLAS, v1 = (CORD[1] + CORD[3] / 2) / (float) Gangplank.ATLAS;
-		double x0 = p[0][0], y0 = p[0][1], z0 = p[0][2], x1 = p[1][0], y1 = p[1][1], z1 = p[1][2];
-		double[][] k = {{x0, y0, z0}, {x1, y0, z0}, {x1, y1, z0}, {x0, y1, z0}, {x0, y0, z1}, {x1, y0, z1}, {x1, y1, z1}, {x0, y1, z1}};
-		n = new double[] {0, 0, -1};
-		quad(e, v, light, n, k[1], k[0], k[3], k[2], u0, v0, u1, v1);
-		n = new double[] {0, 0, 1};
-		quad(e, v, light, n, k[4], k[5], k[6], k[7], u0, v0, u1, v1);
-		n = new double[] {-1, 0, 0};
-		quad(e, v, light, n, k[0], k[4], k[7], k[3], u0, v0, u1, v1);
-		n = new double[] {1, 0, 0};
-		quad(e, v, light, n, k[5], k[1], k[2], k[6], u0, v0, u1, v1);
-		n = new double[] {0, 1, 0};
-		quad(e, v, light, n, k[3], k[7], k[6], k[2], u0, v0, u1, v1);
-		n = new double[] {0, -1, 0};
-		quad(e, v, light, n, k[0], k[1], k[5], k[4], u0, v0, u1, v1);
 	}
 
 	private static boolean near(DrawbridgeClient.ClientBridge b, Vec3d cam) {
@@ -154,9 +112,8 @@ public final class DrawbridgeRenderer {
 	}
 
 	/** The blocks of both leaves, turned about their hinges. */
-	private static void leaves(DrawbridgeClient.ClientBridge b, double now, Vec3d cam, ClientWorld world, MatrixStack matrices,
+	private static void leaves(DrawbridgeClient.ClientBridge b, double angle, Vec3d cam, ClientWorld world, MatrixStack matrices,
 			OrderedRenderCommandQueue queue) {
-		double angle = b.angle(now);
 		for (int i = 0; i < 2; i++) {
 			LeafFrame f = b.frames[i];
 			List<DrawbridgeClient.RenderBlock> blocks = b.blocks.get(i);
@@ -172,6 +129,12 @@ public final class DrawbridgeRenderer {
 				double[] l = f.toLocal(rb.x() + 0.5, rb.y() + 0.5, rb.z() + 0.5);
 				double[] w = f.toWorld(l[0], l[1], l[2], angle);
 				int light = WorldRenderer.getLightmapCoordinates(world, BlockPos.ofFloored(w[0], w[1], w[2]));
+				int luminance = rb.state().getLuminance();
+				if (luminance > 0) {
+					// a lantern or a torch of the deck no longer lights the world while it is out of it: keep its own light
+					light = LightmapTextureManager.pack(Math.max(LightmapTextureManager.getBlockLightCoordinates(light), luminance),
+							LightmapTextureManager.getSkyLightCoordinates(light));
+				}
 				matrices.push();
 				matrices.translate(rb.x() - f.hx(), rb.y() - f.hy(), rb.z() - f.hz());
 				queue.submitBlock(matrices, rb.state(), light, OverlayTexture.DEFAULT_UV, 0);
@@ -181,9 +144,9 @@ public final class DrawbridgeRenderer {
 		}
 	}
 
-	/** A chain stretched across each end of the deck, at hip height: where the barrier stands. */
-	private static void chains(DrawbridgeClient.ClientBridge b, Vec3d cam, ClientWorld world, MatrixStack matrices, OrderedRenderCommandQueue queue) {
-		RenderLayer layer = RenderLayers.entityCutoutNoCull(ShipModels.GANGPLANK_TEXTURE);
+	/** The hinge of each leaf: an iron axle along the hinge line, a bearing just past each side of the deck. */
+	private static void hinges(DrawbridgeClient.ClientBridge b, Vec3d cam, ClientWorld world, MatrixStack matrices, OrderedRenderCommandQueue queue) {
+		RenderLayer iron = RenderLayers.entityCutoutNoCull(IRON_TEXTURE);
 		matrices.push();
 		matrices.translate(-cam.x, -cam.y, -cam.z);
 		for (int i = 0; i < 2; i++) {
@@ -192,15 +155,102 @@ public final class DrawbridgeRenderer {
 				continue;
 			}
 			LeafFrame f = s.frame();
-			double bb = s.minB() - 0.32, cc = s.maxC() + 1.05;
-			double[] p0 = f.toWorld(s.minA() - 0.3, bb, cc, 0), p1 = f.toWorld(s.maxA() + 0.3, bb, cc, 0);
-			double[] mid = f.toWorld((s.minA() + s.maxA()) / 2, bb, cc, 0);
-			int light = WorldRenderer.getLightmapCoordinates(world, BlockPos.ofFloored(mid[0], mid[1], mid[2]));
-			// the chain sags a little in the middle
-			double[] sag = {mid[0], mid[1] - 0.25, mid[2]};
-			queue.submitCustom(matrices, layer, (entry, vertices) -> {
-				beam(entry, vertices, light, p0, sag, CHAIN);
-				beam(entry, vertices, light, sag, p1, CHAIN);
+			int light = light(world, f.toWorld((s.minA() + s.maxA()) / 2, 0.3, -0.3, 0));
+			queue.submitCustom(matrices, iron, (e, v) -> {
+				prism(e, v, light, IRON, f, s.minA() - 0.45, s.maxA() + 0.45, 0, 0, 0.1);
+				box(e, v, light, IRON, f, 0, s.minA() - 0.42, s.minA() - 0.12, -0.22, 0.22, -0.18, 0.18, PLAIN);
+				box(e, v, light, IRON, f, 0, s.maxA() + 0.12, s.maxA() + 0.42, -0.22, 0.22, -0.18, 0.18, PLAIN);
+			});
+		}
+		matrices.pop();
+	}
+
+	/**
+	 * The mechanism of each leaf: the winch beam over the hinge (from half a block past one side of the deck to half
+	 * a block past the other: into the towers that flank the deck), a drum for each chain, the two chains down to the
+	 * corners of the free end and the shackles there. The drums' height is the leaf's length plus 1.5 by default, or
+	 * the bridge's setting.
+	 */
+	private static void mechanism(DrawbridgeClient.ClientBridge b, double angle, Vec3d cam, ClientWorld world, MatrixStack matrices,
+			OrderedRenderCommandQueue queue) {
+		RenderLayer chainLayer = RenderLayers.entityCutoutNoCull(CHAIN_TEXTURE);
+		RenderLayer iron = RenderLayers.entityCutoutNoCull(IRON_TEXTURE);
+		RenderLayer wood = RenderLayers.entityCutoutNoCull(WOOD_TEXTURE);
+		matrices.push();
+		matrices.translate(-cam.x, -cam.y, -cam.z);
+		for (int i = 0; i < 2; i++) {
+			LeafShape s = b.shapes[i];
+			if (s == null || s.isEmpty()) {
+				continue;
+			}
+			LeafFrame f = s.frame();
+			double length = s.maxB() - Math.min(0, s.minB());
+			double height = b.chainHeight > 0 ? b.chainHeight : length + 1.5;
+			double inset = Math.min(0.5, (s.maxA() - s.minA()) / 4);
+			double[] drums = {s.minA() + inset, s.maxA() - inset};
+			int beamLight = light(world, f.toWorld((s.minA() + s.maxA()) / 2, 0.4, height - 0.5, 0));
+			queue.submitCustom(matrices, wood, (e, v) -> box(e, v, beamLight, WOOD, f, 0, s.minA() - 0.5, s.maxA() + 0.5, BEAM_BACK - 0.2, BEAM_BACK + 0.2,
+					height - 0.2, height + 0.2, ALONG_A));
+			queue.submitCustom(matrices, iron, (e, v) -> {
+				for (double a : drums) {
+					prism(e, v, beamLight, IRON, f, a - 0.28, a + 0.28, BEAM_BACK, height, 0.27);
+					// the flanges of the drum
+					prism(e, v, beamLight, IRON, f, a - 0.32, a - 0.28, BEAM_BACK, height, 0.31);
+					prism(e, v, beamLight, IRON, f, a + 0.28, a + 0.32, BEAM_BACK, height, 0.31);
+				}
+			});
+			for (double a : drums) {
+				double[] drum = f.toWorld(a, BEAM_BACK, height, 0);
+				double[] shackle = f.toWorld(a, s.maxB() - 0.25, s.maxC() + 0.05, angle);
+				int light = light(world, lerp(shackle, drum, 0.5));
+				queue.submitCustom(matrices, chainLayer, (e, v) -> chain(e, v, light, shackle, drum, 0));
+				queue.submitCustom(matrices, iron, (e, v) -> box(e, v, light, IRON, f, angle, a - 0.1, a + 0.1, s.maxB() - 0.36, s.maxB() - 0.14,
+						s.maxC() - 0.06, s.maxC() + 0.16, PLAIN));
+			}
+		}
+		matrices.pop();
+	}
+
+	/** Two posts and a sagging chain across each end of the deck, where the barrier stands while the leaves are out. */
+	private static void barrier(DrawbridgeClient.ClientBridge b, Vec3d cam, ClientWorld world, MatrixStack matrices, OrderedRenderCommandQueue queue) {
+		RenderLayer chainLayer = RenderLayers.entityCutoutNoCull(CHAIN_TEXTURE);
+		RenderLayer iron = RenderLayers.entityCutoutNoCull(IRON_TEXTURE);
+		RenderLayer wood = RenderLayers.entityCutoutNoCull(WOOD_TEXTURE);
+		matrices.push();
+		matrices.translate(-cam.x, -cam.y, -cam.z);
+		for (int i = 0; i < 2; i++) {
+			LeafShape s = b.shapes[i];
+			if (s == null || s.isEmpty()) {
+				continue;
+			}
+			LeafFrame f = s.frame();
+			double bb = s.minB() - 0.32, top = s.maxC() + 1.05;
+			// the posts stand on the shore, level with the deck's floor (the layer over the hinge)
+			double foot = Math.min(1.0, s.maxC()) - 0.02;
+			double a0 = s.minA() + 0.14, a1 = s.maxA() - 0.14;
+			int light = light(world, f.toWorld((a0 + a1) / 2, bb, top, 0));
+			queue.submitCustom(matrices, wood, (e, v) -> {
+				for (double a : new double[] {a0, a1}) {
+					box(e, v, light, WOOD, f, 0, a - 0.09, a + 0.09, bb - 0.09, bb + 0.09, foot, top + 0.1, ALONG_C);
+				}
+			});
+			queue.submitCustom(matrices, iron, (e, v) -> {
+				for (double a : new double[] {a0, a1}) {
+					box(e, v, light, IRON, f, 0, a - 0.11, a + 0.11, bb - 0.11, bb + 0.11, top + 0.08, top + 0.2, PLAIN);
+				}
+			});
+			queue.submitCustom(matrices, chainLayer, (e, v) -> {
+				int pieces = 10;
+				double at = 0;
+				double[] prev = null;
+				for (int k = 0; k <= pieces; k++) {
+					double t = (double) k / pieces;
+					double[] p = f.toWorld(a0 + (a1 - a0) * t, bb, top - 0.3 * 4 * t * (1 - t), 0);
+					if (prev != null) {
+						at = chain(e, v, light, prev, p, at);
+					}
+					prev = p;
+				}
 			});
 		}
 		matrices.pop();
@@ -215,7 +265,7 @@ public final class DrawbridgeRenderer {
 			for (int i = 0; i < 2; i++) {
 				int[] sel = b.selections[i];
 				if (sel != null) {
-					box(entry, vertices, sel[0], sel[1], sel[2], sel[3] + 1, sel[4] + 1, sel[5] + 1, colors[i]);
+					wireBox(entry, vertices, sel[0], sel[1], sel[2], sel[3] + 1, sel[4] + 1, sel[5] + 1, colors[i]);
 				}
 				LeafShape s = b.shapes[i];
 				LeafFrame f = b.frames[i];
@@ -238,9 +288,9 @@ public final class DrawbridgeRenderer {
 						}
 					}
 					double[] up = s.bounds(b.openAngle);
-					box(entry, vertices, up[0], up[1], up[2], up[3], up[4], up[5], 0xFFFF9030);
+					wireBox(entry, vertices, up[0], up[1], up[2], up[3], up[4], up[5], 0xFFFF9030);
 					double[] bar = s.barrierBox();
-					box(entry, vertices, bar[0], bar[1], bar[2], bar[3], bar[4], bar[5], 0xFFFF4040);
+					wireBox(entry, vertices, bar[0], bar[1], bar[2], bar[3], bar[4], bar[5], 0xFFFF4040);
 				}
 			}
 			ChannelZones z = b.zones;
@@ -259,7 +309,157 @@ public final class DrawbridgeRenderer {
 		matrices.pop();
 	}
 
-	// ------------------------------------------------------------------ drawing helpers
+	// ------------------------------------------------------------------ textured solids
+
+	private static int light(ClientWorld world, double[] p) {
+		return WorldRenderer.getLightmapCoordinates(world, BlockPos.ofFloored(p[0], p[1], p[2]));
+	}
+
+	/**
+	 * A chain from {@code p0} to {@code p1}, as the game draws its chain block: two crossed strips 3/16 wide, the
+	 * link pattern repeating every block, counted from {@code p0} ({@code from} blocks into the pattern there) so
+	 * that a chain which shortens at {@code p1} winds its links in there. Returns the count reached at {@code p1}.
+	 */
+	private static double chain(MatrixStack.Entry e, VertexConsumer v, int light, double[] p0, double[] p1, double from) {
+		double dx = p1[0] - p0[0], dy = p1[1] - p0[1], dz = p1[2] - p0[2];
+		double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
+		if (len < 1e-4) {
+			return from;
+		}
+		double[] d = {dx / len, dy / len, dz / len};
+		double[] up = Math.abs(d[1]) > 0.95 ? new double[] {1, 0, 0} : new double[] {0, 1, 0};
+		double[] s1 = norm(cross(d, up));
+		double[] s2 = cross(s1, d);
+		double done = 0;
+		while (done < len - 1e-6) {
+			// each piece stays inside one repeat of the texture (no wrapping needed)
+			double phase = (from + done) % 1.0;
+			double step = Math.min(len - done, 1.0 - phase);
+			if (step < 1e-6) {
+				step = Math.min(len - done, 1.0);
+				phase = 0;
+			}
+			double[] a = lerp(p0, p1, done / len), c = lerp(p0, p1, (done + step) / len);
+			strip(e, v, light, a, c, s1, s2, 0f, 3f / 16f, (float) phase, (float) (phase + step));
+			strip(e, v, light, a, c, s2, s1, 3f / 16f, 6f / 16f, (float) phase, (float) (phase + step));
+			done += step;
+		}
+		return from + len;
+	}
+
+	/** One strip of a chain between two points, {@code w} across it (unit), lit along {@code n}. */
+	private static void strip(MatrixStack.Entry e, VertexConsumer v, int light, double[] a, double[] c, double[] w, double[] n, float u0, float u1,
+			float v0, float v1) {
+		double h = CHAIN_HALF;
+		vertex(e, v, light, WHITE, n, add(a, w, -h), u0, v0);
+		vertex(e, v, light, WHITE, n, add(c, w, -h), u0, v1);
+		vertex(e, v, light, WHITE, n, add(c, w, h), u1, v1);
+		vertex(e, v, light, WHITE, n, add(a, w, h), u1, v0);
+	}
+
+	/** No grain: every face shows the whole texture. */
+	private static final int PLAIN = -1;
+	/** The texture's vertical runs along the hinge direction and repeats every block (a beam). */
+	private static final int ALONG_A = 0;
+	/** The texture's vertical runs upward and repeats every block (a post). */
+	private static final int ALONG_C = 2;
+
+	/**
+	 * A box given in a leaf's local frame ({@code a} along the hinge, {@code b} inward, {@code c} up), turned about
+	 * the hinge by {@code angle}. {@code grain} is {@link #PLAIN}, {@link #ALONG_A} or {@link #ALONG_C}.
+	 */
+	private static void box(MatrixStack.Entry e, VertexConsumer v, int light, int color, LeafFrame f, double angle, double a0, double a1, double b0,
+			double b1, double c0, double c1, int grain) {
+		double[] lo = {a0, b0, c0}, hi = {a1, b1, c1};
+		double[] centre = f.toWorld((a0 + a1) / 2, (b0 + b1) / 2, (c0 + c1) / 2, angle);
+		int l = grain < 0 ? 0 : grain, p = (l + 1) % 3, q = (l + 2) % 3;
+		double[][][][] k = new double[2][2][2][];
+		double[] at = new double[3];
+		double start = lo[l];
+		boolean first = true;
+		while (first || start < hi[l] - 1e-9) {
+			double end = grain < 0 ? hi[l] : Math.min(hi[l], start + 1.0);
+			float vEnd = grain < 0 ? 1f : (float) (end - start);
+			for (int i = 0; i < 2; i++) {
+				for (int j = 0; j < 2; j++) {
+					for (int m = 0; m < 2; m++) {
+						at[l] = i == 0 ? start : end;
+						at[p] = j == 0 ? lo[p] : hi[p];
+						at[q] = m == 0 ? lo[q] : hi[q];
+						k[i][j][m] = f.toWorld(at[0], at[1], at[2], angle);
+					}
+				}
+			}
+			// the four faces along the length: texture v along it
+			for (int j = 0; j < 2; j++) {
+				face(e, v, light, color, centre, k[0][j][0], k[1][j][0], k[1][j][1], k[0][j][1], 0f, 0f, 1f, vEnd);
+				face(e, v, light, color, centre, k[0][0][j], k[1][0][j], k[1][1][j], k[0][1][j], 0f, 0f, 1f, vEnd);
+			}
+			if (first) {
+				face(e, v, light, color, centre, k[0][0][0], k[0][0][1], k[0][1][1], k[0][1][0], 0f, 0f, 1f, 1f);
+			}
+			if (end >= hi[l] - 1e-9) {
+				face(e, v, light, color, centre, k[1][0][0], k[1][0][1], k[1][1][1], k[1][1][0], 0f, 0f, 1f, 1f);
+			}
+			first = false;
+			start = end;
+		}
+	}
+
+	/** An octagonal prism along a leaf's hinge direction, from {@code a0} to {@code a1}, axis at ({@code b}, {@code c}), unturned. */
+	private static void prism(MatrixStack.Entry e, VertexConsumer v, int light, int color, LeafFrame f, double a0, double a1, double b, double c,
+			double r) {
+		double[] centre = f.toWorld((a0 + a1) / 2, b, c, 0);
+		double[][] ring0 = new double[8][], ring1 = new double[8][];
+		double start = a0;
+		boolean first = true;
+		while (first || start < a1 - 1e-9) {
+			double end = Math.min(a1, start + 1.0);
+			float vEnd = (float) (end - start);
+			for (int k = 0; k < 8; k++) {
+				double t = Math.toRadians(22.5 + 45 * k);
+				ring0[k] = f.toWorld(start, b + r * Math.cos(t), c + r * Math.sin(t), 0);
+				ring1[k] = f.toWorld(end, b + r * Math.cos(t), c + r * Math.sin(t), 0);
+			}
+			for (int k = 0; k < 8; k++) {
+				int n = (k + 1) % 8;
+				face(e, v, light, color, centre, ring0[k], ring1[k], ring1[n], ring0[n], k / 8f, 0f, (k + 1) / 8f, vEnd);
+			}
+			if (first) {
+				face(e, v, light, color, centre, ring0[0], ring0[1], ring0[2], ring0[3], 0f, 0f, 0.5f, 0.5f);
+				face(e, v, light, color, centre, ring0[0], ring0[3], ring0[4], ring0[5], 0f, 0.5f, 0.5f, 1f);
+				face(e, v, light, color, centre, ring0[0], ring0[5], ring0[6], ring0[7], 0.5f, 0.5f, 1f, 1f);
+			}
+			if (end >= a1 - 1e-9) {
+				face(e, v, light, color, centre, ring1[0], ring1[1], ring1[2], ring1[3], 0f, 0f, 0.5f, 0.5f);
+				face(e, v, light, color, centre, ring1[0], ring1[3], ring1[4], ring1[5], 0f, 0.5f, 0.5f, 1f);
+				face(e, v, light, color, centre, ring1[0], ring1[5], ring1[6], ring1[7], 0.5f, 0.5f, 1f, 1f);
+			}
+			first = false;
+			start = end;
+		}
+	}
+
+	/** A quad whose normal is made to point away from {@code centre} (the solid's middle), so it is lit as an outer face. */
+	private static void face(MatrixStack.Entry e, VertexConsumer v, int light, int color, double[] centre, double[] p0, double[] p1, double[] p2,
+			double[] p3, float u0, float v0, float u1, float v1) {
+		double[] n = norm(cross(sub(p1, p0), sub(p3, p0)));
+		double[] m = {(p0[0] + p2[0]) / 2 - centre[0], (p0[1] + p2[1]) / 2 - centre[1], (p0[2] + p2[2]) / 2 - centre[2]};
+		if (n[0] * m[0] + n[1] * m[1] + n[2] * m[2] < 0) {
+			n = neg(n);
+		}
+		vertex(e, v, light, color, n, p0, u0, v0);
+		vertex(e, v, light, color, n, p1, u0, v1);
+		vertex(e, v, light, color, n, p2, u1, v1);
+		vertex(e, v, light, color, n, p3, u1, v0);
+	}
+
+	private static void vertex(MatrixStack.Entry e, VertexConsumer v, int light, int color, double[] n, double[] p, float u, float w) {
+		v.vertex(e, (float) p[0], (float) p[1], (float) p[2]).color(color).texture(u, w).overlay(OverlayTexture.DEFAULT_UV).light(light)
+				.normal(e, (float) n[0], (float) n[1], (float) n[2]);
+	}
+
+	// ------------------------------------------------------------------ wireframes
 
 	private static void line(MatrixStack.Entry e, VertexConsumer v, double x0, double y0, double z0, double x1, double y1, double z1, int color) {
 		double dx = x1 - x0, dy = y1 - y0, dz = z1 - z0;
@@ -273,7 +473,7 @@ public final class DrawbridgeRenderer {
 		v.vertex(e, (float) x1, (float) y1, (float) z1).color(color).normal(e, nx, ny, nz).lineWidth(LINE_WIDTH);
 	}
 
-	private static void box(MatrixStack.Entry e, VertexConsumer v, double x0, double y0, double z0, double x1, double y1, double z1, int color) {
+	private static void wireBox(MatrixStack.Entry e, VertexConsumer v, double x0, double y0, double z0, double x1, double y1, double z1, int color) {
 		line(e, v, x0, y0, z0, x1, y0, z0, color);
 		line(e, v, x1, y0, z0, x1, y0, z1, color);
 		line(e, v, x1, y0, z1, x0, y0, z1, color);
@@ -296,54 +496,19 @@ public final class DrawbridgeRenderer {
 		}
 	}
 
-	/** A thin square beam from p0 to p1 textured as a chain (the gangplank atlas's cord). */
-	private static void beam(MatrixStack.Entry e, VertexConsumer v, int light, double[] p0, double[] p1, float th) {
-		double dx = p1[0] - p0[0], dy = p1[1] - p0[1], dz = p1[2] - p0[2];
-		double len = Math.sqrt(dx * dx + dy * dy + dz * dz);
-		if (len < 1e-4) {
-			return;
-		}
-		double[] d = {dx / len, dy / len, dz / len};
-		double[] up = Math.abs(d[1]) > 0.95 ? new double[] {1, 0, 0} : new double[] {0, 1, 0};
-		double[] s1 = norm(cross(d, up));
-		double[] s2 = cross(s1, d);
-		double h = th / 2;
-		float u0 = CORD[0] / (float) Gangplank.ATLAS, v0 = CORD[1] / (float) Gangplank.ATLAS;
-		float u1 = (CORD[0] + CORD[2]) / (float) Gangplank.ATLAS;
-		float vw = CORD[3] / (float) Gangplank.ATLAS;
-		int reps = Math.max(1, (int) Math.round(len / 0.5));
-		for (int r = 0; r < reps; r++) {
-			double t0 = (double) r / reps, t1 = (double) (r + 1) / reps;
-			double[] a = lerp(p0, p1, t0), b = lerp(p0, p1, t1);
-			for (int k = 0; k < 4; k++) {
-				double[] n = k == 0 ? s1 : k == 1 ? s2 : k == 2 ? neg(s1) : neg(s2);
-				double[] m = k == 0 ? s2 : k == 1 ? neg(s1) : k == 2 ? neg(s2) : s1;
-				double[] c0 = add(a, n, h, m, -h), c1 = add(b, n, h, m, -h), c2 = add(b, n, h, m, h), c3 = add(a, n, h, m, h);
-				quad(e, v, light, n, c0, c1, c2, c3, u0, v0, u1, v0 + vw * 0.5f);
-			}
-		}
-	}
-
-	private static void quad(MatrixStack.Entry e, VertexConsumer v, int light, double[] n, double[] a, double[] b, double[] c, double[] d,
-			float u0, float v0, float u1, float v1) {
-		vertex(e, v, light, n, a, u0, v1);
-		vertex(e, v, light, n, b, u1, v1);
-		vertex(e, v, light, n, c, u1, v0);
-		vertex(e, v, light, n, d, u0, v0);
-	}
-
-	private static void vertex(MatrixStack.Entry e, VertexConsumer v, int light, double[] n, double[] p, float u, float w) {
-		v.vertex(e, (float) p[0], (float) p[1], (float) p[2]).color(0xFFFFFFFF).texture(u, w).overlay(OverlayTexture.DEFAULT_UV).light(light)
-				.normal(e, (float) n[0], (float) n[1], (float) n[2]);
-	}
+	// ------------------------------------------------------------------ vectors
 
 	private static double[] cross(double[] a, double[] b) {
 		return new double[] {a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]};
 	}
 
+	private static double[] sub(double[] a, double[] b) {
+		return new double[] {a[0] - b[0], a[1] - b[1], a[2] - b[2]};
+	}
+
 	private static double[] norm(double[] a) {
 		double l = Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
-		return l < 1e-9 ? new double[] {1, 0, 0} : new double[] {a[0] / l, a[1] / l, a[2] / l};
+		return l < 1e-9 ? new double[] {0, 1, 0} : new double[] {a[0] / l, a[1] / l, a[2] / l};
 	}
 
 	private static double[] neg(double[] a) {
@@ -354,7 +519,7 @@ public final class DrawbridgeRenderer {
 		return new double[] {a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t};
 	}
 
-	private static double[] add(double[] p, double[] n, double kn, double[] m, double km) {
-		return new double[] {p[0] + n[0] * kn + m[0] * km, p[1] + n[1] * kn + m[1] * km, p[2] + n[2] * kn + m[2] * km};
+	private static double[] add(double[] p, double[] n, double k) {
+		return new double[] {p[0] + n[0] * k, p[1] + n[1] * k, p[2] + n[2] * k};
 	}
 }

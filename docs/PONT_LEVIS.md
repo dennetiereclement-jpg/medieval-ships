@@ -22,7 +22,11 @@ côtés du chenal (cyan), passage (rouge), hauteur libre (violet).*
 
 ![La barrière au bout de la berge pendant la montée](pont_levis_barriere.png)
 
-![Les vantaux qui montent, chaînes de levage tendues vers les ancres au-dessus des charnières](pont_levis_ouverture.png)
+![Le mécanisme, pont fermé : les chaînes des coins du tablier aux tambours de la poutre de treuil](pont_levis_mecanisme.png)
+
+![Le vantail dressé, son axe de charnière et ses chaînes enroulées](pont_levis_mecanisme_ouvert.png)
+
+![Les vantaux qui montent, chaînes tendues vers les tambours](pont_levis_ouverture.png)
 
 *Pendant la montée, un joueur qui avance depuis la berge est arrêté au bout de celle-ci, devant le vantail qui se dresse.*
 
@@ -39,11 +43,20 @@ côtés du chenal (cyan), passage (rouge), hauteur libre (violet).*
   calculé par chacun à partir du tick de départ du mouvement. Le mouvement est **amorti** : départ lent, pleine
   vitesse au milieu, arrivée lente (un tablier lourd sur son treuil), la durée d'un mouvement interrompu étant
   proportionnelle au chemin restant ; collisions et dessin suivent exactement la même courbe.
-* **Chaînes de levage** : deux chaînes par vantail relient les coins de son bout libre à des ancres situées au-dessus
-  de la charnière, côté rive (à la hauteur de la longueur du vantail + 1,5 par défaut, réglable : `/pontlevis <id>
-  chaines <hauteur>`, `off` pour les masquer). Tendues en diagonale pont fermé, presque verticales pont ouvert, elles
-  sont dessinées dans tous les états (anneau à l'ancre, manille au tablier). De la poussière du matériau du tablier
-  s'échappe aux charnières pendant le mouvement et à l'arrivée, avec le choc du bois et de la ferrure.
+* **Charnières et mécanisme** (dessinés dès la conversion, dans tous les états) : un **axe en fer forgé** court le
+  long de chaque ligne de charnière, avec un palier de part et d'autre du tablier ; une **poutre de treuil** en chêne
+  noir traverse au-dessus de la charnière, côté rive, d'une tour à l'autre (un demi-bloc au-delà du tablier de chaque
+  côté, pour entrer dans les tours qui l'encadrent), à la hauteur de la longueur du vantail + 1,5 par défaut
+  (réglable : `/pontlevis <id> chaines <hauteur>`, `off` pour masquer poutre, tambours et chaînes, l'axe reste) ;
+  deux **tambours** à flasques y sont montés, et de chacun descend une **chaîne** jusqu'à une manille au coin du bout
+  libre du vantail. Les chaînes sont dessinées comme le jeu dessine son bloc de chaîne (deux bandes croisées, les
+  vrais maillons), comptées depuis la manille : quand le vantail monte, la chaîne raccourcit et ses maillons
+  **s'enroulent dans le tambour**. Tendues en diagonale pont fermé, presque verticales pont ouvert. Pendant la
+  manœuvre, deux **poteaux** de chêne noir à capuchon de fer et une chaîne qui pend entre eux barrent chaque bout du
+  tablier côté rive, exactement là où se trouve la barrière que les joueurs sentent. Une lanterne ou une torche du
+  tablier levé garde sa propre lumière (hors du monde, elle n'éclaire plus les blocs, mais elle n'est pas éteinte).
+  De la poussière du matériau du tablier s'échappe aux charnières pendant le mouvement et à l'arrivée, avec le choc
+  du bois et de la ferrure.
 * **Ouvert** : les vantaux sont dressés le long des tours (angle réglable, 80° par défaut) : le volume de
   navigation est **réellement libre**, rien ne retient un joueur à l'emplacement de l'ancien tablier.
 * **Fermeture** : les vantaux redescendent ; à l'angle 0 les blocs d'origine sont remis **avec leurs états et le
@@ -183,7 +196,7 @@ Rien n'est inventé à partir de coordonnées de capture d'écran : vous visez l
 /pontlevis port_nord angle 80        /pontlevis port_nord duree 8
 /pontlevis port_nord delai 5         /pontlevis port_nord securite 4
 /pontlevis port_nord marge 0.5       /pontlevis port_nord arret 6
-/pontlevis port_nord chaines auto    # chaînes de levage : auto | <hauteur des ancres> | off
+/pontlevis port_nord chaines auto    # poutre de treuil, tambours et chaînes : auto | <hauteur de la poutre> | off
 
 # 6. voir : sélections (vert A / bleu B), charnières (jaune), arcs balayés et vantaux levés (orange), barrières
 #    (rouge), zones d'approche des deux côtés (cyan, hystérésis plus sombre), passage (rouge), hauteur libre (violet)

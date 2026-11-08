@@ -113,6 +113,14 @@ public final class DrawbridgeGameTest {
 		server.runCommand(String.format(Locale.ROOT, "tp @p %.3f %.3f %.3f %.1f %.1f", x, y, z, yaw, pitch));
 	}
 
+	/** Puts the player (spectator) at a position, his eyes turned towards a point. */
+	private static void look(TestServerContext server, double x, double y, double z, double tx, double ty, double tz) {
+		double dx = tx - x, dy = ty - (y + 1.62), dz = tz - z;
+		float yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+		float pitch = (float) -Math.toDegrees(Math.atan2(dy, Math.hypot(dx, dz)));
+		tp(server, x, y, z, yaw, pitch);
+	}
+
 	/** Waits for a state, up to maxTicks; returns the ticks waited, or -1. */
 	private static int waitState(ClientGameTestContext context, TestServerContext server, BridgeCycle.State want, int maxTicks) {
 		for (int t = 0; t < maxTicks; t += 5) {
@@ -245,6 +253,11 @@ public final class DrawbridgeGameTest {
 		context.waitTicks(30);
 		shot.accept("pontlevis_1_apercu");
 		server.runCommand("execute as @p run pontlevis " + ID + " apercu off");
+		// the mechanism seen from the deck: the winch beam just under the fixed walkway, its drums, the chains down to the shackles
+		server.runCommand("pontlevis " + ID + " chaines 10.78");
+		look(server, 2678.5, -43, 1.5, 2678.5, -37.5, -7);
+		context.waitTicks(40);
+		shot.accept("pontlevis_1b_mecanisme_ferme");
 
 		// ---- the rowboat passes under, empty then with an occupant
 		server.runCommand(String.format(Locale.ROOT, "execute positioned 2635 -50 0 rotated -90 0 run ship spawn rowboat"));
@@ -498,6 +511,10 @@ public final class DrawbridgeGameTest {
 		int[] cb = clientBridge(context);
 		check.accept(cb != null && cb[0] == BridgeCycle.State.OUVERT.ordinal() && cb[1] > 0, "drawbridge: the client got the open bridge on joining");
 		shot.accept("pontlevis_6_apres_redemarrage");
+		// the raised leaf, its axle and its chains wound up to the drums, from the water
+		look(server, 2672.5, -41.1, -3.5, 2678.5, -38, -8.5);
+		context.waitTicks(40);
+		shot.accept("pontlevis_6b_mecanisme_ouvert");
 		server.runCommand("pontlevis " + ID + " demande annuler redemarrage");
 		int closed = waitState(context, server, BridgeCycle.State.FERME, 500);
 		check.accept(closed >= 0 && "oak_planks".equals(blockAt(server, DECK_X0 + 2, DECK_Y, 0)), "drawbridge: closes after the restart, deck back");

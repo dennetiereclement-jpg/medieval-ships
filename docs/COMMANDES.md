@@ -334,7 +334,7 @@ pas, détection, gabarit, sécurités, configuration, limites) est dans [PONT_LE
 | `/pontlevis <id> chenal largeur <blocs>\|auto`, `chenal centre [<x y z>\|auto]` | Largeur navigable entre les tours, centre du chenal. |
 | `/pontlevis <id> eau <y>\|auto` | Niveau de l'eau. |
 | `/pontlevis <id> approche\|hysteresis\|marge\|arret <blocs>`, `angle <degrés>`, `duree\|delai\|securite <secondes>` | Réglages du pont. |
-| `/pontlevis <id> chaines on\|off\|auto\|<hauteur>` | Chaînes de levage dessinées du bout des vantaux à des ancres au-dessus des charnières (hauteur automatique : longueur du vantail + 1,5). |
+| `/pontlevis <id> chaines on\|off\|auto\|<hauteur>` | Mécanisme dessiné au-dessus des charnières : poutre de treuil d'une tour à l'autre, deux tambours par vantail, chaînes à vrais maillons jusqu'aux coins du bout libre (hauteur de la poutre automatique : longueur du vantail + 1,5). `off` masque poutre, tambours et chaînes ; l'axe de charnière et ses paliers restent. |
 | `/pontlevis <id> apercu on\|off` | Sélections, charnières, volume balayé, barrières, zones d'approche, passage, hauteur libre, dessinés pour vous. |
 | `/pontlevis <id> verifier` | Analyse : blocs, charnières, chenal, eau, hauteur libre, volume balayé contre les blocs fixes. |
 | `/pontlevis <id> convertir` | Met le pont en service (ses blocs restent en place tant qu'il est fermé). |

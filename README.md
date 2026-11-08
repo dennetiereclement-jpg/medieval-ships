@@ -157,7 +157,8 @@ La décision vient du **gabarit réel** du navire (mâts et superstructures du m
 tours) comparé à la hauteur libre mesurée sous le tablier, avec une marge réglable : une barque passe sans rien
 déclencher, une galère ouvre. Fermé, le tablier est fait de **ses vrais blocs** ; en mouvement et ouvert, les vantaux
 sont de vraies **collisions** (joueurs, PNJ, coques), dessinées tournées à partir des blocs capturés, sans aucune
-entité. Sécurités (personne sur le tablier avant la montée, rien dans le volume balayé avant et pendant la descente,
+entité, avec un mouvement amorti, un axe de charnière, une poutre de treuil, des tambours et des chaînes à vrais
+maillons qui s'y enroulent. Sécurités (personne sur le tablier avant la montée, rien dans le volume balayé avant et pendant la descente,
 barrières aux extrémités), pilote automatique des ferries retenu devant le pont tant qu'il n'est pas ouvert, état
 global sauvegardé (reprise cohérente après redémarrage), commandes `/pontlevis` (création, sélection en visant les
 blocs, pivots, chenal, réglages, aperçu, vérification du volume balayé contre les tours, conversion, test d'un
