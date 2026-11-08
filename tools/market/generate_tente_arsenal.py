@@ -224,6 +224,9 @@ def build(atlas, decor):
                                      ((HW, EAVE + 0.2, -HD), (HW + 1.3, 0.0, -HD - 0.5)))):
         pf.guy(det, "guy_%d" % k, top, peg, sag=0.04, d=0.07)
     pf.leaning_pole(shell, "pole_l", (-HW - 2.35, 0.0, -HD + 1.1), (-HW - 1.6, 2.6, -HD + 0.45), d=0.08, wrap="leather")
+    beam(shell, "tie_rod", (-HW, EAVE - 0.2, -0.3), (HW, EAVE - 0.2, -0.3), 0.1, "black_iron", extend=0.1)   # lamps hang from it
+    for k, x in enumerate((-1.25, 1.55)):   # lamps hanging inside (the warm inside of the picture)
+        ml.lantern(shell, "lamp_in_%d" % k, (x, 2.7, -0.3), size=0.34, metal="iron", chain_to=(x, EAVE - 0.25, -0.3))
     # ---- walls: rust canvas at the back and the back half of the sides
     wall_top = EAVE - 0.38
     pf.hang_wall(shell, "wall_back", (-HW, 0, -HD + 0.12), (HW, 0, -HD + 0.12), 0.0, wall_top, -Z, "ar_wall", nx=6)

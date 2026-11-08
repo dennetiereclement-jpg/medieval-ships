@@ -296,6 +296,10 @@ def build(atlas, decor):
         ml.lantern(shell, "shelf_lamp_%d" % i, (x, 2.25 + 0.16, zc), size=0.22, metal="iron")
     for i, x in enumerate((-2.2, -1.0, 0.5, 2.0)):
         pf.candle(det, "candle_%d" % i, (x, lv[2][2], zc + 0.05), h=0.16)
+    for i, x in enumerate((-1.15, 0.45, 2.05)):   # candle lanterns on the middle shelf too (the warm back of the picture)
+        ml.lantern(shell, "shelf_lamp_mid_%d" % i, (x, lv[1][2] + 0.14, zc + 0.03), size=0.2, metal="iron")
+    for i, x in enumerate((-1.9, 1.7)):           # two lanterns hanging from the back beam above the shelves
+        ml.lantern(shell, "back_lamp_%d" % i, (x, 2.62, -HD + 0.55), size=0.3, metal="iron", chain_to=(x, by - 0.1, -HD + 0.55))
     x0, x1, y2, _, _ = lv[2]
     for i, x in enumerate((-1.45, 0.15, 1.6)):
         roll(det, "roll_hi_%d" % i, (x, y2 + 0.08, zc), 0.5, 0.08, 0.0, ("fr_fur", "fr_tan", "fr_cow")[i])
