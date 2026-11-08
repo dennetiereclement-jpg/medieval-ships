@@ -49,6 +49,15 @@ public final class ShipInteractions {
 					player.sendMessage(msg, true);
 				}
 			}
+			case LEVER -> {
+				// the gangplank's lever: deploy / retract with every safety check (Gangplank, ShipEntity)
+				if (player.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld sw) {
+					Text msg = ship.useGangplankLever(sw);
+					if (msg != null) {
+						player.sendMessage(msg, true);
+					}
+				}
+			}
 			case DOOR -> {
 				if (payload.seat() >= 0 && payload.seat() < fr.medievalships.core.InteriorGrid.MAX_DOORS) {
 					Text msg = ship.toggleDoor(payload.seat());

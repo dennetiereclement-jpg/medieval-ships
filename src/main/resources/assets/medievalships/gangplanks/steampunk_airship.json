@@ -1,0 +1,13 @@
+{
+ "side": "starboard",
+ "hinge": [-1.66, 1.35, -3.3],
+ "width": 3.0,
+ "length": 4.5,
+ "style": "copper",
+ "lever": [-0.9, 0.0, -1.4],
+ "step": [-1.45, 0.0, -4.8, -0.7, 1.35, -1.8],
+ "rail_gap": [-4.8, -1.8],
+ "angles": [-20, 30],
+ "max_drop": 2.0,
+ "chain_anchor": null
+}

@@ -340,6 +340,11 @@ public final class ClientShipEvents {
 				case DECK -> "";
 				case DOOR -> t.ship().doorOpen(t.pick().seat()) ? "Clic droit : fermer" : "Clic droit : ouvrir";
 				case SWITCH -> switchHint(t.ship(), t.pick().seat());
+				case LEVER -> switch (t.ship().gangplankState()) {
+					case RETRACTED -> "Clic droit : déployer la passerelle";
+					case DEPLOYED -> "Clic droit : replier la passerelle";
+					default -> "La passerelle est en mouvement";
+				};
 			};
 		}
 		if (hintCooldown > 0) {

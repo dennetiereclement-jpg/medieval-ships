@@ -60,13 +60,16 @@ public final class ShipCollisions {
 			if (ship.isRemoved() || (entity != null && entity.getRootVehicle() == ship)) {
 				continue;
 			}
-			ship.geometry().collectBoxes(ship.pose(), ship.interiorState(), query.minX, query.minY, query.minZ, query.maxX, query.maxY, query.maxZ,
-					(a, b, c, d, e, f) -> {
-						double[] k = HullContact.clip(body, new double[] {a, b, c, d, e, f});
-						if (k != null) {
-							out.add(VoxelShapes.cuboid(k[0], k[1], k[2], k[3], k[4], k[5]));
-						}
-					});
+			fr.medievalships.core.ShipGeometry.BoxSink sink = (a, b, c, d, e, f) -> {
+				double[] k = HullContact.clip(body, new double[] {a, b, c, d, e, f});
+				if (k != null) {
+					out.add(VoxelShapes.cuboid(k[0], k[1], k[2], k[3], k[4], k[5]));
+				}
+			};
+			ship.geometry().collectBoxes(ship.pose(), ship.interiorState(), ship.gangplankWallGap(), query.minX, query.minY, query.minZ,
+					query.maxX, query.maxY, query.maxZ, sink);
+			// a deployed gangplank: its steps along the slope and its inboard stairs
+			ship.collectGangplankBoxes(query.minX, query.minY, query.minZ, query.maxX, query.maxY, query.maxZ, sink);
 		}
 		return tents || out.size() > before;
 	}

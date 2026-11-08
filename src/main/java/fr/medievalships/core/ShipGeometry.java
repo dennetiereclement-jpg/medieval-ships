@@ -186,6 +186,10 @@ public final class ShipGeometry {
 		return spec.solids;
 	}
 
+	public List<Mast> masts() {
+		return spec.masts;
+	}
+
 	/** Local offsets of the probe points used to detect terrain and other hulls. */
 	public List<double[]> probes() {
 		return probes;
@@ -341,6 +345,16 @@ public final class ShipGeometry {
 	/** {@link #collectBoxes(ShipPose, double, double, double, double, double, double, BoxSink)} with the doors of a vessel with rooms. */
 	public void collectBoxes(ShipPose pose, InteriorGrid.State state, double qMinX, double qMinY, double qMinZ,
 							 double qMaxX, double qMaxY, double qMaxZ, BoxSink sink) {
+		collectBoxes(pose, state, null, qMinX, qMinY, qMinZ, qMaxX, qMaxY, qMaxZ, sink);
+	}
+
+	/**
+	 * Same, with an opening in the hull walls of an open ship: {@code wallGap} = {side (+1 port, -1 starboard),
+	 * z0, z1, yTop} (ship-local): the wall on that side between z0 and z1 stops at yTop (a deployed gangplank's
+	 * rail gap, see {@link Gangplank}); null for none.
+	 */
+	public void collectBoxes(ShipPose pose, InteriorGrid.State state, double[] wallGap, double qMinX, double qMinY, double qMinZ,
+							 double qMaxX, double qMaxY, double qMaxZ, BoxSink sink) {
 		double cx = (qMinX + qMaxX) / 2, cz = (qMinZ + qMaxZ) / 2;
 		double rx = (qMaxX - qMinX) / 2, rz = (qMaxZ - qMinZ) / 2;
 		double dx = cx - pose.x(), dz = cz - pose.z();
@@ -438,10 +452,17 @@ public final class ShipGeometry {
 				if (xc < lxMin - 0.3 || xc > lxMax + 0.3) {
 					continue;
 				}
+				double sideTop = top;
+				if (wallGap != null && side == wallGap[0] && zc >= wallGap[1] && zc <= wallGap[2]) {
+					sideTop = Math.min(top, wallGap[3]);
+					if (sideTop <= bottom) {
+						continue;
+					}
+				}
 				double wx = pose.x() + xc * c - zc * s;
 				double wz = pose.z() + xc * s + zc * c;
 				sink.accept(wx - wallHalf, pose.y() + bottom, wz - wallHalf,
-						wx + wallHalf, pose.y() + top, wz + wallHalf);
+						wx + wallHalf, pose.y() + sideTop, wz + wallHalf);
 			}
 		}
 		// bow and stern posts close the ends
@@ -479,6 +500,12 @@ public final class ShipGeometry {
 			}
 			emitLocalBox(pose, b, c, s, ac, as, sink);
 		}
+	}
+
+	/** Covers a ship-local box with small world-aligned boxes for this pose (see {@link #collectBoxes}). */
+	public static void emitLocal(ShipPose pose, double minX, double minY, double minZ, double maxX, double maxY, double maxZ, BoxSink sink) {
+		double c = pose.cos(), s = pose.sin();
+		emitLocalBox(pose, new LocalBox(minX, minY, minZ, maxX, maxY, maxZ), c, s, Math.abs(c), Math.abs(s), sink);
 	}
 
 	/** Covers a rotated local box with small world-aligned boxes (exact union cover). */
@@ -542,9 +569,10 @@ public final class ShipGeometry {
 
 	/**
 	 * DOOR (vessels with rooms): {@link Pick#seat()} is the door index; SWITCH: the index of the
-	 * control in {@link InteriorDecor#switches()}. Append only: the ordinal goes over the network.
+	 * control in {@link InteriorDecor#switches()}; LEVER: the gangplank's lever ({@link Gangplank}, picked by the
+	 * client's ShipPicker). Append only: the ordinal goes over the network.
 	 */
-	public enum PickKind { HELM, SEAT, HULL, DECK, DOOR, SWITCH }
+	public enum PickKind { HELM, SEAT, HULL, DECK, DOOR, SWITCH, LEVER }
 
 	public record Pick(PickKind kind, int seat, double distance, double lx, double ly, double lz) {
 	}

@@ -87,6 +87,16 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 		state.aircraft = entity.config().flight != null;
 		state.bank = MathHelper.lerp(tickProgress, entity.lastBankVisual, entity.bankVisual);
 		state.bankPivotY = (float) entity.geometry().hull().mainDeckY;
+		state.gangplank = entity.gangplank();
+		if (state.gangplank != null) {
+			double ticks = entity.gangplankTicks(tickProgress);
+			fr.medievalships.core.Gangplank.State gp = entity.gangplankState();
+			state.gangplankAngle = fr.medievalships.core.Gangplank.angle(state.gangplank, gp, ticks, entity.gangplankTarget());
+			state.gangplankLever = (float) fr.medievalships.core.Gangplank.leverPosition(gp, ticks);
+			state.gangplankOut = gp.out();
+		}
+		state.moored = MathHelper.lerp(tickProgress, entity.lastGangplankMoor, entity.gangplankMoor);
+		state.rockScale *= 1.0 - state.moored;
 		state.interiorLight = entity.geometry().interior() != null;
 		if (state.interiorLight) {
 			for (int k = 0; k < state.doors.length; k++) {
@@ -127,9 +137,9 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 				matrices.translate(0, -state.bankPivotY, 0);
 			}
 			matrices.translate(0, Math.sin(t * 1.1) * 0.03 * rock, 0);
-			if (visual.hover() > 0f) {
+			if (visual.hover() > 0f && state.moored < 1f) {
 				// floating in the air: a slow bob (two beats so it never looks mechanical); only the drawing moves
-				matrices.translate(0, (Math.sin(t * 0.9) * 0.8 + Math.sin(t * 0.37 + 1.3) * 0.2) * visual.hover(), 0);
+				matrices.translate(0, (Math.sin(t * 0.9) * 0.8 + Math.sin(t * 0.37 + 1.3) * 0.2) * visual.hover() * (1f - state.moored), 0);
 			}
 
 			float oarTime = state.oarTime, oarWeight = state.oarWeight, sail = state.sailOpen, wheel = state.wheelTime;
@@ -230,6 +240,10 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 					});
 				});
 			}
+			}
+			// the boarding gangplank, its lever, chains and stairs
+			if (state.gangplank != null) {
+				GangplankRenderer.render(state, visual.type().id(), matrices, queue, light, farDetail);
 			}
 			// the murky sea behind the glass, seen from the rooms under water
 			if (state.murk && !visual.textures().isEmpty()) {

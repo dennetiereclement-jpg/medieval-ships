@@ -150,7 +150,59 @@ public final class ShipModels {
 		return LOADED.get(visual);
 	}
 
+	/** Gangplank plank models by ship id ({@code gangplank_<id>.bbmodel}) and lever models by style. */
+	private static final Map<String, BbModel> GANGPLANKS = new java.util.HashMap<>();
+	private static final Map<String, BbModel> LEVERS = new java.util.HashMap<>();
+	/** The shared atlas of every gangplank and lever (tools/gangplank/gangplanklib.py). */
+	public static final Identifier GANGPLANK_TEXTURE = texture("gangplank");
+
+	/** The plank model of a ship type with a gangplank, or null. */
+	@Nullable
+	public static BbModel gangplank(String shipId) {
+		return GANGPLANKS.get(shipId);
+	}
+
+	/** The deck lever model of a gangplank style, or null. */
+	@Nullable
+	public static BbModel lever(String style) {
+		return LEVERS.get(style);
+	}
+
+	@Nullable
+	private static BbModel load(ResourceManager manager, Identifier id) {
+		Optional<Resource> resource = manager.getResource(id);
+		if (resource.isEmpty()) {
+			return null;
+		}
+		try (Reader reader = resource.get().getReader()) {
+			return new BbModel(reader);
+		} catch (Exception e) {
+			MedievalShips.LOGGER.error("Could not load model {}", id, e);
+			return null;
+		}
+	}
+
 	public static void reload(ResourceManager manager) {
+		GANGPLANKS.clear();
+		LEVERS.clear();
+		for (Visual v : ALL) {
+			fr.medievalships.core.Gangplank.Spec spec = fr.medievalships.core.Gangplank.of(v.type().id());
+			if (spec == null) {
+				continue;
+			}
+			BbModel plank = load(manager, model("gangplank_" + v.type().id()));
+			if (plank == null) {
+				MedievalShips.LOGGER.error("Missing gangplank model for {}", v.type().id());
+			} else {
+				GANGPLANKS.put(v.type().id(), plank);
+			}
+			if (!LEVERS.containsKey(spec.style())) {
+				BbModel lever = load(manager, model("gangplank_lever_" + spec.style()));
+				if (lever != null) {
+					LEVERS.put(spec.style(), lever);
+				}
+			}
+		}
 		LOADED.clear();
 		for (Visual v : ALL) {
 			Optional<Resource> resource = manager.getResource(v.model());

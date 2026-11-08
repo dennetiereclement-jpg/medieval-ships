@@ -4,6 +4,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -57,6 +59,31 @@ import com.google.gson.JsonParser;
 public final class Gangplank {
 	/** Path of the spec files on the classpath. */
 	public static final String DIR = "/assets/medievalships/gangplanks/";
+	/** Styles, in the order of their cells in the atlas textures/entity/gangplank.png (gangplanklib.STYLES). */
+	public static final List<String> STYLES = List.of("wood", "dark_wood", "worn", "elven", "copper", "crystal", "jade", "steel");
+	/** Size of the atlas, pixels. */
+	public static final int ATLAS = 256;
+
+	/**
+	 * Atlas region (u, v, w, h in pixels) of a part of a style: plank, board, rail, metal, cord (rope or chain), end,
+	 * accent, handle, knob (as gangplanklib._CELL).
+	 */
+	public static int[] region(String style, String part) {
+		int i = Math.max(0, STYLES.indexOf(style));
+		int ox = (i % 2) * 128, oy = (i / 2) * 32;
+		int[] r = switch (part) {
+			case "plank" -> new int[] {0, 0, 64, 16};
+			case "board" -> new int[] {0, 16, 64, 16};
+			case "rail" -> new int[] {64, 0, 32, 16};
+			case "metal" -> new int[] {96, 0, 16, 16};
+			case "cord" -> new int[] {112, 0, 16, 16};
+			case "end" -> new int[] {64, 16, 16, 16};
+			case "accent" -> new int[] {80, 16, 16, 16};
+			case "handle" -> new int[] {96, 16, 16, 16};
+			default -> new int[] {112, 16, 16, 16};
+		};
+		return new int[] {ox + r[0], oy + r[1], r[2], r[3]};
+	}
 	/** Default stowed angle: raised upright against the hull side. */
 	public static final double STOWED_ANGLE = -90.0;
 
@@ -248,5 +275,283 @@ public final class Gangplank {
 			out[i] = a.get(i).getAsDouble();
 		}
 		return out;
+	}
+
+	// ------------------------------------------------------------------ animation
+
+	/** Ticks a deploy or a retraction takes (3 s). */
+	public static final int DURATION = 60;
+	/** Part of the animation spent unlocking (a short pause, the latch lifting) before the swing. */
+	private static final double UNLOCK = 0.1;
+	/** Part of the animation where the plank has arrived and settles (a small bounce). */
+	private static final double SETTLE = 0.12;
+	/** The walking surface of the tip rests this far above the landing surface (the bevelled tip and its shoe). */
+	public static final double TIP_LIFT = 0.1;
+	/** Largest rise between two consecutive walking boxes of the plank (players step up to 0.6). */
+	public static final double STEP_RISE = 0.25;
+	/** Largest rise of one stair of the inboard step box. */
+	public static final double STAIR_RISE = 0.45;
+	/** Thickness of the walking boxes. */
+	public static final double BOX_THICKNESS = 0.3;
+	/** The first walking box starts this far inboard of the hinge (over the top of the bulwark). */
+	public static final double INBOARD = 0.3;
+
+	/** Progress 0..1 of an animation started {@code ticks} ago. */
+	public static double progress(double ticks) {
+		return Math.max(0.0, Math.min(1.0, ticks / DURATION));
+	}
+
+	private static double ease(double t) {
+		t = Math.max(0, Math.min(1, t));
+		return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+	}
+
+	/**
+	 * Angle of a plank deploying, at progress p (0 stowed .. 1 resting at {@code target}): a short unlock (the plank
+	 * lifts a little inboard), an eased swing out and down, a small bounce once it touches the landing.
+	 */
+	public static double deployCurve(double p, double stowed, double target) {
+		if (p <= 0) {
+			return stowed;
+		}
+		if (p >= 1) {
+			return target;
+		}
+		if (p < UNLOCK) {
+			return stowed - 3.0 * Math.sin(Math.PI * p / UNLOCK);
+		}
+		double swingEnd = 1.0 - SETTLE;
+		if (p < swingEnd) {
+			return stowed + (target - stowed) * ease((p - UNLOCK) / (swingEnd - UNLOCK));
+		}
+		double r = (p - swingEnd) / SETTLE;
+		return target - 1.5 * Math.sin(Math.PI * r) * (1 - r * 0.5);
+	}
+
+	/** Angle of the plank in a state, {@code ticks} after the state started (fractional for rendering). */
+	public static double angle(Spec spec, State state, double ticks, double target) {
+		return switch (state) {
+			case RETRACTED -> spec.stowedAngle();
+			case DEPLOYED -> target;
+			case DEPLOYING -> deployCurve(progress(ticks), spec.stowedAngle(), target);
+			case RETRACTING -> deployCurve(1.0 - progress(ticks), spec.stowedAngle(), target);
+		};
+	}
+
+	/** Lever position 0 (stowed) .. 1 (deployed) in a state: it flips during the first 6 ticks of a move. */
+	public static double leverPosition(State state, double ticks) {
+		double f = Math.max(0, Math.min(1, ticks / 6.0));
+		return switch (state) {
+			case RETRACTED -> 0;
+			case DEPLOYED -> 1;
+			case DEPLOYING -> f;
+			case RETRACTING -> 1 - f;
+		};
+	}
+
+	// ------------------------------------------------------------------ collisions
+
+	/**
+	 * Walking boxes of the plank resting at angle {@code a} (ship-local, axis aligned in the ship's frame: the plank
+	 * runs across the hull, along x): thin steps following the slope, each at most {@link #STEP_RISE} above or below
+	 * the next, so walkers go up and down without jumping. Box 0 starts {@link #INBOARD} inboard of the hinge, over the
+	 * bulwark. Each box's top is the higher end of its part of the slope.
+	 */
+	public static List<Box> plankBoxes(Spec spec, double a) {
+		double r = Math.toRadians(a), c = Math.cos(r), s = Math.sin(r);
+		double L = spec.length();
+		int n = Math.max(2, (int) Math.ceil(L * Math.abs(s) / STEP_RISE - 1e-9));
+		n = Math.max(n, (int) Math.ceil(L * c / 1.0));
+		List<Box> out = new ArrayList<>();
+		double z0 = spec.hz() - spec.width() / 2, z1 = spec.hz() + spec.width() / 2;
+		for (int k = 0; k < n; k++) {
+			double u0 = L * k / n, u1 = L * (k + 1) / n;
+			double top = spec.hy() - Math.min(u0 * s, u1 * s);
+			double x0 = spec.hx() + spec.o() * (k == 0 ? -INBOARD : u0 * c);
+			double x1 = spec.hx() + spec.o() * u1 * c;
+			out.add(Box.of(x0, top - BOX_THICKNESS, z0, x1, top, z1));
+		}
+		return out;
+	}
+
+	/**
+	 * The inboard step box as a staircase rising towards the hull side: n stairs of at most {@link #STAIR_RISE},
+	 * stacked solid boxes from its bottom (the deck) up to its top (the hinge height). Empty without a step box.
+	 */
+	public static List<Box> stairBoxes(Spec spec) {
+		Box st = spec.step();
+		if (st == null) {
+			return List.of();
+		}
+		double rise = st.maxY() - st.minY();
+		int n = Math.max(1, (int) Math.ceil(rise / STAIR_RISE - 1e-9));
+		List<Box> out = new ArrayList<>();
+		boolean outboardIsMax = spec.o() > 0; // the hull side is at +x for a port plank
+		double depth = (st.maxX() - st.minX()) / n;
+		for (int k = 0; k < n; k++) {
+			double top = st.minY() + rise * (k + 1) / n;
+			// stair k (k = 0 the lowest, innermost) reaches from its inner edge to the hull side
+			if (outboardIsMax) {
+				out.add(new Box(st.minX() + depth * k, st.minY(), st.minZ(), st.maxX(), top, st.maxZ()));
+			} else {
+				out.add(new Box(st.minX(), st.minY(), st.minZ(), st.maxX() - depth * k, top, st.maxZ()));
+			}
+		}
+		return out;
+	}
+
+	/** Every box that collides while the plank is deployed at angle {@code a}: the plank's steps and the stairs. */
+	public static List<Box> deployedBoxes(Spec spec, double a) {
+		List<Box> out = new ArrayList<>(plankBoxes(spec, a));
+		out.addAll(stairBoxes(spec));
+		return out;
+	}
+
+	// ------------------------------------------------------------------ landing and clearance
+
+	/** What the safety checks need to know of the world, in ship-local coordinates. */
+	public interface Terrain {
+		/**
+		 * Highest top surface of a solid block in the column at (lx, lz) between yMin and yMax (ship-local), NaN if
+		 * none or if that part of the world is not loaded (never load chunks).
+		 */
+		double surface(double lx, double lz, double yMin, double yMax);
+
+		/** Is this ship-local point inside a solid block's collision shape (true where the world is not loaded)? */
+		boolean solid(double lx, double ly, double lz);
+	}
+
+	/** Result of the landing search: the deployed angle, or NaN and the reason (French, for the action bar). */
+	public record Landing(double angle, double surfaceY, String refusal) {
+		public boolean ok() {
+			return refusal == null;
+		}
+	}
+
+	public static final String NO_LANDING = "Aucun quai ni ponton à portée : la passerelle ne peut pas être déployée dans le vide.";
+	public static final String TOO_LOW = "Le quai est trop bas pour la passerelle (pente trop forte).";
+	public static final String TOO_HIGH = "Le quai est trop haut pour la passerelle.";
+	public static final String NO_STABLE = "Pas d'appui stable au bout de la passerelle.";
+	public static final String SWING_BLOCKED = "Un bloc gêne le déploiement de la passerelle.";
+	public static final String PATH_BLOCKED = "Un bloc encombre la passerelle : le passage serait bouché.";
+
+	/**
+	 * Looks for a solid top surface (quay, platform) under or over the tip, within the spec's slope range and
+	 * {@link Spec#maxDrop}: scans the columns at the tip (centre and both corners), computes the angle at which the
+	 * tip rests {@link #TIP_LIFT} above that surface, and repeats at the new reach of the tip until it settles.
+	 */
+	public static Landing findLanding(Spec spec, Terrain t) {
+		double L = spec.length();
+		double drop = Math.min(spec.maxDrop(), L * Math.sin(Math.toRadians(spec.maxAngle())));
+		// one block beyond the allowed range both ways: a quay just out of reach is reported as too high / too low
+		double yMin = spec.hy() - drop - TIP_LIFT - 1.0;
+		double yMax = spec.hy() - L * Math.sin(Math.toRadians(spec.minAngle())) - TIP_LIFT + 1.0;
+		double a = Math.max(spec.minAngle(), Math.min(spec.maxAngle(), 0.0));
+		double surface = Double.NaN;
+		for (int iter = 0; iter < 4; iter++) {
+			double reach = L * Math.cos(Math.toRadians(a)) - 0.2;
+			double s = Double.NaN;
+			for (double w : new double[] {0.0, -(spec.width() / 2 - 0.2), spec.width() / 2 - 0.2}) {
+				double lx = spec.hx() + spec.o() * reach;
+				double v = t.surface(lx, spec.hz() + w, yMin, yMax);
+				if (!Double.isNaN(v) && !(v <= s)) {
+					s = v;
+				}
+			}
+			if (Double.isNaN(s)) {
+				return iter == 0 || Double.isNaN(surface) ? new Landing(Double.NaN, Double.NaN, NO_LANDING)
+						: new Landing(Double.NaN, Double.NaN, NO_STABLE);
+			}
+			double next = Math.toDegrees(Math.asin(Math.max(-1, Math.min(1, (spec.hy() - (s + TIP_LIFT)) / L))));
+			// out of the slope range: no need to look further
+			if (spec.hy() - s > spec.maxDrop() + TIP_LIFT + 1e-6 || next > spec.maxAngle() + 1e-6) {
+				return new Landing(Double.NaN, s, TOO_LOW);
+			}
+			if (next < spec.minAngle() - 1e-6) {
+				return new Landing(Double.NaN, s, TOO_HIGH);
+			}
+			boolean settled = !Double.isNaN(surface) && Math.abs(s - surface) < 0.05 && Math.abs(next - a) < 0.5;
+			surface = s;
+			a = next;
+			if (settled) {
+				break;
+			}
+		}
+		if (spec.hy() - surface > spec.maxDrop() + TIP_LIFT + 1e-6 || a > spec.maxAngle() + 1e-6) {
+			return new Landing(Double.NaN, surface, TOO_LOW);
+		}
+		if (a < spec.minAngle() - 1e-6) {
+			return new Landing(Double.NaN, surface, TOO_HIGH);
+		}
+		return new Landing(a, surface, null);
+	}
+
+	/**
+	 * Clearance of a deploy to angle {@code a}: the plank's swing from its stowed angle must not cross solid blocks
+	 * (its tip only touches the landing at the end), and the walkway on the deployed plank must be free (headroom for
+	 * a player). Returns null if clear, else the reason (French).
+	 */
+	public static String clearance(Spec spec, double a, Terrain t) {
+		double L = spec.length();
+		double hw = spec.width() / 2 - 0.15;
+		double from = spec.stowedAngle();
+		int steps = Math.max(2, (int) Math.ceil(Math.abs(a - from) / 7.5));
+		for (int i = 0; i <= steps; i++) {
+			double ang = from + (a - from) * i / steps;
+			boolean last = i == steps;
+			for (double u = 0.4; u <= L + 1e-6; u += 0.4) {
+				double uu = Math.min(u, L - 0.05);
+				for (double w : new double[] {-hw, 0.0, hw}) {
+					// just above the walking surface; also its underside while swinging (not at rest on the landing)
+					double[] p = spec.point(ang, uu, 0.05, w);
+					if (t.solid(p[0], p[1], p[2])) {
+						return SWING_BLOCKED;
+					}
+					if (!last && Math.abs(ang - a) > 4.0) {
+						double[] q = spec.point(ang, uu, -0.2, w);
+						if (t.solid(q[0], q[1], q[2])) {
+							return SWING_BLOCKED;
+						}
+					}
+				}
+			}
+		}
+		for (double u = 0.5; u <= L - 0.25; u += 0.5) {
+			for (double w : new double[] {-hw + 0.15, hw - 0.15}) {
+				// headroom measured straight up from the walking surface
+				double[] p = spec.point(a, u, 0, w);
+				for (double v : new double[] {0.6, 1.5}) {
+					if (t.solid(p[0], p[1] + v, p[2])) {
+						return PATH_BLOCKED;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	// ------------------------------------------------------------------ picking
+
+	/** Ship-local box of the lever (clicked to deploy / retract). */
+	public static Box leverBox(Spec spec) {
+		return new Box(spec.leverX() - 0.32, spec.leverY(), spec.leverZ() - 0.32, spec.leverX() + 0.32, spec.leverY() + 1.0,
+				spec.leverZ() + 0.32);
+	}
+
+	/** Ray (ship-local origin and direction) against the lever: entry distance, or -1. */
+	public static double pickLever(Spec spec, double[] o, double[] d, double maxDist) {
+		Box b = leverBox(spec);
+		double t = ShipGeometry.rayBox(o, d, b.minX(), b.minY(), b.minZ(), b.maxX(), b.maxY(), b.maxZ());
+		return t >= 0 && t <= maxDist ? t : -1;
+	}
+
+	/** Does a world-independent local box intersect any of the boxes (all ship-local)? */
+	public static boolean intersects(List<Box> boxes, double x0, double y0, double z0, double x1, double y1, double z1) {
+		for (Box b : boxes) {
+			if (x0 < b.maxX() && x1 > b.minX() && y0 < b.maxY() && y1 > b.minY() && z0 < b.maxZ() && z1 > b.minZ()) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

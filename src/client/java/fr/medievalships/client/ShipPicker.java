@@ -67,6 +67,17 @@ public final class ShipPicker {
 				best = new Target(ship, pick);
 				bestDist = pick.distance();
 			}
+			// the gangplank's lever on the deck
+			fr.medievalships.core.Gangplank.Spec plank = ship.gangplank();
+			if (plank != null) {
+				double[] o = ship.pose().toLocal(eye.x, eye.y, eye.z);
+				double[] d = ship.pose().dirToLocal(look.x, look.y, look.z);
+				double t = fr.medievalships.core.Gangplank.pickLever(plank, o, d, bestDist);
+				if (t >= 0 && t < bestDist) {
+					best = new Target(ship, new ShipGeometry.Pick(ShipGeometry.PickKind.LEVER, 0, t, o[0] + d[0] * t, o[1] + d[1] * t, o[2] + d[2] * t));
+					bestDist = t;
+				}
+			}
 		}
 		if (best != null) {
 			current = best;

@@ -41,6 +41,7 @@ import net.minecraft.world.rule.GameRules;
 
 import fr.medievalships.MedievalShips;
 import fr.medievalships.core.Autopilot;
+import fr.medievalships.core.Gangplank;
 import fr.medievalships.core.Dive;
 import fr.medievalships.core.InteriorGrid;
 import fr.medievalships.core.Landing;
@@ -96,6 +97,13 @@ public abstract class ShipEntity extends Entity {
 	private static final TrackedData<String> AUTOPILOT_INFO = DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.STRING);
 	/** Speed limit set by an administrator ({@code /ship speed}), blocks/s; negative = none (the pilot's panel shows it). */
 	private static final TrackedData<Float> SPEED_LIMIT = DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.FLOAT);
+	/**
+	 * Gangplank ({@link Gangplank}): state ordinal, world tick its current move started, deployed angle. Only changes
+	 * are synced; the clients compute the animation from them.
+	 */
+	private static final TrackedData<Integer> GANGPLANK = DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.INTEGER);
+	private static final TrackedData<Long> GANGPLANK_START = DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.LONG);
+	private static final TrackedData<Float> GANGPLANK_ANGLE = DataTracker.registerData(ShipEntity.class, TrackedDataHandlerRegistry.FLOAT);
 
 	private static final double DT = 0.05;
 
@@ -184,6 +192,9 @@ public abstract class ShipEntity extends Entity {
 	public float lastAirlockVisual;
 	public float shutterVisual;
 	public float lastShutterVisual;
+	/** 0 .. 1 while the gangplank is out: the moored vessel stops rocking and bobbing (drawing only). */
+	public float gangplankMoor;
+	public float lastGangplankMoor;
 
 	protected ShipEntity(EntityType<? extends ShipEntity> type, World world) {
 		super(type, world);
@@ -221,6 +232,9 @@ public abstract class ShipEntity extends Entity {
 		builder.add(TOGGLES, 0);
 		builder.add(AUTOPILOT_INFO, "");
 		builder.add(SPEED_LIMIT, -1f);
+		builder.add(GANGPLANK, Gangplank.State.RETRACTED.ordinal());
+		builder.add(GANGPLANK_START, 0L);
+		builder.add(GANGPLANK_ANGLE, 0f);
 	}
 
 	@Override
@@ -260,6 +274,14 @@ public abstract class ShipEntity extends Entity {
 		autopilot.waitTicks = view.getInt("ApWait", 0);
 		autopilot.legStartX = view.getDouble("ApLegX", getX());
 		autopilot.legStartZ = view.getDouble("ApLegZ", getZ());
+		// gangplank: a move in progress resolves to an end state; a deployed plank is checked again at the first tick
+		Gangplank.State plank = Gangplank.State.of(view.getInt("Gangplank", 0));
+		float plankAngle = view.getFloat("GangplankAngle", 0f);
+		boolean out = plank == Gangplank.State.DEPLOYED || plank == Gangplank.State.DEPLOYING;
+		dataTracker.set(GANGPLANK, (out ? Gangplank.State.DEPLOYED : Gangplank.State.RETRACTED).ordinal());
+		dataTracker.set(GANGPLANK_ANGLE, plankAngle);
+		dataTracker.set(GANGPLANK_START, 0L);
+		gangplankCheckPending = out;
 		setShipYaw(getYaw());
 		dataTracker.set(AUTOPILOT, aiEnabled);
 		dataTracker.set(GAIT, gait.ordinal());
@@ -288,6 +310,8 @@ public abstract class ShipEntity extends Entity {
 		view.putInt("ApWait", autopilot.waitTicks);
 		view.putDouble("ApLegX", autopilot.legStartX);
 		view.putDouble("ApLegZ", autopilot.legStartZ);
+		view.putInt("Gangplank", dataTracker.get(GANGPLANK));
+		view.putFloat("GangplankAngle", dataTracker.get(GANGPLANK_ANGLE));
 	}
 
 	// ------------------------------------------------------------------ basic entity behaviour
@@ -585,6 +609,8 @@ public abstract class ShipEntity extends Entity {
 			bankVisual = (float) Flight.bankStep(bankVisual, bank, DT);
 		}
 		rockTime += DT;
+		lastGangplankMoor = gangplankMoor;
+		gangplankMoor += Math.max(-0.05f, Math.min(0.05f, (gangplankState().out() ? 1f : 0f) - gangplankMoor));
 		if (geometry().interior() != null) {
 			long open = dataTracker.get(DOORS);
 			for (int k = 0; k < doorVisual.length; k++) {
@@ -622,6 +648,9 @@ public abstract class ShipEntity extends Entity {
 		// ---- controls
 		ShipPhysics.Controls controls;
 		Entity pilot = passengerInSeat(ShipGeometry.PILOT_SEAT);
+		if (gangplankTick(world, pilot, cfg)) {
+			return; // the gangplank is out: the vessel is held where it is
+		}
 		if (geometry().flying()) {
 			ShipPhysics.Controls manual = !aiEnabled && pilot instanceof ServerPlayerEntity player
 					? manualControls(player, cfg) : ShipPhysics.Controls.COAST;
@@ -923,6 +952,348 @@ public abstract class ShipEntity extends Entity {
 				}
 			}
 		}
+	}
+
+	// ------------------------------------------------------------------ gangplank
+
+	/** A deployed plank is checked again once after loading (its landing may be gone). */
+	private boolean gangplankCheckPending;
+	/** Until this age the pilot's "fold the gangplank first" message is not repeated. */
+	private int gangplankMessageUntil;
+	/** World boxes of the deployed plank (computed once per deploy, the vessel being held), with the pose and angle used. */
+	private List<double[]> gangplankBoxes = List.of();
+	@Nullable
+	private ShipPose gangplankBoxesPose;
+	private float gangplankBoxesAngle = Float.NaN;
+
+	/** This vessel's gangplank, or null if its type has none. */
+	@Nullable
+	public Gangplank.Spec gangplank() {
+		return Gangplank.of(shipType().id());
+	}
+
+	public Gangplank.State gangplankState() {
+		return Gangplank.State.of(dataTracker.get(GANGPLANK));
+	}
+
+	/** World tick at which the current move started. */
+	public long gangplankStart() {
+		return dataTracker.get(GANGPLANK_START);
+	}
+
+	/** Deployed angle (degrees, down positive). */
+	public float gangplankTarget() {
+		return dataTracker.get(GANGPLANK_ANGLE);
+	}
+
+	/** Ticks since the current move started (fractional, for the animation). */
+	public double gangplankTicks(float tickDelta) {
+		return getEntityWorld().getTime() - gangplankStart() + tickDelta;
+	}
+
+	/** Angle of the plank now (stowed when there is none). */
+	public double gangplankAngle(float tickDelta) {
+		Gangplank.Spec spec = gangplank();
+		if (spec == null) {
+			return Gangplank.STOWED_ANGLE;
+		}
+		return Gangplank.angle(spec, gangplankState(), gangplankTicks(tickDelta), gangplankTarget());
+	}
+
+	private void setGangplank(Gangplank.State state, long start, float angle) {
+		dataTracker.set(GANGPLANK, state.ordinal());
+		dataTracker.set(GANGPLANK_START, start);
+		dataTracker.set(GANGPLANK_ANGLE, angle);
+	}
+
+	/** Sets the plank's state directly (tests, admin): no checks, no animation. */
+	public void forceGangplank(Gangplank.State state, float angle) {
+		setGangplank(state, getEntityWorld().getTime() - Gangplank.DURATION, angle);
+	}
+
+	/**
+	 * The rail opening of a deployed plank for {@link ShipGeometry#collectBoxes}: {side, z0, z1, yTop}, or null.
+	 */
+	@Nullable
+	public double[] gangplankWallGap() {
+		if (gangplankState() != Gangplank.State.DEPLOYED) {
+			return null;
+		}
+		Gangplank.Spec spec = gangplank();
+		if (spec == null || !spec.hasRailGap()) {
+			return null;
+		}
+		return new double[] {spec.o(), spec.railGapZ0(), spec.railGapZ1(), spec.hy()};
+	}
+
+	/**
+	 * Adds the collision boxes of the deployed plank (its steps along the slope and the inboard stairs) intersecting a
+	 * world query box. Server and clients compute the same boxes from the synced state; nothing while the plank is
+	 * stowed or moving.
+	 */
+	public void collectGangplankBoxes(double qMinX, double qMinY, double qMinZ, double qMaxX, double qMaxY, double qMaxZ,
+			ShipGeometry.BoxSink sink) {
+		if (gangplankState() != Gangplank.State.DEPLOYED) {
+			return;
+		}
+		Gangplank.Spec spec = gangplank();
+		if (spec == null) {
+			return;
+		}
+		ShipPose p = pose();
+		float a = gangplankTarget();
+		ShipPose q = gangplankBoxesPose;
+		if (q == null || a != gangplankBoxesAngle || Math.abs(q.x() - p.x()) > 1e-4 || Math.abs(q.y() - p.y()) > 1e-4
+				|| Math.abs(q.z() - p.z()) > 1e-4 || Math.abs(q.yaw() - p.yaw()) > 1e-3) {
+			List<double[]> boxes = new ArrayList<>();
+			for (Gangplank.Box b : Gangplank.deployedBoxes(spec, a)) {
+				ShipGeometry.emitLocal(p, b.minX(), b.minY(), b.minZ(), b.maxX(), b.maxY(), b.maxZ(),
+						(x0, y0, z0, x1, y1, z1) -> boxes.add(new double[] {x0, y0, z0, x1, y1, z1}));
+			}
+			gangplankBoxes = boxes;
+			gangplankBoxesPose = p;
+			gangplankBoxesAngle = a;
+		}
+		for (double[] b : gangplankBoxes) {
+			if (b[0] < qMaxX && b[3] > qMinX && b[1] < qMaxY && b[4] > qMinY && b[2] < qMaxZ && b[5] > qMinZ) {
+				sink.accept(b[0], b[1], b[2], b[3], b[4], b[5]);
+			}
+		}
+	}
+
+	/** The lever was used (a player's click, a test): deploys or retracts the plank. Returns the message for the action bar. */
+	@Nullable
+	public Text useGangplankLever(ServerWorld world) {
+		Gangplank.Spec spec = gangplank();
+		if (spec == null) {
+			return null;
+		}
+		return switch (gangplankState()) {
+			case DEPLOYING, RETRACTING -> Text.literal("La passerelle est en mouvement.").formatted(Formatting.YELLOW);
+			case RETRACTED -> deployGangplank(world);
+			case DEPLOYED -> retractGangplank(world);
+		};
+	}
+
+	/** Deploys the plank if every safety check passes; returns the message (refusal in red). */
+	public Text deployGangplank(ServerWorld world) {
+		Gangplank.Spec spec = gangplank();
+		if (spec == null) {
+			return Text.literal("Ce navire n'a pas de passerelle.").formatted(Formatting.RED);
+		}
+		if (gangplankState() != Gangplank.State.RETRACTED) {
+			return Text.literal("La passerelle est déjà sortie.").formatted(Formatting.YELLOW);
+		}
+		if (Math.abs(physics.speed) > 1.0 || getVelocity().length() > 0.05 || Math.abs(flight.vy) > 0.5 || Math.abs(dive.vy) > 0.5) {
+			return refuse(world, spec, "Le navire doit être à l'arrêt pour déployer la passerelle.");
+		}
+		if (geometry().submarine() && syncedDepth() > 0.5f) {
+			return refuse(world, spec, "Faites d'abord surface pour déployer la passerelle.");
+		}
+		if (aiEnabled && (autopilot.phase == Autopilot.Phase.SAILING || autopilot.phase == Autopilot.Phase.RECOVERING)) {
+			return refuse(world, spec, "Le pilote automatique fait route : impossible de déployer la passerelle.");
+		}
+		ShipPose p = pose();
+		GangplankTerrain terrain = new GangplankTerrain(world, p);
+		Gangplank.Landing landing = Gangplank.findLanding(spec, terrain);
+		if (!landing.ok()) {
+			return refuse(world, spec, landing.refusal());
+		}
+		String blocked = Gangplank.clearance(spec, landing.angle(), terrain);
+		if (blocked != null) {
+			return refuse(world, spec, blocked);
+		}
+		// nobody in the way: the volume a player would occupy over the deployed plank (and the stairs)
+		List<Gangplank.Box> path = new ArrayList<>();
+		for (Gangplank.Box b : Gangplank.deployedBoxes(spec, landing.angle())) {
+			path.add(new Gangplank.Box(b.minX(), b.minY(), b.minZ(), b.maxX(), b.maxY() + 1.8, b.maxZ()));
+		}
+		if (entityIn(world, p, path)) {
+			return refuse(world, spec, "Quelqu'un (ou quelque chose) se trouve sur le chemin de la passerelle.");
+		}
+		setGangplank(Gangplank.State.DEPLOYING, world.getTime(), (float) landing.angle());
+		gangplankSound(world, spec, net.minecraft.sound.SoundEvents.BLOCK_LEVER_CLICK, 0.6f, 0.8f);
+		gangplankSound(world, spec, net.minecraft.sound.SoundEvents.BLOCK_WOODEN_TRAPDOOR_OPEN, 1.0f, 0.6f);
+		gangplankSound(world, spec, net.minecraft.sound.SoundEvents.BLOCK_CHAIN_PLACE, 0.8f, 0.7f);
+		return Text.literal("La passerelle se déploie.").formatted(Formatting.GOLD);
+	}
+
+	/** Retracts the plank unless someone stands on it or on its stairs; returns the message (refusal in red). */
+	public Text retractGangplank(ServerWorld world) {
+		Gangplank.Spec spec = gangplank();
+		if (spec == null) {
+			return Text.literal("Ce navire n'a pas de passerelle.").formatted(Formatting.RED);
+		}
+		if (gangplankState() != Gangplank.State.DEPLOYED) {
+			return Text.literal("La passerelle n'est pas déployée.").formatted(Formatting.YELLOW);
+		}
+		if (gangplankOccupied(world)) {
+			return refuse(world, spec, "Impossible de replier la passerelle : quelqu'un est dessus.");
+		}
+		setGangplank(Gangplank.State.RETRACTING, world.getTime(), gangplankTarget());
+		gangplankSound(world, spec, net.minecraft.sound.SoundEvents.BLOCK_LEVER_CLICK, 0.6f, 0.7f);
+		gangplankSound(world, spec, net.minecraft.sound.SoundEvents.BLOCK_CHAIN_PLACE, 0.8f, 0.6f);
+		gangplankSound(world, spec, net.minecraft.sound.SoundEvents.BLOCK_WOODEN_TRAPDOOR_CLOSE, 0.9f, 0.6f);
+		return Text.literal("La passerelle se replie.").formatted(Formatting.GOLD);
+	}
+
+	/** Is anyone standing on or inside the deployed plank or its stairs? */
+	public boolean gangplankOccupied(ServerWorld world) {
+		Gangplank.Spec spec = gangplank();
+		if (spec == null || gangplankState() == Gangplank.State.RETRACTED) {
+			return false;
+		}
+		List<Gangplank.Box> boxes = new ArrayList<>();
+		for (Gangplank.Box b : Gangplank.deployedBoxes(spec, gangplankTarget())) {
+			boxes.add(new Gangplank.Box(b.minX() - 0.05, b.minY(), b.minZ() - 0.05, b.maxX() + 0.05, b.maxY() + 0.6, b.maxZ() + 0.05));
+		}
+		return entityIn(world, pose(), boxes);
+	}
+
+	/** Is a living being or a vehicle (not this vessel, not its seated passengers, no spectator) in one of the local boxes? */
+	private boolean entityIn(ServerWorld world, ShipPose p, List<Gangplank.Box> local) {
+		double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE, minZ = Double.MAX_VALUE;
+		double maxX = -Double.MAX_VALUE, maxY = -Double.MAX_VALUE, maxZ = -Double.MAX_VALUE;
+		List<double[]> world0 = new ArrayList<>();
+		for (Gangplank.Box b : local) {
+			ShipGeometry.emitLocal(p, b.minX(), b.minY(), b.minZ(), b.maxX(), b.maxY(), b.maxZ(),
+					(x0, y0, z0, x1, y1, z1) -> world0.add(new double[] {x0, y0, z0, x1, y1, z1}));
+		}
+		for (double[] w : world0) {
+			minX = Math.min(minX, w[0]);
+			minY = Math.min(minY, w[1]);
+			minZ = Math.min(minZ, w[2]);
+			maxX = Math.max(maxX, w[3]);
+			maxY = Math.max(maxY, w[4]);
+			maxZ = Math.max(maxZ, w[5]);
+		}
+		if (world0.isEmpty()) {
+			return false;
+		}
+		List<Entity> list = world.getOtherEntities(this, new Box(minX, minY, minZ, maxX, maxY, maxZ),
+				e -> !e.isRemoved() && !e.isSpectator() && e.getRootVehicle() != this && !(e instanceof ShipEntity)
+						&& (e instanceof LivingEntity || e instanceof net.minecraft.entity.vehicle.VehicleEntity));
+		for (Entity e : list) {
+			Box eb = e.getBoundingBox();
+			for (double[] w : world0) {
+				if (eb.minX < w[3] && eb.maxX > w[0] && eb.minY < w[4] && eb.maxY > w[1] && eb.minZ < w[5] && eb.maxZ > w[2]) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private Text refuse(ServerWorld world, Gangplank.Spec spec, String why) {
+		gangplankSound(world, spec, net.minecraft.sound.SoundEvents.BLOCK_LEVER_CLICK, 0.4f, 0.5f);
+		return Text.literal(why).formatted(Formatting.RED);
+	}
+
+	private void gangplankSound(ServerWorld world, Gangplank.Spec spec, net.minecraft.sound.SoundEvent sound, float volume, float pitch) {
+		double[] w = pose().toWorld(spec.hx(), spec.hy(), spec.hz());
+		world.playSound(null, w[0], w[1], w[2], sound, net.minecraft.sound.SoundCategory.BLOCKS, volume, pitch);
+	}
+
+	/**
+	 * Server tick of the gangplank: ends the moves, re-checks a plank deployed before a restart, and while the plank is
+	 * out holds the vessel still (no thrust, no drift), tells the pilot to fold it first, lets a moored autopilot count
+	 * down and folds the plank for it when it must leave (if nobody is on it). Returns true while the vessel is held.
+	 * Nothing runs while the plank is stowed.
+	 */
+	private boolean gangplankTick(ServerWorld world, @Nullable Entity pilot, ShipConfig cfg) {
+		Gangplank.State state = gangplankState();
+		if (state == Gangplank.State.RETRACTED) {
+			return false;
+		}
+		Gangplank.Spec spec = gangplank();
+		if (spec == null) {
+			setGangplank(Gangplank.State.RETRACTED, 0L, 0f);
+			return false;
+		}
+		long t = world.getTime() - gangplankStart();
+		if (gangplankCheckPending && state == Gangplank.State.DEPLOYED) {
+			// after a restart: the landing must still be there (checked once its chunk is loaded; never loads one)
+			double[] tip = pose().toWorld(spec.point(gangplankTarget(), spec.length(), 0, 0)[0], spec.hy(),
+					spec.point(gangplankTarget(), spec.length(), 0, 0)[2]);
+			if (world.isChunkLoaded(((int) Math.floor(tip[0])) >> 4, ((int) Math.floor(tip[2])) >> 4)) {
+				gangplankCheckPending = false;
+				Gangplank.Landing landing = Gangplank.findLanding(spec, new GangplankTerrain(world, pose()));
+				if (!landing.ok()) {
+					setGangplank(Gangplank.State.RETRACTING, world.getTime(), gangplankTarget());
+					gangplankSound(world, spec, net.minecraft.sound.SoundEvents.BLOCK_CHAIN_PLACE, 0.8f, 0.6f);
+				} else if (Math.abs(landing.angle() - gangplankTarget()) > 0.5) {
+					setGangplank(Gangplank.State.DEPLOYED, gangplankStart(), (float) landing.angle());
+				}
+				state = gangplankState();
+				t = world.getTime() - gangplankStart();
+			}
+		}
+		if (state == Gangplank.State.DEPLOYING && t >= Gangplank.DURATION) {
+			setGangplank(Gangplank.State.DEPLOYED, gangplankStart(), gangplankTarget());
+			state = Gangplank.State.DEPLOYED;
+			gangplankSound(world, spec, net.minecraft.sound.SoundEvents.BLOCK_WOOD_PLACE, 1.0f, 0.7f);
+		} else if (state == Gangplank.State.RETRACTING && t >= Gangplank.DURATION) {
+			setGangplank(Gangplank.State.RETRACTED, gangplankStart(), gangplankTarget());
+			gangplankSound(world, spec, net.minecraft.sound.SoundEvents.BLOCK_IRON_TRAPDOOR_CLOSE, 0.7f, 0.8f);
+			return false;
+		}
+		// the pilot wants to leave
+		if (pilot instanceof ServerPlayerEntity player && age >= gangplankMessageUntil) {
+			PlayerInput in = player.getPlayerInput();
+			if (in.forward() || in.backward() || in.left() || in.right() || ((geometry().flying() || geometry().submarine()) && (in.jump() || in.sprint()))) {
+				player.sendMessage(Text.literal("Repliez d'abord la passerelle").formatted(Formatting.RED), true);
+				gangplankMessageUntil = age + 40;
+			}
+		}
+		// the autopilot: counts down at its stop, folds the plank when it leaves (or waits while someone is on it)
+		if (aiEnabled) {
+			Route route = ShipData.get(world.getServer()).route(routeName);
+			if (autopilot.phase == Autopilot.Phase.DOCKED && route != null) {
+				autopilot.tick(route, pose(), 0, 0, gait, cfg, geometry(), new ShipWorld(world, this), new Announcer(world, route));
+			} else if ((autopilot.phase == Autopilot.Phase.SAILING || autopilot.phase == Autopilot.Phase.RECOVERING)
+					&& state == Gangplank.State.DEPLOYED) {
+				if (!gangplankOccupied(world)) {
+					retractGangplank(world);
+				} else if (age >= gangplankMessageUntil) {
+					for (ServerPlayerEntity p : playersAboard(world)) {
+						p.sendMessage(Text.literal("Départ retardé : quelqu'un est sur la passerelle.").formatted(Formatting.YELLOW), true);
+					}
+					gangplankMessageUntil = age + 60;
+				}
+			}
+		}
+		// held in place: no thrust, no drift
+		physics.speed = 0;
+		physics.yawRate = 0;
+		flight.vy = 0;
+		dive.vy = 0;
+		setVelocity(0, 0, 0);
+		if (dataTracker.get(SPEED) != 0f) {
+			dataTracker.set(SPEED, 0f);
+		}
+		if (dataTracker.get(VSPEED) != 0f) {
+			dataTracker.set(VSPEED, 0f);
+		}
+		stoppedTicks++;
+		boolean sail = geometry().flying() || geometry().submarine() || !cfg.furlSailWhenStopped || stoppedTicks < 100;
+		if (sail != dataTracker.get(SAIL_SET)) {
+			dataTracker.set(SAIL_SET, sail);
+		}
+		if (dataTracker.get(AUTOPILOT) != aiEnabled) {
+			dataTracker.set(AUTOPILOT, aiEnabled);
+		}
+		if (keepsChunksLoaded() && age % 20 == 0 && ConfigManager.server().chunkLoadAutopilotShips) {
+			world.getChunkManager().addTicket(ChunkTicketType.PORTAL, new ChunkPos(getBlockPos()), ConfigManager.server().chunkLoadRadius);
+		}
+		if (geometry().submarine()) {
+			NautilusFittings.tick(this, world);
+		}
+		return true;
+	}
+
+	/** Is this pilot input ignored because the gangplank is out (for the pilot's HUD)? */
+	public boolean heldByGangplank() {
+		return gangplankState() != Gangplank.State.RETRACTED;
 	}
 
 	// ------------------------------------------------------------------ autopilot & admin API
