@@ -3,20 +3,24 @@
 scratchpad/ref2/tente_lion_pavillon_ref.png, picture 032).
 
 A blue and cream striped merchant pavilion, one block (TentType group "tents"), about 8 x 7 blocks (crates, sacks and
-the rug included), the finial at about 7:
+the rug included), the finial at about 5.8 (a low, wide pavilion, as in the picture):
 
-  - a bell-shaped hipped roof rising to a pointed centre with a gold finial, wide blue / cream gores, a blue valance
-    with square tabs edged in gold all round;
-  - on the front, a small raised gable (dormer) with cream barge boards, the big LION CREST (blue shield, gold rim, the
-    golden lion rampant) hanging from a gold rod in front of it, flanked by two cream pennants with gold fleurs-de-lis;
+  - a low bell-shaped hipped roof, flaring out flat at the eaves and rising steeply to a pointed centre under a gold
+    finial and a cream crown ring with gold tabs, wide blue / warm cream gores, a blue valance with deep square tabs
+    edged in gold all round;
+  - on the front, the LION CREST: a tall blue banner board (gold border, the golden lion rampant, V point) standing on
+    the front eave under a gold-capped bar (braced back to the roof), rising in front of the roof slope and hanging on
+    past the valance, flanked by two shorter cream pennants with gold fleurs-de-lis;
   - four dark posts on grey stone feet with iron bands and caps poking through the roof corners, eave beams, braces;
-  - a tall BANNER POLE at the front left (stone foot, rope wound round it, a cross bar carrying the blue banner with the
-    gold cross fleury), a rope of blue / cream pennant BUNTING running from its top to the roof's finial;
+  - a tall BANNER POLE at the front left (stone foot, a cross bar carrying the blue banner with the gold cross fleury,
+    a thick twisted rope hanging from the bar's outer end), a rope of blue / cream pennant BUNTING running from its top
+    to the roof's finial;
   - cream drapes with faint gold fleurs tied back at the front corners and along the left side, the striped back and
     side walls, an ivy planter hanging off the front-left post;
   - inside: the COUNTER under a blue cloth with gold dags and fleurs-de-lis (piles of red and blue books, an open map,
     a small lantern), the back SHELVES of potions (purple, teal, red, blue), books and jars, a cabinet with a blue
-    fleur-de-lis hanging; on the right a low table of CLOTH BOLTS (blue, red, cream rolls) with books, and the gold
+    fleur-de-lis hanging; on the right a low table of fat CLOTH BOLTS stacked in a pyramid (blue, red-striped, cream,
+    red rolls) with books, and the gold
     chest at the front right; two lanterns hanging under the front eave;
   - outside: two big burlap SACKS at the front left, crates on the left and the right, the blue RUG with gold scrolls
     from the counter out past the front.
@@ -47,12 +51,13 @@ BLUE, CREAM, GOLD = pa.BLUE, pa.CREAM, pa.GOLD
 NAME = "tente_lion_pavillon"
 # ---------------------------------------------------------------- dimensions (tent-local blocks, +z = the open front)
 HW, HD = 3.0, 2.4            # corner posts at x = +-HW, z = +-HD
-EAVE = 3.4                   # top of the eave beams
-EY = 3.45                    # the roof's lower edge
-AY = 5.45                    # the roof's apex (a low, wide bell roof)
+EAVE = 3.15                  # top of the eave beams (a low, wide pavilion)
+EY = 3.2                     # the roof's lower edge
+AY = 4.75                    # the roof's apex (a low roof, pointed under the finial)
+ROOF_A, ROOF_PW = 0.25, 2.5  # the bell profile: steep under the finial, flaring out flat at the eaves
 W, D = HW + 0.45, HD + 0.45  # the roof's eave corners
 PX, PZ = -HW - 0.8, HD - 0.3    # the tall banner pole (outside the left side, near the front corner)
-POLE_TOP = 5.95
+POLE_TOP = 5.5
 COUNTER = (-2.4, -0.35, 0.85, 1.5)   # x0, x1, z0, z1
 COUNTER_H = 1.0
 TABLE = (0.8, 2.6, 0.0, 0.85)
@@ -61,16 +66,16 @@ NPC_SPOT = (-1.45, -0.7)     # (x0, z0) of the free 1 x 1 x 2.2 place behind the
 
 def regions(atlas):
     pa.add_regions(atlas, "pv", [
-        ("roof", 128, 96, pa.stripes([BLUE, CREAM], 4, 3201, fold=0.17)),
-        ("rug", 96, 112, pa.rug(3202, scrolls="lattice")),
+        ("roof", 128, 96, pa.stripes([BLUE, pa._mix(CREAM, pa.CREAM_D, 0.3)], 4, 3201, fold=0.17)),
+        ("rug", 96, 112, pa.rug(3202, scrolls=True)),
         ("cross", 40, 80, pa.banner(3203, emblem="cross", bottom="point", box=(0.16, 0.1, 0.84, 0.56))),
-        ("crest", 48, 84, pa.crest(3204)),
+        ("crest", 44, 88, pa.banner(3204, emblem="lion", bottom="point", inner=pa.BLUE_D, box=(0.1, 0.09, 0.9, 0.6))),
         ("wall", 128, 64, pa.stripes([BLUE, CREAM], 8, 3205, fold=0.2)),
         ("drape", 48, 64, pa.drape(3206)),
-        ("pennant", 24, 56, pa.pennant(3207)),
+        ("pennant", 26, 58, pa.pennant(3207)),
         ("fdl", 32, 48, pa.banner(3208, emblem="fdl", bottom="point", box=(0.18, 0.12, 0.82, 0.56))),
         ("cloth", 96, 40, pa.counter_cloth(3209)),
-        ("valance", 256, 24, pa.dag_valance(12, 3210)),
+        ("valance", 256, 24, pa.dag_valance(12, 3210, band=0.36)),
         ("stone", 32, 32, pa.stone(3211)),
         ("chest", 32, 32, pa.chest_wood(3212)),
         ("map", 32, 24, pa.parchment(3213)),
@@ -78,6 +83,7 @@ def regions(atlas):
         ("burlap", 32, 32, pa.burlap(3226)),
         ("wall_r", 32, 32, pa.stripes([pa._rgb("a82a26"), CREAM], 4, 3225, fold=0.1)),
         ("runner", 32, 32, pa.drape(3223, cloth=pa.CREAM, folds=1, motif="fdl")),
+        ("ring", 64, 12, pa.dag_valance(8, 3227, cloth=CREAM, edge=GOLD, shape="square", band=0.62)),
         ("bunt_b", 16, 24, pa.bunting_flag(3214, BLUE)),
         ("bunt_c", 16, 24, pa.bunting_flag(3215, CREAM)),
         ("books", 64, 16, pa.books(3216)),
@@ -107,37 +113,50 @@ def build(atlas, decor):
     beam(shell, "tie_beam", (-HW, by, 0.0), (HW, by, 0.0), 0.2, "wood_dark", extend=0.1)
     beam(shell, "king_post", (0, by, 0), (0, AY - 0.1, 0), 0.18, "wood_dark")
     # ---- the bell-shaped hipped roof, blue / cream gores
-    roof_y = pa.hip_roof(shell, "roof", (0, AY, 0), [(-W, EY, D), (W, EY, D), (W, EY, -D), (-W, EY, -D)], "pv_roof", nx=4, ny=8, a=0.4,
-                         droop=0.1)
+    roof_y = pa.hip_roof(shell, "roof", (0, AY, 0), [(-W, EY, D), (W, EY, D), (W, EY, -D), (-W, EY, -D)], "pv_roof", nx=4, ny=14, a=ROOF_A,
+                         droop=0.08, pw=ROOF_PW)
     # cream cords along the four hips (over the joins of the faces)
     for k, (cx, cz) in enumerate(((-W, D), (W, D), (W, -D), (-W, -D))):
         pts = []
-        for i in range(5):
-            t = i / 4
-            pts.append(v3(cx * t, AY - (AY - EY) * pa.bell(t, 0.4) + 0.03, cz * t))
-        for i in range(4):
+        for i in range(7):
+            t = i / 6
+            pts.append(v3(cx * t, AY - (AY - EY) * pa.bell(t, ROOF_A, ROOF_PW) + 0.03, cz * t))
+        for i in range(6):
             beam(det, "hip_%d_%d" % (k, i), pts[i], pts[i + 1], 0.07, "cloth_beige", width=0.12, extend=0.03)
-    box(shell, "apex_collar", (-0.17, AY - 0.1, -0.17), (0.17, AY + 0.12, 0.17), "wood_dark", stretch=False)
+    box(shell, "apex_collar", (-0.17, AY - 0.1, -0.17), (0.17, AY + 0.12, 0.17), "gold", stretch=False)
     pa.finial_spike(shell, "apex_finial", (0, AY + 0.1, 0), h=0.8, w=0.26)
+    # the cream crown ring with gold tabs round the roof under the finial
+    t_r = 0.075
+    rw, rd, ry0 = W * t_r + 0.05, D * t_r + 0.05, AY - (AY - EY) * pa.bell(t_r, ROOF_A, ROOF_PW)
+    for k, (c0, c1, o) in enumerate((((-rw, ry0, rd), (rw, ry0, rd), Z), ((rw, ry0, rd), (rw, ry0, -rd), X),
+                                     ((rw, ry0, -rd), (-rw, ry0, -rd), -Z), ((-rw, ry0, -rd), (-rw, ry0, rd), -X))):
+        pa.valance(det, "crown_%d" % k, c0, c1, o, h=0.2, region="pv_ring", segs=1, flare=0.04)
     # ---- the valance (blue, square tabs edged in gold) on the four sides, curving a little between the corners
     for k, (c0, c1, o) in enumerate((((-W, EY, D + 0.02), (W, EY, D + 0.02), Z), ((W + 0.02, EY, D), (W + 0.02, EY, -D), X),
                                      ((W, EY, -D - 0.02), (-W, EY, -D - 0.02), -Z), ((-W - 0.02, EY, -D), (-W - 0.02, EY, D), -X))):
         pa.valance(shell, "valance_%d" % k, c0, c1, o, h=0.6, region="pv_valance", segs=6, sag=0.06)
-    # ---- the lion crest lying on the roof's front face high under the finial (a gold rod across its top), hanging on
-    # down past the valance; the two cream fleur-de-lis pennants beside it, lower on the slope
-    pa.roof_plaque(shell, "crest", roof_y, -0.82, 0.82, 0.75, D, 0.55, "pv_crest", nx=2, ny=6)
-    yr = roof_y(0, 0.75) + 0.14
-    beam(shell, "crest_rod", (-0.95, yr, 0.78), (0.95, yr, 0.78), 0.07, "gold", width=0.07)
+    # ---- the lion crest: a tall blue banner board standing on the front eave, rising in front of the roof slope and
+    # hanging on past the valance, under a gold-capped bar (a brace behind it back to the roof); the two cream
+    # fleur-de-lis pennants beside it, shorter
+    zc, CW, CT, CB = D + 0.13, 0.84, EY + 1.0, EY - 0.72
+    ml.banner(shell, "crest", (0.0, CT, zc), CW, CT - CB, normal=(0, 0, 1), region="pv_crest", rod=False, wave=0.02)
+    box(shell, "crest_bar", (-CW / 2 - 0.09, CT - 0.01, zc - 0.08), (CW / 2 + 0.09, CT + 0.12, zc + 0.06), {"all": "trim_gold", "-1": "gold",
+                                                                                                             "+1": "gold"}, u_dir=X)
+    box(det, "crest_bar_top", (-CW / 2 - 0.02, CT + 0.12, zc - 0.05), (CW / 2 + 0.02, CT + 0.16, zc + 0.03), "cloth_beige", u_dir=X)
     for k, sx in enumerate((-1, 1)):
-        add_cube(det, "crest_knob_%d" % k, (sx * 0.98, yr, 0.78), EYE, (0.1, 0.1, 0.1), "gold")
-        xp = sx * 1.32
-        pa.roof_plaque(shell, "pennant_%d" % k, roof_y, xp - 0.37, xp + 0.37, 1.75, D, 0.62, "pv_pennant", nx=1, ny=4)
-        yq = roof_y(xp, 1.75) + 0.12
-        beam(det, "pennant_rod_%d" % k, (xp - 0.45, yq, 1.77), (xp + 0.45, yq, 1.77), 0.05, "wood_dark", width=0.05)
+        add_cube(det, "crest_knob_%d" % k, (sx * (CW / 2 + 0.13), CT + 0.055, zc - 0.01), EYE, (0.11, 0.17, 0.11), "gold")
+    zb = 2.0
+    beam(shell, "crest_brace", (0.0, CT + 0.02, zc - 0.08), (0.0, roof_y(0.0, zb) + 0.02, zb), 0.08, "wood_dark", width=0.08)
+    for k, sx in enumerate((-1, 1)):
+        xp = sx * 0.77
+        ml.banner(shell, "pennant_%d" % k, (xp, EY + 0.56, zc - 0.01), 0.54, 1.24, normal=(0, 0, 1), region="pv_pennant", rod=True,
+                  wave=0.02, rod_region="gold")
     # ---- the tall banner pole at the front left: stone foot, rope wound round it, cross bar, the cross banner
     pa.post(shell, det, "pole", PX, PZ, POLE_TOP, d=0.34, stone_w=0.62, stone_h=0.55, bands=(1.4, 2.6), cap=0.46, stone_region="pv_stone", post_region="pv_post")
-    pa.rope_coil_post(det, "pole_rope", PX, PZ, 3.3, 5.9, d=0.34, turns=5)
     bar_y = POLE_TOP - 0.22
+    # the thick twisted rope hanging from the bar's outer end down past the banner
+    for k in range(13):
+        add_cube(det, "pole_rope_%d" % k, (PX - 0.26, bar_y - 0.1 - k * 0.12, PZ + 0.2), ry(k * 0.75) @ rz(0.3)[:3, :3], (0.12, 0.14, 0.12), "rope")
     beam(shell, "pole_bar", (PX - 0.3, bar_y, PZ + 0.2), (PX + 1.15, bar_y, PZ + 0.2), 0.12, {"all": "wood_dark", "+1": "end_grain", "-1": "end_grain"})
     box(det, "pole_bar_strap", (PX - 0.2, bar_y - 0.1, PZ + 0.02), (PX + 0.2, bar_y + 0.1, PZ + 0.3), "iron", stretch=False)
     beam(det, "pole_bar_brace", (PX + 0.12, bar_y - 0.6, PZ + 0.2), (PX + 0.7, bar_y - 0.03, PZ + 0.2), 0.07, "wood_dark")
@@ -157,12 +176,12 @@ def build(atlas, decor):
     # ---- cream drapes tied back: along the left side, at the two front corners
     pa.drape_tied(shell, det, "drape_left", (-HW - 0.03, by - 0.15, -0.4), (-HW - 0.03, by - 0.15, HD - 0.3), (-HW - 0.05, 1.3, HD - 0.5),
                   (-HW - 0.03, 0.03, HD - 0.75), (-HW - 0.03, 0.03, HD - 0.3), -X, "pv_drape", nx=3)
-    pa.drape_tied(shell, det, "drape_fl", (-HW + 0.24, by - 0.15, HD - 0.08), (-HW + 0.95, by - 0.15, HD - 0.08), (-HW + 0.3, 1.35, HD - 0.12),
-                  (-HW + 0.24, 0.03, HD - 0.12), (-HW + 0.6, 0.03, HD - 0.12), Z, "pv_drape", nx=2)
-    pa.drape_tied(shell, det, "drape_fr", (HW - 0.24, by - 0.15, HD - 0.08), (HW - 1.15, by - 0.15, HD - 0.08), (HW - 0.32, 1.3, HD - 0.12),
-                  (HW - 0.24, 0.03, HD - 0.12), (HW - 0.7, 0.03, HD - 0.12), Z, "pv_drape", nx=3)
+    pa.drape_tied(shell, det, "drape_fl", (-HW + 0.22, by - 0.15, HD - 0.08), (-HW + 1.25, by - 0.15, HD - 0.08), (-HW + 0.32, 1.2, HD - 0.1),
+                  (-HW + 0.22, 0.03, HD - 0.14), (-HW + 0.85, 0.03, HD - 0.14), Z, "pv_drape", nx=3)
+    pa.drape_tied(shell, det, "drape_fr", (HW - 0.22, by - 0.15, HD - 0.08), (HW - 1.5, by - 0.15, HD - 0.08), (HW - 0.34, 1.15, HD - 0.1),
+                  (HW - 0.22, 0.03, HD - 0.14), (HW - 0.95, 0.03, HD - 0.14), Z, "pv_drape", nx=3)
     # ---- the ivy planter off the front-left post
-    pa.ivy_planter(shell, det, "ivy", (-HW + 0.2, 2.75, HD + 0.05), (0.55, 0, 1), w=0.62)
+    pa.ivy_planter(shell, det, "ivy", (-HW + 0.2, 2.65, HD + 0.05), (0.55, 0, 1), w=0.82)
     # ---- lanterns hanging under the front eave
     for k, x in enumerate((-1.25, 1.95)):
         ml.lantern(shell, "lamp_%d" % k, (x, 2.45, HD - 0.12), size=0.42, metal="iron", chain_to=(x, by - 0.12, HD - 0.05))
@@ -209,10 +228,11 @@ def build(atlas, decor):
     tx0, tx1, tz0, tz1 = TABLE
     box(shell, "table_body", (tx0, 0.0, tz0), (tx1, 0.72, tz1), {"all": "crate", "+2": "plank"}, solid=True)
     box(shell, "table_top", (tx0 - 0.04, 0.72, tz0 - 0.04), (tx1 + 0.04, 0.8, tz1 + 0.04), "plank", stretch=False, u_dir=X)
-    for k, (zz, yy, reg, end) in enumerate(((0.2, 0.92, "cloth_blue", "pv_roll_b"), (0.45, 0.92, "pv_wall_r", "pv_roll_r"),
-                                           (0.33, 1.14, "cloth_red", "pv_roll_r"), (0.68, 0.92, "cloth_beige", "pv_roll_c"),
-                                           (0.57, 1.14, "cloth_blue", "pv_roll_b"))):
-        pa.cloth_roll(det, "roll_%d" % k, ((tx0 + tx1) / 2 - 0.15, yy, tz0 + zz), length=1.2, r=0.12, region=reg, end=end)
+    # fat bolts in a pyramid: three below, two above, one on top (their spiral ends towards the entrance side)
+    for k, (zz, yy, reg, end) in enumerate(((0.16, 0.96, "cloth_blue", "pv_roll_b"), (0.46, 0.96, "pv_wall_r", "pv_roll_r"),
+                                           (0.76, 0.96, "cloth_beige", "pv_roll_c"), (0.31, 1.23, "cloth_red", "pv_roll_r"),
+                                           (0.61, 1.23, "cloth_blue", "pv_roll_b"), (0.46, 1.5, "pv_wall_r", "pv_roll_r"))):
+        pa.cloth_roll(det, "roll_%d" % k, ((tx0 + tx1) / 2 - 0.2 + 0.06 * (k % 2), yy, tz0 + zz), length=1.25, r=0.155, region=reg, end=end)
     pa.book_stack(det, "table_books", (tx1 - 0.3, 0.8, tz0 + 0.25), n=5, yaw=-0.2, rng=rng)
     decor.block("furnish:book_pile", tx1 - 0.35, 0.8, tz1 - 0.15, facing="front", solid=False, fallback="leather")
     # the gold chest at the front right

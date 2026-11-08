@@ -3,23 +3,26 @@
 scratchpad/ref2/tente_lion_longue_ref.png, picture 041).
 
 A long blue and cream merchant tent, one block (TentType group "tents"), about 10.5 x 7 blocks (the two side awnings,
-the guy poles and the rug included), the flag at about 8.4:
+the guy poles and the rug included), the flag at about 7 (low roofs over tall walls, as in the picture):
 
-  - in the middle, two raised parts side by side: on the left a tall PAVILION PEAK (a bell-shaped hipped roof in blue /
-    cream gores, twisted ropes down its front hips, a big capped block on the apex carrying the flag pole with the long
-    blue LION PENNANT), on the right the GABLED HALL with the entrance (wide blue / cream stripes down its two slopes, a
-    striped gable end, a gold finial on its right ridge end, ivy spilling over the roof's right end);
-  - the pavilion's valance in alternating blue and cream square tabs edged in gold; the hall's front valance in cream and
-    gold with dark iron crosses and round gold dags;
+  - in the middle, two raised parts side by side: on the left the PAVILION PEAK (a low bell-shaped hipped roof flaring
+    out at the eaves, blue / warm cream gores, twisted ropes down its front hips, a big capped block on the apex carrying
+    the flag pole with the long blue LION PENNANT), on the right the GABLED HALL with the entrance (wide blue / cream
+    stripes down its two low slopes, a striped gable end, a gold finial on its right ridge end, ivy spilling over the
+    roof's right end);
+  - the pavilion's valance in alternating blue and cream square tabs edged in gold; the hall's front: a thick wooden
+    lintel under the roof edge with gold-capped blocks at its ends, below it the cream and gold valance with dark iron
+    crosses and round gold dags;
   - two lower cream AWNINGS on posts, sagging: on the left (gold spike finials on its posts, chains up to the pavilion's
     corner, a leaning prop pole on a stake, ivy at its end) over the potions counter, crates of gold bars and of cloth
     bundles; on the right (gold-capped posts, a prop pole) over a long counter of cloth rolls (red, blue, cream), books,
     gold coins and iron-banded chests;
-  - the hall's entrance: two LION BANNERS hanging from the valance on either side, cream and blue curtains tied back, a
+  - the hall's entrance: two LION BANNERS hanging from behind the valance on either side, cream and blue curtains tied back, a
     big lantern on each side; inside, a writing desk with an open ledger and a scroll (the merchant's counter) and the
     back shelves of sacks, jars, pots and books;
-  - the pavilion front: a dark blue curtain behind the hanging brass SCALES and a lantern, a low counter with a book;
-  - the blue RUG with gold lattice running out of the entrance over a stone threshold.
+  - the pavilion front: the hanging brass SCALES and a lantern, a low counter with a book, a dark navy curtain at the
+    back in the shadow;
+  - the blue RUG with gold scrolls running out of the entrance over a stone threshold.
 
 The merchant's place (an EasyNPC, 1 x 1 x 2.2 free) is behind the writing desk (NPC_SPOT); players walk in by the
 entrance and round the desk's right end. No trade system, nothing ticks.
@@ -51,13 +54,14 @@ NAME = "tente_lion_longue"
 HD = 2.0                      # half depth of the pavilion and the hall (posts at z = +-HD)
 PX0, PX1 = -3.0, -0.4         # the pavilion's posts in x
 PCX = (PX0 + PX1) / 2         # the pavilion's centre
-P_EAVE, P_APEX = 3.5, 5.6
+P_EAVE, P_APEX = 3.35, 4.65     # a low peak flaring out at the eaves (as in the picture)
+P_A, P_PW = 0.25, 2.4
 HX1 = 2.6                     # the hall's right posts (its left posts are the pavilion's right ones)
-H_EAVE, H_RIDGE = 3.4, 4.95
+H_EAVE, H_RIDGE = 3.3, 4.25
 LX = -5.0                     # the left awning's outer posts
 RX = 4.75                     # the right awning's outer posts
 AW_Y_OUT = 2.75               # the awnings' outer edge height
-FLAG_TOP = 7.75
+FLAG_TOP = 6.6
 DESK = (-0.35, 1.0, 0.45, 1.05)   # the writing desk (the merchant's counter): x0, x1, z0, z1
 DESK_H = 1.0
 NPC_SPOT = (-0.4, -0.85)      # (x0, z0) of the free 1 x 1 x 2.2 place behind the desk (the merchant)
@@ -98,15 +102,15 @@ def cross_valance(seed):
 
 def regions(atlas):
     pa.add_regions(atlas, "lg", [
-        ("proof", 128, 96, pa.stripes([BLUE, CREAM], 4, 4101, fold=0.17)),
-        ("rug", 80, 128, pa.rug(4102, scrolls="lattice")),
+        ("proof", 128, 96, pa.stripes([BLUE, pa._mix(CREAM, pa.CREAM_D, 0.3)], 4, 4101, fold=0.17)),
+        ("rug", 80, 128, pa.rug(4102, scrolls=True)),
         ("banner", 40, 88, pa.banner(4103, emblem="lion", bottom="point")),
-        ("hroof", 128, 64, pa.stripes([CREAM, BLUE], 4, 4104, fold=0.15)),
+        ("hroof", 128, 64, pa.stripes([pa._mix(CREAM, pa.CREAM_D, 0.3), BLUE], 4, 4104, fold=0.15)),
         ("flag", 112, 40, pa.lion_flag(4105)),
         ("awning", 96, 64, pa.plain(4106, pa._rgb("e6d0a4"), folds=5, depth=0.12)),
         ("wall", 128, 64, pa.plain(4107, pa.BLUE_D, folds=8, depth=0.2)),
         ("curtain_b", 48, 64, pa.plain(4108, BLUE, folds=4, depth=0.22)),
-        ("curtain_d", 64, 64, pa.plain(4121, pa._scale(pa.BLUE_D, 0.8), folds=6, depth=0.25)),
+        ("curtain_d", 64, 64, pa.plain(4121, pa._scale(pa.BLUE_D, 0.62), folds=6, depth=0.3)),
         ("curtain_c", 48, 64, pa.drape(4109, motif=None)),
         ("pvalance", 192, 24, pa.dag_valance(8, 4110, cloth=BLUE, alt=CREAM, band=0.45)),
         ("hvalance", 256, 32, cross_valance(4111)),
@@ -167,15 +171,15 @@ def build(atlas, decor):
     # ---- the pavilion peak: bell hipped roof, gores, its valance (blue and cream tabs), the apex block and flag pole
     W0, W1, D = PX0 - 0.35, PX1 + 0.35, HD + 0.35
     ey = P_EAVE + 0.02
-    pa.hip_roof(shell, "proof", (PCX, P_APEX, 0), [(W0, ey, D), (W1, ey, D), (W1, ey, -D), (W0, ey, -D)], "lg_proof", nx=4, ny=7, a=0.32,
-                droop=0.1)
+    pa.hip_roof(shell, "proof", (PCX, P_APEX, 0), [(W0, ey, D), (W1, ey, D), (W1, ey, -D), (W0, ey, -D)], "lg_proof", nx=4, ny=12, a=P_A,
+                droop=0.08, pw=P_PW)
     for k, (c0, c1, o) in enumerate((((W0, ey, D + 0.02), (W1, ey, D + 0.02), Z), ((W1 + 0.02, ey, -D), (W1 + 0.02, ey, D), X),
                                      ((W1, ey, -D - 0.02), (W0, ey, -D - 0.02), -Z), ((W0 - 0.02, ey, -D), (W0 - 0.02, ey, D), -X))):
         if k == 1:
             continue   # the hall joins the pavilion on its right
         pa.valance(shell, "pvalance_%d" % k, c0, c1, o, h=0.58, region="lg_pvalance", segs=3, sag=0.05)
     for k, (cx, cz) in enumerate(((W0, D), (W1, D), (W1, -D), (W0, -D))):
-        pts = [v3(PCX + (cx - PCX) * (i / 4), P_APEX - (P_APEX - ey) * pa.bell(i / 4, 0.32) + 0.04, cz * (i / 4)) for i in range(5)]
+        pts = [v3(PCX + (cx - PCX) * (i / 4), P_APEX - (P_APEX - ey) * pa.bell(i / 4, P_A, P_PW) + 0.04, cz * (i / 4)) for i in range(5)]
         for i in range(4):
             beam(det, "phip_%d_%d" % (k, i), pts[i], pts[i + 1], 0.07, "cloth_beige", width=0.11, extend=0.03)
         if k < 2:   # twisted ropes hanging in swags down the two front hips
@@ -211,7 +215,13 @@ def build(atlas, decor):
     box(shell, "hfinial_base2", (HXR - 0.17, H_RIDGE + 0.2, -0.17), (HXR + 0.17, H_RIDGE + 0.34, 0.17), "gold", stretch=False)
     pa.finial_spike(shell, "hfinial", (HXR, H_RIDGE + 0.34, 0), h=0.62, w=0.22)
     # the hall's valances: the cream / gold front one with iron crosses, plain blue-tab ones at the back and the right
-    pa.valance(shell, "hvalance_f", (PX1 + 0.2, hy, HD2 + 0.02), (HXR, hy, HD2 + 0.02), Z, h=0.62, region="lg_hvalance", segs=3, sag=0.04)
+    LT, LB = hy - 0.02, hy - 0.36
+    box(shell, "hlintel", (PX1 - 0.05, LB, HD2 - 0.3), (HXR, LT, HD2 + 0.02), {"all": "beam", "-1": "end_grain", "+1": "end_grain"}, u_dir=X)
+    for k, xb in enumerate((PX1 + 0.12, HXR - 0.2)):
+        box(shell, "hlintel_block_%d" % k, (xb - 0.24, LB - 0.06, HD2 - 0.3), (xb + 0.24, LT + 0.16, HD2 + 0.08), {"all": "wood", "+2": "end_grain"},
+            stretch=False)
+        box(det, "hlintel_cap_%d" % k, (xb - 0.2, LT + 0.16, HD2 - 0.26), (xb + 0.2, LT + 0.26, HD2 + 0.04), "gold", stretch=False)
+    pa.valance(shell, "hvalance_f", (PX1 + 0.36, LB, HD2 + 0.03), (HXR - 0.44, LB, HD2 + 0.03), Z, h=0.58, region="lg_hvalance", segs=3, sag=0.02)
     pa.valance(shell, "hvalance_b", (HXR, hy, -HD2 - 0.02), (PX1 + 0.2, hy, -HD2 - 0.02), -Z, h=0.5, region="lg_pvalance", segs=2, sag=0.04)
     pa.valance(shell, "hvalance_r", (HXR + 0.02, hy, HD2), (HXR + 0.02, hy, -HD2), X, h=0.5, region="lg_pvalance", segs=3, sag=0.04)
     # ivy spilling over the roof's right end
@@ -225,8 +235,8 @@ def build(atlas, decor):
     collide((PX0 - 0.12, 0.0, -HD, PX0, pb - 0.15, HD))
     pa.wall(shell, "wall_right", (HX1 + 0.06, 0, HD), (HX1 + 0.06, 0, -HD), 0.0, hb - 0.15, X, "lg_wall", nx=6)
     collide((HX1, 0.0, -HD, HX1 + 0.12, hb - 0.15, HD))
-    pa.wall(shell, "pcurtain", (PX0 + 0.2, 0, 1.35), (PX1 - 0.2, 0, 1.35), 0.9, pb - 0.12, Z, "lg_curtain_d", nx=6, fold=0.07)
-    collide((PX0, 0.0, 1.29, PX1 - 0.2, pb - 0.12, 1.41))
+    pa.wall(shell, "pcurtain", (PX0 + 0.2, 0, 0.75), (PX1 - 0.2, 0, 0.75), 0.0, pb - 0.12, Z, "lg_curtain_d", nx=6, fold=0.09)
+    collide((PX0, 0.0, 0.69, PX1 - 0.2, pb - 0.12, 0.81))
     # ---- the pavilion front: the hanging scales, a lantern, the low counter with a book
     pa.scales(shell, det, "scales", (PX0 + 0.95, pb - 0.12, HD + 0.02), span=0.62, drop=0.55, pan_drop=0.32)
     ml.lantern(shell, "lamp_p", (PX1 - 0.45, 2.2, HD + 0.08), size=0.34, metal="iron", chain_to=(PX1 - 0.45, pb - 0.12, HD + 0.02))
@@ -283,7 +293,7 @@ def build(atlas, decor):
     decor.block("mebahelcreaturesdwarven:dwemer_chest", HX1 - 0.2, 0.0, 2.75, facing="front", alt="minecraft:chest", fallback="lg_chest")
     # ---- the hall's entrance: lion banners, curtains tied back, lanterns
     for k, x in enumerate((PX1 + 0.35, HX1 - 0.35)):
-        ml.banner(shell, "banner_%d" % k, (x, hy - 0.1, HD2 + 0.1), 0.6, 1.9, normal=(0, 0, 1), region="lg_banner", rod=True, wave=0.03,
+        ml.banner(shell, "banner_%d" % k, (x, LB - 0.3, HD2 - 0.06), 0.62, 1.75, normal=(0, 0, 1), region="lg_banner", rod=True, wave=0.03,
                   rod_region="wood_dark")
     pa.drape_tied(shell, det, "curtain_l", (PX1 + 0.28, hb - 0.12, HD - 0.15), (PX1 + 1.15, hb - 0.12, HD - 0.15), (PX1 + 0.38, 1.2, HD - 0.18),
                   (PX1 + 0.25, 0.03, HD - 0.18), (PX1 + 0.75, 0.03, HD - 0.18), Z, "lg_curtain_c", nx=3)

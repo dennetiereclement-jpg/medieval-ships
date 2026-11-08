@@ -2,7 +2,7 @@
  "blocks": [
   {
    "block": "furnish:dark_oak_crate",
-   "x": -4.05,
+   "x": -4.8,
    "y": 0.0,
    "z": 1.45,
    "yaw": 180.0,
@@ -12,7 +12,7 @@
   },
   {
    "block": "landsoficaria:blue_storage_vase",
-   "x": 3.95,
+   "x": 4.7,
    "y": 0.0,
    "z": 1.05,
    "yaw": 180.0,

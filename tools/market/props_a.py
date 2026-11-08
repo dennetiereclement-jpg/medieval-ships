@@ -779,13 +779,13 @@ def finial_spike(bone, name, foot, h=0.8, w=0.22):
         add_cube(bone, "%s_spike_%d" % (name, k), f + UP * (0.1 + h * y), ry(math.pi / 4), (w * s, h * 0.18, w * s), "gold")
 
 
-def bell(t, a=0.3):
+def bell(t, a=0.3, pw=2.0):
     """The roofs' profile: the fraction of the drop from the apex (t = 0) to the eave (t = 1); steep at the apex, flaring
-    out flat at the eave (a bell)."""
-    return a * t + (1 - a) * (1 - (1 - t) ** 2)
+    out flat at the eave (a bell); a higher pw makes the flare stronger (a more concave roof)."""
+    return a * t + (1 - a) * (1 - (1 - t) ** pw)
 
 
-def hip_roof(bone, name, apex, corners, region, nx=6, ny=6, a=0.3, droop=0.1, th=0.04, regions=None, bulge=0.0):
+def hip_roof(bone, name, apex, corners, region, nx=6, ny=6, a=0.3, droop=0.1, th=0.04, regions=None, bulge=0.0, pw=2.0):
     """A bell-shaped hipped (pyramid) roof: four faces from `apex` down to the eave corners (FL, FR, BR, BL in order),
     the cloth sagging between the hips; each face maps `region` (or regions[k]) across it (vertical stripes in the
     texture become gores converging at the apex). Returns roof_y(x, z) (the cloth height above a point inside)."""
@@ -800,7 +800,7 @@ def hip_roof(bone, name, apex, corners, region, nx=6, ny=6, a=0.3, droop=0.1, th
             mid[1] = 0.0
             e = e + norm(mid) * (bulge * math.sin(math.pi * s))
         p = A * (1 - t) + e * t
-        p[1] = A[1] - (A[1] - ey) * bell(t, a) - droop * math.sin(math.pi * s) * math.sin(math.pi * t)
+        p[1] = A[1] - (A[1] - ey) * bell(t, a, pw) - droop * math.sin(math.pi * s) * math.sin(math.pi * t)
         return p
     for k in range(4):
         c0, c1 = C[k], C[(k + 1) % 4]
@@ -812,7 +812,7 @@ def hip_roof(bone, name, apex, corners, region, nx=6, ny=6, a=0.3, droop=0.1, th
         W, D = abs(C[1][0] - A[0]), abs(C[0][2] - A[2])
         dx, dz = x - A[0], z - A[2]
         t = max(abs(dx) / W, abs(dz) / D)
-        return A[1] - (A[1] - ey) * bell(min(t, 1.0), a)
+        return A[1] - (A[1] - ey) * bell(min(t, 1.0), a, pw)
     return roof_y
 
 

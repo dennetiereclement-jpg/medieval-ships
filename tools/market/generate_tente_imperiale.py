@@ -2,18 +2,19 @@
 """tente_imperiale — Tente marchande impériale / Imperial Merchant Tent (1.26.0, Lion Port market, group A; reference
 scratchpad/ref2/tente_imperiale_ref.png, the top-left tent of the board tentes_065_planche.png).
 
-A tall, rich blue and cream marquee, one block (TentType group "tents"), about 9 x 7.5 blocks (crates, chests and the
-rug included), the back flag at about 8.3:
+A wide, low and rich blue and cream marquee, one block (TentType group "tents"), about 11 x 7.8 blocks (crates,
+chests, the flag and the rug included; the tent itself 7.5 x 5.4), the back flag at about 7:
 
-  - a steep bell-shaped marquee roof (wide cream and blue gores with gold seams) rising to a tall gold finial with a
-    small blue pennant; gold spike finials on the four corner posts above the roof corners; a small gold crown on the
-    front-right hip;
-  - a GOLD VALANCE all round (blue fleurs-de-lis between gold rules, square gold teeth), a worn cream under-valance in
-    rags along the front;
-  - three blue LION BANNERS: a long one hanging down each side near the front, and a shorter one with a gold fringe in
-    front, off the centre; blue curtains drawn back at the entrance;
-  - LANTERNS on iron brackets off the two front posts; a FLAG POLE rising behind the back-right corner from a stepped
-    wooden base, flying the blue and gold swallow-tailed flag with a cross;
+  - a wide bell-shaped marquee roof flaring out at the eaves (cream and blue gores with gold seams, small gold
+    fleurs-de-lis on the blue ones) rising to a pointed centre under a tall gold finial with a small blue pennant; gold
+    spike finials on the four corner posts above the roof corners; a small gold crown on the front-right hip;
+  - a narrow GOLD VALANCE all round (blue fleurs-de-lis between gold rules, square gold teeth), a worn cream
+    under-valance in rags across the middle of the front;
+  - three blue LION BANNERS hanging from the front valance: a long one at each front corner and a shorter one with a
+    gold fringe off the centre over the entrance; blue curtains drawn back at the front corners;
+  - a LANTERN hanging on a chain under the front eave at the left of the entrance and one on an iron bracket off the
+    front-right post; a FLAG POLE rising behind the back-right corner from a stepped wooden base, flying the blue and
+    gold swallow-tailed flag with a cross;
   - inside: two counters (gold candlesticks, a goblet, books, small chests, scrolls, a little gold lion) with the
     merchant's place behind the left one, the back shelves of gold plates, jars and books, blue walls;
   - outside: a stack of crates on the left, the pale stone strongbox with gold clasps and a gold helm on it, the golden
@@ -46,15 +47,16 @@ BLUE, CREAM, GOLD = pa.BLUE, pa.CREAM, pa.GOLD
 
 NAME = "tente_imperiale"
 # ---------------------------------------------------------------- dimensions (tent-local blocks, +z = the open front)
-HW, HD = 3.0, 2.7            # corner posts
-EAVE = 3.5                   # top of the eave beams
-EY = 3.55                    # the roof's lower edge
-AY = 5.85                    # the roof's apex
+HW, HD = 3.75, 2.7           # corner posts (a wide, low marquee, as in the picture)
+EAVE = 3.2                   # top of the eave beams
+EY = 3.25                    # the roof's lower edge
+AY = 4.85                    # the roof's apex
+ROOF_A, ROOF_PW = 0.3, 2.2   # the bell profile: pointed under the finial, flaring out at the eaves
 W, D = HW + 0.3, HD + 0.3
-BULGE = 0.22                 # the eaves bow out between the corners: a rounder marquee
-FLAG_X, FLAG_Z, FLAG_TOP = HW + 0.15, -HD - 0.15, 7.5
-COUNTER_L = (-2.5, -0.6, 0.0, 0.6)    # x0, x1, z0, z1
-COUNTER_R = (0.6, 2.5, 0.0, 0.6)
+BULGE = 0.16                 # the eaves bow out between the corners: a rounder marquee
+FLAG_X, FLAG_Z, FLAG_TOP = HW + 0.15, -HD - 0.15, 6.4
+COUNTER_L = (-3.0, -0.6, 0.0, 0.6)    # x0, x1, z0, z1
+COUNTER_R = (0.6, 3.0, 0.0, 0.6)
 COUNTER_H = 1.0
 NPC_SPOT = (-1.85, -1.25)    # (x0, z0) of the free 1 x 1 x 2.2 place behind the left counter (the merchant)
 
@@ -101,9 +103,26 @@ def stone_chest(seed):
     return p
 
 
+def roof_gores(seed):
+    """The marquee's gores: cream and blue stripes with gold seams, small gold fleurs-de-lis scattered on the blue ones
+    (only on the lower part of the faces, where the gores are wide)."""
+    base = pa.stripes([CREAM, BLUE], 4, seed, seam=GOLD, fold=0.15)
+
+    def p(img):
+        base(img)
+        rng = random.Random(seed + 1)
+        w, h = img.size
+        sw = w // 4
+        for k in (1, 3):
+            for j, y in enumerate((int(h * 0.42), int(h * 0.66), int(h * 0.88) - 8)):
+                x = k * sw + (sw // 2 - 6) + (5 if j % 2 else -5)
+                pa.stamp(img, (x, y, 11, 11), "fdl", rng=rng)
+    return p
+
+
 def regions(atlas):
     pa.add_regions(atlas, "im", [
-        ("roof", 128, 96, pa.stripes([CREAM, BLUE], 4, 6501, seam=GOLD, fold=0.15)),
+        ("roof", 128, 96, roof_gores(6501)),
         ("rug", 96, 128, pa.rug(6502, medallion="lion")),
         ("banner", 40, 112, pa.banner(6503, emblem="lion", bottom="point", box=(0.12, 0.1, 0.88, 0.5))),
         ("banner_c", 40, 72, pa.banner(6504, emblem="lion", bottom="pointfringe", box=(0.12, 0.1, 0.88, 0.6))),
@@ -111,7 +130,7 @@ def regions(atlas):
         ("curtain", 48, 64, pa.plain(6506, BLUE, folds=4, depth=0.24)),
         ("flag", 96, 40, imperial_flag(6507)),
         ("pennant", 48, 16, pa.lion_flag(6508, tail=True)),
-        ("valance", 256, 32, pa.gold_valance(10, 6509)),
+        ("valance", 256, 20, pa.gold_valance(12, 6509)),
         ("rags", 128, 24, pa.torn_valance(6510)),
         ("stone", 32, 32, pa.stone(6511)),
         ("strongbox", 32, 32, stone_chest(6512)),
@@ -166,9 +185,10 @@ def build(atlas, decor):
     beam(shell, "tie_beam", (-HW, by, -0.3), (HW, by, -0.3), 0.2, "wood_dark", extend=0.1)
     beam(shell, "king_post", (0, by, -0.3), (0, AY - 0.2, 0), 0.18, "wood_dark")
     # ---- the steep marquee roof, gold seams, the hip cords, the apex finial and its pennant
-    pa.hip_roof(shell, "roof", (0, AY, 0), [(-W, EY, D), (W, EY, D), (W, EY, -D), (-W, EY, -D)], "im_roof", nx=4, ny=8, a=0.3, droop=0.12, bulge=BULGE)
+    pa.hip_roof(shell, "roof", (0, AY, 0), [(-W, EY, D), (W, EY, D), (W, EY, -D), (-W, EY, -D)], "im_roof", nx=4, ny=14, a=ROOF_A, droop=0.1, bulge=BULGE,
+                pw=ROOF_PW)
     for k, (cx, cz) in enumerate(((-W, D), (W, D), (W, -D), (-W, -D))):
-        pts = [v3(cx * (i / 5), AY - (AY - EY) * pa.bell(i / 5, 0.3) + 0.04, cz * (i / 5)) for i in range(6)]
+        pts = [v3(cx * (i / 5), AY - (AY - EY) * pa.bell(i / 5, ROOF_A, ROOF_PW) + 0.04, cz * (i / 5)) for i in range(6)]
         for i in range(5):
             beam(det, "hip_%d_%d" % (k, i), pts[i], pts[i + 1], 0.07, "gold", width=0.1, extend=0.03)
         if k == 1:   # the small gold crown on the front-right hip
@@ -187,15 +207,15 @@ def build(atlas, decor):
     # ---- the gold valance all round, the cream rags under the front one
     for k, (c0, c1, o) in enumerate((((-W, EY, D + 0.02), (W, EY, D + 0.02), Z), ((W + 0.02, EY, D), (W + 0.02, EY, -D), X),
                                      ((W, EY, -D - 0.02), (-W, EY, -D - 0.02), -Z), ((-W - 0.02, EY, -D), (-W - 0.02, EY, D), -X))):
-        pa.valance(shell, "valance_%d" % k, c0, c1, o, h=0.72, region="im_valance", segs=6, sag=0.03, flare=0.05, bulge=BULGE)
-    pa.valance(shell, "rags", (-HW + 0.3, EY - 0.62, D - 0.12), (HW - 0.3, EY - 0.62, D - 0.12), Z, h=0.5, region="im_rags", segs=4, flare=0.02,
+        pa.valance(shell, "valance_%d" % k, c0, c1, o, h=0.46, region="im_valance", segs=6, sag=0.03, flare=0.05, bulge=BULGE)
+    pa.valance(shell, "rags", (-1.75, EY - 0.4, D - 0.1), (1.35, EY - 0.4, D - 0.1), Z, h=0.42, region="im_rags", segs=3, flare=0.02,
                bulge=BULGE * 0.8)
     # ---- banners: long ones down the two sides near the front, the fringed one in front off the centre
-    xl = -W - 0.12 - BULGE * math.sin(math.pi * (1.3 + D) / (2 * D))
-    ml.banner(shell, "banner_l", (xl, EY - 0.05, 1.3), 1.0, 3.0, normal=(-1, 0, 0), region="im_banner", rod=True, wave=0.04, rod_region="gold")
-    zf = D + 0.12 + BULGE * math.sin(math.pi * (2.2 + W) / (2 * W))
-    ml.banner(shell, "banner_r", (2.2, EY - 0.05, zf), 1.0, 2.9, normal=(0, 0, 1), region="im_banner", rod=True, wave=0.04, rod_region="gold")
-    ml.banner(shell, "banner_c", (0.1, EY - 0.05, D + 0.12 + BULGE * math.sin(math.pi * (0.1 + W) / (2 * W))), 1.05, 1.85, normal=(0, 0, 1),
+    zl = D + 0.12 + BULGE * math.sin(math.pi * (-2.85 + W) / (2 * W))
+    ml.banner(shell, "banner_l", (-2.85, EY - 0.05, zl), 0.95, 2.35, normal=(0, 0, 1), region="im_banner", rod=True, wave=0.04, rod_region="gold")
+    zf = D + 0.12 + BULGE * math.sin(math.pi * (2.75 + W) / (2 * W))
+    ml.banner(shell, "banner_r", (2.75, EY - 0.05, zf), 0.95, 2.3, normal=(0, 0, 1), region="im_banner", rod=True, wave=0.04, rod_region="gold")
+    ml.banner(shell, "banner_c", (0.85, EY - 0.05, D + 0.12 + BULGE * math.sin(math.pi * (0.85 + W) / (2 * W))), 1.0, 1.55, normal=(0, 0, 1),
               region="im_banner_c", rod=True, wave=0.03, rod_region="gold")
     # ---- walls (blue), curtains drawn back at the entrance
     pa.wall(shell, "wall_back", (-HW, 0, -HD - 0.06), (HW, 0, -HD - 0.06), 0.0, by - 0.15, -Z, "im_wall", nx=8)
@@ -209,12 +229,12 @@ def build(atlas, decor):
         collide((x - 0.06, 0.0, -HD, x + 0.06, by - 0.15, 0.9))
         pa.drape_tied(shell, det, "curtain_side_%d" % k, (x, by - 0.12, 0.95), (x, by - 0.12, HD - 0.3), (x - sx * 0.02, 1.4, HD - 0.45),
                       (x, 0.03, HD - 0.75), (x, 0.03, HD - 0.3), v3(sx, 0, 0), "im_curtain", nx=2)
-        xa, xb = sx * (HW - 0.3), sx * (HW - 1.35)
-        pa.drape_tied(shell, det, "curtain_front_%d" % k, (xa, by - 0.15, HD - 0.12), (xb, by - 0.15, HD - 0.12), (sx * (HW - 0.4), 1.3, HD - 0.16),
-                      (sx * (HW - 0.3), 0.03, HD - 0.16), (sx * (HW - 0.95), 0.03, HD - 0.16), Z, "im_curtain", nx=3)
-    # ---- lanterns on iron brackets off the front posts
-    pa.lantern_bracket(det, shell, "lamp_l", (-HW + 0.2, 2.95, HD + 0.1), (1, 0, 0.35), y_drop=0.6, size=0.46, arm=0.55)
-    pa.lantern_bracket(det, shell, "lamp_r", (HW + 0.2, 2.95, HD), (1, 0, 0.1), y_drop=0.6, size=0.46, arm=0.6)
+        xa, xb = sx * (HW - 0.25), sx * (HW - 1.7)
+        pa.drape_tied(shell, det, "curtain_front_%d" % k, (xa, by - 0.15, HD - 0.12), (xb, by - 0.15, HD - 0.12), (sx * (HW - 0.45), 1.25, HD - 0.16),
+                      (sx * (HW - 0.3), 0.03, HD - 0.16), (sx * (HW - 1.15), 0.03, HD - 0.16), Z, "im_curtain", nx=3)
+    # ---- lanterns: one on a chain under the front eave (left of the entrance), one on an iron bracket off the front-right post
+    ml.lantern(shell, "lamp_l", (-1.75, 2.3, HD + 0.06), size=0.46, metal="iron", chain_to=(-1.75, by - 0.12, HD + 0.02))
+    pa.lantern_bracket(det, shell, "lamp_r", (HW + 0.2, 2.75, HD), (1, 0, 0.1), y_drop=0.6, size=0.46, arm=0.6)
     # ---- the flag pole behind the back-right corner, its stepped base
     box(shell, "flag_base", (FLAG_X - 0.3, EY - 0.3, FLAG_Z - 0.3), (FLAG_X + 0.3, EY + 0.25, FLAG_Z + 0.3), {"all": "wood", "+2": "end_grain"}, stretch=False)
     box(shell, "flag_base2", (FLAG_X - 0.22, EY + 0.25, FLAG_Z - 0.22), (FLAG_X + 0.22, EY + 0.45, FLAG_Z + 0.22), "wood_dark", stretch=False)
@@ -224,7 +244,7 @@ def build(atlas, decor):
     box(det, "flag_ring", (FLAG_X - 0.1, FLAG_TOP - 1.0, FLAG_Z - 0.1), (FLAG_X + 0.1, FLAG_TOP - 0.92, FLAG_Z + 0.1), "gold", stretch=False)
 
     def FF(s, t):
-        return v3(FLAG_X + 0.07 + 1.9 * s, FLAG_TOP - 0.1 - 0.85 * t - 0.15 * s + 0.07 * math.sin(s * math.pi * 2.2),
+        return v3(FLAG_X + 0.07 + 1.6 * s, FLAG_TOP - 0.1 - 0.85 * t - 0.15 * s + 0.07 * math.sin(s * math.pi * 2.2),
                   FLAG_Z + 0.2 * math.sin(s * math.pi * 1.3))
     loft(shell, "flag", FF, 5, 1, "im_flag", th=0.025)
     # ---- inside: the two counters and their goods, the back shelves
@@ -264,10 +284,10 @@ def build(atlas, decor):
     # ---- the rug with the golden lion medallion
     ml.rug(shell, "rug", -1.55, 2.25, 1.45, 4.45, y=0.0, region="im_rug")
     # ---- outside left: crates, the stone strongbox with a gold helm, the golden horse, the lance and its guy rope
-    decor.block("furnish:dark_oak_crate", -4.05, 0.0, 1.45, facing="front", alt="minecraft:barrel", fallback="crate")
-    ml.crate(shell, "crate_l_top", (-4.05, 1.0, 1.45), size=0.66, yaw=0.12, solid=True)
-    ml.crate(shell, "crate_l_side", (-4.05, 0.0, 0.45), size=(0.8, 0.62, 0.7), yaw=-0.08, solid=True)
-    ml.crate(det, "crate_l_small", (-4.15, 0.62, 0.45), size=(0.4, 0.3, 0.36), yaw=0.3, solid=False)
+    decor.block("furnish:dark_oak_crate", -4.8, 0.0, 1.45, facing="front", alt="minecraft:barrel", fallback="crate")
+    ml.crate(shell, "crate_l_top", (-4.8, 1.0, 1.45), size=0.66, yaw=0.12, solid=True)
+    ml.crate(shell, "crate_l_side", (-4.8, 0.0, 0.45), size=(0.8, 0.62, 0.7), yaw=-0.08, solid=True)
+    ml.crate(det, "crate_l_small", (-4.9, 0.62, 0.45), size=(0.4, 0.3, 0.36), yaw=0.3, solid=False)
     sb = v3(-2.2, 0.0, 3.25)
     box(shell, "strongbox", (sb[0] - 0.5, 0.0, sb[2] - 0.36), (sb[0] + 0.5, 0.72, sb[2] + 0.36), {"all": "im_strongbox"}, solid=True)
     box(shell, "strongbox_lid", (sb[0] - 0.54, 0.72, sb[2] - 0.4), (sb[0] + 0.54, 0.84, sb[2] + 0.4), {"all": "im_strongbox"})
@@ -285,14 +305,14 @@ def build(atlas, decor):
     for k, (x, z) in enumerate(((-HW - 1.4, HD + 1.0), (HW + 1.3, HD + 0.9))):
         box(det, "peg_%d" % k, (x - 0.06, 0.0, z - 0.06), (x + 0.06, 0.3, z + 0.06), {"all": "wood", "+2": "end_grain"}, stretch=False)
     # ---- outside right: the chest with the gold cross, scrolls and books on it
-    ch = v3(3.95, 0.0, 2.25)
+    ch = v3(4.7, 0.0, 2.25)
     pa.chest(shell, det, "cross_chest", ch, w=0.95, d=0.62, h=0.72, region="im_chest", trim="black_iron")
     pa.plate(det, "cross_chest_emblem", ch + v3(0, 0.38, 0.33), 0.3, 0.3, "im_cross_plate", normal=(0, 0, 1), th=0.01)
     pa.plate(det, "cross_chest_gold", ch + v3(0, 0.38, 0.336), 0.22, 0.22, "gold", normal=(0, 0, 1), th=0.004)
     pa.book_stack(det, "chest_books", ch + v3(-0.2, 0.74, 0), n=3, rng=rng)
     pa.cloth_roll(det, "chest_scroll_0", ch + v3(0.22, 0.8, -0.05), length=0.5, r=0.06, yaw=0.2, region="cloth_beige", end="im_roll_c")
     pa.cloth_roll(det, "chest_scroll_1", ch + v3(0.25, 0.8, 0.12), length=0.5, r=0.06, yaw=-0.1, region="cloth_beige", end="im_roll_c")
-    decor.block("landsoficaria:blue_storage_vase", 3.95, 0.0, 1.05, facing="front", alt="minecraft:decorated_pot", fallback="cloth_blue")
+    decor.block("landsoficaria:blue_storage_vase", 4.7, 0.0, 1.05, facing="front", alt="minecraft:decorated_pot", fallback="cloth_blue")
     return root
 
 
