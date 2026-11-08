@@ -1,0 +1,36 @@
+{
+ "blocks": [
+  {
+   "block": "furnish:spruce_crate",
+   "x": -3.45,
+   "y": 0.0,
+   "z": 2.1,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_0",
+   "alt": "minecraft:barrel"
+  },
+  {
+   "block": "farmhouse_decorations:pile_of_books",
+   "x": -4.15,
+   "y": 1.0,
+   "z": 1.15,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_1"
+  },
+  {
+   "block": "mebahelcreaturesdwarven:dwemer_chest",
+   "x": 2.4,
+   "y": 0.0,
+   "z": 2.75,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_2",
+   "alt": "minecraft:chest"
+  }
+ ],
+ "seats": [],
+ "paintings": [],
+ "switches": []
+}

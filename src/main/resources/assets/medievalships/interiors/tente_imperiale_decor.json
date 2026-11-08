@@ -1,0 +1,27 @@
+{
+ "blocks": [
+  {
+   "block": "furnish:dark_oak_crate",
+   "x": -4.05,
+   "y": 0.0,
+   "z": 1.45,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_0",
+   "alt": "minecraft:barrel"
+  },
+  {
+   "block": "landsoficaria:blue_storage_vase",
+   "x": 3.95,
+   "y": 0.0,
+   "z": 1.05,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_1",
+   "alt": "minecraft:decorated_pot"
+  }
+ ],
+ "seats": [],
+ "paintings": [],
+ "switches": []
+}
