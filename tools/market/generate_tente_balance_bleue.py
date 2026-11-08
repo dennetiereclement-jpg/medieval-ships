@@ -3,7 +3,7 @@
 scratchpad/ref2/tente_balance_bleue_ref.png, picture 130).
 
 A blue and cream money-changer's tent of Lion Port, one block (TentType group "tents"), about 10 blocks wide with its left
-awning, its pegs and the gallows sign, 6.8 deep, the ridge posts at about 6.8:
+awning, its pegs and the gallows sign, 6.8 deep, the ridge posts at about 6.5:
 
   - the main tent: a SHORT RIDGE carried by two tall squared RIDGE POSTS with stepped caps (a rope wrapped round the
     ridge pole), a hipped roof falling steeply from the ridge and flaring out towards the eaves, wide blue and cream
@@ -15,7 +15,7 @@ awning, its pegs and the gallows sign, 6.8 deep, the ridge posts at about 6.8:
     and guy ropes to pegged stakes: crates with sacks, a lantern standing on a crate, hanging herbs;
   - the COUNTER at the front under a blue cloth with gold borders and stars, the hanging pentagon panel with the gold
     scales, books, a scroll, a pot of wheat and an iron-banded chest on it; the merchant's place behind it, a narrow
-    shelf of bottles at the back, two lanterns hanging under the front eave, striped canvas walls;
+    shelf of bottles at the back, two lanterns hanging under the front eave, deep blue canvas walls;
   - in front: a big tied cream sack, a crate of red apples, a planter crate of greens and wheat, the blue RUG with a gold
     key pattern border and a gold diamond medallion.
 
@@ -61,8 +61,15 @@ SHELF = (-0.9, 0.9, -2.25, -1.85)
 
 
 def paint_wall(img):
+    """The canvas walls: deep blue cloth with soft vertical folds and a gold hem (the picture's dark blue sides; the
+    stripes stay on the roof)."""
     rng = random.Random(13001)
-    pb.stripes(img, 6, (NAVY, CREAM), rng, fold=0.18)
+    pb.stripes(img, 6, (pb._scale(NAVY, 0.8), NAVY), rng, fold=0.2)
+    px = img.load()
+    w, h = img.size
+    for y in range(h - 3, h):
+        for x in range(w):
+            px[x, y] = ml._jitter(GOLD if y > h - 3 else pb.GOLD_D, rng, 8) + (255,)
 
 
 def paint_cap(img):
@@ -110,7 +117,7 @@ def regions(atlas):
         ("s_wall", 96, 48, paint_wall),
         ("s_awning", 24 * 6, 48, pb.paint_roof(6, 13010, fold=0.12)),
         ("s_cloth", 96, 24, paint_cloth_front),
-        ("s_val", 224, 24, pb.paint_valance(7, 13011, cols=(CREAM, NAVY), shape="square")),
+        ("s_val", 224, 28, pb.paint_valance(7, 13011, cols=(CREAM, NAVY), shape="pent", band=0.4)),
         ("s_cap", 16, 16, paint_cap),
         "b_post", "b_band", "b_chest", "b_sack", "b_wheat", "b_drape",
     ]
@@ -180,7 +187,7 @@ def build(decor):
     for k in range(4):
         long_side = k in (0, 2)
         P = pb.hip_side(shell, "roof_%d" % k, tops[k][0], tops[k][1], rc[k], rc[(k + 1) % 4], "s_roof" if long_side else "s_roof3",
-                        nx=7 if long_side else 3, ny=5, droop=0.12, a=0.22, edge_sag=0.1, folds=0.04)
+                        nx=7 if long_side else 3, ny=8, droop=0.12, a=0.22, edge_sag=0.1, folds=0.04)
         edges.append(P)
         pb.valance_curve(shell, "valance_%d" % k, lambda s, P=P: P(s, 1.0), outs[k], h=0.44, region="s_val", nx=4 if long_side else 2)
     # the scales banner lying on the front slope from the ridge

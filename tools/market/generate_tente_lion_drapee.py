@@ -3,7 +3,7 @@
 scratchpad/ref2/tente_lion_drapee_ref.png, picture 095).
 
 A square royal-blue and cream merchant tent of Lion Port, one block (TentType group "tents"), about 10 blocks wide with its
-two side awnings, 6.5 deep, the flag at about 8.7:
+two side awnings, 7.3 deep with the step, the flag at about 7.75:
 
   - the main tent: a concave four-sided pointed roof, wide blue and cream stripes radiating from the peak, its eave line
     curving down between the corners, a cream valance with gold-edged pointed dags all round; a tall wooden flag pole
@@ -51,12 +51,12 @@ HW, HD = 2.75, 2.6            # main posts x = +-HW, z = +-HD
 EAVE = 3.45                   # eave beams (their top)
 POST_TOP = 4.1
 RW, RD, RY = 3.12, 2.97, 3.62   # the main roof's eave corners (+-RW, RY, +-RD)
-APEX = 5.2
+APEX = 4.9
 AX = 4.9                     # outer posts of the awnings
 AZ0, AZ1 = -1.2, HD           # awnings from z = AZ0 to AZ1
 AY_IN, AY_OUT = 3.36, 2.92    # awning roof heights at the main post line and at the outer posts
 FLOOR = 0.08
-POLE_TOP = 7.45
+POLE_TOP = 7.2
 COUNTER = (0.0, 2.3, -0.9, -0.3)   # x0, x1, z0, z1
 COUNTER_H = 0.98
 NPC_SPOT = (0.6, -1.98)       # (x0, z0) of the merchant's free 1 x 1 x 2.2 place
@@ -66,8 +66,9 @@ AW_STRIPES = 4
 
 
 def paint_wall(img):
+    # deep blue canvas with soft folds (the picture's dark sides and back; the stripes stay on the roofs)
     rng = random.Random(9501)
-    pb.stripes(img, 6, (NAVY, CREAM), rng, fold=0.18)
+    pb.stripes(img, 6, (pb._scale(NAVY, 0.8), NAVY), rng, fold=0.2)
     px = img.load()
     w, h = img.size
     for y in range(h - 3, h):
@@ -84,8 +85,8 @@ def regions(atlas):
         ("d_awning", 40 * AW_STRIPES, 48, pb.paint_roof(AW_STRIPES, 9505, fold=0.12)),
         ("d_runner", 56, 48, pb.paint_runner("lion", 9506)),
         ("d_flag", 64, 32, pb.paint_flag(9507)),
-        ("d_val", 192, 24, pb.paint_valance(8, 9508, cols=(CREAM, CREAM), shape="dag")),
-        ("d_val_aw", 192, 24, pb.paint_valance(8, 9509, cols=(NAVY, CREAM), shape="dag")),
+        ("d_val", 240, 28, pb.paint_valance(10, 9508, cols=(CREAM, CREAM), shape="pent", band=0.36)),
+        ("d_val_aw", 192, 28, pb.paint_valance(8, 9509, cols=(NAVY, CREAM), shape="pent", band=0.36)),
         "b_post", "b_stone", "b_band", "b_chest", "b_cheese", "b_sack", "b_roll_red", "b_drape",
     ]
     pb.add_regions(atlas, own, m1=["flowers_purple", "pot_clay", "soil", "sprout", "potion_green", "potion_cyan", "potion_orange",
@@ -104,16 +105,16 @@ def build(decor):
     n = 12
     for k in range(n):
         x0 = -2.95 + 5.9 * k / n
-        zf = 3.3 - 0.18 * ((k * 7) % 3)
-        box(shell, "floor_%d" % k, (x0 + 0.01, 0.0, -2.85), (x0 + 5.9 / n - 0.01, FLOOR, zf), {"all": "plank", "+2": "plank"}, u_dir=Z)
-    box(shell, "floor_edge", (-2.98, 0.0, 2.9), (2.98, FLOOR + 0.08, 3.08), {"all": "plank_dark"}, u_dir=X)
-    box(shell, "floor_step", (-2.3, 0.0, 3.08), (2.1, FLOOR, 3.42), {"all": "plank"}, u_dir=X)
-    ml.rug(shell, "rug", -0.8, 1.2, -0.15, 3.15, y=FLOOR, region="d_rug")
+        box(shell, "floor_%d" % k, (x0 + 0.01, 0.0, -2.85), (x0 + 5.9 / n - 0.01, FLOOR, 3.02), {"all": "plank", "+2": "plank"}, u_dir=Z)
+    # the deck's front: a nosing board over the plank ends, a low step board in front of the entrance
+    box(shell, "floor_edge", (-2.98, 0.0, 3.02), (2.98, FLOOR + 0.05, 3.2), {"all": "plank_dark", "+2": "plank"}, u_dir=X)
+    box(shell, "floor_step", (-1.6, 0.0, 3.2), (1.9, 0.05, 3.5), {"all": "plank", "+2": "plank"}, u_dir=X)
+    ml.rug(shell, "rug", -0.8, 1.2, -0.15, 2.98, y=FLOOR, region="d_rug")
 
     # ---- posts: main four on stone feet, awning outer posts with cross-bar caps
     corners = [(-HW, HD), (HW, HD), (HW, -HD), (-HW, -HD)]
     for k, (x, z) in enumerate(corners):
-        pb.sq_post(shell, det, "post_%d" % k, x, z, POST_TOP, d=0.44, stone=0.62, stone_w=0.66, bands=(1.55, 3.0), cap="block",
+        pb.sq_post(shell, det, "post_%d" % k, x, z, POST_TOP, d=0.5, stone=0.62, stone_w=0.7, bands=(1.55, 3.0), cap="block",
                    collide_to=EAVE)
     for k, (x, z) in enumerate(((-AX, AZ1), (-AX, AZ0), (AX, AZ1), (AX, AZ0))):
         pb.sq_post(shell, det, "apost_%d" % k, x, z, AY_OUT + 0.18, d=0.36, stone=0.55, stone_w=0.56, bands=(2.0,), cap="cross",
@@ -141,10 +142,10 @@ def build(decor):
     outs = [Z, X, -Z, -X]
     edges = []
     for k in range(4):
-        P = pb.hip_side(shell, "roof_%d" % k, apex, apex, rc[k], rc[(k + 1) % 4], "d_roof", nx=STRIPES, ny=5, droop=0.1, a=0.5,
+        P = pb.hip_side(shell, "roof_%d" % k, apex, apex, rc[k], rc[(k + 1) % 4], "d_roof", nx=STRIPES, ny=8, droop=0.1, a=0.5,
                         edge_sag=0.14, folds=0.04)
         edges.append(P)
-        pb.valance_curve(shell, "valance_%d" % k, lambda s, P=P: P(s, 1.0), outs[k], h=0.46, region="d_val", nx=4)
+        pb.valance_curve(shell, "valance_%d" % k, lambda s, P=P: P(s, 1.0), outs[k], h=0.58, region="d_val", nx=4)
     # the canvas gathered round the pole: a rope collar and a wooden block
     box(shell, "peak_cloth", (-0.26, APEX - 0.25, -0.26), (0.26, APEX + 0.08, 0.26), "cloth_beige", stretch=True)
     box(det, "peak_rope", (-0.3, APEX - 0.05, -0.3), (0.3, APEX + 0.1, 0.3), "rope")
@@ -309,13 +310,14 @@ def build(decor):
     collide((-4.3, 0.0, 2.75, -3.7, 0.56, 3.35))
 
     # ---- the right awning: crates of apples, greens and cheese, a barrel with a plant
-    ml.crate(shell, "r_crate_0", (3.3, 0.0, 0.0), size=0.8, yaw=0.05, solid=True)
-    pb.produce_crate(shell, "r_apples", (3.3, 0.8, 0.0), size=(0.7, 0.32, 0.55), content="apples", solid=True)
-    decor.block("farmersdelight:cabbage_crate", 4.1, 0.0, 0.05, facing="front", scale=0.8, fallback="produce")
-    ml.crate(shell, "r_crate_1", (3.45, 0.0, 1.45), size=0.72, yaw=-0.08, solid=True)
-    pb.cheese_pile(det, "r_cheese", (3.45, 0.72, 1.45), n=3)
-    decor.block("furnish:spruce_crate", 4.2, 0.0, 1.55, facing="front", scale=0.7, alt="minecraft:barrel", fallback="crate")
-    pb.produce_crate(shell, "r_greens", (4.2, 0.7, 1.55), size=(0.6, 0.26, 0.5), content="produce", solid=True)
+    # (as in the picture: the produce crates stacked at the awning's front, apples high, greens behind, cheese in front)
+    ml.crate(shell, "r_crate_0", (3.4, 0.0, 1.05), size=0.8, yaw=0.05, solid=True)
+    pb.produce_crate(shell, "r_apples", (3.4, 0.8, 1.05), size=(0.72, 0.32, 0.58), content="apples", solid=True)
+    decor.block("farmersdelight:cabbage_crate", 3.5, 0.0, -0.15, facing="front", scale=0.8, fallback="produce")
+    ml.crate(shell, "r_crate_1", (3.55, 0.0, 2.3), size=0.66, yaw=-0.08, solid=True)
+    pb.cheese_pile(det, "r_cheese", (3.55, 0.66, 2.3), n=3)
+    decor.block("furnish:spruce_crate", 4.3, 0.0, 1.25, facing="front", scale=0.8, alt="minecraft:barrel", fallback="crate")
+    pb.produce_crate(shell, "r_greens", (4.3, 0.8, 1.25), size=(0.66, 0.28, 0.55), content="produce", solid=True)
     ml.barrel(shell, "r_barrel", (3.05, 0.0, 3.05), r=0.32, h=0.8)
     p1.pot(det, "r_barrel_pot", (3.05, 0.8, 3.05), r=0.11, h=0.15, plant="sprout", ph=0.4, pw=0.42)
     return root

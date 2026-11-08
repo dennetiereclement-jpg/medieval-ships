@@ -11,6 +11,7 @@ sign). Every function takes tent-local coordinates (blocks, y up, +z = the open 
 Each generator calls add_regions(atlas, names) with the regions it uses (REGIONS below, plus the props_m1 regions
 listed in M1_REGIONS for flowers, herbs, potions and books), before building.
 """
+import bisect
 import math
 import os
 import random
@@ -358,6 +359,14 @@ def paint_valance(n, seed, cols=(CREAM, NAVY), shape="dag", band=0.4, tabs_per=1
                 elif shape == "square":
                     inside = y <= bh or 0.1 <= lx <= 0.9
                     edge = inside and y > bh and (lx < 0.1 + 1.6 / tab or lx > 0.9 - 1.6 / tab or y >= h - 2)
+                elif shape == "pent":
+                    # the pictures' dags: a square tab ending in a short stepped point, gold edged, narrow gaps between
+                    yp = bh + int((h - bh) * 0.5)
+                    t = (y - yp) / max(1, h - yp)
+                    half = 0.44 if y <= yp else 0.44 * (1 - 0.8 * t)
+                    half = math.floor(half * tab / 2) * 2 / tab + 0.5 / tab
+                    inside = y <= bh or abs(lx - 0.5) <= half
+                    edge = inside and y > bh and (abs(lx - 0.5) > half - 2.2 / tab or y >= h - 1)
                 else:   # crenel: blue band, a thick gold square-wave line, blue merlons hanging below with gold edges
                     inside = y <= bh or 0.2 <= lx <= 0.8
                     edge = False
@@ -510,9 +519,10 @@ def paint_rug(seed=30, emblem="lion", field=NAVY, faded=0.18):
     return p
 
 
-def paint_curtain(base=CREAM, seed=40, folds=4, hem=True, motif=False, edge=None, edge_w=4, motif_size=3):
+def paint_curtain(base=CREAM, seed=40, folds=4, hem=True, motif=False, edge=None, edge_w=4, motif_size=3, band=False):
     """A curtain: vertical folds (darker valleys), optional gold diamond motifs (the chapiteau's blue curtains), a gold
-    hem at the bottom, optional coloured band along the outer edge."""
+    hem at the bottom, optional coloured band along the outer edge; band: one gold-edged vertical band of gold diamonds
+    down the middle (the picture's curtains) instead of the scattered motifs."""
     def p(img):
         rng = random.Random(seed)
         w, h = img.size
@@ -524,6 +534,18 @@ def paint_curtain(base=CREAM, seed=40, folds=4, hem=True, motif=False, edge=None
                 f = (x * folds / w) % 1.0
                 k = 0.8 + 0.26 * math.sin(math.pi * f) ** 0.8
                 px[x, y] = _scale((r, g, b), k) + (255,)
+        if band:
+            c0 = w // 2
+            hb = max(4, w // 10)
+            for y in range(h - 3):
+                for x in (c0 - hb, c0 + hb):
+                    if 0 <= x < w:
+                        px[x, y] = _jitter(GOLD, rng, 8) + (255,)
+            for cy in range(7, h - 8, 11):
+                for j in range(-3, 4):
+                    for i in range(-hb + 2, hb - 1):
+                        if abs(i) * 1.4 + abs(j) <= 3.2:
+                            px[c0 + i, cy + j] = _jitter(GOLD if abs(i) + abs(j) < 3 else GOLD_D, rng, 8) + (255,)
         if motif:
             for cy in range(6, h - 6, 12):
                 for cx in range(int(w / folds / 2), w, int(w / folds)):
@@ -692,6 +714,7 @@ REGIONS = {
     "b_globe": (8, 8, paint_globe),
     "b_drape": (32, 64, paint_curtain(CREAM, 41, folds=3, edge=NAVY, edge_w=5)),
     "b_curtain_blue": (48, 64, paint_curtain(NAVY, 42, folds=4, motif=True, motif_size=2)),
+    "b_curtain_band": (48, 64, paint_curtain(NAVY, 43, folds=4, band=True)),
 }
 M1_REGIONS = ["flowers_purple", "pot_clay", "soil", "sprout", "herbs", "vines", "leaves", "glass", "cork", "pages", "book_top",
               "book_red", "book_blue", "book_green", "book_brown", "book_purple", "parchment", "jar", "jar_top", "linen",
@@ -737,23 +760,47 @@ def dome(t, a=0.5):
     return a * t + (1 - a) * t * t
 
 
-def ring_roof(bone, name, top, bottom, region, nx=24, ny=4, a=0.42, droop=0.08, phase=0.0, th=0.04, fold=0.04, profile="concave"):
+def ring_roof(bone, name, top, bottom, region, nx=24, ny=4, a=0.42, droop=0.08, phase=0.0, th=0.04, fold=0.04, profile="concave", fan=True, cover=0.0,
+              n=4.0, radial=False):
     """A rounded marquee roof from the ring top = (y, hx, hz) (or a point when hx = hz = 0) down to the ring
     bottom = (y, hx, hz): concave (steep above, flatter below), the cloth sagging a little between the nx strips; the
     region wraps once round it (stripes). Returns P(s, t)."""
     yt, hxt, hzt = top
     yb, hxb, hzb = bottom
 
+    def arc(hx, hz, N=720):
+        """s -> the squircle point at the fraction s of its length from `phase` (strips evenly spaced along the ring,
+        the stripes keep one width round a long marquee and the top and bottom rings stay matched, no twist)."""
+        ths = [phase + 2 * math.pi * k / N for k in range(N + 1)]
+        pts = [squircle(a_, hx, hz, n) for a_ in ths]
+        cum = [0.0]
+        for k in range(N):
+            cum.append(cum[-1] + math.hypot(pts[k + 1][0] - pts[k][0], pts[k + 1][1] - pts[k][1]))
+
+        def at(s):
+            L = (s % 1.0) * cum[-1]
+            i = min(max(bisect.bisect_left(cum, L), 1), N)
+            f = (L - cum[i - 1]) / max(1e-9, cum[i] - cum[i - 1])
+            return squircle(ths[i - 1] + (ths[i] - ths[i - 1]) * f, hx, hz, n)
+        return at
+    bot_at = arc(hxb, hzb)
+    top_at = arc(hxt, hzt) if hxt > 0 else (lambda s: (0.0, 0.0))
+    if radial and hxt > 0:
+        # the top ring a scaled copy of the bottom one: every strip runs straight towards the centre (no twist)
+        top_at = (lambda s, k=hxt / hxb: tuple(c * k for c in bot_at(s)))
+
     def P(s, t):
-        th_ = phase + 2 * math.pi * s
-        xt, zt = squircle(th_, hxt, hzt) if hxt > 0 else (0.0, 0.0)
-        xb, zb = squircle(th_, hxb, hzb)
+        xt, zt = top_at(s)
+        xb, zb = bot_at(s)
         y = yt - (yt - yb) * (concave(t, a) if profile == "concave" else dome(t, a))
         f = (s * nx) % 1.0
         sag = droop * math.sin(math.pi * t) + fold * math.sin(math.pi * f) * t
         k = 1.0 - sag / max(0.5, math.hypot(xb, zb))
         return v3((xt + (xb - xt) * t) * k, y - 0.5 * sag, (zt + (zb - zt) * t) * k)
-    loft(bone, name, lambda s, t: P(1.0 - s, t), nx, ny, region, th=th, overlap=0.03)
+    if fan:
+        fan_loft(bone, name, lambda s, t: P(1.0 - s, t), nx, ny, region, th=th, overlap=0.04, center=(0.0, yb - 1.0, 0.0), cover=cover)
+    else:
+        loft(bone, name, lambda s, t: P(1.0 - s, t), nx, ny, region, th=th, overlap=0.03)
     return P
 
 
@@ -798,7 +845,46 @@ def concave(t, a=0.42):
     return a * t + (1 - a) * (1 - (1 - t) ** 2)
 
 
-def hip_side(bone, name, apex0, apex1, c0, c1, region, nx=6, ny=5, droop=0.1, a=0.42, edge_sag=0.0, th=0.04, folds=0.0):
+def fan_loft(bone, name, P, nx, ny, region, th=0.04, overlap=0.03, lift=0.012, center=None, cover=1.0):
+    """ml.loft for cloth that widens or narrows down the surface (pyramid sides, round marquees): each strip follows the
+    line through the middles of its top and bottom edges, so the radial stripes stay straight and the hips stay clean
+    (ml.loft's strips, squared on the mean edge, stick out in saw teeth there); with cover = 1 it covers the wider of its
+    two ends and the four corners (no gap; cover = 0: the mean width, as ml.loft), and every other column sits `lift`
+    further out (away from `center`) so the overlap of two neighbours never flickers."""
+    for i in range(nx):
+        for j in range(ny):
+            s0, s1, t0, t1 = i / nx, (i + 1) / nx, j / ny, (j + 1) / ny
+            a1, b1, a0, b0 = P(s0, t0), P(s1, t0), P(s0, t1), P(s1, t1)   # a = left, b = right, 1 = top, 0 = bottom
+            vp = (a0 + b0) / 2 - (a1 + b1) / 2
+            H = np.linalg.norm(vp)
+            if H < 1e-5:
+                continue
+            v = vp / H
+            uw = ((b0 - a0) + (b1 - a1)) / 2
+            u = uw - np.dot(uw, v) * v
+            if np.linalg.norm(u) < 1e-6:
+                continue
+            u = norm(u)
+            n = np.cross(u, v)
+            corners = (a0, a1, b0, b1)
+            pu = [np.dot(p, u) for p in corners]
+            pv = [np.dot(p, v) for p in corners]
+            pn = [np.dot(p, n) for p in corners]
+            mid_u = np.dot((a0 + a1 + b0 + b1) / 4, u)
+            w_mean = (abs(np.dot(b1 - a1, u)) + abs(np.dot(b0 - a0, u))) / 2
+            w = w_mean + cover * (max(pu) - min(pu) - w_mean)
+            mid_u += cover * ((max(pu) + min(pu)) / 2 - mid_u)
+            c = u * mid_u + v * (max(pv) + min(pv)) / 2 + n * (sum(pn) / 4)
+            if center is not None and lift and i % 2 == 1:
+                out = n if np.dot(n, c - v3(*center)) > 0 else -n
+                c = c + out * lift
+            regions = {"all": None, "+3": region, "-3": region}
+            cube = add_cube(bone, "%s_%d_%d" % (name, i, j), c, np.column_stack([u, v, n]),
+                            (w + overlap, max(pv) - min(pv) + overlap, th), regions, stretch=True, u_dir=u, v_dir=v)
+            ml.tl.gn.set_sub(cube, (s0, t0, s1, t1))
+
+
+def hip_side(bone, name, apex0, apex1, c0, c1, region, nx=6, ny=5, droop=0.1, a=0.42, edge_sag=0.0, th=0.04, folds=0.0, fan=True):
     """One concave side of a hipped roof from the ridge segment apex0-apex1 (a point for a pyramid) down to the eave
     corners c0-c1: steep at the top, flatter below, the cloth drooping between the corners; edge_sag lowers the middle
     of the eave line (a soft curved edge, corners higher); folds = depth of a soft fold in each of the nx strips.
@@ -815,7 +901,10 @@ def hip_side(bone, name, apex0, apex1, c0, c1, region, nx=6, ny=5, droop=0.1, a=
             y -= folds * math.sin(math.pi * ((s * nx) % 1.0)) * math.sin(math.pi * min(1.0, t * 1.2)) * 0.5
         p[1] = y
         return p
-    loft(bone, name, P, nx, ny, region, th=th, overlap=0.03)
+    if fan:
+        fan_loft(bone, name, P, nx, ny, region, th=th, overlap=0.03, center=(apex0 + apex1) / 2 - UP * 3.0)
+    else:
+        loft(bone, name, P, nx, ny, region, th=th, overlap=0.03)
     return P
 
 
@@ -845,18 +934,22 @@ def drape(bone, det, name, top_a, top_b, tie, bot_a, bot_b, normal, region="b_dr
     top_a, top_b, tie, bot_a, bot_b, n = (v3(*p) for p in (top_a, top_b, tie, bot_a, bot_b, normal))
     side = norm(top_b - top_a)
 
+    def fold(s):
+        # accordion folds: the cloth's vertical creases alternately in and out
+        return 1.0 if int(round(s * nx)) % 2 else -1.0
+
     def U(s, t):
         tt = t ** 0.85
         a = top_a + (top_b - top_a) * s
         b = tie + side * ((s - 0.5) * 0.18)
-        return a * (1 - tt) + b * tt + n * (0.08 * math.sin(s * math.pi * 3) * (1 - t) + 0.06 * math.sin(math.pi * t))
+        return a * (1 - tt) + b * tt + n * (0.07 * fold(s) * (1 - t) ** 0.7 + 0.06 * math.sin(math.pi * t))
 
     def Lw(s, t):
         a = tie + side * ((s - 0.5) * 0.18)
         b = bot_a + (bot_b - bot_a) * s
-        return a * (1 - t) + b * t + n * (0.06 * math.sin(s * math.pi * 3 + 0.5) * t)
-    loft(bone, name + "_up", U, nx, 3, region, th=0.03)
-    loft(bone, name + "_lo", Lw, nx, 1, region, th=0.03)
+        return a * (1 - t) + b * t + n * (0.08 * fold(s) * t ** 0.8 + 0.05 * math.sin(math.pi * t))
+    fan_loft(bone, name + "_up", U, nx, 3, region, th=0.03, overlap=0.02)
+    fan_loft(bone, name + "_lo", Lw, nx, 2, region, th=0.03, overlap=0.02)
     add_cube(det, name + "_tie", tie, np.column_stack([side, UP, np.cross(side, UP)]), (0.3, 0.1, 0.2), tie_region)
 
 

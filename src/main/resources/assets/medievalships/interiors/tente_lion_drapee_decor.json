@@ -30,20 +30,20 @@
   },
   {
    "block": "farmersdelight:cabbage_crate",
-   "x": 4.1,
+   "x": 3.5,
    "y": 0.0,
-   "z": 0.05,
+   "z": -0.15,
    "yaw": 180.0,
    "scale": 0.8,
    "fallback": "fallback_3"
   },
   {
    "block": "furnish:spruce_crate",
-   "x": 4.2,
+   "x": 4.3,
    "y": 0.0,
-   "z": 1.55,
+   "z": 1.25,
    "yaw": 180.0,
-   "scale": 0.7,
+   "scale": 0.8,
    "fallback": "fallback_4",
    "alt": "minecraft:barrel"
   }

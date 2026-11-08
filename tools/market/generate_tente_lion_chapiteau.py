@@ -7,13 +7,13 @@ and the banner arm, 6.8 deep, the gold finial at about 6.9:
 
   - ONE elongated rounded marquee (a squircle plan, 8.4 x 5.4 at the eaves): the roof curves up from the eave to a
     raised oval crown centred over the whole length, a blue and gold crenellated band round the crown, a short rounded
-    cap and a stacked GOLD FINIAL; wide blue and cream stripes edged with thin gold seams, a cream hem above the valance;
+    cap and a stacked GOLD FINIAL; twenty blue and cream stripes edged with thin gold seams, a thin cream hem above the valance;
     a blue LION PANEL with a gold border and a pointed bottom lies on the front of the roof; the front valance over the
     shop opening is a blue band with GOLD CRENELS, the rest of the eave a blue / cream valance with gold-edged dags;
   - dark wooden posts with gold bands, gold finials on the corner posts poking through the roof; the post between the
-    curtained left part and the shop opening has a capped top; the front-right corner post rises as the tall BANNER POST
+    curtained left part and the shop opening has a gold finial too; the front-right corner post rises as the tall BANNER POST
     with a cross-arm and a brace, carrying a big blue LION BANNER with a gold tassel;
-  - the left part of the front is closed by BLUE CURTAINS sprinkled with gold diamonds (and the left end, all round to
+  - the left part of the front is closed by BLUE CURTAINS with a gold-edged band of gold diamonds (and the left end, all round to
     the back), then open on a shelf of jars with hanging herbs; the shop opening on the right: three glowing lanterns
     under the crenellated valance, a gold rope swag;
   - inside: dark plank back wall with a blue curtain gathered by a gold tie in the middle, a shelf of jars, bottles and
@@ -50,9 +50,9 @@ NAVY, CREAM, GOLD = pb.NAVY, pb.CREAM, pb.GOLD
 CX, CZ = 3.5, 2.2             # corner posts at (+-CX, +-CZ) (the front-right one is the banner post)
 BX = -1.2                     # the boundary post between the curtained left part and the shop opening (front)
 EAVE_Y, EHX, EHZ, EN = 3.55, 4.15, 2.72, 5.0     # the eave ring (squircle exponent EN)
-CROWN_Y, CHX, CHZ = 5.75, 1.05, 0.56             # the oval crown ring (top of the roof)
+CROWN_Y, CHX, CHZ = 5.3, 1.1, 1.1 * 2.72 / 4.15             # the oval crown ring (top of the roof)
 DRUM_H = 0.26
-APEX = 6.35
+APEX = 5.85
 BEAM_Y = 3.35
 COUNTER = (-0.25, 2.65, 0.95, 1.55)
 COUNTER_H = 1.05
@@ -94,7 +94,7 @@ def paint_planks(img):
 
 def regions(atlas):
     own = [
-        ("c_roof", 16 * 14, 80, pb.paint_roof(14, 10903, seam=GOLD, hem=11, hem_col=CREAM, fold=0.14)),
+        ("c_roof", 16 * 20, 80, pb.paint_roof(20, 10903, seam=GOLD, hem=6, hem_col=CREAM, fold=0.14)),
         ("c_rug", 128, 96, pb.paint_rug(10904, "lion", faded=0.4)),
         ("c_banner", 40, 96, pb.paint_banner("lion", 10905, start=0.8, tassel=True)),
         ("c_panel", 48, 64, pb.paint_banner("lion", 10906, start=0.66, stepped=True)),
@@ -105,7 +105,7 @@ def regions(atlas):
         ("c_val", 160, 28, pb.paint_valance(8, 10911, shape="crenel", band=0.55)),
         ("c_val_dag", 192, 24, pb.paint_valance(8, 10912, cols=(NAVY, CREAM), shape="dag")),
         ("c_drum", 96, 12, paint_drum),
-        "b_post_dark", "b_band", "b_chest", "b_globe", "b_sack", "b_curtain_blue",
+        "b_post_dark", "b_band", "b_chest", "b_globe", "b_sack", "b_curtain_blue", "b_curtain_band",
     ]
     pb.add_regions(atlas, own, m1=["herbs", "flowers_purple", "soil", "potion_pink", "potion_purple", "potion_cyan", "potion_green",
                                    "glass", "cork", "jar", "jar_top", "linen", "book_green", "book_red", "book_brown", "book_top", "parchment"])
@@ -127,7 +127,7 @@ def build(decor):
     for k, (x, z) in enumerate(((-CX, CZ), (CX, -CZ), (-CX, -CZ))):
         pb.sq_post(shell, det, "post_%d" % k, x, z, 4.25, d=0.42, bands=(1.2, 3.15), cap="gold", region="b_post_dark", band_region="gold",
                    collide_to=BEAM_Y)
-    pb.sq_post(shell, det, "post_mid", BX, CZ + 0.1, 4.15, d=0.44, bands=(1.2, 3.15, 3.9), cap="block", region="b_post_dark",
+    pb.sq_post(shell, det, "post_mid", BX, CZ + 0.1, 4.15, d=0.44, bands=(1.2, 3.15, 3.9), cap="gold", region="b_post_dark",
                cap_region="wood_dark", band_region="gold", collide_to=BEAM_Y)
     x, z = CX, CZ
     pb.sq_post(shell, det, "banner_post", x, z, BANNER_TOP, d=0.46, bands=(1.2, 3.1, 4.6), cap="block", region="b_post_dark",
@@ -148,15 +148,15 @@ def build(decor):
              width=0.24, extend=0.14)
 
     # ---- the roof: one long rounded tier up to the oval crown, the crown band, the cap, the finial
-    pb.ring_roof(shell, "roof", (CROWN_Y, CHX, CHZ), (EAVE_Y, EHX, EHZ), "c_roof", nx=28, ny=4, a=0.7, droop=0.06, phase=math.pi / 2 + math.pi / 14,
-                 fold=0.035, profile="dome")
+    pb.ring_roof(shell, "roof", (CROWN_Y, CHX, CHZ), (EAVE_Y, EHX, EHZ), "c_roof", nx=40, ny=6, a=0.8, droop=0.06, phase=math.pi / 2 + math.pi / 14,
+                 fold=0.035, profile="concave", n=EN, radial=True)
 
     def D(s, t):
-        xx, zz = pb.squircle(2 * math.pi * (1 - s) + math.pi / 2, CHX, CHZ)
+        xx, zz = pb.squircle(2 * math.pi * (1 - s) + math.pi / 2, CHX, CHZ, EN)
         return v3(xx, CROWN_Y + DRUM_H * (1 - t) - 0.02, zz)
     loft(shell, "drum", D, 14, 1, "c_drum", th=0.04)
     pb.ring_roof(shell, "roof_top", (APEX, 0.35, 0.05), (CROWN_Y + DRUM_H, CHX + 0.05, CHZ + 0.05), "c_roof_top", nx=12, ny=2, a=0.4,
-                 droop=0.0, phase=math.pi / 2 + math.pi / 8, fold=0.02, profile="dome")
+                 droop=0.0, phase=math.pi / 2 + math.pi / 8, fold=0.02, profile="dome", n=EN)
     box(shell, "finial_collar", (-0.22, APEX - 0.08, -0.2), (0.22, APEX + 0.1, 0.2), "gold")
     box(shell, "finial_cube", (-0.17, APEX + 0.1, -0.17), (0.17, APEX + 0.44, 0.17), {"all": "gold", "+2": "gold"})
     box(det, "finial_small", (-0.11, APEX + 0.44, -0.11), (0.11, APEX + 0.66, 0.11), "gold")
@@ -166,7 +166,7 @@ def build(decor):
     def roofpt(x, t):
         xt, zt = pb.squircle(math.pi / 2, CHX, CHZ)
         xb, zb = pb.squircle(math.pi / 2, EHX, EHZ)
-        y = CROWN_Y - (CROWN_Y - EAVE_Y) * pb.dome(t, 0.7) - 0.5 * 0.06 * math.sin(math.pi * t)
+        y = CROWN_Y - (CROWN_Y - EAVE_Y) * pb.concave(t, 0.8) - 0.5 * 0.06 * math.sin(math.pi * t)
         return v3(x, y, zt + (zb - zt) * t - 0.06 * math.sin(math.pi * t))
 
     def PANEL(s, t):
@@ -197,11 +197,11 @@ def build(decor):
     collide((-CX, 0.0, -CZ - 0.08, CX, BEAM_Y - 0.1, -CZ + 0.02))
     pb.drape(shell, det, "back_drape", (0.6, BEAM_Y - 0.14, -CZ + 0.12), (1.8, BEAM_Y - 0.14, -CZ + 0.12), (1.2, 1.55, -CZ + 0.18),
              (0.85, 0.02, -CZ + 0.12), (1.55, 0.02, -CZ + 0.12), Z, region="b_curtain_blue", nx=3, tie_region="gold")
-    pb.wall(shell, "right_wall", (CX + 0.05, 0, CZ - 0.3), (CX + 0.05, 0, -CZ), 0.0, BEAM_Y - 0.1, X, "b_curtain_blue", nx=5)
+    pb.wall(shell, "right_wall", (CX + 0.05, 0, CZ - 0.3), (CX + 0.05, 0, -CZ), 0.0, BEAM_Y - 0.1, X, "b_curtain_band", nx=5)
     collide((CX, 0.0, -CZ, CX + 0.1, BEAM_Y - 0.1, CZ - 0.3))
-    pb.wall(shell, "left_wall", (-CX - 0.05, 0, -CZ), (-CX - 0.05, 0, CZ), 0.0, BEAM_Y - 0.1, -X, "b_curtain_blue", nx=5)
+    pb.wall(shell, "left_wall", (-CX - 0.05, 0, -CZ), (-CX - 0.05, 0, CZ), 0.0, BEAM_Y - 0.1, -X, "b_curtain_band", nx=5)
     collide((-CX - 0.1, 0.0, -CZ, -CX, BEAM_Y - 0.1, CZ))
-    pb.wall(shell, "front_curtain", (-CX + 0.1, 0, CZ + 0.06), (CURTAIN_X1, 0, CZ + 0.06), 0.0, BEAM_Y - 0.05, Z, "b_curtain_blue", nx=3,
+    pb.wall(shell, "front_curtain", (-CX + 0.1, 0, CZ + 0.06), (CURTAIN_X1, 0, CZ + 0.06), 0.0, BEAM_Y - 0.05, Z, "b_curtain_band", nx=3,
             fold=0.07)
     collide((-CX, 0.0, CZ - 0.02, CURTAIN_X1, BEAM_Y - 0.05, CZ + 0.12))
     beam(det, "curtain_edge", (CURTAIN_X1, BEAM_Y - 0.1, CZ + 0.1), (CURTAIN_X1 - 0.05, 0.05, CZ + 0.1), 0.06, "gold")
