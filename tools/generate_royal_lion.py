@@ -81,7 +81,7 @@ RF = fs.ROUNDHOUSE_FRONT_Z
 RH1 = fs.ROUNDHOUSE_CEIL_Y
 FCZ = fs.FORECASTLE_Z
 BOW_Z = fs.FORE_SCALE - 0.02   # where the planking closes on the stem
-BRACE = math.radians(-10)       # square yards braced round (port arms aft)
+BRACE = math.radians(6)        # square yards braced round a little (port arms aft): three of the four references are port views
 QD_RAIL = fs.QD_BULWARK_TOP + 0.15
 FC_RAIL = fs.FC_BULWARK_TOP + 0.15
 
@@ -258,7 +258,7 @@ def waist(bone, detail, lights):
             ya, yb = fs.sheer_y(za), fs.sheer_y(zb)
             ra, rb = rail_top(za), rail_top(zb)
             board(bone, "bulwark_%s%d" % (sn, i), hp(za, ya, side), hp(za, ya + 0.45, side), hp(zb, yb, side), hp(zb, yb + 0.45, side),
-                  0.42, "hull_blue", v3(side, 0, 0), overlap=1.03, inner="hull_blue")
+                  0.42, "hull_blue" if za >= FCZ - 0.6 else "strake_brown", v3(side, 0, 0), overlap=1.03, inner="wood_dark")
             beam(bone, "rail_cap_%s%d" % (sn, i), hp(za, ra, side, -0.18), hp(zb, rb, side, -0.18), 0.3, "rail", width=0.44, extend=0.08)
             gn.wale_bar(bone, "wale_%s%d" % (sn, i), hp(za, ya - 0.3, side, 0.06), hp(zb, yb - 0.3, side, 0.06), 0.22, 0.18, "gold", extend=0.05)
             if za < BOW_Z - 0.5:
@@ -567,8 +567,8 @@ def roundhouse(bone, lights):
         lantern(lights, "lantern_stern_" + sn, v3(x + side * 0.55, RH1 - 0.55, TZ - 0.45), drop=0.3, s=1.5)
     # the striped awning over the helm, from the roundhouse's front wall forward to its gold posts
     za, zb = RF + 0.05, fs.MIZZEN_Z - 0.75
-    ya, yb = RH1 - 0.35, RH1 - 0.85
-    xw = 3.3
+    ya, yb = RH1 - 0.3, RH1 - 1.1
+    xw = 4.3
     for k in range(6):
         x0, x1 = -xw + 2 * xw * k / 6, -xw + 2 * xw * (k + 1) / 6
         sag = 0.08 * math.sin(math.pi * (k + 0.5) / 6)
@@ -694,7 +694,7 @@ def bow(bone, lights):
     beam(bone, "dolphin_striker", cap + v3(0, -0.1, 0), cap + v3(0, -1.7, 0.15), 0.12, "wood_dark")
     # the lion figurehead on the stem head, under the bowsprit
     zt = 21.6
-    lion_figurehead(bone, v3(0, rail_top(zt) - 1.15, zt + 0.35), 1.15)
+    lion_figurehead(bone, v3(0, rail_top(zt) - 1.35, zt + 0.3), 1.35)
     # the gilded head rails: from the forecastle rail curving down and forward to the stem head, stepped gold blocks
     head = v3(0, rail_top(zt) - 0.6, zt + 0.2)
     for side, sn in SIDES:

@@ -53,11 +53,11 @@ public final class RoyalLionLayout {
 	/** How far aft the rudder blade, the stern gallery and the stern lanterns reach. */
 	public static final double STERN_REACH_Z = -21.6;
 	/** The gilded lion figurehead (its head and its forepaws) and the lowest head rail reach forward of the stem. */
-	public static final double[] FIGUREHEAD_PROBE = {0.0, 7.5, 24.2};
-	public static final double[] FIGUREHEAD_PAW_PROBE = {0.0, 5.1, 24.5};
+	public static final double[] FIGUREHEAD_PROBE = {0.0, 7.4, 24.5};
+	public static final double[] FIGUREHEAD_PAW_PROBE = {0.0, 4.6, 24.9};
 	public static final double[] HEAD_RAIL_PROBE = {0.0, 7.4, 21.8};
-	/** The square yards are braced round by this angle (port arms forward), as in the model. */
-	public static final double BRACE_DEG = -10.0;
+	/** The square yards are braced round by this angle (port arms aft), as in the model. */
+	public static final double BRACE_DEG = 6.0;
 	/** Half span of the longest yard (the main course's). */
 	public static final double YARD_HALF = 8.8;
 	public static final double HELM_Z = -14.0;

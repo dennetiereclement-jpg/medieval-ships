@@ -128,6 +128,26 @@ def lion_mask(w, h, facing=-1):
     return big.resize((w, h), Image.BILINEAR).point(lambda v: 255 if v > 110 else 0)
 
 
+def lion_detail(w, h, facing=-1):
+    """Mask of the carved lines inside the lion (drawn darker on the gold): the locks of the mane, the eye, the line
+    of the jaws, the far foreleg and hind leg set apart from the body, the tuft's strands."""
+    big = Image.new("L", (100, 120), 0)
+    d = ImageDraw.Draw(big)
+    for k in range(9):
+        a = math.radians(-140 + k * 30)
+        d.line([(40 + 7 * math.cos(a), 30 + 7 * math.sin(a)), (40 + 17 * math.cos(a), 30 + 18 * math.sin(a))], fill=255, width=3)
+    d.arc((30, 36, 58, 62), 200, 340, fill=255, width=3)               # the mane's lower edge on the chest
+    d.ellipse((22, 20, 28, 26), fill=255)                               # the eye
+    d.line([(12, 31), (28, 33)], fill=255, width=3)                     # the jaws
+    d.line([(44, 56), (34, 64)], fill=255, width=3)                     # the far foreleg
+    d.line([(56, 86), (46, 92)], fill=255, width=3)                     # the far hind leg
+    d.line([(60, 66), (64, 80)], fill=255, width=3)                     # the haunch
+    d.line([(86, 20), (92, 8)], fill=255, width=2)
+    if facing > 0:
+        big = big.transpose(Image.FLIP_LEFT_RIGHT)
+    return big.resize((w, h), Image.BILINEAR).point(lambda v: 255 if v > 90 else 0)
+
+
 def _outline(mask):
     """Pixels just outside the mask (a dark contour that makes the gold emblem read on the blue)."""
     w, h = mask.size
@@ -180,6 +200,7 @@ def _royal_sail(px, region, cols, rows, rng, lion=0.0, tri=None, pennant=False):
         lh, lw = lh // cell * cell, lw // cell * cell
         mask = lion_mask(lw // cell, lh // cell).resize((lw, lh), Image.NEAREST)
         edge = _outline(lion_mask(lw // cell, lh // cell)).resize((lw, lh), Image.NEAREST)
+        lines = lion_detail(lw // cell, lh // cell).resize((lw, lh), Image.NEAREST)
         mx, my = (w - lw) // 2, int(h * 0.47 - lh / 2)
     border = max(6, int(round(min(w, h) * 0.06)))
     for y in range(h):
@@ -205,6 +226,8 @@ def _royal_sail(px, region, cols, rows, rng, lion=0.0, tri=None, pennant=False):
             if mask is not None and mx <= x < mx + mask.width and my <= y < my + mask.height:
                 if mask.getpixel((x - mx, y - my)):
                     c = _gold_at(x - mx, y - my, max(2, cell))
+                    if lines.getpixel((x - mx, y - my)):
+                        c = _scale(GOLD_LO, 0.72)
                 elif edge.getpixel((x - mx, y - my)):
                     c = _rgb("10204e")
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
@@ -276,6 +299,7 @@ def _shield(px, region, rng):
     lh = int(lw * 120 / 100)
     m = lion_mask(lw, lh, facing=-1)
     e = _outline(m)
+    dl = lion_detail(lw, lh, facing=-1)
     mx, my = (w - lw) // 2, int(h * 0.15)
 
     def inside(x, y, inset):
@@ -297,7 +321,7 @@ def _shield(px, region, rng):
                 c = _scale(_rgb(("2045a8", "1d3f9c", "2349ae")[(x // 4 + y // 4) % 3]), 1.0 - 0.15 * (y / h))
                 if mx <= x < mx + lw and my <= y < my + lh:
                     if m.getpixel((x - mx, y - my)):
-                        c = _gold_at(x, y, 2)
+                        c = _scale(GOLD_LO, 0.75) if dl.getpixel((x - mx, y - my)) else _gold_at(x, y, 2)
                     elif e.getpixel((x - mx, y - my)):
                         c = _rgb("0f1f50")
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
@@ -334,6 +358,7 @@ def _lion_relief(px, region, rng):
     lw = int(lh * 100 / 120)
     m = lion_mask(lw, lh, facing=-1)
     e = _outline(m)
+    dl = lion_detail(lw, lh, facing=-1)
     mx, my = (w - lw) // 2, 6
     for y in range(h):
         for x in range(w):
@@ -342,7 +367,7 @@ def _lion_relief(px, region, rng):
                 c = _gold_at(x, y, 2)
             elif mx <= x < mx + lw and my <= y < my + lh:
                 if m.getpixel((x - mx, y - my)):
-                    c = _gold_at(x, y, 2)
+                    c = _scale(GOLD_LO, 0.75) if dl.getpixel((x - mx, y - my)) else _gold_at(x, y, 2)
                 elif e.getpixel((x - mx, y - my)):
                     c = _rgb("0f1f50")
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
