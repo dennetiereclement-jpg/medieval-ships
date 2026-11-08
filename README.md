@@ -148,6 +148,11 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.23.1 replie les passerelles **en accordéon** : rangée, la planche n'est plus dressée au-dessus du
+bastingage mais pliée en zigzag (segments d'au plus 1,6 bloc reliés par des charnières, rambardes rabattues à plat)
+en un paquet compact suspendu contre le flanc, sous le haut du bastingage ; au levier, le paquet se soulève, se
+déplie segment par segment et se pose sur le quai exactement comme avant (mêmes règles, mêmes collisions).
+
 La version 1.23.0 ajoute des **passerelles d'embarquement** aux navires (sauf la barque, le petit sloop et le Nautilus) et aux grands dirigeables : une planche
 médiévale renforcée (ferrures, charnières, rambardes, chaînes ou cordages) relevée contre le bordé, qu'un **levier**
 sur le pont déploie jusqu'au quai ou au ponton puis replie. On y marche vraiment, du quai au pont et retour. Le
@@ -428,7 +433,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.23.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.23.1.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation

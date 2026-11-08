@@ -96,6 +96,45 @@ public final class GangplankGameTest {
 		});
 	}
 
+	/**
+	 * Highest point (ship-local y) of the stowed, folded plank: every segment and folded handrail of the model the client
+	 * loaded, placed by the stowed fold pose ({@link Gangplank#foldPose}); NaN without the model.
+	 */
+	private static double stowedTop(ClientGameTestContext context, Gangplank.Spec spec) {
+		return context.computeOnClient(mc -> {
+			fr.medievalships.client.model.BbModel m = fr.medievalships.client.render.ShipModels.gangplank(spec.shipId());
+			fr.medievalships.client.model.BbModel.Pose[] poses = fr.medievalships.client.render.ShipModels.gangplankPoses(spec.shipId());
+			if (m == null || poses == null) {
+				return Double.NaN;
+			}
+			Gangplank.Fold f = Gangplank.fold(spec);
+			double[] pose = f.stowed();
+			double fold = pose[3 * f.n()];
+			double[] top = {Double.NEGATIVE_INFINITY};
+			double[] q = new double[3], r = new double[3];
+			for (int k = 0; k < f.n(); k++) {
+				int kk = k;
+				m.renderPart(poses[0], "seg_" + k, (pt, uv, n, glow) -> {
+					for (int c = 0; c < 4; c++) {
+						Gangplank.foldPoint(spec, pose, kk, pt[c * 3], pt[c * 3 + 1], pt[c * 3 + 2], q);
+						top[0] = Math.max(top[0], q[1]);
+					}
+				});
+				for (int side = 0; side < 2; side++) {
+					int sd = side == 0 ? -1 : 1;
+					m.renderPart(poses[1], "rail_" + k + "_" + side, (pt, uv, n, glow) -> {
+						for (int c = 0; c < 4; c++) {
+							Gangplank.railPoint(spec, sd, fold, pt[c * 3], pt[c * 3 + 1], pt[c * 3 + 2], r);
+							Gangplank.foldPoint(spec, pose, kk, r[0], r[1], r[2], q);
+							top[0] = Math.max(top[0], q[1]);
+						}
+					});
+				}
+			}
+			return top[0];
+		});
+	}
+
 	private static String lever(TestServerContext server, ShipType type) {
 		return server.computeOnServer(srv -> {
 			ShipEntity s = ship(srv.getOverworld(), type);
@@ -198,6 +237,15 @@ public final class GangplankGameTest {
 		lookLocal(server, p, -11, 6, 9, spec.hx(), spec.hy() + 1, spec.hz());
 		context.waitTicks(15);
 		shot.accept("passerelle_0_rangee");
+		// the folded pack (accordion), from the model the client loaded: entirely under the hinge (the rail top)
+		double top = stowedTop(context, spec);
+		log.accept(String.format(Locale.ROOT, "gangplank: stowed pack top %.3f, hinge %.3f", top, spec.hy()));
+		check.accept(top <= spec.hy() + 0.02,
+				String.format(Locale.ROOT, "gangplank: the stowed pack hangs under the rail top (top %.2f, hinge %.2f)", top, spec.hy()));
+		int o = spec.o();
+		lookLocal(server, p, spec.hx() + o * 4.5, spec.hy() + 0.9, spec.hz() + 3.6, spec.hx() + o * 0.8, spec.hy() - 0.8, spec.hz());
+		context.waitTicks(15);
+		shot.accept("passerelle_0b_paquet_replie");
 
 		// ---- the lever, clicked for real: the client picks it, the server deploys
 		server.runCommand("gamemode survival @a");

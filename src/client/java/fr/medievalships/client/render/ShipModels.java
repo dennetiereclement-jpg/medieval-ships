@@ -162,6 +162,15 @@ public final class ShipModels {
 		return GANGPLANKS.get(shipId);
 	}
 
+	/** Reused poses of each plank model: [0] its handrails hidden (the segments), [1] nothing hidden (the handrails). */
+	private static final Map<String, BbModel.Pose[]> GANGPLANK_POSES = new java.util.HashMap<>();
+
+	/** The two poses the renderer draws a plank model with (see {@link #GANGPLANK_POSES}), or null. */
+	@Nullable
+	public static BbModel.Pose[] gangplankPoses(String shipId) {
+		return GANGPLANK_POSES.get(shipId);
+	}
+
 	/** The deck lever model of a gangplank style, or null. */
 	@Nullable
 	public static BbModel lever(String style) {
@@ -184,6 +193,7 @@ public final class ShipModels {
 
 	public static void reload(ResourceManager manager) {
 		GANGPLANKS.clear();
+		GANGPLANK_POSES.clear();
 		LEVERS.clear();
 		for (Visual v : ALL) {
 			fr.medievalships.core.Gangplank.Spec spec = fr.medievalships.core.Gangplank.of(v.type().id());
@@ -195,6 +205,12 @@ public final class ShipModels {
 				MedievalShips.LOGGER.error("Missing gangplank model for {}", v.type().id());
 			} else {
 				GANGPLANKS.put(v.type().id(), plank);
+				BbModel.Pose segments = plank.newPose();
+				for (int k = 0; k < fr.medievalships.core.Gangplank.MAX_SEGMENTS; k++) {
+					plank.hide(segments, "rail_" + k + "_0");
+					plank.hide(segments, "rail_" + k + "_1");
+				}
+				GANGPLANK_POSES.put(v.type().id(), new BbModel.Pose[] {segments, plank.newPose()});
 			}
 			if (!LEVERS.containsKey(spec.style())) {
 				BbModel lever = load(manager, model("gangplank_lever_" + spec.style()));

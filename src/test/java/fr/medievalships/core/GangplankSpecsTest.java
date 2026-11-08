@@ -126,7 +126,7 @@ class GangplankSpecsTest {
 				double quay = t.hull().waterlineY + 1.0;
 				assertTrue(s.maxDrop() >= s.hy() - quay - 0.05, id + ": reaches a quay one block above the water (drop " + (s.hy() - quay) + ")");
 			}
-			assertEquals(Gangplank.STOWED_ANGLE, s.stowedAngle(), 1e-9, id + ": stowed upright");
+			assertEquals(Gangplank.STOWED_ANGLE, s.stowedAngle(), 1e-9, id + ": the clearance check sweeps from upright (rules of 1.23.0)");
 		}
 	}
 

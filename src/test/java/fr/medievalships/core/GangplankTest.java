@@ -333,7 +333,7 @@ class GangplankTest {
 			// the plank model and the lever of its style, readable by the mod's loader
 			BbModel plank = model("/assets/medievalships/models/entity/gangplank_" + id + ".bbmodel");
 			assertTrue(plank.quadCount() > 100, id + " plank model");
-			assertTrue(plank.hasBone("detail"), id + " handrails bone");
+			assertTrue(plank.hasBone("seg_0") && plank.hasBone("seg_" + (Gangplank.segments(s) - 1)) && plank.hasBone("rail_0_1"), id + " folding segments and handrails bones");
 			BbModel lever = model("/assets/medievalships/models/entity/gangplank_lever_" + s.style() + ".bbmodel");
 			assertTrue(lever.hasBone("handle"), id + " lever handle");
 			// the stairs (if any) climb at most STAIR_RISE each to the hinge height

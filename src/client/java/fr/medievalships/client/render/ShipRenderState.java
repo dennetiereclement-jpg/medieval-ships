@@ -30,9 +30,15 @@ public class ShipRenderState extends EntityRenderState {
 	public boolean lifeboatAway;
 	/** The camera is in the dry rooms of this vessel, under the water: the sea behind the glass is murky. */
 	public boolean murk;
-	/** Gangplank: its spec (null: none), angle (degrees, down positive), lever position (0 stowed .. 1 deployed), out of its stowed place. */
+	/**
+	 * Gangplank: its spec (null: none), state, ticks since that state started and target angle (the folding pose is
+	 * computed from them, {@link fr.medievalships.core.Gangplank#foldPose}), lever position (0 stowed .. 1 deployed),
+	 * out of its stowed place.
+	 */
 	public fr.medievalships.core.Gangplank.Spec gangplank;
-	public double gangplankAngle;
+	public fr.medievalships.core.Gangplank.State gangplankState = fr.medievalships.core.Gangplank.State.RETRACTED;
+	public double gangplankTicks;
+	public double gangplankTarget;
 	public float gangplankLever;
 	public boolean gangplankOut;
 	/** 0 .. 1: moored by its gangplank, the drawn model stops rocking and bobbing. */

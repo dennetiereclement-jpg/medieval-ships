@@ -62,6 +62,8 @@ public final class BbModel {
 		float[] staticMatrix;
 		float[] staticPos;
 		float[] staticNormal;
+		/** Its parents' transforms at rest, composed ({@link BbModel#renderPart}), computed once. */
+		float[] restParent;
 
 		Bone(String name, int index, float[] origin, float[] rotation) {
 			this.name = name;
@@ -168,6 +170,10 @@ public final class BbModel {
 		/** Draw only the translucent effects ("fx_*" bones), or only the rest. */
 		public boolean fxPass;
 		private final float[] tmp = new float[3];
+		/** Scratch corners, uvs and normal of {@link BbModel#renderPart} (no allocation per call). */
+		final float[] partPos = new float[12];
+		final float[] partUv = new float[8];
+		final float[] partNormal = new float[3];
 
 		Pose(int bones) {
 			rot = new float[bones][3];
@@ -253,6 +259,36 @@ public final class BbModel {
 		}
 		float[] p = new float[12], uv = new float[8], n = new float[3];
 		renderBone(b, m, pose, -1, sink, p, uv, n, true);
+	}
+
+	/**
+	 * Emits the quads of one bone and its children at rest, in model-local blocks, through the same per-bone cache as
+	 * {@link #render} (for bones no animation moves: transformed once, then copied out): exactly the quads the full
+	 * render draws for that subtree, with no per-call allocation (the pose's scratch arrays). The caller places the part
+	 * (a folding gangplank's segments). Hidden bones of the pose are skipped, as is the whole part under a hidden parent.
+	 */
+	public void renderPart(Pose pose, String bone, QuadSink sink) {
+		Bone b = bonesByName.get(bone);
+		if (b == null) {
+			return;
+		}
+		for (Bone a = b.parent; a != null; a = a.parent) {
+			if (pose.hidden[a.index]) {
+				return;
+			}
+		}
+		if (b.restParent == null) {
+			java.util.ArrayDeque<Bone> chain = new java.util.ArrayDeque<>();
+			for (Bone a = b.parent; a != null; a = a.parent) {
+				chain.push(a);
+			}
+			float[] m = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0};
+			for (Bone a : chain) {
+				m = compose(m, restMatrix(a));
+			}
+			b.restParent = m;
+		}
+		renderBone(b, b.restParent, pose, -1, sink, pose.partPos, pose.partUv, pose.partNormal);
 	}
 
 	/** A bone's own transform at rest (3x4 affine, Blockbench pixels): R * (v - o) + o. */
