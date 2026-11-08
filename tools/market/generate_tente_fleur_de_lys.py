@@ -51,11 +51,11 @@ WINE, CREAM = _rgb("6c1622"), _rgb("e4d2ae")
 GOLD = _rgb("e8b040")
 
 # ---------------------------------------------------------------- dimensions (tent-local blocks, +z = the open front)
-HW, HD = 2.9, 2.3           # posts at x = +-HW, z = +-HD
+HW, HD = 3.2, 2.4           # posts at x = +-HW, z = +-HD
 PD = 0.5
 EAVE = 3.55                 # the eave beams' top = the roof's lower edge
 RW, RD = HW + 0.25, HD + 0.25
-APEX = 6.55
+APEX = 6.0
 POST_TOP = 4.35             # the front posts (crossbars at the top)
 COUNTER = (-1.25, 1.25, 0.55, 1.15)
 COUNTER_H = 1.0
@@ -134,7 +134,7 @@ def paint_chest(img):
 
 def add_regions(atlas):
     s = 3900
-    atlas.add("fl_roof", 160, 96, pe.stripes([WINE, CREAM], 5, s + 10, fold=0.16))
+    atlas.add("fl_roof", 160, 96, pe.trap_stripes([WINE, CREAM], 5, s + 10, pe.roof_wfrac(0.0, 1.0), fold=0.18))
     atlas.add("fl_banner", 48, 160, paint_banner)
     atlas.add("fl_rug", 128, 96, pe.rug("8a1e26", "5a1218", "e8b848", "d8c49a", s + 11))
     atlas.add("fl_curtain", 48, 96, pe.stripes([CREAM, _scale(CREAM, 0.9)], 3, s + 12, fold=0.4, seams=False))
@@ -178,7 +178,7 @@ def roof_banner(bone, name, face, xc, w, t0, hang, region, ny_roof=4, ny_hang=2)
         if key not in cache:
             x = xc + (s - 0.5) * w
             p = pe.roof_point(face, x, t0 + (1.0 - t0) * t, axis=0)
-            cache[key] = p + UP * 0.05 + Z * 0.02
+            cache[key] = p + UP * 0.07 + Z * 0.03
         return cache[key]
 
     def P(s, t):
@@ -214,14 +214,14 @@ def build(atlas, decor):
              width=0.24)
         beam(shell, "bar_brace_%d" % k, (x + sx * 0.2, BAR_Y - 0.75, HD), (x + sx * 0.75, BAR_Y - 0.08, HD), 0.14, "wood_dark", extend=0.04)
         pe.rope_wrap(det, "bar_lash_%d" % k, x, HD, BAR_Y - 0.06, PD / 2, turns=2, th=0.08)
-        pe.rope_wrap(det, "post_lash_%d" % k, x, HD, 2.55, PD / 2, turns=3, th=0.09)
+        pe.rope_wrap(det, "post_lash_%d" % k, x, HD, 1.92, PD / 2, turns=3, th=0.09)
         pe.rope_wrap(det, "post_foot_%d" % k, x, HD, 0.75, PD / 2, turns=1, th=0.12)
         tip = v3(x + sx * 1.0, BAR_Y - 0.12, HD)
         ml.rope(det, "lamp_rope_%d" % k, tip, tip - UP * 0.32, d=0.04)
         pe.lamp(shell, det, "lamp_%d" % k, tip - UP * 0.56, size=0.4, chain_to=None)
     # ---- the high pointed roof, stripes radiating from the apex
     eave = [(-RW, EAVE, RD), (RW, EAVE, RD), (RW, EAVE, -RD), (-RW, EAVE, -RD)]
-    faces = pe.pyramid_roof(shell, "roof", eave, [(0, APEX, 0)] * 4, "fl_roof", sag=0.42, nx=5, ny=9)
+    faces = pe.pyramid_roof2(shell, "roof", eave, [(0, APEX, 0)] * 4, ["fl_roof"] * 4, sag=0.42, nx=5, ny=8)
     for k in range(4):
         ml.rope(det, "hip_%d" % k, v3(0, APEX, 0), v3(*eave[k]) + UP * 0.03, d=0.06, segs=3)
     # the spire, the spreader bar with its knobs below it
@@ -271,12 +271,12 @@ def build(atlas, decor):
     # ---- cream drapes tied back with ropes on the two front posts (an outer one hanging from the crossbar, an inner one)
     for k, sx in enumerate((-1, 1)):
         x = sx * HW
-        pe.drape(shell, det, "drape_out_%d" % k, (x + sx * 1.05, BAR_Y - 0.12, HD + 0.08), (x + sx * 0.25, BAR_Y - 0.12, HD + 0.08),
-                 (x + sx * 0.3, 1.5, HD + 0.12), (x + sx * 0.35, 0.04, HD + 0.14), (x + sx * 0.8, 0.04, HD + 0.2), Z, "fl_curtain", nx=3,
-                 tie_region="rope", tie_size=(0.34, 0.14, 0.24))
-        pe.drape(shell, det, "drape_in_%d" % k, (x - sx * 0.28, by - 0.15, HD - 0.05), (x - sx * 1.05, by - 0.15, HD - 0.05),
-                 (x - sx * 0.32, 1.45, HD - 0.12), (x - sx * 0.3, 0.04, HD - 0.12), (x - sx * 0.62, 0.04, HD - 0.15), Z, "fl_curtain", nx=3,
-                 tie_region="rope", tie_size=(0.3, 0.12, 0.2))
+        pe.drape(shell, det, "drape_out_%d" % k, (x + sx * 1.12, BAR_Y - 0.12, HD + 0.08), (x + sx * 0.25, BAR_Y - 0.12, HD + 0.08),
+                 (x + sx * 0.32, 2.05, HD + 0.14), (x + sx * 0.4, 0.04, HD + 0.16), (x + sx * 1.15, 0.04, HD + 0.3), Z, "fl_curtain", nx=3,
+                 tie_region="rope", tie_size=(0.36, 0.16, 0.26))
+        pe.drape(shell, det, "drape_in_%d" % k, (x - sx * 0.28, by - 0.15, HD - 0.05), (x - sx * 1.15, by - 0.15, HD - 0.05),
+                 (x - sx * 0.34, 2.0, HD - 0.14), (x - sx * 0.3, 0.04, HD - 0.12), (x - sx * 0.7, 0.04, HD - 0.15), Z, "fl_curtain", nx=3,
+                 tie_region="rope", tie_size=(0.32, 0.14, 0.22))
     # ---- inside: the rail with the hanging garlic, peppers, lavender and a cloth; the framed fleur; hanging fabrics
     beam(shell, "rail", (-HW + 0.2, 2.72, 1.55), (HW - 0.2, 2.72, 1.55), 0.12, "wood")
     for k, x in enumerate((-2.3, -0.9, 0.6, 2.2)):

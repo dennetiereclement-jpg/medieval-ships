@@ -49,6 +49,7 @@ box, collide = ml.box, ml.collide
 _rgb, _scale = ml._rgb, ml._scale
 
 RED, CREAM = _rgb("962220"), _rgb("e6cfa2")
+RED2 = _rgb("90201e")   # a second red: the gold motifs go on every other red stripe only
 GOLD = _rgb("e8a830")
 
 # ---------------------------------------------------------------- dimensions (tent-local blocks, +z = the open front)
@@ -57,7 +58,7 @@ Z0, Z1 = -2.1, 2.0          # back / front post lines (z)
 CX, CZ = (X0 + X1) / 2, (Z0 + Z1) / 2
 PD = 0.46
 EAVE = 3.35
-APEX = 5.95
+APEX = 5.8
 LX = -4.65                  # the left awning's outer posts
 RX = 4.45                   # the right awning's outer posts
 GX = (-1.95, -0.1)         # the gantry's posts (x), at z = GZ
@@ -94,17 +95,17 @@ def paint_roof(img):
 def paint_curtain(img):
     """The left awning's big red curtain: folds, gold fleurs-de-lis scattered, a gold hem."""
     w, h = img.size
-    pe.stripes([RED, _scale(RED, 0.86)], 6, 4303, motif=None, fold=0.4, seams=False, hem=(GOLD, 4))(img)
+    pe.stripes([_scale(RED, 0.86), _scale(RED, 0.76)], 6, 4303, motif=None, fold=0.4, seams=False, hem=(GOLD, 4))(img)
     rng = random.Random(4304)
     px = img.load()
-    for row, y in enumerate(range(8, h - 10, 14)):
-        for x in range(6 + (row % 2) * 8, w - 4, 16):
+    for row, y in enumerate(range(10, h - 10, 20)):
+        for x in range(8 + (row % 2) * 11, w - 4, 22):
             pe.glyph(px, w, h, x, y, "fleur", GOLD, rng)
 
 
 def add_regions(atlas):
     s = 4300
-    atlas.add("co_roof", 128, 96, paint_roof)
+    atlas.add("co_roof", 128, 96, pe.trap_stripes([RED, RED2, RED, RED2, RED, CREAM, RED2, RED], 8, s + 30, pe.roof_wfrac(0.0, 1.0), motif="fleur", motif_rows=5, motif_per=1, fold=0.1, seams=False))
     atlas.add("co_curtain", 96, 96, paint_curtain)
     atlas.add("co_rug", 128, 96, pe.rug("7a1c1e", "3a0e10", "e0c08a", "a83a2a", s + 1, medallion=True))
     atlas.add("co_banner", 40, 80, pe.panel(RED, s + 2, fringe=0, motif="fleur", point=0.22, key=True))
@@ -169,9 +170,9 @@ def build(atlas, decor):
     beam(shell, "tie_beam", (X0, by - 0.04, CZ), (X1, by - 0.04, CZ), 0.2, "wood_dark", extend=0.08)
     beam(det, "herb_rail", (X0, 2.75, 1.5), (X1, 2.75, 1.5), 0.08, "wood_dark")
     # ---- the main roof: four sagging faces up to the spire
-    RW0, RW1, RD0, RD1 = X0 - 0.25, X1 + 0.25, Z0 - 0.25, Z1 + 0.25
+    RW0, RW1, RD0, RD1 = X0 - 0.4, X1 + 0.4, Z0 - 0.35, Z1 + 0.4
     eave = [(RW0, EAVE, RD1), (RW1, EAVE, RD1), (RW1, EAVE, RD0), (RW0, EAVE, RD0)]
-    faces = pe.pyramid_roof(shell, "roof", eave, [(CX, APEX, CZ)] * 4, "co_roof", sag=0.58, nx=4, ny=8)
+    faces = pe.pyramid_roof2(shell, "roof", eave, [(CX, APEX, CZ)] * 4, ["co_roof"] * 4, sag=0.58, nx=5, ny=8)
     for k in range(4):
         ml.rope(det, "hip_%d" % k, v3(CX, APEX, CZ), v3(*eave[k]) + UP * 0.04, d=0.07, segs=3)
     ml.octo(shell, "spire_base", (CX, APEX - 0.12, CZ), 0.17, 0.24, "gold")
@@ -187,6 +188,9 @@ def build(atlas, decor):
             if k:
                 add_cube(det, "%s_ring_%d" % (name, k), pa + out * 0.06 - UP * 0.04, EYE, (0.14, 0.2, 0.14), "rope")
     valance_side("val_front", (RW0, EAVE + 0.06, RD1 + 0.05), (RW1, EAVE + 0.06, RD1 + 0.05), Z, 5)
+    for k in range(5):   # the rope swagged along the top of the front valance, from ring to ring
+        xa, xb = RW0 + (RW1 - RW0) * k / 5, RW0 + (RW1 - RW0) * (k + 1) / 5
+        ml.rope(det, "val_rope_%d" % k, (xa, EAVE + 0.02, RD1 + 0.12), (xb, EAVE + 0.02, RD1 + 0.12), d=0.07, sag=0.07, segs=2)
     valance_side("val_right", (RW1 + 0.05, EAVE + 0.06, RD1), (RW1 + 0.05, EAVE + 0.06, RD0), X, 4)
     valance_side("val_back", (RW1, EAVE + 0.06, RD0 - 0.05), (RW0, EAVE + 0.06, RD0 - 0.05), -Z, 5)
     valance_side("val_left", (RW0 - 0.05, EAVE + 0.06, RD0), (RW0 - 0.05, EAVE + 0.06, RD1), -X, 4)
@@ -204,6 +208,11 @@ def build(atlas, decor):
     rope_beam(shell, det, "gbeam_mid", (GX[0], GTOP - 0.72, GZ), (GX[1], GTOP - 0.72, GZ), d=0.2, wraps=(0.5,))
     for k, gx in enumerate(GX):
         box(det, "gbracket_%d" % k, (gx - 0.22, GTOP - 0.52, GZ - 0.2), (gx + 0.22, GTOP - 0.45, GZ + 0.2), "iron")
+        sx = 1 if k == 0 else -1
+        beam(shell, "gknee_%d" % k, (gx, GTOP - 1.45, GZ), (gx + sx * 0.6, GTOP - 0.8, GZ), 0.12, "wood_dark", extend=0.03)
+    for k, f in enumerate((0.33, 0.66)):
+        gx = GX[0] + (GX[1] - GX[0]) * f
+        beam(shell, "gspacer_%d" % k, (gx, GTOP - 0.62, GZ), (gx, GTOP - 0.22, GZ), 0.12, "wood_dark")
     beam(shell, "garm", (GX[1] + 0.05, GTOP - 0.12, GZ), (GX[1] + 0.05, GTOP - 0.12, GZ + 0.9), 0.2, "beam", extend=0.08)
     pe.pulley(det, "pulley_g", (GX[1] + 0.05, GTOP - 0.48, GZ + 0.78), axis=(1, 0, 0), s=0.26)
     ml.rope(det, "pulley_g_rope", (GX[1] + 0.05, GTOP - 0.62, GZ + 0.74), (GX[1] + 0.05, APEX - 1.4, GZ + 0.95), d=0.05)
@@ -213,23 +222,23 @@ def build(atlas, decor):
     ml.rope(det, "rope_gantry_back", (GX[1] + 0.4, GTOP - 0.12, GZ), (1.6, 0.0, -3.7), d=0.07, sag=0.1, segs=3)
     ml.tl.peg(det, "peg_gantry", (1.6, 0.0, -3.7), (GX[1], GTOP, GZ), length=0.45, d=0.1, region="wood")
     # ---- the left awning: far-left posts, the rope-wrapped beam, cream canopy, the big red curtain
-    lashed_post(shell, det, "lpost_f", LX, Z1 - 0.1, 3.2, d=0.36, caps=1, wraps=((0.4, 2), (1.4, 2), (2.6, 2)), bands=())
-    lashed_post(shell, det, "lpost_b", LX + 0.25, Z0 + 0.5, 2.85, d=0.34, caps=1, wraps=((2.3, 2),), bands=(0.3,))
-    rope_beam(shell, det, "lbeam_front", (X0, 3.05, Z1 - 0.05), (LX, 2.95, Z1 - 0.1), d=0.24, wraps=(0.1, 0.5, 0.92))
-    rope_beam(shell, det, "lbeam_back", (X0, 2.75, Z0 + 0.5), (LX + 0.25, 2.65, Z0 + 0.5), d=0.2, wraps=(0.9,))
-    beam(shell, "lbeam_side", (LX, 2.85, Z1 - 0.1), (LX + 0.25, 2.6, Z0 + 0.5), 0.18, "beam", extend=0.08)
+    lashed_post(shell, det, "lpost_f", LX, Z1 - 0.1, 2.85, d=0.36, caps=1, wraps=((0.4, 2), (1.4, 2), (2.6, 2)), bands=())
+    lashed_post(shell, det, "lpost_b", LX + 0.25, Z0 + 0.5, 2.6, d=0.34, caps=1, wraps=((2.3, 2),), bands=(0.3,))
+    rope_beam(shell, det, "lbeam_front", (X0, 3.05, Z1 - 0.05), (LX, 2.6, Z1 - 0.1), d=0.24, wraps=(0.1, 0.5, 0.92))
+    rope_beam(shell, det, "lbeam_back", (X0, 2.85, Z0 + 0.5), (LX + 0.25, 2.4, Z0 + 0.5), d=0.2, wraps=(0.9,))
+    beam(shell, "lbeam_side", (LX, 2.5, Z1 - 0.1), (LX + 0.25, 2.3, Z0 + 0.5), 0.18, "beam", extend=0.08)
     cz0, cz1 = Z0 + 0.3, Z1 + 0.25
 
     def CAN(s, t):   # s along z (front -> back, seen from the left), t from the main tent out to the far-left posts
         z = cz1 + (cz0 - cz1) * s
         x = X0 - 0.2 + (LX - 0.2 - X0 + 0.2) * t
-        y = 3.4 - 0.65 * t - 0.2 * math.sin(math.pi * t) - 0.04 * math.sin(s * math.pi * 3)
+        y = 3.3 - 1.0 * t - 0.22 * math.sin(math.pi * t) - 0.04 * math.sin(s * math.pi * 3)
         return v3(x, y, z)
     loft(shell, "canopy", lambda s, t: CAN(1 - s, t), 4, 3, "co_canopy", th=0.035, overlap=0.03)
 
     def CANF(s, t):  # the dagged cream front edge
         p = CAN(0.0, s)
-        return p - UP * (0.3 * t) + Z * (0.03 * t)
+        return p - UP * (0.38 * t) + Z * (0.03 * t)
     loft(shell, "canopy_edge", CANF, 4, 1, "co_can_edge", th=0.025)
     # the big red curtain: hangs from the canopy's front edge, swept to the left and gathered on the far-left post
     top_a, top_b = CAN(0.0, 0.08) - UP * 0.25, CAN(0.0, 0.95) - UP * 0.25
@@ -238,9 +247,9 @@ def build(atlas, decor):
     pe.wall(shell, "lwall_back", (LX + 0.25, 0, Z0 + 0.45), (X0, 0, Z0 + 0.45), 0.0, 2.55, -Z, "co_curtain", nx=4)
     collide((LX + 0.25, 0.0, Z0 + 0.38, X0, 2.4, Z0 + 0.5))
     # the pulley and rope on the far-left post (the rope down to a coil on the ground)
-    beam(shell, "larm", (LX, 3.05, Z1 - 0.1), (LX - 0.55, 3.05, Z1 - 0.1), 0.16, "beam")
-    pe.pulley(det, "pulley_l", (LX - 0.45, 2.7, Z1 - 0.1), axis=(0, 0, 1), s=0.24)
-    ml.rope(det, "pulley_l_rope", (LX - 0.45, 2.55, Z1 - 0.1), (LX - 0.45, 0.3, Z1 - 0.1), d=0.05)
+    beam(shell, "larm", (LX, 2.75, Z1 - 0.1), (LX - 0.55, 2.75, Z1 - 0.1), 0.16, "beam")
+    pe.pulley(det, "pulley_l", (LX - 0.45, 2.42, Z1 - 0.1), axis=(0, 0, 1), s=0.24)
+    ml.rope(det, "pulley_l_rope", (LX - 0.45, 2.27, Z1 - 0.1), (LX - 0.45, 0.3, Z1 - 0.1), d=0.05)
     ml.crate(det, "rope_coil_l", (LX - 0.45, 0.0, Z1 - 0.1), size=(0.36, 0.26, 0.36), region="rope", top="rope", solid=False)
     # ---- the right awning: posts, the red dagged canopy, the crossed bracing ropes, the guy rope
     for k, z in enumerate((Z1 - 0.3, Z0 + 0.7)):
@@ -311,7 +320,6 @@ def build(atlas, decor):
     ml.rug(shell, "rug", -0.3, 2.6, 2.15, 4.0, y=0.0, region="co_rug")
     # ---- front left: crates, the iron-bound chest, the sack, the white flowers on a crate
     decor.block("furnish:spruce_crate", -2.95, 0.0, 3.05, facing="front", alt="minecraft:barrel", fallback="crate")
-    ml.crate(shell, "fl_crate_top", (-2.95, 1.0, 3.05), size=0.62, yaw=0.15, solid=True)
     ml.barrel(shell, "fl_barrel", (-3.65, 0.0, 2.55), r=0.34, h=0.86)
     ml.crate(shell, "fl_crate_1", (-2.75, 0.0, 2.2), size=(0.8, 0.7, 0.6), yaw=-0.08, solid=True)
     ml.crate(shell, "chest", (-2.0, 0.0, 3.15), size=(0.82, 0.55, 0.58), yaw=0.04, region="crate", top="crate_top", solid=True)

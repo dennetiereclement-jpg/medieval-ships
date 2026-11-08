@@ -51,7 +51,7 @@ ry, rx, rz = ml.ry, ml.rx, ml.rz
 box, collide = ml.box, ml.collide
 _rgb, _scale = ml._rgb, ml._scale
 
-RED, RED_DARK, CREAM = _rgb("881c2e"), _rgb("4e0e1a"), _rgb("e4cea4")
+RED, RED_DARK, CREAM = _rgb("801a2c"), _rgb("4e0e1a"), _rgb("e4cea4")
 PLUM = _rgb("5e1a3a")           # the tied curtain's deep red-purple
 BLUE = _rgb("3c4c8c")
 GOLD = pe.GOLD
@@ -74,7 +74,8 @@ SHELF_Z = (-2.0, -1.5)
 
 def add_regions(atlas):
     s = 3100
-    atlas.add("dr_roof", 160, 96, pe.stripes([_scale(RED, 0.92), CREAM], 5, s, motif="cross", motif_step=(11, 14)))
+    atlas.add("dr_roof", 160, 96, pe.trap_stripes([_scale(RED, 0.92), CREAM], 5, s, pe.roof_wfrac(2 * CUP - 0.04, 2 * RW), motif="cross", motif_rows=6))
+    atlas.add("dr_roof_side", 128, 96, pe.trap_stripes([_scale(RED, 0.92), CREAM], 5, s + 50, pe.roof_wfrac(2 * CUP - 0.04, 2 * RD), motif="cross", motif_rows=6))
     atlas.add("dr_rug", 128, 96, pe.rug("a8302e", "4a1436", "e89a30", "6a2a72", s + 1))
     atlas.add("dr_curtain", 64, 96, pe.stripes([PLUM, _scale(PLUM, 0.86)], 4, s + 2, motif="diamond", motif_col=_rgb("b07a40"), motif_step=(12, 16),
                                               fold=0.3, seams=False, hem=(GOLD, 5)))
@@ -153,7 +154,7 @@ def build(atlas, decor):
     # ---- the roof: four sagging faces, red stripes with gold crosses / cream, up to the cupola
     eave = [(-RW, EAVE, RD), (RW, EAVE, RD), (RW, EAVE, -RD), (-RW, EAVE, -RD)]
     topq = [(-CUP + 0.02, CUP_Y0, CUP - 0.02), (CUP - 0.02, CUP_Y0, CUP - 0.02), (CUP - 0.02, CUP_Y0, -CUP + 0.02), (-CUP + 0.02, CUP_Y0, -CUP + 0.02)]
-    faces = pe.pyramid_roof(shell, "roof", eave, topq, "dr_roof", sag=0.42, nx=5, ny=4, hang=(0.32, "dr_edge"))
+    faces = pe.pyramid_roof2(shell, "roof", eave, topq, ["dr_roof", "dr_roof_side"], sag=0.42, nx=5, ny=5, hang=(0.32, "dr_edge"))
     # hip battens (the cloth is tied along the hips)
     for k in range(4):
         pe.ml.rope(det, "hip_%d" % k, v3(*topq[k]) + UP * 0.03, v3(*eave[k]) + UP * 0.03, d=0.06, segs=2)

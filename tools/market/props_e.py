@@ -822,3 +822,136 @@ def round_sack(shell, det, name, foot, region="e_sack", yaw=0.0, w=0.62, h=0.8, 
                  stretch=True)
     if solid:
         collide((foot[0] - w / 2, 0.0, foot[2] - w / 2, foot[0] + w / 2, h, foot[2] + w / 2))
+
+
+# ================================================================ roof faces with straight radiating stripes
+def trap_stripes(cols, n, seed, wfrac, motif=None, motif_col=None, motif_rows=7, motif_per=2, fold=0.14, seams=True):
+    """The texture of a roof face drawn in its own (u, t) space (u across the face's BOTTOM width, t from the top
+    down): the face is the trapezoid |u - 0.5| <= wfrac(t) / 2 (cut out outside), n stripes radiate from the top
+    (stripe k = s in [k/n, (k+1)/n], s = 0.5 + (u - 0.5) / wfrac(t)); cols = colours in turn, or one colour per
+    stripe (len(cols) == n); soft folds in each stripe, dark seams, gold glyphs on the stripes of cols[0]."""
+    def paint(img):
+        from PIL import Image
+        rng = random.Random(seed)
+        w, h = img.size
+        layers = {}
+        for c in sorted(set(tuple(c) for c in cols)):
+            im = Image.new("RGBA", (w, h))
+            ml._weave(im, (0, 0, w, h), c, rng, stains=1)
+            layers[c] = im.load()
+        px = img.load()
+        per = len(cols) == n
+        for y in range(h):
+            t = (y + 0.5) / h
+            f = max(1e-4, wfrac(t))
+            for x in range(w):
+                u = (x + 0.5) / w
+                s = 0.5 + (u - 0.5) / f
+                if s < 0.0 or s >= 1.0:
+                    px[x, y] = (0, 0, 0, 0)
+                    continue
+                k = min(n - 1, int(s * n))
+                c = tuple(cols[k] if per else cols[k % len(cols)])
+                r, g, b, a = layers[c][x, y]
+                fk = s * n - k
+                kk = (0.88 + 0.14 * t) * (1.0 - fold * 0.5 + fold * math.sin(math.pi * fk))
+                if seams and min(fk, 1 - fk) * f * w / n < 0.9:
+                    kk *= 0.76
+                if min(s, 1 - s) * f * w < 0.9:
+                    kk *= 0.8
+                px[x, y] = _scale((r, g, b), kk) + (255,)
+        if motif:
+            mc = motif_col or GOLD
+            for j in range(motif_rows):
+                t = (j + 0.75) / (motif_rows + 0.5)
+                f = wfrac(t)
+                for k in range(n):
+                    c = cols[k] if per else cols[k % len(cols)]
+                    if tuple(c) != tuple(cols[0]):
+                        continue
+                    m = max(1, int(round(motif_per * (0.3 + 0.7 * t))))
+                    for q in range(m):
+                        s = (k + (q + 0.5) / m) / n
+                        if j % 2 and m > 1:
+                            s += 0.25 / (m * n)
+                        x = int((0.5 + (s - 0.5) * f) * w)
+                        y = int(t * h)
+                        if 0 <= x < w and px[x, y][3]:
+                            glyph(px, w, h, x, y, motif, mc, rng)
+    return paint
+
+
+def trap_face(bone, name, P, wf, nx, ny, region, th=0.035, overlap=0.012):
+    """Lofts a roof face P(s, t) (s between its hips, t from the top down) on a grid of its own (u, t) space (u across
+    its bottom width; wf(t) = its width at t / its bottom width): rectangles in (u, t) tile it without overlaps or
+    gaps, the region (painted by trap_stripes) cuts the trapezoid out; pieces wholly outside the face are skipped."""
+    def Q(u, t):
+        f = max(1e-6, wf(t))
+        return P(0.5 + (u - 0.5) / f, t)
+    for i in range(nx):
+        for j in range(ny):
+            u0, u1, t0, t1 = i / nx, (i + 1) / nx, j / ny, (j + 1) / ny
+            f1 = wf(t1)
+            if u1 < 0.5 - f1 / 2 - 0.01 or u0 > 0.5 + f1 / 2 + 0.01:
+                continue
+            a1, b1, a0, b0 = Q(u0, t0), Q(u1, t0), Q(u0, t1), Q(u1, t1)
+            c = (a0 + a1 + b0 + b1) / 4
+            uu = ((b0 + b1) - (a0 + a1)) / 2
+            L = np.linalg.norm(uu)
+            if L < 1e-5:
+                continue
+            uu = uu / L
+            vp = ((a0 - a1) + (b0 - b1)) / 2
+            H = np.linalg.norm(vp)
+            if H < 1e-5:
+                continue
+            vv = norm(vp - np.dot(vp, uu) * uu)
+            nn = np.cross(uu, vv)
+            cube = add_cube(bone, "%s_%d_%d" % (name, i, j), c, np.column_stack([uu, vv, nn]), (L + overlap, H + overlap, th),
+                            {"all": None, "+3": region, "-3": region}, stretch=True, u_dir=uu, v_dir=vv)
+            ml.gn.set_sub(cube, (u0, t0, u1, t1))
+
+
+def pyramid_roof2(bone, name, eave, top, regions, sag=0.25, nx=4, ny=8, th=0.035, hang=None):
+    """pyramid_roof with straight radiating stripes: each face is lofted by trap_face (regions = (front/back region,
+    sides region) or 4 regions, each painted by trap_stripes with roof_wfrac(top width, bottom width) of its face).
+    Returns the faces' P(s, t) functions (as pyramid_roof)."""
+    eave = [v3(*p) for p in eave]
+    top = [v3(*p) for p in top]
+    if len(regions) == 2:
+        regions = [regions[0], regions[1], regions[0], regions[1]]
+    funcs = []
+    for k, (i, j) in enumerate([(0, 1), (1, 2), (2, 3), (3, 0)]):
+        a0, a1, b0, b1 = top[i], top[j], eave[i], eave[j]
+        nrm = norm(np.cross(b1 - b0, (a0 + a1) / 2 - b0))
+        inward = nrm if np.dot(nrm, UP) < 0 else -nrm
+        out = norm(((b0 + b1) / 2 - (a0 + a1) / 2) * v3(1, 0, 1))
+        W, w0 = np.linalg.norm(b1 - b0), np.linalg.norm(a1 - a0)
+
+        def P(s, t, a0=a0, a1=a1, b0=b0, b1=b1, inward=inward, out=out):
+            p = (a0 + (a1 - a0) * s) * (1 - t) + (b0 + (b1 - b0) * s) * t
+            sc = min(1.0, max(0.0, s))
+            # the cloth sags between the hips, less near the narrow top (where the pieces span the whole face)
+            taper = min(1.0, 1.6 * t) if w0 < 0.3 * W else 1.0
+            p = p + inward * (sag * math.sin(math.pi * t) * taper * math.sin(math.pi * sc))
+            p = p + out * (0.03 * t * t * math.sin(sc * math.pi * 4))
+            return p
+
+        def wf(t, W=W, w0=w0):
+            return (w0 + (W - w0) * t) / W
+        trap_face(bone, "%s_%d" % (name, k), P, wf, nx, ny, regions[k], th=th)
+        funcs.append(P)
+        if hang:
+            hh, hregs = hang
+            hr = hregs[k] if isinstance(hregs, (list, tuple)) else hregs
+
+            def Hh(s, t, b0=b0, b1=b1, out=out):
+                p = b0 + (b1 - b0) * s
+                return p - UP * (hh * t) + out * (0.04 * math.sin(math.pi * t) + 0.03 * math.sin(s * math.pi * 5) * t)
+            loft(bone, "%s_hang_%d" % (name, k), Hh, max(1, nx), 1, hr, th=0.025, overlap=0.02)
+    return funcs
+
+
+def roof_wfrac(top_w, bottom_w):
+    """wfrac(t) of a face whose top edge is top_w wide and bottom edge bottom_w wide (for trap_stripes)."""
+    return lambda t: (top_w + (bottom_w - top_w) * t) / bottom_w
