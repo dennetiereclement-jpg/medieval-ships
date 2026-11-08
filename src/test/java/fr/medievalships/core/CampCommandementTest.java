@@ -23,7 +23,7 @@ import fr.medievalships.client.model.BbModel;
 /**
  * The military command tent (camp militaire, 1.24.0): tents/tente_commandement.json read directly through
  * {@link TentType#load} (independent of its registration in {@link TentTypes}), written by
- * tools/tents/generate_tente_commandement.py. A big olive marquee (posts 9.8 x 11.8 blocks, ridge 6.6) with guy ropes,
+ * tools/tents/generate_tente_commandement.py. A big olive marquee (posts 9.8 x 11.8 blocks, ridge 6.9) with guy ropes,
  * anchor stones and the camp furniture outside; its posts and walls collide, the entrance is open, the aisle from the
  * entrance to the strategy table is walkable, four or more 1 x 1 x 2.2 spots inside are free for NPCs.
  */
@@ -32,7 +32,7 @@ public class CampCommandementTest {
 	private static final Path ASSETS = Path.of("src/main/resources/assets/medievalships");
 	/** The free NPC spots inside (x0, z0 of a 1 x 1 block square, 2.2 high), as the generator's NPC_SPOTS. */
 	private static final double[][] NPC_SPOTS = {{-3.5, 0.0}, {2.5, 0.0}, {-3.5, 2.5}, {2.5, 2.5}, {-0.5, -1.2}};
-	private static final double HW = 4.9, HD = 5.9, DOOR = 1.85;
+	private static final double HW = 4.9, HD = 5.9, DOOR = 2.2;
 
 	private static TentType tent() {
 		return TentType.load(ID, "tente de commandement militaire", "Military Command Tent");
@@ -65,7 +65,7 @@ public class CampCommandementTest {
 		// the marquee ~10.7 x 12.5 (cloth), plus the guy ropes, anchor stones and the camp furniture outside
 		assertTrue(e.width() > 10.5 && e.width() < 14.0, "width " + e.width());
 		assertTrue(e.depth() > 12.5 && e.depth() < 16.0, "depth " + e.depth());
-		assertTrue(e.height() > 7.0 && e.height() < 9.5, "height (ridge 6.6, flag pole above) " + e.height());
+		assertTrue(e.height() > 7.0 && e.height() < 9.5, "height (ridge 6.9, flag pole above) " + e.height());
 		assertTrue(e.z1() > HD + 1.5, "the camp table and crates stand in front of the entrance");
 	}
 

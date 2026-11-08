@@ -21,7 +21,7 @@ from galley_texture import fine_wood, polished_metal  # noqa: E402
 OLIVE = np.array((68, 82, 40), float)
 OLIVE_D = np.array((54, 66, 30), float)
 OLIVE_L = np.array((84, 98, 48), float)
-CAMO = [np.array(c, float) for c in ((92, 98, 46), (150, 134, 82), (192, 174, 118), (220, 206, 160))]
+CAMO = [np.array(c, float) for c in ((66, 76, 32), (104, 106, 48), (156, 136, 76), (200, 176, 110))]
 GOLD = (222, 176, 64)
 GOLD_D = (136, 94, 26)
 GREEN = np.array((50, 78, 34), float)
@@ -60,13 +60,20 @@ def olive(w, h, rng):
     return weave(arr)
 
 
-def camo(w, h, rng, block=2, beige=0.0):
-    """Blocky beige / khaki / olive camouflage (pixel blocks of `block` px); beige > 0 shifts it towards the beiges."""
-    n = 0.65 * vnoise(w, h, 6, rng) + 0.35 * vnoise(w, h, 3, rng) + beige
+def camo(w, h, rng, block=3, beige=0.0):
+    """Blocky, stepped tan / khaki / olive camouflage (flat pixel blocks of `block` px, the picture's "digital" camo);
+    beige > 0 shifts it towards the tans."""
+    n = 0.62 * vnoise(w, h, 2.6 * block, rng) + 0.38 * vnoise(w, h, 1.3 * block, rng) + beige
     n = n[::block, ::block].repeat(block, 0).repeat(block, 1)[:h, :w]
-    arr = np.select([(n < 0.36)[:, :, None], (n < 0.52)[:, :, None], (n < 0.72)[:, :, None]], CAMO[:3], CAMO[3])
-    arr = arr + rng.integers(-5, 6, (h, w, 1))
-    return weave(arr, 0.03)
+    arr = np.select([(n < 0.36)[:, :, None], (n < 0.5)[:, :, None], (n < 0.64)[:, :, None]], CAMO[:3], CAMO[3])
+    arr = arr + rng.integers(-3, 4, (h, w, 1))
+    return weave(arr, 0.025)
+
+
+def jag(n, block, amp, rng):
+    """A stepped edge offset: one random value in {0, block, ..., amp} per `block` px, length n."""
+    steps = rng.integers(0, amp // block + 1, n // block + 2) * block
+    return steps.repeat(block)[:n]
 
 
 def put(img, arr, alpha=None):
@@ -94,29 +101,30 @@ def roof_painter(seed, rafters_s, end_band=14, eave_band=16):
             m = (u >= a) & (u <= b)
             bayk[m] = np.sin(np.pi * (u[m] - a) / (b - a))
         mid = np.sin(np.pi * v)
-        arr *= (1.06 - 0.16 * bayk[None, :] * (0.4 + 0.6 * mid[:, None]))[:, :, None]
+        arr *= (1.08 - 0.22 * bayk[None, :] * (0.4 + 0.6 * mid[:, None]))[:, :, None]
         # folds: dark streaks fanning down from the rafters into the sag
         for a in rafters_s:
             for k, du in enumerate((-0.05, -0.025, 0.025, 0.05)):
                 for y in range(h):
                     x = int((a + du * (0.3 + 1.2 * v[y]) * (1 + 0.15 * k)) * w)
-                    if 0 <= x < w - 1:
-                        arr[y, x] *= 0.86
-                        arr[y, x + 1] *= 1.05
+                    if 0 <= x < w - 2:
+                        arr[y, x] *= 0.78
+                        arr[y, x + 1] *= 0.9
+                        arr[y, x + 2] *= 1.08
         # seams down the slope, every ~40 px
         for x in range(20, w, 40):
             arr[:, x] *= 0.82
             arr[:, (x + 2) % w] *= 0.88
         # camo bands: ends and eave, a dark line on their inner edge
-        band = camo(w, h, rng)
+        band = camo(w, h, rng, block=4, beige=0.05)
         m = np.zeros((h, w), bool)
-        m[:, :end_band] = True
-        m[:, w - end_band:] = True
-        m[h - eave_band:, :] = True
+        jf, jb, je = jag(h, 4, 12, rng), jag(h, 4, 12, rng), jag(w, 4, 8, rng)
+        for y in range(h):
+            m[y, :end_band - 6 + jf[y]] = True
+            m[y, w - end_band + 6 - jb[y]:] = True
+        for x in range(w):
+            m[h - eave_band + 2 - je[x]:, x] = True
         arr = np.where(m[:, :, None], band, arr)
-        arr[:, end_band] *= 0.7
-        arr[:, w - end_band - 1] *= 0.7
-        arr[h - eave_band - 1, :] *= 0.7
         arr[:2, :] *= 0.75   # the ridge
         put(img, arr)
     return paint
@@ -129,6 +137,7 @@ def wall_painter(seed, folds=12):
         rng = np.random.default_rng(seed)
         w, h = img.size
         arr = olive(w, h, rng)
+        arr = arr * 0.45 + OLIVE * (0.92 + 0.16 * vnoise(w, h, 14, rng))[:, :, None] * 0.55   # calmer mottling than the roof
         x = np.arange(w)
         ph = rng.random() * 6
         f = np.sin(2 * np.pi * x * folds / w + ph) + 0.4 * np.sin(2 * np.pi * x * folds * 2.3 / w)
@@ -150,7 +159,8 @@ def gable_painter(seed, half_w, y0, y1, roof_y):
         rng = np.random.default_rng(seed)
         w, h = img.size
         arr = olive(w, h, rng)
-        band = camo(w, h, rng)
+        band = camo(w, h, rng, block=4, beige=0.05)
+        jg = jag(w, 4, 8, rng)
         alpha = np.full((h, w), 255.0)
         for x in range(w):
             X = -half_w + 2 * half_w * (x + 0.5) / w
@@ -162,10 +172,8 @@ def gable_painter(seed, half_w, y0, y1, roof_y):
                     alpha[y, x] = 0
                 elif d < 1.5:
                     arr[y, x] *= 0.6
-                elif d < 7:
+                elif d < 9 + jg[x]:
                     arr[y, x] = band[y, x]
-                elif d < 8:
-                    arr[y, x] *= 0.7
         arr[h - 3:, :] *= 0.8
         put(img, arr, alpha)
     return paint
