@@ -148,6 +148,23 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.25.0 ajoute **un camp militaire**, quatre objets posés d'un clic droit (un bloc = tout le modèle) :
+
+- **Pieu défensif** — `/give @p medievalships:pieu_defensif` (onglet « Décorations ») : un seul pieu taillé incliné,
+  bande de fer, tissu rouge, pointe de bois clair, planté la pointe vers l'extérieur du camp ; sa pointe blesse
+  (4 points de vie) et repousse les mobs hostiles qui la touchent, au plus une fois par seconde par mob (jamais les
+  villageois, PNJ ni animaux ; les joueurs seulement si `"stake": {"damagePlayers": true}` dans
+  `config/medievalships.json`).
+- **Tente militaire** — `/give @p medievalships:tente_militaire` (onglet « Tentes ») : tente à faîtage en toile olive
+  camouflée, fenêtre à croisillons, bannière à l'épée d'or, lit de camp, table aux cartes, sacs de jute.
+- **Tente de commandement militaire** — `/give @p medievalships:tente_commandement` : grand chapiteau aux bandes
+  camouflage, trois bannières aux épées croisées, fanion, table de stratégie, bibliothèques, heaume et roue dehors.
+- **Tente marchande** — `/give @p medievalships:tente_marchande` : pavillon à rayures rouges et crème, lambrequin
+  doré, deux auvents, comptoir, étagères de potions, place libre pour un marchand EasyNPC.
+
+Voir [docs/DECORATIONS.md](docs/DECORATIONS.md#pieu-défensif-1250) et
+[docs/TENTES.md](docs/TENTES.md#camp-militaire-1250).
+
 La version 1.24.0 ajoute le **pont-levis automatique à deux vantaux** : un pont déjà construit (tours, travée entre les
 berges) voit **uniquement les deux moitiés de son tablier** devenir mobiles. Elles pivotent vers le haut depuis leur
 charnière côté rive, ensemble, quand un bateau **qui ne passe pas dessous** arrive à 50 blocs d'un côté **ou** de
@@ -456,7 +473,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.24.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.25.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation

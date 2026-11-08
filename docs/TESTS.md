@@ -17,6 +17,19 @@ Le test (`src/gametest/.../ShipClientGameTest.java`) crée un monde, des bassins
 à l'eau puis vérifie (résultats et captures publiés sur les branches `test-results-vanilla` et
 `test-results-lithium`) :
 
+### Camp militaire (pieu défensif et trois tentes) — 1.25.0
+
+`StakeGameTest` (appelé par `ShipClientGameTest`) : pieu posé par `/deco place` (bloc, orientation, ticker serveur pour
+lui seul, le tronc collisionne) ; un zombie (NoAI) à la pointe est blessé en moins de 10 ticks et repoussé vers
+l'extérieur, pas de nouveau coup avant le délai, un coup après ; un zombie au pied, un contre le flanc du tronc et un
+villageois à la pointe ne sont jamais blessés ; le joueur de test en survie (sa Résistance retirée le temps de
+l'essai) n'est pas blessé par défaut, l'est avec `damagePlayers = true` (réglage rétabli) ; trois pieux côte à côte
+se posent ; un pieu cassé rend son objet ; captures. `TentGameTest` pose chacune des trois tentes du camp
+(`tente_militaire`, `tente_commandement`, `tente_marchande`) et met un villageois sur une place PNJ libre, hors de
+toute boîte de collision ; `DecorationGameTest` attend 9 décorations. JUnit `StakeTest`, `CampMilitaireTest`,
+`CampCommandementTest`, `CampMarchandeTest`. Voir [DECORATIONS.md](DECORATIONS.md#pieu-défensif-1250) et
+[TENTES.md](TENTES.md#camp-militaire-1250).
+
 ### Pont-levis automatique — 1.24.0
 
 `DrawbridgeGameTest` (joué par le vrai client, en solo **avec redémarrage du monde** puis sur serveur dédié) construit par

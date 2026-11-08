@@ -4,14 +4,16 @@ import java.util.List;
 
 
 /**
- * The twenty-two tents (six camp tents, sixteen merchant tents), the eight carts and the nomad tavern, the eight crafting
+ * The twenty-five tents (six camp tents, sixteen merchant tents, the three military camp tents of 1.25.0), the eight carts
+ * and the nomad tavern, the eight crafting
  * workshops (the jeweller's workbench of 1.22.0 the eighth), the three training areas and the medieval cannon. One line per prop: its id (block, item, model, decor and
  * tents / carts / workshops / artillery JSON are all named after it) and its names. {@link #ALL} = the tents only (their tab "Tentes": the six camp tents, the six
  * {@link #MERCHANTS}, the five {@link #MERCHANTS2}, the two {@link #MERCHANTS3}, the two {@link #MERCHANTS4}, then the jeweller's
  * {@link #MERCHANTS5}),
  * {@link #CARTS} = the carts (tab "Charrettes"), {@link #WORKSHOPS} = the workshops (tab "Ateliers"),
  * {@link #ARTILLERY} = the cannon (tab "Artillerie"), {@link #TRAINING} = the training areas (tab "Entraînement"),
- * {@link #DECORATIONS} = the eight street decorations (tab "Décorations", 1.20.0), {@link #PROPS} = all six (registration,
+ * {@link #DECORATIONS} = the eight street decorations (tab "Décorations", 1.20.0) and the defensive stake (1.25.0),
+ * {@link #CAMP_TENTS} = the military camp tents (1.25.0, in {@link #ALL}), {@link #PROPS} = all six families (registration,
  * commands, models).
  */
 public final class TentTypes {
@@ -62,12 +64,22 @@ public final class TentTypes {
 	 */
 	public static final List<TentType> MERCHANTS5 = List.of(MERCHANT_JEWELLER);
 
+	public static final TentType CAMP_MILITARY = TentType.load("tente_militaire", "tente militaire", "Military Tent");
+	public static final TentType CAMP_COMMAND = TentType.load("tente_commandement", "tente de commandement militaire", "Military Command Tent");
+	public static final TentType CAMP_MERCHANT = TentType.load("tente_marchande", "tente marchande", "Merchant Tent");
+	/**
+	 * The military camp (1.25.0): the olive-green military ridge tent, the big command marquee and the striped merchant
+	 * pavilion, group "tents", each with its own generator (tools/tents/generate_&lt;id&gt;.py) and atlas. New models,
+	 * different from the older tent_command and tent_market.
+	 */
+	public static final List<TentType> CAMP_TENTS = List.of(CAMP_MILITARY, CAMP_COMMAND, CAMP_MERCHANT);
+
 	/**
 	 * The tents only (tab "Tentes"): the six camp tents, the six merchant tents, the five of 1.15.0, the two of 1.16.0,
-	 * the two of 1.17.0, then the jeweller's of 1.21.0.
+	 * the two of 1.17.0, the jeweller's of 1.21.0, then the three military camp tents of 1.25.0.
 	 */
 	public static final List<TentType> ALL = java.util.stream.Stream.of(List.of(COMMAND, ADVENTURER, MARKET, CAMP, DWELLING, CHIEF), MERCHANTS,
-			MERCHANTS2, MERCHANTS3, MERCHANTS4, MERCHANTS5).flatMap(List::stream).toList();
+			MERCHANTS2, MERCHANTS3, MERCHANTS4, MERCHANTS5, CAMP_TENTS).flatMap(List::stream).toList();
 
 	public static final TentType CART_COVERED_WHITE = cart("cart_covered_white", "charrette couverte blanche", "White Covered Wagon");
 	public static final TentType CART_HAY = cart("cart_hay", "charrette de foin", "Hay Cart");
@@ -144,9 +156,15 @@ public final class TentTypes {
 	public static final TentType DECO_LANTERN = decoration("deco_lanterne", "lanterne suspendue", "Hanging Lantern", false, false);
 	public static final TentType DECO_BANNER = decoration("deco_banniere", "bannière de la Couronne", "Crown Banner", false, false);
 	public static final TentType DECO_SHADE = decoration("deco_ombrage", "toiles d'ombrage", "Shade Sails", false, true);
-	/** The street decorations (tab "Décorations"), in the order of the reference sheet. */
+	/**
+	 * The defensive stake (1.25.0): one sharpened stake leaning about 40 degrees, its point away from the player who
+	 * planted it (tools/deco/generate_pieu_defensif.py, its own atlas textures/entity/pieu_defensif.png); its JSON
+	 * {@link TentType#hazard() hazard} (the point) hurts the hostile mobs that touch it: the only prop with a server ticker.
+	 */
+	public static final TentType STAKE = decoration("pieu_defensif", "pieu défensif", "Defensive Stake", true, false);
+	/** The street decorations (tab "Décorations"), in the order of the reference sheet, then the defensive stake (1.25.0). */
 	public static final List<TentType> DECORATIONS = List.of(DECO_BUNTING, DECO_CLOTHESLINE, DECO_DRAPERY, DECO_NET, DECO_HERBS, DECO_LANTERN,
-			DECO_BANNER, DECO_SHADE);
+			DECO_BANNER, DECO_SHADE, STAKE);
 
 	/** Every one-block prop: the tents, then the carts, the workshops, the training areas, the decorations, the artillery (last). */
 	public static final List<TentType> PROPS = java.util.stream.Stream.of(ALL, CARTS, WORKSHOPS, TRAINING, DECORATIONS, ARTILLERY)
@@ -183,7 +201,8 @@ public final class TentTypes {
 			if (t.id().equals(s) || t.id().equals("tent_" + s) || t.id().equals("tente_" + s) || t.id().equals("cart_" + s)
 					|| t.id().equals("workshop_" + s) || t.id().equals("canon_" + s) || t.id().equals("training_area_" + s)
 					|| t.id().equals("deco_" + s)
-					|| t.isCannon() && (s.equals("canon") || s.equals("cannon")) || t == TAVERN && (s.equals("taverne") || s.equals("tavern"))) {
+					|| t.isCannon() && (s.equals("canon") || s.equals("cannon")) || t == TAVERN && (s.equals("taverne") || s.equals("tavern"))
+					|| t == STAKE && (s.equals("pieu") || s.equals("stake"))) {
 				return t;
 			}
 		}

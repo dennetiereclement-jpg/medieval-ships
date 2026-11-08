@@ -55,6 +55,11 @@ import com.google.gson.JsonParser;
  * shade sails, files {@code assets/medievalships/decorations/<id>.json} (written by {@code tools/deco/generate_<id>.py}
  * on {@code tools/deco/decolib.py}), one shared atlas {@code textures/entity/decorations.png}, plus the optional
  * {@code "light"} (0-15, {@link #light()}): the luminance of the anchor block, lit by the vanilla light engine.
+ *
+ * <p>A prop may hurt (1.25.0, the defensive stake {@code pieu_defensif}): the optional JSON {@code "hazard"}
+ * ({@link Hazard}: a box in prop-local blocks, turned with the facing like the collision boxes, plus the model's damage,
+ * knockback and cooldown). Only the props with a hazard get a server ticker (the hostile mobs touching the box are hurt
+ * and pushed outward); every other prop stays without ticker.
  */
 public final class TentType {
 	/**
@@ -90,6 +95,31 @@ public final class TentType {
 			return new Muzzle(p[0], y, p[1], d[0], dy, d[1]);
 		}
 	}
+
+	/**
+	 * The dangerous part of a prop (1.25.0, JSON {@code "hazard": {"box": [x0, y0, z0, x1, y1, z1], "damage": 4.0,
+	 * "knockback": 0.4, "cooldown": 20}}): the defensive stake's point. The box is prop-local (facing south like everything
+	 * in the JSON) and turns with the facing ({@link #rotate(int)}); (dirX, dirZ) is the horizontal unit direction the
+	 * point aims at (from the anchor to the box's centre), along which a hurt mob is pushed. Damage (half hearts),
+	 * knockback (vanilla strength) and cooldown (ticks between two hits on the same entity) are the model's defaults; the
+	 * server config ({@link StakeSettings}) overrides them for the whole server.
+	 */
+	public record Hazard(Box box, double damage, double knockback, int cooldown, double dirX, double dirZ) {
+		/** The hazard turned by quarter turns (box and direction alike). */
+		public Hazard rotate(int quarter) {
+			double[] d = TentType.rotate(dirX, dirZ, quarter);
+			return new Hazard(TentType.rotate(box, quarter), damage, knockback, cooldown, d[0], d[1]);
+		}
+
+		/** Is a prop-local point inside the box (bounds included)? */
+		public boolean contains(double x, double y, double z) {
+			return x >= box.x0() && x <= box.x1() && y >= box.y0() && y <= box.y1() && z >= box.z0() && z <= box.z1();
+		}
+	}
+
+	/** Bounds of a hazard's values read from the JSON: damage (half hearts), knockback (vanilla strength), cooldown (ticks). */
+	public static final double MAX_HAZARD_DAMAGE = 100.0, MAX_HAZARD_KNOCKBACK = 4.0;
+	public static final int MIN_HAZARD_COOLDOWN = 1, MAX_HAZARD_COOLDOWN = 1200;
 
 	/** The particle types a prop's JSON may name (vanilla ids, {@code minecraft:} optional). */
 	public static final List<String> PARTICLE_TYPES = List.of("flame", "smoke", "campfire_smoke", "enchant", "witch", "portal", "end_rod",
@@ -151,6 +181,8 @@ public final class TentType {
 	private boolean plural;
 	/** A workshop's profession id (JSON "profession", 1.22.0; default: the id without "workshop_"); null for the other props. */
 	private String profession;
+	/** The hazard turned to each facing (index = quarter turns), or all null for a prop that hurts nobody (1.25.0). */
+	private final Hazard[] rotatedHazard = new Hazard[4];
 	/** The interactive training targets (JSON "targets", 1.19.0) turned to each facing (index = quarter turns); empty lists for most props. */
 	private List<List<TrainingTarget>> targets = List.of(List.of(), List.of(), List.of(), List.of());
 
@@ -303,6 +335,62 @@ public final class TentType {
 		return rotatedMuzzle[quarter & 3];
 	}
 
+	/** The hazard (facing south), or null: only the defensive stake has one (1.25.0). */
+	public Hazard hazard() {
+		return rotatedHazard[0];
+	}
+
+	/** The hazard turned to a facing, or null. */
+	public Hazard hazard(int quarter) {
+		return rotatedHazard[quarter & 3];
+	}
+
+	/** Does this prop hurt (a hazard in its JSON)? Only those get a server ticker. */
+	public boolean hasHazard() {
+		return rotatedHazard[0] != null;
+	}
+
+	/**
+	 * Reads the JSON's {@code "hazard"}: null when absent, not an object or without a six-number {@code "box"}; the box's
+	 * corners are sorted, damage clamped to 0-{@link #MAX_HAZARD_DAMAGE} (default 4), knockback to
+	 * 0-{@link #MAX_HAZARD_KNOCKBACK} (default 0.4), cooldown to {@link #MIN_HAZARD_COOLDOWN}-{@link #MAX_HAZARD_COOLDOWN}
+	 * ticks (default 20); the direction points from the anchor to the box's centre, horizontally (towards -z, the back,
+	 * when the box is centred on the anchor).
+	 */
+	static Hazard parseHazard(JsonObject root) {
+		if (!root.has("hazard") || !root.get("hazard").isJsonObject()) {
+			return null;
+		}
+		JsonObject o = root.getAsJsonObject("hazard");
+		if (!o.has("box") || !o.get("box").isJsonArray() || o.getAsJsonArray("box").size() != 6) {
+			return null;
+		}
+		JsonArray a = o.getAsJsonArray("box");
+		double[] v = new double[6];
+		for (int i = 0; i < 6; i++) {
+			if (!a.get(i).isJsonPrimitive() || !a.get(i).getAsJsonPrimitive().isNumber()) {
+				return null;
+			}
+			v[i] = a.get(i).getAsDouble();
+		}
+		Box box = new Box(Math.min(v[0], v[3]), Math.min(v[1], v[4]), Math.min(v[2], v[5]), Math.max(v[0], v[3]), Math.max(v[1], v[4]),
+				Math.max(v[2], v[5]));
+		double damage = clamp(number(o, "damage", 4.0), 0.0, MAX_HAZARD_DAMAGE, 4.0);
+		double knockback = clamp(number(o, "knockback", 0.4), 0.0, MAX_HAZARD_KNOCKBACK, 0.4);
+		int cooldown = (int) Math.round(clamp(number(o, "cooldown", 20), MIN_HAZARD_COOLDOWN, MAX_HAZARD_COOLDOWN, 20));
+		double cx = (box.x0() + box.x1()) / 2, cz = (box.z0() + box.z1()) / 2, len = Math.hypot(cx, cz);
+		double dx = len < 1e-6 ? 0 : cx / len, dz = len < 1e-6 ? -1 : cz / len;
+		return new Hazard(box, damage, knockback, cooldown, dx, dz);
+	}
+
+	private static double number(JsonObject o, String key, double fallback) {
+		return o.has(key) && o.get(key).isJsonPrimitive() && o.get(key).getAsJsonPrimitive().isNumber() ? o.get(key).getAsDouble() : fallback;
+	}
+
+	private static double clamp(double v, double lo, double hi, double ifNaN) {
+		return Double.isNaN(v) ? ifNaN : Math.max(lo, Math.min(hi, v));
+	}
+
 	/** The atlas of the model, relative to {@code assets/medievalships/} ({@code textures/entity/tents.png} or {@code carts.png}). */
 	public String texture() {
 		return texture;
@@ -447,6 +535,10 @@ public final class TentType {
 		TentType type = new TentType(group, texture, id, frenchName, englishName, model, decor, extent, colliders, particles, muzzle);
 		type.targets = TrainingTarget.parseAll(root);
 		type.light = parseLight(root);
+		Hazard hazard = parseHazard(root);
+		for (int q = 0; q < 4; q++) {
+			type.rotatedHazard[q] = hazard == null ? null : hazard.rotate(q);
+		}
 		type.profession = WORKSHOPS.equals(group) ? parseProfession(id, root) : null;
 		return type.withSeats(parseSeats(root));
 	}

@@ -76,6 +76,88 @@ public final class TentGameTest {
 	/** Places one tent facing south on the platform, checks block, facing, block entity, one collision box, one shot, removes it. */
 	private static void quick(TentType type, ClientGameTestContext context, TestServerContext server, TestClientWorldContext world,
 			BiConsumer<Boolean, String> check, Consumer<String> shot) {
+		quick(type, context, server, world, check, shot, null);
+	}
+
+	/**
+	 * A free NPC spot inside a tent (prop-local, facing south): the centre of a 1 x 1 x 2.2 column standing on the ground
+	 * inside the extent (0.8 from its sides), off the anchor block, clear of every collision box; the nearest to the
+	 * extent's centre on a quarter-block grid, or null.
+	 */
+	static double[] npcSpot(TentType type) {
+		TentType.Box e = type.extent(TentType.SOUTH);
+		double cx = (e.x0() + e.x1()) / 2, cz = (e.z0() + e.z1()) / 2;
+		double[] best = null;
+		double bestD = Double.MAX_VALUE;
+		for (double x = e.x0() + 0.8; x <= e.x1() - 0.8; x += 0.25) {
+			for (double z = e.z0() + 0.8; z <= e.z1() - 0.8; z += 0.25) {
+				if (Math.abs(x) < 0.85 && Math.abs(z) < 0.85) {
+					continue; // the anchor block (its thin floor collides)
+				}
+				boolean free = true;
+				for (TentType.Box b : type.colliders(TentType.SOUTH)) {
+					if (x + 0.5 > b.x0() && x - 0.5 < b.x1() && z + 0.5 > b.z0() && z - 0.5 < b.z1() && 2.2 > b.y0() && 0.0 < b.y1()) {
+						free = false;
+						break;
+					}
+				}
+				double d = Math.hypot(x - cx, z - cz);
+				if (free && d < bestD) {
+					bestD = d;
+					best = new double[] {x, z};
+				}
+			}
+		}
+		return best;
+	}
+
+	/**
+	 * The military camp tents (1.25.0): once each like {@link #quick}, plus a villager (NoAI) put on a free NPC spot inside
+	 * ({@link #npcSpot}) is not inside any collision box in game (the mixin's path) and stays where it was put.
+	 */
+	private static void camp(TentType type, ClientGameTestContext context, TestServerContext server, TestClientWorldContext world,
+			BiConsumer<Boolean, String> check, Consumer<String> log, Consumer<String> shot) {
+		String id = type.id();
+		BlockPos a = anchor();
+		double[] spot = npcSpot(type);
+		check.accept(spot != null, id + " has a free NPC spot inside (1 x 1 x 2.2, clear of every collision box)");
+		Runnable villager = spot == null ? null : () -> {
+			double vx = a.getX() + 0.5 + spot[0], vz = a.getZ() + 0.5 + spot[1];
+			java.util.UUID uuid = server.computeOnServer(srv -> {
+				ServerWorld w = srv.getOverworld();
+				var v = net.minecraft.entity.EntityType.VILLAGER.create(w, net.minecraft.entity.SpawnReason.COMMAND);
+				if (v == null) {
+					return null;
+				}
+				v.setAiDisabled(true);
+				v.setSilent(true);
+				v.refreshPositionAndAngles(vx, a.getY(), vz, 0f, 0f);
+				w.spawnEntity(v);
+				return v.getUuid();
+			});
+			context.waitTicks(10);
+			double[] r = server.computeOnServer(srv -> {
+				ServerWorld w = srv.getOverworld();
+				var v = uuid == null ? null : w.getEntity(uuid);
+				if (v == null) {
+					return null;
+				}
+				java.util.List<net.minecraft.util.shape.VoxelShape> out = new java.util.ArrayList<>();
+				TentCollisions.append(out, v, v.getBoundingBox().contract(0.02), w);
+				double[] res = {out.size(), v.getX() - vx, v.getY() - a.getY(), v.getZ() - vz};
+				v.discard();
+				return res;
+			});
+			log.accept(String.format(Locale.ROOT, "%s NPC spot (%.2f, %.2f): %s", id, spot[0], spot[1], r == null ? "no villager"
+					: String.format(Locale.ROOT, "%d shape(s), moved %.2f %.2f %.2f", (int) r[0], r[1], r[2], r[3])));
+			check.accept(r != null && r[0] == 0, id + " a villager on its NPC spot is not inside any collision box");
+			check.accept(r != null && Math.abs(r[1]) < 0.1 && Math.abs(r[2]) < 0.1 && Math.abs(r[3]) < 0.1, id + " the villager stays on its NPC spot");
+		};
+		quick(type, context, server, world, check, shot, villager);
+	}
+
+	private static void quick(TentType type, ClientGameTestContext context, TestServerContext server, TestClientWorldContext world,
+			BiConsumer<Boolean, String> check, Consumer<String> shot, Runnable extra) {
 		String id = type.id();
 		BlockPos a = anchor();
 		int before = server.computeOnServer(srv -> TentCollisions.count(srv.getOverworld()));
@@ -105,6 +187,9 @@ public final class TentGameTest {
 			return out.size();
 		});
 		check.accept(hits >= 1, id + " a collision query on its first solid box finds it (" + hits + " shape(s))");
+		if (extra != null) {
+			extra.run();
+		}
 		// one screenshot from the front-left, above
 		TentType.Box e = type.extent(TentType.SOUTH);
 		double cx = a.getX() + 0.5, cz = a.getZ() + 0.5;
@@ -204,8 +289,10 @@ public final class TentGameTest {
 				"the jeweller's tent of 1.21.0 is placed once below (" + TentTypes.MERCHANTS5.size() + ")");
 		check.accept(TentTypes.TRAINING.size() == 3, "the three training areas of 1.18.0 are placed once each below (" + TentTypes.TRAINING.size()
 				+ ")");
+		check.accept(TentTypes.ALL.containsAll(TentTypes.CAMP_TENTS) && TentTypes.CAMP_TENTS.size() == 3,
+				"the three military camp tents of 1.25.0 are placed once each below, with a villager on an NPC spot (" + TentTypes.CAMP_TENTS.size() + ")");
 		for (TentType t : java.util.stream.Stream.of(TentTypes.MERCHANTS, TentTypes.MERCHANTS2, TentTypes.MERCHANTS3, TentTypes.MERCHANTS4,
-				TentTypes.MERCHANTS5, TentTypes.TRAINING, TentTypes.ARTILLERY)
+				TentTypes.MERCHANTS5, TentTypes.CAMP_TENTS, TentTypes.TRAINING, TentTypes.ARTILLERY)
 				.flatMap(java.util.List::stream).toList()) {
 			TentType.Box e = t.extent(TentType.SOUTH);
 			check.accept(e.x0() > -14 && e.x1() < 14 && e.z0() > -14 && e.z1() < 14 && e.y1() < 12,
@@ -223,7 +310,9 @@ public final class TentGameTest {
 		check.accept((Integer) b0[2] >= 1, id + " registered its collision boxes (" + b0[2] + " tent(s) in the registry)");
 		if (!Boolean.TRUE.equals(b0[0])) {
 			for (TentType t : TentTypes.ALL) {
-				if (t != TYPE) {
+				if (TentTypes.CAMP_TENTS.contains(t)) {
+					camp(t, context, server, world, check, log, shot);
+				} else if (t != TYPE) {
 					quick(t, context, server, world, check, shot);
 				}
 			}
@@ -291,7 +380,9 @@ public final class TentGameTest {
 		check.accept((Integer) b2[2] == (Integer) b0[2] - 1, id + " its collision boxes are forgotten (" + b2[2] + " tent(s) left)");
 		// the other tents (camp tents, the merchant tents of 1.14.0 - 1.17.0, the jeweller's of 1.21.0), once each
 		for (TentType t : TentTypes.ALL) {
-			if (t != TYPE) {
+			if (TentTypes.CAMP_TENTS.contains(t)) {
+				camp(t, context, server, world, check, log, shot);
+			} else if (t != TYPE) {
 				quick(t, context, server, world, check, shot);
 			}
 		}

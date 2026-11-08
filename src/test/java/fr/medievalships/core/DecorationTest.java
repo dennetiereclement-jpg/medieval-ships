@@ -34,12 +34,15 @@ import fr.medievalships.client.model.BbModel;
 public class DecorationTest {
 	private static final Path ASSETS = Path.of("src/main/resources/assets/medievalships");
 	private static final List<String> IDS = List.of("deco_guirlande", "deco_etendoir", "deco_draperie", "deco_filet", "deco_sechoir",
-			"deco_lanterne", "deco_banniere", "deco_ombrage");
+			"deco_lanterne", "deco_banniere", "deco_ombrage", "pieu_defensif");
+	/** The eight street decorations with posts (the defensive stake of 1.25.0, the ninth, has its own checks: StakeTest). */
+	private static final List<TentType> STREET = TentTypes.DECORATIONS.subList(0, 8);
 
 	@Test
 	void eightDecorationsInTheirOwnTab() {
-		assertEquals(8, TentTypes.DECORATIONS.size());
-		assertEquals(TentTypes.DECORATIONS, TentTypes.PROPS.subList(43, 51), "after the training areas, before the cannon");
+		assertEquals(9, TentTypes.DECORATIONS.size(), "the eight street decorations, then the defensive stake (1.25.0)");
+		assertSame(TentTypes.STAKE, TentTypes.DECORATIONS.get(8));
+		assertEquals(TentTypes.DECORATIONS, TentTypes.PROPS.subList(46, 55), "after the training areas, before the cannon");
 		assertSame(TentTypes.CANNON, TentTypes.PROPS.get(TentTypes.PROPS.size() - 1), "the artillery stays last");
 		for (int i = 0; i < IDS.size(); i++) {
 			TentType t = TentTypes.DECORATIONS.get(i);
@@ -49,7 +52,9 @@ public class DecorationTest {
 			assertFalse(t.isCart() || t.isWorkshop() || t.isCannon() || t.isTraining(), t.id());
 			assertFalse(TentTypes.ALL.contains(t), t.id() + " not in the tents' tab");
 			assertEquals("models/entity/" + t.id() + ".bbmodel", t.model());
-			assertEquals("textures/entity/decorations.png", t.texture(), t.id() + " the shared atlas");
+			assertEquals(t == TentTypes.STAKE ? "textures/entity/pieu_defensif.png" : "textures/entity/decorations.png", t.texture(),
+					t.id() + " the shared atlas (the stake: its own small one)");
+			assertEquals(t == TentTypes.STAKE, t.hasHazard(), t.id() + " only the stake hurts");
 			assertEquals(null, t.decor(), t.id() + " no furniture of the decoration mods");
 			assertEquals(null, t.muzzle(), t.id());
 			assertTrue(t.seats().isEmpty() && !t.hasTargets(), t.id());
@@ -97,7 +102,7 @@ public class DecorationTest {
 
 	@Test
 	void onlyThePostsCollideAsThinBoxes() {
-		for (TentType t : TentTypes.DECORATIONS) {
+		for (TentType t : STREET) {
 			TentType.Box e = t.extent();
 			List<TentType.Box> cs = t.colliders();
 			assertFalse(cs.isEmpty(), t.id() + " its posts collide");
@@ -117,7 +122,7 @@ public class DecorationTest {
 
 	@Test
 	void theWayBetweenThePostsIsFree() {
-		for (TentType t : TentTypes.DECORATIONS) {
+		for (TentType t : STREET) {
 			List<TentType.Box> posts = new ArrayList<>();
 			for (TentType.Box b : t.colliders()) {
 				// a post stands on the ground or on its stone footing (the hanging lantern's body is not a post)
@@ -184,6 +189,8 @@ public class DecorationTest {
 		for (TentType t : TentTypes.PROPS) {
 			if (t == TentTypes.MERCHANT_JEWELLER) {
 				assertEquals(12, t.light(), "the jeweller's tent (1.21.0) lights its stall (lanterns, glowing gems)");
+			} else if (TentTypes.CAMP_TENTS.contains(t)) {
+				assertTrue(t.light() >= 0 && t.light() <= TentType.MAX_LIGHT, t.id() + " the military camp (1.25.0): lit or not, its builder decides");
 			} else if (!t.isDecoration()) {
 				assertEquals(0, t.light(), t.id() + " the older props give no light");
 			}
