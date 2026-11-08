@@ -1,0 +1,114 @@
+{
+ "blocks": [
+  {
+   "block": "farmhouse_decorations:pile_of_books",
+   "x": 1.15,
+   "y": 1.0,
+   "z": -2.35,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_0"
+  },
+  {
+   "block": "farmhouse_decorations:kerosene_lantern",
+   "x": -1.05,
+   "y": 1.0,
+   "z": -2.1,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_1",
+   "glow": true,
+   "alt": "minecraft:lantern"
+  },
+  {
+   "block": "furnish:spruce_chair",
+   "x": 0.0,
+   "y": 0.0,
+   "z": -3.45,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_2"
+  },
+  {
+   "block": "furnish:spruce_stool",
+   "x": -1.95,
+   "y": 0.0,
+   "z": -2.1,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_3"
+  },
+  {
+   "block": "furnish:spruce_stool",
+   "x": 1.95,
+   "y": 0.0,
+   "z": -2.1,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_4"
+  },
+  {
+   "block": "farmhouse_decorations:tall_bookshelf",
+   "x": -2.7,
+   "y": 0.0,
+   "z": -5.28,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_5",
+   "alt": "minecraft:bookshelf"
+  },
+  {
+   "block": "farmhouse_decorations:tall_bookshelf",
+   "x": -1.7,
+   "y": 0.0,
+   "z": -5.28,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_6",
+   "alt": "minecraft:bookshelf"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": 2.3,
+   "y": 0.0,
+   "z": -5.25,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_7",
+   "alt": "minecraft:barrel"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": 3.35,
+   "y": 0.0,
+   "z": -5.25,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_8",
+   "alt": "minecraft:barrel"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": 3.35,
+   "y": 1.0,
+   "z": -5.25,
+   "yaw": 180.0,
+   "scale": 0.9,
+   "fallback": "fallback_9",
+   "alt": "minecraft:barrel"
+  },
+  {
+   "block": "furnish:spruce_crate",
+   "x": -4.2,
+   "y": 0.0,
+   "z": -3.4,
+   "yaw": 90.0,
+   "scale": 1.0,
+   "fallback": "fallback_10",
+   "alt": "minecraft:barrel"
+  }
+ ],
+ "seats": [],
+ "paintings": [],
+ "switches": []
+}
