@@ -48,7 +48,7 @@ NAVY, CREAM, GOLD = pb.NAVY, pb.CREAM, pb.GOLD
 HW, HD = 2.6, 2.3             # main posts
 EAVE = 3.42                   # eave beams (top)
 RW, RD, RY = 2.95, 2.65, 3.62   # roof eave corners
-RIDGE_X, RIDGE_Z, RIDGE_Y = 1.3, -1.05, 6.1
+RIDGE_X, RIDGE_Z, RIDGE_Y = 1.65, -1.05, 5.45
 POST_TOP = 4.05
 GALLOWS_TOP = 5.85
 AX = -4.7                     # left awning outer posts
@@ -203,6 +203,7 @@ def build(decor):
         pb.swag(det, "hip_rope_%d" % k, (sx * RIDGE_X, RIDGE_Y + 0.1, RIDGE_Z + 0.12), (sx * (HW + 0.05), POST_TOP - 0.1, HD + 0.05), sag=0.1, d=0.11,
                 segs=5, knots=True)
     pb.swag(det, "ridge_rope_l", (-RIDGE_X, RIDGE_Y + 0.1, RIDGE_Z), (AX, AY_OUT + 0.3, AZ0), sag=0.15, d=0.1, segs=5, knots=False)
+    pb.swag(det, "front_rope_l", (-HW - 0.05, POST_TOP - 0.15, HD + 0.05), (AX, AY_OUT + 0.3, AZ1 + 0.05), sag=0.2, d=0.1, segs=4, knots=True)
 
     # ---- the left awning: striped roof, valances, a cream cloth at its outer corner, capped posts, guy ropes
     for k, z in enumerate((AZ1, AZ0)):

@@ -26,8 +26,8 @@ import fr.medievalships.client.model.BbModel;
 /**
  * The market tents of group B (1.26.0, Lion Port blue and cream; tools/market/generate_tente_lion_drapee.py,
  * generate_tente_lion_chapiteau.py, generate_tente_balance_bleue.py on merchantlib + props_b): the draped lion tent (a
- * pointed four-sided roof with a flag pole, two side awnings, a plank floor), the royal lion marquee (a rounded two-tier
- * roof with a gold finial, a curtained left wing, the tall banner post) and the blue scales tent (a short ridge on two
+ * pointed four-sided roof with a flag pole, two side awnings, a plank floor), the royal lion marquee (one long rounded roof
+ * up to an oval crown with a gold finial, a curtained left part, the tall banner post) and the blue scales tent (a short ridge on two
  * ridge posts, a left awning, the gallows sign). Each one: its JSON loads with {@link TentType#load} (the registration in
  * TentTypes is the integrator's), its own atlas and light, the model loads, static, about 6-12 wide and deep and at most
  * about 10 high, at most about 1000 cubes, a bone "detail", lit lanterns; the posts collide, the entrance and the aisle in
@@ -48,7 +48,7 @@ public class MarketBTest {
 	private static final List<Spec> TENTS = List.of(
 			new Spec("tente_lion_drapee", "Tente drapée au lion", "Draped Lion Tent", 0.6, -1.98, -0.8, 1.2, -0.2, 8,
 					Set.of("furnish:spruce_crate", "farmersdelight:cabbage_crate", "farmersdelight:rice_bag")),
-			new Spec("tente_lion_chapiteau", "Chapiteau royal au lion", "Royal Lion Marquee", 0.0, -0.12, -0.9, 1.9, 1.65, 6,
+			new Spec("tente_lion_chapiteau", "Chapiteau royal au lion", "Royal Lion Marquee", 0.4, -0.12, 0.0, 2.4, 1.65, 5,
 					Set.of("furnish:spruce_crate", "farmhouse_decorations:pile_of_books")),
 			new Spec("tente_balance_bleue", "Tente bleue à la balance", "Blue Scales Tent", 0.0, 0.38, -0.5, 1.4, 2.15, 8,
 					Set.of("furnish:spruce_crate", "landsoficaria:cypress_barrel", "farmersdelight:cabbage_crate")));

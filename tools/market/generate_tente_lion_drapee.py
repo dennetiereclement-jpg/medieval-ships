@@ -54,14 +54,15 @@ RW, RD, RY = 3.12, 2.97, 3.62   # the main roof's eave corners (+-RW, RY, +-RD)
 APEX = 5.2
 AX = 4.9                     # outer posts of the awnings
 AZ0, AZ1 = -1.2, HD           # awnings from z = AZ0 to AZ1
-AY_IN, AY_OUT = 3.32, 2.7    # awning roof heights at the main post line and at the outer posts
+AY_IN, AY_OUT = 3.36, 2.92    # awning roof heights at the main post line and at the outer posts
 FLOOR = 0.08
 POLE_TOP = 7.45
 COUNTER = (0.0, 2.3, -0.9, -0.3)   # x0, x1, z0, z1
 COUNTER_H = 0.98
 NPC_SPOT = (0.6, -1.98)       # (x0, z0) of the merchant's free 1 x 1 x 2.2 place
 SHELF_Z = (-2.5, -2.05)
-STRIPES = 6
+STRIPES = 5
+AW_STRIPES = 4
 
 
 def paint_wall(img):
@@ -76,11 +77,11 @@ def paint_wall(img):
 
 def regions(atlas):
     own = [
-        ("d_roof", 32 * STRIPES, 80, pb.paint_roof(STRIPES, 9502)),
+        ("d_roof", 40 * STRIPES, 80, pb.paint_roof(STRIPES, 9502)),
         ("d_rug", 80, 128, pb.paint_rug(9503, "lion", faded=0.45)),
         ("d_banner", 48, 96, pb.paint_banner("lion", 9504)),
         ("d_wall", 96, 64, paint_wall),
-        ("d_awning", 32 * STRIPES, 48, pb.paint_roof(STRIPES, 9505, fold=0.12)),
+        ("d_awning", 40 * AW_STRIPES, 48, pb.paint_roof(AW_STRIPES, 9505, fold=0.12)),
         ("d_runner", 56, 48, pb.paint_runner("lion", 9506)),
         ("d_flag", 64, 32, pb.paint_flag(9507)),
         ("d_val", 192, 24, pb.paint_valance(8, 9508, cols=(CREAM, CREAM), shape="dag")),
@@ -202,10 +203,10 @@ def build(decor):
         def A(s, t, sx=sx, xo=xo):
             z = (AZ0 - 0.25) + (AZ1 - AZ0 + 0.62) * s
             x = sx * (HW + 0.02) + (xo - sx * (HW + 0.02)) * t
-            frac = (s * STRIPES) % 1.0
+            frac = (s * AW_STRIPES) % 1.0
             y = AY_IN + 0.04 - (AY_IN - AY_OUT + 0.08) * t - 0.1 * math.sin(math.pi * t) - 0.04 * math.sin(math.pi * frac)
             return v3(x, y, z)
-        loft(shell, "awning_%d" % k, (lambda s, t, A=A: A(1 - s, t)) if sx < 0 else A, STRIPES, 3, "d_awning", th=0.035, overlap=0.03)
+        loft(shell, "awning_%d" % k, (lambda s, t, A=A: A(1 - s, t)) if sx < 0 else A, AW_STRIPES, 3, "d_awning", th=0.035, overlap=0.03)
         yo = A(0, 1)[1]
         pb.valance(shell, "aw_val_front_%d" % k, (sx * (HW + 0.05), AY_IN - 0.02, AZ1 + 0.38), (xo, yo - 0.02, AZ1 + 0.38), Z, h=0.42,
                    region="d_val_aw", nx=2)
