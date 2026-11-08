@@ -54,7 +54,16 @@ suspendues), puis **n'utilise que les vraies commandes `/pontlevis`** :
 * **restauration et suppression** : `restaurer` remet planches et garde-corps, **les tours et la passerelle fixe
   sont intactes**, le pont n'est plus converti ; `supprimer` l'oublie.
 
-__RESULTATS__
+**Résultat (joué ici, vrai client 1.21.11 sous Xvfb, jar de production, sans Lithium) : 118 vérifications, toutes
+réussies** — 53 en solo, 9 après la réouverture du monde, 56 sur le serveur dédié. Mesures relevées : eau −49,11, dessous
+−44,94 (lanternes), largeur navigable 19, travée 5, charnières z −9 / 10 à y −44 ; galère de l'ouest : déclenchement à
+48,3 blocs de la proue, point le plus proche 4,1 blocs avant l'ouverture, vitesse nulle devant le tablier, 22 ticks dans le
+passage ; galère de l'est : 47,9 / 4,1 / 22 ticks. Ce test a trouvé et fait corriger trois défauts avant livraison : la
+détection ne tournait jamais (débordement d'un compteur initialisé à `Long.MIN_VALUE`), la vérification du volume balayé
+comptait la culée derrière la charnière (tout vrai pont aurait été refusé), et l'aperçu filaire plantait le client (format
+des lignes de 1.21.11 : largeur de ligne obligatoire). Il tourne aussi dans la tâche *In-game test* de GitHub Actions
+(sans et avec Lithium, avec les mods de décoration), à la suite des autres scénarios ; en local,
+`./gradlew runProductionClientGameTest -PgametestOnly=drawbridge` ne joue que lui (≈ 9 min).
 
 Tests unitaires (`LeafGeometryTest`, `ChannelZonesTest`, `GaugeAndCycleTest`, 19 tests, Java pur) : repère et
 rotation des vantaux (le bout libre monte, axe de rendu `v × up`, vantail de l'autre rive symétrique), boîtes fermées

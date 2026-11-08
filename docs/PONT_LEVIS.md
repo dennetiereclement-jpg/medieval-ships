@@ -10,6 +10,20 @@ superstructure, occupants), pas de son nom. Les tours, berges et passerelles fix
 Tout est dans le mod existant (aucune dépendance de plus) et réutilise ses mécanismes : registre des navires,
 collisions injectées dans le moteur vanilla (et Lithium), pilote automatique, géométrie des coques.
 
+![Le pont du test en jeu, ouvert, une galère dans le passage](pont_levis_passage.png)
+
+*Le pont du test en jeu (canal, quatre tours, passerelle fixe en hauteur) ouvert à 80°, une galère sur son pilote
+automatique dans le passage ; la ligne de débogage montre l'état, l'angle et le navire pris en compte.*
+
+![L'aperçu de l'administrateur](pont_levis_apercu.png)
+
+*`/pontlevis <id> apercu on` : arcs balayés et vantaux levés (orange), barrières (rouge), zones d'approche des deux
+côtés du chenal (cyan), passage (rouge), hauteur libre (violet).*
+
+![La barrière au bout de la berge pendant la montée](pont_levis_barriere.png)
+
+*Pendant la montée, un joueur qui avance depuis la berge est arrêté au bout de celle-ci, devant le vantail qui se dresse.*
+
 ## Comment ça marche
 
 * **Fermé** : le tablier est fait de **ses vrais blocs**, exactement ceux de votre construction (on marche dessus,
