@@ -1,0 +1,46 @@
+{
+ "blocks": [
+  {
+   "block": "furnish:spruce_crate",
+   "x": -4.55,
+   "y": 0.0,
+   "z": 1.1,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_0",
+   "alt": "minecraft:barrel"
+  },
+  {
+   "block": "farmersdelight:rice_bag",
+   "x": -4.45,
+   "y": 0.0,
+   "z": 0.0,
+   "yaw": 180.0,
+   "scale": 1.0,
+   "fallback": "fallback_1"
+  },
+  {
+   "block": "furnish:oak_crate",
+   "x": 3.55,
+   "y": 0.0,
+   "z": 2.0,
+   "yaw": 180.0,
+   "scale": 0.8,
+   "fallback": "fallback_2",
+   "alt": "minecraft:barrel"
+  },
+  {
+   "block": "landsoficaria:cypress_barrel",
+   "x": 3.85,
+   "y": 0.0,
+   "z": -1.75,
+   "yaw": 270.0,
+   "scale": 1.0,
+   "fallback": "fallback_3",
+   "alt": "minecraft:barrel"
+  }
+ ],
+ "seats": [],
+ "paintings": [],
+ "switches": []
+}
