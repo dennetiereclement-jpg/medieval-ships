@@ -1110,18 +1110,19 @@ def rigging(bone, hull_bone, masts, bowsprit, sails):
             zt = mzz - 3.6
             ropes.append(("%s_sheet_%s" % (mname, sn), clew, hp(zt, fs.sheer_y(zt) + 0.4, side, -0.2)))
     for name, a, b in ropes:
-        th = ROPE_TH.get(name, 0.1)
+        th = ROPE_TH.get(name, 0.12)
         if name in SLACK:
             slack_rope(bone, name, a, b, SLACK[name][0], th=th)
         else:
             beam(bone, "rope_" + name, a, b, th, "rope")
 
 
-# (phase 6) the stays thick enough to stay continuous lines in game at the reference cameras (about 12 px a block there:
-# a thinner rope falls between the pixels and shows as a dotted line), as thick as the main reference draws them
+# (phase 6) the stays and braces thick enough to stay continuous lines in game at the reference cameras (a thinner rope
+# falls between the pixels and shows as a dotted line from afar), as thick as the main reference draws them; the
+# other running rigging (sheets, halyard, bowsprit shrouds) 0.12
 ROPE_TH = {"fore_stay": 0.26, "main_stay": 0.26, "fore_topmast_stay": 0.22, "main_topmast_stay": 0.22, "mizzen_stay": 0.22,
-           "mizzen_topmast_stay": 0.2, "bobstay": 0.18, "fore_brace_p": 0.12, "fore_brace_s": 0.12, "main_brace_p": 0.12,
-           "main_brace_s": 0.12, "mizzen_brace_p": 0.12, "mizzen_brace_s": 0.12}
+           "mizzen_topmast_stay": 0.2, "bobstay": 0.18, "fore_brace_p": 0.2, "fore_brace_s": 0.2, "main_brace_p": 0.2,
+           "main_brace_s": 0.2, "mizzen_brace_p": 0.2, "mizzen_brace_s": 0.2}
 
 
 SLACK = {

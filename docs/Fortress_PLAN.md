@@ -333,10 +333,14 @@ restaient pointillés. Corrigé :
 * **Intérieur** : plus de têtes de clous sur les bois des ferrures, poutres et meubles (`wood_dark`, `wood_mid`,
   `wood_light`, `rail`, `dark_wood`) : étirées sur une grande face elles faisaient des trous noirs (cale, poutre de la
   cabine).
-* **Étais** assez épais pour rester des lignes continues en jeu à la caméra de 112 (≈ 12 px par bloc) : étai de misaine
-  et grand étai 0,26, étais de hune et d'artimon 0,20–0,22, sous-barbe 0,18, bras 0,12 (au lieu de 0,08) ; même nombre
-  de cubes.
+* **Étais et bras** assez épais pour rester des lignes continues en jeu de loin : étai de misaine et grand étai 0,26,
+  étais de hune et d'artimon 0,20–0,22, sous-barbe 0,18, bras 0,20, écoutes, drisse et haubans de beaupré 0,12 (au lieu
+  de 0,08) ; même nombre de cubes.
 * Passerelle : la case de camouflage `fortress_ship` suit la pierre (`#aea091`, seule la case 13 de `gangplank.png`).
+
+Vu en jeu (dernière ligne de la planche, variante decor, 1029a8f) : étais continus de la proue aux hunes, pierre plus
+claire sur le château et les ceintures, panneaux rouges en blocs vifs, bordé sans points clairs, plus de clous noirs dans
+la cale ni sur la poutre de la cabine. Les bras d'artimon (0,12) y restaient pointillés : portés à 0,20.
 
 Restent : l'éclairage chaud et les ombres portées des images (le jeu éclaire les flancs à environ la moitié : la pierre
 reste moins lumineuse que sur 112) ; le reste du § 10.
