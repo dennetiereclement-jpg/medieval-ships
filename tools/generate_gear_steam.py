@@ -130,7 +130,7 @@ def hull_rows(z):
         w, yk = gs.half_width(zz), gs.keel_draw(min(zz, gs.HALF_LENGTH + 0.6))
         pts.append((max(0.16, fx * w), fy * yk if yk < 0 else yk + 0.15 * (1 - fy)))
     regs = ["plate_c", "plate_c", "plate_c"]
-    cap = 0.5 if z < FZ or z > 19.0 else 1.0     # the forecastle: two copper courses
+    cap = 0.5 if z < FZ or z > 19.0 else 0.6     # the forecastle: one broad copper course, as on the reference
     levels = [(-0.3, "plate_c"), (0.35, "copper"), (1.35, "plate_a"), (2.35, "plate_a"), (3.35, "plate_a"),
               (3.35 + (top - cap - 3.35) * 0.5, "plate_a"), (top - cap, "plate_a"), (top, cap_region(z))]
     for y, reg in levels:
@@ -216,21 +216,35 @@ def stem(bone):
     for k in range(len(ys) - 1):
         ya, yb = ys[k], ys[k + 1]
         za, zb = gs.stem_z(ya) + 0.05, gs.stem_z(yb) + 0.05
-        add_cube(bone, "stem_%d" % k, (0, (ya + yb) / 2, (za + zb) / 2 - 0.15), EYE, (0.7, yb - ya + 0.02, abs(zb - za) + 0.5),
-                 "brass_band" if k % 2 else "brass", stretch=True)
-    # the raised prow: stepped side walls rising from the forecastle cap to the head, closing on the stem
+        add_cube(bone, "stem_%d" % k, (0, (ya + yb) / 2, (za + zb) / 2 - 0.15), EYE, (0.7, yb - ya + 0.02, abs(zb - za) + 0.5), "brass_band")
+    # brass cheeks wrapping the stem on both sides, from the water up to the head (the broad brass stem of the
+    # reference, two blocks wide seen from the side, stepping with the rake)
+    for side, sn in SIDES:
+        for k, y in enumerate(np.arange(-0.25, gs.FORECASTLE_CAP_Y + 0.01, 0.5)):
+            hull_decal(bone, "stem_cheek_%s%d" % (sn, k), gs.stem_z(y) - 0.62, y, side, 1.15, 0.52, "brass_band", out=0.02, th=0.06,
+                       stretch=False)
+    # the raised prow, as on the reference: a raked neck (black plates, brass-faced) rising from the forecastle cap to
+    # the head, and a stepped brace (one block thick, open under it) running down aft from the head to the
+    # forecastle railing
     yc = gs.FORECASTLE_CAP_Y
     zh = gs.stem_z(yt)
-    steps = [(16.6, 17.6, 7.6), (17.6, 18.6, 8.3), (18.6, 19.6, 9.0), (19.6, 20.6, 9.8), (20.6, zh - 0.35, 10.5)]
-    for side, sn in SIDES:
-        for j, (z0, z1, top) in enumerate(steps):
-            z1 = min(z1, gs.stem_z(top) - 0.3)
-            zc = (z0 + z1) / 2
-            x = max(0.42, gs.hull_x(min(zc, gs.stem_z(yc) - 0.2), yc) - 0.3)
-            add_cube(bone, "prow_wall_%s%d" % (sn, j), (side * x, (yc + top) / 2, zc), EYE, (0.5, top - yc, z1 - z0 + 0.02), "plate_a")
-            add_cube(bone, "prow_wall_cap_%s%d" % (sn, j), (side * x, top + 0.06, zc), EYE, (0.56, 0.12, z1 - z0 + 0.06), "iron_band")
-    add_cube(bone, "prow_head", (0, (yc + yt) / 2 + 0.6, zh - 0.75), EYE, (0.9, yt - yc - 1.2, 0.9), "plate_a")
+    nys = list(np.arange(yc - 0.5, yt - 0.2, 0.5)) + [yt]
+    for k in range(len(nys) - 1):
+        ya, yb = nys[k], nys[k + 1]
+        zf = gs.stem_z((ya + yb) / 2) - 0.1
+        add_cube(bone, "prow_neck_%d" % k, (0, (ya + yb) / 2, zf - 1.25), EYE, (1.0, yb - ya + 0.02, 2.3), "plate_a", stretch=True)
+        for side, sn in SIDES:
+            add_cube(bone, "prow_cheek_%s%d" % (sn, k), (side * 0.53, (ya + yb) / 2, zf - 0.5), EYE, (0.06, yb - ya + 0.02, 1.1), "brass_band")
+    add_cube(bone, "prow_head", (0, yt - 0.25, zh - 1.3), EYE, (1.0, 0.5, 2.4), "plate_a")
     add_cube(bone, "prow_cap", (0, yt + 0.12, zh - 0.45), EYE, (1.0, 0.24, 1.4), "brass_band")
+    za, ya = zh - 2.45, yt - 0.25          # the brace: from under the head down to the railing, steps of half a block
+    zb, yb = 15.6, gs.FORECASTLE_BULWARK_TOP + 0.95
+    n = int(round((ya - yb) / 0.5))
+    for k in range(n + 1):
+        y = ya - k * 0.5
+        z0 = za - k * (za - zb) / n
+        add_cube(bone, "prow_brace_%d" % k, (0, y, z0 - 0.35), EYE, (0.5, 0.5, (za - zb) / n + 0.3), "plate_a" if k % 2 else "plate_b")
+        add_cube(bone, "prow_brace_cap_%d" % k, (0, y + 0.27, z0 - 0.35), EYE, (0.54, 0.06, (za - zb) / n + 0.32), "iron_band")
     # the boom: a copper-banded spar forward from the stem head, a bracket under it, brass bands
     bt = v3(*gs.BOOM_TIP)
     root = v3(0, yt - 0.25, zh - 0.6)
@@ -392,6 +406,25 @@ def ring(bone, name, c, r, th, h, region, n=16):
         d = v3(math.cos(a), 0, math.sin(a))
         t = np.cross(v3(0, 1, 0), d)
         add_cube(bone, "%s_%d" % (name, k), c + d * (r + th / 2 - 0.05), np.column_stack([t, v3(0, 1, 0), d]), (w, h, th), region)
+
+
+def dome_cap(bone, name, cz, prof, region, n=20):
+    """A surface of revolution about the vertical axis at (0, cz): prof = [(y, r), ...] from the bottom up, each
+    course made of n plates slanted along the meridian (no steps), the top closed by a disc."""
+    for j in range(len(prof) - 1):
+        (ya, ra), (yb, rb) = prof[j], prof[j + 1]
+        for k in range(n):
+            a = 2 * math.pi * (k + 0.5) / n
+            d = v3(math.cos(a), 0, math.sin(a))
+            pa, pb = v3(0, ya, cz) + d * (ra - 0.05), v3(0, yb, cz) + d * (rb - 0.05)
+            m = norm(pb - pa)
+            nrm = norm(np.cross(m, v3(-math.sin(a), 0, math.cos(a))))    # outwards
+            t = np.cross(m, nrm)                                         # round the dome (a right-handed frame)
+            w = 2 * max(ra, rb) * math.tan(math.pi / n) + 0.02
+            add_cube(bone, "%s_%d_%d" % (name, j, k), (pa + pb) / 2, np.column_stack([t, m, nrm]), (w, np.linalg.norm(pb - pa) + 0.06, 0.1),
+                     region, u_dir=t, v_dir=-m)
+    yt, rt = prof[-1]
+    disc(bone, name + "_top", (0, yt - 0.03, cz), (0, 1, 0), rt, 0.06, region, n=3)
 
 
 def pipe(bone, name, pts, d=0.6, flange=True):
@@ -598,6 +631,9 @@ def decks(bone):
     add_cube(bone, "engine_front_plaque", (0, M + 2.95, EF + 0.03), EYE, (1.4, 0.36, 0.04), "plaque", stretch=True)
 
 
+WIN_Y = gs.CABIN_WINDOW_Y     # the centre of the deckhouse windows (tools/gear_steam_decor.py draws them from inside)
+
+
 def deckhouse(bone, lights):
     """The captain's deckhouse on the poop deck (plated walls, a dark stone course under the roof, three lit
     windows a side in brass frames, two forward, the door and the ladder aft) and the bridge on its roof
@@ -607,27 +643,28 @@ def deckhouse(bone, lights):
     for side, sn in SIDES:
         add_cube(bone, "deckhouse_wall_" + sn, (side * (DH - 0.25), (h0 + h1) / 2, zc), EYE, (0.5, h1 - h0, DZ1 - DZ0),
                  {"all": "plate_b", ("-1" if side > 0 else "+1"): "wall_wood"})
-        add_cube(bone, "deckhouse_course_" + sn, (side * (DH + 0.01), h1 - 0.25, zc), EYE, (0.04, 0.5, DZ1 - DZ0), "stone")
+        add_cube(bone, "deckhouse_course_" + sn, (side * (DH + 0.01), h1 - 0.15, zc), EYE, (0.04, 0.3, DZ1 - DZ0), "stone")
         add_cube(bone, "deckhouse_foot_" + sn, (side * (DH + 0.01), h0 + 0.1, zc), EYE, (0.05, 0.2, DZ1 - DZ0), "copper")
         for j, z in enumerate((-12.0, -10.0, -8.0)):
-            add_cube(bone, "glow_deckhouse_window_%s%d" % (sn, j), (side * (DH + 0.02), 9.25, z), EYE, (0.04, 1.3, 1.2), "glow_window", stretch=True,
+            # the big lit windows of the reference, standing clear above the poop railing
+            add_cube(bone, "glow_deckhouse_window_%s%d" % (sn, j), (side * (DH + 0.02), WIN_Y, z), EYE, (0.04, 1.5, 1.25), "glow_window", stretch=True,
                      u_dir=v3(0, 0, -side), v_dir=v3(0, -1, 0))
-            for k, (dy, dz, sy, sz) in enumerate(((0.73, 0, 0.16, 1.5), (-0.73, 0, 0.16, 1.5), (0, 0.68, 1.3, 0.16), (0, -0.68, 1.3, 0.16))):
-                add_cube(bone, "deckhouse_window_frame_%s%d_%d" % (sn, j, k), (side * (DH + 0.06), 9.25 + dy, z + dz), EYE, (0.12, sy, sz), "brass_band")
+            for k, (dy, dz, sy, sz) in enumerate(((0.83, 0, 0.16, 1.55), (-0.83, 0, 0.16, 1.55), (0, 0.7, 1.5, 0.16), (0, -0.7, 1.5, 0.16))):
+                add_cube(bone, "deckhouse_window_frame_%s%d_%d" % (sn, j, k), (side * (DH + 0.06), WIN_Y + dy, z + dz), EYE, (0.12, sy, sz), "brass_band")
     # the front wall (two windows facing the funnel) and the aft wall (the door, the ladder, a window)
     for k, z in enumerate((DZ1 - 0.25, DZ0 + 0.25)):
         sgn = 1 if k == 0 else -1
         if k == 0:
             add_cube(bone, "deckhouse_front", (0, (h0 + h1) / 2, z), EYE, (2 * DH - 1.0, h1 - h0, 0.5), {"all": "plate_b", "-3": "wall_wood"})
             for j, x in enumerate((-1.3, 1.3)):
-                add_cube(bone, "glow_deckhouse_fwd_window_%d" % j, (x, 9.25, z + 0.27), EYE, (1.1, 1.2, 0.04), "glow_window", stretch=True)
+                add_cube(bone, "glow_deckhouse_fwd_window_%d" % j, (x, WIN_Y, z + 0.27), EYE, (1.1, 1.35, 0.04), "glow_window", stretch=True)
         else:
             d0, d1, dy1 = -1.25, 0.25, P + 2.5
             for j, (x0, x1, y0, y1) in enumerate(((-DH + 0.5, d0, h0, h1), (d1, DH - 0.5, h0, h1), (d0, d1, dy1, h1))):
                 add_cube(bone, "deckhouse_aft_%d" % j, ((x0 + x1) / 2, (y0 + y1) / 2, z), EYE, (x1 - x0, y1 - y0, 0.5),
                          {"all": "plate_b", "+3": "wall_wood"})
             add_cube(bone, "glow_deckhouse_aft_window", (-2.1, 9.4, z - 0.27), EYE, (0.8, 0.9, 0.04), "glow_window", stretch=True)
-        add_cube(bone, "deckhouse_course_%d" % k, (0, h1 - 0.25, z + sgn * 0.26), EYE, (2 * DH, 0.5, 0.04), "stone")
+        add_cube(bone, "deckhouse_course_%d" % k, (0, h1 - 0.15, z + sgn * 0.26), EYE, (2 * DH, 0.3, 0.04), "stone")
     add_cube(bone, "deckhouse_roof_edge", (0, B + 0.04, zc), EYE, (2 * DH + 0.2, 0.08, DZ1 - DZ0 + 0.2), "stone")
     # the bridge railing (a gap over the ladder), its lanterns
     lg = [(v3(sum(gs.BRIDGE_LADDER_X) / 2, B, DZ0 + 0.25), 0.55)]
@@ -670,17 +707,18 @@ def engine_house(bone, lights, fittings):
         a = 2 * math.pi * k / 8
         d = v3(math.cos(a), 0, math.sin(a))
         add_cube(bone, "dome_rib_%d" % k, v3(0, (E + 12.4) / 2, dz) + d * (dr + 0.05), ry(-a + math.pi / 2), (0.2, 12.4 - E, 0.12), "brass")
-    prof = [(12.4, dr - 0.05), (12.85, dr - 0.3), (13.3, dr - 0.75), (13.7, dr - 1.3), (14.0, dr - 1.85), (14.2, dr - 2.2)]
-    for k in range(len(prof) - 1):
-        (ya, ra), (yb, rb) = prof[k], prof[k + 1]
-        cylinder(bone, "dome_cap_%d" % k, (0, ya, dz), yb - ya + 0.02, ra, "dome", n=16)
-        disc(bone, "dome_cap_top_%d" % k, (0, yb - 0.02, dz), (0, 1, 0), ra * 1.04, 0.04, "dome", n=3)
+    # the cap: a smooth flattened dome of slanted riveted plates (an ellipse of revolution, 7 courses of 20
+    # plates up to the lookout ring), its 8 brass ribs following the curve, as the rounded dome of the reference
+    y0, hd, r_top = 12.4, 2.05, 1.45
+    phis = np.linspace(0.0, math.acos(r_top / dr), 8)
+    prof = [(y0 + hd * math.sin(f), dr * math.cos(f)) for f in phis]
+    dome_cap(bone, "dome_cap", dz, prof, "dome", n=20)
     for k in range(8):
         a = 2 * math.pi * k / 8
         d = v3(math.cos(a), 0, math.sin(a))
-        pts = [v3(0, y, dz) + d * (r + 0.06) for y, r in prof]
+        pts = [v3(0, y, dz) + d * (r + 0.07) for y, r in prof]
         for j in range(len(pts) - 1):
-            beam(bone, "dome_cap_rib_%d_%d" % (k, j), pts[j], pts[j + 1], 0.1, "brass", width=0.16, extend=0.04)
+            beam(bone, "dome_cap_rib_%d_%d" % (k, j), pts[j], pts[j + 1], 0.1, "brass", width=0.16, extend=0.05)
     disc(bone, "dome_lookout_floor", (0, 14.24, dz), (0, 1, 0), 1.55, 0.1, "dark_wood", n=3)
     n = 10
     ring_pts = [v3(1.45 * math.cos(2 * math.pi * k / n), 14.28, dz + 1.45 * math.sin(2 * math.pi * k / n)) for k in range(n + 1)]
@@ -712,10 +750,15 @@ MASTS = {
     "mizzen": (gs.MIZZEN_Z, P, P, gs.MIZZEN_TOP, 0.75, (16.9, 18.1, 1.15)),
 }
 SQUARE_SAILS = [
-    # mast, name, yard y, foot y, half width at the head, at the foot, belly, texture region, yard half
-    ("main", "main_sail", gs.MAIN_YARD_Y, gs.MAIN_SAIL_FOOT, 5.2, 4.5, 1.3, "main_sail", gs.MAIN_YARD_HALF),
-    ("mizzen", "mizzen_sail", gs.MIZZEN_YARD_Y, gs.MIZZEN_SAIL_FOOT, 1.95, 1.7, 0.6, "mizzen_sail", gs.MIZZEN_YARD_HALF),
+    # mast, name, yard y, yard half, sail head along the yard (aft x, fore x), foot inset (aft, fore), drop (aft, fore),
+    # bulge of the foot at its fore corner, belly, texture region. As on the reference the sails HANG from their
+    # peaked yards: the luffs and leeches are vertical (not the yard's slant), the head follows the yard, the main
+    # sail fills the fore part of its yard (a bare yard arm aft of the luff), the foot rounds down at the fore clew;
+    # the mizzen sail is deep at its luff and short at its leech
+    ("main", "main_sail", gs.MAIN_YARD_Y, gs.MAIN_YARD_HALF, (-3.6, 5.85), (0.3, 0.15), (6.6, 5.9), 0.55, 1.3, "main_sail"),
+    ("mizzen", "mizzen_sail", gs.MIZZEN_YARD_Y, gs.MIZZEN_YARD_HALF, (-1.75, 3.25), (0.1, 0.2), (4.3, 2.4), 0.2, 0.6, "mizzen_sail"),
 ]
+FURL_SCALE = {}    # sail bone name -> its x scale once furled (the hanging sail gathered along its own part of the yard)
 
 
 def mast(root, fittings, name):
@@ -744,8 +787,31 @@ def mast(root, fittings, name):
     return mb
 
 
-def square_sail(mb, sails_info, name, z, y_top, y_foot, half_top, half_foot, belly, region, yard_half, off=0.5):
-    """Yard (braced round, starboard arm aft) and the black sail billowed forward."""
+def hanging_sail(z, zz, y_top, head, inset, drop, bulge, belly):
+    """P(s, t) of a sail hanging from a peaked yard, in the frame of the yard before its peak and brace (yard_rot):
+    s across from the aft luff (0) to the fore leech (1), t down from the head. The head runs along the yard,
+    the sides drop vertically once the yard is peaked (TILT), the foot bulges down near the fore clew."""
+    c, sn = math.cos(TILT), math.sin(TILT)
+    xa, xb = head
+    ia, ib = inset
+    da, db = drop
+
+    def P_(s, t):
+        xh = xa + (xb - xa) * s
+        # the head, just under the yard, in the vertical plane of the yard (u along it, w up), about the sling
+        uh, wh = xh * c - 0.14 * sn, -xh * sn - 0.14 * c
+        uf = uh + ia * c * (1 - s) - ib * c * s
+        d = da + (db - da) * s + bulge * math.sin(math.pi * s ** 3)
+        u = uh + (uf - uh) * t
+        w = wh - d * t * (1 + 0.05 * t * (1 - (2 * s - 1) ** 2))
+        bel = belly * math.sin(math.pi * min(1.0, t * 0.78)) * (0.35 + 0.65 * (1 - (2 * s - 1) ** 2))
+        # back to the yard's frame: the peak (rz(-TILT)) puts these sides upright
+        return v3(u * c - w * sn, y_top + u * sn + w * c, zz + 0.05 + bel)
+    return P_
+
+
+def square_sail(mb, sails_info, name, z, y_top, yard_half, head, inset, drop, bulge, belly, region, off=0.5):
+    """Yard (braced round, starboard arm aft, peaked) and the black sail hanging from it, billowed forward."""
     br = Bone("brace_" + name, origin=(0, y_top, z), parent=mb)
     zz = z + off
     round_bar(br, name + "_yard", (-yard_half, y_top, zz), (yard_half, y_top, zz), 0.3, "mast", extend=0.05)
@@ -753,22 +819,57 @@ def square_sail(mb, sails_info, name, z, y_top, y_foot, half_top, half_foot, bel
         add_cube(br, "%s_yardarm_%d" % (name, sx > 0), (sx * (yard_half - 0.1), y_top, zz), EYE, (0.18, 0.38, 0.38), "brass")
         add_cube(br, "%s_yardband_%d" % (name, sx > 0), (sx * yard_half * 0.5, y_top, zz), EYE, (0.14, 0.36, 0.36), "iron_band")
     add_cube(br, name + "_sling", (0, y_top, zz - 0.1), EYE, (0.42, 0.4, 0.4), "iron_band")
-    beam(br, name + "_roll", (-half_top * 0.94, y_top - 0.24, zz + 0.05), (half_top * 0.94, y_top - 0.24, zz + 0.05), 0.26, "cloth_roll")
-    sb = Bone("sail_" + name, origin=(0, y_top, zz), parent=br)
-    height = y_top - y_foot
+    xa, xb = head
+    beam(br, name + "_roll", (xa + 0.1, y_top - 0.24, zz + 0.05), (xb - 0.1, y_top - 0.24, zz + 0.05), 0.26, "cloth_roll")
+    P_ = hanging_sail(z, zz, y_top, head, inset, drop, bulge, belly)
+    # furled (sail_furl scales the sail bone (sx, 0, 0) about its origin): every point goes up to the yard (y_top in
+    # this frame) and the hanging sail, whose foot reaches further along the yard than its head, is gathered back
+    # between its luff and its leech: the origin on the luff, sx = the head's length over the sail's reach
+    reach = max(P_(i / 10, j / 10)[0] for i in range(11) for j in range(11))
+    sb = Bone("sail_" + name, origin=(xa, y_top, zz), parent=br)
+    FURL_SCALE[sb.name] = round((xb - xa) / (reach - xa), 4)
     cols, rows = gt.SAIL_CELLS[region]
-    origin = v3(0, y_top - 0.14, zz + 0.05)
-
-    def P_(s, t):
-        half = half_top + (half_foot - half_top) * t
-        x = (2 * s - 1) * half
-        bel = belly * math.sin(math.pi * min(1.0, t * 0.78)) * (0.35 + 0.65 * (1 - (2 * s - 1) ** 2))
-        drop = t * height * (1 + 0.07 * t * t * (1 - (2 * s - 1) ** 2))
-        return origin + v3(x, -drop, bel)
-    patch_sail(sb, name, P_, v3(0, 0, 1), region, cols, rows)
+    hanging_patch(sb, name, P_, region, cols, rows)
     sails_info.append((sb, False))
     br.rot = yard_rot()
-    return br
+    return br, P_
+
+
+def hanging_patch(bone, name, P_, region, nx, ny, th=0.035, overlap=0.03):
+    """The cloths of a hanging sail: columns of upright cells (vertical sides, level heads and feet once the yard
+    is peaked), stacked down each column, so that the gold stripe and the leech stay straight while the head and
+    the foot step along the yard like the blocky cloths of the reference. Each cell maps its own part of the
+    texture region; the texture paints the gear emblem through gt.SAIL_COLUMNS (each column's world height span)
+    so that it stays round on the slanted cloth."""
+    up = v3(-math.sin(TILT), math.cos(TILT), 0)       # the world's vertical in the yard's frame (before the peak)
+    spans = []
+    for i in range(nx):
+        s0, s1, sc = i / nx, (i + 1) / nx, (i + 0.5) / nx
+        for j in range(ny):
+            t0, t1 = j / ny, (j + 1) / ny
+            a0, a1, b0, b1 = P_(s0, t1), P_(s0, t0), P_(s1, t1), P_(s1, t0)
+            n = norm(np.cross(b1 - a0, a1 - b0))
+            if n[2] < 0:
+                n = -n
+            v = norm(up - (up @ n) * n)
+            u = np.cross(v, n)
+            if u @ (b0 + b1 - a0 - a1) < 0:
+                u = -u
+                v = np.cross(n, u)
+            top, bot = P_(sc, t0), P_(sc, t1)
+            c = (top + bot) / 2
+            Lu = abs((b0 + b1 - a0 - a1) @ u) / 2
+            Hv = abs((top - bot) @ v)
+            axes = np.column_stack([u, v, n])
+            if np.linalg.det(axes) < 0:
+                axes[:, 2] = -axes[:, 2]
+            cube = add_cube(bone, "%s_%d_%d" % (name, i, j), c, axes, (Lu + overlap, Hv + overlap, th),
+                            {"all": None, "+3": region, "-3": region}, stretch=True, u_dir=u, v_dir=-v)
+            gn.set_sub(cube, (s0, t0, s1, t1))
+        top, bot = P_(sc, 0.0), P_(sc, 1.0)
+        spans.append((float(top @ up), float(bot @ up)))
+    horiz = np.cross(up, v3(0, 0, 1))
+    gt.SAIL_COLUMNS[region] = (spans, float(abs((P_(1.0, 0.5) - P_(0.0, 0.5)) @ horiz)))
 
 
 def yard_rot():
@@ -788,11 +889,13 @@ def braced(p, mast_z, y0):
 
 def sails(root, masts, sails_info):
     yards = {}
-    for mast_name, name, yt, yf, ht, hf, bel, reg, yh in SQUARE_SAILS:
+    for mast_name, name, yt, yh, head, inset, drop, bulge, bel, reg in SQUARE_SAILS:
         z = MASTS[mast_name][0]
         d = MASTS[mast_name][4]
-        square_sail(masts[mast_name], sails_info, name, z, yt, yf, ht, hf, bel, reg, yh, off=d / 2 + 0.2)
-        yards[name] = (z, d / 2 + 0.2, yt, yh, yf, hf)
+        _, P_ = square_sail(masts[mast_name], sails_info, name, z, yt, yh, head, inset, drop, bulge, bel, reg, off=d / 2 + 0.2)
+        # the clews (aft, fore) in the world, where the sheets are made fast
+        clews = {-1: braced(P_(0.0, 1.0), z, yt), 1: braced(P_(1.0, 1.0), z, yt)}
+        yards[name] = (z, d / 2 + 0.2, yt, yh, clews)
     return yards
 
 
@@ -844,9 +947,9 @@ def rigging(bone, yards):
     for name, a, b in ropes:
         chain(bone, "chain_" + name, a, b, s=0.18, step=0.26)
     for side, sn in SIDES:
-        for name, (z, off, yt, yh, yf, hf) in yards.items():
+        for name, (z, off, yt, yh, clews) in yards.items():
             arm = braced((side * (yh - 0.2), yt, z + off), z, yt)
-            clew = braced((side * (hf - 0.1), yf + 0.1, z + off + 0.4), z, yt)
+            clew = clews[side] + v3(0, 0.1, 0)
             if name == "main_sail":
                 beam(bone, "brace_rope_%s_%s" % (name, sn), arm, v3(side * 1.0, 14.3, gs.DOME_Z + 0.4) if side < 0 else
                      v3(side * (gs.hull_x(14.5, F) - 0.4), gs.FORECASTLE_CAP_Y + 1.2, 14.5), 0.06, "rope")
@@ -867,23 +970,38 @@ def crane(bone, root):
     add_cube(bone, "crane_head", (0, 11.1, cz), EYE, (1.25, 0.6, 1.25), "iron_band")
     tip = v3(*gs.CRANE_TIP)
     j0 = v3(0, 11.6, cz + 0.6)
+    # the jib: a riveted lattice girder (bottom and top chords, zig-zag braces) as on the reference, where the
+    # chunky dark jib with its brass bolts reads from far; the top chord rises over the post (a gooseneck)
+    top0, top1 = j0 + v3(0, 1.25, -0.2), tip + v3(0, 0.62, 0.15)
     for s in (1, -1):
-        beam(bone, "crane_jib_%d" % (s > 0), j0 + v3(s * 0.26, 0, 0), tip + v3(s * 0.26, 0, 0), 0.42, "wood_dark", width=0.26, extend=0.12)
-        beam(bone, "crane_strut_%d" % (s > 0), v3(s * 0.26, 9.6, cz - 0.4), j0 + (tip - j0) * 0.62 + v3(s * 0.26, -0.25, 0), 0.32, "wood_dark",
-             width=0.24)
-    for k, t in enumerate(np.linspace(0.12, 0.88, 5)):
+        o = v3(s * 0.3, 0, 0)
+        beam(bone, "crane_jib_%d" % (s > 0), j0 + o, tip + o, 0.46, "wood_dark", width=0.24, extend=0.14)
+        beam(bone, "crane_chord_%d" % (s > 0), top0 + o, top1 + o, 0.34, "wood_dark", width=0.22, extend=0.12)
+        beam(bone, "crane_strut_%d" % (s > 0), v3(s * 0.3, 9.6, cz - 0.4), j0 + (tip - j0) * 0.5 + o + v3(0, -0.2, 0), 0.32, "wood_dark",
+             width=0.22)
+        n = 5
+        for k in range(n):
+            a = j0 + (tip - j0) * (k / n) + o
+            b = top0 + (top1 - top0) * ((k + 0.5) / n) + o
+            c = j0 + (tip - j0) * ((k + 1) / n) + o
+            beam(bone, "crane_brace_%d_%d_a" % (s > 0, k), a, b, 0.14, "wood_dark", width=0.16)
+            beam(bone, "crane_brace_%d_%d_b" % (s > 0, k), b, c, 0.14, "wood_dark", width=0.16)
+            add_cube(bone, "crane_bolt_%d_%d" % (s > 0, k), b + v3(s * 0.13, 0, 0), EYE, (0.06, 0.16, 0.16), "brass")
+        beam(bone, "crane_end_%d" % (s > 0), tip + o + v3(0, -0.1, 0), top1 + o, 0.2, "wood_dark", width=0.2)
+    for k, t in enumerate(np.linspace(0.1, 0.9, 5)):
         p = j0 + (tip - j0) * t
-        add_cube(bone, "crane_rung_%d" % k, p, EYE, (0.62, 0.12, 0.12), "iron_band")
-    beam(bone, "crane_tie", j0 + v3(0, 0.6, 0.2), tip + v3(0, 0.3, 0.2), 0.08, "chain")
-    add_cube(bone, "crane_king", (0, 12.3, cz + 0.5), EYE, (0.3, 1.4, 0.3), "wood_dark")
-    disc(bone, "crane_pulley", tip + v3(0, -0.05, 0.1), (1, 0, 0), 0.32, 0.18, "brass", n=3)
+        add_cube(bone, "crane_rung_%d" % k, p, EYE, (0.72, 0.12, 0.12), "iron_band")
+    beam(bone, "crane_tie", j0 + v3(0, 1.9, 0.2), tip + v3(0, 0.75, 0.2), 0.08, "chain")
+    add_cube(bone, "crane_king", (0, 12.5, cz + 0.45), EYE, (0.34, 1.8, 0.34), "wood_dark")
+    add_cube(bone, "crane_king_cap", (0, 13.45, cz + 0.45), EYE, (0.42, 0.14, 0.42), "brass_band")
+    disc(bone, "crane_pulley", tip + v3(0, -0.05, 0.1), (1, 0, 0), 0.36, 0.26, "brass", n=3)
     # the crate on its chains (swaying)
     cb = Bone("crate_hang", origin=tuple(tip), parent=root)
     y0, y1 = gs.CRATE_Y
     for s in (1, -1):
         beam(cb, "crate_chain_%d" % (s > 0), tip + v3(s * 0.1, -0.2, 0), v3(s * 0.45, y1 + 0.05, tip[2]), 0.09, "chain")
-    add_cube(cb, "crate", (0, (y0 + y1) / 2, tip[2]), EYE, (1.7, y1 - y0, 1.6), "crate", stretch=True)
-    add_cube(cb, "crate_band", (0, y1 - 0.1, tip[2]), EYE, (1.75, 0.1, 1.65), "iron_band")
+    add_cube(cb, "crate", (0, (y0 + y1) / 2, tip[2]), EYE, (1.9, y1 - y0, 1.8), "crate", stretch=True)
+    add_cube(cb, "crate_band", (0, y1 - 0.1, tip[2]), EYE, (1.95, 0.1, 1.85), "iron_band")
     return cb
 
 
@@ -1157,7 +1275,7 @@ def build_animations(root, sails_info):
         rt = [rot_kf(t, (a, 0, 0), "catmullrom") for t, a in ((0, 0), (1.2, -1.0), (2.4, 0.6), (3.6, 0))]
         tracks.append((b, sc + rt))
     anims.append(animation("sail_wind", 3.6, "loop", tracks))
-    tracks = [(b, [kf("scale", 0.0, (1, 1, 1)), kf("scale", 1.0, (0.95, 0, 0))]) for b, _ in sails_info]
+    tracks = [(b, [kf("scale", 0.0, (1, 1, 1)), kf("scale", 1.0, (FURL_SCALE.get(b.name, 0.95), 0, 0))]) for b, _ in sails_info]
     anims.append(animation("sail_furl", 1.0, "hold", tracks))
     wheel, rud = find(root, "helm_wheel"), find(root, "rudder")
     anims.append(animation("steer", 2.0, "hold", [

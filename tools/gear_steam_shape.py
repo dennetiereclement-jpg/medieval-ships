@@ -48,6 +48,7 @@ FORECASTLE_Z = 11.5        # the front of the waist / the forecastle's break
 DECK_MAX_Z = 19.5          # the forecastle deck ends at the stem
 DECKHOUSE_Z = (-14.0, -7.0)    # the captain's deckhouse on the poop
 DECKHOUSE_HALF = 3.0
+CABIN_WINDOW_Y = 9.85      # the centre of the deckhouse's big windows (1.5 high, clear above the poop railing)
 
 WAIST_BULWARK_TOP = 6.0    # collision tops of the bulwarks (the copper railings drawn on them rise higher)
 WAIST_CAP_Y = 5.5          # the riveted copper cap of the waist bulwark
@@ -64,7 +65,7 @@ MAIN_MAST_Z, MAIN_MAST_TOP = 7.5, 19.6     # stepped on the keel, through the ho
 MIZZEN_Z, MIZZEN_TOP = -15.9, 18.0         # stepped on the poop deck
 MAIN_YARD_Y, MAIN_SAIL_FOOT = 17.2, 10.6
 MIZZEN_YARD_Y, MIZZEN_SAIL_FOOT = 15.5, 10.4
-MAIN_YARD_HALF, MIZZEN_YARD_HALF = 5.6, 3.0
+MAIN_YARD_HALF, MIZZEN_YARD_HALF = 6.0, 3.45
 YARD_TILT_DEG = 22.0       # and peaked: the aft (starboard) arm higher, the sails slanting down forward
 BRACE_DEG = 62.0           # the yards are braced round, the starboard arms aft: the sails show their faces to starboard
 FUNNEL_Z, FUNNEL_R, FUNNEL_TOP = -5.6, 1.4, 18.0

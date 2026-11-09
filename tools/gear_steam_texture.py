@@ -145,6 +145,10 @@ SAIL_REGIONS = {
     "mizzen_sail": (224, 0, 140, 100),
 }
 SAIL_CELLS = {"main_sail": (11, 9), "mizzen_sail": (7, 5)}
+# filled by tools/generate_gear_steam.py (hanging_patch) before the sail atlas is painted: per sail region, the world
+# height span (top, bottom) of each column of cloths and the sail's width, so that the emblem is painted round on the
+# hanging (slanted) cloths
+SAIL_COLUMNS = {}
 
 _mix, _scale, _planks, _blocks, _fill = ct._mix, ct._scale, ct._planks, ct._blocks, ct._fill
 GOLD = ("8a6420", "c9973a", "e6b85a")
@@ -218,13 +222,15 @@ def _dome(px, region, rng):
     u, v, w, h = region
     for y in range(h):
         for x in range(w):
-            c = _scale(_rgb("c06a3c"), 1.05 + 0.12 * math.sin(x * 0.2 + 0.6) - 0.08 * (y / h))
+            # dark riveted copper plates (a tone per plate), lit along their upper edge, brass rivets
+            pk = ((x // 16) * 7 + (y // 16) * 3) % 4
+            c = _scale(_rgb(("8e4424", "9a4a28", "84401f", "a45230")[pk]), 1.0 + 0.1 * math.sin(x * 0.2 + 0.6) - 0.1 * ((y % 16) / 16))
             if x % 16 == 15 or y % 16 == 15:
-                c = _rgb("5e2e16")
+                c = _rgb("3e1a0a")
             elif x % 16 == 0 or y % 16 == 0:
-                c = _rgb("d4885a")
+                c = _rgb("c47648")
             if (x % 16 in (3, 12)) and (y % 16 in (3, 12)):
-                c = _rgb("e8c070")
+                c = _rgb("d8aa58")
             if rng.random() < 0.03:
                 c = _mix(c, _rgb("4f8a72"), 0.35)   # a touch of verdigris
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
@@ -278,7 +284,7 @@ def _pipe(px, region, rng):
         t = y / (h - 1)
         k = 0.7 + 0.6 * math.sin(math.pi * t) + (0.25 if 0.2 < t < 0.35 else 0)
         for x in range(w):
-            c = _scale(_rgb("b0623a"), k)
+            c = _scale(_rgb("9e4e2c"), k)
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
@@ -397,11 +403,28 @@ def _black_sail(px, region, cols, rows, rng, stripe=0.31, emblem=None):
             row.append(_scale(rng.choice(tones), k * rng.uniform(0.96, 1.04)))
         tone.append(row)
     mask = None
+    cols_map = SAIL_COLUMNS.get(next((k for k, r in SAIL_REGIONS.items() if r == region), None))
     if emblem:
         eu, ev, ed = emblem
         size = int(ed * w)
         mask = gear_mask(size).load()
         mx0, my0 = int(eu * w - size / 2), int(ev * h - size / 2)
+        if cols_map:
+            # the hanging sail: a texel (x, y) of column c lies at the world height top_c - y / h * (top_c - bot_c); the
+            # emblem is centred at (eu, ev) of its column and painted round in the world
+            spans, width = cols_map
+            ce = min(cols - 1, int(eu * cols))
+            te, be = spans[ce]
+            wc = te - ev * (te - be)
+            rad = ed * width / 2
+
+            def emblem_at(x, y):
+                c_ = min(cols - 1, int(x / cw))
+                tc, bc = spans[c_]
+                wx = (x + 0.5) / w * width - eu * width
+                wy = wc - (tc - (y + 0.5) / h * (tc - bc))
+                mx, my = int((wx / (2 * rad) + 0.5) * size), int((wy / (2 * rad) + 0.5) * size)
+                return mx, my
     gold_dark, gold, gold_hi = (_rgb(c) for c in GOLD)
     bw = max(3, int(cw * 0.75))
     sx = int(stripe * w)
@@ -424,10 +447,13 @@ def _black_sail(px, region, cols, rows, rng, stripe=0.31, emblem=None):
                     g = gold_dark
                 col = g
             if mask is not None:
-                mx, my = x - mx0, y - my0
+                mx, my = emblem_at(x, y) if cols_map else (x - mx0, y - my0)
                 if 0 <= mx < size and 0 <= my < size and mask[mx, my]:
-                    edge = any(not (0 <= mx + ox < size and 0 <= my + oy < size and mask[mx + ox, my + oy])
-                               for ox, oy in ((1, 0), (0, 1)))
+                    if cols_map:
+                        nb = [emblem_at(x + ox, y + oy) for ox, oy in ((1, 0), (0, 1))]
+                    else:
+                        nb = [(mx + ox, my + oy) for ox, oy in ((1, 0), (0, 1))]
+                    edge = any(not (0 <= a < size and 0 <= b < size and mask[a, b]) for a, b in nb)
                     col = gold_dark if edge else _mix(gold_hi, gold, min(1.0, my / size * 1.3))
             px[u + x, v + y] = _jitter(col, rng, 3) + (255,)
 
@@ -437,11 +463,13 @@ def make_texture(path):
     img = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
     px = img.load()
     R = REGIONS
-    _plates(px, R["plate_a"], ("2c2d31", "313237", "36373c", "29292d", "2f3034", "34323a"), rng)
-    _plates(px, R["plate_b"], ("323338", "37383d", "3c3d43", "2f3034", "35363c"), rng)
-    _plates(px, R["plate_c"], ("232427", "27282b", "2a2b2f", "202124"), rng, rust=0.2)
-    _band(px, R["copper"], ("6e3418", "b0623a", "e09868"), rng, rivet="f0c070")
-    _band(px, R["copper2"], ("74381a", "c06e42", "eaa474"), rng, rivet="f0c070")
+    # charcoal iron, a warm black (the reference's plates are black-brown, not blue-grey)
+    _plates(px, R["plate_a"], ("2d2b2b", "32302f", "373433", "2a2828", "302d2d", "353130"), rng)
+    _plates(px, R["plate_b"], ("33302f", "383534", "3d3a38", "302d2d", "363332"), rng)
+    _plates(px, R["plate_c"], ("242222", "282625", "2b2928", "212020"), rng, rust=0.2)
+    # copper: the deep red-brown copper of the reference (not a new-penny salmon)
+    _band(px, R["copper"], ("561f0c", "98472a", "cf7a4c"), rng, rivet="e8b862")
+    _band(px, R["copper2"], ("5e240e", "a24f2c", "d88654"), rng, rivet="e8b862")
     polished_metal(img, R["brass"], [(0.0, _rgb("8a6420")), (0.5, _rgb("c9973a")), (0.85, _rgb("e6b85a")), (1.0, _rgb("f4d68a"))], rng)
     _band(px, R["brass_band"], ("7a5818", "c9973a", "f0cc70"), rng, rivet="fff0b0")
     _blocks(px, R["stone"], ("55575c", "5e6065", "4c4e52"), "2a2b2e", rng, bw=16, bh=16)
@@ -535,7 +563,7 @@ def make_sail_texture(path):
     rng = random.Random(9187)
     img = Image.new("RGBA", (SAIL_SIZE, SAIL_SIZE), (0, 0, 0, 0))
     px = img.load()
-    _black_sail(px, SAIL_REGIONS["main_sail"], *SAIL_CELLS["main_sail"], rng, stripe=0.31, emblem=(0.65, 0.45, 0.38))
+    _black_sail(px, SAIL_REGIONS["main_sail"], *SAIL_CELLS["main_sail"], rng, stripe=0.34, emblem=(0.67, 0.44, 0.33))
     _black_sail(px, SAIL_REGIONS["mizzen_sail"], *SAIL_CELLS["mizzen_sail"], rng, stripe=0.25)
     img.save(path)
     return img

@@ -49,8 +49,8 @@ public final class GearSteamLayout {
 	public static final double MIZZEN_BOX_TOP = 18.1;
 	public static final double MAIN_YARD_Y = 17.2;
 	public static final double MIZZEN_YARD_Y = 15.5;
-	public static final double MAIN_YARD_HALF = 5.6;
-	public static final double MIZZEN_YARD_HALF = 3.0;
+	public static final double MAIN_YARD_HALF = 6.0;
+	public static final double MIZZEN_YARD_HALF = 3.45;
 	/** The yards are braced round (the starboard arms aft) and peaked (the aft arms higher), as in the model. */
 	public static final double BRACE_DEG = 62.0;
 	public static final double YARD_TILT_DEG = 22.0;

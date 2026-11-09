@@ -185,10 +185,10 @@ def captain_cabin():
     # the windows seen from inside: three a side, two forward (the outside panes of tools/generate_gear_steam.deckhouse)
     for side in (1, -1):
         for k, z in enumerate((-12.0, -10.0, -8.0)):
-            custom("window_in", name="cabin_window_%s%d" % ("p" if side > 0 else "s", k), center=(side * (gs.DECKHOUSE_HALF - 0.5), 9.25, z),
-                   normal=(-side, 0, 0), w=1.15, h=1.25)
+            custom("window_in", name="cabin_window_%s%d" % ("p" if side > 0 else "s", k), center=(side * (gs.DECKHOUSE_HALF - 0.5), gs.CABIN_WINDOW_Y - 0.05, z),
+                   normal=(-side, 0, 0), w=1.15, h=1.35)
     for k, x in enumerate((-1.3, 1.3)):
-        custom("window_in", name="cabin_window_f%d" % k, center=(x, 9.28, gs.DECKHOUSE_Z[1] - 0.5), normal=(0, 0, -1), w=1.0, h=1.05)
+        custom("window_in", name="cabin_window_f%d" % k, center=(x, gs.CABIN_WINDOW_Y - 0.05, gs.DECKHOUSE_Z[1] - 0.5), normal=(0, 0, -1), w=1.0, h=1.2)
 
 
 def crew_quarters():
