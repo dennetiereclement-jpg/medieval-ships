@@ -145,8 +145,8 @@ public final class GearSteamShipGameTest {
 		}
 		// the furnished rooms (the decoration mods' blocks drawn by the ship, the engine, the galley, the cargo)
 		double mm = GearSteamLayout.MAIN_DECK_Y, pp = GearSteamLayout.POOP_Y, hh = GearSteamLayout.HOLD_FLOOR_Y;
-		double[][] roomEyes = {{0.2, mm + 1.62, 4.1}, {-0.6, mm + 1.62, -0.3}, {2.6, mm + 1.62, -7.6}, {-0.4, pp + 1.62, -13.0}, {0.4, hh + 1.62, 3.0}};
-		double[][] roomTargets = {{-0.3, mm + 1.2, -4.5}, {3.0, mm + 1.5, 1.8}, {-0.5, mm + 0.8, -15.5}, {0.3, pp + 0.9, -7.6}, {0.0, hh + 0.9, -14.0}};
+		double[][] roomEyes = {{0.2, mm + 1.62, 4.1}, {-0.6, mm + 1.62, -0.3}, {2.6, mm + 1.62, -7.6}, {-0.4, pp + 1.62, -11.2}, {0.4, hh + 1.62, 3.0}};
+		double[][] roomTargets = {{-0.3, mm + 1.2, -4.5}, {3.0, mm + 1.5, 1.8}, {-0.5, mm + 0.8, -15.0}, {0.3, pp + 0.9, -7.2}, {0.0, hh + 0.9, -14.0}};
 		String[] roomNames = {"16_salle_des_machines", "17_machine_a_vapeur", "18_quartiers_equipage", "19_cabine_capitaine", "20_cale"};
 		for (int k = 0; k < roomEyes.length; k++) {
 			look(server, pose, roomEyes[k][0], roomEyes[k][1], roomEyes[k][2], roomTargets[k][0], roomTargets[k][1], roomTargets[k][2]);
@@ -162,11 +162,11 @@ public final class GearSteamShipGameTest {
 				{-1.5, m, 9.0, 0},
 				{0.0, GearSteamLayout.FORECASTLE_Y, 14.0, 0},
 				{3.6, GearSteamLayout.ENGINE_ROOF_Y, 1.0, 180},
-				{1.5, GearSteamLayout.POOP_Y, -17.0, 180},
-				{0.0, GearSteamLayout.BRIDGE_Y, -11.5, 0},
+				{1.5, GearSteamLayout.POOP_Y, -14.0, 180},
+				{0.0, GearSteamLayout.BRIDGE_Y, -10.0, 0},
 				{3.0, m, -2.0, 180},
-				{0.0, m, -16.4, 0},
-				{0.0, GearSteamLayout.CABIN_FLOOR_Y, -11.5, 180},
+				{0.0, m, -14.8, 0},
+				{0.0, GearSteamLayout.CABIN_FLOOR_Y, -9.8, 180},
 				{0.0, GearSteamLayout.HOLD_FLOOR_Y, -6.0, 0},
 				{0.0, m, -19.0, 180}};
 		String[] where = {"waist", "forecastle", "engine house roof", "poop deck", "bridge", "engine room", "crew quarters", "captain's cabin", "hold",
@@ -199,7 +199,7 @@ public final class GearSteamShipGameTest {
 				mc.player.hasVehicle() ? 1 : 0});
 		double[] lc = pose(server).toLocal(cs[0], cs[1], cs[2]);
 		log.accept(String.format(Locale.ROOT, "%s stood up from the captain's chair at local %.2f %.3f %.2f", id, lc[0], lc[1], lc[2]));
-		check.accept(cs[3] == 0 && Math.abs(lc[1] - GearSteamLayout.CABIN_FLOOR_Y) < 0.1 && Math.abs(lc[2] + 10.0) < 1.0,
+		check.accept(cs[3] == 0 && Math.abs(lc[1] - GearSteamLayout.CABIN_FLOOR_Y) < 0.1 && Math.abs(lc[2] + 9.5) < 1.0,
 				String.format(Locale.ROOT, "%s: stands up from the captain's chair on the cabin floor (local y %.3f, z %.2f)", id, lc[1], lc[2]));
 		// a few steps on the waist while the ship is still
 		tp(server, pose(server), -1.5, m + 0.02, 5.8, 0, 5);

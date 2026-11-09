@@ -135,16 +135,16 @@ class GearSteamShipTest {
 		room("waist (before the mast)", -1.0, 1.0, M, 8.6, 9.8, false);
 		room("forecastle", -1.5, 1.5, F, 12.5, 17.0, false);
 		room("engine house roof (beside the dome)", 3.35, 3.65, E, -3.0, 4.0, false);
-		room("poop deck (aft of the deckhouse)", 0.95, 1.85, P, -17.0, -14.8, false);
-		room("poop deck (over the gallery)", 0.95, 1.85, P, -19.4, -17.8, false);
+		room("poop deck (aft of the deckhouse)", 0.95, 1.85, P, -15.5, -13.0, false);
+		room("poop deck (over the gallery)", 0.85, 1.6, P, GearSteamLayout.OVERHANG_Z + 0.85, GearSteamLayout.TRANSOM_Z - 0.4, false);
 		room("poop side deck (port)", 3.4, 3.9, P, -13.5, -8.0, false);
-		room("bridge", -1.8, 1.8, B, -13.1, -10.2, false);
+		room("bridge", -1.8, 1.8, B, GearSteamLayout.DECKHOUSE_Z[0] + 0.9, GearSteamLayout.HELM_Z - 0.85, false);
 		room("stern gallery", -2.4, 2.4, M, -19.5, -18.0, false);
 		room("engine room (port of the boiler)", 2.0, 3.8, M, -5.4, 0.0, true);
 		room("engine room (forward)", -1.0, 1.0, M, -2.5, 3.8, true);
-		room("crew quarters (aft of the table)", -1.1, 1.1, M, -16.5, -15.8, true);
-		room("crew quarters (beside the table)", 1.65, 2.15, M, -14.6, -11.0, true);
-		room("captain's cabin", -0.6, 0.6, P, -13.1, -10.0, true);
+		room("crew quarters (aft of the table)", -1.0, 0.9, M, GearSteamLayout.TRANSOM_Z + 1.0, -14.4, true);
+		room("crew quarters (beside the table)", 1.65, 2.15, M, -13.6, -10.4, true);
+		room("captain's cabin", -0.6, 0.6, P, GearSteamLayout.DECKHOUSE_Z[0] + 1.0, -9.4, true);
 		room("hold (centre line)", -0.8, 0.8, H, -14.5, 5.0, true);
 		room("hold (forward)", -0.8, 0.8, H, 10.0, 13.5, true);
 		// the boiler and the furniture are solid
@@ -166,7 +166,17 @@ class GearSteamShipTest {
 		assertFalse(fits(4.3, P, -12.0, CLOSED), "poop bulwark");
 		assertFalse(fits(4.4, E, 0.0, CLOSED), "engine house roof railing");
 		assertFalse(fits(2.8, B, -11.0, CLOSED), "bridge railing");
-		assertFalse(fits(0, P, GearSteamLayout.GALLERY_Z - 0.2, CLOSED), "taffrail over the gallery");
+		assertFalse(fits(2.0, P, GearSteamLayout.OVERHANG_Z + 0.2, CLOSED), "taffrail over the gallery");
+		// the stern gallery's aft part stands out beyond the poop deck, open to the sky; the stepped counter under it is solid
+		assertTrue(fits(0, M, GearSteamLayout.GALLERY_Z + 0.5, CLOSED) && fits(0, M + 2.5, GearSteamLayout.GALLERY_Z + 0.5, CLOSED),
+				"the gallery open above its aft part");
+		assertTrue(GRID.solidAt(0, 2.0, GearSteamLayout.GALLERY_Z + 1.0, CLOSED) && !GRID.solidAt(0, 0.5, GearSteamLayout.GALLERY_Z + 0.5, CLOSED)
+				&& GRID.solidAt(0, 0.5, GearSteamLayout.TRANSOM_Z - 0.2, CLOSED), "the stepped counter under the gallery");
+		// the funnel rises through the fore part of the deckhouse: the cabin's front wall is its casing, the bridge is closed before it
+		assertFalse(fits(0, P, GearSteamLayout.CABIN_FRONT_Z + 0.2, CLOSED), "the cabin's front wall (the funnel casing)");
+		assertFalse(fits(2.0, B, GearSteamLayout.CABIN_FRONT_Z + 0.4, CLOSED), "the bridge closed before the funnel casing");
+		assertTrue(GearSteamLayout.DECKHOUSE_Z[1] > GearSteamLayout.FUNNEL_Z && GearSteamLayout.DECKHOUSE_Z[1] < GearSteamLayout.FUNNEL_Z + GearSteamLayout.FUNNEL_R,
+				"the funnel stands at the deckhouse's fore end, rising through it");
 		assertFalse(fits(3.2, M, -19.0, CLOSED), "stern gallery bulwark");
 		// the masts, the funnel and the dome stop the walkers
 		assertFalse(fits(0, M, GearSteamLayout.MAIN_MAST_Z, CLOSED), "main mast on the waist");
@@ -279,7 +289,8 @@ class GearSteamShipTest {
 			assertTrue(d.blocks().stream().anyMatch(b -> b.block().startsWith(mod)), "uses " + mod);
 		}
 		// every room has its furniture: a few blocks whose centre lies in each room's box
-		double[][] rooms = {{-2.5, 2.5, P, P + 3, -13.5, -7.5}, {-4.5, 4.5, M, P, -17.0, -7.0}, {-4.5, 4.5, M, E, -6.0, 4.5},
+		double[][] rooms = {{-2.5, 2.5, P, P + 3, GearSteamLayout.DECKHOUSE_Z[0] + 0.5, GearSteamLayout.CABIN_FRONT_Z},
+				{-4.5, 4.5, M, P, GearSteamLayout.TRANSOM_Z + 0.5, -7.0}, {-4.5, 4.5, M, E, -6.0, 4.5},
 				{-4.5, 4.5, H, M, -15.5, 15.0}};
 		String[] names = {"captain's cabin", "crew quarters", "engine room", "hold"};
 		int[] least = {8, 20, 4, 30};
@@ -354,11 +365,11 @@ class GearSteamShipTest {
 				}
 			}
 		}
-		double[][] places = {{0.0, F, 14.0}, {3.6, E, 1.0}, {1.5, P, -17.0}, {0.0, B, -11.5}, {3.0, M, -2.0}, {0.0, M, -9.0}, {0.0, M, -16.3},
-				{0.0, P, -11.0}, {0.0, H, -12.0}, {0.0, H, 12.0}, {0.0, M, -18.8}, {-2.75, M, -0.5}, {-2.75, H, -5.2}};
+		double[][] places = {{0.0, F, 14.0}, {3.6, E, 1.0}, {1.5, P, -14.0}, {0.0, B, -10.0}, {3.0, M, -2.0}, {0.0, M, -9.0}, {0.0, M, -14.8},
+				{0.0, P, -9.8}, {0.0, H, -12.0}, {0.0, H, 12.0}, {0.0, M, -18.8}, {-2.75, M, -0.5}, {-2.75, H, -5.2}, {1.2, P, -17.0}};
 		String[] where = {"forecastle", "engine house roof", "poop deck", "bridge", "engine room (by the aft door)", "crew quarters (forward)",
 				"crew quarters (by the galley)", "captain's cabin", "hold (aft)", "hold (forward)", "stern gallery", "engine room stair's head",
-				"engine room stair's foot in the hold"};
+				"engine room stair's foot in the hold", "poop deck over the gallery"};
 		for (int p = 0; p < places.length; p++) {
 			assertTrue(reached(seen, places[p][0], places[p][1], places[p][2], 2), where[p] + " reached from the waist");
 		}

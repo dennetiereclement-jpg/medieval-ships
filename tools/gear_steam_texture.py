@@ -51,6 +51,7 @@ REGIONS = {
     "grating":     (224, 32, 32, 32),
     "funnel":      (256, 32, 64, 32),   # black riveted plates, vertical seams
     "dome":        (320, 32, 64, 32),   # riveted copper plates of the dome
+    "dome_drum":   (208, 160, 64, 32),  # the dome's drum: darker, browner copper plates (as on the reference)
     "mast":        (384, 32, 64, 16),
     "rail":        (384, 48, 64, 16),   # dark copper-brown railing bar
     "crate":       (448, 32, 32, 32),
@@ -151,7 +152,10 @@ SAIL_CELLS = {"main_sail": (11, 9), "mizzen_sail": (7, 5)}
 SAIL_COLUMNS = {}
 
 _mix, _scale, _planks, _blocks, _fill = ct._mix, ct._scale, ct._planks, ct._blocks, ct._fill
-GOLD = ("8a6420", "c9973a", "e6b85a")
+# the gold of the sails: a warm bronze-gold, as the orange gold of the reference (not a pale lemon yellow)
+GOLD = ("7e4418", "c27a30", "e8a24c")
+# the ship's brass (gears, trims, frames, bolts): the bronze-orange of the reference (phase 4: it read pale yellow gold)
+BRASS = ("6b3a14", "a8622a", "cf8436", "eeae58")
 
 
 # ---------------------------------------------------------------- painters
@@ -218,20 +222,20 @@ def _funnel(px, region, rng):
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
-def _dome(px, region, rng):
+def _dome(px, region, rng, tones=("95481e", "a2522a", "8a4420", "ae5c2c"), edge="d08040", seam="3e1a0a", rivet="e0a050", verdigris=0.03):
     u, v, w, h = region
     for y in range(h):
         for x in range(w):
-            # dark riveted copper plates (a tone per plate), lit along their upper edge, brass rivets
+            # riveted copper plates (a tone per plate), lit along their upper edge, brass rivets
             pk = ((x // 16) * 7 + (y // 16) * 3) % 4
-            c = _scale(_rgb(("8e4424", "9a4a28", "84401f", "a45230")[pk]), 1.0 + 0.1 * math.sin(x * 0.2 + 0.6) - 0.1 * ((y % 16) / 16))
+            c = _scale(_rgb(tones[pk]), 1.0 + 0.1 * math.sin(x * 0.2 + 0.6) - 0.1 * ((y % 16) / 16))
             if x % 16 == 15 or y % 16 == 15:
-                c = _rgb("3e1a0a")
+                c = _rgb(seam)
             elif x % 16 == 0 or y % 16 == 0:
-                c = _rgb("c47648")
+                c = _rgb(edge)
             if (x % 16 in (3, 12)) and (y % 16 in (3, 12)):
-                c = _rgb("d8aa58")
-            if rng.random() < 0.03:
+                c = _rgb(rivet)
+            if rng.random() < verdigris:
                 c = _mix(c, _rgb("4f8a72"), 0.35)   # a touch of verdigris
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
@@ -244,7 +248,7 @@ def _glow_window(px, region, rng):
             frame = x < 3 or x >= w - 3 or y < 3 or y >= h - 3
             bar = abs(x - w / 2 + 0.5) < 1.2 or abs(y - h / 2 + 0.5) < 1.2
             if frame:
-                c = _mix(_rgb("b8862e"), _rgb("e6b85a"), 0.5 if (x < 2 or y < 2) else 0.0)
+                c = _mix(_rgb(BRASS[1]), _rgb(BRASS[3]), 0.5 if (x < 2 or y < 2) else 0.0)
             elif bar:
                 c = _rgb("3a2a18")
             else:
@@ -274,7 +278,8 @@ def _rail(px, region, rng):
     u, v, w, h = region
     for y in range(h):
         for x in range(w):
-            c = _scale(_rgb("6a3c22"), 1.0 + 0.08 * math.sin(x * 0.5) + (0.12 if y < 3 else 0) - (0.15 if y > h - 4 else 0))
+            # the copper railings of the reference (a warm copper bar, lit on top)
+            c = _scale(_rgb("8c4624"), 1.0 + 0.08 * math.sin(x * 0.5) + (0.25 if y < 3 else 0) - (0.2 if y > h - 4 else 0))
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
@@ -284,7 +289,7 @@ def _pipe(px, region, rng):
         t = y / (h - 1)
         k = 0.7 + 0.6 * math.sin(math.pi * t) + (0.25 if 0.2 < t < 0.35 else 0)
         for x in range(w):
-            c = _scale(_rgb("9e4e2c"), k)
+            c = _scale(_rgb("a8522a"), k)
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
@@ -342,7 +347,7 @@ def _cabin_wall(px, region, rng):
     for y in range(h):
         for x in range(w):
             if y in (40, 41):
-                px[u + x, v + y] = _jitter(_rgb("c9973a"), rng, 4) + (255,)
+                px[u + x, v + y] = _jitter(_rgb(BRASS[2]), rng, 4) + (255,)
             elif y > 41 and x % 16 in (0, 15):
                 px[u + x, v + y] = _jitter(_rgb("26180c"), rng, 3) + (255,)
 
@@ -352,7 +357,7 @@ def _gear_face(px, region, rng):
     for y in range(h):
         for x in range(w):
             d = math.hypot(x - w / 2 + 0.5, y - h / 2 + 0.5) / (w / 2)
-            c = _mix(_rgb("e6b85a"), _rgb("a0782a"), min(1.0, d))
+            c = _mix(_rgb(BRASS[3]), _rgb(BRASS[1]), min(1.0, d))
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
@@ -468,10 +473,11 @@ def make_texture(path):
     _plates(px, R["plate_b"], ("33302f", "383534", "3d3a38", "302d2d", "363332"), rng)
     _plates(px, R["plate_c"], ("242222", "282625", "2b2928", "212020"), rng, rust=0.2)
     # copper: the deep red-brown copper of the reference (not a new-penny salmon)
-    _band(px, R["copper"], ("561f0c", "98472a", "cf7a4c"), rng, rivet="e8b862")
-    _band(px, R["copper2"], ("5e240e", "a24f2c", "d88654"), rng, rivet="e8b862")
-    polished_metal(img, R["brass"], [(0.0, _rgb("8a6420")), (0.5, _rgb("c9973a")), (0.85, _rgb("e6b85a")), (1.0, _rgb("f4d68a"))], rng)
-    _band(px, R["brass_band"], ("7a5818", "c9973a", "f0cc70"), rng, rivet="fff0b0")
+    _band(px, R["copper"], ("5a240e", "a04c26", "d88248"), rng, rivet="eaa458")
+    _band(px, R["copper2"], ("60270e", "aa5528", "e08c4e"), rng, rivet="eaa458")
+    # brass: the bronze-orange of the reference's gears and trims (phase 4; it was a pale yellow gold)
+    polished_metal(img, R["brass"], [(0.0, _rgb(BRASS[0])), (0.5, _rgb(BRASS[1])), (0.85, _rgb(BRASS[2])), (1.0, _rgb(BRASS[3]))], rng)
+    _band(px, R["brass_band"], ("5e3010", "a65e26", "dc923e"), rng, rivet="f4c272")
     # the roof edges of the engine house and of the deckhouse: a dark riveted beam with brass bolts (the reference
     # shows no grey anywhere: black iron, dark wood, copper and brass)
     _band(px, R["stone"], ("1c1714", "3a2e26", "5a4636"), rng, rivet="d6a848")
@@ -483,7 +489,7 @@ def make_texture(path):
     paint_lamp_glass(px, u, v, w, h)
     ct._rope(px, R["rope"], "8a7250", "5a4830", rng)
     _fill(px, R["iron"], "3a3b3f", rng, 6)
-    _fill(px, R["bronze"], "b08a2e", rng, 8)
+    _fill(px, R["bronze"], "a8642a", rng, 8)
     _fill(px, R["glow"], "ffc060", rng, 4)
     _fill(px, R["end_grain"], "6a4a2a", rng, 10)
     _chain(px, R["chain"], rng)
@@ -494,6 +500,7 @@ def make_texture(path):
     ct._grating(px, R["grating"], rng)
     _funnel(px, R["funnel"], rng)
     _dome(px, R["dome"], rng)
+    _dome(px, R["dome_drum"], rng, tones=("4e2a1c", "573020", "48271a", "5c3322"), edge="7e4426", seam="1e0e08", rivet="c8843e", verdigris=0.02)
     _planks(px, R["mast"], ("3e2a18", "46301c", "382614"), "1c1008", rng, plank_h=16, joints=0, grain=0.09)
     _rail(px, R["rail"], rng)
     _crate(px, R["crate"], rng)
@@ -519,11 +526,11 @@ def make_texture(path):
     _blocks(px, R["coal"], ("1a1a1c", "242426", "2e2e30"), "0e0e10", rng, bw=4, bh=4)
     ct._painting(px, R["painting"], rng)
     _fill(px, R["fire"], "ff9a30", rng, 30)
-    polished_metal(img, R["plaque"], [(0.0, _rgb("8a6420")), (0.6, _rgb("d8a848")), (1.0, _rgb("f4d68a"))], rng)
+    polished_metal(img, R["plaque"], [(0.0, _rgb(BRASS[0])), (0.6, _rgb(BRASS[2])), (1.0, _rgb(BRASS[3]))], rng)
     u, v, w, h = R["flag"]
     for y in range(h):
         for x in range(w):
-            c = _rgb("c9973a") if (y < 2 or y >= h - 2 or x < 2) else _scale(_rgb("2a2a2e"), 1.0 + 0.05 * math.sin(x * 0.6))
+            c = _rgb(GOLD[1]) if (y < 2 or y >= h - 2 or x < 2) else _scale(_rgb("2a2a2e"), 1.0 + 0.05 * math.sin(x * 0.6))
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
     _wall_iron(px, R["wall_iron"], rng)
     _checker(px, R["floor_iron"], rng)
@@ -576,7 +583,7 @@ def make_item_icon(path):
     sail with a gold gear."""
     img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
     px = img.load()
-    black, copper, brass = _rgb("2c2d31"), _rgb("b0623a"), _rgb("d9a83e")
+    black, copper, brass = _rgb("2c2d31"), _rgb("b0623a"), _rgb("cc8a3a")
     sail, mast, glow = _rgb("2a2a2e"), _rgb("4a3220"), _rgb("ffb040")
     for x in range(1, 15):
         for y in range(10, 15):

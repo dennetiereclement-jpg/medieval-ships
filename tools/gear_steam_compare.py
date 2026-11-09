@@ -29,17 +29,22 @@ W0, H0 = 1672, 941
 # ship-local point (x port, y up, z bow) -> pixel of the reference (1672 x 941)
 POINTS = [
     ((0.0, 0.0, gs.stem_z(0.0)), (1350, 745)),                      # stem at the waterline
-    ((-3.5, 3.4, gs.GALLERY_Z - 0.25), (145, 545)),                 # stern gallery, aft bottom corner (starboard)
-    ((0.0, gs.FUNNEL_TOP, gs.FUNNEL_Z), (527, 97)),                 # funnel top
+    ((-3.25, 6.92, gs.GALLERY_Z - 0.25), (107, 462)),               # stern gallery, top rail's aft corner (starboard)
+    ((0.0, gs.FUNNEL_TOP, gs.FUNNEL_Z), (545, 100)),                # funnel top (phase 4: measured again, 545 px, not 527)
     ((0.0, 20.0, gs.MAIN_MAST_Z), (962, 5)),                        # main masthead box top
     ((0.0, 18.1, gs.MIZZEN_Z), (272, 105)),                         # mizzen masthead box top
     ((-5.25, gs.BIG_GEAR[0], gs.BIG_GEAR[1]), (640, 560)),          # big gear centre (starboard)
     ((-(gs.hull_x(gs.BOW_GEAR[1], gs.BOW_GEAR[0]) + 0.2), gs.BOW_GEAR[0], gs.BOW_GEAR[1]), (1320, 545)),   # bow gear
     (gs.BOOM_TIP, (1620, 343)),                                     # bow boom tip
-    ((0.0, gs.DOME_TOP, gs.DOME_Z), (685, 225)),                    # dome top
+    ((0.0, gs.DOME_TOP, gs.DOME_Z), (687, 225)),                    # dome top
     ((-4.55, gs.WAIST_CAP_Y, gs.FORECASTLE_Z), (1085, 548)),        # waist cap at the forecastle's break
-    ((0.0, 7.75, gs.CRANE_TIP[2]), (97, 415)),                      # hanging crate
+    ((0.0, sum(gs.CRATE_Y) / 2, gs.CRANE_TIP[2]), (96, 416)),       # hanging crate
     ((0.0, gs.STEM_HEAD[1], gs.STEM_HEAD[2]), (1500, 333)),         # stem head
+    # phase 4: points along the stern and the middle, so that the fit does not trade the stern's places for perspective
+    ((-gs.DECKHOUSE_HALF, gs.BRIDGE_Y, gs.DECKHOUSE_Z[0]), (314, 330)),                     # deckhouse, aft top corner
+    ((-gs.hull_x(gs.CREW_WINDOWS_Z[0], 5.65), 5.65, gs.CREW_WINDOWS_Z[0]), (280, 510)),     # crew window, aft
+    ((-(gs.hull_x(gs.PIPE_ARCH_Z[1], 8.2) + 0.55), 8.2, gs.PIPE_ARCH_Z[1]), (750, 452)),    # the U pipe's fore elbow
+    ((-gs.hull_x(5.0, 3.0), 3.0, 5.0), (825, 610)),                                          # hold window, fore
 ]
 
 

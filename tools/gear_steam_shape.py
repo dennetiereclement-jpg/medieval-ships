@@ -40,13 +40,19 @@ ENGINE_ROOF_Y = 9.0        # the roof of the engine house (the dome stands on it
 BRIDGE_Y = 11.0            # the roof of the captain's deckhouse: the bridge with the helm
 CABIN_FLOOR_Y = POOP_Y     # the captain's cabin is the deckhouse on the poop deck
 
-TRANSOM_Z = -17.5          # the stern of the hull (the poop's taffrail)
+TRANSOM_Z = -16.0          # the stern of the hull (phase 4: 1.5 further forward, as measured on the reference: the hull side with
+                           # the crew windows ends there and the gallery is 4 blocks long)
 GALLERY_Z = -20.0          # the aft face of the stern gallery (a balcony off the crew quarters, under the poop's overhang)
+OVERHANG_Z = -18.5         # the aft face of the poop deck carried over the gallery: the gallery's aft part stands out beyond it,
+                           # open to the sky, as on the reference (phase 4)
 POOP_FRONT_Z = -6.5        # the poop ends against the engine house
 ENGINE_FRONT_Z = 5.0       # the front wall of the engine house, on the waist
 FORECASTLE_Z = 11.5        # the front of the waist / the forecastle's break
 DECK_MAX_Z = 19.5          # the forecastle deck ends at the stem
-DECKHOUSE_Z = (-14.0, -7.0)    # the captain's deckhouse on the poop
+DECKHOUSE_Z = (-12.0, -5.0)    # the captain's deckhouse on the poop; its fore part stands on the engine house roof and
+                               # wraps the funnel, which rises through it (phase 4: 2 blocks further forward, as on the reference)
+CABIN_FRONT_Z = -7.0       # the front wall of the captain's cabin: the aft face of the funnel casing inside the deckhouse
+BRIDGE_FRONT_Z = CABIN_FRONT_Z - 0.5   # the railing across the bridge before the funnel casing (the casing's top is closed off)
 DECKHOUSE_HALF = 3.0
 CABIN_WINDOW_Y = 9.85      # the centre of the deckhouse's big windows (1.5 high, clear above the poop railing)
 
@@ -70,18 +76,28 @@ YARD_TILT_DEG = 22.0       # and peaked: the aft (starboard) arm higher, the sai
 BRACE_DEG = 62.0           # the yards are braced round, the starboard arms aft: the sails show their faces to starboard
 FUNNEL_Z, FUNNEL_R, FUNNEL_TOP = -5.6, 1.4, 18.0
 DOME_Z, DOME_R, DOME_TOP = -0.9, 2.85, 14.2
-CRANE_Z = -18.8                            # the crane's post on the poop deck (over the gallery), its jib reaching over the stern
-CRANE_TIP = (0.0, 12.8, -23.6)
-CRATE_Y = (7.2, 8.5)
+CRANE_Z = -18.0                            # the crane's post on the poop deck's aft edge (over the gallery), its jib reaching over the stern
+CRANE_BASE_TOP = POOP_Y + 2.0              # the top of its tall pedestal (as on the reference)
+CRANE_TIP = (0.0, 13.0, -23.0)
+CRATE_Y = (7.4, 8.7)
 STEM_HEAD = (0.0, 10.9, 22.0)              # top of the raised prow
 BOOM_TIP = (0.0, 10.7, 25.2)               # the bow boom carrying the great lantern
-STERN_REACH_Z = -24.4                      # the hanging crate, the furthest aft
+STERN_REACH_Z = -23.95                     # the hanging crate, the furthest aft
+DECKHOUSE_WINDOWS_Z = (-10.25, -8.25, -6.25)   # the deckhouse's three lit windows a side (the third lights the funnel casing)
+# the hull side's stern features, as measured on the reference (phase 4: about 2 blocks further forward than in phases
+# 1-3, under the deckhouse, as on the picture)
+CREW_WINDOWS_Z, CREW_WINDOW_Y = (-12.6, -10.8), 5.65   # the two lit windows of the crew quarters
+STERN_STRIP_Z = -8.85                      # the long copper strip
+STERN_LADDER_Z = -7.85                     # the ladder up to the poop cap
+WATER_LADDER_Z = -4.7                      # the ladder from the water (on the engine house's side)
+PIPE_LOW_Z = (-11.4, -7.2)                 # the low copper pipe: out of the hull aft, its riser (and the pipe down into the sea)
+PIPE_ARCH_Z = (-3.4, 2.3)                  # the legs of the great inverted U on the engine house wall
 BIG_GEAR = (4.5, -0.4, 2.0)                # (y, z, radius) of the big brass gear on each side
 BOW_GEAR = (5.8, 17.4, 1.1)
 
 # ---- helm and pilot (the bridge, at the front of the deckhouse roof)
-HELM_Z = -8.5
-PILOT_Z = -9.3
+HELM_Z = -7.75             # right behind the funnel, which rises through the fore part of the bridge
+PILOT_Z = -8.55
 
 # ---- stairs and ladders (grid: 0.5 high, 0.5 deep steps)
 FC_STAIR_X = (1.5, 3.0)                    # both sides, waist -> forecastle (3 steps, rising forward)
@@ -139,16 +155,51 @@ def bottom_y(z, ax):
     return s[-1][1] * yk
 
 
-COUNTER_Z, COUNTER_SLOPE = -15.8, 1.3
+COUNTER_Z, COUNTER_SLOPE = -15.3, 0.9
+COUNTER_STEP = 0.7          # the counter rises in rows of plates (the stepped stern of the reference, measured: the hull leaves
+                            # the water about z -15.7, its rows about 0.7 high and 0.8 long up to the gallery's bottom)
+
+
+def counter_y(z):
+    """The smooth line of the counter at z (before its steps)."""
+    return (COUNTER_Z - z) * COUNTER_SLOPE - 0.4
+
+
+def counter_steps(z_end):
+    """The z where the stepped counter rises by a row, from COUNTER_Z aft to z_end, with the heights below and above
+    each step: [(z, y_below, y_above), ...]."""
+    out = []
+    j = math.floor(counter_y(COUNTER_Z) / COUNTER_STEP) + 1
+    while True:
+        y = j * COUNTER_STEP
+        z = COUNTER_Z - (y + 0.4) / COUNTER_SLOPE
+        if z <= z_end:
+            break
+        if y - COUNTER_STEP > keel_y(z):
+            out.append((z, y - COUNTER_STEP, y))
+        j += 1
+    return out
+
+
+def skirt_rows(z_aft, x_half=3.5):
+    """The stepped counter under the stern gallery (beyond the transom): [(z0, z1, y_bottom)] from the transom aft to z_aft,
+    each row a block of plates from y_bottom up to the gallery's floor (the stern of the reference)."""
+    zs = [TRANSOM_Z] + [z for z, _, _ in counter_steps(z_aft) if z < TRANSOM_Z] + [z_aft]
+    rows = []
+    for j in range(len(zs) - 1):
+        z1, z0 = zs[j], zs[j + 1]
+        rows.append((z0, z1, keel_draw((z0 + z1) / 2)))
+    return rows
 
 
 def keel_draw(z):
     """The drawn keel line: keel_y, raised aft into the counter (the stern overhangs the water: the hull leaves
-    the sea about z = -16, its transom bottom about 2 blocks up). Python only (the model and the grid); the
-    Java HullShape keeps keel_y (a little deeper under the counter: buoyancy and placement only)."""
+    the sea about z = -15.7, its transom bottom 1.4 up), the counter rising in rows of plates as the stepped rows
+    of the reference (phase 4). Python only (the model and the grid); the Java HullShape keeps
+    keel_y (a little deeper under the counter: buoyancy and placement only)."""
     k = keel_y(z)
     if z < COUNTER_Z:
-        k = max(k, (COUNTER_Z - z) * COUNTER_SLOPE - 0.4)
+        k = max(k, math.floor(counter_y(z) / COUNTER_STEP + 1e-9) * COUNTER_STEP)
     return k
 
 
@@ -185,12 +236,26 @@ def section_points(z, ys=None):
 
 BOW_RAKE = (0.30, 0.25)   # the stem leans forward by this much per block above (below) the water, up to RAKE_TOP
 RAKE_TOP = 11.0
+# the bow's lower plating steps in rows a block high (the stepped forefoot of the reference, phase 4): each row keeps
+# one raked offset, its fore end standing STEP_BACK aft of the row above it
+STEP_ROWS = (0.75, 1.62, 2.48, 3.35)       # the tops of the rows (the plate courses of the model; the first is the boot-top)
+STEP_LOW = -0.15                           # the foot of the first row
+STEP_BACK = 0.52
+
+
+def _rake_r(y):
+    if STEP_LOW < y <= STEP_ROWS[-1]:
+        top = next(t for t in STEP_ROWS if y <= t + 1e-9)
+        return BOW_RAKE[0] * STEP_ROWS[-1] - STEP_BACK * round((STEP_ROWS[-1] - top) / (STEP_ROWS[1] - STEP_ROWS[0]))
+    if y > 0:
+        return BOW_RAKE[0] * min(y, RAKE_TOP)
+    return min(BOW_RAKE[1] * y, _rake_r(STEP_ROWS[0]))
 
 
 def rake(z, y):
     """How far forward the bow sections are moved at height y (0 aft of the fore body)."""
     f = min(1.0, max(0.0, (z - 4.0) / 12.0)) ** 1.5
-    return f * (BOW_RAKE[0] * min(y, RAKE_TOP) if y > 0 else BOW_RAKE[1] * y)
+    return f * _rake_r(y)
 
 
 def hull_x(z, y):

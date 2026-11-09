@@ -15,9 +15,10 @@ Layout (docs/GearSteam_PLAN.md):
   engine room (4.5, z -6.5 -> 5): inside the engine house, 4 blocks high, the boiler under the funnel,
     a stair down to the hold (starboard); doors forward (waist) and aft (crew quarters)
   crew quarters (4.5, under the poop deck): door aft onto the stern gallery (a balcony over the counter)
-  captain's cabin (7.5): the deckhouse on the poop deck, door aft; the bridge (11.0) on its roof, with
-    the helm, reached by a ladder on its aft wall; the poop deck (7.5) reached from the engine house
-    roof (9.0) by three steps down on each side
+  captain's cabin (7.5): the deckhouse on the poop deck, door aft; its fore part stands on the engine house
+    roof and wraps the funnel (solid casing, the cabin's front wall); the bridge (11.0) on its roof, with
+    the helm right behind the funnel, reached by a ladder on its aft wall; the poop deck (7.5) reached
+    from the engine house roof (9.0) by three steps down on each side
   hold (1.0): the lower deck, one long room under the waist, the engine room and the crew quarters
 """
 import math
@@ -51,7 +52,7 @@ ROOMS = {
     "hold": (-4.5, 4.5, H, M - S, -15.5, 15.0),
     "engine_room": (-4.5, 4.5, M, E - S, gs.POOP_FRONT_Z + 0.5, gs.ENGINE_FRONT_Z - 0.5),
     "crew": (-4.5, 4.5, M, P - S, gs.TRANSOM_Z + 0.5, gs.POOP_FRONT_Z - 0.5),
-    "cabin": (-DH + 0.5, DH - 0.5, P, B - S, DZ0 + 0.5, DZ1 - 0.5),
+    "cabin": (-DH + 0.5, DH - 0.5, P, B - S, DZ0 + 0.5, gs.CABIN_FRONT_Z),
 }
 # the stern gallery: an open balcony beyond the transom (floor = the main deck)
 GALLERY = (-3.0, 3.0, M, gs.GALLERY_BULWARK_TOP, gs.GALLERY_Z, gs.TRANSOM_Z)
@@ -206,17 +207,22 @@ def build():
         g.k[near & (g.k == OUT) & (Y < M)] = SOLID
     # the captain's deckhouse on the poop deck: walls 0.5 thick, its roof is the bridge (railed)
     g.set(SOLID, -DH, DH, P, B, DZ0, DZ1, where=g.k != DRY)
-    g.set(SOLID, -DH, DH, B, gs.BRIDGE_RAIL_TOP, DZ0, DZ1, where=(np.abs(X) > DH - 0.5) | (Z < DZ0 + 0.5) | (Z > DZ1 - 0.5))
+    g.set(SOLID, -DH, DH, B, gs.BRIDGE_RAIL_TOP, DZ0, DZ1, where=(np.abs(X) > DH - 0.5) | (Z < DZ0 + 0.5) | (Z > gs.BRIDGE_FRONT_Z))
     # the stern gallery: floor, bulwarks round it (open above)
     gx0, gx1, gy0, gy1, gz0, gz1 = GALLERY
     g.set(SOLID, gx0 - 0.5, gx1 + 0.5, M - 1.5, M, gz0 - 0.5, gz1)
+    # under it, the stepped counter (the rows of plates of the model) down to the water
+    for z0, z1, yb in gs.skirt_rows(gz0):
+        g.set(SOLID, gx0 - 0.5, gx1 + 0.5, yb, M - 1.5, z0, z1)
     g.set(SOLID, gx0 - 0.5, gx1 + 0.5, M, gy1, gz0 - 0.5, gz1, where=(np.abs(X) > gx1) | (Z < gz0))
-    # the poop deck reaches aft over the gallery (its roof), carried by posts at the gallery's aft corners,
-    # with its bulwark round the overhang; the transom stops at the poop deck there (the deck runs on)
-    g.set(SOLID, gx0 - 0.5, gx1 + 0.5, P - S, P, gz0 - 0.5, gz1)
-    g.set(SOLID, gx0 - 0.5, gx1 + 0.5, P, gs.POOP_BULWARK_TOP, gz0 - 0.5, gz1, where=(np.abs(X) > gx1) | (Z < gz0))
+    # the poop deck reaches aft over the gallery (its roof) to OVERHANG_Z, carried by posts at its aft corners,
+    # with its bulwark round the overhang (the gallery's last block stands out beyond it, open to the sky); the
+    # transom stops at the poop deck there (the deck runs on)
+    oz = gs.OVERHANG_Z
+    g.set(SOLID, gx0 - 0.5, gx1 + 0.5, P - S, P, oz, gz1)
+    g.set(SOLID, gx0 - 0.5, gx1 + 0.5, P, gs.POOP_BULWARK_TOP, oz, gz1, where=(np.abs(X) > gx1) | (Z < oz + 0.5))
     for sx in (-1, 1):
-        g.set(SOLID, min(sx * gx1, sx * (gx1 + 0.5)), max(sx * gx1, sx * (gx1 + 0.5)), M, P, gz0 - 0.5, gz0)
+        g.set(SOLID, min(sx * gx1, sx * (gx1 + 0.5)), max(sx * gx1, sx * (gx1 + 0.5)), M, P, oz, oz + 0.5)
     g.set(OUT, gx0, gx1, P, gs.POOP_BULWARK_TOP, gz1, gz1 + 0.5)
     # the waist's hatch and companion down to the hold (port), the stairs up to the forecastle (both sides)
     cx0, cx1 = gs.COMPANION_X

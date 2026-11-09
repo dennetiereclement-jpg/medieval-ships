@@ -28,14 +28,19 @@ public final class GearSteamLayout {
 	public static final double ENGINE_ROOF_Y = 9.0;
 	public static final double BRIDGE_Y = 11.0;
 	public static final double CABIN_FLOOR_Y = POOP_Y;
-	public static final double TRANSOM_Z = -17.5;
+	public static final double TRANSOM_Z = -16.0;
 	public static final double GALLERY_Z = -20.0;
+	/** The aft face of the poop deck carried over the stern gallery (the gallery's last block stands out beyond it). */
+	public static final double OVERHANG_Z = -18.5;
 	public static final double POOP_FRONT_Z = -6.5;
 	public static final double ENGINE_FRONT_Z = 5.0;
 	public static final double FORECASTLE_Z = 11.5;
 	public static final double DECK_MAX_Z = 19.5;
-	public static final double[] DECKHOUSE_Z = {-14.0, -7.0};
+	/** The captain's deckhouse: its fore part stands on the engine house roof and wraps the funnel, which rises through it. */
+	public static final double[] DECKHOUSE_Z = {-12.0, -5.0};
 	public static final double DECKHOUSE_HALF = 3.0;
+	/** The front wall of the captain's cabin (the aft face of the funnel casing inside the deckhouse). */
+	public static final double CABIN_FRONT_Z = -7.0;
 	/** Collision top of the waist bulwark (its copper cap is drawn at 5.5, the railing higher). */
 	public static final double WAIST_BULWARK_TOP = 6.0;
 	/** The main mast, stepped on the keel (through the hold and the waist). */
@@ -61,20 +66,20 @@ public final class GearSteamLayout {
 	public static final double DOME_Z = -0.9;
 	public static final double DOME_R = 2.85;
 	public static final double DOME_TOP = 14.2;
-	/** The stern crane: its post on the poop deck, the tip of its jib and the crate hanging under it. */
-	public static final double CRANE_Z = -18.8;
-	public static final double[] CRANE_TIP = {0.0, 12.8, -23.6};
-	public static final double[] CRATE_Y = {7.2, 8.5};
+	/** The stern crane: its post on the poop deck's aft edge, the tip of its jib and the crate hanging under it. */
+	public static final double CRANE_Z = -18.0;
+	public static final double[] CRANE_TIP = {0.0, 13.0, -23.0};
+	public static final double[] CRATE_Y = {7.4, 8.7};
 	/** The raised prow and the boom carrying the great bow lantern. */
 	public static final double[] STEM_HEAD = {0.0, 10.9, 22.0};
 	public static final double[] BOOM_TIP = {0.0, 10.7, 25.2};
 	/** How far aft the hanging crate reaches. */
-	public static final double STERN_REACH_Z = -24.4;
+	public static final double STERN_REACH_Z = -23.95;
 	/** The big brass gear wheel on each side (y, z, radius), the small one at the bow. */
 	public static final double[] BIG_GEAR = {4.5, -0.4, 2.0};
 	public static final double[] BOW_GEAR = {5.8, 17.4, 1.1};
-	public static final double HELM_Z = -8.5;
-	public static final double PILOT_Z = -9.3;
+	public static final double HELM_Z = -7.75;
+	public static final double PILOT_Z = -8.55;
 	/** Stairs and ladders of the interior grid (x0, x1) and (z start, z end). */
 	public static final double[] FC_STAIR_X = {1.5, 3.0};
 	public static final double[] FC_STAIR_Z = {10.0, 11.5};
@@ -86,7 +91,7 @@ public final class GearSteamLayout {
 	public static final double[] ROOF_LADDER_X = {2.5, 3.5};
 	public static final double[] ROOF_LADDER_Z = {5.0, 5.5};
 	public static final double[] BRIDGE_LADDER_X = {1.5, 2.5};
-	public static final double[] BRIDGE_LADDER_Z = {-14.5, -14.0};
+	public static final double[] BRIDGE_LADDER_Z = {-12.5, -12.0};
 	/** Doors of the interior grid. */
 	public static final int ENGINE_DOOR = 0;
 	public static final int CREW_DOOR = 1;

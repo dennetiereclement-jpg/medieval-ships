@@ -18,10 +18,10 @@ Room by room (docs/GearSteam_PLAN.md, section 10):
   engine room   the boiler (P1), the twin-cylinder engine and its flywheel (port, forward), the workbench, its tool
                 board and the lockers (starboard, forward), the coal bunker (starboard, aft), the railing round the
                 stair hatch, the steam pipes, the gauge boards, the telegraph repeater, the stoker's stool
-  crew quarters the mess table and its benches (8 seats), three bunks, lockers, a wardrobe, the galley range with
+  crew quarters the mess table and its benches (8 seats), two bunks, lockers, a wardrobe, the galley range with
                 its counter, pot and spice rack, a guitar, a coat rack
   captain       the bed, the desk and the captain's chair, the bookcase, the liquor cabinet, a dresser, a visitor's
-                chair, a rug, the wall clock, a chart on the wall, the windows from inside
+                chair, a rug, the wall clock, a chart on the wall (the funnel casing), the windows from inside
   hold          crates and sacks along the port side, barrels on the starboard side, the main coal bunkers under
                 the engine room, a spare gear wheel, spare pipes, chain and rope
   decks         cargo waiting for the crane on the poop deck, the windlass, bitts, crates and benches of the
@@ -154,90 +154,93 @@ def crate(x, y, z, kind=None, facing="stern"):
 
 # ---------------------------------------------------------------- the rooms
 def captain_cabin():
-    """Cabine du capitaine (the deckhouse on the poop deck, floor 7.5, x -2.5..2.5, z -13.5 -> -7.5, the door aft
-    at x -1.25..0.25): the bed against the port wall aft, the desk across the front wall with the captain's chair,
-    the bookcase in the starboard aft corner, the liquor cabinet under the starboard windows and a visitor's chair,
-    a dresser under the port windows, a rug, the wall clock, a chart on the front wall, the windows seen from inside."""
+    """Cabine du capitaine (the deckhouse on the poop deck, floor 7.5, x -2.5..2.5, z -11.5 -> -7.0: its front wall is the
+    funnel casing; the door aft at x -1.25..0.25): the bed against the port wall aft, the desk across the front wall with
+    the captain's chair, the bookcase in the starboard aft corner, the liquor cabinet under the starboard windows and a
+    visitor's chair, a dresser under the port windows, a rug, the wall clock, a chart on the front wall, the windows seen
+    from inside (two a side: the third pane of each side lights the funnel casing)."""
     y = P
-    block(FD + "single_bed", 1.88, y, -12.47, "stern")
-    block(FD + "desk", 0.0, y, -8.03, "stern")
-    block(FU + "dark_oak_chair", 0.0, y, -9.05, "bow", solid=False)
-    seat(0.0, y + SEAT_H, -9.05, 0.0, y, -10.0)
+    zf = gs.CABIN_FRONT_Z
+    za = gs.DECKHOUSE_Z[0] + 0.5
+    block(FD + "single_bed", 1.88, y, za + 1.03, "stern")
+    block(FD + "desk", 0.0, y, zf - 0.53, "stern")
+    block(FU + "dark_oak_chair", 0.0, y, zf - 1.55, "bow", solid=False)
+    seat(0.0, y + SEAT_H, zf - 1.55, 0.0, y, zf - 2.5)
     top = y + 1.016
-    block(FD + "kerosene_lantern", 1.05, top, -8.15, "stern", solid=False)
-    block(FD + "pile_of_books", -1.1, top, -7.95, "stern", solid=False)
-    block(FU + "book_pile", -0.75, top, -7.85, "starboard", solid=False)
-    custom("chart_sheet2", name="captain_chart", p=(0.05, top, -8.15), yaw=0.15, w=0.8, l=0.55)
-    custom("compass", name="captain_compass", p=(0.6, top, -8.25))
-    custom("inkwell", name="captain_inkwell", p=(-0.45, top, -7.8))
-    custom("dividers", name="captain_dividers", p=(-0.1, top + 0.012, -8.2), yaw=0.6)
-    custom("wall_map", name="captain_wall_chart", center=(0.0, y + 2.05, -7.5), normal=(0, 0, -1), w=1.1, h=0.75)
-    block(FD + "tall_bookshelf", -1.98, y, -13.09, "bow")
-    block(FD + "liquor_cabinet", -2.15, y, -10.55, "port")
-    block(FD + "dining_chair", -1.3, y, -9.35, "bow", solid=False)
-    seat(-1.3, y + 0.625, -9.35, -0.7, y, -10.1)
-    block(FD + "dresser", 2.12, y, -9.95, "starboard")
-    block(FD + "cigar_box", 2.1, y + 1.016, -10.25, "starboard", solid=False)
-    block(FU + "picture_frame", 2.15, y + 1.016, -9.7, "starboard", solid=False)
-    block(FD + "rug_3x_3", 0.0, y, -10.9, "stern", solid=False)
-    block(FD + "cuckoo_clock", 0.85, y + 1.55, -13.4, "bow", solid=False)
-    lantern(0.0, CABIN_CEIL, -10.5)
-    # the windows seen from inside: three a side, two forward (the outside panes of tools/generate_gear_steam.deckhouse)
+    block(FD + "kerosene_lantern", 1.05, top, zf - 0.65, "stern", solid=False)
+    block(FD + "pile_of_books", -1.1, top, zf - 0.45, "stern", solid=False)
+    block(FU + "book_pile", -0.75, top, zf - 0.35, "starboard", solid=False)
+    custom("chart_sheet2", name="captain_chart", p=(0.05, top, zf - 0.65), yaw=0.15, w=0.8, l=0.55)
+    custom("compass", name="captain_compass", p=(0.6, top, zf - 0.75))
+    custom("inkwell", name="captain_inkwell", p=(-0.45, top, zf - 0.3))
+    custom("dividers", name="captain_dividers", p=(-0.1, top + 0.012, zf - 0.7), yaw=0.6)
+    custom("wall_map", name="captain_wall_chart", center=(0.0, y + 2.05, zf), normal=(0, 0, -1), w=1.1, h=0.75)
+    block(FD + "tall_bookshelf", -1.98, y, za + 0.41, "bow")
+    block(FD + "liquor_cabinet", -2.15, y, -9.25, "port")
+    block(FD + "dining_chair", -1.3, y, zf - 1.75, "bow", solid=False)
+    seat(-1.3, y + 0.625, zf - 1.75, -0.6, y, zf - 2.6)
+    block(FD + "dresser", 2.12, y, -8.25, "starboard")
+    block(FD + "cigar_box", 2.1, y + 1.016, -8.55, "starboard", solid=False)
+    block(FU + "picture_frame", 2.15, y + 1.016, -8.0, "starboard", solid=False)
+    block(FD + "rug_3x_3", 0.0, y, -9.3, "stern", solid=False)
+    block(FD + "cuckoo_clock", 0.85, y + 1.55, za + 0.1, "bow", solid=False)
+    lantern(0.0, CABIN_CEIL, -9.25)
+    # the windows seen from inside: the two aftmost panes of each side (the outside panes of tools/generate_gear_steam.deckhouse)
     for side in (1, -1):
-        for k, z in enumerate((-12.0, -10.0, -8.0)):
+        for k, z in enumerate(Z_CABIN_WINDOWS):
             custom("window_in", name="cabin_window_%s%d" % ("p" if side > 0 else "s", k), center=(side * (gs.DECKHOUSE_HALF - 0.5), gs.CABIN_WINDOW_Y - 0.05, z),
                    normal=(-side, 0, 0), w=1.15, h=1.35)
-    for k, x in enumerate((-1.3, 1.3)):
-        custom("window_in", name="cabin_window_f%d" % k, center=(x, gs.CABIN_WINDOW_Y - 0.05, gs.DECKHOUSE_Z[1] - 0.5), normal=(0, 0, -1), w=1.0, h=1.2)
+
+
+Z_CABIN_WINDOWS = gs.DECKHOUSE_WINDOWS_Z[:2]
+Z_CREW_WINDOWS = gs.CREW_WINDOWS_Z
 
 
 def crew_quarters():
-    """Quartiers de l'equipage (under the poop deck, floor 4.5, z -17 -> -7, 2.5 high; doors: forward port to the
+    """Quartiers de l'equipage (under the poop deck, floor 4.5, z -15.5 -> -7, 2.5 high; doors: forward port to the
     engine room, aft on the centre line to the gallery): the mess table on the centre line with its benches (eight
-    seats), three bunks along the sides clear of the windows, lockers, a wardrobe, the galley range with its counter,
-    its pot and spice rack in the starboard aft corner, lanterns."""
+    seats), two bunks clear of the windows (one across the aft wall to port, one along the starboard side forward),
+    lockers, a wardrobe, the galley range with its counter, its pot and spice rack in the starboard aft corner, lanterns."""
     y = M
+    za = gs.TRANSOM_Z + 0.5          # the aft wall
     # the mess table (Farmhouse dining table, four blocks along z) and its benches
-    block(FD + "dining_table_side", 0.0, y, -14.5, "stern")
-    block(FD + "dining_table_middle", 0.0, y, -13.5, 90.0)
+    block(FD + "dining_table_side", 0.0, y, -13.5, "stern")
     block(FD + "dining_table_middle", 0.0, y, -12.5, 90.0)
-    block(FD + "dining_table_side", 0.0, y, -11.5, "bow")
+    block(FD + "dining_table_middle", 0.0, y, -11.5, 90.0)
+    block(FD + "dining_table_side", 0.0, y, -10.5, "bow")
     for side in (1, -1):
-        for z in (-14.5, -13.5, -12.5, -11.5):
+        for z in (-13.5, -12.5, -11.5, -10.5):
             bench(side * 1.05, y, z, along_z=True, sit=(side * 1.9, z))
     top = y + 1.0
-    for k, (x, z) in enumerate(((0.25, -14.4), (-0.25, -13.6), (0.25, -12.4), (-0.25, -11.6))):
+    for k, (x, z) in enumerate(((0.25, -13.4), (-0.25, -12.6), (0.25, -11.4), (-0.25, -10.6))):
         block(FU + "plate", x, top, z, "stern", solid=False, scale=0.42)
-    custom("tankards", name="mess_tankards", pts=[(0.3, top, -13.9), (-0.3, top, -14.6), (0.32, top, -11.9), (-0.3, top, -12.9)])
-    block(FD + "wine_bottle", 0.05, top, -13.15, "stern", solid=False)
-    block(FD + "red_wine_bottle", -0.1, top, -12.0, "stern", solid=False)
-    block(FR + "roast_chicken_block", 0.0, top, -12.95, "stern", solid=False, scale=0.7)
-    block(FD + "kerosene_lantern", 0.0, top, -14.05, "stern", solid=False)
-    # the bunks (Farmhouse single beds), clear of the windows (z -15.6..-12.8) and of the forward port door
-    bx = 3.38
-    block(FD + "single_bed", bx, y, -11.7, "stern")
-    block(FD + "single_bed", -bx, y, -11.7, "stern")
-    block(FD + "single_bed", -bx, y, -9.4, "stern")
-    # lockers: two along the port wall forward (aside the door's way), two against the forward bulkhead (starboard)
-    for z in (-10.0, -9.0):
-        block(FU + "locker", 4.0, y, z, "starboard")
+    custom("tankards", name="mess_tankards", pts=[(0.3, top, -12.9), (-0.3, top, -13.6), (0.32, top, -10.9), (-0.3, top, -11.9)])
+    block(FD + "wine_bottle", 0.05, top, -12.15, "stern", solid=False)
+    block(FD + "red_wine_bottle", -0.1, top, -11.0, "stern", solid=False)
+    block(FR + "roast_chicken_block", 0.0, top, -11.95, "stern", solid=False, scale=0.7)
+    block(FD + "kerosene_lantern", 0.0, top, -13.05, "stern", solid=False)
+    # the bunks (Farmhouse single beds), clear of the windows (z -13.3..-10.1) and of both doors' ways
+    block(FD + "single_bed", 2.48, y, za + 0.61, "port")
+    block(FD + "single_bed", -3.3, y, -9.0, "stern")
+    # lockers: two against the forward bulkhead each side of the centre line, a wardrobe along the port side forward
+    for x in (0.85, 1.75):
+        block(FU + "locker", x, y, -7.5, "stern")
     for x in (-3.9, -2.9):
         block(FU + "locker", x, y, -7.5, "stern")
+    block(FD + "wardrobe", 3.5, y, -8.62, "starboard")
     block(FD + "coat_hanger", -1.9, y, -7.48, "stern")
     block(FD + "acoustic_guitar", -1.05, y, -7.3, "stern", solid=False)
     # the galley in the starboard aft corner: the range, its counter, a pot, the spice rack, the stovepipe
-    block(FD + "kitchen_antique_oven_decorated", -2.0, y, -16.52, "bow")
-    block(FD + "kitchen_counter", -3.0, y, -16.54, "bow")
-    block(FR + "cooking_pot", -3.0, y + 1.0, -16.55, "bow", solid=False)
-    block(FD + "seasoning_rack", -3.0, y + 1.25, -16.86, "bow", solid=False)
-    custom("stovepipe", name="galley_stovepipe", p0=(-2.0, y + 1.6, -16.82), top=CREW_CEIL, d=0.2)
-    # the port aft corner: a wardrobe
-    block(FD + "wardrobe", 2.5, y, -16.58, "bow")
-    for z in (-13.0, -9.0, -15.5):
-        lantern(0.0 if z > -15 else 1.6, CREW_CEIL, z)
+    block(FD + "kitchen_antique_oven_decorated", -2.0, y, za + 0.48, "bow")
+    block(FD + "kitchen_counter", -3.0, y, za + 0.46, "bow")
+    block(FR + "cooking_pot", -3.0, y + 1.0, za + 0.45, "bow", solid=False)
+    block(FD + "seasoning_rack", -3.0, y + 1.25, za + 0.14, "bow", solid=False)
+    custom("stovepipe", name="galley_stovepipe", p0=(-2.0, y + 1.6, za + 0.18), top=CREW_CEIL, d=0.2)
+    for x, z in ((0.0, -12.0), (0.0, -8.8), (1.6, -14.2)):
+        lantern(x, CREW_CEIL, z)
     # the windows seen from inside (the hull windows of tools/generate_gear_steam.trims)
     for side in (1, -1):
-        for k, z in enumerate((-15.0, -13.4)):
+        for k, z in enumerate(Z_CREW_WINDOWS):
             custom("window_in", name="crew_window_%s%d" % ("p" if side > 0 else "s", k), center=(_wall_x(z, 5.65, side), 5.65, z), normal=(-side, 0, 0),
                    w=1.0, h=1.25)
 
@@ -365,17 +368,20 @@ def decks():
     ventilators on the engine house roof; barrels by the companion on the waist; the steam windlass, bitts, crates
     and benches on the forecastle; benches on the stern gallery."""
     # poop deck (7.5): crates in the starboard aft corner and on the overhang, a barrel, a coil of chain
-    crate(-2.85, P, -16.9)
-    crate(-2.85, P, -15.9, FU + "spruce_crate")
-    crate(-2.85, P + 1.0, -16.9, FR + "carrot_crate")
-    crate(-2.4, P, -18.3, FU + "spruce_crate")
-    block(LI + "loaded_fir_barrel", -2.4, P, -19.45, "port")
-    custom("chain_coil", name="poop_chain", p=(-1.25, P, -18.9), r=0.38)
-    bench(-2.2, P, -14.35, sit=(-1.9, -15.0))
+    tz = gs.TRANSOM_Z
+    crate(-2.35, P, tz - 0.6)
+    crate(-2.35, P, tz + 0.4, FU + "spruce_crate")
+    crate(-2.35, P + 1.0, tz - 0.6, FR + "carrot_crate")
+    crate(-2.35, P, tz - 1.6, FU + "spruce_crate")
+    block(LI + "loaded_fir_barrel", 2.45, P, tz - 1.3, "bow")
+    custom("chain_coil", name="poop_chain", p=(-1.3, P, gs.CRANE_Z + 0.25), r=0.36)
+    za = gs.DECKHOUSE_Z[0]
+    bench(-2.2, P, za - 0.35, sit=(-1.9, za - 1.0))
     # bridge (11.0): the officers' bench aft, the telegraph beside the wheel
-    bench(-2.0, B, -13.1, sit=(-2.0, -12.25))
-    bench(-1.0, B, -13.1, sit=(-1.0, -12.25))
-    custom("telegraph", solid=(1.3, 1.8, B, B + 1.4, -8.55, -8.05), name="bridge_telegraph", p=(1.55, B, -8.3), facing=(0, 0, -1), lit=False)
+    bench(-2.0, B, za + 0.65, sit=(-2.0, za + 1.5))
+    bench(-1.0, B, za + 0.65, sit=(-1.0, za + 1.5))
+    hz = gs.HELM_Z
+    custom("telegraph", solid=(1.85, 2.35, B, B + 1.4, hz - 0.5, hz), name="bridge_telegraph", p=(2.1, B, hz - 0.25), facing=(0, 0, -1), lit=False)
     # engine house roof (9.0): two cowl ventilators forward of the dome
     for side in (1, -1):
         custom("ventilator", solid=(side * 1.7 - 0.25, side * 1.7 + 0.25, E, E + 1.6, 3.15, 3.65), name="vent_%s" % ("p" if side > 0 else "s"),

@@ -131,10 +131,17 @@ def hull_rows(z):
         pts.append((max(0.16, fx * w), fy * yk if yk < 0 else yk + 0.15 * (1 - fy)))
     regs = ["plate_c", "plate_c", "plate_c"]
     cap = 0.5 if z < FZ or z > 19.0 else 0.6     # the forecastle: one broad copper course, as on the reference
-    levels = [(-0.3, "plate_c"), (0.35, "copper"), (1.35, "plate_a"), (2.35, "plate_a"), (3.35, "plate_a"),
+    r = gs.STEP_ROWS     # the copper boot-top shows above the water (as on the reference), then the stepped rows of plates
+    levels = [(gs.STEP_LOW, "plate_c"), (r[0], "copper"), (r[1], "plate_a"), (r[2], "plate_a"), (r[3], "plate_a"),
               (3.35 + (top - cap - 3.35) * 0.5, "plate_a"), (top - cap, "plate_a"), (top, cap_region(z))]
     for y, reg in levels:
         y = max(y, pts[-1][1] + 0.08)
+        if any(abs(pts[-1][1] - t) < 1e-6 for t in gs.STEP_ROWS[:-1]) and gs.rake(z, y) != gs.rake(z, pts[-1][1]):
+            # the bow's stepped rows (phase 4): a ledge from the top of a row to the foot of the one above it, so that
+            # each row stands upright with its own fore end
+            yl = pts[-1][1] + 0.003
+            pts.append((max(0.16, gs.hull_x(z, yl)), yl))
+            regs.append(reg)
         pts.append((max(0.16, gs.hull_x(z, y)), y))
         regs.append(reg)
     return pts, regs
@@ -166,10 +173,14 @@ def map_strip(cube, region, z0, y_lo):
 
 
 def _stations():
-    st = [TZ, -17.0, -16.4, -15.6, -14.6, -13.5, -12.0, -10.5, -9.0, -7.5]
+    st = [TZ, -15.6, -15.0, -14.3, -13.5, -12.0, -10.5, -9.0, -7.5]
     st += [PF - 0.001, PF + 0.001, -5.0, -3.5, -2.0, -0.5, 1.0, 2.5, 4.0, EF - 0.001, EF + 0.001, 6.5, 8.0, 9.5, 11.0, FZ - 0.001, FZ + 0.001]
     st += [12.5, 13.5, 14.5, 15.4, 16.2, 17.0, 17.7, 18.2, 18.6, BOW_Z, 19.2, 19.7, 20.2, 20.7, 21.2, 21.7]
-    return st
+    # the stepped counter (phase 4): a pair of stations round each step, the boards on either side of it take its two heights
+    for z, _, _ in gs.counter_steps(TZ):
+        st += [z - 0.002, z + 0.002]
+    st += [gs.stem_z(t) - 0.001 for t in gs.STEP_ROWS[:-1]] + [gs.stem_z(t) + 0.001 for t in gs.STEP_ROWS[:-1]]
+    return sorted(set(round(z, 4) for z in st if TZ <= z))
 
 
 STATIONS = _stations()
@@ -198,6 +209,10 @@ def hull(bone):
                              inner="plate_c" if k < 5 else "plate_b")
                 map_strip(cube, regs[k], za, min(a0[1], b0[1]))
                 n += 1
+    # the risers of the stepped counter (the aft faces of its rows)
+    for j, (z, lo, hi) in enumerate(gs.counter_steps(TZ)):
+        w = 0.97 * gs.half_width(z)
+        add_cube(bone, "counter_riser_%d" % j, (0, (lo + hi) / 2, z), EYE, (2 * w, hi - lo + 0.02, 0.1), "plate_c")
     # keel, rising into the stem
     for i in range(len(STATIONS) - 2):
         za, zb = STATIONS[i], STATIONS[i + 1]
@@ -212,9 +227,14 @@ def stem(bone):
     as on the reference), the raised prow behind it above the forecastle (stepped black plated walls rising to
     the head on both sides, a brass-capped head) and the boom carrying the great lantern."""
     yt = gs.STEM_HEAD[1]
-    ys = list(np.arange(-1.6, yt - 0.2, 0.5)) + [yt]
+    ys = sorted(set([round(y, 3) for y in np.arange(-1.6, yt - 0.2, 0.5)] + [yt] + [t for t in gs.STEP_ROWS]))
     for k in range(len(ys) - 1):
         ya, yb = ys[k], ys[k + 1]
+        if ya < gs.STEP_ROWS[-1] - 1e-6 and yb > gs.STEP_ROWS[0] - 0.66:
+            # the stepped rows: a brass block upright on each row (its fore end), stepping back row by row
+            zm = gs.stem_z((ya + yb) / 2) + 0.05
+            add_cube(bone, "stem_%d" % k, (0, (ya + yb) / 2, zm - 0.15), EYE, (0.7, yb - ya + 0.02, 0.55), "brass_band")
+            continue
         za, zb = gs.stem_z(ya) + 0.05, gs.stem_z(yb) + 0.05
         add_cube(bone, "stem_%d" % k, (0, (ya + yb) / 2, (za + zb) / 2 - 0.15), EYE, (0.7, yb - ya + 0.02, abs(zb - za) + 0.5), "brass_band")
     # brass cheeks wrapping the stem on both sides, from the water up to the head (the broad brass stem of the
@@ -275,43 +295,53 @@ def stern(bone, lights):
             map_strip(cube, regs[k], fa0 * 4, ya)
     add_cube(bone, "transom_band", (0, 3.9, z - 0.1), EYE, (2 * gs.hull_x(z, 3.9) - 0.1, 0.4, 0.06), "copper")
     gx0, gx1, gy0, gy1, gz0, gz1 = gi.GALLERY
+    oz = gs.OVERHANG_Z
     zc = (gz0 + gz1) / 2
     xw = gx1 + 0.25
     add_cube(bone, "gallery_floor", (0, M - 0.25, zc - 0.25), EYE, (gx1 - gx0 + 1.0, 0.5, gz1 - gz0 + 0.5), {"all": "plate_b", "+2": "deck"})
     add_cube(bone, "gallery_under", (0, M - 0.7, zc), EYE, (gx1 - gx0 + 0.6, 0.4, gz1 - gz0 - 0.2), "plate_c")
+    # under the gallery, the stepped counter runs on aft in rows of plates up to the gallery's floor (the stern of the
+    # reference, a staircase of blocks from the water to the gallery), with a copper course on its rows
+    yu = M - 0.9
+    for j, (za_, zb_, yb) in enumerate(gs.skirt_rows(gz0)):
+        if yb >= yu - 0.05:
+            continue
+        cube = add_cube(bone, "counter_skirt_%d" % j, (0, (yb + yu) / 2 + 0.02, (za_ + zb_) / 2), EYE, (gx1 - gx0 + 0.5, yu - yb + 0.04, zb_ - za_ + 0.01),
+                        {"all": "plate_c", "-2": "plate_c"})
+        map_strip(cube, "plate_c", za_, yb)
+        add_cube(bone, "counter_skirt_band_%d" % j, (0, yb + 0.06, (za_ + zb_) / 2 - 0.01), EYE, (gx1 - gx0 + 0.56, 0.12, zb_ - za_ + 0.04), "copper2")
     for side, sn in SIDES:
         x = side * xw
         add_cube(bone, "gallery_wall_" + sn, (x, (M + gy1) / 2, zc - 0.25), EYE, (0.5, gy1 - M, gz1 - gz0 + 0.5), "plate_b")
         add_cube(bone, "gallery_cap_" + sn, (x, gy1 + 0.06, zc - 0.25), EYE, (0.6, 0.12, gz1 - gz0 + 0.6), "copper2")
-        for j, zk in enumerate((gz0 + 0.3, gz1 - 0.5)):
-            beam(bone, "gallery_knee_%s%d" % (sn, j), v3(x * 0.9, M - 0.9, zk), v3(x * 0.9, 2.3, TZ + 0.05), 0.3, "brass", width=0.3)
-        gear(bone, "gear_gallery_" + sn, v3(x + side * 0.27, (M + gy1) / 2, gz0 + 0.8), v3(side, 0, 0), 0.45, 0.1, teeth=8, spokes=4)
-        # the corner post carrying the overhang
-        add_cube(bone, "gallery_post_" + sn, (x, (M + P) / 2, gz0 - 0.25), EYE, (0.5, P - M, 0.5), "iron_band")
-        add_cube(bone, "gallery_post_band_" + sn, (x, gy1 + 0.4, gz0 - 0.25), EYE, (0.56, 0.16, 0.56), "brass")
+        gear(bone, "gear_gallery_" + sn, v3(x + side * 0.27, (M + gy1) / 2, gz0 + 1.45), v3(side, 0, 0), 0.45, 0.1, teeth=8, spokes=4)
+        # the corner post carrying the overhang (the poop deck stops a block short of the gallery's aft face)
+        add_cube(bone, "gallery_post_" + sn, (x, (M + P) / 2, oz + 0.25), EYE, (0.5, P - M, 0.5), "iron_band")
+        add_cube(bone, "gallery_post_band_" + sn, (x, gy1 + 0.4, oz + 0.25), EYE, (0.56, 0.16, 0.56), "brass")
     add_cube(bone, "gallery_wall_aft", (0, (M + gy1) / 2, gz0 - 0.25), EYE, (gx1 - gx0, gy1 - M, 0.5), "plate_b")
     add_cube(bone, "gallery_cap_aft", (0, gy1 + 0.06, gz0 - 0.25), EYE, (gx1 - gx0 + 0.1, 0.12, 0.6), "copper2")
     add_cube(bone, "gallery_band_aft", (0, M + 0.25, gz0 - 0.51), EYE, (gx1 - gx0 + 1.0, 0.2, 0.04), "brass")
     path = [v3(xw, gy1 + 0.12, gz1), v3(xw, gy1 + 0.12, gz0 - 0.25), v3(-xw, gy1 + 0.12, gz0 - 0.25), v3(-xw, gy1 + 0.12, gz1)]
     railing(bone, "gallery_rail", path, P - gs.SLAB - gy1 - 0.2, every=0.85)
     for side, sn in SIDES:
-        lantern(lights, "lantern_gallery_" + sn, v3(side * (xw + 0.32), (M + gy1) / 2 + 0.25, gz0 + 1.75), hang=True, drop=0.12, s=1.1)
-        beam(bone, "gallery_lantern_arm_" + sn, v3(side * (xw + 0.2), (M + gy1) / 2 + 0.3, gz0 + 1.75), v3(side * (xw + 0.38), (M + gy1) / 2 + 0.3,
-             gz0 + 1.75), 0.08, "iron")
-    # the overhang of the poop deck: its slab (planks over, a ceiling under), its fascia, bulwark and cap
-    zo = (gz0 - 0.5 + TZ) / 2
-    lo = TZ - gz0 + 0.5
+        lantern(lights, "lantern_gallery_" + sn, v3(side * (xw + 0.32), (M + gy1) / 2 + 0.25, gz0 + 3.0), hang=True, drop=0.12, s=1.1)
+        beam(bone, "gallery_lantern_arm_" + sn, v3(side * (xw + 0.2), (M + gy1) / 2 + 0.3, gz0 + 3.0), v3(side * (xw + 0.38), (M + gy1) / 2 + 0.3,
+             gz0 + 3.0), 0.08, "iron")
+    # the overhang of the poop deck: its slab (planks over, a ceiling under), its fascia, bulwark and cap; it stops at
+    # OVERHANG_Z, the gallery's last block standing out beyond it under the sky (as on the reference)
+    zo = (oz + TZ) / 2
+    lo = TZ - oz
     add_cube(bone, "overhang_deck", (0, P - 0.25, zo), EYE, (gx1 - gx0 + 1.0, 0.5, lo), {"all": "plate_b", "+2": "deck", "-2": "ceil"})
     for side, sn in SIDES:
         add_cube(bone, "overhang_bulwark_" + sn, (side * xw, (P + gs.POOP_CAP_Y) / 2, zo), EYE, (0.5, gs.POOP_CAP_Y - P, lo), "plate_b")
         add_cube(bone, "overhang_cap_" + sn, (side * xw, gs.POOP_CAP_Y + 0.07, zo), EYE, (0.62, 0.14, lo + 0.1), "copper2")
         add_cube(bone, "overhang_fascia_" + sn, (side * (xw + 0.26), P - 0.25, zo), EYE, (0.04, 0.5, lo), "copper")
-    add_cube(bone, "overhang_bulwark_aft", (0, (P + gs.POOP_CAP_Y) / 2, gz0 - 0.25), EYE, (gx1 - gx0, gs.POOP_CAP_Y - P, 0.5), "plate_b")
-    add_cube(bone, "overhang_cap_aft", (0, gs.POOP_CAP_Y + 0.07, gz0 - 0.25), EYE, (gx1 - gx0 + 1.1, 0.14, 0.62), "copper2")
-    add_cube(bone, "overhang_fascia_aft", (0, P - 0.25, gz0 - 0.51), EYE, (gx1 - gx0 + 1.0, 0.5, 0.04), "copper")
-    path = [v3(xw, gs.POOP_CAP_Y + 0.14, TZ), v3(xw, gs.POOP_CAP_Y + 0.14, gz0 - 0.25), v3(-xw, gs.POOP_CAP_Y + 0.14, gz0 - 0.25),
+    add_cube(bone, "overhang_bulwark_aft", (0, (P + gs.POOP_CAP_Y) / 2, oz + 0.25), EYE, (gx1 - gx0, gs.POOP_CAP_Y - P, 0.5), "plate_b")
+    add_cube(bone, "overhang_cap_aft", (0, gs.POOP_CAP_Y + 0.07, oz + 0.25), EYE, (gx1 - gx0 + 1.1, 0.14, 0.62), "copper2")
+    add_cube(bone, "overhang_fascia_aft", (0, P - 0.25, oz - 0.01), EYE, (gx1 - gx0 + 1.0, 0.5, 0.04), "copper")
+    path = [v3(xw, gs.POOP_CAP_Y + 0.14, TZ), v3(xw, gs.POOP_CAP_Y + 0.14, oz + 0.25), v3(-xw, gs.POOP_CAP_Y + 0.14, oz + 0.25),
             v3(-xw, gs.POOP_CAP_Y + 0.14, TZ)]
-    railing(bone, "rail_taffrail", path, 1.05, every=0.9)
+    railing(bone, "rail_taffrail", path, 1.05, every=0.9, gaps=[(v3(0, P, oz + 0.25), 0.8)])   # the crane stands on the aft edge
 
 
 def railing(bone, name, path, h, every=1.0, post="wood_dark", rail="rail", gaps=()):
@@ -445,6 +475,11 @@ def pipe(bone, name, pts, d=0.6, flange=True):
             disc(bone, "%s_end_%d" % (name, k), p - dd * 0.08, dd, d * 0.65, 0.16, "brass", n=3)
 
 
+CREW_WINDOWS_Z, CREW_WINDOW_Y = gs.CREW_WINDOWS_Z, gs.CREW_WINDOW_Y
+STERN_STRIP_Z, STERN_LADDER_Z, WATER_LADDER_Z = gs.STERN_STRIP_Z, gs.STERN_LADDER_Z, gs.WATER_LADDER_Z
+PIPE_LOW_Z, PIPE_ARCH_Z = gs.PIPE_LOW_Z, gs.PIPE_ARCH_Z
+
+
 def trims(bone, detail):
     """The stepped copper and brass trims along both sides (raised riveted strips), the windows of the hold and
     of the crew quarters in brass frames, the big and the bow gear wheels, the copper pipes, the hull ladders."""
@@ -473,7 +508,7 @@ def trims(bone, detail):
 
     for side, sn in SIDES:
         # the long copper band low on the hull, the brass band over it amidships, the band rising at the bow
-        strip("band_low_" + sn, -17.4, 10.25, 2.2, 0.42, "copper", side)
+        strip("band_low_" + sn, TZ + 0.1, 10.25, 2.2, 0.42, "copper", side)
         riser("riser_a_" + sn, 6.1, 2.2, 4.5, side)
         strip("band_mid_" + sn, 5.85, 9.6, 4.5, 0.42, "brass_band", side)
         riser("riser_b_" + sn, 9.4, 4.5, 5.3, side)   # clear of the stowed gangplank (z 7.5 -> 8.9)
@@ -482,10 +517,10 @@ def trims(bone, detail):
         # the chunky brass piece running forward from the bow gear to the stem, level with the gear's hub
         strip("band_bow2_" + sn, gs.BOW_GEAR[1] + gs.BOW_GEAR[2] + 0.1, gs.stem_z(gs.BOW_GEAR[0]) - 0.5, gs.BOW_GEAR[0], 0.6, "brass_band", side)
         # the stern: brass brackets climbing to the poop cap, a long copper strip by the ladder
-        riser("riser_stern_" + sn, -11.2, 2.4, gs.POOP_CAP_Y - 0.3, side, w=0.36, region="copper")
-        riser("riser_stern2_" + sn, -17.0, 2.4, 4.0, side, w=0.4)
+        riser("riser_stern_" + sn, STERN_STRIP_Z, 2.4, gs.POOP_CAP_Y - 0.3, side, w=0.36, region="copper")
+        riser("riser_stern2_" + sn, -13.9, 0.8, 2.2, side, w=0.4)
         # windows: two in the crew quarters (under the poop), two in the hold (amidships)
-        for j, (z, y, w, h) in enumerate(((-15.0, 5.65, 1.15, 1.45), (-13.4, 5.65, 1.15, 1.45), (2.9, 3.0, 1.55, 1.55), (5.0, 3.0, 1.55, 1.55))):
+        for j, (z, y, w, h) in enumerate([(z, CREW_WINDOW_Y, 1.15, 1.45) for z in CREW_WINDOWS_Z] + [(2.9, 3.0, 1.55, 1.55), (5.0, 3.0, 1.55, 1.55)]):
             hull_decal(bone, "hull_window_%s%d" % (sn, j), z, y, side, w, h, "glow_window", out=0.03, th=0.04, glow=True)
             p, u, v, n = side_frame(z, y, side)
             R = np.column_stack([u, v3(0, 1, 0), n])
@@ -504,23 +539,25 @@ def trims(bone, detail):
         # great inverted U on the engine house wall
         o = 0.36
         zg = gs.BIG_GEAR[1] - gs.BIG_GEAR[2] - 0.15
-        pipe(bone, "pipe_low_" + sn, [hp(-13.4, 3.9, side, 0.05), hp(-13.4, 3.9, side, o), hp(-13.2, 2.7, side, o), hp(-8.6, 2.7, side, o),
-                                     hp(-8.6, 4.7, side, o), hp(zg, 4.7, side, o)], d=0.7)
-        pipe(bone, "pipe_down_" + sn, [hp(-8.6, 2.7, side, o), hp(-8.6, -0.4, side, o)], d=0.62, flange=False)
+        za, zr = PIPE_LOW_Z
+        pipe(bone, "pipe_low_" + sn, [hp(za, 3.9, side, 0.05), hp(za, 3.9, side, o), hp(za + 0.2, 2.7, side, o), hp(zr, 2.7, side, o),
+                                     hp(zr, 4.7, side, o), hp(zg, 4.7, side, o)], d=0.7)
+        pipe(bone, "pipe_down_" + sn, [hp(zr, 2.7, side, o), hp(zr, -0.4, side, o)], d=0.62, flange=False)
         oo = 0.45
-        pipe(bone, "pipe_arch_" + sn, [hp(-5.7, 6.0, side, oo + 0.1), hp(-5.7, 8.2, side, oo + 0.1), hp(2.3, 8.2, side, oo + 0.1), hp(2.3, 6.0, side, oo + 0.1)], d=1.0)
-        for j, z in enumerate((-5.7, 2.3)):
+        a0, a1 = PIPE_ARCH_Z
+        pipe(bone, "pipe_arch_" + sn, [hp(a0, 6.0, side, oo + 0.1), hp(a0, 8.2, side, oo + 0.1), hp(a1, 8.2, side, oo + 0.1), hp(a1, 6.0, side, oo + 0.1)], d=1.0)
+        for j, z in enumerate(PIPE_ARCH_Z):
             p, u, v, n = side_frame(z, 5.9, side)
             add_cube(bone, "pipe_arch_foot_%s%d" % (sn, j), p + n * 0.25, np.column_stack([u, v3(0, 1, 0), n]), (1.0, 0.5, 0.5), "brass_band")
         # a row of brass brackets along the engine house wall under the pipes
         for j, z in enumerate(np.arange(-5.0, 4.6, 1.2)):
-            if abs(z - gs.BIG_GEAR[1]) < gs.BIG_GEAR[2] + 0.4:
+            if abs(z - gs.BIG_GEAR[1]) < gs.BIG_GEAR[2] + 0.4 or min(abs(z - a) for a in PIPE_ARCH_Z) < 0.8:
                 continue
             p, u, v, n = side_frame(z, 6.05, side)
             add_cube(detail, "engine_bracket_%s%d" % (sn, j), p + n * 0.09, np.column_stack([u, v3(0, 1, 0), n]), (0.45, 0.32, 0.16), "brass")
         # the ladders on the hull side (the rope ladder of the reference and a brass ladder from the water)
-        hull_ladder(bone, "ladder_stern_" + sn, -9.6, 2.4, gs.POOP_CAP_Y + 0.4, side)
-        hull_ladder(bone, "ladder_water_" + sn, -6.3, -0.4, 4.3, side)
+        hull_ladder(bone, "ladder_stern_" + sn, STERN_LADDER_Z, 2.4, gs.POOP_CAP_Y + 0.4, side)
+        hull_ladder(bone, "ladder_water_" + sn, WATER_LADDER_Z, -0.4, 4.3, side)
 
 
 def hull_ladder(bone, name, z, y0, y1, side, w=0.8):
@@ -619,7 +656,7 @@ def decks(bone):
     deck("deck_fc", FZ, 19.5, F)
     deck("deck_poop", TZ + 0.25, PF, P)
     deck("deck_engine", PF, EF - 0.5, E)
-    deck("deck_bridge", DZ0, DZ1, B, xmax=DH)
+    deck("deck_bridge", DZ0, gs.BRIDGE_FRONT_Z + 0.5, B, xmax=DH)
     # the front of the forecastle deck (its riser over the waist), the engine house front wall (with the door)
     xf = gs.hull_x(FZ, F) - 0.5
     add_cube(bone, "fc_break", (0, (M + F) / 2, FZ + 0.25), EYE, (2 * xf, F - M, 0.5), {"all": "plate_b", "+2": "deck"})
@@ -635,46 +672,66 @@ def decks(bone):
 WIN_Y = gs.CABIN_WINDOW_Y     # the centre of the deckhouse windows (tools/gear_steam_decor.py draws them from inside)
 
 
+DECKHOUSE_WINDOWS_Z = gs.DECKHOUSE_WINDOWS_Z
+
+
 def deckhouse(bone, lights):
-    """The captain's deckhouse on the poop deck (plated walls, a dark stone course under the roof, three lit
-    windows a side in brass frames, two forward, the door and the ladder aft) and the bridge on its roof
-    (railing, the helm, lanterns)."""
-    h0, h1 = P, B
+    """The captain's deckhouse on the poop deck (plated walls, a dark riveted course under the roof, three lit
+    windows a side in brass frames, the door and the ladder aft) and the bridge on its roof (railing, the helm,
+    lanterns). Its fore part stands on the engine house roof and wraps the funnel, which rises through it (as on the
+    reference, where the funnel stands at the deckhouse's fore end): the cabin's front wall is the aft face of that
+    casing, and the casing's top is closed off by a railing across the bridge before the funnel."""
+    h1 = B
     zc = (DZ0 + DZ1) / 2
+    parts = ((DZ0, PF, P), (PF, DZ1, E))     # (z0, z1, foot): on the poop deck, then on the engine house roof
     for side, sn in SIDES:
-        add_cube(bone, "deckhouse_wall_" + sn, (side * (DH - 0.25), (h0 + h1) / 2, zc), EYE, (0.5, h1 - h0, DZ1 - DZ0),
-                 {"all": "plate_b", ("-1" if side > 0 else "+1"): "wall_wood"})
+        for q, (za, zb, y0) in enumerate(parts):
+            add_cube(bone, "deckhouse_wall_%s%d" % (sn, q), (side * (DH - 0.25), (y0 + h1) / 2, (za + zb) / 2), EYE, (0.5, h1 - y0, zb - za),
+                     {"all": "plate_b", ("-1" if side > 0 else "+1"): "wall_wood"})
+            add_cube(bone, "deckhouse_foot_%s%d" % (sn, q), (side * (DH + 0.01), y0 + 0.1, (za + zb) / 2), EYE, (0.05, 0.2, zb - za), "copper")
         add_cube(bone, "deckhouse_course_" + sn, (side * (DH + 0.01), h1 - 0.15, zc), EYE, (0.04, 0.3, DZ1 - DZ0), "stone")
-        add_cube(bone, "deckhouse_foot_" + sn, (side * (DH + 0.01), h0 + 0.1, zc), EYE, (0.05, 0.2, DZ1 - DZ0), "copper")
-        for j, z in enumerate((-12.0, -10.0, -8.0)):
+        for j, z in enumerate(DECKHOUSE_WINDOWS_Z):
             # the big lit windows of the reference, standing clear above the poop railing
             add_cube(bone, "glow_deckhouse_window_%s%d" % (sn, j), (side * (DH + 0.02), WIN_Y, z), EYE, (0.04, 1.5, 1.25), "glow_window", stretch=True,
                      u_dir=v3(0, 0, -side), v_dir=v3(0, -1, 0))
             for k, (dy, dz, sy, sz) in enumerate(((0.83, 0, 0.16, 1.55), (-0.83, 0, 0.16, 1.55), (0, 0.7, 1.5, 0.16), (0, -0.7, 1.5, 0.16))):
                 add_cube(bone, "deckhouse_window_frame_%s%d_%d" % (sn, j, k), (side * (DH + 0.06), WIN_Y + dy, z + dz), EYE, (0.12, sy, sz), "brass_band")
-    # the front wall (two windows facing the funnel) and the aft wall (the door, the ladder, a window)
-    for k, z in enumerate((DZ1 - 0.25, DZ0 + 0.25)):
-        sgn = 1 if k == 0 else -1
-        if k == 0:
-            add_cube(bone, "deckhouse_front", (0, (h0 + h1) / 2, z), EYE, (2 * DH - 1.0, h1 - h0, 0.5), {"all": "plate_b", "-3": "wall_wood"})
-            for j, x in enumerate((-1.3, 1.3)):
-                add_cube(bone, "glow_deckhouse_fwd_window_%d" % j, (x, WIN_Y, z + 0.27), EYE, (1.1, 1.35, 0.04), "glow_window", stretch=True)
-        else:
-            d0, d1, dy1 = -1.25, 0.25, P + 2.5
-            for j, (x0, x1, y0, y1) in enumerate(((-DH + 0.5, d0, h0, h1), (d1, DH - 0.5, h0, h1), (d0, d1, dy1, h1))):
-                add_cube(bone, "deckhouse_aft_%d" % j, ((x0 + x1) / 2, (y0 + y1) / 2, z), EYE, (x1 - x0, y1 - y0, 0.5),
-                         {"all": "plate_b", "+3": "wall_wood"})
-            add_cube(bone, "glow_deckhouse_aft_window", (-2.1, 9.4, z - 0.27), EYE, (0.8, 0.9, 0.04), "glow_window", stretch=True)
-        add_cube(bone, "deckhouse_course_%d" % k, (0, h1 - 0.15, z + sgn * 0.26), EYE, (2 * DH, 0.3, 0.04), "stone")
-    add_cube(bone, "deckhouse_roof_edge", (0, B + 0.04, zc), EYE, (2 * DH + 0.2, 0.08, DZ1 - DZ0 + 0.2), "stone")
-    # the bridge railing (a gap over the ladder), its lanterns
+    # the front wall, on the engine house roof, split round the funnel (a small lit window each side of it)
+    fz, fr = gs.FUNNEL_Z, gs.FUNNEL_R
+    zf = DZ1 - 0.25
+    xg = math.sqrt(max(0.0, (fr + 0.02) ** 2 - (zf - fz) ** 2)) - 0.05
+    for side, sn in SIDES:
+        x0, x1 = xg, DH - 0.5
+        add_cube(bone, "deckhouse_front_" + sn, (side * (x0 + x1) / 2, (E + h1) / 2, zf), EYE, (x1 - x0, h1 - E, 0.5), "plate_b")
+        add_cube(bone, "glow_deckhouse_fwd_window_" + sn, (side * 2.05, WIN_Y + 0.05, DZ1 + 0.02), EYE, (0.62, 1.1, 0.04), "glow_window", stretch=True)
+        add_cube(bone, "deckhouse_course_f" + sn, (side * (xg + DH) / 2, h1 - 0.15, DZ1 + 0.01), EYE, (DH - xg, 0.3, 0.04), "stone")
+        add_cube(bone, "deckhouse_foot_f" + sn, (side * (xg + DH) / 2, E + 0.1, DZ1 + 0.01), EYE, (DH - xg, 0.2, 0.05), "copper")
+    # the aft wall (the door, the ladder, a window)
+    z = DZ0 + 0.25
+    d0, d1, dy1 = -1.25, 0.25, P + 2.5
+    for j, (x0, x1, y0, y1) in enumerate(((-DH + 0.5, d0, P, h1), (d1, DH - 0.5, P, h1), (d0, d1, dy1, h1))):
+        add_cube(bone, "deckhouse_aft_%d" % j, ((x0 + x1) / 2, (y0 + y1) / 2, z), EYE, (x1 - x0, y1 - y0, 0.5), {"all": "plate_b", "+3": "wall_wood"})
+    add_cube(bone, "glow_deckhouse_aft_window", (-2.1, 9.4, z - 0.27), EYE, (0.8, 0.9, 0.04), "glow_window", stretch=True)
+    add_cube(bone, "deckhouse_course_1", (0, h1 - 0.15, z - 0.26), EYE, (2 * DH, 0.3, 0.04), "stone")
+    # the roof's riveted edge: a frame round the bridge
+    for side, sn in SIDES:
+        add_cube(bone, "deckhouse_roof_edge_" + sn, (side * (DH - 0.15), B + 0.04, zc), EYE, (0.5, 0.08, DZ1 - DZ0 + 0.2), "stone")
+    for k, zz in enumerate((DZ0 + 0.15, DZ1 - 0.15)):
+        add_cube(bone, "deckhouse_roof_edge_%d" % k, (0, B + 0.04, zz), EYE, (2 * DH - 0.6, 0.08, 0.5), "stone")
+    # the casing's top beside the funnel (closed off; plates), and the railing across the bridge before it
+    zb0 = gs.BRIDGE_FRONT_Z
+    zc0 = zb0 + 0.5
+    add_cube(bone, "casing_top", (0, B + 0.03, (zc0 + DZ1 - 0.3) / 2), EYE, (2 * DH - 0.8, 0.06, DZ1 - 0.3 - zc0), "plate_b")
+    # the bridge railing (a gap over the ladder), across before the funnel casing, its lanterns
     lg = [(v3(sum(gs.BRIDGE_LADDER_X) / 2, B, DZ0 + 0.25), 0.55)]
-    path = [v3(DH - 0.25, B, DZ1 - 0.25), v3(DH - 0.25, B, DZ0 + 0.25), v3(-DH + 0.25, B, DZ0 + 0.25), v3(-DH + 0.25, B, DZ1 - 0.25),
-            v3(DH - 0.25, B, DZ1 - 0.25)]
+    zr = zb0 + 0.25
+    path = [v3(DH - 0.25, B, zr), v3(DH - 0.25, B, DZ0 + 0.25), v3(-DH + 0.25, B, DZ0 + 0.25), v3(-DH + 0.25, B, zr), v3(DH - 0.25, B, zr)]
     railing(bone, "rail_bridge", path, 1.0, every=1.0, gaps=lg)
     for side, sn in SIDES:
-        add_cube(bone, "bridge_lamp_post_" + sn, (side * (DH - 0.25), B + 1.25, -10.0), EYE, (0.18, 0.5, 0.18), "wood_dark")
-        lantern(lights, "lantern_bridge_" + sn, v3(side * (DH - 0.25), B + 1.5, -10.0), hang=False, s=1.2)
+        path = [v3(side * (DH - 0.25), B, zr), v3(side * (DH - 0.25), B, DZ1 - 0.25), v3(side * (xg + 0.1), B, DZ1 - 0.25)]
+        railing(bone, "rail_casing_" + sn, path, 1.0, every=1.0)
+        add_cube(bone, "bridge_lamp_post_" + sn, (side * (DH - 0.25), B + 1.25, -9.25), EYE, (0.18, 0.5, 0.18), "wood_dark")
+        lantern(lights, "lantern_bridge_" + sn, v3(side * (DH - 0.25), B + 1.5, -9.25), hang=False, s=1.2)
     # the ladder up to the bridge on the aft wall
     x0, x1 = gs.BRIDGE_LADDER_X
     wall_ladder(bone, "ladder_bridge", (x0 + 0.1, x1 - 0.1), DZ0 - 0.12, P, B + 1.0, along_x=True)
@@ -693,15 +750,19 @@ def engine_house(bone, lights, fittings):
     clusters of brass gears beside the funnel, the ladders up from the waist, lanterns."""
     fz, fr, ft = gs.FUNNEL_Z, gs.FUNNEL_R, gs.FUNNEL_TOP
     cylinder(bone, "funnel", (0, E, fz), ft - 0.5 - E, fr, "funnel", n=16)
-    ring(bone, "funnel_band", (0, 14.0, fz), fr, 0.1, 0.75, "brass_band")
+    ring(bone, "funnel_band", (0, 14.35, fz), fr, 0.1, 0.9, "brass_band")
     ring(bone, "funnel_band_low", (0, E + 0.3, fz), fr, 0.12, 0.5, "copper2")
-    cylinder(bone, "funnel_cap", (0, ft - 0.55, fz), 0.55, fr + 0.18, "funnel", n=16, inner="iron_dark")
-    ring(bone, "funnel_rim", (0, ft - 0.08, fz), fr + 0.18, 0.12, 0.16, "copper2")
+    # the cap, in two flared tiers as on the reference (a broad riveted crown over a narrower collar), copper rims
+    cylinder(bone, "funnel_collar", (0, ft - 1.25, fz), 0.7, fr + 0.16, "funnel", n=16, inner="iron_dark")
+    ring(bone, "funnel_collar_rim", (0, ft - 0.6, fz), fr + 0.16, 0.12, 0.14, "copper2")
+    cylinder(bone, "funnel_cap", (0, ft - 0.55, fz), 0.55, fr + 0.36, "funnel", n=16, inner="iron_dark")
+    disc(bone, "funnel_cap_floor", (0, ft - 0.62, fz), (0, 1, 0), fr + 0.36, 0.06, "funnel", n=3)
+    ring(bone, "funnel_rim", (0, ft - 0.08, fz), fr + 0.36, 0.12, 0.16, "copper2")
     disc(bone, "funnel_soot", (0, ft - 0.6, fz), (0, 1, 0), fr - 0.05, 0.04, "iron_dark", n=3)
-    pipe(bone, "funnel_uptake", [(-0.9, B, DZ1 - 0.45), (-0.9, 13.3, DZ1 - 0.45), (-0.9, 13.3, fz - 0.9)], d=0.5)
+    pipe(bone, "funnel_uptake", [(-1.75, B + 0.03, gs.BRIDGE_FRONT_Z + 0.75), (-1.75, 13.3, gs.BRIDGE_FRONT_Z + 0.75), (-0.95, 13.3, fz - 0.95)], d=0.5)
     # the dome
     dz, dr = gs.DOME_Z, gs.DOME_R
-    cylinder(bone, "dome_drum", (0, E, dz), 12.4 - E, dr, "dome", n=16)
+    cylinder(bone, "dome_drum", (0, E, dz), 12.4 - E, dr, "dome_drum", n=16)   # darker than the cap, as on the reference
     ring(bone, "dome_band_base", (0, E + 0.15, dz), dr, 0.12, 0.3, "brass_band")
     ring(bone, "dome_band_top", (0, 12.15, dz), dr, 0.14, 0.5, "brass_band")
     for k in range(8):
@@ -724,8 +785,9 @@ def engine_house(bone, lights, fittings):
     n = 10
     ring_pts = [v3(1.45 * math.cos(2 * math.pi * k / n), 14.28, dz + 1.45 * math.sin(2 * math.pi * k / n)) for k in range(n + 1)]
     railing(bone, "dome_rail", ring_pts, 0.85, every=0.95)
-    lantern(lights, "lantern_dome", v3(dr + 0.25, 10.9, dz - 1.4), hang=True, drop=0.15, s=1.0)
-    beam(bone, "dome_lantern_arm", v3(dr - 0.1, 11.05, dz - 1.4), v3(dr + 0.3, 11.05, dz - 1.4), 0.08, "iron")
+    for side, sn in SIDES:
+        lantern(lights, "lantern_dome" + ("" if side > 0 else "_s"), v3(side * (dr + 0.25), 10.9, dz - 1.4), hang=True, drop=0.15, s=1.0)
+        beam(bone, "dome_lantern_arm_" + sn, v3(side * (dr - 0.1), 11.05, dz - 1.4), v3(side * (dr + 0.3), 11.05, dz - 1.4), 0.08, "iron")
     # the gears beside the funnel (meshing, turning)
     for side, sn in SIDES:
         x = side * (fr + 0.12)
@@ -937,13 +999,14 @@ def rigging(bone, yards):
         feet = [v3(side * (gs.hull_x(zf, F) - 0.4), gs.FORECASTLE_CAP_Y + 1.2, zf)]
         chain(bone, "main_fwd_shroud_" + sn, tops[0], feet[0])
         tops = [v3(side * 0.42, ztop, zz - 0.15), v3(side * 0.44, ztop - 0.3, zz - 0.4)]
-        feet = [v3(side * (gs.hull_x(-16.5, P) - 0.35), gs.POOP_CAP_Y + 1.1, -16.5), v3(side * (gs.hull_x(-17.2, P) - 0.35), gs.POOP_CAP_Y + 1.1, -17.2)]
+        feet = [v3(side * (gs.hull_x(TZ + 0.6, P) - 0.35), gs.POOP_CAP_Y + 1.1, TZ + 0.6), v3(side * (gs.hull_x(TZ + 1.3, P) - 0.35), gs.POOP_CAP_Y + 1.1,
+                                                                                           TZ + 1.3)]
         chain_ladder(bone, "mizzen_shroud_" + sn, tops, feet)
     ropes = [
         ("forestay", v3(0, mtop + 0.4, mz + 0.4), v3(0, gs.STEM_HEAD[1] + 0.1, gs.stem_z(7.0) - 0.4)),
         ("main_stay_aft", v3(0, mtop - 0.6, mz - 0.4), v3(0, 14.3, gs.DOME_Z + 1.4)),
         ("mizzen_stay", v3(0, ztop + 0.2, zz + 0.4), v3(0, gs.BRIDGE_RAIL_TOP, DZ0 + 0.3)),
-        ("crane_stay", v3(0, ztop - 1.0, zz - 0.4), v3(0, 12.3, gs.CRANE_Z - 0.3)),
+        ("crane_stay", v3(0, ztop - 1.0, zz - 0.4), v3(0, gs.CRANE_TIP[1] + 1.0, gs.CRANE_Z + 0.3)),
     ]
     for name, a, b in ropes:
         chain(bone, "chain_" + name, a, b, s=0.18, step=0.26)
@@ -963,46 +1026,58 @@ def rigging(bone, yards):
 
 
 def crane(bone, root):
-    """The stern crane: its post on the poop deck (iron bands, a slewing head), the jib reaching over the
-    stern with a lattice of braces, a pulley at its tip, two chains and the crate hanging from them."""
+    """The stern crane, as on the reference: a tall riveted pedestal standing on the poop deck's aft edge (brass
+    bands, a broad capital, a lit lamp on each side), the dark post above it with a slewing head, the jib reaching
+    level over the stern (a riveted top girder and a raking strut from low on the post, braced between them, brass
+    bolts), a pulley at its tip, two chains and the crate hanging from them."""
     cz = gs.CRANE_Z
-    add_cube(bone, "crane_base", (0, P + 0.4, cz), EYE, (1.4, 0.8, 1.4), {"all": "iron_band", "+2": "iron"})
-    add_cube(bone, "crane_post", (0, (P + 10.9) / 2, cz), EYE, (0.95, 10.9 - P, 0.95), "wood_dark")
-    for k, y in enumerate((P + 1.3, 9.6)):
-        add_cube(bone, "crane_post_band_%d" % k, (0, y, cz), EYE, (1.08, 0.24, 1.08), "brass_band")
-    add_cube(bone, "crane_head", (0, 11.1, cz), EYE, (1.25, 0.6, 1.25), "iron_band")
+    bt = gs.CRANE_BASE_TOP
     tip = v3(*gs.CRANE_TIP)
-    j0 = v3(0, 11.6, cz + 0.6)
-    # the jib: a riveted lattice girder (bottom and top chords, zig-zag braces) as on the reference, where the
-    # chunky dark jib with its brass bolts reads from far; the top chord rises over the post (a gooseneck)
-    top0, top1 = j0 + v3(0, 1.25, -0.2), tip + v3(0, 0.62, 0.15)
-    for s in (1, -1):
-        o = v3(s * 0.3, 0, 0)
-        beam(bone, "crane_jib_%d" % (s > 0), j0 + o, tip + o, 0.46, "wood_dark", width=0.24, extend=0.14)
-        beam(bone, "crane_chord_%d" % (s > 0), top0 + o, top1 + o, 0.34, "wood_dark", width=0.22, extend=0.12)
-        beam(bone, "crane_strut_%d" % (s > 0), v3(s * 0.3, 9.6, cz - 0.4), j0 + (tip - j0) * 0.5 + o + v3(0, -0.2, 0), 0.32, "wood_dark",
-             width=0.22)
-        n = 5
-        for k in range(n):
-            a = j0 + (tip - j0) * (k / n) + o
-            b = top0 + (top1 - top0) * ((k + 0.5) / n) + o
-            c = j0 + (tip - j0) * ((k + 1) / n) + o
-            beam(bone, "crane_brace_%d_%d_a" % (s > 0, k), a, b, 0.14, "wood_dark", width=0.16)
-            beam(bone, "crane_brace_%d_%d_b" % (s > 0, k), b, c, 0.14, "wood_dark", width=0.16)
-            add_cube(bone, "crane_bolt_%d_%d" % (s > 0, k), b + v3(s * 0.13, 0, 0), EYE, (0.06, 0.16, 0.16), "brass")
-        beam(bone, "crane_end_%d" % (s > 0), tip + o + v3(0, -0.1, 0), top1 + o, 0.2, "wood_dark", width=0.2)
-    for k, t in enumerate(np.linspace(0.1, 0.9, 5)):
-        p = j0 + (tip - j0) * t
-        add_cube(bone, "crane_rung_%d" % k, p, EYE, (0.72, 0.12, 0.12), "iron_band")
-    beam(bone, "crane_tie", j0 + v3(0, 1.9, 0.2), tip + v3(0, 0.75, 0.2), 0.08, "chain")
-    add_cube(bone, "crane_king", (0, 12.5, cz + 0.45), EYE, (0.34, 1.8, 0.34), "wood_dark")
-    add_cube(bone, "crane_king_cap", (0, 13.45, cz + 0.45), EYE, (0.42, 0.14, 0.42), "brass_band")
-    disc(bone, "crane_pulley", tip + v3(0, -0.05, 0.1), (1, 0, 0), 0.36, 0.26, "brass", n=3)
+    # the pedestal
+    add_cube(bone, "crane_base", (0, (P + bt) / 2, cz), EYE, (1.2, bt - P, 1.2), {"all": "plate_b", "+2": "iron"})
+    for k, y in enumerate((P + 0.12, P + 1.05)):
+        add_cube(bone, "crane_base_band_%d" % k, (0, y, cz), EYE, (1.28, 0.2, 1.28), "brass_band")
+    add_cube(bone, "crane_base_trim", (0, bt - 0.07, cz), EYE, (1.42, 0.14, 1.42), "copper2")
+    add_cube(bone, "crane_base_cap", (0, bt + 0.12, cz), EYE, (1.62, 0.26, 1.62), "stone")
+    for side, sn in SIDES:
+        add_cube(bone, "glow_crane_lamp_" + sn, (side * 0.62, P + 1.55, cz), EYE, (0.03, 0.42, 0.42), "glow_window", stretch=True)
+    # the post and its head
+    yt = tip[1] + 0.35                  # the top girder, level
+    yh = yt + 0.25
+    add_cube(bone, "crane_post", (0, (bt + yh) / 2, cz), EYE, (0.98, yh - bt, 0.98), "wood_dark")
+    for k, y in enumerate((bt + 0.9, yt - 1.4)):
+        add_cube(bone, "crane_post_band_%d" % k, (0, y, cz), EYE, (1.1, 0.22, 1.1), "brass_band")
+    add_cube(bone, "crane_head", (0, yh + 0.1, cz + 0.05), EYE, (1.2, 0.7, 1.3), "iron_band")
+    add_cube(bone, "crane_king", (0, yh + 0.75, cz + 0.2), EYE, (0.36, 0.8, 0.36), "wood_dark")
+    add_cube(bone, "crane_king_cap", (0, yh + 1.2, cz + 0.2), EYE, (0.44, 0.14, 0.44), "brass_band")
+    gear(bone, "gear_crane", v3(-0.62, yh + 0.05, cz + 0.05), v3(-1, 0, 0), 0.42, 0.12, teeth=8, spokes=4)
+    # the jib: a level top girder (two riveted chords) from the head to the tip, a raking strut from low on the post up to
+    # the girder near the tip, braces between them
+    t0, t1 = v3(0, yt, cz - 0.3), v3(0, yt, tip[2] - 0.2)
+    s0, s1 = v3(0, bt + 1.15, cz - 0.42), v3(0, yt - 0.25, tip[2] + 1.45)
+    for sx in (1, -1):
+        o = v3(sx * 0.28, 0, 0)
+        beam(bone, "crane_girder_%d" % (sx > 0), t0 + o, t1 + o, 0.56, "wood_dark", width=0.26, extend=0.14)
+        beam(bone, "crane_strut_%d" % (sx > 0), s0 + o, s1 + o, 0.42, "wood_dark", width=0.24, extend=0.12)
+        n = 4
+        for k in range(1, n):
+            f = k / n
+            a = s0 + (s1 - s0) * f + o
+            b = v3(0, yt - 0.2, a[2] - 0.55) + o
+            beam(bone, "crane_brace_%d_%d" % (sx > 0, k), a, b, 0.2, "wood_dark", width=0.2)
+            add_cube(bone, "crane_bolt_%d_%d" % (sx > 0, k), b + v3(sx * 0.13, 0.05, 0), EYE, (0.06, 0.16, 0.16), "brass")
+        for k, f in enumerate(np.linspace(0.08, 0.95, 6)):
+            add_cube(bone, "crane_rivet_%d_%d" % (sx > 0, k), t0 + (t1 - t0) * f + o + v3(sx * 0.12, 0.0, 0), EYE, (0.04, 0.12, 0.12), "brass")
+        beam(bone, "crane_end_%d" % (sx > 0), tip + o + v3(0, -0.15, 0), v3(0, yt + 0.3, tip[2]) + o, 0.22, "wood_dark", width=0.2)
+    for k, f in enumerate(np.linspace(0.12, 0.9, 5)):
+        add_cube(bone, "crane_rung_%d" % k, t0 + (t1 - t0) * f + v3(0, -0.18, 0), EYE, (0.72, 0.1, 0.12), "iron_band")
+    beam(bone, "crane_tie", v3(0, yh + 1.1, cz + 0.2), v3(0, yt + 0.25, tip[2] + 0.2), 0.08, "chain")
+    disc(bone, "crane_pulley", tip + v3(0, -0.05, 0), (1, 0, 0), 0.34, 0.26, "brass", n=3)
     # the crate on its chains (swaying)
     cb = Bone("crate_hang", origin=tuple(tip), parent=root)
     y0, y1 = gs.CRATE_Y
-    for s in (1, -1):
-        beam(cb, "crate_chain_%d" % (s > 0), tip + v3(s * 0.1, -0.2, 0), v3(s * 0.45, y1 + 0.05, tip[2]), 0.09, "chain")
+    for sx in (1, -1):
+        beam(cb, "crate_chain_%d" % (sx > 0), tip + v3(sx * 0.1, -0.2, 0), v3(sx * 0.45, y1 + 0.05, tip[2]), 0.09, "chain")
     add_cube(cb, "crate", (0, (y0 + y1) / 2, tip[2]), EYE, (1.9, y1 - y0, 1.8), "crate", stretch=True)
     add_cube(cb, "crate_band", (0, y1 - 0.1, tip[2]), EYE, (1.95, 0.1, 1.85), "iron_band")
     return cb
@@ -1036,10 +1111,10 @@ def helm(bone):
 
 
 def rudder(root):
-    zr = -15.9
+    zr = TZ + 0.4
     piv = v3(0, 0.0, zr)
     rb = Bone("rudder", origin=tuple(piv), parent=root)
-    y_top, y_bot = 0.4, gs.keel_draw(zr) - 1.4
+    y_top, y_bot = min(0.4, gs.keel_draw(zr) - 0.05), gs.keel_draw(zr) - 1.4
     for k, (ya, yb) in enumerate(zip(np.linspace(y_top, y_bot, 4)[:-1], np.linspace(y_top, y_bot, 4)[1:])):
         board(rb, "rudder_blade_%d" % k, v3(0.18, ya, zr), v3(0.18, ya, zr - 1.3), v3(0.18, yb, zr), v3(0.18, yb, zr - 1.4 - 0.1 * k), 0.36,
               "iron_dark", v3(1, 0, 0), overlap=1.0)
@@ -1255,9 +1330,9 @@ def build(g):
         x = side * (gs.hull_x(16.4, F) - 0.3)
         add_cube(bow_bone, "fc_lamp_post_" + sn, (x, gs.FORECASTLE_CAP_Y + 1.5, 16.4), EYE, (0.18, 0.6, 0.18), "wood_dark")
         lantern(lights, "lantern_fc_" + sn, v3(x, gs.FORECASTLE_CAP_Y + 1.8, 16.4), hang=False, s=1.3)
-        x = side * (gs.hull_x(-16.9, P) - 0.3)
-        add_cube(upper, "poop_lamp_post_" + sn, (x, gs.POOP_CAP_Y + 1.4, -16.9), EYE, (0.18, 0.6, 0.18), "wood_dark")
-        lantern(lights, "lantern_poop_" + sn, v3(x, gs.POOP_CAP_Y + 1.7, -16.9), hang=False, s=1.3)
+        x = side * (gi.GALLERY[1] + 0.25)
+        add_cube(upper, "poop_lamp_post_" + sn, (x, gs.POOP_CAP_Y + 1.4, TZ - 1.0), EYE, (0.18, 0.6, 0.18), "wood_dark")
+        lantern(lights, "lantern_poop_" + sn, v3(x, gs.POOP_CAP_Y + 1.7, TZ - 1.0), hang=False, s=1.3)
     # the rooms, their doors, the beams, the boiler, the furniture
     m = surfaces(rooms, g)
     beams_below(fittings)
