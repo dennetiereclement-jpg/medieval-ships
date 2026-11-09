@@ -332,3 +332,28 @@ plats, fenêtres beige pâle. La lumière et l'usure sont donc **peintes dans le
 Restent : la lumière dorée du coucher de soleil de l'image (rendu IA) ; les gradins de l'avant restent discrets ; la
 cheminée de l'image a des tôles plus brunes ; le relief réel des blocs de l'image (chaque bloc légèrement en saillie)
 n'est imité que par les biseaux peints.
+
+### 13.1 Retouches après la revue des captures en jeu
+
+La revue des captures du commit précédent (0511cc4f) relevait : des fenêtres ternes (beige ou brun), un engrenage de
+proue fondu dans la coque, un mouchetis à distance (rivets et joints), une coque trop brune qui étouffait le cuivre et le
+laiton, un or des voiles pâle et une bande de cheminée réduite à un pointillé.
+
+* **Fenêtres qui brillent** : le moteur de rendu des navires (`ShipRenderer`, commit à part, commun à tous les navires)
+  donne aux faces « glow » une normale vers le haut, si bien que l'ombrage des entités reste à 1 sur les flancs (il les
+  assombrissait d'environ × 0,5 à × 0,75 malgré la lumière maximale) ; lampes éteintes, rien ne change. Le verre
+  (`_glow_window_hd`) passe à un orangé clair (cœur `fff8d8`, bords `ff9c30`), cadre peint de 3 px (le cadre en cubes de
+  laiton fait le reste), croisillon d'un seul bronze de 6 px centré sur les texels : deux tiers de la case sont du verre.
+* **Coque** : charbon presque neutre (tons autour de `2c2826`, plaques brunes plus rares), biseau éclairé limité à
+  environ +20 de luminance ; rivets des tôles plus doux. Sous la bande de cuivre basse (`plate_c`), joints, rivets et
+  rouille sont d'un tiers moins contrastés (les rangs bas de la poupe scintillaient).
+* **Bandes** : têtes de rivets proches de la couleur de la bande, reflet doux (les points de laiton pâle sur le cuivre se
+  lisaient comme de la poussière) ; le laiton des bandes (`brass_band` : cheminée, étrave, cadres, bandeaux du dôme) passe
+  à un or vif et saturé (`c8842a` → `fcc868`) : la bande de la cheminée se lit comme un anneau d'or plein. Tôles de la
+  cheminée assorties à la coque.
+* **Engrenages** (`gear_bevel`) : laiton plus clair et plus saturé (milieu `d08c2c`, reflet `f0b040`), ombre plus douce,
+  plus de liseré sombre en haut et à gauche. L'engrenage de proue reçoit derrière lui une **plaque de fer noir** (un disque
+  octogonal, 4 cubes par bord) : ses rayons et sa jante se lisent sur du noir, comme sur l'image.
+* **Voiles** : or plus saturé (`7a3e10` / `d8902c` / `ffc860`), reflet du liseré et de l'emblème moins pâle ; chaque laize
+  est arrondie comme un coussin éclairé à gauche (± 15 %), visible à distance, toile un peu moins brune.
+* Coût : 6 207 cubes (+8 : les deux plaques de l'engrenage de proue ; 6 183 en 1.27.0), aucune entité, rien par tick.
