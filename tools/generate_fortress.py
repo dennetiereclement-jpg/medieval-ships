@@ -346,9 +346,11 @@ def cladding(bone, detail):
                 o = 0.28 + RNG.uniform(-0.02, 0.02)
                 add_cube(bone, "rib_%s%d_%d" % (sn, j, k), p + nn * (o / 2 - 0.06), np.column_stack([u, v, nn]), (RIB_W, yb - ya + 0.02, o + 0.12),
                          "stone_stud" if k % 2 else "stone")
-                # the iron plate on its face, a big stud in each block
+                # the iron plate on its face, a big stud in each block (phase 6: narrower, the light stone showing a
+                # quarter of a block on each side of it, so that the ribs read as stone pillars from afar)
                 add_cube(detail, "rib_plate_%s%d_%d" % (sn, j, k), p + nn * (o - 0.06 + 0.035), np.column_stack([u, v, nn]),
-                         (0.56, yb - ya - 0.06, 0.07), {"all": "iron", "+3": "rib_plate"}, u_dir=-u if side > 0 else u, v_dir=v3(0, -1, 0))
+                         (ft.RIB_PLATE_W, yb - ya - 0.06, 0.07), {"all": "iron", "+3": "rib_plate"}, u_dir=-u if side > 0 else u,
+                         v_dir=v3(0, -1, 0))
                 # (phase 5) the boss standing out of the plate, over the painted one: it catches the light
                 add_cube(detail, "rib_boss_%s%d_%d" % (sn, j, k), p + nn * (o + 0.04), np.column_stack([u, v, nn]), (0.2, 0.2, 0.06),
                          {"all": "iron", "+3": "stud_head"}, stretch=True)
@@ -1108,10 +1110,18 @@ def rigging(bone, hull_bone, masts, bowsprit, sails):
             zt = mzz - 3.6
             ropes.append(("%s_sheet_%s" % (mname, sn), clew, hp(zt, fs.sheer_y(zt) + 0.4, side, -0.2)))
     for name, a, b in ropes:
+        th = ROPE_TH.get(name, 0.1)
         if name in SLACK:
-            slack_rope(bone, name, a, b, SLACK[name][0], th=0.08)
+            slack_rope(bone, name, a, b, SLACK[name][0], th=th)
         else:
-            beam(bone, "rope_" + name, a, b, 0.08, "rope")
+            beam(bone, "rope_" + name, a, b, th, "rope")
+
+
+# (phase 6) the stays thick enough to stay continuous lines in game at the reference cameras (about 12 px a block there:
+# a thinner rope falls between the pixels and shows as a dotted line), as thick as the main reference draws them
+ROPE_TH = {"fore_stay": 0.26, "main_stay": 0.26, "fore_topmast_stay": 0.22, "main_topmast_stay": 0.22, "mizzen_stay": 0.22,
+           "mizzen_topmast_stay": 0.2, "bobstay": 0.18, "fore_brace_p": 0.12, "fore_brace_s": 0.12, "main_brace_p": 0.12,
+           "main_brace_s": 0.12, "mizzen_brace_p": 0.12, "mizzen_brace_s": 0.12}
 
 
 SLACK = {

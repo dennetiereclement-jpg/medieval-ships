@@ -90,7 +90,7 @@ for _i, _s in enumerate(CAMO_SHIPS):
 # 1.27.0 city ships: fixed cells after the twelve above (cell 12 royal_lion_ship, 13 fortress_ship, 14 gear_steamship), whatever
 # order their branches are merged in; each branch adds its own line
 CAMO_SHIPS += ("fortress_ship",)
-CAMO["fortress_ship"] = ("978f86", "2a2622", "38393c")   # grey stone belt (phase 5: the lighter stone), mortar, iron
+CAMO["fortress_ship"] = ("aea091", "2a2622", "38393c")   # grey stone belt (phase 6: the lighter, warmer stone), mortar, iron
 REGIONS["camo_fortress_ship_skin"], REGIONS["camo_fortress_ship_trim"] = (64, 176, 48, 16), (112, 176, 16, 16)
 # vessels that wear another one's cell (same hull colours): the gear steamship wears the steam paddleboat's dark riveted
 # steel and brass (tools/gear_steam_gangplank.py), so that this module's main() draws its plank the same way
