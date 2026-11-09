@@ -374,7 +374,7 @@ def _gear_face(px, region, rng):
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
-def gear_mask(size, teeth=10, spokes=8):
+def gear_mask(size, teeth=10, spokes=8, rim=(0.7, 0.86), hub=(0.17, 0.31), spoke=0.055):
     """Mask (0/255) of a gold gear wheel in a size x size square: square teeth round a rim, spokes, a hub
     with its axle hole (the emblem of the main sail and of the Arsenal)."""
     img = Image.new("L", (size, size), 0)
@@ -387,17 +387,17 @@ def gear_mask(size, teeth=10, spokes=8):
             r = math.hypot(dx, dy) / R
             a = math.atan2(dy, dx)
             on = False
-            if 0.7 <= r <= 0.86:
+            if rim[0] <= r <= rim[1]:
                 on = True     # the rim
-            elif 0.86 < r <= 1.0:
+            elif rim[1] < r <= 1.0:
                 ph = (a / (2 * math.pi) * teeth) % 1.0
                 on = 0.18 < ph < 0.62   # the teeth
-            elif 0.17 <= r <= 0.31:
+            elif hub[0] <= r <= hub[1]:
                 on = True     # the hub
-            elif 0.31 < r < 0.7:
+            elif hub[1] < r < rim[0]:
                 for k in range(spokes):
                     sa = 2 * math.pi * k / spokes
-                    if abs(math.sin(a - sa)) * r < 0.055 and math.cos(a - sa) > 0:
+                    if abs(math.sin(a - sa)) * r < spoke and math.cos(a - sa) > 0:
                         on = True
             if on:
                 px[x, y] = 255
@@ -482,15 +482,15 @@ def _bevel(block_w, block_h, light=(3.0, 2.5), dark=(4.0, 3.0), kl=(0.85, 0.45),
     return hl, sh, ys
 
 
-def _plates_hd(a, region, tones, rng, rivet="5a4636", rust=0.14, seam="0e0a08", lit="140c08", lit_k=1.65, rivets="corners",
-               brown=0.3, block=BLK, scratches=1, rust_col="6e3c1e"):
+def _plates_hd(a, region, tones, rng, rivet="503e30", rust=0.14, seam="0e0a08", lit="140c08", lit_k=1.65, rivets="corners",
+               brown=0.3, block=BLK, scratches=0, rust_col="6e3c1e"):
     """Riveted plates a block each with baked light: a tone per plate (some browner), soft mottling, each plate a little
     lighter at its top, a lit bevel on the upper and left edges, a shadowed bevel on the lower and right edges, a dark
     seam, rivet heads (four corners, or columns along the vertical seams), light scratches and rust runs."""
     u, v, w, h = region
     out = np.zeros((h, w, 3))
     mott = _noise(w, h, 7, rng) * 0.07 + _noise(w, h, 2.5, rng) * 0.035 + _grain(w, h, rng, 0.025)
-    hl, sh, ys = _bevel(block, block)
+    hl, sh, ys = _bevel(block, block, light=(4.0, 3.0), dark=(5.0, 4.0))
     grad = 1.05 - 0.12 * ys / block
     seam, litc = _c(seam), _c(lit)
     tones = [_c(t) for t in tones]
@@ -504,8 +504,11 @@ def _plates_hd(a, region, tones, rng, rivet="5a4636", rust=0.14, seam="0e0a08", 
             col = base[None, None, :] * (grad * (1 + m))[..., None]
             col = col * (1 - hl[..., None]) + (col * lit_k + litc) * hl[..., None]
             col = col * (1 - sh[..., None])
+            # a 2 px seam (1 px vanished at a distance in game: the textures are not mipmapped)
             col[block - 1, :] = seam
             col[:, block - 1] = seam
+            col[block - 2, :] = seam * 0.6 + col[block - 2, :] * 0.4
+            col[:, block - 2] = seam * 0.6 + col[:, block - 2] * 0.4
             for _ in range(r.randrange(0, scratches + 1)):
                 x0, y0 = r.uniform(4, block - 6), r.uniform(5, block - 6)
                 ang = r.uniform(-0.6, 0.6) + (math.pi / 2 if r.random() < 0.3 else 0)
@@ -530,13 +533,14 @@ def _plates_hd(a, region, tones, rng, rivet="5a4636", rust=0.14, seam="0e0a08", 
             out[by:by + block, bx:bx + block] = col
             tile = out[by:by + block, bx:bx + block]
             rb = _c(rivet) * r.uniform(0.9, 1.1)
+            rh = np.minimum(255, rb * 1.45 + 16)      # soft highlights: the rivets read as relief, not as sparkles
             if rivets == "corners":
-                for cx, cy in ((5, 5), (block - 6, 5), (5, block - 6), (block - 6, block - 6)):
-                    _rivet(tile, cx + 0.5, cy + 0.5, 1.9, rb)
+                for cx, cy in ((5, 5), (block - 7, 5), (5, block - 7), (block - 7, block - 7)):
+                    _rivet(tile, cx + 0.5, cy + 0.5, 2.0, rb, shadow=0.6, hi=rh)
             elif rivets == "columns":
-                for cy in range(4, block - 3, 7):
-                    _rivet(tile, 3.5, cy + 0.5, 1.5, rb)
-                    _rivet(tile, block - 4.5, cy + 0.5, 1.5, rb)
+                for cy in range(4, block - 4, 7):
+                    _rivet(tile, 3.5, cy + 0.5, 1.5, rb, shadow=0.6, hi=rh)
+                    _rivet(tile, block - 5.5, cy + 0.5, 1.5, rb, shadow=0.6, hi=rh)
     _put(a, region, out)
 
 
@@ -602,14 +606,14 @@ def _glow_window_hd(a, region, rng):
     col = np.zeros((h, w, 3))
     # glass: a warm glow brighter in the lower middle (the lamp), saturated orange at the edges
     d = np.hypot((xs - w / 2) / (w / 2), (ys - h * 0.58) / (h / 2))
-    glass = _ramp_np(("fff0b0", "ffc860", "ff9a2a", "e86a14", "b84a0c"), np.clip(d * 0.95, 0, 1))
+    glass = _ramp_np(("fff4c8", "ffd27a", "ffb040", "ff9424", "e87418"), np.clip(d * 0.95, 0, 1))
     col[:] = glass
     # each pane a little darker in its upper outer corner (the frame's shadow on the glass)
     px_ = (xs % (w / 2)) / (w / 2)
     py_ = (ys % (h / 2)) / (h / 2)
     col *= (1 - 0.18 * np.clip(1 - py_ * 3, 0, 1))[..., None]
     # bars
-    bw = max(1.5, w * 0.045)
+    bw = max(2.0, w * 0.075)
     bar = (np.abs(xs - w / 2) < bw) | (np.abs(ys - h / 2) < bw)
     barc = np.where(((xs - w / 2) < -bw + 1.0)[..., None] | ((ys - h / 2) < -bw + 1.0)[..., None], _c("a0642a"), _c("4a2a12"))
     col = np.where(bar[..., None], barc, col)
@@ -830,7 +834,7 @@ def _paint_hd(a, rng):
     _plates_hd(a, R["plate_b"], ("40322a", "3a2d26", "47362d", "362a23", "3f3029"), rng)
     _plates_hd(a, R["plate_c"], ("231c18", "271e1a", "2b211c", "211a17"), rng, rust=0.22, lit_k=1.4)
     # the funnel: black plates with rivet columns along their seams, soot
-    _plates_hd(a, R["funnel"], ("2c2826", "302b28", "282423", "34302c"), rng, rivets="columns", rust=0.06, brown=0.1)
+    _plates_hd(a, R["funnel"], ("342a25", "2e2621", "3a2e28", "2a221e"), rng, rivets="columns", rust=0.1, brown=0.4)
     # the dome's drum: dark brown copper plates
     _plates_hd(a, R["dome_drum"], ("5a3020", "52291a", "613524", "4c2818"), rng, rivet="c8843e", lit="1a0c06", lit_k=1.5, rust=0.0,
                rust_col="3e5a48", brown=0.0)
@@ -939,7 +943,7 @@ def _black_sail_hd(a, name, rng, stripe=0.31, emblem=None):
     if emblem:
         eu, ev, ed = emblem
         size = int(ed * w)
-        mk = np.array(gear_mask(size)) > 0
+        mk = np.array(gear_mask(size, rim=(0.64, 0.86), hub=(0.14, 0.34), spoke=0.085)) > 0   # thick: it reads from afar
         cols_map = SAIL_COLUMNS.get(name)
         if cols_map:
             spans, width = cols_map
@@ -966,17 +970,18 @@ def _black_sail_hd(a, name, rng, stripe=0.31, emblem=None):
             xs0, xs1 = max(0, dx), w + min(0, dx)
             o[ys0:ys1, xs0:xs1] = m[ys0 - dy:ys1 - dy, xs0 - dx:xs1 - dx]
             return o
-        outline = M & ~(shift(M, 1, 0) & shift(M, -1, 0) & shift(M, 0, 1) & shift(M, 0, -1))
-        outline2 = M & ~(shift(M, 2, 0) & shift(M, -2, 0) & shift(M, 0, 2) & shift(M, 0, -2))
+        # the dark outline lies on the cloth round the gold (inside, it thinned the spokes and the rim to nothing in game)
+        outline = ~M & (shift(M, 2, 0) | shift(M, -2, 0) | shift(M, 0, 2) | shift(M, 0, -2) | shift(M, 2, 2) | shift(M, -2, -2))
+        outline2 = M & ~(shift(M, 1, 0) & shift(M, -1, 0) & shift(M, 0, 1) & shift(M, 0, -1))
         lit = M & ~shift(M, 3, 3)           # the texel 3 up-left is outside: an upper-left edge
         dark = M & ~shift(M, -3, -3)
         radial = np.clip(my / max(1, size) * 1.1, 0, 1)
         ecol = _ramp_np((np.minimum(255, gh * 1.12 + 16), gh, gm, gd), radial * 0.8 + 0.06 * _noise(w, h, 6, rng))
         ecol = np.where(lit[..., None], np.minimum(255, ecol * 1.22 + 18), ecol)
         ecol = np.where(dark[..., None], ecol * 0.62, ecol)
-        ecol = np.where(outline2[..., None], gd * 0.75, ecol)
-        ecol = np.where(outline[..., None], _c("2a1406"), ecol)
+        ecol = np.where(outline2[..., None], gd * 0.85, ecol)
         col = np.where(M[..., None], ecol, col)
+        col = np.where(outline[..., None], _c("1e1008"), col)
     _put(a, (u, v, w, h), col)
 
 
