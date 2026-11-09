@@ -10,7 +10,7 @@ permissions:
 jobs:
   client-gametest:
     runs-on: ubuntu-24.04
-    timeout-minutes: 95
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
@@ -52,7 +52,9 @@ jobs:
       - name: Run the real client with the mod
         # 1.9.0 (three more flying vessels and the shared features): ~48 min with the decoration mods
         # 1.27.0 (lot 2 ships): ~74 min with the decoration mods (one run hit 75): 90
-        timeout-minutes: 90
+        # 1.27.0 integration (17 market tents + the three city ships together): 1.26.0 alone took 66-73 min, each ship
+        # branch 62-77 min; the three ships add several minutes each: 110 (job 120)
+        timeout-minutes: 110
         run: |
           set -o pipefail
           # the decoration mods need a newer Fabric Loader than the one the mod is built against

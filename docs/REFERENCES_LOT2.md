@@ -8,9 +8,9 @@ existait déjà dans le mod n'est refait.
 
 | Construction | Images | Statut |
 |---|---|---|
-| Navire royal au lion (`royal_lion_ship`) — Lion Port | 071 (principale), 044, 123, 126 | nouveau (1.27.0) |
-| Navire forteresse (`fortress_ship`) — Havre-Fort (déduit du fort) | 112 (principale), 151, 149 | nouveau (1.27.0) |
-| Navire à vapeur à engrenages (`gear_steamship`) — probablement Haut-Arsenal (emblème de l'engrenage, comme la tente « Arsenal ») | 063 | nouveau (1.27.0) |
+| Navire royal au lion (`royal_lion_ship`) — Lion Port | 071 (principale), 044, 123, 126 | **fait en 1.27.0** ([plan](RoyalLion_PLAN.md), [comparaison](comparaison_royal_lion_ship.png)) |
+| Navire forteresse (`fortress_ship`) — Havre-Fort (déduit du fort) | 112 (principale), 151, 149 | **fait en 1.27.0** ([plan](Fortress_PLAN.md), [comparaison](comparaison_fortress_ship.png)) |
+| Navire à vapeur à engrenages (`gear_steamship`) — probablement Haut-Arsenal (emblème de l'engrenage, comme la tente « Arsenal ») | 063 | **fait en 1.27.0** ([plan](GearSteam_PLAN.md), [comparaison](comparaison_gear_steamship.png)) |
 | Jonque au dragon (`dragon_junk`) | 056, 083, 115 | existait déjà |
 | Vieux corsaire (`old_corsair`) | 061, 140, 118, 146 | existait déjà |
 | Galère (`galley`) | 069, 094, 129 | existait déjà |

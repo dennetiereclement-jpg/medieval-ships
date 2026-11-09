@@ -38,6 +38,9 @@ z vers la proue, en blocs. Angles : positifs vers le bas.
 | dirigeable de cristal (`crystal_airship`) | tribord | -6.03, 1.13, -0.50 | 3.5 × 5.5 | crystal | 3 marches de 0.38 (pont 0.00 → 1.13) | -25° à 45° | 3.88 | -5.00, 0.00, -2.80 |
 | léviathan du ciel (`sky_leviathan`) | tribord | -5.02, 1.14, -1.50 | 3.0 × 5.5 | dark_wood | 3 marches de 0.38 (pont 0.00 → 1.14) | -25° à 45° | 3.88 | -4.05, 0.00, 0.45 |
 | jonque du dragon (`dragon_junk`) | tribord | -3.98, 1.14, 9.50 | 3.0 × 5.5 | jade | 3 marches de 0.38 (pont 0.00 → 1.14) | -25° à 45° | 3.88 | -3.10, 0.00, 7.20 |
+| navire royal au lion (`royal_lion_ship`) | tribord | -5.47, 6.95, 3.00 | 3.0 × 9.5 | dark_wood | 5 marches de 0.39 (pont 5.00 → 6.95) | -15° à 42° | 6.35 | -4.55, 5.00, 4.95 |
+| navire forteresse (`fortress_ship`) | tribord | -6.04, 6.00, 1.60 | 3.0 × 9.0 | dark_wood | 4 marches de 0.38 (pont 4.50 → 6.00) | -15° à 42° | 6.02 | -4.99, 4.50, -0.35 |
+| navire à vapeur à engrenages (`gear_steamship`) | tribord | -4.58, 6.00, 8.20 | 2.4 × 8.0 | steel | 4 marches de 0.38 (pont 4.50 → 6.00) | -15° à 42° | 5.35 | -3.53, 4.50, 6.55 |
 
 ## Remarques par navire
 
@@ -63,6 +66,17 @@ z vers la proue, en blocs. Angles : positifs vers le bas.
 * **Léviathan du ciel** : sur le pont principal, en arrière des caisses, en avant de l'escalier du gaillard.
 * **Jonque du dragon** : laque rouge et jade, sur le pont avant entre les deux ouvertures du pavois (z 6,75 et
   11,25), en arrière du mât incliné.
+* **Navire royal au lion** (1.27.0) : sur la lisse dorée du milieu du pont (y 6,95), entre les haubans du grand
+  mât et de la misaine, côté tribord (l'écoutille de la cale est à bâbord) ; pas de bannière de coque devant elle.
+  Spec dans `ships_g2.py` (une ligne `place(...)` et une entrée `COMPACT` : 16 segments, pendu à 0,9 sous la
+  charnière, inclinaison 9°). Plan : [RoyalLion_PLAN.md](RoyalLion_PLAN.md#6-passerelle-dembarquement).
+* **Navire forteresse** (1.27.0) : au milieu du passavant tribord (z 1,6), charnière en haut du pavois de pierre, aucun
+  merlon ni lisse dessiné au-dessus de la planche ; paquet rangé à plat sur l'assise de pierre. Spec ajoutée à
+  l'exécution par `tools/fortress_gangplank.py` (sans modifier `ships_g2.py`). Plan :
+  [Fortress_PLAN.md](Fortress_PLAN.md#6-passerelle-dembarquement).
+* **Navire à vapeur à engrenages** (1.27.0) : planche d'acier sur le passavant tribord entre le grand mât et l'escalier
+  du gaillard, par un portillon du garde-corps de cuivre ; paquet rangé sous le chapeau de cuivre, sur les tôles lisses.
+  Spec écrite par `tools/gear_steam_gangplank.py`. Plan : [GearSteam_PLAN.md](GearSteam_PLAN.md).
 
 ## Navires sans passerelle
 

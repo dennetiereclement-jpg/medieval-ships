@@ -34,7 +34,7 @@ import fr.medievalships.entity.ShipTracker;
  */
 public final class GearSteamShipGameTest {
 	private static final ShipType TYPE = Ships.GEAR_STEAMSHIP;
-	private static final int X = 3400;   // open water of its own, away from the props (x 1000..2300) and the drawbridge (2560..2800)
+	private static final int X = 4900;   // open water of its own, away from the props (x 1000..2300), the drawbridge (2560..2800) and the other city ships (fortress 3368..3432, royal lion 3868..3932)
 
 	private GearSteamShipGameTest() {
 	}

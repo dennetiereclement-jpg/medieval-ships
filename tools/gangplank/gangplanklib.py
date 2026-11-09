@@ -92,10 +92,14 @@ for _i, _s in enumerate(CAMO_SHIPS):
 CAMO_SHIPS += ("fortress_ship",)
 CAMO["fortress_ship"] = ("7a736b", "2a2622", "38393c")   # grey stone belt (phase 4: the darker stone), mortar, iron
 REGIONS["camo_fortress_ship_skin"], REGIONS["camo_fortress_ship_trim"] = (64, 176, 48, 16), (112, 176, 16, 16)
+# vessels that wear another one's cell (same hull colours): the gear steamship wears the steam paddleboat's dark riveted
+# steel and brass (tools/gear_steam_gangplank.py), so that this module's main() draws its plank the same way
+CAMO_ALIAS = {"gear_steamship": "steam_paddleboat"}
 
 
 def camo_regions(ship_id):
     """Atlas regions of a vessel's camouflage ({"skin", "trim"}); a vessel without a cell gets worn wood and iron."""
+    ship_id = CAMO_ALIAS.get(ship_id, ship_id)
     if ship_id in CAMO_SHIPS:
         return {"skin": "camo_%s_skin" % ship_id, "trim": "camo_%s_trim" % ship_id}
     return {"skin": "worn_board", "trim": "worn_metal"}

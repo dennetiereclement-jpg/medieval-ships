@@ -148,6 +148,40 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.27.0 ajoute **trois grands navires de ville** (lot 2), praticables comme les autres vaisseaux du mod (son
+propre système de navires : ni Valkyrien Skies, ni GeckoLib ; aucune apparition naturelle) : on marche sur les ponts
+pendant la navigation, on visite les pièces meublées, on pilote à la barre, à plusieurs ; chacun a sa **passerelle
+d'embarquement à levier** (côté tribord, paquet compact aux couleurs de la coque une fois rangée).
+
+- **Navire royal au lion** (`royal_lion_ship`, cité de **Lion Port**) : coque sombre à bandes bleu roi et préceintes
+  d'or, écus et bannières au lion d'or, figure de proue en lion doré bondissant, trois mâts à voiles bleu roi bordées
+  d'or au grand lion rampant, auvent rayé bleu et blanc, grand château arrière doré à fenêtres en arc. Pièces : cabine
+  du capitaine, salle d'apparat (étage du château), quartiers de l'équipage avec cuisine, cale marchande ; 22 sièges.
+  Plan : [docs/RoyalLion_PLAN.md](docs/RoyalLion_PLAN.md), comparaison avec les références :
+  [docs/comparaison_royal_lion_ship.png](docs/comparaison_royal_lion_ship.png).
+- **Navire forteresse** (`fortress_ship`, **Havre-Fort**, ville déduite du fort des images) : château flottant en bois
+  sombre habillé de pierre grise et de fer, panneaux rouges, créneaux, donjon en encorbellement et tourelle au toit de
+  tuiles rouges, voiles rouges à la tour blanche crénelée, bannières, grue à caisse suspendue. Pièces : cabine du
+  capitaine, salle du conseil (donjon), poste de vigie (tourelle), toit du donjon, réfectoire, quartiers, cale avec
+  armurerie ; 24 sièges. Plan : [docs/Fortress_PLAN.md](docs/Fortress_PLAN.md), comparaison :
+  [docs/comparaison_fortress_ship.png](docs/comparaison_fortress_ship.png).
+- **Navire à vapeur à engrenages** (`gear_steamship`, **Haut-Arsenal, ville probable** : même emblème de l'engrenage
+  que la tente de l'arsenal) : coque de tôles noires rivetées, bandes de laiton et tuyaux de cuivre, grands engrenages
+  qui tournent en marche, dôme de cuivre, cheminée qui fume, deux mâts à voiles noires à l'engrenage doré, grue de
+  poupe. Pièces : salle des machines (chaudière lumineuse, machine animée), cabine du capitaine dans le rouf,
+  quartiers de l'équipage, cale, galerie de poupe, passerelle de commandement ; 19 sièges. Plan :
+  [docs/GearSteam_PLAN.md](docs/GearSteam_PLAN.md), comparaison :
+  [docs/comparaison_gear_steamship.png](docs/comparaison_gear_steamship.png).
+
+```
+/ship give royal_lion_ship        /ship spawn royal_lion_ship
+/ship give fortress_ship          /ship spawn fortress_ship
+/ship give gear_steamship         /ship spawn gear_steamship
+```
+
+Passerelles : [docs/PASSERELLES.md](docs/PASSERELLES.md#navires-équipés) et
+[docs/PASSERELLES_NAVIRES.md](docs/PASSERELLES_NAVIRES.md) ; tests : [docs/TESTS.md](docs/TESTS.md).
+
 La version 1.26.0 ajoute **dix-sept tentes de marché** pour Lion Port et les autres villes (onglet « Tentes ») : un seul
 objet posé d'un clic droit par tente, chacune avec sa propre silhouette et une place libre derrière le comptoir pour un
 marchand EasyNPC : les tentes bleues et crème au lion de Lion Port (pavillon, longue tente, tente impériale, tente
@@ -490,7 +524,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.26.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.27.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
@@ -513,6 +547,8 @@ pour 1.21.11 sur <https://fabricmc.net/develop>.
 * [Le Nautilus : salles, équipements, commandes, itinéraires sous-marins](docs/NAUTILUS.md)
 * [Le Grand Dirigeable de Cristal](docs/CRYSTAL_PLAN.md), [le Navire Volant Rustique](docs/SKIFF_PLAN.md),
   [la Jonque du Dragon](docs/JUNK_PLAN.md) : plans, pièces, pilotage, réglages, limites
+* [Le Navire royal au lion](docs/RoyalLion_PLAN.md), [le Navire forteresse](docs/Fortress_PLAN.md),
+  [le Navire à vapeur à engrenages](docs/GearSteam_PLAN.md) (1.27.0) : plans, pièces, passerelle, pilotage, limites
 * [Créer un ferry automatique](docs/FERRY.md)
 * [Modèle Blockbench, textures et animations](docs/MODELE.md)
 * [Architecture technique (marche sur le pont, collisions, IA, performances)](docs/ARCHITECTURE.md)

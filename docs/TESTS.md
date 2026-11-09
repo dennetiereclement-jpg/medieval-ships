@@ -17,6 +17,27 @@ Le test (`src/gametest/.../ShipClientGameTest.java`) crée un monde, des bassins
 à l'eau puis vérifie (résultats et captures publiés sur les branches `test-results-vanilla` et
 `test-results-lithium`) :
 
+### Navires de ville (navire royal au lion, navire forteresse, navire à vapeur à engrenages) — 1.27.0
+
+Trois tests appelés à la fin de la séquence de `ShipClientGameTest`, en solo puis sur le serveur dédié, chacun dans son
+propre bassin vitré de 100 blocs de long rempli d'eau (aucun recouvrement avec les zones des tentes, décorations, pieu,
+pont-levis ni des autres navires) : `RoyalLionShipGameTest` (x 3868…3932) et `FortressShipGameTest` (x 3368…3432), avec
+un quai de pierre à tribord, et `GearSteamShipGameTest` (x 4872…4928 ; déplacé de x 3400 à l'intégration, où il
+recouvrait le bassin de la forteresse). Chacun met le navire à l'eau par
+`/ship spawn <id>`, vérifie qu'il flotte à sa ligne de flottaison, que le modèle est chargé avec ses deux textures et
+ses animations, place le joueur sur chaque pont et dans chaque pièce (cabine du capitaine, salle d'apparat, salle du
+conseil et tourelle, salle des machines, quartiers, cale, galerie…), ouvre les portes, le fait s'asseoir sur trois
+sièges (un seul, le fauteuil du capitaine, pour le vapeur) et se relever à côté, marcher dans la cale et la cabine
+meublées (navire royal et forteresse), déploie la passerelle par son levier sur le quai puis la replie (sortie puis
+rangée sans quai pour le vapeur), et le fait piloter quelques secondes à la barre (le navire avance ; engrenages, fumée et machine pour le
+vapeur) ; captures des vues des références et des pièces meublées, puis retrait. Vérifications par mode : 27 (navire
+royal au lion), 29 (forteresse), 21 (vapeur à engrenages). JUnit : `RoyalLionShipTest`, `FortressShipTest`,
+`GearSteamShipTest` (grille fermée, pièces atteignables à pied, sièges et places pour se relever, mobilier dans la
+coque, sondes de la grille et des mâts identiques à la forme Python), `NewShipModelsTest` (os, animations et quads de
+référence des trois modèles), `NoZFightingTest`, `GangplankSpecsTest` et `GangplankFoldTest` (passerelles et paquets
+rangés). Plans : [RoyalLion_PLAN.md](RoyalLion_PLAN.md), [Fortress_PLAN.md](Fortress_PLAN.md),
+[GearSteam_PLAN.md](GearSteam_PLAN.md).
+
 ### Tentes de marché de Lion Port et des villes (dix-sept tentes) — 1.26.0
 
 `TentGameTest` pose chacune des dix-sept tentes de marché (`TentTypes.MARKET_TENTS`, de `tente_lion_pavillon` à

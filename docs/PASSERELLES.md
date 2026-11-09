@@ -68,6 +68,14 @@ Taille du paquet rangé (largeur le long de la coque × hauteur × saillie), ava
 (saillie : au-delà de la surface de coque sur laquelle le paquet est posé ; emprise : largeur × hauteur, en part de
 celle de 1.23.1.)
 
+Les trois navires de ville de 1.27.0 (`royal_lion_ship`, `fortress_ship`, `gear_steamship`) n'ont jamais eu
+l'accordéon : ils ont le paquet compact dès leur arrivée (`GangplankFoldTest` compare leur paquet à la taille que la
+règle de 1.23.1 leur aurait donnée). Camouflage : cases fixes 12 (`royal_lion_ship`, or) et 13 (`fortress_ship`, pierre
+grise et fer) de l'atlas ; le navire à vapeur à engrenages porte la case du bateau à vapeur (`CAMO_ALIAS` de
+`gangplanklib.py`, mêmes tôles noires et laiton). Après une fusion qui touche les cases, on régénère tout par
+`python3 tools/gangplank/gangplanklib.py` (atlas, leviers, planches) ; les scripts propres des navires
+(`ships_g2.py`, `tools/fortress_gangplank.py`, `tools/gear_steam_gangplank.py`) redonnent les mêmes fichiers.
+
 ## Pliage en accordéon (1.23.1, remplacé)
 
 Pour mémoire (remplacé en 1.23.2 par le paquet compact ci-dessus) :
@@ -175,6 +183,9 @@ camouflage de chaque navire en bas), tous générés par `tools/gangplank/gangpl
 | `crystal_airship` (dirigeable de cristal) | tribord | 3,5 × 5,5 | cristal | charnière à 1,13, angles -25.0°…45.0°, chute 3,88 max |
 | `sky_leviathan` (Léviathan des cieux) | tribord | 3,0 × 5,5 | bois sombre ferré | charnière à 1,14, angles -25.0°…45.0°, chute 3,88 max |
 | `dragon_junk` (jonque du dragon) | tribord | 3,0 × 5,5 | jade | charnière à 1,14, angles -25.0°…45.0°, chute 3,88 max |
+| `royal_lion_ship` (navire royal au lion, 1.27.0) | tribord | 3,0 × 9,5 | bois sombre ferré | charnière à 6,95 sur la lisse dorée, angles -15.0°…42.0°, chute 6,35 max ; paquet de 16 segments, peau dorée |
+| `fortress_ship` (navire forteresse, 1.27.0) | tribord | 3,0 × 9,0 | bois sombre ferré | charnière à 6,0 en haut du pavois, angles -15.0°…42.0°, chute 6,02 max ; paquet sur l'assise de pierre, peau de pierre grise |
+| `gear_steamship` (navire à vapeur à engrenages, 1.27.0) | tribord | 2,4 × 8,0 | acier | charnière à 6,0 par un portillon du garde-corps de cuivre, angles -15.0°…42.0°, chute 5,35 max ; peau d'acier riveté du bateau à vapeur |
 
 **Non équipés** (volontairement) :
 
