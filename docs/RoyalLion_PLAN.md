@@ -1,6 +1,6 @@
 # Le Navire royal au lion (`royal_lion_ship`) — plan
 
-Navire de la cité de **Lion Port** (lot 2, version 1.27.0). Navire marchand royal : richesse, puissance commerciale,
+Navire de la cité de **Lion Port** (lot 2, version 1.27.0 ; structure revue en phase 4, § 5 quater). Navire marchand royal : richesse, puissance commerciale,
 prestige. Coordonnées du navire en blocs : x latéral (+x = bâbord), y vertical (0 = ligne de flottaison), z
 longitudinal (+z = proue). Sources : `tools/royal_lion_shape.py` (forme, niveaux), `tools/royal_lion_interior.py`
 (grille des pièces), `tools/generate_royal_lion.py` (modèle, gréement, animations), `tools/royal_lion_decor.py`
@@ -23,13 +23,14 @@ Mesures (044, la vue la moins déformée ; 1 bloc ≈ 34 px au maître-couple) :
 | Élément | Mesure (px) | Lecture |
 |---|---|---|
 | Coque | étrave x ≈ 230 → poupe x ≈ 1450, vue à ≈ 20° du travers | ≈ 38 blocs ; **40 blocs retenus** (52 avec le beaupré) |
-| Franc-bord | flottaison ≈ y 900 → lisse du milieu ≈ y 690 | ≈ 6 blocs : **lisse à 6,2** au-dessus de l'eau |
-| Château arrière | sommet du toit ≈ y 480 | ≈ 12,4 blocs : **toit à 12,1 (+ lanterne de faîte à 15,5)** |
-| Grand mât | pomme ≈ y 30 (044) ; plus haut sur 071 (huniers) | 25,6 (044) à ≈ 34 (071) : **30,5** (misaine 29, artimon 25,8 : ≈ 0,85 du grand mât sur 071, 044 et 126) |
-| Grand-voile | vergue ≈ y 215, bordure ≈ y 560, largeur ≈ 410 px | **8 → 19 de haut, 20 → 21,8 de large** (élargie, voir § 5 bis et § 5 ter) |
-| Hune du grand mât | ≈ y 130 | **20,0** (misaine 19,2, artimon 20,2) ; nids de pie au ton des mâts de hune (26,3 et 25,1) |
-| Bandes de coque (071) | bois sombre ≈ 40 % du franc-bord, puis or / bleu / or / bleu / or | brun jusqu'à 2,0 (sabords éclairés à 1,3), préceinte d'or 2,0–2,3, bande bleue, préceinte d'or 3,3–3,6, bande bleue des écus, lisse d'or à 5,0 |
-| Écus (071) | 2 visibles par bord sur la moitié vue, ≈ 1,7 × 2 blocs | **5 écus par bord** (z −14,5, −8,5, −2,5, 6,5, 12,5), lanternes entre eux |
+| Franc-bord | flottaison ≈ y 900 → lisse du milieu ≈ y 690 ; coque profonde (lisse → quille ≈ 12 blocs sur 044) | ≈ 6 blocs : **lisse à 6,7** au-dessus de l'eau (phase 4 : +0,5), tonture forte vers l'avant (+3,6) et l'arrière (+1,2) |
+| Château arrière | sommet du toit ≈ y 480 ; château ≈ 12,5 blocs de long, étage ≈ 8 blocs (044) | phase 4 : **château de 12 blocs, étage de 8, toit de 12,0 à 13,2 (+ lanterne de faîte à 16,2)** |
+| Grand mât | pomme ≈ y 30 (044) ; plus haut sur 071 (huniers) | 25,6 (044) à ≈ 34 (071) : **30,5** (misaine 29,5, artimon 26) ; flèches de 2,7 au-dessus des huniers (071) |
+| Grand-voile | vergue ≈ y 215, bordure ≈ y 560, largeur ≈ 410 px | phase 4 : **8,5 → 20,2 de haut, 21,8 → 24 de large** (misaine 9,2 → 19,8, 20,2 → 22,2) |
+| Hune du grand mât | ≈ y 130 | phase 4 : **21,0** (misaine 20,6, artimon 21,0) ; nids de pie au ton des mâts de hune (27,5 et 26,7) |
+| Bandes de coque (071) | bois sombre ≈ 40 % du franc-bord, puis or / bleu / or / bleu / or | brun jusqu'à 2,25 (sabords éclairés à 1,45), préceinte d'or 2,25–2,6, bande bleue, préceinte d'or 3,8–4,15, bande bleue des écus, lisse d'or à 5,5 (relevées avec la tonture) |
+| Écus (071) et bannières (044, 123, 126) | 2 écus visibles par bord sur la moitié vue ; longues bannières pendues entre eux | **4 écus par bord** sur le pont (z −5,5, 0,5, 6,5, 12,5), **bannières au lion** entre eux (z −2,5, 3,5, 9,5 ; pas à tribord devant la passerelle), lanternes à côté |
+| Mâts (044, 071 : rétroprojection sur le plan axial avec les caméras recalées) | misaine à ≈ 0,83 de la longueur depuis la poupe, grand mât ≈ 0,5, artimon ≈ 0,2 à 0,3 | **misaine 12,5, grand mât −0,5 (13 blocs), artimon −11,5** (phase 4) |
 
 Cohérence avec les autres navires (`core/Ships.java`) : frégate bleue 36 × 10 (46 hors-tout, 33,4 de haut),
 galion 35 × 9, vaisseau de guerre 55 × 13. Le navire royal (40 × 12, 51 hors-tout, ≈ 34 de la quille à la pomme du
@@ -37,11 +38,13 @@ grand mât) est plus grand et plus lourd que la frégate, plus petit que le vais
 
 ## 2. Dimensions retenues
 
-* Coque 40 × 12 blocs, 51 avec le beaupré ; quille −3,6, lisse 6,2 au milieu (relevée à 8,0 à l'étrave, 6,6 à la
-  poupe) ; avant plein et arrondi (puissance 2,6), arrière large sous le château (tableau 9,2 de large) ; rentrée des
-  hauts 0,4 ; étrave inclinée.
-* Mâts : misaine z = 9,5 (pomme 29), grand mât z = −1 (30,5), artimon z = −12,2 sur le gaillard (25,8) ; beaupré de
-  (0, 7,2, 17) à (0, 13, 31).
+* Coque 40 × 12 blocs, 51 avec le beaupré ; quille −3,6 (relevée de 2,6 aux extrémités, puissance 2,6 : flottaison
+  plus courte), lisse 6,7 au milieu, **tonture forte** : relevée à 10,3 à l'étrave et 7,9 à la poupe (puissance 2,
+  la silhouette trapue en croissant de 044 et 126) ; avant plein et arrondi (puissance 2,6), arrière large sous le
+  château (tableau 9,2 de large) ; rentrée des hauts 0,4 ; étrave très inclinée (0,42 par bloc au-dessus de l'eau).
+* Mâts : misaine z = 12,5 (pomme 29,5), grand mât z = −0,5 (30,5), artimon z = −11,5 sur le gaillard, contre la
+  façade de la salle d'apparat (26) ; flèches courtes au-dessus des huniers (2,7) ; beaupré de (0, 9, 17,5) à
+  (0, 14,8, 31).
 * Voiles carrées orientées de 6° (bras bâbord en arrière : leur face tournée vers bâbord avant, comme sur trois
   références sur quatre ; meilleur compromis entre les quatre cadrages, voir § 5 ter).
 
@@ -49,23 +52,23 @@ grand mât) est plus grand et plus lourd que la frégate, plus petit que le vais
 
 | Niveau | y | Contenu |
 |---|---|---|
-| Toit du château | 11,0 → 12,1 | toit bleu en mansarde (ardoises bleues, arêtiers et égouts dorés), crête dorée, fleurons dorés aux angles, lanterne de faîte à coupole bleue et flèche d'or, étendard royal au lion (décoratif, non praticable) |
-| Salle d'apparat (dunette) | 8,0 → 11,0 | **royal state room** à l'arrière du gaillard (z −19,5 → −16,5), porte double sur sa façade, fenêtres en arc (4 à l'arrière, 2 par côté, 2 en façade) |
-| Gaillard d'arrière | 8,0 | barre (roue z = −14, pilote debout z = −14,8) sous l'**auvent rayé bleu et blanc** festonné, artimon, balustrades dorées |
-| Gaillard d'avant | 6,0 | de z = 13 à l'étrave, balustrade dorée, cloche ; 2 escaliers depuis le pont (3 marches) |
-| Pont principal | 4,5 | du château (z −10,5) au gaillard d'avant ; 2 escaliers vers le gaillard d'arrière (7 marches, z −7 → −10,5) ; descente tribord vers les quartiers (x −2,2…−0,7, z −3,5 → −7), descente bâbord vers la cale (x 2…3,5, z 7 → 3,5) ; cabestan, caillebotis, râteliers, cargaison |
-| Cabine du capitaine | 4,5 | sous le gaillard, z −19,5 → −11, porte double sur la cloison avant ; fenêtres en arc (4 au tableau derrière la galerie dorée, 3 par côté) |
-| Quartiers de l'équipage | 1,0 | pont inférieur arrière, z −15 → −3 |
-| Cale | 1,0 | pont inférieur avant, z −2,5 → 14,5, cloison avec porte double entre les deux ; la misaine et le grand mât la traversent jusqu'à la quille |
+| Toit du château | 12,0 → 13,2 | toit bleu en mansarde (ardoises bleues, arêtiers et égouts dorés), **trois lucarnes éclairées par pente**, crête et balustrade dorées, fleurons dorés aux angles, lanternes sur poteaux aux coins du faîte, lanterne de faîte à coupole bleue et flèche d'or, étendard royal au lion (décoratif, non praticable) |
+| Salle d'apparat (étage du château) | 8,5 → 12,0 | **royal state room** sur l'arrière du gaillard, **8 blocs de long** (z −20 → −12), deux portes doubles sur sa façade de part et d'autre de l'artimon ; grandes fenêtres en arc (4 à l'arrière, **5 par côté**, 2 en façade), balcon doré le long de son pied |
+| Gaillard d'arrière | 8,5 | de la façade de la salle d'apparat (z −12) au front du château (z −8) : artimon, barre (roue z = −9,4, pilote debout z = −10,2) sous l'**auvent rayé bleu et blanc** festonné, deux bancs, balustrades dorées |
+| Gaillard d'avant | 7,0 | de z = 13 à l'étrave, balustrade dorée, cloche ; 2 escaliers depuis le pont (4 marches) ; la misaine se dresse juste à l'arrière de sa balustrade |
+| Pont principal | 5,0 | du château (z −8) au gaillard d'avant ; 2 escaliers vers le gaillard d'arrière (7 marches, z −4,5 → −8) ; descente tribord vers les quartiers (x −2,2…−0,7, z −3,5 → −7), descente bâbord vers la cale (x 2…3,5, z 7 → 3,5) ; cabestan, caillebotis, râteliers, cargaison |
+| Cabine du capitaine | 5,0 | sous le gaillard, **z −19,5 → −8,5 (11 blocs)**, porte double sur la cloison avant ; fenêtres en arc (4 au tableau derrière la galerie dorée, **4 par côté**, 2 sur la cloison) |
+| Quartiers de l'équipage | 1,5 | pont inférieur arrière, z −15 → −3 |
+| Cale | 1,5 | pont inférieur avant, z −2,5 → 14,5, cloison avec porte double entre les deux ; la misaine et le grand mât la traversent jusqu'à la quille |
 
-Hauteurs libres : pont inférieur 3 blocs, cabine 3, salle d'apparat 3. Toutes les pièces sont dans la coque (grille
+Hauteurs libres : pont inférieur 3 blocs, cabine 3, salle d'apparat 3,5. Toutes les pièces sont dans la coque (grille
 fermée sous le pont : aucune sortie par la coque, vérifié par `RoyalLionShipTest`).
 
-## 4. Sièges (17 places assises en plus de la barre)
+## 4. Sièges (22 places assises en plus de la barre)
 
-La barre (pilote debout) ; dans la cabine du capitaine, le fauteuil à haut dossier devant le bureau et deux places sur
-la banquette sous les fenêtres de poupe ; dans la salle d'apparat, trois chaises dorées en velours rouge et deux
-trônes aux bouts de la table ; dans les quartiers de l'équipage, quatre places sur les bancs du carré ; dans la cale, le
+La barre (pilote debout) ; dans la cabine du capitaine, le fauteuil à haut dossier devant le bureau, deux places sur
+la banquette sous les fenêtres de poupe et les deux fauteuils de velours du coin lecture ; dans la salle d'apparat,
+six chaises dorées en velours rouge le long de la table et deux trônes à ses bouts ; dans les quartiers de l'équipage, quatre places sur les bancs du carré ; dans la cale, le
 tabouret du commis aux écritures ; sur le pont, deux bancs au pied du grand mât et deux bancs sous l'auvent du gaillard
 d'arrière. Chaque siège a son point de relevé libre sur un plancher (`RoyalLionShipTest.helmAndSeats`), vérifié en jeu
 pour trois d'entre eux (`RoyalLionShipGameTest`).
@@ -86,6 +89,14 @@ FURNITURE) : on en fait le tour, on ne passe pas au travers.
 | Cale | caisses empilées sur deux rangs, caisses de provisions (pommes de terre, carottes, choux), pyramides de tonneaux sur chantiers, sacs de riz, bottes de paille et d'épeautre, amphores (terre cuite, bleue, jaune), jarres, lanternes à chaîne, tabouret | pupitre du commis aux écritures (registre ouvert, encrier et plume, balance, piles de pièces), **ballots blancs** de toile cordés, râtelier de **rouleaux d'étoffes** bleu roi, rouge et or (marchandises du prince marchand), sacs d'épices, second coffre de pièces d'or |
 | Pont et gaillards | caisses sur deux rangs, tonneaux couchés, sacs, deux bancs au grand mât, deux bancs sous l'auvent | **caisses bâchées de toile blanche** et cordées et ballots blancs (la cargaison de 044 et de 071), tonneaux debout, glènes de cordage au pied des mâts |
 
+Phase 4 (château agrandi) : la cabine (11 blocs) reçoit en plus un coin lecture (deux fauteuils de velours, table de
+nuit et livres), le cabinet à liqueurs, un second tapis au lion et un second lustre à l'avant ; la salle d'apparat
+(7 blocs utiles) a sa longue table dans l'axe (six chaises de velours, deux trônes aux bouts, deux candélabres,
+porcelaine, volaille, vins), le cabinet à liqueurs et deux commodes entre les fenêtres, la tapisserie royale entre les
+fenêtres de poupe, un portrait « bust » au-dessus du milieu de la façade (l'artimon est dehors, entre les deux portes),
+deux lustres ; un tableau « kebab » sur la cloison des quartiers de l'équipage ; la cargaison du pont recule devant les
+escaliers du gaillard d'arrière (z −4,5) et la passerelle (tribord, z 1,5 à 5,4).
+
 Laissé libre (vérifié par `RoyalLionShipTest` et par `apply_to_grid` de l'outil) : les portes et leurs abords, les
 escaliers et descentes avec leur pied, l'axe de la cabine, des quartiers et de la cale, une bande de 1,9 bloc de part et
 d'autre de l'axe du pont principal (points d'embarquement), l'escalier et le levier de la passerelle (tribord, z 1,2 à
@@ -97,26 +108,39 @@ registre, tapisserie au lion. Planche des pièces : `docs/interieur_royal_lion_s
 
 ## 5. Extérieur : matériaux, ornements, parties mobiles
 
-* **Coque** : bois brun sombre (mosaïque de blocs) avec une rangée de petits sabords éclairés à cadre doré ; préceintes
-  d'or ; deux bandes bleu roi en mosaïque ; **grands écus bleu roi (2,5 × 3 blocs) en forme d'écu à pointe, bordure d'or et lion
-  rampant d'or**, détachés du bordé devant les préceintes, sur planche sombre à clous dorés ; lanternes pendues à des potences de fer entre les écus ; lisse dorée,
+* **Coque** : haute, à forte tonture (relevée de 3,6 à l'étrave, 1,2 à la poupe) ; bois brun sombre (mosaïque de blocs)
+  avec une rangée de petits sabords éclairés à cadre doré ; préceintes d'or ; deux bandes bleu roi en mosaïque ;
+  **grands écus bleu roi (2,5 × 3 blocs) en forme d'écu à pointe, bordure d'or et lion rampant d'or**, détachés du
+  bordé devant les préceintes, sur planche sombre à clous dorés ; **longues bannières bleues au lion d'or** (1,3 × 3,9)
+  pendues sous la lisse à des tringles dorées entre les écus, une lanterne sur potence à côté de chacune ; lisse dorée,
   bastingage bleu et **balustrade dorée** (balustres, poteaux à pommeau, lanternes sur certains poteaux).
 * **Proue** : étrave dorée, lisses d'éperon dorées en gradins jusqu'au beaupré, bossoirs à tête de lion, ancres,
   **figure de proue : lion doré** (grosse tête à crinière, gueule rugissante, langue rouge, crocs, pattes avant tendues
-  griffes dehors, console sculptée), lanterne pendue sous le beaupré, beaupré brun cerclé d'or et bout-dehors.
-* **Château arrière** : panneaux bleus encadrés d'or, pilastres dorés, corniche en volutes dorées, fenêtres en arc
-  éclairées, **galerie de poupe** dorée sur consoles, panneau au lion sur la voûte, bannières au lion sur les flancs,
-  salle d'apparat sous le **toit bleu en mansarde**, lanternes d'angle sur potences, lanterne de faîte.
+  griffes dehors, console sculptée) — **en phase 4 le lion bondissant entier de 123** : arrière-train et pattes
+  arrière repliées contre l'étrave, corps tendu vers l'avant et le haut, poitrail, pattes avant lancées vers l'avant
+  et le bas, tête rugissante à crinière, queue enroulée le long de l'étrave ; lanterne pendue sous le beaupré, beaupré
+  brun cerclé d'or et bout-dehors.
+* **Château arrière** (phase 4 : 12 blocs de long, étage de 8 blocs) : panneaux bleus encadrés d'or, pilastres dorés,
+  corniche en volutes dorées ; **deux rangs de fenêtres en arc éclairées** (cabine : 4 par bord et 4 au tableau ;
+  salle d'apparat : 5 grandes par bord sous moulures dorées et 4 au tableau), un troisième rang de **lucarnes
+  éclairées** dans le toit ; **deux galeries de poupe** dorées (celle de la cabine sur consoles, le balcon de la salle
+  d'apparat), balcon doré le long du pied de l'étage, cartouche au lion sur la voûte et écusson au lion entre les deux
+  rangs, trois bannières au lion sur chaque flanc de la cabine, **toit bleu en mansarde** à balustrade dorée, fleurons
+  dorés aux angles, lanternes sur poteaux, lanternes d'angle sur potences, lanterne de faîte.
 * **Mâture** : mâts bruns cerclés d'or, **hunes rondes à garde-corps doré et quatre lanternes**, **nids de pie** dorés à deux lanternes au ton
   des mâts de hune, chouques dorés, **vergues épaisses** à bagues et bouts dorés ;
   **voiles bleu roi en blocs de toile, larges bordures d'or et filet d'or le long des chutes, grand lion rampant d'or
-  sur la grand-voile et la misaine** ; huniers ; voile carrée d'artimon ; deux focs bleus bordés d'or ;
+  sur la grand-voile et la misaine** (phase 4 : lion héraldique redessiné — tête de profil gueule ouverte, oreille,
+  crinière, deux pattes avant levées griffes écartées, patte arrière levée, queue en S à touffe —, 0,8 de la hauteur
+  de la voile, dessiné 1,45 fois plus large que nature pour rester lisible de biais, cerné de marine, relief doré) ;
+  grand-voile 11,7 × 24, misaine 10,6 × 22, huniers 6 à 6,4 de haut ; voile carrée d'artimon ; deux focs bleus bordés d'or ;
   **flammes bleues bordées d'or à queue d'aronde** (petit lion d'or au guindant) aux trois pommes ; étendard royal au
   lion au mât de pavillon arrière ; **enfléchures (échelles de corde) claires** jusqu'aux hunes, galhaubans, étais,
   bras, écoutes.
 * **Parties mobiles** (os du modèle) : voiles (`sail_*` : `sail_wind`, `sail_furl`), roue et safran (`steer`),
   flammes et étendard (`flag_wave`), lanternes (`lantern_sway`), cordages lâches (`rope_sway`), portes
-  (`door_0` cabine, `door_1` salle d'apparat, `door_2` cloison du pont inférieur).
+  (`door_0` cabine, `door_1` et `door_3` salle d'apparat de part et d'autre de l'artimon, `door_2` cloison du pont
+  inférieur).
 * **Ce qui a été reconstitué** (non visible sur les références) : le flanc tribord du château et le flanc bâbord de la
   proue sont symétriques des côtés vus ; le tableau arrière (vu seulement de biais sur 071/126) reçoit les mêmes
   fenêtres en arc et une galerie ; l'intérieur entier (aucune image) ; la voile d'artimon est carrée comme sur 071 (126
@@ -186,6 +210,52 @@ pixels bleus de la coque et des voiles).
 8. **Bannières pendantes** de 044, 123 et 126 remplacées par les grands écus de 071 (demandés par la consigne).
 9. Éclairage chaud et reflets des images (rendu de jeu plus plat) ; ferrures grises de 044 rendues en or.
 
+Les écarts 3 à 8 sont traités en phase 4 (§ 5 quater).
+
+## 5 quater. Phase 4 : fidélité de structure
+
+**Ce qui a été changé** (les écarts de structure laissés par la phase 3, qui touchaient la grille, la flottaison, la
+passerelle et les tests) :
+
+| Changement | Avant (phase 3) | Après (phase 4) | Ce qui a suivi |
+|---|---|---|---|
+| Franc-bord | pont 4,5, lisse 6,2 | **tous les niveaux +0,5** : pont 5,0, cabine 5,0, gaillard d'arrière 8,5, gaillard d'avant 7,0 (4 marches), pont inférieur 1,5, lisse 6,7 | grille, escaliers, descentes, sièges, passerelle (charnière 6,95, longueur 9,5, dénivelé max 6,35), test en jeu |
+| Tonture | +1,8 à l'avant, +0,4 à l'arrière (puissance 2,6) | **+3,6 à l'avant, +1,2 à l'arrière (puissance 2)**, quille relevée de 2,6 aux extrémités : coque trapue en croissant (044, 126) | préceintes, bandes, bastingage, beaupré relevé, `HullShape` Java, valeurs du test |
+| Château arrière | 9,5 blocs ; salle d'apparat 4 blocs (2 fenêtres par côté) | **12 blocs** (cloison à −8), **étage de 8 blocs** (plafond 12,0) : 5 grandes fenêtres en arc par côté, 4 au tableau, balcon, lucarnes, balustrade et lanternes sur le toit, deux galeries de poupe | cabine de 11 blocs (4 fenêtres par côté, coin lecture), salle d'apparat réaménagée, deux portes, sondes, test en jeu |
+| Mâts | misaine 9,5, grand mât −1, artimon −12,2 (10,5 entre misaine et grand mât) | **misaine 12,5, grand mât −0,5, artimon −11,5** (13 blocs ; artimon contre la façade de l'étage, entre ses deux portes) | barre et auvent devant l'artimon (roue −9,4), escaliers du gaillard d'arrière (−4,5 → −8), cales et cargaison, tests |
+| Voiles | grand-voile 11 × 21,8, flèches de 4,9 au-dessus des huniers | **grand-voile 11,7 × 24, misaine 10,6 × 22, huniers 6 à 6,4**, flèches 2,7 ; pommes 29,5 / 30,5 / 26 | sondes des vergues (`YARD_HALF` 11,4) |
+| Lions des voiles | 0,65 de la hauteur, silhouette en bloc | **rampant héraldique redessiné**, 0,8 de la hauteur, 1,45 fois plus large, cerné, relief doré (aussi sur les écus, bannières, tapis, flammes) | texture des voiles (régions agrandies) |
+| Figure de proue | buste (tête, crinière, pattes avant) | **lion bondissant entier** (123) | sondes `FIGUREHEAD_PROBE` (0 ; 9,4 ; 28,5), `FIGUREHEAD_PAW_PROBE` (0 ; 6,9 ; 29,5) |
+| Bannières | sur les flancs du château seulement | **bannières pendues sous la lisse entre les écus** (044, 123, 126), écus ramenés sur le pont (4 par bord) | pas de bannière à tribord devant la passerelle |
+
+**Méthode.** Mêmes caméras recalées que la phase 3 (`cams.json`), plus des caméras à longue focale (20°) pour 071 et
+126, dont la perspective est plus plate que celle d'un objectif de 35° ; rétroprojection des pommes de mât des images
+sur le plan axial (044 : misaine ≈ 13,5 à 14, grand mât ≈ −0,5, artimon ≈ −13 ; 071 : 14,8, 2,0, −8,4) ; fondus image
+et rendu superposés pour la silhouette ; quatre itérations :
+
+| Itération | Écarts relevés | Corrections |
+|---|---|---|
+| 1 | (nouvelle structure) mâts trop hauts sur 071 (flammes hors du cadre) ; lion des voiles illisible de biais ; pied des basses voiles trop bas sur 044 | pommes ramenées à 29,5 / 30,5 / 26, huniers relevés jusqu'à 2,7 sous les pommes, pied de la grand-voile remonté ; lion élargi (1,45) et épaissi |
+| 2 | sur 126 et 071 l'étage du château paraît bas ; fenêtres de l'étage petites | étage porté à 3,5 de haut (plafond 12,0), fenêtres 1,1 × 2,0 sous moulures dorées |
+| 3 | bannières courtes (044 : elles descendent presque jusqu'à la flottaison) ; sommet du château nu (071 : lanternes sur poteaux) | bannières de 3,9, lanternes déplacées à côté ; lanternes sur poteaux aux coins du toit |
+| 4 | basses voiles encore un peu petites devant les images | grand-voile 11,7 × 24, misaine 10,6 × 22 ; contrôles : silhouette de 044 superposée (mâts, coque, château et voiles au même endroit), lions lisibles de biais |
+
+**Écarts restants (classés) :**
+
+1. **Voiles vues de biais** : les images les montrent de face quel que soit le côté ; vergues orientées de 6° (bras
+   bâbord en arrière) comme en phase 3 ; elles paraissent donc plus étroites que sur les images dès qu'on n'est pas
+   dans l'axe.
+2. **Lion des voiles tourné vers la poupe vu de tribord (071)** : une même voile ne peut montrer le lion tourné vers
+   l'avant des deux côtés (il l'est sur les trois vues bâbord).
+3. **071 montre le château plus grand que la proue** (perspective de l'image, plus plate qu'un vrai objectif) : avec
+   une caméra à longue focale l'écart se réduit ; la hauteur du château (toit à 13,2, lanternes à 14,5) est celle de
+   044.
+4. **126 a des mâts disposés autrement** (grand mât très en avant, artimon au milieu du toit) : la disposition suit
+   044 et 071, comme le demande la consigne (126 sert pour la proue et le château).
+5. **Huniers** gardés (071, 123) alors que 044 et 126 n'ont qu'une voile par mât.
+6. Coque un peu plus bleue que sur 044 (plus brune) : les bandes suivent 071, l'image principale.
+7. Éclairage chaud et reflets des images ; ferrures grises de 044 rendues en or.
+
 ## 6. Passerelle d'embarquement
 
 Système existant (`docs/PASSERELLES.md`, `core/Gangplank.java`) : spécification ajoutée à `tools/gangplank/ships_g2.py`
@@ -194,11 +264,11 @@ Système existant (`docs/PASSERELLES.md`, `core/Gangplank.java`) : spécificatio
 
 | Côté | Charnière (x, y, z) | Largeur × longueur | Style | Escalier intérieur | Pentes | Dénivelé max | Levier |
 |---|---|---|---|---|---|---|---|
-| tribord | −5,47 ; 6,40 ; 3,0 | 3,0 × 9,0 | bois sombre ferré | 5 marches (pont 4,5 → 6,4) | −15° à 42° | 6,02 | −4,55 ; 4,5 ; 4,95 |
+| tribord | −5,47 ; 6,95 ; 3,0 | 3,0 × 9,5 | bois sombre ferré | 5 marches (pont 5,0 → 6,95) | −15° à 42° | 6,35 | −4,55 ; 5,0 ; 4,95 |
 
 Posée sur la lisse dorée au milieu du pont, entre les haubans du grand mât et de la misaine (l'écoutille de la cale est
-à bâbord). Rangée : paquet compact de 16 segments télescopiques, pendu à 1,0 sous la charnière, à plat contre le
-bastingage (`stow_offset` 0,14, `stow_tilt` 13°, mesurés par `ships_g2.py compact`), peau dorée échantillonnée par
+à bâbord). Rangée : paquet compact de 16 segments télescopiques, pendu à 0,9 sous la charnière, à plat contre le
+bastingage (`stow_offset` 0,07, `stow_tilt` 9°, mesurés par `ships_g2.py compact`), peau dorée échantillonnée par
 `ships_g2.py camo`. Testée par `GangplankSpecsTest` / `GangplankFoldTest` (le navire est ajouté à leurs listes) et en
 jeu par `RoyalLionShipGameTest` (quai de pierre, levier, déployée puis repliée).
 
@@ -209,9 +279,10 @@ jeu par `RoyalLionShipGameTest` (quai de pierre, levier, déployée puis replié
   3,6 sous la flottaison) ; `/ship spawn royal_lion_ship` à votre position.
 * **Monter à bord** : clic droit sur la coque (dépôt sur le pont principal) ou par la passerelle (levier sur le pont,
   côté tribord) depuis un quai. On marche pendant la navigation sur le pont, les deux gaillards, dans la cabine du
-  capitaine, la salle d'apparat (portes doubles, clic droit), les quartiers de l'équipage et la cale (descentes).
-* **S'asseoir** : clic droit sur un siège (fauteuil du capitaine, banquette de poupe, chaises et trônes de la salle
-  d'apparat, bancs du carré et du pont, tabouret de la cale) ; touche de sneak pour se relever à côté.
+  capitaine, la salle d'apparat (à l'étage du château : deux portes doubles de part et d'autre de l'artimon, clic
+  droit), les quartiers de l'équipage et la cale (descentes).
+* **S'asseoir** : clic droit sur un siège (fauteuil du capitaine, banquette de poupe, fauteuils du coin lecture,
+  chaises et trônes de la salle d'apparat, bancs du carré et du pont, tabouret de la cale) ; touche de sneak pour se relever à côté.
 * **Piloter** : clic droit sur la roue du gaillard d'arrière ; navire très lourd (≈ 17 s pour prendre l'allure normale,
   longue erre, 5,5°/s en virage au plus) ; écume à l'étrave.
 * **Réglages** : bloc `ships.royal_lion_ship` de `config/medievalships.json` (`slowSpeed` 1.4, `normalSpeed` 3.4,
@@ -220,7 +291,7 @@ jeu par `RoyalLionShipGameTest` (quai de pierre, levier, déployée puis replié
 
 ## 8. Fichiers, tests, limites
 
-* Modèle `blockbench/royal_lion_ship.bbmodel` (≈ 6 500 cubes dont ≈ 1 070 de meubles, 2 textures : coque + voiles/flammes, 9 animations),
+* Modèle `blockbench/royal_lion_ship.bbmodel` (≈ 7 300 cubes dont ≈ 1 100 de meubles, 2 textures : coque + voiles/flammes, 10 animations),
   textures `textures/entity/royal_lion_ship.png` et `royal_lion_ship_sails.png`, icône
   `textures/item/royal_lion_ship.png`, grille `interiors/royal_lion_ship.grid`, mobilier
   `interiors/royal_lion_ship_decor.json` (blocs des mods de décoration ; boîtes de remplacement si un mod manque),
@@ -228,11 +299,12 @@ jeu par `RoyalLionShipGameTest` (quai de pierre, levier, déployée puis replié
 * Java : `RoyalLionLayout` (géométrie, sondes, réglages), `RoyalLionShipEntity` ; tests `RoyalLionShipTest` (forme,
   dimensions, pièces, escaliers, portes, sièges, embarquement, coque fermée, pièces meublées, modèle, animations) et
   `RoyalLionShipGameTest` (en jeu, solo et serveur dédié : mise à l'eau, flottaison, vues des références, toutes les
-  pièces, marche sur le pont, portes, pièces meublées photographiées, assis puis relevé sur trois sièges, marche entre
+  pièces, marche sur le pont, les quatre portes, pièces meublées photographiées, assis puis relevé sur trois sièges, marche entre
   les meubles de la cale et de la cabine, passerelle, barre).
-* Comparaisons rendu / référence : `docs/comparaison_royal_lion_ship.png` (phase 3 : les quatre images, chacune à côté
-  du rendu au même cadrage, puis la poupe et la proue) ; `docs/preview_royal_lion_ship.png` (même planche, refaite
-  avec le modèle de la phase 3).
+* Comparaisons rendu / référence : `docs/comparaison_royal_lion_ship.png` (phase 4 : les quatre images, chacune à côté
+  du rendu au même cadrage — 071 à longue focale —, puis le château arrière, le lion de proue, le profil et les lions
+  des voiles) ; `docs/preview_royal_lion_ship.png` (même planche, refaite avec le modèle de la phase 4) ;
+  `docs/interieur_royal_lion_ship.png` (les pièces, refaites avec la cabine et la salle d'apparat agrandies).
 * Limites : les fenêtres de la cabine et de la salle d'apparat sont vues de l'intérieur comme des vitres (on ne voit pas
   la mer au travers : parois de la grille pleines) ; le toit du château n'est pas praticable ; la figure de proue et les écus sont décoratifs ; sans les mods de décoration, les meubles des mods sont
   remplacés par des boîtes.

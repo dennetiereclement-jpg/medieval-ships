@@ -80,7 +80,7 @@ SAIL_REGIONS = {
     "flag_lion":      (304, 368, 96, 64),   # the royal standard at the stern: blue, gold border, gold lion
 }
 SAIL_CELLS = {  # (columns, rows) of cloth blocks drawn in each sail region (cloths about a block wide)
-    "main_course": (22, 11), "fore_course": (20, 10), "main_topsail": (15, 6), "fore_topsail": (14, 6),
+    "main_course": (23, 12), "fore_course": (21, 11), "main_topsail": (15, 6), "fore_topsail": (14, 6),
     "mizzen_course": (14, 6), "jib": (8, 10),
 }
 # sail -> height of the lion (fraction of the sail). P4: the big bold lions of the pictures (about three quarters of

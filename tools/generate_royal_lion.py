@@ -370,18 +370,20 @@ def hull_ornaments(bone, lights):
         for k, z in enumerate(fs.BANNER_Z):
             if side < 0 and abs(z - GANGPLANK_Z) < 2.6:
                 continue       # the gangplank and its stowed pack are here on the starboard side
-            # the banner hangs from a gold rod under the planksheer, down over the blue bands (1.3 x 3.2)
+            # the banner hangs from a gold rod under the planksheer, down over the blue bands and the low wale (1.3 x 3.9,
+            # the long banners of 044)
             top = fs.sheer_y(z) - 0.12
-            hb = 3.1
+            hb = 3.9
             hull_decal(bone, "hull_banner_%s%d" % (sn, k), z, top - hb / 2, side, 1.3, hb, "banner", out=0.2, th=0.04)
             p, u, v, nrm = side_frame(z, top, side)
             ax = np.column_stack([u, v, nrm])
             add_cube(bone, "hull_banner_rod_%s%d" % (sn, k), p + nrm * 0.24, ax, (1.6, 0.12, 0.12), "gold")
             for s in (1, -1):
                 add_cube(bone, "hull_banner_knob_%s%d_%d" % (sn, k, s > 0), p + nrm * 0.24 + u * s * 0.84, ax, (0.18, 0.18, 0.18), "gold")
-            # the lantern under its point, on an iron bracket from the low wale
-            y = WALE_LO - 0.15 + band_lift(z, 0.3)
-            p, u, v, nrm = side_frame(z, y, side)
+            # a lantern beside it (forward), on an iron bracket over the low wale
+            zl = z + 1.25
+            y = WALE_LO + 0.75 + band_lift(zl, 0.3)
+            p, u, v, nrm = side_frame(zl, y, side)
             beam(bone, "lantern_bracket_%s%d" % (sn, k), p + nrm * 0.02, p + nrm * 0.55 + v3(0, 0.12, 0), 0.08, "iron")
             lantern(lights, "lantern_hull_%s%d" % (sn, k), p + nrm * 0.55 + v3(0, 0.1, 0), drop=0.2, s=1.1)
 
@@ -667,6 +669,11 @@ def roundhouse(bone, lights):
         beam(bone, "roof_cresting_%d" % k, a + v3(0, 0.07, 0), b + v3(0, 0.07, 0), 0.2, "roof_ridge", width=0.12, extend=0.06)
     # a low gold balustrade round the flat top (the railed top of 044 and 071)
     gold_rail(bone, "roof_rail", ring + [ring[0]], 0.45, posts_every=0.45, big_every=5)
+    # lanterns on tall gold posts at the corners of the flat top (the castle top of 071)
+    for k, c_ in enumerate(ring):
+        p0 = c_ + v3(-np.sign(c_[0]) * 0.1, 0.1, 0.1 if c_[2] < (TZ + RF) / 2 else -0.1)
+        add_cube(bone, "roof_lantern_post_%d" % k, p0 + v3(0, 0.55, 0), EYE, (0.14, 1.1, 0.14), "gold")
+        lantern(lights, "lantern_roof_%d" % k, p0 + v3(0, 1.12, 0), hang=False, s=1.0)
     # gold finials at the four corners (the spires of the references)
     for k, (x, zc) in enumerate(((wx(TZ), TZ), (-wx(TZ), TZ), (wx(RF), RF), (-wx(RF), RF))):
         p = v3(np.sign(x) * (abs(x) - 0.1), RH1 + 0.1, zc + (0.1 if zc == TZ else -0.1))
@@ -889,14 +896,14 @@ MASTS = {
 }
 MAST_FOOT = {"fore": L - 0.4, "main": L - 0.4, "mizzen": Q}
 # square sails: mast, name, yard y, foot y, half width at the head, at the foot, belly, texture region
-# P4: the big courses of the pictures (main 11 high, 23.4 wide at the foot; the fore course over the forecastle), the
+# P4: the big courses of the pictures (main 11.7 high, 24 wide at the foot; the fore course over the forecastle), the
 # topsails up to 2.7 under the trucks (short poles over them, as on 071)
 SQUARE_SAILS = [
-    ("fore", "fore_course", 19.6, 9.4, 9.9, 10.9, 2.7, "fore_course"),
+    ("fore", "fore_course", 19.8, 9.2, 10.1, 11.1, 2.8, "fore_course"),
     ("fore", "fore_topsail", 26.8, 20.8, 6.9, 8.0, 1.8, "fore_topsail"),
-    ("main", "main_course", 20.0, 9.0, 10.6, 11.7, 3.0, "main_course"),
+    ("main", "main_course", 20.2, 8.5, 10.9, 12.0, 3.1, "main_course"),
     ("main", "main_topsail", 27.8, 21.4, 7.3, 8.4, 1.9, "main_topsail"),
-    ("mizzen", "mizzen_course", 20.2, 14.2, 7.0, 7.9, 1.8, "mizzen_course"),
+    ("mizzen", "mizzen_course", 20.4, 14.0, 7.2, 8.1, 1.8, "mizzen_course"),
 ]
 
 
