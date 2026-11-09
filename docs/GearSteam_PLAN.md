@@ -89,7 +89,7 @@ plancher (vérifié par `GearSteamShipTest`).
 
 ## 5. Matériaux, parties mobiles, contraintes
 
-* **Matériaux** (atlas 512 px + atlas des voiles 512 px) : tôles de fer noires rivetées « un bloc = une plaque » (trois
+* **Matériaux** (atlas 1024 px + atlas des voiles 1024 px, 32 px par bloc depuis la 1.27.1, § 13) : tôles de fer noires rivetées « un bloc = une plaque » (trois
   teintes, rouille par endroits), bandes de cuivre rivetées, laiton poli couleur bronze orangé (phase 4, comme l'image),
   poutre sombre boulonnée au toit des machines, tuyaux de cuivre, dôme de cuivre riveté (un peu de vert-de-gris) sur un
   tambour de cuivre brun sombre, cheminée noire à rivets, fenêtres carrées orange en
@@ -141,8 +141,8 @@ n'est pas dessinée (sous l'eau, invisible sur l'image, seul le remous la suggè
 
 ## 9. Fichiers et tests
 
-* Modèle `blockbench/gear_steamship.bbmodel` et `models/entity/gear_steamship.bbmodel` (≈ 6 200 cubes, 2 textures,
-  9 animations), textures `textures/entity/gear_steamship.png` et `gear_steamship_sails.png`, icône
+* Modèle `blockbench/gear_steamship.bbmodel` et `models/entity/gear_steamship.bbmodel` (≈ 6 200 cubes, 2 textures
+  1024 × 1024, 9 animations), textures `textures/entity/gear_steamship.png` et `gear_steamship_sails.png`, icône
   `textures/item/gear_steamship.png`, grille `interiors/gear_steamship.grid`, mobilier `interiors/gear_steamship_decor.json`,
   passerelle `gangplanks/gear_steamship.json` + `models/entity/gangplank_gear_steamship.bbmodel` (style acier, 2,4 × 8 ;
   peau de camouflage = case du bateau à vapeur, mêmes couleurs ; l'atlas commun n'est pas modifié), référence
@@ -283,3 +283,52 @@ Restent (classés) :
 * La troisième fenêtre de chaque bord du rouf éclaire le coffrage de la cheminée et ne se voit pas de l'intérieur.
 * Le dôme de l'image est un peu plus haut et plus étroit, à bandeaux de laiton plus épais.
 
+## 13. Visuel, version 1.27.1 (lumière peinte dans les textures)
+
+Constat sur les captures en jeu de la 1.27.0 : Minecraft éclaire les entités à plat (une face n'est que plus ou moins
+sombre selon son orientation, environ × 0,5 à × 0,75 sur les flancs), si bien que les grandes surfaces d'une seule teinte
+paraissaient plates : tôles d'un gris neutre lu bleuté à côté du cuivre, joints presque invisibles, cuivre et laiton
+plats, fenêtres beige pâle. La lumière et l'usure sont donc **peintes dans les textures**, sans coût en jeu.
+
+* **Résolution** : les deux atlas passent à 1024 × 1024, **32 px par bloc** (`gear_steam_texture.K = 2`). Les régions
+  restent écrites en unités de l'ancien atlas (`LAYOUT`) et sont doublées (`REGIONS`) ; le générateur double la densité UV
+  des faces qui prennent la région à leur taille (`_face_uv_hd`), les faces étirées ou à sous-rectangle ne changent pas.
+  L'ancienne peinture (pièces, mobilier, petites pièces) est gardée, agrandie ; les régions extérieures sont repeintes
+  par-dessus (`_paint_hd`).
+* **Tôles** (`_plates_hd`) : noir chaud brun (plus de gris bleuté), un ton par plaque, certaines plus brunes, marbrure
+  douce, chaque plaque un peu plus claire en haut, **biseau éclairé** en haut et à gauche, **biseau ombré** en bas et à
+  droite, joint sombre, quatre rivets ronds éclairés en haut à gauche avec leur petite ombre, quelques rayures et
+  coulures de rouille. Les régions de tôles font maintenant 8 × 4 plaques (au lieu de 4 × 2) avant de se répéter ; les
+  tôles du fond sont plus sombres (assombrissement vers la quille).
+* **Bandes** (`_band_hd`) : cuivre, laiton, poutre sombre et fer arrondis (bord haut éclairé, reflet, bord bas ombré),
+  joint biseauté à chaque bloc, gros rivets de laiton en relief, un peu de vert-de-gris sur le cuivre.
+* **Laiton poli** (`_polished_hd`) plus orangé, reflets larges ; **engrenages** : chaque pièce (jante, dents, rayons)
+  montre une barre de laiton biseautée entière (`gear_bevel`), la roue se lit en relief.
+* **Fenêtres** : verre orange profond (cœur chaud, bords saturés : le jeu assombrit aussi les faces lumineuses selon leur
+  orientation, un orange pâle y devenait beige), croisillon de bronze, cadre de laiton biseauté à rivets ; appuis et
+  linteaux plus profonds (relief).
+* **Tuyaux** cylindriques (reflet au tiers haut, dessous sombre, bague à chaque bloc) ; **cheminée** en tôles noires à
+  colonnes de rivets ; **lanternes** et feux plus saturés ; bois (planches, mâts, garde-corps, caisse) à veinage, joints,
+  clous et biseaux.
+* **Dôme** : chaque plaque de la calotte montre un fuseau de cuivre entier (`dome_gore` : reflet vertical, rivets de
+  laiton le long des coutures, vert-de-gris), les fuseaux s'alignent de rang en rang comme sur l'image. Proportion : le
+  tambour s'arrête 0,2 plus bas (y 12,2) et la calotte est plus haute (2,2 au lieu de 1,76) et plus ronde (superellipse,
+  épaule plus pleine), sommet inchangé ; bandeau de laiton épais (0,72 de haut, 0,24 d'épaisseur) au pied de la calotte et
+  une couronne de laiton sous la vigie. Le tambour est 0,08 plus étroit que la calotte (le bandeau couvre le ressaut).
+* **Voiles** (`_black_sail_hd`, 40 px par laize) : noir brun, armure fine, couture de laize au milieu de chaque laize
+  (points), deux bandes de ris piquées avec garcettes, ralingue torsadée sur le pourtour, plis doux verticaux et plis en
+  diagonale depuis les points d'écoute, dégradé du haut vers le bas ; liseré doré à reflet et ombre, piqûres ; engrenage
+  cerné de sombre, biseauté (haut-gauche clair, bas-droite sombre) et dégradé.
+* **Vérifié en jeu** (captures CI, variante décor, premier envoi) : les tôles se lisent en blocs biseautés d'un noir
+  chaud, les bandes rivetées et les engrenages en relief, le dôme à fuseaux. Mais le jeu n'utilise pas de mipmaps pour
+  les entités : à distance normale, un joint d'1 px sur 32 et les petits rivets clairs scintillaient en mouchetis, le
+  croisillon fin des fenêtres disparaissait et le liseré sombre de l'engrenage des voiles, peint à l'intérieur de l'or,
+  rongeait les rayons. Corrigé : joints de 2 px, biseaux plus larges, rivets des tôles plus doux, plus de rayures ;
+  croisillon plus épais et verre plus clair ; engrenage plus épais, liseré sombre posé sur la toile autour de l'or.
+* Coût : 6 199 cubes (+16 : la couronne du dôme), aucune entité, rien par tick ; textures 1024 (≈ 0,4 Mo et 0,25 Mo).
+* `docs/comparaison_gear_steamship.png` : référence | en jeu avant ; en jeu après (premier envoi) | rendu final à la caméra
+  de la référence ; flanc de près en jeu avant | après ; rendus avant | après du milieu et du dôme.
+
+Restent : la lumière dorée du coucher de soleil de l'image (rendu IA) ; les gradins de l'avant restent discrets ; la
+cheminée de l'image a des tôles plus brunes ; le relief réel des blocs de l'image (chaque bloc légèrement en saillie)
+n'est imité que par les biseaux peints.
