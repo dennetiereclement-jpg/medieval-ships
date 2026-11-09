@@ -36,6 +36,8 @@
   "entity.medievalships.rowboat": "Petite barque",
   "item.medievalships.trade_sloop": "Petit voilier de commerce",
   "entity.medievalships.trade_sloop": "Petit voilier de commerce",
+  "item.medievalships.fortress_ship": "Navire forteresse",
+  "entity.medievalships.fortress_ship": "Navire forteresse",
   "itemGroup.medievalships.tents": "Tentes",
   "block.medievalships.tent_command": "Grande tente de commandement",
   "block.medievalships.tent_adventurer": "Petite tente d'aventurier",

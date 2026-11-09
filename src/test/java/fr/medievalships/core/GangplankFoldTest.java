@@ -45,7 +45,9 @@ class GangplankFoldTest {
 			Map.entry("crystal_airship", new double[] {3.644, 1.531, 1.708}),
 			Map.entry("sky_leviathan", new double[] {3.144, 1.531, 1.708}),
 			Map.entry("dragon_junk", new double[] {3.144, 1.531, 1.708}),
-			Map.entry("steampunk_airship", new double[] {3.144, 1.656, 1.272}));
+			Map.entry("steampunk_airship", new double[] {3.144, 1.656, 1.272}),
+			// 1.27.0: the city ships never had the accordion pack; the size it would have had (plank width + 0.144, a 1.6 segment)
+			Map.entry("fortress_ship", new double[] {3.144, 1.6, 2.4}));
 
 	static List<String> equipped() {
 		List<String> ids = new ArrayList<>(GangplankSpecsTest.SHIPS);

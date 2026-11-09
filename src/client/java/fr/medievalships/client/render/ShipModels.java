@@ -121,9 +121,13 @@ public final class ShipModels {
 	/** The Royal Lion Ship: its sails (with their gold lions) and its pennants are a texture of their own; foam at the bow. */
 	public static final Visual ROYAL_LION_SHIP = new Visual(Ships.ROYAL_LION_SHIP, model("royal_lion_ship"),
 			List.of(texture("royal_lion_ship"), texture("royal_lion_ship_sails")), 0.4f, 34, 36, true);
+	/** The Fortress Ship: its sails (with their castle towers) are a texture of their own; heavy, it rocks little; foam at the bow. */
+	public static final Visual FORTRESS_SHIP = new Visual(Ships.FORTRESS_SHIP, model("fortress_ship"),
+			List.of(texture("fortress_ship"), texture("fortress_ship_sails")), 0.35f, 34, 36, true);
 	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT,
 			STEAMPUNK_AIRSHIP, NAUTILUS, OLD_CORSAIR, SKY_LEVIATHAN, CRYSTAL_AIRSHIP,
-			RUSTIC_SKIFF, DRAGON_JUNK, HOT_AIR_BALLOON, BLUE_FRIGATE, ROWBOAT, TRADE_SLOOP, ROYAL_LION_SHIP);
+			RUSTIC_SKIFF, DRAGON_JUNK, HOT_AIR_BALLOON, BLUE_FRIGATE, ROWBOAT, TRADE_SLOOP, ROYAL_LION_SHIP,
+			FORTRESS_SHIP);
 
 	@Nullable
 	public static Visual of(ShipType type) {
