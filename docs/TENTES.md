@@ -516,7 +516,7 @@ et les objets du joaillier (`bust`, `ring_tray`, `gem_tray`, `coffer`, `vitrine_
 
 ## Camp militaire (1.25.0)
 
-Trois nouvelles tentes dans l'onglet **Tentes** (liste `TentTypes.CAMP_TENTS`, ajoutée à la fin de `ALL`), des modèles
+Trois nouvelles tentes dans l'onglet **Tentes** (liste `TentTypes.CAMP_TENTS`, ajoutée à `ALL` après la tente du joaillier ; les tentes de marché de la 1.26.0 viennent ensuite), des modèles
 **nouveaux**, différents de la « grande tente de commandement » (`tent_command`) et du « grand abri de marché »
 (`tent_market`) qui restent inchangés. Même système que les autres tentes : un objet, un bloc d'ancrage, un modèle
 statique, tournée vers le joueur qui la pose, persistante, retirée en cassant le bloc (rend l'objet) ou par commande.
