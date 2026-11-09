@@ -66,7 +66,7 @@ gn.SIZE = gt.SIZE
 v3, norm, Bone, add_cube, beam, board = gg.v3, gg.norm, gg.Bone, gg.add_cube, gg.beam, gg.board
 ry = gg.ry
 round_bar, disc, turned, polyline = gn.round_bar, gn.disc, gn.turned, gn.polyline
-lantern, patch_sail, ladder = gc.lantern, gc.patch_sail, gc.ladder
+lantern, patch_sail = gc.lantern, gc.patch_sail
 EYE = np.eye(3)
 SIDES = ((1, "p"), (-1, "s"))
 DECK_AXES = np.column_stack([v3(0, 0, 1), v3(0, 1, 0), v3(-1, 0, 0)])
@@ -181,8 +181,7 @@ def hull(bone):
             if zb - za < 0.01:
                 continue
             zm = (za + zb) / 2
-            A, regs = hull_rows(za + 0.002 if abs(za - zm) > 0.004 else za)
-            B, _ = hull_rows(zb - 0.002 if abs(zb - zm) > 0.004 else zb)
+            # at a step of the hull's top (the pair of stations around it) each board takes the top of its own side
             A, regs = hull_rows(za if gs.top_y(za) == gs.top_y(zm) else za + 0.002)
             B, _ = hull_rows(zb if gs.top_y(zb) == gs.top_y(zm) else zb - 0.002)
             for k in range(len(A) - 1):
@@ -323,7 +322,7 @@ def railing(bone, name, path, h, every=1.0, post="wood_dark", rail="rail", gaps=
             k += 1
 
 
-def gear(bone, name, c, axis, r, th, teeth=12, spokes=8, region="brass", parent_bone=True):
+def gear(bone, name, c, axis, r, th, teeth=12, spokes=8, region="brass"):
     """A brass gear wheel in its own bone "gear_<name>" (origin at its centre, local x along its axle): a rim,
     square teeth, spokes, a hub. The engine animation turns it about its axle."""
     axis = norm(v3(*axis))
