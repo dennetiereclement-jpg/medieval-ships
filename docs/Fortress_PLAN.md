@@ -27,11 +27,11 @@ au couronnement du château).
 | Bordé (relevé avec la caméra recalée de la phase 3) | lisse de pierre 730–755, bande sombre cloutée 755–785, panneaux rouges 785–850, préceinte de pierre 850–872, bois sombre jusqu'à la quille (970), nervures descendant en gradins dessous | bandeau de pierre clouté (4,5–5,3) et sa lisse, bande sombre cloutée (3,55–4,5), panneaux rouges entre les nervures (1,45–3,55), préceinte de pierre juste dessous (0,75–1,45), bois sombre dessous avec les contreforts de pierre des nervures en gradins ; bordé sombre sans panneaux rouges sous le gaillard d'avant |
 | Nervures de pierre | colonnes verticales tous les ≈ 180 px, flanquées de plaques de fer cloutées | 8 nervures par bord (z −19 … 15, tous les ≈ 5 blocs), plaques de fer de chaque côté |
 | Château arrière | parapet crénelé y 500–540 (x 1180–1460), étage bas à fenêtres éclairées y 650–720, tourelle x 1230–1400 y 380–500, toit rouge pyramidal 300–400, épi + lanterne y 260–330 | dunette 8,0 sur la cabine du capitaine (4,5), donjon jusqu'au toit-terrasse 11,0 (parapet 12,0 + merlons), tourelle 11,0–14,5, toit rouge bas en gradins jusqu'à 17,0 (relevé : avant-toit 15,2, faîte 16,9), épi et lanterne jusqu'à ≈ 19,4 |
-| Mâts | misaine x ≈ 500, grand mât x ≈ 800, artimon x ≈ 1140 ; pommes y ≈ 150 / 95 / 95 | misaine z = 8 (sur le gaillard), grand mât z = −1, artimon z = −11,5 (sur la dunette, devant le donjon) ; têtes 24 / 27,5 / 24,5 ; hunes 17,3 / 20,3 / 20,4 (sous les huniers, au-dessus des basses voiles) |
-| Voiles (caméra recalée) | misaine : basse voile (vergue 16,9 → bordure 9,9) + petit hunier (18,0–20,5) ; grand mât : grande basse voile à la tour (20,3 → 9,3) + petit hunier (20,8–24,1) ; artimon : une voile (19,3 → 13,0) ; la tour de la grande voile réduite aux 3/4 de sa largeur (vergues brassées ≈ 45°) | basses voiles rouges à larges chutes blanches, têtière rouge aux coins blancs ; tour crénelée beige à porte sur la grande basse voile seulement (comme sur les trois images) ; petits huniers encadrés de blanc ; voile d'artimon rayée ; bas des voiles en escalier, usé |
-| Foc | petit triangle blanc à bande rouge devant la misaine, amure au-dessus de l'étrave (≈ z 18, y 10,3) | un foc (trinquette) blanc à bande rouge sur l'étai de misaine, amure au-dessus de l'étrave, point d'écoute au-dessus du gaillard |
+| Mâts | misaine x ≈ 500, grand mât x ≈ 800, artimon x ≈ 1140 ; pommes y ≈ 150 / 95 / 95 | misaine z = 8 (sur le gaillard), grand mât z = −1, artimon z = −11,5 (sur la dunette, devant le donjon) ; têtes 24 / 27,5 / 24,5 ; hunes 18,1 / 21,1 / 20,9 (phase 4 : relevées, les vergues des basses voiles juste dessous) |
+| Voiles (caméra recalée, superposition phase 4) | misaine : basse voile (vergue 17,65 → bordure 9,6) + petit hunier (19,0–21,4) ; grand mât : grande basse voile à la tour (20,65 → 9,0) + petit hunier (22,0–24,95) ; artimon : une voile (20,4 → 13,0) ; la tour de la grande voile réduite aux 3/4 de sa largeur (vergues brassées ≈ 45°) | basses voiles rouge cramoisi à larges chutes blanc-gris (≈ 1/7 de la largeur chacune), têtière rouge aux coins blancs ; grande tour crénelée beige à porte, centrée (≈ 1/3 de la largeur), sur la grande basse voile seulement (comme sur les trois images) ; petits huniers encadrés de blanc ; voile d'artimon rayée ; bas des voiles en escalier, usé |
+| Foc | petit triangle blanc à bande rouge devant la misaine, amure au-dessus de l'étrave (≈ z 18, y 10,3) | un petit foc (trinquette, ≈ 60 % de celui de la phase 3) blanc à bande rouge sur l'étai de misaine, amure au-dessus de l'étrave, point d'écoute au-dessus du gaillard |
 | Flammes | rouges, longues, à queue d'aronde en escalier, en tête de chaque mât | trois flammes rouges (4,0 / 5,2 / 4,4 de long) |
-| Hunes | caisses grises crénelées | hunes carrées à parapet de pierre et merlons |
+| Hunes | caisses grises crénelées (112), hunes rondes en bois crénelées (149) | hunes rondes en bois (12 douelles, cercle de fer) à créneaux de bois (phase 4, comme 149) |
 | Bannières | rouges à tour blanche, pied en pointe : flanc du gaillard (2,5 × 5 blocs), flanc et coin arrière du château | bannières sur les flancs du gaillard, du château, au coin arrière du donjon, au tableau, au beaupré (149) |
 | Détails 151 / 149 | grue à flèche horizontale et caisse suspendue près de l'artimon ; taud blanc ; écu à tour sur l'avant (149) ; bannière au beaupré (149) | grue sur l'artimon (flèche au-dessus du passavant, caisse balancée), taud sur la dunette tribord, écus à tour sur les deux joues de l'avant |
 
@@ -49,7 +49,10 @@ dont on garde la grue, le taud et les créneaux de pierre du passavant.
 * Coque 43 × 13 blocs (48,5 avec le beaupré) ; quille −3,0, lisse du passavant 5,5, bec de proue 10,1 ; hauteur de la
   quille à la pomme du grand mât 30,5.
 * Coque massive et ronde (fond en V adouci, rentrée des hauts de 0,45), étrave très inclinée (0,42 bloc par bloc de
-  hauteur), arrière large à tableau (9 blocs) ; murs du château et pavois verticaux au-dessus de la lisse.
+  hauteur) ; à l'arrière (phase 4, comme 112) la coque rentre sous le château : voûte inclinée en gradins depuis le
+  dessous du plancher de la cabine (y 4,0, z −19,15) jusqu'à la quille (y −1,6, z −16,55), l'étage de la cabine sur la
+  ligne du tableau (z −19,5, 9 blocs de large) et le donjon en encorbellement d'un bloc (z −20,5) sur une rangée de
+  consoles ; murs du château et pavois verticaux au-dessus de la lisse.
 * Beaupré de (0, 8,4, 19,5) à (0, 11,6, 28,0) ; vergues brassées de 45° (côté bâbord vers l'arrière) : les voiles
   montrent leur face sur les vues de flanc comme sur les images (la tour de la grande voile y paraît aux 3/4 de sa largeur).
 
@@ -57,8 +60,8 @@ dont on garde la grue, le taud et les créneaux de pierre du passavant.
 
 | Niveau | y | Contenu |
 |---|---|---|
-| Tourelle | 11,0 | sur le toit du donjon (z −19 … −15), porte vers l'avant, fenêtres éclairées ; poste de vigie (table, longue-vue, coffre à pavillons) |
-| Toit du donjon | 11,0 | terrasse crénelée autour de la tourelle ; trappe de l'escalier du donjon (bâbord) ; râtelier de lances, tonneau de flèches, brasero |
+| Tourelle | 11,0 | sur le toit du donjon (z −18,5 … −14,5, centre −16,5 comme sur 112), porte vers l'avant, grandes fenêtres éclairées ; poste de vigie (table, longue-vue, coffre à pavillons) |
+| Toit du donjon | 11,0 | terrasse crénelée autour de la tourelle, prolongée sur l'encorbellement (z −20 … −13,5) ; trappe de l'escalier du donjon (bâbord) ; râtelier de lances, tonneau de flèches (derrière la tourelle), brasero |
 | Dunette | 8,0 | devant le donjon (z −13 … −9) : barre (roue z −9,7, pilote debout z −10,5), artimon (z −11,5), grue, taud ; porte du donjon ; parapet crénelé |
 | Salle du conseil (donjon) | 8,0 | z −19 … −13,5, hauteur 2,5 ; table de guerre et ses sept chaises, bibliothèque, armure ; escalier intérieur (bâbord, 6 marches) vers le toit |
 | Gaillard d'avant | 7,0 | z 6 … 19 ; misaine, cloche, balustrade de bois, deux escaliers depuis le passavant |
@@ -128,15 +131,20 @@ porter les armes de Havre-Fort (la tour blanche sur fond rouge). Planche des pi�
 
 ## 5. Matériaux, parties mobiles, contraintes
 
-* **Matériaux** : bordé de bois brun sombre ; pierre grise un peu chaude en blocs biseautés (16 px par bloc, arête haute
-  claire, bas et côté droit dans l'ombre, joints profonds, clous de fer) pour
-  la préceinte basse, le bandeau sous la lisse, les nervures, la lisse et ses merlons, les parapets, le bec et les
-  hunes ; panneaux rouges (planches rouges) entre les nervures, plaques de fer cloutées ; château : étage bas en bois
-  sombre à fenêtres éclairées entre pilastres de pierre, parapet de pierre courant sur tout le flanc, donjon à
-  panneaux rouges et parapet crénelé en encorbellement sur consoles ; tourelle en planches sombres à poteaux, base de
-  pierre, toit de tuiles rouges en gradins sur bandeau de pierre ; voiles rouges en blocs de laine (bords blancs,
-  bandes blanches, tour beige), foc blanc à bande rouge ; échelles de corde en chanvre doré ; bannières rouges à tour,
-  écus rouges à tour et bord d'or.
+* **Matériaux** (refaits en phase 4 d'après 112) : la coque se lit en **bois sombre** (bordé brun foncé, joints plus
+  sombres) ; la **pierre grise** (plus sombre et plus variée, chaque bloc biseauté avec un joint sombre, posée un bloc
+  par face de cube pour que les joints suivent les arêtes) n'est qu'en bandes étroites et en nervures : une assise sous
+  la lisse (0,65 + la lisse), la préceinte sous les panneaux rouges, les nervures (0,9 de large, une **plaque de fer
+  noire à gros clous** sur leur face) et leurs contreforts en gradins, les quoins et cordons du château, les parapets et
+  merlons ; **panneaux rouges** = planches rouges en carreaux d'un bloc à joints sombres, **encadrés** de chaque côté
+  par un montant de bois sombre à clous de fer et dessus par la bande sombre cloutée ; sous le gaillard d'avant, bordé
+  sombre clouté, planches rouges contre l'étrave ; château : étage de la cabine en planches sombres avec fenêtres en
+  arc éclairées (149) entre des quoins de pierre, cordon de pierre, parapet de dunette en bois sombre à chaperon de
+  pierre, merlons et lisse de bois ; donjon en planches sombres à panneaux rouges encadrés et fenêtres en arc,
+  parapet de pierre sur consoles, merlons hauts avec lisse de bois ; tourelle en planches sombres à poteaux, toit de
+  tuiles rouges en gradins sur bandeau de pierre ; voiles rouge cramoisi en blocs de laine (chutes blanc-gris, tour
+  beige), foc blanc à bande rouge ; échelles de corde en chanvre doré ; bannières rouges à tour, grands écus rouges à
+  tour et bord d'or sur l'avant.
 * **Parties mobiles** (os du modèle) : voiles (`sail_*` : `sail_wind`, `sail_furl`), roue et safran (`steer`), flammes
   (`flag_*`, `flag_wave`), lanternes, bannières et caisse de la grue (`lantern_*` / `banner_*`, `lantern_sway`),
   cordages lâches (`rope_sway`), portes (`door_0` … `door_4`).
@@ -154,9 +162,10 @@ Système existant (`docs/PASSERELLES.md`, `core/Gangplank.java`) : spec `gangpla
 `gangplank_fortress_ship.bbmodel` écrits par `tools/fortress_gangplank.py` (ajoute la spec à `ships_g2.py` à l'exécution,
 sans le modifier). Tribord, au milieu du passavant (z 1,6, 3 blocs de large, 9 de long, style bois sombre), charnière
 en haut du pavois (6,0) sur la face extérieure, escalier du pont (4,5) à la charnière, levier sur le pont à l'arrière ;
-aucun merlon ni lisse dessiné au-dessus de la planche. Paquet rangé posé à plat sur le bandeau de pierre
-(`stow_drop` 0,75, `stow_offset` 0,44, `stow_tilt` 8, mesurés par `fortress_gangplank.py compact`), peau grise de pierre
-et liseré de fer (case `fortress_ship` de l'atlas `gangplank.png`, ajoutée dans `gangplanklib.py` à une place fixe, 13).
+aucun merlon ni lisse dessiné au-dessus de la planche. Paquet rangé posé à plat sur l'assise de pierre
+sous la lisse (`stow_drop` 0,6, `stow_offset` 0,39, `stow_tilt` 4, mesurés par `fortress_gangplank.py compact` après
+l'amincissement de l'assise en phase 4), peau de pierre grise (assombrie en phase 4) et liseré de fer (case
+`fortress_ship` de l'atlas `gangplank.png`, ajoutée dans `gangplanklib.py` à une place fixe, 13).
 
 ## 7. Guide du joueur
 
@@ -220,3 +229,39 @@ Restent (par ordre de visibilité) : le tableau arrière vertical (112 montre un
 encorbellement) ; la coque et le château encore un peu plus clairs que sur 112, dont l'éclairage creuse les joints et les
 dessous ; la tourelle un peu plus en arrière (z −17 au lieu de ≈ −16) ; le château massif à trois étages et les voiles
 sombres déchirées de 151, les fenêtres en arc de 149 ; sur 151 / 149 les voiles sont plus hautes que sur 112 (variantes).
+
+## 10. Passe de structure (phase 4)
+
+Planche : [comparaison_fortress_ship.png](comparaison_fortress_ship.png) (référence | modèle vu de la même caméra pour 112,
+151 et 149 ; puis phase 3 / phase 4 depuis la caméra de 112 et depuis la poupe). Caméras : celle de 112 recalée en phase 3 ;
+151 et 149 recadrées à l'œil (variantes). Chaque itération mesurée aussi par la part de pixels gris / rouges / bois
+sombre sur la coque (112 : 23 % de gris ; phase 3 : 60 % ; phase 4 : 47 %, le reste de l'écart venant surtout de
+l'éclairage chaud et des ombres de l'image).
+
+Changé :
+* **Matériaux et couleurs** (voir § 5) : coque en bois sombre, pierre en bandes étroites, plus sombre et en blocs réguliers
+  à joints sombres, nervures à plaque de fer, panneaux rouges en planches encadrées de montants cloutés (plus de
+  « rideaux »), château en bois sombre (la pierre en quoins, cordons, parapets et merlons), voiles cramoisi.
+* **Poupe** : la coque rentre sous le château en voûte à gradins (quoins de pierre en escalier aux angles), consoles
+  sous le plancher de la cabine, l'étage de la cabine sur le tableau avec trois fenêtres en arc, le **donjon en
+  encorbellement** d'un bloc (z −20,5) sur une table de consoles, deux fenêtres en arc, la grande bannière, parapet sur
+  consoles ; le safran pend à la voûte. La grille suit : le toit du donjon (et ses créneaux) s'étend sur
+  l'encorbellement (`fortress_interior.py` : origine z −21,5, ligne de poupe `fortress_shape.stern_z`), rien n'existe
+  derrière l'étage de la cabine, la voûte est hors de l'eau du bord (l'eau y est dessinée). `FortressLayout` :
+  `KNUCKLE_Y`, `KEEP_OVERHANG_Y`, `KEEP_STERN_Z`, sondes de poupe (safran z −19,3, donjon z −21,3).
+* **Tourelle** avancée d'un demi-bloc (z −18,5 … −14,5, centre −16,5), grandes fenêtres éclairées ; son mobilier suit,
+  le tonneau de flèches passe derrière elle ; un bloc libre devant sa porte (le test en jeu s'y tient à z −13,95).
+* **Voilure** : vergues des basses voiles relevées d'un bloc sous des hunes relevées, basses voiles plus hautes (grande
+  voile 20,65 → 9,0), chutes blanc-gris plus larges (≈ 1/7 chacune), grande tour centrée (≈ 1/3 de la largeur), foc
+  réduit (≈ 60 %).
+* **Fenêtres en arc éclairées** (149) sur le château (flancs, poupe, cloisons avant), leur intérieur dessiné sur les murs
+  des pièces ; **hunes rondes en bois crénelées** (149).
+* Avant : bordé clouté sous le gaillard, planches rouges contre l'étrave, grands écus à tour ; bannière du gaillard
+  reculée comme sur 112.
+* Gardés : grue et caisse suspendue, bannières, merlons du passavant (151 / 149), lanternes.
+
+Restent (par ordre de visibilité) : le château massif à trois étages et les voiles sombres déchirées de 151 ; l'éclairage
+chaud et les ombres profondes des images (la pierre y paraît plus contrastée) ; les voiles de 149 vues de face depuis
+tribord (brassées dans l'autre sens) et plus hautes ; le passavant de 112 à balustrade de bois (merlons de 151 / 149
+gardés) ; les fenêtres du donjon sombres sur 112 (éclairées ici, comme 149) ; les contreforts sous les nervures en
+blocs séparés sur le bouchain (continus sur 112).

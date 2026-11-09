@@ -28,7 +28,7 @@ HINGE_Y = 6.0               # FortressLayout.WAIST_WALL
 HINGE_X = round(fs.hull_x(Z, fs.WAIST_TOP), 2)             # the hull's outer face (the bulwark rises straight from the sheer)
 INNER_X = round(HINGE_X - 0.6, 2)                           # the bulwark's inner face (interior grid)
 # compact stowed pack (1.23.2): segments, stow_drop, stow_offset, stow_tilt (from `compact`, rounded up to 0.01)
-COMPACT = (None, 0.75, 0.44, 8)
+COMPACT = (None, 0.6, 0.39, 4)
 
 g2.place(SHIP, "starboard", Z, WIDTH, HINGE_Y, HINGE_X, fs.MAIN_DECK_Y, INNER_X, 9.0, "dark_wood", (-15, 42), rail_gap=False, lever_end=-1)
 _n, _drop, _off, _tilt = COMPACT

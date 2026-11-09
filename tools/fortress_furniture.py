@@ -107,10 +107,15 @@ def wall_shield(bone, name, center, normal, w=0.62, h=0.78, behind="swords"):
                   blade_dir=n)
 
 
-def inner_window(bone, name, c, normal, w, h):
-    """The inside of a castle window (the leaded panes seen from the room), a dark wooden frame, a pale stone sill."""
+def inner_window(bone, name, c, normal, w, h, arch=False):
+    """The inside of a castle window (the leaded panes seen from the room), a dark wooden frame, a pale stone sill;
+    arch: an arched window (its round-topped frame drawn in the texture: only the sill is added)."""
     R, u, n = frame(normal)
     c = v3(*c) + n * 0.012
+    if arch:
+        add_cube(bone, "lit_" + name, c, R, (w, h, 0.01), {"all": None, "+3": "arch_dark"}, stretch=True, u_dir=u, v_dir=v3(0, -1, 0))
+        add_cube(bone, "lit_%s_sill" % name, c - v3(0, h / 2 + 0.04, 0) + n * 0.06, R, (w + 0.24, 0.08, 0.14), "stone_light")
+        return
     add_cube(bone, "lit_" + name, c, R, (w, h, 0.01), {"all": None, "+3": "window_in"}, stretch=True, u_dir=u, v_dir=v3(0, -1, 0))
     fr = 0.08
     for k, s in enumerate((1, -1)):

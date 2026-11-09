@@ -217,10 +217,10 @@ def captain_cabin():
     zw = wall_z(0.0, C + 1.0, -15.0, -1)                    # the stern wall (-19.0)
     zb = wall_z(0.0, C + 1.0, -15.0, 1)                     # the forward bulkhead (-9.5)
     for j, x in enumerate((-2.5, 0.0, 2.5)):
-        custom("inner_window", name="cabin_stern_window_%d" % j, c=(x, 6.3, zw), normal=(0, 0, 1), w=1.0, h=1.25)
+        custom("inner_window", name="cabin_stern_window_%d" % j, c=(x, 6.3, zw), normal=(0, 0, 1), w=1.0, h=1.35, arch=True)
     for side in (1, -1):
-        custom("inner_window", name="cabin_bulkhead_window_%s" % ("p" if side > 0 else "s"), c=(side * 2.4, 6.3, zb), normal=(0, 0, -1),
-               w=0.8, h=0.9)
+        custom("inner_window", name="cabin_bulkhead_window_%s" % ("p" if side > 0 else "s"), c=(side * 2.6, 6.35, zb), normal=(0, 0, -1),
+               w=0.8, h=1.2, arch=True)
     # the desk facing the door, the captain's chair behind it, two guest chairs before it
     zd = -17.3
     block(FD + "desk", 0.0, C, zd, "stern", centre=True)
@@ -276,10 +276,10 @@ def keep_room():
     f = Q
     zw = wall_z(0.0, f + 1.0, -16.0, -1)                    # the stern wall (-19.0)
     zf = wall_z(0.0, f + 1.0, -16.0, 1)                     # the front wall (-13.5)
-    for j, x in enumerate((-2.2, 2.2)):
-        custom("inner_window", name="keep_stern_window_%d" % j, c=(x, f + 1.35, zw), normal=(0, 0, 1), w=0.9, h=1.15)
-    for j, x in enumerate((-2.6, 2.6)):
-        custom("inner_window", name="keep_front_window_%d" % j, c=(x, f + 1.4, zf), normal=(0, 0, -1), w=0.8, h=1.0)
+    for j, x in enumerate((-2.15, 2.15)):
+        custom("inner_window", name="keep_stern_window_%d" % j, c=(x, f + 1.45, zw), normal=(0, 0, 1), w=0.95, h=1.45, arch=True)
+    for j, x in enumerate((-2.75, 2.75)):
+        custom("inner_window", name="keep_front_window_%d" % j, c=(x, f + 1.45, zf), normal=(0, 0, -1), w=0.8, h=1.2, arch=True)
     custom("wall_banner", name="keep_banner", center=(0.0, f + 1.35, zw), normal=(0, 0, 1), w=1.0, h=1.8)
     # the war table: two ends with legs, a middle leaf, along x; the map, the candlesticks, a bottle and goblets
     zt, xt = -16.4, -1.9
@@ -319,18 +319,19 @@ def turret_room():
     xw = fi.ROOMS["turret"][1]                               # the side walls (+-2.0)
     for side in (1, -1):
         for j, z in enumerate((fs.TURRET_Z[0] + 1.1, fs.TURRET_Z[1] - 1.1)):
-            custom("inner_window", name="turret_window_%s%d" % ("p" if side > 0 else "s", j), c=(side * xw, K + 2.0, z), normal=(-side, 0, 0),
-                   w=0.8, h=1.0)
+            custom("inner_window", name="turret_window_%s%d" % ("p" if side > 0 else "s", j), c=(side * xw, K + 1.95, z), normal=(-side, 0, 0),
+                   w=1.0, h=1.3)
     for j, x in enumerate((-1.1, 1.1)):
-        custom("inner_window", name="turret_back_window_%d" % j, c=(x, K + 2.0, zw), normal=(0, 0, 1), w=0.7, h=1.0)
+        custom("inner_window", name="turret_back_window_%d" % j, c=(x, K + 1.95, zw), normal=(0, 0, 1), w=0.9, h=1.3)
     custom("wall_banner", name="turret_banner", center=(0.0, K + 1.85, zw), normal=(0, 0, 1), w=0.6, h=1.2)
-    block(FU + "dark_oak_square_table", -1.45, K, -17.95, "stern")
-    custom("chart_sheet", name="turret_chart", p=(-1.5, K + 1.0, -17.95), yaw=-0.2)
-    block(FD + "kerosene_lantern", -1.7, K + 1.0, -18.2, "stern", solid=False)
-    chair(FU + "spruce_stool", -1.45, K, -16.95, "stern", (-0.45, -16.95))
-    custom("telescope", name="turret_telescope", p=(1.3, K, -17.6), facing="port")
-    custom("flag_chest", solid=(1.1, 1.6, K, K + 0.5, -16.4, -15.7), name="turret_flags", p=(1.35, K, -16.05), yaw=math.pi / 2)
-    lantern(0.0, TURRET_CEIL, -17.0)
+    t = fs.TURRET_Z[0] + 19.0                               # the turret stands half a block further forward than in phase 3
+    block(FU + "dark_oak_square_table", -1.45, K, -17.95 + t, "stern")
+    custom("chart_sheet", name="turret_chart", p=(-1.5, K + 1.0, -17.95 + t), yaw=-0.2)
+    block(FD + "kerosene_lantern", -1.7, K + 1.0, -18.2 + t, "stern", solid=False)
+    chair(FU + "spruce_stool", -1.45, K, -16.95 + t, "stern", (-0.45, -16.95 + t))
+    custom("telescope", name="turret_telescope", p=(1.3, K, -17.6 + t), facing="port")
+    custom("flag_chest", solid=(1.1, 1.6, K, K + 0.5, -16.4 + t, -15.7 + t), name="turret_flags", p=(1.35, K, -16.05 + t), yaw=math.pi / 2)
+    lantern(0.0, TURRET_CEIL, -17.0 + t)
 
 
 def mess():
@@ -550,7 +551,8 @@ def deck():
     xr = bulwark_x(-16.5, K + 0.5, -1)
     custom("weapon_rack", solid=(xr, xr + 0.4, K, K + 1.5, -17.2, -15.8), name="roof_rack", p=(xr, K, -16.5), normal=(1, 0, 0), l=1.4, top=1.3,
            items=("spear", "spear", "halberd", "spear"))
-    custom("arrow_barrel", solid=(-3.55, -2.95, K, K + 0.8, -18.65, -18.05), name="roof_arrows", p=(-3.25, K, -18.35), seed=2)
+    # (the arrows behind the turret, on the terrace over the keep's overhang)
+    custom("arrow_barrel", solid=(-2.3, -1.7, K, K + 0.8, -19.85, -19.25), name="roof_arrows", p=(-2.0, K, -19.55), seed=2)
     custom("brazier", solid=(-4.6, -3.8, K, K + 1.1, -14.6, -13.8), name="roof_brazier", p=(-4.2, K, -14.2))
 
 
@@ -611,8 +613,9 @@ KEEP_CLEAR = {
     "keep door to the stair": (-0.8, 3.9, Q, -15.1, -13.6),
     "keep's stair foot": (fs.KEEP_STAIR_X[0], fs.KEEP_STAIR_X[1], Q, -15.4, -14.2),
     "keep, beside the table (game test)": (-0.2, 0.6, Q, -18.4, -14.0),
-    "turret door and middle": (-0.6, 0.6, K, -17.8, -15.6),
-    "keep's roof, front": (-1.8, 1.8, K, -14.9, -13.7),
+    "turret door and middle": (-0.6, 0.6, K, -17.3, -15.1),
+    "keep's roof, front (before the turret's door)": (-1.8, 1.8, K, -14.2, -13.8),
+    "keep's roof, behind the turret": (-0.8, 2.0, K, -19.7, -18.8),
     "mess door and aisle": (-1.3, 1.3, M, 6.6, 11.9),
     "crew door and aisle": (-1.3, 1.3, L, 6.1, 13.4),
     "hold aisle": (-1.2, 1.2, L, -14.4, 4.9),

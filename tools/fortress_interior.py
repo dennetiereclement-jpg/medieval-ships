@@ -33,7 +33,7 @@ OUT, SOLID, DRY, LADDER, AIRLOCK, WINDOW, FURNITURE, DOOR = 0, 1, 2, 3, 4, 5, 6,
 CELL = fs.CELL
 X0, X1 = -7.0, 7.0
 Y0, Y1 = -3.5, 15.0
-Z0, Z1 = -20.5, 24.0
+Z0, Z1 = -21.5, 24.0       # the keep overhangs the transom to fs.KEEP_STERN_Z (-20.5)
 
 M = fs.MAIN_DECK_Y          # 4.5
 L = fs.LOWER_FLOOR_Y        # 1.0
@@ -90,8 +90,8 @@ class Grid:
         hx = np.zeros(self.k.shape)
         for j, y in enumerate(ys):
             for l, z in enumerate(zs):
-                if TZ < z < fs.FORE_SCALE + 6.0:
-                    hx[:, j, l] = fs.hull_x(z, y)
+                if z < fs.FORE_SCALE + 6.0:
+                    hx[:, j, l] = fs.hull_x(z, y)     # 0 abaft the stern line (the counter, the keep's overhang)
         self.HX = hx
 
     def sel(self, x0, x1, y0, y1, z0, z1):
@@ -175,7 +175,10 @@ def build():
     shell = hull & (np.abs(g.X) > g.HX - 0.6)
     wall_top = np.where(g.Z < KF, KEEP_WALL, np.where(g.Z < CF, QD_WALL, np.where(g.Z > FF, FC_WALL, WAIST_WALL)))
     g.k[shell & (g.Y < wall_top)] = SOLID
-    g.k[hull & (g.Z < TZ + 0.5) & (g.Y < KEEP_WALL)] = SOLID
+    # the stern walls: the transom up to the keep's roof (the cabin's and the officers' room's stern walls; the keep's
+    # overhang abaft them is solid masonry), the keep's stern parapet on its overhang
+    g.k[hull & (g.Z < TZ + 0.5) & (g.Y < K)] = SOLID
+    g.k[hull & (g.Z < fs.KEEP_STERN_Z + 0.5) & (g.Y < KEEP_WALL)] = SOLID
     # the keep's parapet along its front
     g.set(SOLID, -7.0, 7.0, K, KEEP_WALL, KF - 0.5, KF, where=hull)
     # the bow: the bulwarks close round the stem

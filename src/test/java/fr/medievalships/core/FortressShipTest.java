@@ -128,8 +128,9 @@ class FortressShipTest {
 		room("waist (forward)", -2.0, 2.0, M, 0.4, 3.0, false);
 		room("forecastle", -1.6, 1.6, F, 9.2, 13.0, false);
 		room("quarterdeck (port of the mizzen)", 1.2, 2.6, Q, -12.4, -10.0, false);
-		room("keep's roof (before the turret)", -1.5, 1.5, K, -14.6, -13.9, false);
-		room("turret", -0.6, 0.6, K, -17.8, -15.9, true);
+		room("keep's roof (before the turret)", -1.5, 1.5, K, -14.0, -13.9, false);
+		room("keep's roof (behind the turret, over the keep's overhang)", -0.9, 0.9, K, -19.6, -18.9, false);
+		room("turret", -0.6, 0.6, K, -17.3, -15.4, true);
 		room("captain's cabin (door to the desk)", -0.8, 0.8, C, -16.1, -10.0, true);
 		room("captain's cabin (behind the desk)", -0.6, 2.0, C, -18.6, -18.4, true);
 		room("officers' room (beside the war table)", 0.0, 1.8, Q, -18.5, -14.2, true);
@@ -155,6 +156,13 @@ class FortressShipTest {
 		assertFalse(fits(4.8, F, 12.0, CLOSED), "forecastle bulwark");
 		assertFalse(fits(0, K, -13.35, CLOSED), "the keep's front parapet");
 		assertFalse(fits(0, C, -19.2, CLOSED), "transom");
+		assertFalse(fits(0, K, -20.2, CLOSED), "the keep's stern parapet, on its overhang");
+		// the stern: the keep overhangs the transom, the counter tucks in under the cabin's floor
+		assertTrue(GRID.solidAt(0.0, Q + 1.0, FortressLayout.KEEP_STERN_Z + 0.2, CLOSED), "the keep's overhang");
+		assertFalse(GRID.solidAt(0.0, C + 1.0, FortressLayout.TRANSOM_Z - 0.3, CLOSED), "nothing abaft the cabin's storey");
+		assertTrue(GRID.solidAt(0.0, FortressLayout.KNUCKLE_Y - 0.2, FortressLayout.TRANSOM_Z + 0.5, CLOSED), "the counter's top");
+		assertFalse(GRID.solidAt(0.0, 0.0, -18.0, CLOSED) || GRID.dryAt(0.0, 0.0, -18.0, CLOSED), "the counter tucks in at the waterline");
+		assertTrue(GRID.solidAt(0.0, 0.0, -17.0, CLOSED), "the counter at the waterline");
 		// the masts stop the walkers
 		assertFalse(fits(0, F, FortressLayout.FORE_MAST_Z, CLOSED), "fore mast on the forecastle");
 		assertFalse(fits(0, L, FortressLayout.FORE_MAST_Z, CLOSED), "fore mast through the crew quarters");
@@ -277,7 +285,7 @@ class FortressShipTest {
 		assertTrue(d.blocks().stream().filter(InteriorDecor.Block::glow).count() >= 10, "glowing lanterns");
 		assertTrue(blocksIn(-6, 6, C - 0.1, C + 1.5, -19.5, -9.0) >= 15, "the captain's cabin is furnished");
 		assertTrue(blocksIn(-6, 6, Q - 0.1, Q + 1.5, -19.5, -13.0) >= 10, "the council room is furnished");
-		assertTrue(blocksIn(-3, 3, K - 0.1, K + 3.5, -19.0, -15.0) >= 3, "the turret is furnished");
+		assertTrue(blocksIn(-3, 3, K - 0.1, K + 3.5, FortressLayout.TURRET_Z[0], FortressLayout.TURRET_Z[1]) >= 3, "the turret is furnished");
 		assertTrue(blocksIn(-6, 6, M - 0.1, M + 1.5, 6.0, 17.0) >= 20, "the mess and its galley are furnished");
 		assertTrue(blocksIn(-6, 6, L - 0.1, L + 3.0, 6.0, 14.0) >= 4, "the crew quarters are furnished");
 		assertTrue(blocksIn(-6, 6, L - 0.1, L + 1.5, -15.0, 5.5) >= 40, "the hold is full of provisions");

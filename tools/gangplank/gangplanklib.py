@@ -89,7 +89,7 @@ for _i, _s in enumerate(CAMO_SHIPS):
 # 1.27.0 city ships: fixed cells after the twelve above (cell 12 royal_lion_ship, 13 fortress_ship, 14 gear_steamship), whatever
 # order their branches are merged in; each branch adds its own line
 CAMO_SHIPS += ("fortress_ship",)
-CAMO["fortress_ship"] = ("8f8e88", "4a4946", "38393c")   # grey stone belt, mortar, iron
+CAMO["fortress_ship"] = ("7a736b", "2a2622", "38393c")   # grey stone belt (phase 4: the darker stone), mortar, iron
 REGIONS["camo_fortress_ship_skin"], REGIONS["camo_fortress_ship_trim"] = (64, 176, 48, 16), (112, 176, 16, 16)
 
 

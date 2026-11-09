@@ -52,9 +52,19 @@ DECK_MAX_Z = 19.0
 CREW_BULKHEAD_Z = 5.5      # between the cargo hold (aft) and the crew quarters (forward), on the lower deck
 STEM_HEAD_Z = 22.5         # the stone beak at the head of the raked stem
 
+# ---- the stern (main reference): the hull tucks in under the castle, a raked counter stepping in from under the
+# captain's cabin's floor down to the keel; the cabin's storey stands on the transom line (its floor overhangs the
+# counter on corbels) and the keep overhangs the cabin's storey aft on a corbel table, its battlements over it
+KNUCKLE_Y = 4.0            # underside of the cabin's floor: the counter starts below it
+COUNTER_TOP_IN = 0.35      # the counter's top is this much inboard of the transom (the floor overhangs it)
+COUNTER_RAKE, COUNTER_POW = 2.6, 1.15   # how far it tucks in at the keel (y -1.6), and how it curves
+COUNTER_FOOT_Y = -1.6
+KEEP_OVERHANG_Y = QUARTERDECK_Y - SLAB  # the keep's floor (7.5): from here up the castle reaches KEEP_STERN_Z
+KEEP_STERN_Z = -20.5       # the keep's stern wall, a block abaft the transom
+
 # ---- the turret on the keep (x half width, z range) and its roof
 TURRET_HALF = 2.5
-TURRET_Z = (-19.0, -15.0)
+TURRET_Z = (-18.5, -14.5)
 TURRET_WALL_TOP = 14.5
 TURRET_ROOF_TOP = 17.0
 
@@ -167,10 +177,28 @@ def rake(z, y):
     return f * (BOW_RAKE[0] * y if y > 0 else BOW_RAKE[1] * y)
 
 
+def stern_z(y):
+    """Aft end of the ship at height y: the keep (from its floor up) overhangs the transom, the captain's cabin's storey
+    and its floor stand on the transom line, the counter below tucks in towards the keel."""
+    if y >= KEEP_OVERHANG_Y:
+        return KEEP_STERN_Z
+    if y >= KNUCKLE_Y:
+        return TRANSOM_Z
+    t = max(0.0, (KNUCKLE_Y - y) / (KNUCKLE_Y - COUNTER_FOOT_Y))
+    return TRANSOM_Z + COUNTER_TOP_IN + COUNTER_RAKE * t ** COUNTER_POW
+
+
 def hull_x(z, y):
-    """Outer half width of the hull at height y (0 below the keel); above the sheer the bulwarks and the castle's
-    walls rise straight up from it. The bow sections lean forward (raked stem)."""
-    return _hull_x(z - rake(z, y), y)
+    """Outer half width of the hull at height y (0 below the keel and aft of the stern line); above the sheer the
+    bulwarks and the castle's walls rise straight up from it. The bow sections lean forward (raked stem)."""
+    if z < stern_z(y):
+        return 0.0
+    return hull_x_raw(z, y)
+
+
+def hull_x_raw(z, y):
+    """hull_x without the stern line (the sections abaft the transom are the transom's)."""
+    return _hull_x(max(z, TRANSOM_Z) - rake(z, y), y)
 
 
 def _hull_x(z, y):
@@ -196,3 +224,4 @@ if __name__ == "__main__":
     print("stem head", round(stem_z(sheer_y(STEM_HEAD_Z)), 3), "sheer at the head", round(sheer_y(STEM_HEAD_Z), 3))
     for z in (-19.5, -9.0, 0.0, 11.0, 15.0, 18.0):
         print("hull_x at main deck", z, round(hull_x(z, MAIN_DECK_Y), 3), "at 1.0", round(hull_x(z, 1.0), 3))
+    print("stern line:", " ".join("%.1f:%.2f" % (y, stern_z(y)) for y in (-1.6, -1.0, 0.0, 1.0, 2.0, 3.0, 3.99, 4.0, 7.5, 11.0)))

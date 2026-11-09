@@ -286,7 +286,7 @@
    "block": "furnish:dark_oak_square_table",
    "x": -1.45,
    "y": 11.0,
-   "z": -17.95,
+   "z": -17.45,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_31"
@@ -295,7 +295,7 @@
    "block": "farmhouse_decorations:kerosene_lantern",
    "x": -1.7,
    "y": 12.0,
-   "z": -18.2,
+   "z": -17.7,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_32",
@@ -305,7 +305,7 @@
    "block": "furnish:spruce_stool",
    "x": -1.45,
    "y": 11.0,
-   "z": -16.8875,
+   "z": -16.3875,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_33"
@@ -314,7 +314,7 @@
    "block": "farmhouse_decorations:chained_kerosene_lantern",
    "x": 0.0,
    "y": 13.0,
-   "z": -17.0,
+   "z": -16.5,
    "yaw": 0.0,
    "scale": 1.0,
    "fallback": "fallback_34",
@@ -1483,10 +1483,10 @@
   {
    "x": -1.45,
    "y": 11.562,
-   "z": -16.95,
+   "z": -16.45,
    "dx": -0.45,
    "dy": 11.02,
-   "dz": -16.95
+   "dz": -16.45
   },
   {
    "x": 1.05,

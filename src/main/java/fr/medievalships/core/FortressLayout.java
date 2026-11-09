@@ -42,9 +42,17 @@ public final class FortressLayout {
 	public static final double CREW_BULKHEAD_Z = 5.5;
 	public static final double DECK_MAX_Z = 19.0;
 	public static final double STEM_HEAD_Z = 22.5;
+	/**
+	 * The stern (main reference): under the captain's cabin's floor ({@link #KNUCKLE_Y}) the hull tucks in towards the keel
+	 * (a raked counter, about 3 blocks at the keel); the keep, from its floor up ({@link #KEEP_OVERHANG_Y}), overhangs the
+	 * transom on a corbel table to {@link #KEEP_STERN_Z}. The interior grid holds the exact shape.
+	 */
+	public static final double KNUCKLE_Y = 4.0;
+	public static final double KEEP_OVERHANG_Y = 7.5;
+	public static final double KEEP_STERN_Z = -20.5;
 	/** The turret on the keep's roof: half width, z range, top of its walls and of its roof. */
 	public static final double TURRET_HALF = 2.5;
-	public static final double[] TURRET_Z = {-19.0, -15.0};
+	public static final double[] TURRET_Z = {-18.5, -14.5};
 	public static final double TURRET_WALL_TOP = 14.5;
 	public static final double TURRET_ROOF_TOP = 17.0;
 	/** The fore and main masts, stepped on the keel (through the lower deck); the fore mast stands on the forecastle. */
@@ -57,8 +65,9 @@ public final class FortressLayout {
 	public static final double MIZZEN_TOP = 24.5;
 	public static final double[] BOWSPRIT_FOOT = {0.0, 8.4, 19.5};
 	public static final double[] BOWSPRIT_TIP = {0.0, 11.6, 28.0};
-	/** The stone beak at the stem head, the rudder blade and the stern lanterns, the turret's finial. */
+	/** The stone beak at the stem head, the rudder blade (on the counter), the keep's battlements and stern lanterns, the turret's finial. */
 	public static final double[] BEAK_PROBE = {0.0, 9.5, 24.3};
+	public static final double RUDDER_REACH_Z = -19.3;
 	public static final double STERN_REACH_Z = -21.3;
 	public static final double FINIAL_TOP = 21.0;
 	/** Half span of the longest yard (the main course) and the angle the square yards are braced round by. */
@@ -146,12 +155,13 @@ public final class FortressLayout {
 			probes.add(new double[] {0, BOWSPRIT_FOOT[1] + (BOWSPRIT_TIP[1] - BOWSPRIT_FOOT[1]) * t, BOWSPRIT_FOOT[2] + (BOWSPRIT_TIP[2] - BOWSPRIT_FOOT[2]) * t});
 		}
 		probes.add(BEAK_PROBE.clone());
-		probes.add(new double[] {0, 1.0, STERN_REACH_Z});
-		probes.add(new double[] {0, KEEP_WALL, STERN_REACH_Z + 0.6});
-		yardArms(probes, 16.7, FORE_MAST_Z, 0.62, 7.5);
-		yardArms(probes, 19.7, MAIN_MAST_Z, 0.65, YARD_HALF);
-		yardArms(probes, 24.2, MAIN_MAST_Z + 0.45, 0.49, 4.0);
-		yardArms(probes, 19.6, MIZZEN_Z, 0.54, 5.5);
+		probes.add(new double[] {0, 1.0, RUDDER_REACH_Z});
+		probes.add(new double[] {0, KEEP_Y, STERN_REACH_Z});
+		probes.add(new double[] {0, KEEP_WALL, STERN_REACH_Z});
+		yardArms(probes, 17.65, FORE_MAST_Z, 0.62, 7.5);
+		yardArms(probes, 20.65, MAIN_MAST_Z, 0.65, YARD_HALF);
+		yardArms(probes, 24.95, MAIN_MAST_Z + 0.45, 0.49, 4.0);
+		yardArms(probes, 20.4, MIZZEN_Z, 0.54, 5.5);
 		spec.extraProbes = List.copyOf(probes);
 		spec.boundingRadius = BOWSPRIT_TIP[2] + 1.0;
 		spec.aiReach = BOWSPRIT_TIP[2];
