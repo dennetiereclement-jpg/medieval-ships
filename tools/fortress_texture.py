@@ -90,6 +90,20 @@ REGIONS = {
     "rug":          (352, 96, 32, 64),
     "boat":         (384, 96, 64, 32),
     "ham":          (448, 96, 16, 16),
+    # the decoration (tools/fortress_furniture.py)
+    "tower_rug":    (0, 240, 64, 96),   # red carpet with the white tower, a grey stone border and a gold band
+    "war_map":      (64, 240, 64, 48),  # the campaign map of the council table: parchment, the coast, Havre-Fort, routes
+    "surcoat":      (128, 240, 16, 32), # red surcoat with the white tower and a gold hem (the armour stands)
+    "candle":       (144, 240, 16, 16),
+    "parchment":    (144, 256, 16, 16),
+    "bread":        (160, 240, 16, 16),
+    "cheese":       (160, 256, 16, 16),
+    "fletching":    (176, 240, 16, 16), # white goose feathers with a red band (the arrows)
+    "blade":        (176, 256, 16, 16), # bright steel (swords, spear and halberd heads, helmets)
+    "leather":      (192, 240, 16, 16),
+    "embers":       (192, 256, 16, 16), # glowing coals (the brazier, drawn full bright)
+    "mail":         (208, 240, 16, 16), # chain mail (the armour stands)
+    "velvet_red":   (208, 256, 16, 16), # red velvet cushions
 }
 # names used by the shared helpers (ship_details, generate_galleon, corsair_furniture): the same pixels
 for _alias, _src in (("hull_mid", "wood_mid"), ("hull_light", "wood_light"), ("hull_dark", "wood_dark"), ("wood_trim", "wood_dark"),
@@ -360,6 +374,148 @@ def _wall_stone(px, region, rng):
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
+def _tower_rug(px, region, rng):
+    """The red carpet of the captain's cabin and the council room: a dark red field, a grey stone-coloured border
+    with a gold band inside it, small gold corner squares and the white tower in the middle."""
+    u, v, w, h = region
+    mask = tower_mask(int(w * 0.5), int(w * 0.5) + int(w * 0.5) // 6)
+    mx, my = (w - mask.width) // 2, (h - mask.height) // 2
+    for y in range(h):
+        for x in range(w):
+            d = min(x, y, w - 1 - x, h - 1 - y)
+            if d < 1:
+                c = _rgb("3a3936")
+            elif d < 5:
+                c = _rgb(("8f8e88", "a3a29c")[((x // 4) + (y // 4)) % 2])
+            elif d < 7:
+                c = _rgb("c9981f")
+            else:
+                c = _scale(_rgb("8e1c20"), 1.0 + 0.05 * math.sin(x * 0.9 + y * 0.6))
+                corner = (min(x, w - 1 - x) < 14 and min(y, h - 1 - y) < 14 and min(x, w - 1 - x) >= 9 and min(y, h - 1 - y) >= 9)
+                if corner:
+                    c = _rgb("c9981f")
+                if d == 9 and (x + y) % 4 == 0:
+                    c = _rgb("6e1418")
+            if mx <= x < mx + mask.width and my <= y < my + mask.height and mask.getpixel((x - mx, y - my)):
+                c = _rgb("e2ded2")
+            px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
+
+
+def _war_map(px, region, rng):
+    """The campaign map: yellowed parchment, the sea in grey blue on the left with wave strokes, a ragged coast, the
+    fort of Havre-Fort (a small red tower) on a cove, dotted routes and a compass rose, a darker worn edge."""
+    u, v, w, h = region
+    coast = [int(w * 0.42 + 6 * math.sin(y * 0.35) + 4 * math.sin(y * 0.9 + 1.0)) for y in range(h)]
+    small = tower_mask(10, 12, 1)
+    tx, ty = coast[h // 2] - 2, h // 2 - 6
+    for y in range(h):
+        for x in range(w):
+            edge = min(x, y, w - 1 - x, h - 1 - y)
+            if x < coast[y]:
+                c = _scale(_rgb("8a9a98"), 1.0 + 0.04 * math.sin(x * 0.5 + y))
+                if (x + 3 * (y // 4)) % 9 == 0 and y % 4 == 1:
+                    c = _rgb("6a7a7a")
+            elif x < coast[y] + 2:
+                c = _rgb("5a4a30")
+            else:
+                c = _scale(_rgb("d8c49a"), 1.0 + 0.05 * math.sin(x * 0.3 + y * 0.2))
+                if (x * 7 + y * 13) % 53 == 0:
+                    c = _rgb("6a7a3a")
+            # routes: dotted lines from the fort out to sea
+            for (x0, y0, x1, y1) in ((tx, ty + 6, 4, 6), (tx, ty + 6, 6, h - 8), (tx + 6, ty + 6, w - 8, 10)):
+                t = ((x - x0) * (x1 - x0) + (y - y0) * (y1 - y0)) / max(1.0, (x1 - x0) ** 2 + (y1 - y0) ** 2)
+                if 0 <= t <= 1:
+                    dx, dy = x0 + t * (x1 - x0) - x, y0 + t * (y1 - y0) - y
+                    if dx * dx + dy * dy < 0.6 and int(t * 20) % 2 == 0:
+                        c = _rgb("6e1418")
+            if tx <= x < tx + 10 and ty <= y < ty + 12 and small.getpixel((x - tx, y - ty)):
+                c = _rgb("a8262a")
+            # compass rose (bottom right)
+            cx, cy = w - 9, h - 9
+            if (abs(x - cx) <= 4 and y == cy) or (abs(y - cy) <= 4 and x == cx):
+                c = _rgb("3a2a1a")
+            if edge < 2:
+                c = _mix(c, _rgb("7a5a32"), 0.6 if edge == 0 else 0.35)
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+
+
+def _surcoat(px, region, rng):
+    u, v, w, h = region
+    mask = tower_mask(10, 12, 1)
+    mx, my = (w - 10) // 2, 5
+    for y in range(h):
+        for x in range(w):
+            c = _scale(_rgb("b02529"), 1.0 + 0.06 * math.sin(x * 0.8 + y * 0.4) - 0.1 * (y / h))
+            if mx <= x < mx + 10 and my <= y < my + 12 and mask.getpixel((x - mx, y - my)):
+                c = _rgb("e2ded2")
+            if y >= h - 3:
+                c = _rgb("c9981f")
+            if y < 2:
+                c = _rgb("6e1418")
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+
+
+def _shade_fill(px, region, rng, base, dark, light=None, period=4):
+    """Small material: a base tone, darker every `period` rows, a lighter top row."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            c = _scale(_rgb(base), 1.0 + 0.06 * math.sin(x * 1.1 + y * 0.7))
+            if y % period == period - 1:
+                c = _mix(c, _rgb(dark), 0.5)
+            if light and y == 0:
+                c = _rgb(light)
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+
+
+def _decor_materials(px, rng):
+    R = REGIONS
+    _tower_rug(px, R["tower_rug"], rng)
+    _war_map(px, R["war_map"], rng)
+    _surcoat(px, R["surcoat"], rng)
+    _shade_fill(px, R["candle"], rng, "eadfc2", "cfc2a2", "f6efd8", period=16)
+    _shade_fill(px, R["parchment"], rng, "e0cfa4", "8a7a5a", period=3)
+    _shade_fill(px, R["bread"], rng, "b4783a", "8a5426", "d8a460", period=5)
+    _shade_fill(px, R["leather"], rng, "6a4024", "3e2414", period=6)
+    _shade_fill(px, R["velvet_red"], rng, "9e1c22", "6e1418", "c02a30", period=8)
+    u, v, w, h = R["cheese"]
+    for y in range(h):
+        for x in range(w):
+            c = _scale(_rgb("e2b84a"), 1.0 + 0.05 * math.sin(x + y))
+            if (x * 5 + y * 3) % 17 == 0:
+                c = _rgb("b08a2a")
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+    u, v, w, h = R["fletching"]
+    for y in range(h):
+        for x in range(w):
+            c = _rgb("e8e6de") if not (5 <= y <= 9) else _rgb("b02529")
+            if x % 4 == 0:
+                c = _scale(c, 0.85)
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+    u, v, w, h = R["blade"]
+    for y in range(h):
+        for x in range(w):
+            c = _scale(_rgb("aeb2b6"), 1.0 + 0.08 * math.sin(x * 0.6 + y * 0.2))
+            if x in (0, w - 1):
+                c = _rgb("dfe3e6")
+            elif x == w // 2:
+                c = _rgb("8a8e92")
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+    u, v, w, h = R["embers"]
+    for y in range(h):
+        for x in range(w):
+            k = rng.random()
+            c = _rgb("ffd27a") if k < 0.25 else _rgb("f08a2a") if k < 0.6 else _rgb("b8401a") if k < 0.85 else _rgb("3a1a10")
+            px[u + x, v + y] = c + (255,)
+    u, v, w, h = R["mail"]
+    for y in range(h):
+        for x in range(w):
+            c = _rgb("6a6e72") if (x + (y % 2)) % 2 else _rgb("3a3c40")
+            if y % 2 == 0 and x % 2 == 0:
+                c = _rgb("9a9ea2")
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+
+
 def _cabin_wall(px, region, rng):
     """The captain's cabin: dark panelling, a red rail and a gold cornice, lower panels."""
     u, v, w, h = region
@@ -450,6 +606,7 @@ def make_texture(path):
     _fill(px, R["linen"], "e6dfcc", rng, 4)
     _blocks(px, R["ham"], ("9a4632", "8a3c2a"), "5a2418", rng, bw=8, bh=4)
     _fill(px, R["bedding"], "8e1c20", rng, 8)
+    _decor_materials(px, random.Random(2711))
     img.save(path)
     return img
 

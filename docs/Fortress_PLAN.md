@@ -57,25 +57,74 @@ dont on garde la grue, le taud et les créneaux de pierre du passavant.
 
 | Niveau | y | Contenu |
 |---|---|---|
-| Tourelle | 11,0 | sur le toit du donjon (z −19 … −15), porte vers l'avant, fenêtres éclairées, tabouret de vigie |
-| Toit du donjon | 11,0 | terrasse crénelée autour de la tourelle ; trappe de l'escalier du donjon (bâbord) |
+| Tourelle | 11,0 | sur le toit du donjon (z −19 … −15), porte vers l'avant, fenêtres éclairées ; poste de vigie (table, longue-vue, coffre à pavillons) |
+| Toit du donjon | 11,0 | terrasse crénelée autour de la tourelle ; trappe de l'escalier du donjon (bâbord) ; râtelier de lances, tonneau de flèches, brasero |
 | Dunette | 8,0 | devant le donjon (z −13 … −9) : barre (roue z −9,7, pilote debout z −10,5), artimon (z −11,5), grue, taud ; porte du donjon ; parapet crénelé |
-| Salle des officiers (donjon) | 8,0 | z −19 … −13,5, hauteur 2,5 ; table, tabourets, bibliothèque ; escalier intérieur (bâbord, 6 marches) vers le toit |
+| Salle du conseil (donjon) | 8,0 | z −19 … −13,5, hauteur 2,5 ; table de guerre et ses sept chaises, bibliothèque, armure ; escalier intérieur (bâbord, 6 marches) vers le toit |
 | Gaillard d'avant | 7,0 | z 6 … 19 ; misaine, cloche, balustrade de bois, deux escaliers depuis le passavant |
 | Passavant (pont principal) | 4,5 | du château (z −9) au gaillard (z 6) ; deux escaliers vers la dunette (bords, z −5,5 → −9), deux vers le gaillard (z 3,5 → 6), descente bâbord vers le pont inférieur (z −1,5 → −5) ; caillebotis, cabestan, grand mât |
-| Cabine du capitaine | 4,5 | sous la dunette, z −19 … −9,5, hauteur 3 ; porte double sur la cloison avant ; lit, coffre, bureau, carte, compas, fauteuil, table |
-| Réfectoire de l'équipage | 4,5 | sous le gaillard, z 6,5 … 17, hauteur 2 ; porte double ; grande table et bancs |
-| Cale | 1,0 | z −15 … 5,5, hauteur 3 ; tonneaux, caisses, sacs ; le grand mât la traverse |
+| Cabine du capitaine | 4,5 | sous la dunette, z −19 … −9,5, hauteur 3 ; porte double sur la cloison avant ; bureau face à la porte, lit, coffres, armure, râtelier |
+| Réfectoire de l'équipage | 4,5 | sous le gaillard, z 6,5 … 17, hauteur 2 ; porte double ; grande table et bancs, cuisine |
+| Cale | 1,0 | z −15 … 5,5, hauteur 3 ; vivres, armurerie, pierre et bois pour le fort ; le grand mât la traverse |
 | Quartiers de l'équipage | 1,0 | z 6 … 14, hauteur 3, porte double depuis la cale ; couchettes doubles, coffres ; la misaine les traverse |
 
 Portes : 0 cabine, 1 donjon, 2 réfectoire, 3 quartiers de l'équipage, 4 tourelle (toutes doubles, clic droit).
 
 ## 4. Sièges
 
-Pilote (debout à la barre) + 11 sièges (`fortress_decor.py`) : fauteuil du capitaine et tabouret de la cabine, deux
-tabourets de la salle des officiers, tabouret de vigie de la tourelle, quatre places sur les bancs du réfectoire, deux
-bancs du passavant. Chaque siège a son point de relevé libre sur un plancher (`FortressShipTest.helmAndSeats`). La
-phase 2 (décoration) complète le mobilier.
+Pilote (debout à la barre) + 24 sièges (`fortress_decor.py`) : le fauteuil du capitaine derrière son bureau et deux
+chaises de velours devant ; à la table de guerre du donjon, le haut fauteuil du commandant, six chaises de velours (dont
+une en bout de table) ; le tabouret de vigie de la tourelle ; six places sur les bancs du réfectoire et le tabouret en
+bout de table ; deux tabourets à la table de jeu des quartiers de l'équipage ; deux bancs du passavant ; deux bancs sous
+le taud de la dunette. Chaque siège a son point de relevé libre sur un plancher (`FortressShipTest.helmAndSeats`,
+contrôlé aussi par `fortress_decor.check`) ; le test en jeu s'assoit sur trois d'entre eux et se relève.
+
+## 4 bis. Décoration (phase 2)
+
+Les blocs des mods de décoration d'abord (154 : Farmhouse Decorations, Furnish, Farmer's Delight, Lands of Icaria ; ils
+sont dessinés par le navire là où ils sont posés et bougent avec lui, remplacés par une boîte de même taille si le mod
+manque), les meubles modélisés (`tools/fortress_furniture.py`, 85 pièces) seulement pour ce qui leur manque ou doit
+porter les armes de Havre-Fort (la tour blanche sur fond rouge). Planche des pièces : [interieur_fortress_ship.png](interieur_fortress_ship.png).
+
+* **Cabine du capitaine** : le bureau en travers, face à la porte, le haut fauteuil du capitaine derrière lui contre les
+  trois fenêtres de poupe (l'intérieur de chaque fenêtre dessiné, et celles de la cloison avant), deux chaises de
+  velours rouge devant ; sur le bureau la carte marine, le compas, l'encrier et sa plume, une lettre scellée, le sablier,
+  une lampe, des livres, le vin. Bâbord : le lit (tête à la poupe), le coffre du capitaine à son pied, une commode
+  (boîte à cigares, chandelier), l'écu à la tour et ses épées croisées, un coffre sous la fenêtre, le râtelier
+  (hallebardes, épées, lance) contre la cloison. Tribord : l'armure du capitaine sur son support (surcot rouge à la tour,
+  heaume à crête, lance), la carte marine encadrée, une commode, la bibliothèque, l'armoire. Au milieu le tapis rouge à la
+  tour blanche bordé de pierre et d'or, un lustre de fer forgé à bougies.
+* **Salle du conseil** (donjon) : la table de guerre en travers de la salle, la carte de campagne (la côte, Havre-Fort,
+  les routes) avec ses pions rouges et blancs, une dague plantée, deux chandeliers, le vin ; le haut fauteuil du
+  commandant entre deux officiers côté poupe, trois chaises côté avant, une en bout de table ; la grande bannière à la
+  tour entre les fenêtres de poupe, la bibliothèque, l'écu aux épées croisées entre les fenêtres de tribord, une armure
+  au bouclier près de la porte, un râtelier de lances derrière le haut de l'escalier ; un lustre de fer au-dessus de la
+  table. L'escalier du toit et son accès restent libres.
+* **Tourelle** : la table du guetteur (carte, lampe) et son tabouret, la longue-vue sur trépied à la fenêtre de bâbord,
+  le coffre des pavillons de signaux (rouges et blancs), la bannière, l'intérieur des fenêtres. Le socle de pierre de la
+  tourelle n'est plus dessiné à l'intérieur (il couvrait le plancher de 0,6 bloc).
+* **Réfectoire et cuisine** : la longue table au milieu, un banc de chaque côté et un tabouret en bout, couverte
+  d'assiettes, de chopes, de pain et de fromage, d'un rôti et de vin ; la cuisine dans l'angle bâbord arrière (plan de
+  travail, planche à découper, épicier, fourneau et marmite, poêles suspendues, tonneau en perce, jambons) ; les vivres
+  à tribord (caisses de légumes, tonneau, sac) ; des tonneaux à l'avant ; l'intérieur des fenêtres de la cloison.
+* **Quartiers de l'équipage** : quatre couchettes doubles le long des bords, deux hamacs au-dessus des coffres de marin à
+  l'arrière, la table de jeu (dés, cartes, chopes, bougie) et ses deux tabourets, un portemanteau, deux lanternes.
+* **Cale** : à bâbord les tonneaux couchés en pyramides sur leurs chantiers, des tonneaux, des caisses sur deux rangs,
+  les caisses de pommes de terre, carottes, choux, oignons, betteraves, les sacs de riz, la paille et l'épeautre, un
+  panier, des jarres ; à tribord l'armurerie (deux râteliers de lances, hallebardes et épées, deux écus aux épées
+  croisées sur la cloison arrière, une armure, deux tonneaux de flèches, l'enclume de l'armurier), les palettes de
+  pierre de taille et la pile de bois équarri pour le fort, une voile rouge de rechange roulée, des caisses sous une
+  bâche amarrée, des caisses sur deux rangs, des jarres, un coffre, une glène ; trois lanternes. L'allée du milieu, le
+  pied de la descente et la porte des quartiers restent libres.
+* **Ponts** : la cargaison des références le long des pavois du passavant (caisses sur deux rangs, une caisse bâchée,
+  tonneaux, sacs), des glènes au grand mât et au cabestan ; deux bancs sous le taud de la dunette, un tonneau et une
+  glène à bâbord ; tonneaux, caisses, sac et câble de l'ancre lové sur le gaillard d'avant ; sur le toit du donjon un
+  râtelier de lances contre les créneaux, un tonneau de flèches et le brasero de signal (braises et flammes lumineuses).
+* **Dégagements** (vérifiés par `fortress_decor.check` à chaque génération et par `FortressShipTest`) : portes et
+  leurs abords, escaliers et descente avec leurs pieds et leurs têtes, la trappe du toit, les allées de la cabine, de la
+  cale et des quartiers, la bande d'embarquement du passavant (2,3 blocs de part et d'autre de l'axe), l'escalier et le
+  levier de la passerelle, les points de relevé des sièges, les places du test en jeu ; aucune pièce n'entre dans les
+  murs, les ponts ou la coque, et toutes les pièces restent accessibles depuis le passavant (portes ouvertes).
 
 ## 5. Matériaux, parties mobiles, contraintes
 
@@ -126,16 +175,20 @@ et liseré de fer (case `fortress_ship` de l'atlas `gangplank.png`, ajoutée dan
 
 * Modèle `blockbench/fortress_ship.bbmodel` (2 textures : coque + voiles, 11 animations), textures
   `textures/entity/fortress_ship.png` et `fortress_ship_sails.png`, icône `textures/item/fortress_ship.png`, grille
-  `interiors/fortress_ship.grid`, mobilier `interiors/fortress_ship_decor.json`. Aperçu : [preview_fortress_ship.png](preview_fortress_ship.png).
+  `interiors/fortress_ship.grid`, mobilier `interiors/fortress_ship_decor.json` (`tools/fortress_decor.py`, meubles
+  modélisés `tools/fortress_furniture.py`). Aperçu : [preview_fortress_ship.png](preview_fortress_ship.png) ; pièces
+  meublées : [interieur_fortress_ship.png](interieur_fortress_ship.png).
 * Java : `FortressLayout`, `FortressShipEntity` ; tests `FortressShipTest` (forme, dimensions, pièces, escaliers, portes,
-  sièges, coque fermée, embarquement, modèle, animations), `FortressShipGameTest` (en jeu : mise à l'eau près d'un
-  quai, vues des trois références, tous les niveaux, marche, portes, passerelle déployée puis repliée, barre).
+  sièges, coque fermée, embarquement, pièces meublées, modèle, animations), `FortressShipGameTest` (en jeu : mise à
+  l'eau près d'un quai, vues des trois références, tous les niveaux, marche, portes, pièces meublées photographiées,
+  assis puis relevé sur trois sièges, marche entre les meubles, passerelle déployée puis repliée, barre).
 * Fichiers partagés modifiés (une entrée chacun) : `Ships.java`, `MedievalShips.java`, `ShipModels.java`, `en_us.json`,
   `fr_fr.json`, `NoZFightingTest`, `NewShipModelsTest` (+ `fortress_ship_reference_quads.json`), `GangplankSpecsTest`,
   `GangplankFoldTest` (taille nominale de l'ancien paquet en accordéon, que ce navire n'a jamais eu),
   `ShipClientGameTest` (un appel), `tools/gangplank/gangplanklib.py` + `textures/entity/gangplank.png` (case de
   camouflage). À la fusion des trois navires de la 1.27.0 : garder les lignes de chacun et régénérer l'atlas
   (`python3 tools/fortress_gangplank.py` réécrit l'atlas avec toutes les cases déclarées).
-* Limites : les fenêtres du château ne se voient que de l'extérieur (murs de la grille pleins) ; pas de canons (rien de
-  tel sur les images) ; la grue et sa caisse sont décoratives ; sans les mods de décoration, les meubles des mods sont
-  remplacés par des boîtes ; le château de 151 (plus massif, à trois étages) n'est pas reproduit tel quel.
+* Limites : les fenêtres du château ne laissent pas voir dehors (murs de la grille pleins : leur face intérieure est
+  dessinée) ; pas de canons (rien de tel sur les images) ; la grue et sa caisse sont décoratives ; sans les mods de
+  décoration, les meubles des mods sont remplacés par des boîtes ; armures, râteliers, écus, carte de guerre et brasero
+  sont des décors (pas d'objets à prendre) ; le château de 151 (plus massif, à trois étages) n'est pas reproduit tel quel.

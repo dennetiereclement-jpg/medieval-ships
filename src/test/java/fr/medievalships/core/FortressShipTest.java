@@ -129,18 +129,20 @@ class FortressShipTest {
 		room("forecastle", -1.6, 1.6, F, 9.2, 13.0, false);
 		room("quarterdeck (port of the mizzen)", 1.2, 2.6, Q, -12.4, -10.0, false);
 		room("keep's roof (before the turret)", -1.5, 1.5, K, -14.6, -13.9, false);
-		room("turret", -1.2, 1.2, K, -17.8, -15.9, true);
-		room("captain's cabin", -0.8, 0.8, C, -18.5, -10.0, true);
-		room("officers' room", -0.8, 0.8, Q, -18.5, -14.2, true);
+		room("turret", -0.6, 0.6, K, -17.8, -15.9, true);
+		room("captain's cabin (door to the desk)", -0.8, 0.8, C, -16.1, -10.0, true);
+		room("captain's cabin (behind the desk)", -0.6, 2.0, C, -18.6, -18.4, true);
+		room("officers' room (beside the war table)", 0.0, 1.8, Q, -18.5, -14.2, true);
 		room("crew's mess", -1.5, 1.5, M, 9.0, 11.8, true);
 		room("cargo hold (aft)", -0.8, 0.8, L, -14.0, -2.0, true);
 		room("cargo hold (forward)", -0.8, 0.8, L, 0.0, 4.8, true);
 		room("crew quarters", -1.2, 1.2, L, 9.0, 13.4, true);
-		assertFalse(fits(-3.6, C, -14.0, CLOSED), "the captain's desk is solid");
+		assertFalse(fits(0.0, C, -17.3, CLOSED), "the captain's desk is solid");
 		assertFalse(fits(3.4, C, -17.2, CLOSED), "the captain's bed is solid");
+		assertFalse(fits(-1.9, Q, -16.4, CLOSED), "the war table is solid");
 		assertFalse(fits(0.0, M, 14.0, CLOSED), "the mess table is solid");
-		assertFalse(fits(3.25, L, 11.8, CLOSED), "a bunk is solid");
-		assertFalse(fits(-4.0, L, -5.9, CLOSED), "the cargo is solid");
+		assertFalse(fits(3.95, L, 12.05, CLOSED), "a bunk is solid");
+		assertFalse(fits(-4.85, L, -6.75, CLOSED), "the cargo is solid");
 		// outside the hull: the sea, not carried; the hull sides and the bottom are solid
 		assertFalse(GRID.dryAt(8.0, -1.0, 0, CLOSED));
 		assertFalse(G.inCarryVolume(8.0, M + 0.5, 0));
@@ -252,6 +254,61 @@ class FortressShipTest {
 		ShipGeometry.Pick p = G.pick(ORIGIN, 0, Q + 1.6, FortressLayout.HELM_Z + 2.0, 0, -0.25, -1, 4);
 		assertNotNull(p);
 		assertEquals(ShipGeometry.PickKind.HELM, p.kind());
+	}
+
+	/** Decor blocks whose bottom-centre lies in the box (x0..x1, y0..y1, z0..z1). */
+	private static long blocksIn(double x0, double x1, double y0, double y1, double z0, double z1) {
+		return G.decor().blocks().stream().filter(b -> b.x() >= x0 && b.x() <= x1 && b.y() >= y0 && b.y() <= y1 && b.z() >= z0 && b.z() <= z1)
+				.count();
+	}
+
+	/**
+	 * The decoration: every room furnished with the mods' blocks (the captain's cabin, the council room in the keep, the
+	 * turret, the mess and its galley, the crew quarters, the hold, the deck cargo), lanterns that glow, a seat for many
+	 * passengers (the captain's chair, the war council's seven chairs, the benches of the mess...); nothing stands in the
+	 * walls, the decks or the hull, nor beyond the sides; the seats are in the rooms; the solid furniture keeps the walkers
+	 * out (the desk, the war table, the mess table, the bunks, the racks, the cargo) while the ways through stay free.
+	 */
+	@Test
+	void furnishedRooms() {
+		InteriorDecor d = G.decor();
+		assertTrue(d.blocks().size() >= 120, "decor blocks " + d.blocks().size());
+		assertTrue(G.seats().size() >= 20, "seats " + G.seats().size());
+		assertTrue(d.blocks().stream().filter(InteriorDecor.Block::glow).count() >= 10, "glowing lanterns");
+		assertTrue(blocksIn(-6, 6, C - 0.1, C + 1.5, -19.5, -9.0) >= 15, "the captain's cabin is furnished");
+		assertTrue(blocksIn(-6, 6, Q - 0.1, Q + 1.5, -19.5, -13.0) >= 10, "the council room is furnished");
+		assertTrue(blocksIn(-3, 3, K - 0.1, K + 3.5, -19.0, -15.0) >= 3, "the turret is furnished");
+		assertTrue(blocksIn(-6, 6, M - 0.1, M + 1.5, 6.0, 17.0) >= 20, "the mess and its galley are furnished");
+		assertTrue(blocksIn(-6, 6, L - 0.1, L + 3.0, 6.0, 14.0) >= 4, "the crew quarters are furnished");
+		assertTrue(blocksIn(-6, 6, L - 0.1, L + 1.5, -15.0, 5.5) >= 40, "the hold is full of provisions");
+		assertTrue(blocksIn(-6, 6, M - 0.1, M + 1.5, -9.0, 6.0) >= 15, "cargo on the main deck");
+		for (InteriorDecor.Block b : d.blocks()) {
+			byte k = GRID.kindAt(b.x(), b.y() + 0.05, b.z());
+			assertTrue(k != 1, "decor block in a wall, a deck or the hull: " + b.block() + " at " + b.x() + ", " + b.y() + ", " + b.z());
+			assertTrue(Math.abs(b.x()) < T.hull().halfWidth(b.z()) - 0.4, "decor block beyond the side: " + b.block() + " at " + b.x() + ", " + b.z());
+		}
+		for (ShipGeometry.Seat s : G.seats()) {
+			assertTrue(GRID.kindAt(s.x(), s.y() - 0.2, s.z()) != 1, "seat " + s.index() + " in a wall");
+			assertTrue(G.inCarryVolume(s.x(), s.y(), s.z()), "seat " + s.index() + " aboard");
+		}
+		assertFalse(fits(4.0, L, -13.25, CLOSED), "the casks of the hold are solid");
+		assertFalse(fits(-5.0, M, -3.6, CLOSED), "deck cargo is solid");
+		assertFalse(fits(-4.2, K, -14.2, CLOSED), "the signal brazier is solid");
+		// the ways through: from the cabin's door to the desk, from the keep's door to its stair, the hold's centre line,
+		// the companionway's foot, the gangplank's stairs, the boarding strip of the waist
+		assertTrue(fits(0.0, C, -10.2, CLOSED) && fits(0.0, C, -16.1, CLOSED), "the way from the cabin's door to the desk");
+		assertTrue(fits(1.2, Q, -14.0, CLOSED) && fits(3.25, Q, -14.4, CLOSED), "the way from the keep's door to its stair");
+		assertTrue(fits(3.25, L, -5.8, CLOSED), "the companionway's foot");
+		for (double z = -14.0; z <= 4.5; z += 0.5) {
+			if (Math.abs(z - FortressLayout.MAIN_MAST_Z) > 0.9) {
+				assertTrue(fits(0.0, L, z, CLOSED), "the hold's centre line at " + z);
+			}
+		}
+		for (double z = -7.5; z <= 4.0; z += 0.5) {
+			for (double x : new double[] {-2.0, 2.0}) {
+				assertTrue(fits(x, M, z, CLOSED), "the waist's boarding strip at " + x + ", " + z);
+			}
+		}
 	}
 
 	@Test

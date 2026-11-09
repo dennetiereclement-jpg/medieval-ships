@@ -49,6 +49,8 @@ import fortress_shape as fs  # noqa: E402
 import fortress_interior as fi  # noqa: E402
 import fortress_texture as ft  # noqa: E402
 import fortress_decor as fd  # noqa: E402
+import fortress_furniture as ff  # noqa: E402
+import corsair_furniture as cf  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 NAME = "fortress_ship"
@@ -543,7 +545,14 @@ def turret(bone, detail, lights):
                                         ((0, (K + yt) / 2, z1 + 0.03), (2 * th, yt - K, 0.06), "+3"),
                                         ((0, (K + yt) / 2, z0 - 0.03), (2 * th, yt - K, 0.06), "-3"))):
         add_cube(bone, "turret_wall_%d" % k, c, EYE, size, "timber")
-    add_cube(bone, "turret_base", (0, K + 0.3, zc), EYE, (2 * th + 0.3, 0.6, 2 * hz + 0.3), {"all": "stone", "+2": "stone_light"})
+    # the stone base course round the foot of the walls (outside only: the turret's floor inside is the keep's roof, and
+    # the doorway is left open)
+    for s in (1, -1):
+        add_cube(bone, "turret_base_%d" % (s > 0), (s * (th + 0.045), K + 0.3, zc), EYE, (0.21, 0.6, 2 * hz + 0.3), {"all": "stone", "+2": "stone_light"})
+        add_cube(bone, "turret_base_aft_%d" % (s > 0), (s * (th + 0.15) / 2, K + 0.3, z0 - 0.045), EYE, (th + 0.15, 0.6, 0.21),
+                 {"all": "stone", "+2": "stone_light"})
+        add_cube(bone, "turret_base_fwd_%d" % (s > 0), (s * (th + 1.15) / 2, K + 0.3, z1 + 0.045), EYE, (th - 0.85, 0.6, 0.21),
+                 {"all": "stone", "+2": "stone_light"})
     for sx in (1, -1):
         for sz in (1, -1):
             add_cube(bone, "turret_post_%d_%d" % (sx > 0, sz > 0), (sx * (th + 0.02), (K + yt) / 2 + 0.1, zc + sz * (hz + 0.02)), EYE,
@@ -1179,6 +1188,12 @@ def fallbacks(root):
                  (max(0.04, x1 - x0), max(0.04, y1 - y0), max(0.04, z1 - z0)), region)
 
 
+# the furniture builders: the corsair's (beds, chests, charts, bunks, hammocks...), the pans and hams, and the fortress's own
+CUSTOM_BUILDERS = dict(gc.CUSTOM_BUILDERS)
+CUSTOM_BUILDERS.update({"hams": cf.hams})
+CUSTOM_BUILDERS.update(ff.BUILDERS)
+
+
 # ---------------------------------------------------------------- the model
 def build(g):
     root = Bone(NAME)
@@ -1216,7 +1231,7 @@ def build(g):
     m = surfaces(rooms, g)
     beams_below(fittings)
     for builder, kwargs, solid in fd.CUSTOM:
-        gc.CUSTOM_BUILDERS[builder](furniture, **kwargs)
+        CUSTOM_BUILDERS[builder](furniture, **kwargs)
     fallbacks(root)
     return root, n, m, sails_info, sails
 
