@@ -69,21 +69,24 @@ for _alias, _src in (("hull_mid", "wood_mid"), ("hull_light", "wood_light"), ("h
 
 # the sails (second texture): one region each, 16 px a block of canvas
 SAIL_REGIONS = {
-    "main_course":    (0, 0, 272, 192),
-    "fore_course":    (272, 0, 240, 176),
-    "main_topsail":   (0, 192, 208, 96),
-    "fore_topsail":   (208, 192, 192, 88),
-    "mizzen_course":  (0, 288, 176, 112),
-    "jib":            (176, 288, 128, 160),
-    "pennant":        (304, 288, 208, 24),
-    "pennant_small":  (304, 312, 160, 20),
-    "flag_lion":      (304, 336, 96, 64),   # the royal standard at the stern: blue, gold border, gold lion
+    "main_course":    (0, 0, 288, 208),
+    "fore_course":    (288, 0, 224, 176),
+    "main_topsail":   (0, 208, 208, 112),
+    "fore_topsail":   (208, 208, 192, 104),
+    "mizzen_course":  (0, 320, 176, 120),
+    "jib":            (176, 320, 128, 160),
+    "pennant":        (304, 320, 208, 24),
+    "pennant_small":  (304, 344, 160, 20),
+    "flag_lion":      (304, 368, 96, 64),   # the royal standard at the stern: blue, gold border, gold lion
 }
 SAIL_CELLS = {  # (columns, rows) of cloth blocks drawn in each sail region (cloths about a block wide)
-    "main_course": (20, 12), "fore_course": (18, 11), "main_topsail": (15, 6), "fore_topsail": (14, 5.5),
-    "mizzen_course": (13, 7), "jib": (8, 10),
+    "main_course": (22, 11), "fore_course": (20, 10), "main_topsail": (15, 6), "fore_topsail": (14, 6),
+    "mizzen_course": (14, 6), "jib": (8, 10),
 }
-LION_SAILS = {"main_course": 0.68, "fore_course": 0.62}   # sail -> height of the lion (fraction of the sail)
+# sail -> height of the lion (fraction of the sail). P4: the big bold lions of the pictures (about three quarters of
+# the course's height, drawn 1.2 times wider than their natural shape: the sails are mostly seen foreshortened)
+LION_SAILS = {"main_course": 0.8, "fore_course": 0.76}
+LION_WIDEN = 1.45
 
 _mix, _scale, _planks, _blocks, _fill = ct._mix, ct._scale, ct._planks, ct._blocks, ct._fill
 GOLD, GOLD_HI, GOLD_LO, GOLD_DARK = _rgb("e0ae32"), _rgb("f6d466"), _rgb("b8841e"), _rgb("6e4c0e")
@@ -91,77 +94,83 @@ ROYAL = ("1f3c9c", "22409f", "1b3690", "2747aa", "1d3a96")
 
 
 # ---------------------------------------------------------------- the rampant lion
-def lion_mask(w, h, facing=-1, bold=0.0):
-    """Mask (an 'L' image, 0/255) of a heraldic rampant lion facing left (facing -1) or right (+1): rearing on its
-    left hind leg, the other raised, both forepaws clawing, a big shaggy mane round the head and down the chest,
-    open jaws, the tail curling up behind with a tuft. Drawn from shapes on a 100 x 120 canvas, scaled to w x h.
-    bold (0..1): a chunkier lion (thicker body and limbs, a bigger mane, broad paws) for the big sail emblems, which
-    are mostly seen foreshortened (the stout voxel lions of the references)."""
-    big = Image.new("L", (100, 120), 0)
-    d = ImageDraw.Draw(big)
-    B = bold
-
+def lion_shapes(d, B=1.0, fill=255):
     def blob(cx, cy, r):
-        d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=255)
+        d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=fill)
 
     def limb(pts, wd):
-        wd = int(round(wd * (1 + 0.4 * B)))
-        d.line(pts, fill=255, width=wd)
+        wd = int(round(wd * (1 + 0.25 * B)))
+        d.line(pts, fill=fill, width=wd, joint="curve")
         for p in pts:
-            blob(p[0], p[1], wd / 2 - 0.5)
-    # the body, rising from the hips to the chest
-    d.polygon([(30 - 2 * B, 44 - 2 * B), (56, 36 - 2 * B), (66 + 4 * B, 58), (72 + 4 * B, 80), (54, 92 + 3 * B), (44 - 3 * B, 72),
-               (34 - 3 * B, 58)], fill=255)
-    # the mane: a lumpy mass of locks round the head and down the neck
-    blob(40, 30, 16 + 2 * B)
-    for k in range(14):
-        a = math.radians(-150 + k * 22)
-        blob(40 + (16 + 2 * B) * math.cos(a), 30 + (17 + 2 * B) * math.sin(a), 6.5 + 1.5 * B)
-    blob(44, 48, 12 + 3 * B)
-    # the muzzle and the open jaws (forward, to the left)
-    d.polygon([(30, 17 - B), (14 - B, 21 - B), (8 - 2 * B, 27), (12, 30), (28, 31)], fill=255)          # upper jaw and nose
-    d.polygon([(28, 36), (14, 35), (11 - B, 40 + B), (18, 43 + B), (30, 42)], fill=255)                  # lower jaw
-    d.polygon([(10 - B, 30), (22, 32), (12 - B, 35)], fill=0)                                             # the open mouth
-    blob(25, 23, 2.2)
-    d.ellipse((23, 21, 27, 25), fill=0)                                             # the eye
-    d.polygon([(42, 8 - B), (47, 0), (51 + B, 9 - B)], fill=255)                    # an ear
-    # the forelegs, raised and clawing (paws with three claws each)
-    limb([(42, 50), (28, 50), (16, 46)], 9)
-    limb([(48, 60), (34, 68), (20, 66)], 9)
-    for (px, py) in ((12, 46), (16, 66)):
-        blob(px + 3, py, 3.5 * B)
-        for k in range(3):
-            d.line([(px + 2, py - 3 + 3 * k), (px - 5 - 2 * B, py - 6 + 4 * k)], fill=255, width=int(round(3 + B)))
-    # the hind legs: the left one standing, the right one raised forward
-    limb([(62, 84), (56, 98), (60, 108)], 11)
-    d.ellipse((42 - 2 * B, 108 - B, 64 + 2 * B, 119), fill=255)
-    limb([(58, 84), (42, 92), (28, 88)], 10)
+            blob(p[0], p[1], wd / 2 - 0.3)
+
+    def paw(x, y, r, a0, n=4, ln=7):
+        blob(x, y, r)
+        for k in range(n):
+            a = math.radians(a0 + k * 28)
+            d.line([(x, y), (x + (r + ln) * math.cos(a), y + (r + ln) * math.sin(a))], fill=fill, width=int(round(3 + 0.8 * B)))
+
+    # the mane: a big shaggy mass behind and under the head, rounded locks pointing back and down
+    mc = (50, 27)
+    blob(mc[0], mc[1], 12 + 1.0 * B)
+    for k in range(10):
+        a = math.radians(-100 + k * 26)
+        blob(mc[0] + (12 + 1.0 * B) * math.cos(a), mc[1] + (13 + 1.0 * B) * math.sin(a), 4.8 + 0.8 * B)
+    # the head in profile: the skull, the snout, the jaws open (roaring), an ear
+    blob(37, 17, 9 + 0.5 * B)
+    d.polygon([(36, 8), (22, 10), (11, 14), (9, 20), (24, 22), (38, 24)], fill=fill)           # the upper jaw and nose
+    d.polygon([(36, 27), (22, 28), (13, 31), (16, 35), (31, 35), (42, 31)], fill=fill)         # the lower jaw
+    d.polygon([(9, 21), (30, 23), (32, 27), (12, 30)], fill=0)                                  # the open mouth
+    d.polygon([(39, 10), (44, 0), (49, 8)], fill=fill)                                          # the ear
+    # the neck and the chest, the body down to the waist and the big hindquarters
+    d.polygon([(33, 34), (46, 36), (56, 42), (62, 52), (66, 60), (76, 66), (82, 78), (80, 90), (68, 96), (56, 90),
+               (50, 80), (42, 72), (35, 62), (32, 48)], fill=fill)
+    # the upper foreleg reaching forward and up, its paw with spread claws
+    limb([(42, 48), (29, 48), (18, 42)], 10)
+    paw(14, 40, 4.5 + 0.5 * B, -175)
+    # the lower foreleg reaching forward, its paw
+    limb([(46, 64), (32, 68), (20, 64)], 10)
+    paw(15, 63, 4.5 + 0.5 * B, -180)
+    # the raised hind leg (forward), its paw
+    limb([(64, 86), (50, 93), (38, 89)], 12)
+    paw(33, 88, 5 + 0.5 * B, -185, n=3)
+    # the standing hind leg, down to its paw
+    limb([(74, 90), (70, 104), (63, 112)], 12)
+    d.ellipse((44, 108 - B, 70, 119), fill=fill)
     for k in range(3):
-        d.line([(26, 85 + 3 * k), (19 - 2 * B, 82 + 4 * k)], fill=255, width=int(round(3 + B)))
-    # the tail, curling up behind, its tuft
-    pts = [(70, 80), (82, 72), (86, 58), (80, 44), (84, 30), (88, 22)]
-    limb(pts, 5 + 1.5 * B)
-    d.polygon([(82 - 2 * B, 26), (84, 12 - 2 * B), (92, 4 - 2 * B), (96 + 2 * B, 14), (94 + B, 26 + B)], fill=255)
+        d.line([(48, 112 + 2 * k), (38 - B, 110 + 3 * k)], fill=fill, width=int(round(3 + B)))
+    # the tail curling up behind in an S, its flame-shaped tuft
+    limb([(80, 82), (89, 76), (94, 64), (90, 52), (85, 42), (88, 32), (91, 27)], 6)
+    d.polygon([(84, 30), (81, 19), (86, 8), (92, 1), (96, 9), (100, 13), (98, 25), (93, 31)], fill=fill)
+
+
+def lion_mask(w, h, facing=-1, bold=0.0):
+    """Mask (an 'L' image, 0/255) of a heraldic rampant lion facing left (facing -1) or right (+1), as on the sails of
+    the references (P4 redraw): the head in profile with roaring open jaws and an ear, a big shaggy mane behind it, both
+    forelegs raised forward with spread claws, the body arching down to big hindquarters, the near hind leg raised
+    forward, the far one standing, the tail curling up behind in an S to a flame-shaped tuft. Drawn on a 100 x 120
+    canvas, scaled to w x h. bold (0..1): thicker limbs and mane (the big sail emblems)."""
+    big = Image.new("L", (100, 120), 0)
+    lion_shapes(ImageDraw.Draw(big), bold)
     if facing > 0:
         big = big.transpose(Image.FLIP_LEFT_RIGHT)
     return big.resize((w, h), Image.BILINEAR).point(lambda v: 255 if v > 110 else 0)
 
 
 def lion_detail(w, h, facing=-1):
-    """Mask of the carved lines inside the lion (drawn darker on the gold): the locks of the mane, the eye, the line
-    of the jaws, the far foreleg and hind leg set apart from the body, the tuft's strands."""
+    """Mask of the carved lines inside the lion (drawn darker on the gold): the locks of the mane, the eye and brow,
+    the far foreleg and hind leg set apart from the body, the haunch, the tuft's strands."""
     big = Image.new("L", (100, 120), 0)
     d = ImageDraw.Draw(big)
-    for k in range(9):
-        a = math.radians(-140 + k * 30)
-        d.line([(40 + 7 * math.cos(a), 30 + 7 * math.sin(a)), (40 + 17 * math.cos(a), 30 + 18 * math.sin(a))], fill=255, width=3)
-    d.arc((30, 36, 58, 62), 200, 340, fill=255, width=3)               # the mane's lower edge on the chest
-    d.ellipse((22, 20, 28, 26), fill=255)                               # the eye
-    d.line([(12, 31), (28, 33)], fill=255, width=3)                     # the jaws
-    d.line([(44, 56), (34, 64)], fill=255, width=3)                     # the far foreleg
-    d.line([(56, 86), (46, 92)], fill=255, width=3)                     # the far hind leg
-    d.line([(60, 66), (64, 80)], fill=255, width=3)                     # the haunch
-    d.line([(86, 20), (92, 8)], fill=255, width=2)
+    for k in range(8):                                   # the locks of the mane
+        a = math.radians(-100 + k * 30)
+        d.line([(50 + 6 * math.cos(a), 27 + 6 * math.sin(a)), (50 + 14 * math.cos(a), 27 + 15 * math.sin(a))], fill=255, width=3)
+    d.ellipse((28, 12, 33, 17), fill=255)                # the eye
+    d.line([(31, 9), (25, 12)], fill=255, width=2)       # the brow
+    d.line([(46, 62), (38, 66)], fill=255, width=3)      # the far foreleg against the chest
+    d.line([(60, 82), (52, 88)], fill=255, width=3)      # the far hind leg
+    d.line([(62, 64), (70, 78)], fill=255, width=3)      # the haunch
+    d.line([(90, 22), (94, 10)], fill=255, width=2)      # the tuft's strands
     if facing > 0:
         big = big.transpose(Image.FLIP_LEFT_RIGHT)
     return big.resize((w, h), Image.BILINEAR).point(lambda v: 255 if v > 90 else 0)
@@ -214,13 +223,24 @@ def _royal_sail(px, region, cols, rows, rng, lion=0.0, tri=None, pennant=False):
     mask = None
     if lion:
         lh = int(h * lion)
-        lw = int(lh * 100 / 120)
+        lw = int(lh * 100 / 120 * LION_WIDEN * (cw / ch))   # the cloths are not square in the region: keep the shape
         cell = max(2, int(round(min(cw, ch) / 4)))   # the emblem's blocks: a quarter of a cloth block
         lh, lw = lh // cell * cell, lw // cell * cell
-        mask = lion_mask(lw // cell, lh // cell, bold=1.0).resize((lw, lh), Image.NEAREST)
-        edge = _outline(lion_mask(lw // cell, lh // cell, bold=1.0)).resize((lw, lh), Image.NEAREST)
+        small = lion_mask(lw // cell, lh // cell, bold=1.6)
+        mask = small.resize((lw, lh), Image.NEAREST)
+        edge = _outline(small).resize((lw, lh), Image.NEAREST)
+        # a relief: the lower right edge of each gold block run shaded, the upper left lit
+        shade = Image.new("L", small.size, 0)
+        sp, mp = shade.load(), small.load()
+        for yy in range(small.height):
+            for xx in range(small.width):
+                if mp[xx, yy] and (xx + 1 >= small.width or not mp[xx + 1, yy] or yy + 1 >= small.height or not mp[xx, yy + 1]):
+                    sp[xx, yy] = 255
+                elif mp[xx, yy] and (xx == 0 or not mp[xx - 1, yy] or yy == 0 or not mp[xx, yy - 1]):
+                    sp[xx, yy] = 128
+        shade = shade.resize((lw, lh), Image.NEAREST)
         lines = lion_detail(lw // cell, lh // cell).resize((lw, lh), Image.NEAREST)
-        mx, my = (w - lw) // 2, int(h * 0.47 - lh / 2)
+        mx, my = (w - lw) // 2, int(h * 0.49 - lh / 2)
     border = max(6, int(round(min(w, h) * 0.06)))
     for y in range(h):
         for x in range(w):
@@ -244,11 +264,17 @@ def _royal_sail(px, region, cols, rows, rng, lion=0.0, tri=None, pennant=False):
                 c = _gold_at(x, y, 4)    # the thin gold stripe inside each leech
             if mask is not None and mx <= x < mx + mask.width and my <= y < my + mask.height:
                 if mask.getpixel((x - mx, y - my)):
-                    c = _gold_at(x - mx, y - my, max(2, cell))
+                    bx, by = (x - mx) // (2 * cell), (y - my) // (2 * cell)
+                    c = (GOLD, GOLD, GOLD_HI, GOLD, _mix(GOLD, GOLD_LO, 0.5))[((bx * 73856093) ^ (by * 19349663)) % 5]
+                    sh = shade.getpixel((x - mx, y - my))
+                    if sh == 255:
+                        c = _scale(GOLD_LO, 0.9)
+                    elif sh == 128:
+                        c = GOLD_HI
                     if lines.getpixel((x - mx, y - my)):
-                        c = _scale(GOLD_LO, 0.72)
+                        c = _scale(GOLD_LO, 0.68)
                 elif edge.getpixel((x - mx, y - my)):
-                    c = _rgb("10204e")
+                    c = _rgb("0c1a40")
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
     if tri is not None:
         # the gold bolt rope along the jib's three edges

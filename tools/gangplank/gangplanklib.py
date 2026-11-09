@@ -79,7 +79,7 @@ CAMO = {
     'sky_leviathan': ('7e5639', '5f422c', '5c3b21'),
     'dragon_junk': ('c7b99d', '746650', '5c3a24'),
     'steampunk_airship': ('704a2a', '48301a', 'a77d28'),
-    'royal_lion_ship': ('c89a31', '9c7422', 'daa83a'),
+    'royal_lion_ship': ('d3b138', '694e11', 'c29028'),
 }
 for _i, _s in enumerate(CAMO_SHIPS):
     _ox, _oy = (_i % 4) * 64, 128 + (_i // 4) * 16

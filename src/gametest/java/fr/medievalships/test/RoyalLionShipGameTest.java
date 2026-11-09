@@ -140,9 +140,9 @@ public final class RoyalLionShipGameTest {
 		double c = RoyalLionLayout.CABIN_FLOOR_Y, s = RoyalLionLayout.STATEROOM_FLOOR_Y, lo = RoyalLionLayout.LOWER_FLOOR_Y;
 		double m = RoyalLionLayout.MAIN_DECK_Y, q = RoyalLionLayout.QUARTERDECK_Y;
 		server.runCommand("gamemode spectator @a");
-		double[][] eyes = {{0.3, c + 1.62, -11.4}, {0.6, c + 1.62, -18.4}, {0.0, s + 1.62, -16.75}, {1.0, lo + 1.62, -4.0}, {1.5, lo + 1.62, -2.1},
-				{0.0, q + 3.0, -10.6}};
-		double[][] targets = {{0, c + 1.0, -19.5}, {0, c + 0.8, -11.0}, {0, s + 0.8, -19.5}, {0.5, lo + 0.6, -15.0}, {0, lo + 0.5, 14.0},
+		double[][] eyes = {{0.3, c + 1.62, -9.2}, {0.6, c + 1.62, -18.4}, {0.0, s + 1.62, -13.0}, {1.0, lo + 1.62, -4.0}, {1.5, lo + 1.62, -2.1},
+				{0.0, q + 3.0, -8.2}};
+		double[][] targets = {{0, c + 1.0, -19.5}, {0, c + 0.8, -8.5}, {0, s + 0.8, -19.5}, {0.5, lo + 0.6, -15.0}, {0, lo + 0.5, 14.0},
 				{0, m + 0.5, 8.0}};
 		String[] names = {"m1_cabine_vers_poupe", "m2_cabine_vers_porte", "m3_salle_apparat", "m4_quartiers_equipage", "m5_cale", "m6_cargaison_pont"};
 		for (int k = 0; k < eyes.length; k++) {
@@ -152,7 +152,7 @@ public final class RoyalLionShipGameTest {
 		}
 		server.runCommand("gamemode survival @a");
 		// sitting down and standing up
-		double[][] spots = {{-2.75, c + 0.56, -15.0}, {0.0, s + 0.5, -19.08}, {2.55, lo + 0.56, -10.4}};
+		double[][] spots = {{-2.75, c + 0.56, -15.0}, {1.05, s + 0.5, -16.0}, {2.55, lo + 0.56, -10.4}};
 		String[] what = {"the captain's chair", "a velvet chair of the state room", "a bench of the crew's mess"};
 		for (int k = 0; k < spots.length; k++) {
 			int seat = seatNear(spots[k][0], spots[k][1], spots[k][2]);
@@ -251,7 +251,8 @@ public final class RoyalLionShipGameTest {
 			if (m == null || m.textureCount() != 2) {
 				return false;
 			}
-			for (String a : new String[] {"sail_wind", "sail_furl", "steer", "flag_wave", "lantern_sway", "rope_sway", "door_0", "door_1", "door_2"}) {
+			for (String a : new String[] {"sail_wind", "sail_furl", "steer", "flag_wave", "lantern_sway", "rope_sway", "door_0", "door_1", "door_2",
+					"door_3"}) {
 				if (!m.animations.containsKey(a)) {
 					return false;
 				}
@@ -275,9 +276,9 @@ public final class RoyalLionShipGameTest {
 		double[][] spots = {
 				{0.0, RoyalLionLayout.MAIN_DECK_Y, 1.5, 180},
 				{0.0, RoyalLionLayout.FORECASTLE_Y, 15.5, 0},
-				{1.6, RoyalLionLayout.QUARTERDECK_Y, -13.2, 180},
+				{1.6, RoyalLionLayout.QUARTERDECK_Y, -10.6, 180},
 				{0.0, RoyalLionLayout.CABIN_FLOOR_Y, -12.5, 180},
-				{0.0, RoyalLionLayout.STATEROOM_FLOOR_Y, -17.0, 180},
+				{2.0, RoyalLionLayout.STATEROOM_FLOOR_Y, -16.0, 180},
 				{1.0, RoyalLionLayout.LOWER_FLOOR_Y, -10.0, 180},
 				{0.0, RoyalLionLayout.LOWER_FLOOR_Y, 2.0, 0}};
 		String[] where = {"main deck", "forecastle", "quarterdeck", "captain's cabin", "royal state room", "crew quarters", "cargo hold"};
@@ -309,9 +310,11 @@ public final class RoyalLionShipGameTest {
 			e.toggleDoor(RoyalLionLayout.CABIN_DOOR);
 			e.toggleDoor(RoyalLionLayout.STATEROOM_DOOR);
 			e.toggleDoor(RoyalLionLayout.BULKHEAD_DOOR);
-			return e.doorOpen(RoyalLionLayout.CABIN_DOOR) && e.doorOpen(RoyalLionLayout.STATEROOM_DOOR) && e.doorOpen(RoyalLionLayout.BULKHEAD_DOOR);
+			e.toggleDoor(RoyalLionLayout.STATEROOM_DOOR_S);
+			return e.doorOpen(RoyalLionLayout.CABIN_DOOR) && e.doorOpen(RoyalLionLayout.STATEROOM_DOOR) && e.doorOpen(RoyalLionLayout.BULKHEAD_DOOR)
+					&& e.doorOpen(RoyalLionLayout.STATEROOM_DOOR_S);
 		});
-		check.accept(opened, id + ": the cabin, state room and bulkhead doors open");
+		check.accept(opened, id + ": the cabin, bulkhead and both state room doors open");
 		furnishedRooms(context, server, check, log, shot);
 
 		// the gangplank onto a stone quay on the starboard side (top one block above the water), with its lever

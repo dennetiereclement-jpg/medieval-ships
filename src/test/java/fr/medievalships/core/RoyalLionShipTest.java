@@ -15,10 +15,11 @@ import org.junit.jupiter.api.Test;
 import fr.medievalships.client.model.BbModel;
 
 /**
- * The Royal Lion Ship: hull shape (same numbers as tools/royal_lion_shape.py), dimensions, interior grid (the main
- * deck, the forecastle, the quarterdeck, the captain's cabin, the royal state room, the crew quarters, the cargo
- * hold, the stairs and companionways between them, the three doors, no way out through the hull), the seats, the
- * boarding spot and the model (bones, animations, the sails with their gold lions, the shields, the figurehead).
+ * The Royal Lion Ship: hull shape (same numbers as tools/royal_lion_shape.py: P4, the higher freeboard and the strong
+ * sheer), dimensions, interior grid (the main deck, the forecastle, the quarterdeck, the captain's cabin, the royal
+ * state room in the castle's upper storey, the crew quarters, the cargo hold, the stairs and companionways between
+ * them, the four doors, no way out through the hull), the seats, the boarding spot and the model (bones, animations,
+ * the sails with their gold lions, the shields and banners, the leaping lion figurehead).
  */
 class RoyalLionShipTest {
 	private static final ShipType T = Ships.ROYAL_LION_SHIP;
@@ -34,14 +35,16 @@ class RoyalLionShipTest {
 	@Test
 	void matchesShapeGenerator() {
 		double[][] rows = {
-				{-20.0, 4.610249, 6.6, -1.4, -1.265035},
-				{-12.0, 5.838576, 6.305987, -3.1248, -2.886934},
-				{0.0, 6.0, 6.2, -3.6, -3.333333},
-				{10.5, 5.352171, 6.537044, -3.281653, -3.009145},
-				{17.0, 3.426553, 7.379673, -2.248925, -1.723403}};
+				{-20.0, 4.610249, 7.9, -1.0, -0.903596},
+				{-12.0, 5.838576, 7.132, -2.911083, -2.689486},
+				{0.0, 6.0, 6.7, -3.6, -3.333333},
+				{10.5, 5.352171, 7.69225, -3.113159, -2.854642},
+				{17.0, 3.426553, 9.301, -1.896028, -1.45297}};
 		HullShape h = T.hull();
 		for (double[] r : rows) {
 			assertEquals(r[1], h.halfWidth(r[0]), 1e-5, "half width at " + r[0]);
+			double floor = r[0] < RoyalLionLayout.CABIN_FRONT_Z ? Q + 1.0 : r[0] > RoyalLionLayout.FORECASTLE_Z ? F + 1.0 : Double.NEGATIVE_INFINITY;
+			assertEquals(Math.max(r[2], floor), h.railY(r[0]), 1e-5, "rail (the sheer, or the castle's bulwark) at " + r[0]);
 			assertEquals(r[3], h.keelY(r[0]), 1e-5, "keel at " + r[0]);
 			assertEquals(r[4], h.bottomY(r[0], 2.0), 1e-5, "bottom at " + r[0]);
 		}
@@ -120,20 +123,26 @@ class RoyalLionShipTest {
 
 	@Test
 	void decksAndRooms() {
-		room("main deck (waist)", -1.4, 1.4, M, 0.5, 4.5, false);
-		room("main deck (aft of the main mast)", 0.0, 1.8, M, -6.5, -2.0, false);
-		room("main deck (forward)", -1.6, 1.6, M, 6.8, 8.0, false);
+		room("main deck (waist)", -1.4, 1.4, M, 1.0, 5.0, false);
+		room("main deck (aft of the main mast)", 0.0, 1.8, M, -4.0, -1.6, false);
+		room("main deck (forward)", -1.6, 1.6, M, 7.0, 10.5, false);
 		room("forecastle", -1.6, 1.6, F, 14.0, 17.0, false);
-		room("quarterdeck (by the wheel)", -1.8, 1.8, Q, -13.4, -13.05, false);
-		room("quarterdeck (beside the mizzen)", 1.2, 2.4, Q, -12.8, -11.4, false);
-		room("quarterdeck (beside the mizzen, starboard)", -2.4, -1.2, Q, -12.8, -11.4, false);
-		room("captain's cabin (middle)", -0.8, 0.8, C, -18.0, -11.5, true);
-		room("royal state room", -1.6, 1.6, S, -17.0, -16.6, true);
+		room("quarterdeck (by the wheel)", -1.8, 1.8, Q, -10.6, -9.9, false);
+		room("quarterdeck (beside the mizzen)", 1.2, 2.4, Q, -11.6, -9.0, false);
+		room("quarterdeck (beside the mizzen, starboard)", -2.4, -1.2, Q, -11.6, -9.0, false);
+		room("captain's cabin (middle)", -0.8, 0.8, C, -18.0, -9.0, true);
+		room("royal state room (beside the table, port)", 1.8, 2.4, S, -17.6, -14.4, true);
+		room("royal state room (beside the table, starboard)", -2.4, -1.8, S, -17.6, -14.4, true);
+		room("royal state room (by the doors)", -2.4, 2.4, S, -13.2, -13.0, true);
 		room("crew quarters (beside the companionway)", -0.1, 1.4, L, -14.0, -3.5, true);
 		room("crew quarters (aft of the companionway)", -1.8, 1.4, L, -13.5, -8.0, true);
 		room("cargo hold (centre line)", -0.8, 0.8, L, -2.0, -1.8, true);
-		room("cargo hold (forward)", -0.8, 0.8, L, 0.5, 8.5, true);
-		room("cargo hold (before the fore mast)", -0.8, 0.8, L, 10.5, 13.5, true);
+		room("cargo hold (forward)", -0.8, 0.8, L, 0.5, 11.0, true);
+		room("cargo hold (before the fore mast)", -0.8, 0.8, L, 13.4, 13.6, true);
+		assertTrue(RoyalLionLayout.ROUNDHOUSE_FRONT_Z - RoyalLionLayout.TRANSOM_Z >= 7.9, "the castle's upper storey is about 8 blocks long");
+		assertTrue(RoyalLionLayout.CABIN_FRONT_Z - RoyalLionLayout.TRANSOM_Z >= 11.9, "the stern castle is 12 blocks long");
+		assertTrue(RoyalLionLayout.FORE_MAST_Z - RoyalLionLayout.MAIN_MAST_Z >= 12.5, "the fore and main masts are spread as on the pictures");
+		assertTrue(T.hull().railY(19.9) - T.hull().railY(0) > 3.0, "the strong sheer rising to the bow");
 		assertFalse(fits(-3.4, C, -15.0, CLOSED), "the captain's desk is solid");
 		assertFalse(fits(-4.2, L, 4.5, CLOSED), "a crate in the hold");
 		// outside the hull: the sea, not carried; the hull sides and the bottom are solid
@@ -146,9 +155,13 @@ class RoyalLionShipTest {
 		assertFalse(fits(5.4, M, 0, CLOSED), "bulwark");
 		assertFalse(fits(4.6, F, 16.0, CLOSED), "forecastle bulwark");
 		assertFalse(fits(4.8, Q, -12.0, CLOSED), "quarterdeck bulwark");
-		assertFalse(fits(0, Q, -16.25, CLOSED), "the state room's closed door");
-		assertTrue(fits(0, Q, -16.25, OPEN), "the state room's open door");
-		assertFalse(fits(2.5, Q, -16.25, CLOSED), "the state room's front wall");
+		double rf = RoyalLionLayout.ROUNDHOUSE_FRONT_Z - 0.25;
+		for (double x : new double[] {1.75, -1.75}) {
+			assertFalse(fits(x, Q, rf, CLOSED), "the state room's closed door at " + x);
+			assertTrue(fits(x, Q, rf, OPEN), "the state room's open door at " + x);
+		}
+		assertFalse(fits(3.6, Q, rf, CLOSED), "the state room's front wall");
+		assertFalse(fits(0, Q, rf, OPEN), "the state room's front wall behind the mizzen");
 		assertFalse(fits(0, S, -19.8, CLOSED), "the stern wall");
 		// the masts stop the walkers: the fore and main masts on deck and through the hold, the mizzen on the quarterdeck
 		assertFalse(fits(0, M, RoyalLionLayout.FORE_MAST_Z, CLOSED), "fore mast on deck");
@@ -157,6 +170,7 @@ class RoyalLionShipTest {
 		assertFalse(fits(0, L, RoyalLionLayout.MAIN_MAST_Z, CLOSED), "main mast through the hold");
 		assertFalse(fits(0, Q, RoyalLionLayout.MIZZEN_Z, CLOSED), "mizzen on the quarterdeck");
 		assertTrue(fits(0, C, RoyalLionLayout.MIZZEN_Z, CLOSED), "the cabin under the mizzen stays clear");
+		assertFalse(fits(0, M, RoyalLionLayout.FORE_MAST_Z, CLOSED), "fore mast at the forecastle's break");
 		// the bulkhead between the crew quarters and the hold, its door
 		assertFalse(fits(2.5, L, -2.75, CLOSED), "the bulkhead");
 		assertFalse(fits(0, L, -2.75, CLOSED), "the bulkhead's closed door");
@@ -220,7 +234,8 @@ class RoyalLionShipTest {
 		double z = RoyalLionLayout.CABIN_FRONT_Z - 0.25;
 		assertFalse(fits(0, C, z, CLOSED), "the closed cabin door");
 		assertTrue(fits(0, C, z, OPEN), "the open cabin door");
-		for (int d : new int[] {RoyalLionLayout.CABIN_DOOR, RoyalLionLayout.STATEROOM_DOOR, RoyalLionLayout.BULKHEAD_DOOR}) {
+		for (int d : new int[] {RoyalLionLayout.CABIN_DOOR, RoyalLionLayout.STATEROOM_DOOR, RoyalLionLayout.BULKHEAD_DOOR,
+				RoyalLionLayout.STATEROOM_DOOR_S}) {
 			assertNotNull(GRID.doorCenter(d), "door " + d);
 		}
 		double[] c = GRID.doorCenter(RoyalLionLayout.CABIN_DOOR);
@@ -228,11 +243,14 @@ class RoyalLionShipTest {
 		assertNotNull(p);
 		assertEquals(ShipGeometry.PickKind.DOOR, p.kind());
 		assertEquals(RoyalLionLayout.CABIN_DOOR, p.seat());
-		c = GRID.doorCenter(RoyalLionLayout.STATEROOM_DOOR);
-		p = G.pick(ORIGIN, c[0], c[1], c[2] + 1.1, 0, 0, -1, 5);
-		assertNotNull(p);
-		assertEquals(ShipGeometry.PickKind.DOOR, p.kind());
-		assertEquals(RoyalLionLayout.STATEROOM_DOOR, p.seat());
+		for (int d : new int[] {RoyalLionLayout.STATEROOM_DOOR, RoyalLionLayout.STATEROOM_DOOR_S}) {
+			c = GRID.doorCenter(d);
+			assertTrue(Math.abs(c[0]) > 1.0 && Math.abs(c[0]) < 2.5, "the state room's doors on each side of the mizzen");
+			p = G.pick(ORIGIN, c[0], c[1], c[2] + 1.1, 0, 0, -1, 5);
+			assertNotNull(p);
+			assertEquals(ShipGeometry.PickKind.DOOR, p.kind());
+			assertEquals(d, p.seat());
+		}
 	}
 
 	@Test
@@ -248,7 +266,7 @@ class RoyalLionShipTest {
 			double floor = floorUnder(d[0], d[1], d[2], CLOSED);
 			assertTrue(d[1] - floor < 0.1 && d[1] - floor >= 0, "seat " + s.index() + " stands up on a floor (" + floor + ")");
 		}
-		ShipGeometry.Pick p = G.pick(ORIGIN, 0, Q + 1.6, RoyalLionLayout.HELM_Z - 2.0, 0, -0.2, 1, 4);
+		ShipGeometry.Pick p = G.pick(ORIGIN, 0, Q + 1.6, RoyalLionLayout.HELM_Z - 1.0, 0, -0.2, 1, 4);
 		assertNotNull(p);
 		assertEquals(ShipGeometry.PickKind.HELM, p.kind());
 	}
@@ -270,13 +288,13 @@ class RoyalLionShipTest {
 		InteriorDecor d = G.decor();
 		assertTrue(d.blocks().size() >= 120, "decor blocks " + d.blocks().size());
 		assertTrue(d.paintings().size() >= 3, "paintings " + d.paintings().size());
-		assertTrue(G.seats().size() >= 16, "seats " + G.seats().size());
+		assertTrue(G.seats().size() >= 20, "seats " + G.seats().size());
 		assertTrue(d.blocks().stream().filter(InteriorDecor.Block::glow).count() >= 12, "glowing lanterns");
-		assertTrue(blocksIn(-5, 5, C - 0.1, C + 1.5, -19.5, -11.0) >= 15, "the captain's cabin is furnished");
-		assertTrue(blocksIn(-5, 5, S - 0.1, S + 1.5, -19.5, -16.5) >= 15, "the state room is furnished");
+		assertTrue(blocksIn(-5, 5, C - 0.1, C + 1.5, -19.5, -8.5) >= 15, "the captain's cabin is furnished");
+		assertTrue(blocksIn(-5, 5, S - 0.1, S + 1.5, -19.5, -12.5) >= 15, "the state room is furnished");
 		assertTrue(blocksIn(-6, 6, L - 0.1, L + 1.5, -15.0, -3.0) >= 15, "the crew quarters are furnished");
 		assertTrue(blocksIn(-6, 6, L - 0.1, L + 1.5, -2.5, 14.5) >= 25, "the hold is furnished");
-		assertTrue(blocksIn(-6, 6, M - 0.1, M + 1.5, -10.0, 13.0) >= 15, "cargo on the main deck");
+		assertTrue(blocksIn(-6, 6, M - 0.1, M + 1.5, -8.0, 13.0) >= 15, "cargo on the main deck");
 		for (InteriorDecor.Block b : d.blocks()) {
 			byte k = GRID.kindAt(b.x(), b.y() + 0.05, b.z());
 			assertTrue(k != 1, "decor block in a wall, a deck or the hull: " + b.block() + " at " + b.x() + ", " + b.y() + ", " + b.z());
@@ -291,15 +309,16 @@ class RoyalLionShipTest {
 			assertTrue(G.inCarryVolume(s.x(), s.y(), s.z()), "seat " + s.index() + " aboard");
 		}
 		assertFalse(fits(3.45, C, -17.0, CLOSED), "the captain's bed is solid");
-		assertFalse(fits(0.0, S, -18.0, CLOSED), "the state room's table is solid");
+		assertFalse(fits(0.0, S, -16.0, CLOSED), "the state room's table is solid");
 		assertFalse(fits(4.4, L, -13.2, CLOSED), "a crew bunk is solid");
-		assertFalse(fits(-4.35, M, -4.8, CLOSED), "deck cargo is solid");
-		assertTrue(fits(0.0, M, -6.4, CLOSED) && fits(3.25, M, -6.4, CLOSED), "the way to the quarterdeck stair stays clear");
+		assertFalse(fits(-4.35, M, -3.1, CLOSED), "deck cargo is solid");
+		double sz = RoyalLionLayout.QD_STAIR_Z[0] + 0.4;
+		assertTrue(fits(0.0, M, sz, CLOSED) && fits(3.25, M, sz, CLOSED) && fits(-3.25, M, sz, CLOSED), "the way to the quarterdeck stairs stays clear");
 	}
 
 	@Test
 	void boardingSpotIsOnTheMainDeck() {
-		for (double z = -3; z <= 12; z += 2.5) {
+		for (double z = -3; z <= 11; z += 2.0) {
 			for (double x : new double[] {7.0, -7.0}) {
 				double[] b = G.boardingSpot(x, z);
 				assertEquals(M + 0.02, b[1], 1e-9, "boarding at " + x + ", " + z);
@@ -328,12 +347,13 @@ class RoyalLionShipTest {
 		for (String bone : new String[] {"hull", "sterncastle", "deck", "bow", "rooms", "furniture", "fittings", "detail", "helm_wheel", "rudder",
 				"mast_fore", "mast_main", "mast_mizzen", "sail_fore_course", "sail_fore_topsail", "sail_main_course", "sail_main_topsail",
 				"sail_mizzen_course", "sail_jibs", "flag_fore", "flag_fore_tip", "flag_main", "flag_mizzen", "flag_stern", "flag_stern_tip",
-				"lantern_stern_p", "lantern_stern_s", "lantern_bow", "lantern_hull_p0", "door_0_a", "door_0_b", "door_1_a", "door_2_b",
+				"lantern_stern_p", "lantern_stern_s", "lantern_bow", "lantern_hull_p0", "door_0_a", "door_0_b", "door_1_a", "door_2_b", "door_3_a",
 				"rope_slack_fore_brace_p", "rope_slack_main_topmast_stay"}) {
 			assertNotNull(m.bonesByName.get(bone), "bone " + bone);
 		}
 		assertEquals(3, m.bonesByName.keySet().stream().filter(b -> b.startsWith("mast_")).count(), "three masts");
-		for (String anim : new String[] {"sail_wind", "sail_furl", "steer", "flag_wave", "lantern_sway", "rope_sway", "door_0", "door_1", "door_2"}) {
+		for (String anim : new String[] {"sail_wind", "sail_furl", "steer", "flag_wave", "lantern_sway", "rope_sway", "door_0", "door_1", "door_2",
+				"door_3"}) {
 			assertNotNull(m.animations.get(anim), "animation " + anim);
 		}
 		assertEquals(2, m.textureCount(), "the hull atlas and the sail atlas");

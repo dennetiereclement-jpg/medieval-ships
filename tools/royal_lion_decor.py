@@ -236,37 +236,47 @@ def barrel_on_rack(x, y, z, along_x=False, bid=LI + "loaded_cypress_barrel"):
 
 
 # ---------------------------------------------------------------- the rooms
+# the windows of the castle (the same places as the model, tools/generate_royal_lion.py)
+CABIN_WIN_Z = (-18.3, -15.5, -12.7, -9.9)
+CABIN_WIN_Y = C + 1.85
+UPPER_WIN_Z = (-19.0, -17.45, -15.9, -14.35, -12.8)
+UPPER_WIN_Y = Q + 1.75
+STERN_WIN_X = (-2.85, -0.95, 0.95, 2.85)
+
+
 def captain_cabin():
-    """Cabine du capitaine (main deck level, under the quarterdeck): the cushioned window seat under the four arched
-    stern windows (the inside of every window shown), the double bed against the port side under a lion tapestry, the
-    open strongbox of gold at its foot, a dresser and the tall bookcase by the door; the desk on the starboard side
+    """Cabine du capitaine (main deck level, under the quarterdeck, 11 blocks long): the cushioned window seat under
+    the four arched stern windows (the inside of every window shown), the double bed against the port side under a lion
+    tapestry, the open strongbox of gold at its foot, a dresser and the tall bookcase; the desk on the starboard side
     with the captain's chair, the chart, the compass, books and coins, a sea chart on the wall, the telescope at the
-    stern windows, the globe and the wardrobe by the door; the royal blue carpet with the gold lion in the middle, the
-    gold chandelier, lanterns on the walls, a gold-framed painting on the bulkhead."""
+    stern windows; forward, a reading corner (two velvet chairs and a little table) and the wardrobe by the door, the
+    globe; the royal blue carpets with the gold lion down the middle, two gold chandeliers, lanterns on the walls, a
+    gold-framed painting on the bulkhead."""
     zw = wall_z(0.0, C + 1.0, -15.0, -1)                    # the stern wall (-19.5)
     # the window seat and the stern windows
     custom("window_seat", solid=(-3.5, 3.5, C, C + 0.5, zw, zw + 0.62), name="cabin_window_seat", x0=-3.5, x1=3.5, z_wall=zw, y=C)
     for x in (-1.0, 1.0):
         seat(x, C + 0.48, zw + 0.32, x, C, zw + 1.05)
-    for j, x in enumerate((-2.85, -0.95, 0.95, 2.85)):
-        custom("inner_window", name="cabin_stern_window_%d" % j, c=(x, 6.35, zw), normal=(0, 0, 1), w=0.95, h=1.55)
+    for j, x in enumerate(STERN_WIN_X):
+        custom("inner_window", name="cabin_stern_window_%d" % j, c=(x, CABIN_WIN_Y, zw), normal=(0, 0, 1), w=0.95, h=1.55)
     for side in (1, -1):
-        for j, z in enumerate((-18.4, -15.75, -13.15)):
-            side_window("cabin_window_%s%d" % ("p" if side > 0 else "s", j), side, z, 6.35, 1.0, 1.5)
-    zb = wall_z(0.0, C + 1.0, -15.0, 1)                     # the forward bulkhead (-11.0)
+        for j, z in enumerate(CABIN_WIN_Z):
+            side_window("cabin_window_%s%d" % ("p" if side > 0 else "s", j), side, z, CABIN_WIN_Y, 0.95, 1.5)
+    zb = wall_z(0.0, C + 1.0, -15.0, 1)                     # the forward bulkhead (-8.5)
     for side in (1, -1):
-        custom("inner_window", name="cabin_bulkhead_window_%s" % ("p" if side > 0 else "s"), c=(side * 1.9, 6.0, zb), normal=(0, 0, -1),
+        custom("inner_window", name="cabin_bulkhead_window_%s" % ("p" if side > 0 else "s"), c=(side * 1.9, C + 1.5, zb), normal=(0, 0, -1),
                w=0.75, h=1.2)
     # port: the bed under the lion tapestry, the night stand, the strongbox at the foot of the bed, the dresser, the bookcase
     block(FD + "double_bed", 3.45, C, -17.0, "bow", centre=True)
     block(FD + "night_stand", 1.95, C, -18.2, "bow", centre=True)
     block(FD + "kerosene_lantern", 1.95, C + 0.625, -18.15, "bow", solid=False)
-    custom("tapestry", name="cabin_tapestry", center=(wall_x(-17.1, 6.3, 1), 6.3, -17.1), normal=(-1, 0, 0), w=0.9, h=1.2)
+    custom("tapestry", name="cabin_tapestry", center=(wall_x(-17.0, C + 1.8, 1), C + 1.8, -17.0), normal=(-1, 0, 0), w=0.9, h=1.2)
     custom("strongbox", solid=(2.95, 3.95, C, C + 0.55, -15.8, -15.2), name="cabin_strongbox", p=(3.45, C, -15.5), yaw=0.0)
-    block(FD + "dresser", 4.55, C, -13.2, "starboard", centre=True)
-    block(FD + "cigar_box", 4.55, C + 1.016, -13.45, "starboard", solid=False)
-    block(FU + "picture_frame", 4.6, C + 1.016, -12.85, "starboard", solid=False)
-    block(FD + "tall_bookshelf", 4.5, C, -11.55, "starboard", centre=True)
+    block(FD + "dresser", 4.55, C, -13.6, "starboard", centre=True)
+    block(FD + "cigar_box", 4.55, C + 1.016, -13.85, "starboard", solid=False)
+    block(FU + "picture_frame", 4.6, C + 1.016, -13.25, "starboard", solid=False)
+    block(FD + "tall_bookshelf", 4.5, C, -11.45, "starboard", centre=True)
+    block(FD + "liquor_cabinet", 4.42, C, -9.75, "starboard", centre=True)
     # starboard: the desk and the captain's chair, what lies on the desk, the sea chart on the wall, the telescope
     block(FD + "desk", -4.0, C, -15.0, "port", centre=True)
     top = C + 1.016
@@ -278,73 +288,83 @@ def captain_cabin():
     block(FD + "kerosene_lantern", -4.3, top, -13.85, "port", solid=False)
     block(FD + "red_wine_bottle", -4.3, top, -14.4, "port", solid=False)
     block(FD + "wine_glass", -4.05, top, -14.55, "port", solid=False)
-    xw = wall_x(-17.1, 6.2, -1)
-    custom("wall_chart", name="cabin_sea_chart", center=(xw, 6.25, -17.1), normal=(1, 0, 0), w=0.95, h=0.7)
+    xw = wall_x(-17.0, C + 1.7, -1)
+    custom("wall_chart", name="cabin_sea_chart", center=(xw, C + 1.75, -17.0), normal=(1, 0, 0), w=0.95, h=0.7)
     custom("telescope", name="cabin_telescope", p=(-3.55, C, -18.45), facing="starboard")
-    # forward starboard: the wardrobe against the bulkhead, the globe
+    # forward starboard: the reading corner (two velvet chairs either side of a little table), the globe, the wardrobe
+    chair(FU + "crimson_chair", -4.2, C, -12.3, "port", (-3.1, -12.3))
+    block(FD + "night_stand", -4.35, C, -11.35, "port", centre=True)
+    block(FD + "pile_of_books", -4.35, C + 0.625, -11.4, "port", solid=False)
+    chair(FU + "crimson_chair", -4.2, C, -10.4, "port", (-3.1, -10.4))
+    custom("globe", solid=(-3.0, -2.4, C, C + 1.3, -11.65, -11.05), name="cabin_globe", p=(-2.7, C, -11.35))
     block(FD + "wardrobe", -3.6, C, zb - 0.43, "stern", centre=True)
-    custom("globe", solid=(-3.25, -2.65, C, C + 1.3, -12.45, -11.85), name="cabin_globe", p=(-2.95, C, -12.15))
-    # the middle: the carpet, the chandelier, lanterns on the walls, the painting on the bulkhead
+    # the middle: the carpets, the chandeliers, lanterns on the walls, the painting on the bulkhead
     custom("royal_rug", name="cabin_rug", p=(0.0, C, -15.2), w=3.0, l=4.0)
+    custom("royal_rug", name="cabin_rug_fore", p=(0.0, C, -11.2), w=2.6, l=3.2)
     custom("chandelier", name="chandelier_cabin", hook=(0.0, CABIN_CEIL, -15.4), drop=0.5, r=0.5, n=6)
-    lantern(-3.6, CABIN_CEIL, -15.5)
+    custom("chandelier", name="chandelier_cabin_fore", hook=(0.0, CABIN_CEIL, -11.2), drop=0.45, r=0.45, n=6)
+    lantern(-3.6, CABIN_CEIL, -16.5)
     for side in (1, -1):
-        wall_lantern(side, 6.0, -14.45)
-    painting("cabin_painting", "sea", (3.2, 6.3, zb), (0, 0, -1), 1.1, 0.6)
+        wall_lantern(side, C + 1.5, -14.1)
+    painting("cabin_painting", "sea", (3.2, C + 1.8, zb), (0, 0, -1), 1.1, 0.6)
 
 
 def stateroom():
-    """Salle d'apparat (the roundhouse on the quarterdeck, under the blue roof): the long dining table across the room
-    with three gold-trimmed velvet chairs on the stern side and two high-backed thrones at its ends, laid with fine
-    plates, glasses, a roast and a gold candelabra; the liquor cabinet and two dressers along the side walls, the
-    royal tapestry between the middle stern windows, gold-framed portraits beside the door, the gold chandelier, the
-    inside of every arched window."""
+    """Salle d'apparat (the upper storey of the castle, on the quarterdeck under the blue roof, 7 blocks long inside):
+    the long dining table down the middle of the room with three gold-trimmed velvet chairs on each side and two
+    high-backed thrones at its ends, laid with fine plates, glasses, roasts and gold candelabra; the liquor cabinet
+    and two dressers along the side walls between the windows, the royal tapestry between the middle stern windows, a
+    gold-framed portrait over the middle of the front wall (the mizzen stands outside, between the two doors), two gold
+    chandeliers, the inside of every arched window."""
     f = Q
-    zw = wall_z(0.0, f + 1.0, -17.5, -1)                    # the stern wall (-19.5)
-    zf = wall_z(0.0, f + 1.0, -17.5, 1)                     # the front wall (-16.5)
-    wy, ww, wh = f + 1.6, 0.85, 1.3
-    for j, x in enumerate((-2.7, -0.9, 0.9, 2.7)):
+    zw = wall_z(0.0, f + 1.0, -16.0, -1)                    # the stern wall (-19.5)
+    zf = wall_z(0.0, f + 1.0, -16.0, 1)                     # the front wall (-12.5)
+    wy, ww, wh = UPPER_WIN_Y, 1.0, 1.85
+    for j, x in enumerate(STERN_WIN_X):
         custom("inner_window", name="state_stern_window_%d" % j, c=(x, wy, zw), normal=(0, 0, 1), w=ww, h=wh)
     for side in (1, -1):
-        for j, z in enumerate((-19.0, -17.5)):
-            side_window("state_window_%s%d" % ("p" if side > 0 else "s", j), side, z, wy, 0.8, wh)
-        custom("inner_window", name="state_front_window_%s" % ("p" if side > 0 else "s"), c=(side * 2.75, wy, zf), normal=(0, 0, -1), w=ww,
-               h=wh)
-    # the table: two ends with turned legs, a middle leaf
-    zt = -18.0
-    block(FD + "dining_table_side", 1.0, f, zt, "port")
-    block(FD + "dining_table_middle", 0.0, f, zt, "stern")
-    block(FD + "dining_table_side", -1.0, f, zt, "starboard")
-    for x in (-1.0, 0.0, 1.0):
-        chair(FU + "crimson_chair", x, f, zw + 0.42, "bow", (x, zw + 0.42))
+        for j, z in enumerate(UPPER_WIN_Z):
+            side_window("state_window_%s%d" % ("p" if side > 0 else "s", j), side, z, wy, ww, wh)
+        custom("inner_window", name="state_front_window_%s" % ("p" if side > 0 else "s"), c=(side * 3.9, wy, zf), normal=(0, 0, -1), w=0.8,
+               h=1.4)
+    # the table down the middle: two ends with turned legs, a middle leaf
+    zt = (-17.0, -16.0, -15.0)
+    block(FD + "dining_table_side", 0.0, f, zt[0], "bow")
+    block(FD + "dining_table_middle", 0.0, f, zt[1], "port")
+    block(FD + "dining_table_side", 0.0, f, zt[2], "stern")
     for side in (1, -1):
-        chair(FU + "dark_oak_chair", side * 2.25, f, zt, "starboard" if side > 0 else "port", (side * 2.3, zt + 1.0))
-    custom("royal_rug", name="state_rug", p=(0.0, f, zt), w=2.3, l=3.4, yaw=math.pi / 2)
+        for z in zt:
+            chair(FU + "crimson_chair", side * 1.05, f, z, "starboard" if side > 0 else "port", (side * 1.95, z))
+    chair(FU + "dark_oak_chair", 0.0, f, -18.15, "bow", (1.2, -18.15))
+    chair(FU + "dark_oak_chair", 0.0, f, -13.85, "stern", (1.2, -13.85))
+    custom("royal_rug", name="state_rug", p=(0.0, f, -16.0), w=3.2, l=5.2)
     top = f + 1.0
-    custom("candelabra", name="state_candelabra", p=(0.0, top, zt + 0.12))
-    for x in (-1.0, 0.0, 1.0):
-        block(FU + "rare_english_plate", x, top, zt - 0.22, "stern", solid=False, scale=0.5)
-        block(FD + "wine_glass", x + 0.28, top, zt - 0.3, "stern", solid=False)
-    for side in (1, -1):
-        block(FU + "rare_english_plate", side * 1.25, top, zt, "stern", solid=False, scale=0.5)
-    block(FR + "roast_chicken_block", -0.55, top, zt + 0.18, "stern", solid=False, scale=0.55)
-    block(FD + "red_wine_bottle", 0.5, top, zt + 0.22, "stern", solid=False)
-    block(FD + "wine_bottle", 0.72, top, zt + 0.1, "stern", solid=False)
+    custom("candelabra", name="state_candelabra", p=(0.0, top, -16.5))
+    custom("candelabra", name="state_candelabra_2", p=(0.0, top, -15.3))
+    for z in zt:
+        for side in (1, -1):
+            block(FU + "rare_english_plate", side * 0.25, top, z, "stern", solid=False, scale=0.5)
+            block(FD + "wine_glass", side * 0.4, top, z - 0.3, "stern", solid=False)
+    block(FU + "rare_english_plate", 0.0, top, -17.4, "stern", solid=False, scale=0.5)
+    block(FU + "rare_english_plate", 0.0, top, -14.6, "stern", solid=False, scale=0.5)
+    block(FR + "roast_chicken_block", 0.0, top, -15.9, "stern", solid=False, scale=0.55)
+    block(FD + "red_wine_bottle", 0.12, top, -16.95, "stern", solid=False)
+    block(FD + "wine_bottle", -0.12, top, -15.05, "stern", solid=False)
     # along the walls: the liquor cabinet (port), two dressers (starboard) with a candelabra and a framed picture
-    xp = wall_x(-17.5, f + 0.5, 1)
-    block(FD + "liquor_cabinet", xp - 0.36, f, -17.6, "starboard", centre=True)
-    xs = wall_x(-17.5, f + 0.5, -1)
-    block(FD + "dresser", xs + 0.38, f, -17.05, "port", centre=True)
-    block(FD + "dresser", xs + 0.38, f, -18.05, "port", centre=True)
-    custom("candelabra", name="state_candelabra_side", p=(xs + 0.4, f + 1.016, -17.05))
-    block(FU + "picture_frame", xs + 0.42, f + 1.016, -18.1, "port", solid=False)
-    # the royal tapestry over the middle chair, the portraits beside the door, the chandelier, lanterns
+    xp = wall_x(-16.7, f + 0.5, 1)
+    block(FD + "liquor_cabinet", xp - 0.36, f, -16.7, "starboard", centre=True)
+    xs = wall_x(-16.7, f + 0.5, -1)
+    block(FD + "dresser", xs + 0.38, f, -16.2, "port", centre=True)
+    block(FD + "dresser", xs + 0.38, f, -17.2, "port", centre=True)
+    custom("candelabra", name="state_candelabra_side", p=(xs + 0.4, f + 1.016, -16.2))
+    block(FU + "picture_frame", xs + 0.42, f + 1.016, -17.25, "port", solid=False)
+    # the royal tapestry between the middle stern windows, the portrait over the middle of the front wall
     custom("tapestry", name="state_tapestry", center=(0.0, f + 1.75, zw), normal=(0, 0, 1), w=0.5, h=0.85)
-    painting("state_portrait_p", "bust", (1.75, f + 1.6, zf), (0, 0, -1), 0.6, 0.6)
-    painting("state_portrait_s", "wanderer", (-1.75, f + 1.55, zf), (0, 0, -1), 0.45, 0.85)
-    custom("chandelier", name="chandelier_state", hook=(0.0, STATE_CEIL, zt + 0.05), drop=0.45, r=0.45, n=6)
+    painting("state_portrait", "bust", (0.0, f + 1.7, zf), (0, 0, -1), 0.9, 0.9)
+    custom("chandelier", name="chandelier_state", hook=(0.0, STATE_CEIL, -17.2), drop=0.45, r=0.45, n=6)
+    custom("chandelier", name="chandelier_state_fore", hook=(0.0, STATE_CEIL, -14.6), drop=0.45, r=0.45, n=6)
     for side in (1, -1):
-        wall_lantern(side, f + 2.1, -18.25)
+        wall_lantern(side, f + 2.1, -15.12)
 
 
 def crew_quarters():
@@ -393,6 +413,7 @@ def crew_quarters():
     # starboard forward: the halberds of the guard on the bulkhead, a coat rack, a cask, a sack
     zb = wall_z(-3.5, f + 1.0, -5.0, 1)
     custom("halberd_rack", name="crew_halberds", p=(-3.9, f, zb), normal=(0, 0, -1), n=4)
+    painting("crew_painting", "kebab", (2.6, f + 1.75, zb), (0, 0, -1), 0.6, 0.6)
     block(FD + "coat_hanger", -2.75, f, -3.6, "stern", solid=False)
     barrel_on_rack(-4.6, f, -5.4, along_x=False)
     block(FR + "rice_bag", -4.6, f, -6.6, "starboard")
@@ -448,64 +469,63 @@ def hold():
     block(FU + "amphora", 3.1, f, 12.6, "stern")
     block(FU + "blue_amphora", 2.25, f, 13.4, "stern")
     block(FU + "yellow_amphora", 3.2, f, 13.55, "stern", scale=0.8)
-    for z in (1.5, 6.0, 11.5):
+    for z in (1.5, 6.0, 10.0):
         lantern(0.0, HOLD_CEIL, z)
 
 
 def deck():
     """Pont principal, gaillards: the deck cargo of the references (044, 071): crates two high under white canvas
     lashed down, white bales of cloth, barrels, sacks, coils of rope at the masts; the benches against the bulwarks
-    forward of the main mast and on the quarterdeck under the awning; clear of the stairs, the hatches, the capstan,
-    the gangplank's stairs and lever (starboard, z 1.2..5.3) and of the boarding strip within 1.9 of the centre line."""
+    by the main mast and on the quarterdeck under the awning; clear of the stairs, the hatches, the capstan, the
+    gangplank's stairs and lever (starboard, z 1.5..5.4) and of the boarding strip within 1.9 of the centre line."""
     for side in (1, -1):
         x = side * 4.45
-        block(FU + "spruce_bench", x, M, -0.2, "bow", solid=False)
-        seat(x, M + 0.562, -0.2, x - side * 0.9, M, -0.2)
-    # port, aft of the main mast: four crates, two more on the outboard pair under a white canvas, a sack, two barrels
-    for z in (-5.3, -4.3):
+        block(FU + "spruce_bench", x, M, 0.6, "bow", solid=False)
+        seat(x, M + 0.562, 0.6, x - side * 0.9, M, 0.6)
+    # port, aft of the main mast (forward of the quarterdeck stair): four crates, two more under a white canvas, barrels
+    for z in (-3.6, -2.6):
         crate_stack(4.35, M, z, 2)
-        block(FU + "dark_oak_crate" if z < -5 else FU + "spruce_crate", 3.35, M, z, "port")
-    custom("tarp_stack", name="deck_tarp_0", p=(4.35, M + 1.0, -4.8), yaw=math.pi / 2, w=2.0, d=1.0, h=1.0)
-    block(FR + "rice_bag", 3.35, M + 1.0, -5.3, "port", solid=False, scale=0.75)
-    custom("barrel", solid=(2.6, 3.3, M, M + 0.9, -3.45, -2.75), name="deck_barrel_0", p=(2.95, M, -3.1))
-    custom("barrel", solid=(3.45, 4.15, M, M + 0.9, -3.05, -2.35), name="deck_barrel_1", p=(3.8, M, -2.7))
+    block(FU + "spruce_crate", 3.35, M, -2.6, "port")
+    custom("tarp_stack", name="deck_tarp_0", p=(4.35, M + 1.0, -3.1), yaw=math.pi / 2, w=2.0, d=1.0, h=1.0)
+    block(FR + "rice_bag", 3.35, M + 1.0, -2.6, "port", solid=False, scale=0.75)
+    custom("barrel", solid=(3.0, 3.7, M, M + 0.9, -1.85, -1.15), name="deck_barrel_0", p=(3.35, M, -1.5))
+    custom("barrel", solid=(3.95, 4.65, M, M + 0.9, -1.75, -1.05), name="deck_barrel_1", p=(4.3, M, -1.4))
     # starboard, aft of the main mast (outboard of the crew companionway): crates, a white bale, a coil of rope
-    crate_stack(-4.4, M, -5.3, 2)
-    block(FU + "spruce_crate", -4.4, M, -4.3, "starboard")
-    block(FU + "dark_oak_crate", -3.4, M, -5.3, "starboard")
-    custom("bale", solid=(-3.85, -2.95, M, M + 0.8, -4.55, -3.75), name="deck_bale_s", p=(-3.4, M, -4.15), w=0.9, h=0.8, d=0.8)
-    custom("coil", name="deck_coil_0", p=(-3.3, M, -2.6), r=0.32)
+    crate_stack(-4.4, M, -3.6, 2)
+    block(FU + "spruce_crate", -4.4, M, -2.6, "starboard")
+    custom("bale", solid=(-3.95, -3.05, M, M + 0.8, -2.0, -1.2), name="deck_bale_s", p=(-3.5, M, -1.6), w=0.9, h=0.8, d=0.8)
+    custom("coil", name="deck_coil_0", p=(-3.2, M, -0.6), r=0.32)
     # port, forward of the main mast: the white bales of 044, a barrel
-    custom("bale", solid=(3.8, 4.9, M, M + 0.85, 0.45, 1.45), name="deck_bale_0", p=(4.35, M, 0.95), w=1.1, h=0.85, d=1.0)
-    custom("bale", solid=(3.8, 4.9, M, M + 0.85, 1.55, 2.55), name="deck_bale_1", p=(4.35, M, 2.05), w=1.1, h=0.85, d=1.0)
-    custom("bale", solid=(3.9, 4.8, M + 0.85, M + 1.55, 1.1, 1.9), name="deck_bale_2", p=(4.35, M + 0.85, 1.5), yaw=0.2, w=0.9, h=0.7, d=0.8)
-    custom("barrel", solid=(2.75, 3.45, M, M + 0.9, 0.85, 1.55), name="deck_barrel_2", p=(3.1, M, 1.2))
-    custom("coil", name="deck_coil_1", p=(1.15, M, -2.1), r=0.3)
+    custom("bale", solid=(3.8, 4.9, M, M + 0.85, 1.55, 2.55), name="deck_bale_0", p=(4.35, M, 2.05), w=1.1, h=0.85, d=1.0)
+    custom("bale", solid=(3.8, 4.9, M, M + 0.85, 2.65, 3.65), name="deck_bale_1", p=(4.35, M, 3.15), w=1.1, h=0.85, d=1.0)
+    custom("bale", solid=(3.9, 4.8, M + 0.85, M + 1.55, 2.2, 3.0), name="deck_bale_2", p=(4.35, M + 0.85, 2.6), yaw=0.2, w=0.9, h=0.7, d=0.8)
+    custom("barrel", solid=(2.75, 3.45, M, M + 0.9, 1.65, 2.35), name="deck_barrel_2", p=(3.1, M, 2.0))
+    custom("coil", name="deck_coil_1", p=(1.15, M, -1.8), r=0.3)
     # starboard, forward of the gangplank: crates two high under canvas, a barrel and a sack
-    for z in (6.4, 7.4):
+    for z in (6.6, 7.6):
         crate_stack(-4.2, M, z, 2, facing="starboard")
-    block(FU + "spruce_crate", -3.2, M, 6.4, "starboard")
-    custom("tarp_stack", name="deck_tarp_1", p=(-4.2, M + 1.0, 6.9), yaw=math.pi / 2, w=2.0, d=1.0, h=1.0)
-    block(LI + "cypress_barrel", -3.2, M, 7.5, "starboard")
-    block(FR + "rice_bag", -3.2, M + 1.0, 6.4, "starboard", solid=False, scale=0.75)
+    block(FU + "spruce_crate", -3.2, M, 6.6, "starboard")
+    custom("tarp_stack", name="deck_tarp_1", p=(-4.2, M + 1.0, 7.1), yaw=math.pi / 2, w=2.0, d=1.0, h=1.0)
+    block(LI + "cypress_barrel", -3.2, M, 7.7, "starboard")
+    block(FR + "rice_bag", -3.2, M + 1.0, 6.6, "starboard", solid=False, scale=0.75)
     # port, forward: barrels lying, a crate, a coil; starboard forward: white bales and a sack
-    block(LI + "cypress_barrel", 4.0, M, 9.2, "port")
-    block(LI + "fir_barrel", 4.0, M, 10.2, "port")
-    block(FU + "dark_oak_crate", 3.0, M, 9.7, "port")
-    custom("coil", name="deck_coil_2", p=(1.2, M, 8.3), r=0.3)
-    custom("bale", solid=(-4.35, -3.25, M, M + 0.85, 8.85, 9.85), name="deck_bale_3", p=(-3.8, M, 9.35), w=1.1, h=0.85, d=1.0)
-    block(FR + "rice_bag", -3.9, M, 10.4, "starboard")
+    block(LI + "cypress_barrel", 4.0, M, 8.6, "port")
+    block(LI + "fir_barrel", 4.0, M, 9.6, "port")
+    block(FU + "dark_oak_crate", 3.0, M, 9.1, "port")
+    custom("coil", name="deck_coil_2", p=(1.3, M, 10.6), r=0.3)
+    custom("bale", solid=(-4.35, -3.25, M, M + 0.85, 8.75, 9.75), name="deck_bale_3", p=(-3.8, M, 9.25), w=1.1, h=0.85, d=1.0)
+    block(FR + "rice_bag", -3.9, M, 10.3, "starboard")
     # the forecastle: barrels, a crate and a white bale by the bulwarks
     block(LI + "cypress_barrel", 2.9, F, 15.0, "port")
     block(FU + "spruce_crate", -2.9, F, 15.0, "starboard")
     custom("bale", solid=(-3.25, -2.45, F + 1.0, F + 1.6, 14.65, 15.35), name="deck_bale_fc", p=(-2.85, F + 1.0, 15.0), w=0.8, h=0.6, d=0.7)
     custom("coil", name="deck_coil_fc", p=(1.6, F, 16.2), r=0.3)
-    # the quarterdeck: benches against the balustrade under the awning
+    # the quarterdeck: benches against the balustrade under the awning, forward of the mizzen
     for side in (1, -1):
-        x = side * 3.85
-        for z in (-13.6, -12.6):
+        x = side * 4.0
+        for z in (-11.0, -10.0):
             block(FU + "dark_oak_bench", x, Q, z, "port", solid=False)
-        seat(x, Q + 0.562, -13.1, x - side * 0.95, Q, -13.1)
+        seat(x, Q + 0.562, -10.5, x - side * 0.95, Q, -10.5)
 
 
 def build():

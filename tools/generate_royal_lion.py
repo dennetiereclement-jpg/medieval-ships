@@ -82,10 +82,20 @@ RF = fs.ROUNDHOUSE_FRONT_Z
 RH1 = fs.ROUNDHOUSE_CEIL_Y
 FCZ = fs.FORECASTLE_Z
 BOW_Z = fs.FORE_SCALE - 0.02   # where the planking closes on the stem
+
+
+def stem_z_at(y):
+    return BOW_Z + fs.rake(BOW_Z, y)
+
+
+FIG_HIP = (0.0, 7.4, stem_z_at(7.4) + 0.15)    # the figurehead's hips on the stem's forward face
+FIG_SCALE = 1.25
 SHIELD_W, SHIELD_H = 2.5, 3.0   # the hull shields (P3: from 1.8 x 2.1, the references show them about 2.5 x 3 to 3.5 x 4.5)
 BRACE = math.radians(6)        # square yards braced round a little (port arms aft): three of the four references are port views
 QD_RAIL = fs.QD_BULWARK_TOP + 0.15
 FC_RAIL = fs.FC_BULWARK_TOP + 0.15
+GANGPLANK_Z = 3.0               # the starboard gangplank's hinge (tools/gangplank/ships_g2.py)
+WALE_LO, WALE_MID = 2.25, 3.8   # bottom of the low and the middle gold wales amidships (P4: the freeboard is 0.5 higher)
 
 
 # ---------------------------------------------------------------- hull geometry
@@ -119,8 +129,8 @@ def hull_rows(z):
         pts.append((max(0.16, fx * w), fy * yk))
     regs = ["hull_brown", "hull_brown", "hull_brown"]
     lo, mid = band_lift(z, 0.3), band_lift(z, 0.6)
-    levels = [(0.3, "strake_brown2"), (2.0 + lo, "strake_lo"), (2.32 + lo, "gold_band"), (3.3 + mid, "strake_mid"),
-              (3.62 + mid, "gold_band"), (ys - 0.35, "strake_hi"), (ys, "gold_band")]
+    levels = [(0.3, "strake_brown2"), (WALE_LO + lo, "strake_lo"), (WALE_LO + 0.34 + lo, "gold_band"), (WALE_MID + mid, "strake_mid"),
+              (WALE_MID + 0.34 + mid, "gold_band"), (ys - 0.35, "strake_hi"), (ys, "gold_band")]
     for y, reg in levels:
         y = min(y, ys - 0.06 * (len(levels) - len(regs)))
         y = max(y, pts[-1][1] + 0.08)
@@ -232,18 +242,28 @@ def gold_rail(bone, name, path, h, posts_every=0.5, big_every=0, post_region="go
             k += 1
 
 
+def proper(axes):
+    """The same frame made right-handed (a cube's frame is a rotation): the first axis flipped if needed."""
+    axes = np.array(axes, dtype=float)
+    if np.linalg.det(axes) < 0:
+        axes[:, 0] = -axes[:, 0]
+    return axes
+
+
 def arch_window(bone, name, c, axes, w, h, lit=True, frame=0.12, inner=None):
     """An arched window on a wall (axes: u along the wall, v up, n out of it): the lit (or dark) panes cut out above
     the round head, a gold frame round it (jambs, sill, a keystone), its inside face when `inner` (a point offset)."""
     c = v3(*c)
     u, v, n = axes[:, 0], axes[:, 1], axes[:, 2]
+    axes = proper(axes)      # the cubes' frame must be a rotation (the offsets and texture hints keep u, v, n)
     add_cube(bone, ("glow_" if lit else "") + name, c + n * 0.03, axes, (w, h, 0.04),
              {"all": None, "+3": "arch_window" if lit else "arch_window_in"}, stretch=True, u_dir=u, v_dir=-v)
+    # (the frame stands a little off the wall: its back faces never lie in the wall's plane)
     for s in (1, -1):
-        add_cube(bone, "%s_jamb_%d" % (name, s > 0), c + u * s * (w / 2 + frame / 2) + v * (-h * 0.1) + n * 0.05, axes,
+        add_cube(bone, "%s_jamb_%d" % (name, s > 0), c + u * s * (w / 2 + frame / 2) + v * (-h * 0.1) + n * 0.07, axes,
                  (frame, h * 0.8 + frame, 0.1), "gold")
-    add_cube(bone, name + "_sill", c - v * (h / 2 + frame / 2) + n * 0.07, axes, (w + 2.4 * frame, frame, 0.16), "gold")
-    add_cube(bone, name + "_key", c + v * (h / 2 + frame * 0.3) + n * 0.06, axes, (0.18, 0.2, 0.12), "gold")
+    add_cube(bone, name + "_sill", c - v * (h / 2 + frame / 2) + n * 0.09, axes, (w + 2.4 * frame, frame, 0.16), "gold")
+    add_cube(bone, name + "_key", c + v * (h / 2 + frame * 0.3) + n * 0.08, axes, (0.18, 0.2, 0.12), "gold")
     if inner is not None:
         add_cube(bone, name + "_in", c + v3(*inner), axes, (w, h, 0.03), {"all": None, "-3": "arch_window_in"}, stretch=True, u_dir=u, v_dir=-v)
 
@@ -253,7 +273,7 @@ def waist(bone, detail, lights):
     """The bulwarks from the castle to the bow: the solid royal blue strip over the gold planksheer, the gold
     balustrade on it (stout gold posts with knobs, lanterns on some), the gold wales along the hull, the raised
     forecastle balustrade, the bow closing round the stem."""
-    zs = [z for z in STATIONS if CF - 0.6 <= z <= 23.0]
+    zs = [CF] + [z for z in STATIONS if CF + 0.05 < z <= 23.0]
     for side, sn in SIDES:
         for i in range(len(zs) - 1):
             za, zb = zs[i], zs[i + 1]
@@ -264,7 +284,7 @@ def waist(bone, detail, lights):
             beam(bone, "rail_cap_%s%d" % (sn, i), hp(za, ra, side, -0.18), hp(zb, rb, side, -0.18), 0.3, "rail", width=0.44, extend=0.08)
             gn.wale_bar(bone, "wale_%s%d" % (sn, i), hp(za, ya - 0.3, side, 0.06), hp(zb, yb - 0.3, side, 0.06), 0.22, 0.18, "gold", extend=0.05)
             if za < BOW_Z - 0.5:
-                for k, (kk, y0) in enumerate(((0.3, 2.16), (0.6, 3.46))):
+                for k, (kk, y0) in enumerate(((0.3, WALE_LO + 0.16), (0.6, WALE_MID + 0.16))):
                     la, lb = y0 + band_lift(za, kk), y0 + band_lift(zb, kk)
                     gn.wale_bar(bone, "wale_low%d_%s%d" % (k, sn, i), hp(za, la, side, 0.05), hp(min(zb, BOW_Z), lb, side, 0.05), 0.2, 0.16,
                                 "gold", extend=0.04)
@@ -329,8 +349,9 @@ def forecastle(bone, deck_bone):
 # ---------------------------------------------------------------- the shields, ports, lanterns, banners on the hull
 def hull_ornaments(bone, lights):
     """Along each side: the big royal blue heater shields with the gold lion on the upper blue band (gold bosses at
-    their top corners), small lit ports in gold frames on the lower blue band, lanterns hanging from iron brackets
-    under the middle wale between the shields."""
+    their top corners), the long royal blue lion banners hanging from the rail between them (044, 123, 126: a gold
+    rod, a swallow-tailed or pointed fly with a gold border and the gold lion), small lit ports in gold frames on the
+    lower blue band, lanterns hanging from iron brackets under the banners' points."""
     for side, sn in SIDES:
         for k, z in enumerate(fs.SHIELD_Z):
             y = fs.SHIELD_Y + band_lift(z, 0.8) * 0.5
@@ -346,25 +367,50 @@ def hull_ornaments(bone, lights):
         for k, z in enumerate(fs.PORT_Z):
             y = fs.PORT_Y + band_lift(z, 0.45) * 0.6
             hull_decal(bone, "port_%s%d" % (sn, k), z, y, side, 0.62, 0.62, "port_lit", out=0.02, th=0.05, glow=True)
-        zl = [(a + b) / 2 for a, b in zip(fs.SHIELD_Z[:-1], fs.SHIELD_Z[1:])]
-        for k, z in enumerate(zl):
-            if side < 0 and 0.5 < z < 5.0:
-                continue       # the stowed gangplank hangs above here on the starboard side
-            y = 1.95 + band_lift(z, 0.3)
+        for k, z in enumerate(fs.BANNER_Z):
+            if side < 0 and abs(z - GANGPLANK_Z) < 2.6:
+                continue       # the gangplank and its stowed pack are here on the starboard side
+            # the banner hangs from a gold rod under the planksheer, down over the blue bands (1.3 x 3.2)
+            top = fs.sheer_y(z) - 0.12
+            hb = 3.1
+            hull_decal(bone, "hull_banner_%s%d" % (sn, k), z, top - hb / 2, side, 1.3, hb, "banner", out=0.2, th=0.04)
+            p, u, v, nrm = side_frame(z, top, side)
+            ax = np.column_stack([u, v, nrm])
+            add_cube(bone, "hull_banner_rod_%s%d" % (sn, k), p + nrm * 0.24, ax, (1.6, 0.12, 0.12), "gold")
+            for s in (1, -1):
+                add_cube(bone, "hull_banner_knob_%s%d_%d" % (sn, k, s > 0), p + nrm * 0.24 + u * s * 0.84, ax, (0.18, 0.18, 0.18), "gold")
+            # the lantern under its point, on an iron bracket from the low wale
+            y = WALE_LO - 0.15 + band_lift(z, 0.3)
             p, u, v, nrm = side_frame(z, y, side)
-            beam(bone, "lantern_bracket_%s%d" % (sn, k), p + nrm * 0.02, p + nrm * 0.5 + v3(0, 0.12, 0), 0.08, "iron")
-            lantern(lights, "lantern_hull_%s%d" % (sn, k), p + nrm * 0.5 + v3(0, 0.1, 0), drop=0.2, s=1.1)
+            beam(bone, "lantern_bracket_%s%d" % (sn, k), p + nrm * 0.02, p + nrm * 0.55 + v3(0, 0.12, 0), 0.08, "iron")
+            lantern(lights, "lantern_hull_%s%d" % (sn, k), p + nrm * 0.55 + v3(0, 0.1, 0), drop=0.2, s=1.1)
 
 
 # ---------------------------------------------------------------- the stern castle
+# P4: the castle of the references (044, 071, 126): 12 blocks long (the captain's cabin under the quarterdeck, four
+# arched windows a side and three lion banners between them), the upper storey 8 blocks long over its aft part (the
+# royal state room: five big arched lit windows a side between gold pilasters, a gold-railed balcony along its foot, a
+# gold cornice, the blue mansard roof with lit dormers, gold finials and the lantern turret), the stern with two rows
+# of arched windows, two gold-railed galleries and gold carvings.
+CABIN_WIN_Z = (-18.3, -15.5, -12.7, -9.9)            # the cabin's side windows
+CABIN_BANNER_Z = (-16.9, -14.1, -11.3)               # the banners between them
+UPPER_WIN_Z = (-19.0, -17.45, -15.9, -14.35, -12.8)  # the state room's side windows
+UPPER_PIL_Z = (TZ + 0.15, -18.22, -16.68, -15.12, -13.58, RF - 0.12)
+CABIN_WIN_Y = C + 1.85                               # centre of the cabin's arched windows
+UPPER_WIN_Y = Q + 1.75                               # centre of the state room's arched windows
+UPPER_WIN = (1.1, 2.0)
+STERN_WIN_X = (-2.85, -0.95, 0.95, 2.85)
+
+
 def roundhouse_x(z, y):
     return fs.hull_x(z, y)
 
 
 def stern(bone, castle, lights):
-    """The transom (dark wood below, the blue bands and gold wales across), the captain's cabin's stern: four arched
-    lit windows in gold frames, the gold stern gallery in front of them, the lion panel on the counter; the
-    roundhouse's stern wall: four arched lit windows between gold pilasters under the gold cornice."""
+    """The transom (dark wood below, the blue bands and gold wales across, the lion cartouche on the counter between
+    gold scroll brackets), the captain's cabin's stern: four arched lit windows in gold frames, the lower gold stern
+    gallery in front of them on carved consoles; the state room's stern: four tall arched windows between gold
+    pilasters, the upper gold-railed balcony at their foot, the gold cornice; the gold lion crest between the rows."""
     z = TZ
     pts, regs = hull_rows(z)
     for k in range(len(pts) - 1):
@@ -374,12 +420,17 @@ def stern(bone, castle, lights):
             strake(bone, "transom_%d_%d" % (k, j), v3(fa0 * xa, ya, z), v3(fa0 * xb, yb, z), v3(fa1 * xa, ya, z), v3(fa1 * xb, yb, z),
                    0.16, regs[k], v3(0, 0, -1), overlap=1.02, inner="hull_brown")
     ys = fs.sheer_y(z)
-    # the lion panel on the counter, between the gold corner pilasters
-    add_cube(bone, "transom_lion", (0, 2.9, z - 0.1), EYE, (1.6, 1.9, 0.06), {"all": "gold", "-3": "lion_relief"}, stretch=True)
+    # the lion cartouche on the counter, between gold scroll brackets, the gold corner pilasters
+    add_cube(bone, "transom_lion", (0, ys - 2.2, z - 0.1), EYE, (2.0, 2.3, 0.06), {"all": "gold", "-3": "lion_relief"}, stretch=True)
+    add_cube(bone, "transom_lion_frame", (0, ys - 2.2, z - 0.06), EYE, (2.3, 2.6, 0.04), "carving", stretch=True)
+    for s_ in (1, -1):
+        for k in range(3):
+            add_cube(bone, "transom_scroll_%d_%d" % (s_ > 0, k), (s_ * (1.35 + 0.25 * k), ys - 1.4 - 0.55 * k, z - 0.12), rz(s_ * (0.5 + 0.3 * k)),
+                     (0.5, 0.26, 0.12), "carving")
     yb0 = 1.3 + band_lift(z, 0.3)
-    for j, s in enumerate((1, -1)):
+    for j, s_ in enumerate((1, -1)):
         xp = fs.hull_x(z, (ys + yb0) / 2) - 0.26
-        add_cube(bone, "transom_pilaster_%d" % j, (s * xp, (ys + yb0) / 2, z - 0.14), EYE, (0.36, ys - yb0, 0.16), "gold")
+        add_cube(bone, "transom_pilaster_%d" % j, (s_ * xp, (ys + yb0) / 2, z - 0.14), EYE, (0.36, ys - yb0, 0.16), "gold")
     # the castle's stern from the sheer to the quarterdeck: blue panels, the four arched lit windows of the cabin
     rows = [(ys, ys + 0.25, "gold_band"), (ys + 0.25, Q - 0.4, "castle_panel"), (Q - 0.4, Q - 0.05, "scroll"), (Q - 0.05, Q + 0.3, "gold_band")]
     for k, (ya, yb, reg) in enumerate(rows):
@@ -389,12 +440,11 @@ def stern(bone, castle, lights):
             strake(castle, "stern_wall_%d_%d" % (k, j), v3(fa0 * xa, ya, z), v3(fa0 * xb, yb, z), v3(fa1 * xa, ya, z),
                    v3(fa1 * xb, yb, z), 0.16, reg, v3(0, 0, -1), overlap=1.02, inner="wall_wood")
     axes = np.column_stack([v3(-1, 0, 0), v3(0, 1, 0), v3(0, 0, -1)])
-    wy = 6.35
-    for j, x in enumerate((-2.85, -0.95, 0.95, 2.85)):
-        arch_window(castle, "stern_window_%d" % j, (x, wy, z - 0.08), axes, 0.95, 1.55, inner=(0, 0, 0.2))
+    for j, x in enumerate(STERN_WIN_X):
+        arch_window(castle, "stern_window_%d" % j, (x, CABIN_WIN_Y, z - 0.08), axes, 1.0, 1.6, inner=(0, 0, 0.2))
     for j, x in enumerate((-3.9, -1.9, 0.0, 1.9, 3.9)):
         add_cube(castle, "stern_pilaster_%d" % j, (x, (ys + Q) / 2, z - 0.15), EYE, (0.26, Q - ys - 0.2, 0.14), "gold")
-    # the stern gallery: a gold-railed balcony in front of the cabin windows on carved consoles
+    # the lower stern gallery: a gold-railed balcony in front of the cabin windows on carved consoles
     gy = ys + 0.15
     xg = fs.hull_x(z, gy) - 0.3
     add_cube(castle, "gallery_floor", (0, gy, z - 0.55), EYE, (2 * xg, 0.16, 0.9), {"all": "dark_wood", "+2": "deck"})
@@ -402,25 +452,39 @@ def stern(bone, castle, lights):
     for k, x in enumerate(np.linspace(-xg + 0.4, xg - 0.4, 5)):
         beam(castle, "gallery_console_%d" % k, v3(x, gy - 0.9, z - 0.05), v3(x, gy - 0.08, z - 0.85), 0.16, "gold", width=0.16)
     gold_rail(castle, "gallery_rail", [v3(-xg, gy + 0.08, z - 0.95), v3(xg, gy + 0.08, z - 0.95)], 0.7, posts_every=0.35, big_every=6)
-    for s in (1, -1):
-        gold_rail(castle, "gallery_rail_end_%d" % (s > 0), [v3(s * xg, gy + 0.08, z - 0.95), v3(s * xg, gy + 0.08, z - 0.12)], 0.7,
+    for s_ in (1, -1):
+        gold_rail(castle, "gallery_rail_end_%d" % (s_ > 0), [v3(s_ * xg, gy + 0.08, z - 0.95), v3(s_ * xg, gy + 0.08, z - 0.12)], 0.7,
                   posts_every=0.35)
-    # the roundhouse's stern wall (on the quarterdeck), its four arched windows, the cornice
+    # the gold lion crest between the two rows of windows (over the quarterdeck's gold band)
+    add_cube(castle, "stern_crest", (0, Q + 0.12, z - 0.2), EYE, (1.3, 1.1, 0.08), {"all": "gold", "-3": "lion_relief"}, stretch=True)
+    for s_ in (1, -1):
+        add_cube(castle, "stern_crest_scroll_%d" % (s_ > 0), (s_ * 1.05, Q + 0.05, z - 0.18), rz(s_ * 0.35), (0.8, 0.3, 0.1), "carving")
+    # the state room's stern wall (on the quarterdeck): four tall arched windows between gold pilasters, the cornice
     xq = fs.hull_x(z, Q + 1.5)
     add_cube(castle, "rh_stern_wall", (0, (Q + 0.3 + RH1) / 2, z + 0.12), EYE, (2 * xq - 0.2, RH1 - Q - 0.3, 0.2),
              {"all": "castle_panel", "+3": "wall_wood"}, stretch=True)
-    for j, x in enumerate((-2.7, -0.9, 0.9, 2.7)):
-        arch_window(castle, "rh_stern_window_%d" % j, (x, Q + 1.45, z + 0.0), axes, 0.9, 1.6)
-    for j, x in enumerate((-3.75, -1.8, 0.0, 1.8, 3.75)):
+    for j, x in enumerate(STERN_WIN_X):
+        arch_window(castle, "rh_stern_window_%d" % j, (x, UPPER_WIN_Y, z + 0.0), axes, 1.0, UPPER_WIN[1])
+    for j, x in enumerate((-3.85, -1.9, 0.0, 1.9, 3.85)):
         add_cube(castle, "rh_stern_pilaster_%d" % j, (x, (Q + 0.3 + RH1) / 2, z - 0.02), EYE, (0.24, RH1 - Q - 0.3, 0.12), "gold")
-    add_cube(castle, "rh_stern_banner", (0, Q + 1.45, z - 0.03), EYE, (0.01, 0.01, 0.01), "gold")
+    add_cube(castle, "rh_stern_cornice", (0, RH1 - 0.15, z - 0.05), EYE, (2 * xq + 0.1, 0.32, 0.16), "scroll", stretch=True)
+    # the upper balcony: a gold-railed walk along the foot of the state room's stern windows (decorative)
+    by = Q + 0.32
+    xb_ = xq - 0.25
+    add_cube(castle, "balcony_floor", (0, by, z - 0.4), EYE, (2 * xb_, 0.14, 0.7), {"all": "dark_wood", "+2": "deck"})
+    add_cube(castle, "balcony_fascia", (0, by - 0.12, z - 0.76), EYE, (2 * xb_ + 0.1, 0.26, 0.08), "carving", stretch=True)
+    gold_rail(castle, "balcony_rail", [v3(-xb_, by + 0.07, z - 0.72), v3(xb_, by + 0.07, z - 0.72)], 0.6, posts_every=0.35, big_every=6)
+    for s_ in (1, -1):
+        gold_rail(castle, "balcony_rail_end_%d" % (s_ > 0), [v3(s_ * xb_, by + 0.07, z - 0.72), v3(s_ * xb_, by + 0.07, z - 0.1)], 0.6,
+                  posts_every=0.35)
 
 
 def castle(bone, lights):
-    """The stern castle sides (from the sheer to the quarterdeck): blue panels between gold posts, three arched lit
-    windows of the captain's cabin, a gold scroll cornice and wale under the quarterdeck, banners with the lion; the
-    quarterdeck balustrade forward of the roundhouse; the front bulkhead with the cabin door, its windows and the
-    guard rail between the two stairs, the stairs."""
+    """The stern castle sides: the lower storey (the captain's cabin, from the sheer to the quarterdeck): blue panels
+    between gold posts, four arched lit windows, three lion banners between them under the gold scroll cornice and
+    wale; the upper storey over its aft 8 blocks (the state room): blue panels, five big arched lit windows between gold
+    pilasters, the gold-railed balcony along its foot, the cornice; the quarterdeck balustrade forward of it; the front
+    bulkhead with the cabin door, its windows and the guard rail between the two stairs, the stairs."""
     zs = sorted(set(round(z, 3) for z in [z for z in STATIONS if TZ <= z <= CF] + [CF, RF]))
     for side, sn in SIDES:
         for i in range(len(zs) - 1):
@@ -442,29 +506,45 @@ def castle(bone, lights):
                       hp(zb, Q + 0.75, side), 0.3, "hull_blue", v3(side, 0, 0), overlap=1.03, inner="hull_blue")
             else:
                 # the roundhouse's side wall up to its cornice
-                for r, (y0, y1, reg) in enumerate(((Q + 0.3, RH1 - 0.32, "castle_panel"), (RH1 - 0.32, RH1, "scroll"))):
+                for r, (y0, y1, reg) in enumerate(((Q + 0.3, RH1 - 0.36, "castle_panel"), (RH1 - 0.36, RH1, "scroll"))):
                     strake(bone, "rh_wall_%s%d_%d" % (sn, i, r), hp(za, y0, side), hp(za, y1, side), hp(zb, y0, side), hp(zb, y1, side),
                            0.18, reg, v3(side, 0, 0), overlap=1.03, inner="wall_wood")
-        for j, z in enumerate((TZ + 0.25, -17.1, -14.4, -11.9, CF + 0.1)):
+                gn.wale_bar(bone, "rh_cornice_%s%d" % (sn, i), hp(za, RH1 - 0.05, side, 0.08), hp(zb, RH1 - 0.05, side, 0.08), 0.2, 0.22,
+                            "gold", extend=0.05)
+        for j, z in enumerate((TZ + 0.25, -17.0, -14.2, -11.4, -8.6)):
             y0 = fs.sheer_y(z)
             p0, p1 = hp(z, y0, side, 0.05), hp(z, Q, side, 0.05)
             add_cube(bone, "castle_post_%s%d" % (sn, j), (p0 + p1) / 2, EYE, (0.26, Q - y0, 0.26), "gold")
         # arched lit windows of the captain's cabin
-        for j, z in enumerate((-18.4, -15.75, -13.15)):
-            p, u, v, n = side_frame(z, 6.35, side)
+        for j, z in enumerate(CABIN_WIN_Z):
+            p, u, v, n = side_frame(z, CABIN_WIN_Y, side)
             axes = np.column_stack([u if side < 0 else -u, v, n])
-            arch_window(bone, "castle_window_%s%d" % (sn, j), p, axes, 1.0, 1.5, inner=tuple(-n * 0.22))
+            # standing a little off the (curved) wall
+            arch_window(bone, "castle_window_%s%d" % (sn, j), p + n * 0.035, axes, 0.95, 1.5, inner=tuple(-n * 0.255))
         # a banner with the lion hanging under the castle wale, between the windows
-        for j, z in enumerate((-17.05, -14.45)):
-            hull_decal(bone, "banner_%s%d" % (sn, j), z, Q - 1.05, side, 0.8, 1.6, "banner", out=0.06, th=0.03)
-        # the roundhouse's side windows and pilasters
-        for j, z in enumerate((-19.0, -17.5)):
-            p, u, v, n = side_frame(z, Q + 1.45, side)
+        for j, z in enumerate(CABIN_BANNER_Z):
+            hull_decal(bone, "banner_%s%d" % (sn, j), z, Q - 1.2, side, 0.9, 1.9, "banner", out=0.06, th=0.03)
+            p, u, v, n = side_frame(z, Q - 0.25, side)
+            add_cube(bone, "banner_rod_%s%d" % (sn, j), p + n * 0.1, np.column_stack([u, v, n]), (1.1, 0.1, 0.1), "gold")
+        # the state room's side windows, its pilasters, the balcony along its foot
+        for j, z in enumerate(UPPER_WIN_Z):
+            p, u, v, n = side_frame(z, UPPER_WIN_Y, side)
+            p = p + n * 0.035
             axes = np.column_stack([u if side < 0 else -u, v, n])
-            arch_window(bone, "rh_window_%s%d" % (sn, j), p, axes, 0.85, 1.55)
-        for j, z in enumerate((TZ + 0.2, -18.25, RF - 0.15)):
+            arch_window(bone, "rh_window_%s%d" % (sn, j), p, axes, UPPER_WIN[0], UPPER_WIN[1])
+            # a gold hood moulding over the arch, with a small crest
+            add_cube(bone, "rh_window_hood_%s%d" % (sn, j), p + v * (UPPER_WIN[1] / 2 + 0.22) + n * 0.1, proper(axes),
+                     (UPPER_WIN[0] + 0.3, 0.14, 0.14), "gold")
+            add_cube(bone, "rh_window_crest_%s%d" % (sn, j), p + v * (UPPER_WIN[1] / 2 + 0.4) + n * 0.1, proper(axes), (0.3, 0.26, 0.1),
+                     "carving")
+        for j, z in enumerate(UPPER_PIL_Z):
             p0 = hp(z, Q + 0.3, side, 0.06)
-            add_cube(bone, "rh_pilaster_%s%d" % (sn, j), p0 + v3(0, (RH1 - Q - 0.62) / 2, 0), EYE, (0.24, RH1 - Q - 0.62, 0.24), "gold")
+            add_cube(bone, "rh_pilaster_%s%d" % (sn, j), p0 + v3(0, (RH1 - Q - 0.66) / 2, 0), EYE, (0.26, RH1 - Q - 0.66, 0.26), "gold")
+            add_cube(bone, "rh_pilaster_cap_%s%d" % (sn, j), p0 + v3(side * 0.02, RH1 - Q - 0.62, 0), EYE, (0.36, 0.14, 0.36), "gold")
+        path = [hp(z, Q + 0.35, side, 0.32) for z in np.linspace(TZ + 0.2, RF - 0.05, 7)]
+        for k, (pa, pb) in enumerate(polyline(path)):
+            beam(bone, "rh_balcony_%s%d" % (sn, k), pa - v3(side * 0.18, 0, 0), pb - v3(side * 0.18, 0, 0), 0.14, "dark_wood", width=0.5, extend=0.04)
+        gold_rail(bone, "rh_balcony_rail_" + sn, [p + v3(0, 0.07, 0) for p in path], 0.5, posts_every=0.4, big_every=5)
         # quarterdeck balustrade, from the roundhouse to the castle front
         path = [hp(z, Q + 0.75, side, -0.22) for z in np.linspace(RF + 0.1, CF - 0.05, 5)]
         gold_rail(bone, "qd_rail_" + sn, path, QD_RAIL - Q - 0.75, posts_every=0.5, big_every=4)
@@ -477,7 +557,7 @@ def castle(bone, lights):
                  {"all": "castle_panel", "-3": "wall_wood"}, stretch=True)
         add_cube(bone, "bulkhead_jamb_" + sn, (side * 1.1, (M + Q - 0.5) / 2, CF + 0.04), EYE, (0.2, Q - 0.5 - M + 0.2, 0.14), "gold")
         axes = np.column_stack([v3(1, 0, 0), v3(0, 1, 0), v3(0, 0, 1)])
-        arch_window(bone, "bulkhead_window_" + sn, (side * 1.9, 6.0, CF + 0.0), axes, 0.75, 1.2)
+        arch_window(bone, "bulkhead_window_" + sn, (side * 1.9, C + 1.5, CF + 0.0), axes, 0.75, 1.2)
     add_cube(bone, "bulkhead_lintel", (0, Q - 0.4, CF + 0.04), EYE, (2.4, 0.3, 0.16), "gold")
     add_cube(bone, "bulkhead_band", (0, Q - 0.05, CF + 0.05), EYE, (2 * wq, 0.2, 0.14), "scroll", stretch=True)
     add_cube(bone, "bulkhead_lion", (0, Q - 0.95, CF + 0.06), EYE, (0.7, 0.7, 0.04), {"all": "gold", "+3": "lion_relief"}, stretch=True)
@@ -501,29 +581,56 @@ def castle(bone, lights):
         lantern(lights, "lantern_bulkhead_" + sn, v3(side * 1.6, Q - 0.62, CF + 0.5), drop=0.25, s=0.9)
 
 
+def dormer(bone, lights, name, c, side, w=0.8, h=0.75):
+    """A lit dormer window on the side slope of the mansard roof (the lucarne of 123): blue cheeks, a pointed blue cap
+    with gold ridge and finial, a gold frame round the lit pane."""
+    c = v3(*c)
+    nrm = v3(side, 0, 0)
+    axes = proper(np.column_stack([v3(0, 0, -side), v3(0, 1, 0), nrm]))
+    add_cube(bone, name + "_body", c - nrm * 0.35, EYE, (0.7, h, w + 0.2), {"all": "roof", "+1" if side > 0 else "-1": "castle_panel"}, stretch=True)
+    add_cube(bone, "glow_" + name, c + nrm * 0.02, axes, (w - 0.2, h - 0.2, 0.04), {"all": None, "+3": "arch_window"}, stretch=True,
+             u_dir=v3(0, 0, -side), v_dir=v3(0, -1, 0))
+    for s_ in (1, -1):
+        add_cube(bone, "%s_jamb_%d" % (name, s_ > 0), c + v3(0, 0, s_ * (w / 2 - 0.05)) + nrm * 0.03, EYE, (0.12, h, 0.1), "gold")
+    add_cube(bone, name + "_sill", c + v3(0, -h / 2, 0) + nrm * 0.05, EYE, (0.2, 0.1, w + 0.1), "gold")
+    for s_ in (1, -1):
+        board(bone, "%s_cap_%d" % (name, s_ > 0), c + v3(0, h / 2, s_ * (w / 2 + 0.12)) + nrm * 0.12, c + v3(0, h / 2 + 0.45, 0) + nrm * 0.12,
+              c + v3(0, h / 2, s_ * (w / 2 + 0.12)) - nrm * 0.75, c + v3(0, h / 2 + 0.45, 0) - nrm * 0.75, 0.08, "roof", v3(0, 1, s_),
+              overlap=1.0)
+    turned(bone, name + "_finial", c + v3(0, h / 2 + 0.4, 0) + nrm * 0.1, c + v3(0, h / 2 + 0.85, 0) + nrm * 0.1,
+           [(0, 0.08), (0.4, 0.1), (0.7, 0.05), (1.0, 0)], "gold")
+
+
 def roundhouse(bone, lights):
-    """The roundhouse's front wall (its double door, two arched windows, gold pilasters, the lion over the door), the
-    blue mansard roof over it (four slopes of blue slates with gold hip and eave boards, a flat top with a gold
-    cresting), gold finials at the corners and the lantern turret in the middle (a lit lantern under a pointed blue
-    cap with a gold finial), the striped awning over the helm in front of it."""
+    """The roundhouse's front wall (a double door on each side of the mizzen, two arched windows, gold pilasters, the
+    lion over the mast), the blue mansard roof over it (four slopes of blue slates with gold hip and eave boards, three
+    lit dormers a side, a flat top with a gold cresting and balustrade), gold finials at the corners and the lantern
+    turret in the middle (a lit lantern under a pointed blue cap with a gold finial), the striped awning over the helm
+    in front of it."""
     z = RF - 0.08
     w = fs.hull_x(RF, Q + 1.5) - 0.2
+    axes = np.column_stack([v3(1, 0, 0), v3(0, 1, 0), v3(0, 0, 1)])
+    d0, d1 = fi.DOORS[fi.STATEROOM_DOOR][1][0], fi.DOORS[fi.STATEROOM_DOOR][1][1]     # the doors: 1.0 .. 2.5 from the centre
+    dh = fi.DOORS[fi.STATEROOM_DOOR][1][3] - Q
     for side, sn in SIDES:
-        x0, x1 = 1.0, w
+        x0, x1 = d1, w
         add_cube(bone, "rh_front_" + sn, (side * (x0 + x1) / 2, (Q + RH1) / 2, z), EYE, (x1 - x0, RH1 - Q, 0.16),
                  {"all": "castle_panel", "-3": "wall_wood"}, stretch=True)
-        add_cube(bone, "rh_front_jamb_" + sn, (side * 1.1, Q + 1.3, RF + 0.04), EYE, (0.2, 2.7, 0.14), "gold")
-        axes = np.column_stack([v3(1, 0, 0), v3(0, 1, 0), v3(0, 0, 1)])
-        arch_window(bone, "rh_front_window_" + sn, (side * 2.75, Q + 1.45, RF + 0.0), axes, 0.85, 1.5)
+        add_cube(bone, "rh_front_over_door_" + sn, (side * (d0 + d1) / 2, (Q + dh + RH1) / 2, z), EYE, (d1 - d0, RH1 - Q - dh, 0.16),
+                 {"all": "castle_panel", "-3": "wall_wood"}, stretch=True)
+        for k, xd in enumerate((d0, d1)):
+            add_cube(bone, "rh_front_jamb_%s%d" % (sn, k), (side * xd, Q + dh / 2 + 0.05, RF + 0.04), EYE,
+                     (0.18, dh + 0.1, 0.14), "gold")
+        add_cube(bone, "rh_front_lintel_" + sn, (side * (d0 + d1) / 2, Q + dh + 0.12, RF + 0.04), EYE, (d1 - d0 + 0.36, 0.24, 0.16), "gold")
+        arch_window(bone, "rh_front_window_" + sn, (side * (d1 + w) / 2, UPPER_WIN_Y, RF + 0.0), axes, 0.85, 1.5)
         add_cube(bone, "rh_front_pilaster_" + sn, (side * (w - 0.1), (Q + RH1) / 2, RF + 0.04), EYE, (0.24, RH1 - Q, 0.14), "gold")
-    add_cube(bone, "rh_front_over_door", (0, (Q + 2.5 + RH1) / 2, z), EYE, (2.0, RH1 - Q - 2.5, 0.16), {"all": "castle_panel", "-3": "wall_wood"},
-             stretch=True)
-    add_cube(bone, "rh_front_lintel", (0, Q + 2.62, RF + 0.04), EYE, (2.4, 0.24, 0.16), "gold")
+    add_cube(bone, "rh_front_mid", (0, (Q + RH1) / 2, z), EYE, (2 * d0, RH1 - Q, 0.16), {"all": "castle_panel", "-3": "wall_wood"}, stretch=True)
+    add_cube(bone, "rh_front_lion", (0, RH1 - 0.75, RF + 0.06), EYE, (0.8, 0.8, 0.04), {"all": "gold", "+3": "lion_relief"}, stretch=True)
     add_cube(bone, "rh_front_cornice", (0, RH1 - 0.15, RF + 0.05), EYE, (2 * w + 0.2, 0.3, 0.14), "scroll", stretch=True)
     # the mansard roof: the eave at the walls (RH1), sloping 1.1 inboard up to the flat top
     rise, inset = 1.1, 1.05
     yt = RH1 + rise
-    zr = [TZ, -19.4, -18.6, -17.6, -16.8, RF]
+    zr = [TZ, -19.4, -18.6, -17.6, -16.4, -15.0, -13.5, RF]
 
     def wx(zz):
         return fs.hull_x(zz, RH1) + 0.08
@@ -542,6 +649,10 @@ def roundhouse(bone, lights):
         for i in range(len(zr) - 1):
             beam(bone, "roof_eave_%s%d" % (sn, i), v3(side * wx(zr[i]), RH1 + 0.02, zr[i]), v3(side * wx(zr[i + 1]), RH1 + 0.02, zr[i + 1]), 0.14,
                  "gold", width=0.24, extend=0.04)
+        # three lit dormers on each side slope
+        for k, zd in enumerate((-17.9, -15.95, -14.0)):
+            xd = wx(zd) - inset * 0.5
+            dormer(bone, lights, "dormer_%s%d" % (sn, k), (side * xd, RH1 + rise * 0.5, zd), side)
     for k, (zc, zi, sgn) in enumerate(((TZ, TZ + inset, 1), (RF, RF - inset, -1))):
         xa, xi = wx(zc), wx(zi) - inset
         for j in range(4):
@@ -551,15 +662,17 @@ def roundhouse(bone, lights):
         beam(bone, "roof_eave_end_%d" % k, v3(-xa, RH1 + 0.02, zc), v3(xa, RH1 + 0.02, zc), 0.14, "gold", width=0.24, extend=0.04)
     xt = min(wx(TZ + inset), wx(RF - inset)) - inset
     add_cube(bone, "roof_top", (0, yt + 0.06, (TZ + RF) / 2), EYE, (2 * xt + 0.1, 0.14, RF - TZ - 2 * inset + 0.1), {"all": "gold", "+2": "roof"})
-    for k, (a, b) in enumerate(polyline([v3(-xt, yt + 0.2, TZ + inset), v3(xt, yt + 0.2, TZ + inset), v3(xt, yt + 0.2, RF - inset),
-                                         v3(-xt, yt + 0.2, RF - inset)], closed=True)):
-        beam(bone, "roof_cresting_%d" % k, a, b, 0.2, "roof_ridge", width=0.12, extend=0.06)
-    # gold finials at the four corners (the spires of the references) and on the middle of the front slope
+    ring = [v3(-xt, yt + 0.13, TZ + inset), v3(xt, yt + 0.13, TZ + inset), v3(xt, yt + 0.13, RF - inset), v3(-xt, yt + 0.13, RF - inset)]
+    for k, (a, b) in enumerate(polyline(ring, closed=True)):
+        beam(bone, "roof_cresting_%d" % k, a + v3(0, 0.07, 0), b + v3(0, 0.07, 0), 0.2, "roof_ridge", width=0.12, extend=0.06)
+    # a low gold balustrade round the flat top (the railed top of 044 and 071)
+    gold_rail(bone, "roof_rail", ring + [ring[0]], 0.45, posts_every=0.45, big_every=5)
+    # gold finials at the four corners (the spires of the references)
     for k, (x, zc) in enumerate(((wx(TZ), TZ), (-wx(TZ), TZ), (wx(RF), RF), (-wx(RF), RF))):
         p = v3(np.sign(x) * (abs(x) - 0.1), RH1 + 0.1, zc + (0.1 if zc == TZ else -0.1))
-        turned(bone, "finial_%d" % k, p, p + v3(0, 1.0, 0), [(0, 0.3), (0.2, 0.22), (0.35, 0.34), (0.55, 0.16), (0.8, 0.1), (1.0, 0)], "gold")
+        turned(bone, "finial_%d" % k, p, p + v3(0, 1.3, 0), [(0, 0.32), (0.2, 0.24), (0.35, 0.36), (0.55, 0.17), (0.8, 0.1), (1.0, 0)], "gold")
     # the lantern turret on the roof top
-    tc = v3(0, yt + 0.12, (TZ + RF) / 2)
+    tc = v3(0, yt + 0.12, (TZ + RF) / 2 - 0.4)
     add_cube(bone, "turret_base", tc + v3(0, 0.2, 0), EYE, (1.1, 0.4, 1.1), {"all": "gold", "+2": "roof"})
     gn.g_great_lantern(bone, "turret_lantern", tc + v3(0, 0.4, 0), 1.6, metal="gold")
     turned(bone, "turret_cap", tc + v3(0, 1.55, 0), tc + v3(0, 2.5, 0), [(0, 0.95), (0.4, 0.6), (0.75, 0.3), (1.0, 0)], "roof")
@@ -569,9 +682,10 @@ def roundhouse(bone, lights):
         x = side * (wx(TZ) - 0.1)
         beam(bone, "stern_lantern_arm_" + sn, v3(x, RH1 - 0.5, TZ + 0.1), v3(x + side * 0.55, RH1 - 0.5, TZ - 0.45), 0.1, "iron")
         lantern(lights, "lantern_stern_" + sn, v3(x + side * 0.55, RH1 - 0.55, TZ - 0.45), drop=0.3, s=1.5)
-    # the striped awning over the helm, from the roundhouse's front wall forward to its gold posts
-    za, zb = RF + 0.05, fs.MIZZEN_Z - 0.75
-    ya, yb = RH1 - 0.1, RH1 - 1.3      # sloping well down forward: its stripes show from the bow quarter (071)
+    # the striped awning over the helm, from the roundhouse's front wall forward to its gold posts (the mizzen rises
+    # through its aft edge)
+    za, zb = RF + 0.05, CF - 0.6
+    ya, yb = RH1 + 0.15, Q + 2.35      # sloping down forward: its stripes show from the bow quarter (071)
     xw = 4.3
     for k in range(6):
         x0, x1 = -xw + 2 * xw * k / 6, -xw + 2 * xw * (k + 1) / 6
@@ -624,26 +738,36 @@ def decks(bone, castle_bone):
 
 
 # ---------------------------------------------------------------- the bow and the lion figurehead
-def lion_figurehead(bone, A, s=1.0, sx=None):
-    """The gilded lion of the references at the stem head, under the bowsprit (123, 126): a big maned head thrust
-    forward with open roaring jaws, the shaggy mane flowing back over the stem, the chest and the forelegs reaching
-    forward and down with their claws out, the body melting into the gilded stem (A: the root of the neck on the
-    stem, s: scale, sx: scale of the forelegs' spread across the ship)."""
+def lion_figurehead(bone, A, s=1.0):
+    """The gilded lion of the references leaping from the stem head under the bowsprit (123, 126), whole: the
+    hindquarters and the tucked hind legs against the stem, the body stretched forward and up, the chest, the forelegs
+    reaching forward and down with their claws out, the big maned head thrust forward with open roaring jaws, the tail
+    curling down the stem, a carved gold console under it (A: the hips on the stem's forward face, s: scale)."""
     A = v3(*A)
-    sx = s if sx is None else sx
     gold, mane, face = "gold", "mane", "lion_face"
-    H = A + v3(0, 0.55, 1.15) * s                    # the head
-    # the chest and the body against the stem
-    add_cube(bone, "figurehead_body", A + v3(0, -0.85, -0.05) * s, rx(-0.35), (1.15 * s, 1.9 * s, 1.1 * s), {"all": gold, "+3": mane})
-    add_cube(bone, "figurehead_chest", A + v3(0, -0.2, 0.55) * s, rx(-0.5), (1.2 * s, 1.2 * s, 0.9 * s), mane)
-    # the mane: big locks round the head and flowing back along the neck
-    for k in range(18):
-        a = 2 * math.pi * k / 18
-        r = 0.78 if k % 2 else 0.9
+    # the spine from the hips to the shoulders, rising forward (the leap)
+    spine = [A, A + v3(0, 0.35, 0.8) * s, A + v3(0, 0.75, 1.6) * s, A + v3(0, 1.05, 2.3) * s]
+    widths = (1.05, 1.2, 1.3, 1.3)
+    heights = (1.0, 1.1, 1.2, 1.25)
+    for k, (a, b) in enumerate(zip(spine[:-1], spine[1:])):
+        d = norm(b - a)
+        add_cube(bone, "figurehead_body_%d" % k, (a + b) / 2, gg.frame_from(d, v3(0, 1, 0)),
+                 (widths[k] * s, heights[k] * s, np.linalg.norm(b - a) + 0.25 * s), {"all": gold, "+2": mane if k == 2 else gold})
+    add_cube(bone, "figurehead_haunch", A + v3(0, -0.15, 0.15) * s, rx(-0.3), (1.2 * s, 1.15 * s, 0.9 * s), gold)
+    S_ = spine[-1]                                    # the shoulders
+    H = S_ + v3(0, 0.75, 0.75) * s                    # the head, raised and thrust forward
+    add_cube(bone, "figurehead_chest", S_ + v3(0, -0.25, 0.45) * s, rx(-0.6), (1.25 * s, 1.15 * s, 0.85 * s), mane)
+    # the mane: big locks round the head, down the neck and over the shoulders
+    for k in range(20):
+        a = 2 * math.pi * k / 20
+        r = 0.78 if k % 2 else 0.92
         off = v3(math.cos(a) * r, math.sin(a) * r, -0.3 - 0.1 * (k % 3)) * s
-        add_cube(bone, "figurehead_mane_%d" % k, H + off, rz(a) @ rx(-0.35), (0.5 * s, 0.38 * s, 0.8 * s if k % 2 else 0.95 * s), mane)
-    add_cube(bone, "figurehead_mane_back", H + v3(0, 0.0, -0.75) * s, rx(-0.25), (1.6 * s, 1.7 * s, 0.8 * s), mane)
-    add_cube(bone, "figurehead_mane_nape", A + v3(0, 0.45, 0.05) * s, rx(-0.6), (1.35 * s, 1.0 * s, 1.0 * s), mane)
+        add_cube(bone, "figurehead_mane_%d" % k, H + off, rz(a) @ rx(-0.35), (0.5 * s, 0.38 * s, 0.82 * s if k % 2 else 0.98 * s), mane)
+    add_cube(bone, "figurehead_mane_back", H + v3(0, -0.05, -0.75) * s, rx(-0.45), (1.65 * s, 1.75 * s, 0.85 * s), mane)
+    add_cube(bone, "figurehead_mane_nape", S_ + v3(0, 0.45, -0.1) * s, rx(-0.7), (1.4 * s, 1.05 * s, 1.1 * s), mane)
+    for k in range(5):
+        add_cube(bone, "figurehead_mane_lock_%d" % k, S_ + v3(0, 0.2 - 0.12 * k, -0.45 - 0.32 * k) * s, rx(-0.9 + 0.1 * k),
+                 (1.32 * s - 0.05 * k, 0.32 * s, 0.6 * s), mane)
     add_cube(bone, "figurehead_head", H, EYE, (0.98 * s, 0.95 * s, 0.85 * s), {"all": gold, "+3": face}, stretch=True)
     add_cube(bone, "figurehead_muzzle", H + v3(0, -0.12, 0.55) * s, EYE, (0.64 * s, 0.42 * s, 0.4 * s), gold)
     add_cube(bone, "figurehead_nose", H + v3(0, 0.06, 0.76) * s, EYE, (0.3 * s, 0.16 * s, 0.08 * s), "dark_wood")
@@ -658,21 +782,38 @@ def lion_figurehead(bone, A, s=1.0, sx=None):
         for j, dy in enumerate((-0.32, -0.62)):
             add_cube(bone, "figurehead_fang_%s%d" % (t, j), H + v3(x * 0.6, dy + 0.06 * j, 0.7 - 0.12 * j) * s, EYE,
                      (0.07 * s, 0.14 * s, 0.07 * s), "white_paint")
-        # the forelegs reaching forward and down, the paws with their claws out
-        sh = A + v3(x * 1.7 * sx / s, -0.45, 0.55) * s
-        el = A + v3(x * 1.9 * sx / s, -0.95, 1.25) * s
-        paw = A + v3(x * 1.75 * sx / s, -1.55, 1.75) * s
-        beam(bone, "figurehead_foreleg_" + t, sh, el, 0.42 * s, gold, width=0.42 * s, extend=0.12 * s)
-        beam(bone, "figurehead_forearm_" + t, el, paw, 0.36 * s, gold, width=0.36 * s, extend=0.1 * s)
-        add_cube(bone, "figurehead_paw_" + t, paw + v3(0, -0.04, 0.14) * s, EYE, (0.46 * s, 0.28 * s, 0.52 * s), gold)
+        # the forelegs stretched forward and down (the leap), the paws with their claws out
+        sh = S_ + v3(x * 1.75, -0.35, 0.35) * s
+        el = S_ + v3(x * 1.9, -0.95, 1.15) * s
+        paw = S_ + v3(x * 1.8, -1.55, 1.85) * s
+        beam(bone, "figurehead_foreleg_" + t, sh, el, 0.44 * s, gold, width=0.44 * s, extend=0.12 * s)
+        beam(bone, "figurehead_forearm_" + t, el, paw, 0.38 * s, gold, width=0.38 * s, extend=0.1 * s)
+        add_cube(bone, "figurehead_paw_" + t, paw + v3(0, -0.04, 0.14) * s, EYE, (0.48 * s, 0.3 * s, 0.54 * s), gold)
         for j in (-1, 0, 1):
-            add_cube(bone, "figurehead_claw_%s%d" % (t, j + 1), paw + v3(j * 0.13, -0.14, 0.44) * s, rx(0.5), (0.08 * s, 0.08 * s, 0.2 * s),
+            add_cube(bone, "figurehead_claw_%s%d" % (t, j + 1), paw + v3(j * 0.14, -0.14, 0.46) * s, rx(0.5), (0.08 * s, 0.08 * s, 0.22 * s),
                      "carving")
-    # the scrolled gold bracket under it, curling into the stem
+        # the hind legs tucked under the body against the stem
+        hip = A + v3(x * 1.85, -0.1, 0.2) * s
+        knee = A + v3(x * 2.0, -0.75, 0.75) * s
+        hpaw = A + v3(x * 1.9, -1.25, 0.25) * s
+        beam(bone, "figurehead_thigh_" + t, hip, knee, 0.5 * s, gold, width=0.48 * s, extend=0.12 * s)
+        beam(bone, "figurehead_shank_" + t, knee, hpaw, 0.36 * s, gold, width=0.36 * s, extend=0.1 * s)
+        add_cube(bone, "figurehead_hindpaw_" + t, hpaw + v3(0, -0.06, 0.12) * s, EYE, (0.44 * s, 0.26 * s, 0.5 * s), gold)
+    # the tail curling down the stem, its tuft
+    tail = [A + v3(0.35, -0.2, -0.35) * s, A + v3(0.45, -0.85, -0.35) * s, A + v3(0.4, -1.45, -0.1) * s, A + v3(0.3, -1.75, 0.3) * s]
+    for k, (a, b) in enumerate(zip(tail[:-1], tail[1:])):
+        beam(bone, "figurehead_tail_%d" % k, a, b, 0.2 * s, gold, width=0.2 * s, extend=0.06 * s)
+    add_cube(bone, "figurehead_tuft", tail[-1] + v3(0, -0.1, 0.12) * s, rx(0.6), (0.36 * s, 0.4 * s, 0.32 * s), mane)
+    # the carved gold console under the lion, curling into the stem
     for k in range(4):
         a = -0.4 - 0.5 * k
-        add_cube(bone, "figurehead_scroll_%d" % k, A + v3(0, -1.9 - 0.32 * k, -0.25 + 0.22 * math.sin(k * 1.3)) * s, rx(a),
+        add_cube(bone, "figurehead_scroll_%d" % k, A + v3(0, -1.0 - 0.32 * k, -0.15 + 0.22 * math.sin(k * 1.3)) * s, rx(a),
                  (0.7 * s - 0.08 * k, 0.4 * s, 0.6 * s), "carving")
+
+
+def stem_z(y):
+    """z of the stem's forward face at height y (the raked bow)."""
+    return BOW_Z + fs.rake(BOW_Z, y)
 
 
 def bow(bone, lights):
@@ -697,20 +838,19 @@ def bow(bone, lights):
     round_bar(bone, "jib_boom", cap - d * 1.8 + v3(0, 0.4, 0), sb + v3(0, 0.4, 0), 0.36, "mast")
     add_cube(bone, "jib_boom_end", sb + v3(0, 0.4, 0) + d * 0.1, gg.frame_from(d, v3(0, 1, 0)), (0.42, 0.42, 0.26), "gold")
     beam(bone, "dolphin_striker", cap + v3(0, -0.1, 0), cap + v3(0, -1.7, 0.15), 0.12, "wood_dark")
-    # the lion figurehead on the stem head, under the bowsprit
-    zt = 21.6
-    # P3: bigger, as on 123 and 126 (the lion there is about as tall as the bow's freeboard over the head)
-    lion_figurehead(bone, v3(0, rail_top(zt) - 1.75, zt + 0.3), 1.85, sx=1.4)
+    # P4: the whole leaping lion of 123 on the stem head, under the bowsprit (its hips on the stem at FIG_HIP)
+    lion_figurehead(bone, FIG_HIP, FIG_SCALE)
     # the gilded head rails: from the forecastle rail curving down and forward to the stem head, stepped gold blocks
-    head = v3(0, rail_top(zt) - 0.6, zt + 0.2)
+    yh = FIG_HIP[1] + 1.2
+    head = v3(0, yh, stem_z(yh) - 0.25)
     for side, sn in SIDES:
         for k, (dy, name, th) in enumerate(((0.0, "head_rail", 0.6), (-0.62, "head_rail_mid", 0.5), (-1.2, "head_rail_low", 0.4))):
-            p0 = hp(16.5, rail_top(16.5) + dy - 0.2, side, 0.08)
-            c = v3(side * 2.4, rail_top(19.5) + dy - 0.7, 20.3)
+            p0 = hp(17.0, rail_top(17.0) + dy - 0.25, side, 0.08)
+            c = v3(side * 2.4, rail_top(20.0) + dy - 0.9, 21.6)
             p1 = head + v3(side * 0.34, dy + 0.05, -0.15 - 0.25 * k)
             pts_ = []
             for p in bezier(p0, c, p1, 8):
-                if p[2] < BOW_Z + 2.0:
+                if p[2] < BOW_Z + 4.5:
                     xm = fs.hull_x(p[2], p[1]) + th * 0.5 + 0.03
                     if abs(p[0]) < xm:
                         p = v3(side * xm, p[1], p[2])
@@ -732,8 +872,8 @@ def bow(bone, lights):
         x = side * (fs.hull_x(z + 0.6, 3.0) + 0.25)
         gn.g_anchor(bone, "anchor_" + sn, (x, y - 0.4, z + 0.5), (x, 2.0, z + 0.3), (0, 0, 1))
         disc(bone, "hawse_" + sn, side_frame(17.6, 4.0, side)[0] + v3(side * 0.03, 0, 0), (side, 0, 0), 0.16, 0.06, "iron")
-    # the bow lantern hanging under the bowsprit (071)
-    lp = sa + d * 3.2
+    # the bow lantern hanging under the bowsprit (071), over the lion's head
+    lp = sa + d * 9.2
     beam(bone, "bow_lantern_arm", lp + v3(0, -0.3, 0), lp + v3(0, -0.6, 0.2), 0.08, "iron")
     lantern(lights, "lantern_bow", lp + v3(0, -0.6, 0.2), drop=0.45, s=1.5)
     return sa, sb, cap
@@ -742,18 +882,21 @@ def bow(bone, lights):
 # ---------------------------------------------------------------- masts, yards, sails
 MASTS = {
     # name: (z, top y (fighting top), topmast crosstrees y, masthead y, lower mast diameter)
-    "fore": (fs.FORE_MAST_Z, 19.2, 25.0, fs.FORE_MAST_TOP, 1.0),
-    "main": (fs.MAIN_MAST_Z, 20.0, 26.2, fs.MAIN_MAST_TOP, 1.06),
-    "mizzen": (fs.MIZZEN_Z, 20.2, None, fs.MIZZEN_TOP, 0.8),
+    # P4: taller courses, the topsails up to 2.6 to 2.9 under the trucks (short poles over them, as on 071)
+    "fore": (fs.FORE_MAST_Z, 20.6, 26.6, fs.FORE_MAST_TOP, 1.0),
+    "main": (fs.MAIN_MAST_Z, 21.0, 27.4, fs.MAIN_MAST_TOP, 1.06),
+    "mizzen": (fs.MIZZEN_Z, 21.0, None, fs.MIZZEN_TOP, 0.8),
 }
 MAST_FOOT = {"fore": L - 0.4, "main": L - 0.4, "mizzen": Q}
 # square sails: mast, name, yard y, foot y, half width at the head, at the foot, belly, texture region
+# P4: the big courses of the pictures (main 11 high, 23.4 wide at the foot; the fore course over the forecastle), the
+# topsails up to 2.7 under the trucks (short poles over them, as on 071)
 SQUARE_SAILS = [
-    ("fore", "fore_course", 18.2, 8.6, 9.2, 10.1, 2.6, "fore_course"),
-    ("fore", "fore_topsail", 24.4, 19.8, 6.3, 7.3, 1.7, "fore_topsail"),
-    ("main", "main_course", 19.0, 8.0, 10.0, 10.9, 2.9, "main_course"),
-    ("main", "main_topsail", 25.6, 20.6, 6.8, 7.8, 1.8, "main_topsail"),
-    ("mizzen", "mizzen_course", 19.0, 12.8, 6.6, 7.3, 1.7, "mizzen_course"),
+    ("fore", "fore_course", 19.6, 9.4, 9.9, 10.9, 2.7, "fore_course"),
+    ("fore", "fore_topsail", 26.8, 20.8, 6.9, 8.0, 1.8, "fore_topsail"),
+    ("main", "main_course", 20.0, 9.0, 10.6, 11.7, 3.0, "main_course"),
+    ("main", "main_topsail", 27.8, 21.4, 7.3, 8.4, 1.9, "main_topsail"),
+    ("mizzen", "mizzen_course", 20.2, 14.2, 7.0, 7.9, 1.8, "mizzen_course"),
 ]
 
 
@@ -916,7 +1059,9 @@ def sails_and_spars(root, masts, sails_info, bowsprit):
 
 # ---------------------------------------------------------------- rigging
 def channel_point(z, side, out=0.48, dy=-0.3):
-    if z < CF:
+    if z < RF + 0.05:
+        y = RH1 + 0.15 + dy        # on the state room's eave
+    elif z < CF:
         y = Q + 0.7 + dy
     else:
         y = rail_top(z) + dy
@@ -930,8 +1075,10 @@ def rigging(bone, hull_bone, masts, bowsprit, sails):
         for side, sn in SIDES:
             za, zb = z - (3.6 if mname != 'mizzen' else 2.4), z + 0.4
             if mname == "mizzen":
-                za, zb = z - 1.6, z + 1.2
+                za, zb = z - 2.4, z - 0.6     # P4: on the state room's eave, aft of the mast
             y0 = (rail_top((za + zb) / 2) if z > CF else Q + 0.7) - 0.3
+            if mname == "mizzen":
+                y0 = RH1 - 0.15
             pa, pb = hp(za, y0, side, 0.3), hp(zb, y0, side, 0.3)
             beam(hull_bone, "channel_%s_%s" % (mname, sn), pa, pb, 0.14, "wood_dark", width=0.6, extend=0.05)
             for j, zk in enumerate((za + 0.3, zb - 0.3)):
@@ -985,7 +1132,7 @@ def rigging(bone, hull_bone, masts, bowsprit, sails):
         ropes.append(("jib_sheet_inner_" + sn, inner_clew, hp(12.6, rail_top(12.6), side, -0.1)))
         for mname, idx, to in (("fore", 0, v3(side * 0.6, MASTS["main"][1] - 2.0, mz + 0.2)),
                                ("main", 2, v3(side * 0.5, MASTS["mizzen"][1] - 1.5, zz + 0.2)),
-                               ("mizzen", 4, hp(-17.5, Q + 1.5, side, -0.25))):
+                               ("mizzen", 4, hp(-17.5, RH1 + 0.3, side, -0.25))):
             sq = SQUARE_SAILS[idx]
             off = yard_step(mname, sq[1])[1]
             mzz = MASTS[mname][0]

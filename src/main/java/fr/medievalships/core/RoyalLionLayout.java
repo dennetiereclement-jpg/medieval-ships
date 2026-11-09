@@ -5,13 +5,14 @@ import java.util.List;
 
 /**
  * The Royal Lion Ship ({@code royal_lion_ship}, "Navire royal au lion", city of Lion Port): a big royal merchant ship
- * of 40 blocks (51 with the bowsprit), 12 wide, a dark wooden hull with royal blue strakes between gilded wales, a
- * row of blue heater shields bearing a gold rampant lion along each side, a gilded lion figurehead, a raised
- * forecastle, three masts with royal blue square sails bordered in gold (a big gold lion on the courses), gold-railed
- * fighting tops with lanterns, and a big stern castle (the captain's cabin under the quarterdeck, the royal state
- * room under a blue mansard roof on it, a striped awning over the helm). It sails like the Blue-Sailed Frigate
- * (heavier still) and has rooms: the captain's cabin, the state room, the crew quarters and the cargo hold, described
- * by its interior grid ({@code tools/royal_lion_interior.py}).
+ * of 40 blocks (51 with the bowsprit), 12 wide, a high dark wooden hull with a strong sheer, royal blue strakes
+ * between gilded wales, blue heater shields bearing a gold rampant lion and long lion banners along each side, a whole
+ * leaping gilded lion as figurehead, a raised forecastle, three masts with royal blue square sails bordered in gold (a
+ * big gold lion on the courses), gold-railed fighting tops with lanterns, and a big stern castle 12 blocks long (the
+ * captain's cabin under the quarterdeck, the royal state room in the upper storey of 8 blocks under a blue mansard
+ * roof, a striped awning over the helm). It sails like the Blue-Sailed Frigate (heavier still) and has rooms: the
+ * captain's cabin, the state room, the crew quarters and the cargo hold, described by its interior grid
+ * ({@code tools/royal_lion_interior.py}).
  *
  * <p>Ship-local blocks, the same numbers as {@code tools/royal_lion_shape.py}: y = 0 is the waterline.
  */
@@ -21,63 +22,65 @@ public final class RoyalLionLayout {
 	public static final double MAX_HALF_WIDTH = 6.0;
 	public static final double WATERLINE_Y = 0.0;
 	public static final double KEEL_DEPTH = 3.6;
-	public static final double MAIN_DECK_Y = 4.5;
-	public static final double LOWER_FLOOR_Y = 1.0;
-	public static final double QUARTERDECK_Y = 8.0;
-	public static final double CABIN_FLOOR_Y = 4.5;
-	public static final double FORECASTLE_Y = 6.0;
-	/** The royal state room (the roundhouse on the quarterdeck): floor, ceiling, front wall. */
-	public static final double STATEROOM_FLOOR_Y = 8.0;
-	public static final double STATEROOM_CEIL_Y = 11.0;
-	public static final double ROUNDHOUSE_FRONT_Z = -16.0;
-	public static final double CABIN_FRONT_Z = -10.5;
+	public static final double MAIN_DECK_Y = 5.0;
+	public static final double LOWER_FLOOR_Y = 1.5;
+	public static final double QUARTERDECK_Y = 8.5;
+	public static final double CABIN_FLOOR_Y = 5.0;
+	public static final double FORECASTLE_Y = 7.0;
+	/** The royal state room (the roundhouse, the castle's upper storey on the quarterdeck): floor, ceiling, front wall. */
+	public static final double STATEROOM_FLOOR_Y = 8.5;
+	public static final double STATEROOM_CEIL_Y = 12.0;
+	public static final double ROUNDHOUSE_FRONT_Z = -12.0;
+	public static final double CABIN_FRONT_Z = -8.0;
 	public static final double FORECASTLE_Z = 13.0;
 	public static final double TRANSOM_Z = -20.0;
 	public static final double DECK_MAX_Z = 19.5;
-	public static final double FC_BULWARK_TOP = 7.2;
-	public static final double QD_BULWARK_TOP = 9.1;
+	public static final double FC_BULWARK_TOP = 8.2;
+	public static final double QD_BULWARK_TOP = 9.6;
 	/** The lower deck: the crew quarters aft of the bulkhead, the cargo hold forward of it. */
 	public static final double LOWER_AFT_Z = -15.0;
 	public static final double LOWER_FORE_Z = 14.5;
 	public static final double[] BULKHEAD_Z = {-3.0, -2.5};
 	/** The fore and main masts, stepped on the keel (through the hold). */
-	public static final double FORE_MAST_Z = 9.5;
-	public static final double FORE_MAST_TOP = 29.0;
-	public static final double MAIN_MAST_Z = -1.0;
+	public static final double FORE_MAST_Z = 12.5;
+	public static final double FORE_MAST_TOP = 29.5;
+	public static final double MAIN_MAST_Z = -0.5;
 	public static final double MAIN_MAST_TOP = 30.5;
-	/** The mizzen, stepped on the quarterdeck. */
-	public static final double MIZZEN_Z = -12.2;
-	public static final double MIZZEN_TOP = 25.8;
-	public static final double[] BOWSPRIT_FOOT = {0.0, 7.2, 17.0};
-	public static final double[] BOWSPRIT_TIP = {0.0, 13.0, 31.0};
+	/** The mizzen, stepped on the quarterdeck at the front of the state room, between its two doors. */
+	public static final double MIZZEN_Z = -11.5;
+	public static final double MIZZEN_TOP = 26.0;
+	public static final double[] BOWSPRIT_FOOT = {0.0, 9.0, 17.5};
+	public static final double[] BOWSPRIT_TIP = {0.0, 14.8, 31.0};
 	/** How far aft the rudder blade, the stern gallery and the stern lanterns reach. */
 	public static final double STERN_REACH_Z = -21.6;
-	/** The gilded lion figurehead (its head and its forepaws) and the lowest head rail reach forward of the stem. */
-	public static final double[] FIGUREHEAD_PROBE = {0.0, 7.3, 25.5};
-	public static final double[] FIGUREHEAD_PAW_PROBE = {0.0, 3.4, 26.0};
-	public static final double[] HEAD_RAIL_PROBE = {0.0, 7.4, 21.8};
+	/** The leaping gilded lion figurehead (its head and its forepaws) and the head rails reach forward of the stem. */
+	public static final double[] FIGUREHEAD_PROBE = {0.0, 9.4, 28.5};
+	public static final double[] FIGUREHEAD_PAW_PROBE = {0.0, 6.9, 29.5};
+	public static final double[] HEAD_RAIL_PROBE = {0.0, 8.3, 23.6};
 	/** The square yards are braced round by this angle (port arms aft), as in the model. */
 	public static final double BRACE_DEG = 6.0;
 	/** Half span of the longest yard (the main course's). */
-	public static final double YARD_HALF = 10.5;
-	public static final double HELM_Z = -14.0;
-	public static final double PILOT_Z = -14.8;
+	public static final double YARD_HALF = 11.1;
+	public static final double HELM_Z = -9.4;
+	public static final double PILOT_Z = -10.2;
 	/** Stairs: main deck -> quarterdeck and main deck -> forecastle (both sides), the companionways down. */
 	public static final double[] QD_STAIR_X = {2.5, 4.0};
-	public static final double[] QD_STAIR_Z = {-7.0, -10.5};
+	public static final double[] QD_STAIR_Z = {-4.5, -8.0};
 	public static final double[] FC_STAIR_X = {2.0, 3.5};
-	public static final double[] FC_STAIR_Z = {11.5, 13.0};
+	public static final double[] FC_STAIR_Z = {11.0, 13.0};
 	public static final double[] CREW_STAIR_X = {-2.2, -0.7};
 	public static final double[] CREW_STAIR_Z = {-7.0, -3.5};
 	public static final double[] HOLD_STAIR_X = {2.0, 3.5};
 	public static final double[] HOLD_STAIR_Z = {3.5, 7.0};
-	/** The shields along each side, and the height of their centre. */
-	public static final double[] SHIELD_Z = {-14.5, -8.5, -2.5, 6.5, 12.5};
-	public static final double SHIELD_Y = 4.15;
+	/** The shields along each side (the waist and the forecastle), and the height of their centre. */
+	public static final double[] SHIELD_Z = {-5.5, 0.5, 6.5, 12.5};
+	public static final double SHIELD_Y = 4.6;
 	/** Doors of the interior grid. */
 	public static final int CABIN_DOOR = 0;
 	public static final int STATEROOM_DOOR = 1;
 	public static final int BULKHEAD_DOOR = 2;
+	/** The state room's second door, starboard of the mizzen ({@link #STATEROOM_DOOR} is port of it). */
+	public static final int STATEROOM_DOOR_S = 3;
 	public static final String GRID = "/assets/medievalships/interiors/royal_lion_ship.grid";
 	public static final String DECOR = "/assets/medievalships/interiors/royal_lion_ship_decor.json";
 
@@ -97,12 +100,12 @@ public final class RoyalLionLayout {
 		p.aftPowA = 4.0;
 		p.aftPowB = 0.5;
 		p.keelDepth = KEEL_DEPTH;
-		p.keelRise = 2.2;
-		p.keelPow = 3.0;
-		p.railBase = 6.2;
-		p.railRiseFore = 1.8;
-		p.railRiseAft = 0.4;
-		p.railPow = 2.6;
+		p.keelRise = 2.6;
+		p.keelPow = 2.6;
+		p.railBase = 6.7;
+		p.railRiseFore = 3.6;
+		p.railRiseAft = 1.2;
+		p.railPow = 2.0;
 		p.railFloors = List.of(new HullShape.RaisedDeck(Double.NEGATIVE_INFINITY, CABIN_FRONT_Z, QUARTERDECK_Y + 1.0),
 				new HullShape.RaisedDeck(FORECASTLE_Z, Double.POSITIVE_INFINITY, FORECASTLE_Y + 1.0));
 		p.waterlineY = WATERLINE_Y;
@@ -117,7 +120,7 @@ public final class RoyalLionLayout {
 		spec.decor = DECOR;
 		double q = QUARTERDECK_Y;
 		List<ShipGeometry.Seat> seats = new ArrayList<>();
-		// the pilot stands at the wheel on the quarterdeck, under the striped awning
+		// the pilot stands at the wheel on the quarterdeck, under the striped awning, forward of the mizzen
 		seats.add(new ShipGeometry.Seat(ShipGeometry.PILOT_SEAT, 0.0, q + 0.28, PILOT_Z, true, new double[] {1.2, q + 0.02, PILOT_Z}));
 		for (InteriorDecor.SeatSpot spot : InteriorDecor.load(DECOR).seats()) {
 			seats.add(new ShipGeometry.Seat(seats.size(), spot.x(), spot.y(), spot.z(), false,
@@ -146,15 +149,16 @@ public final class RoyalLionLayout {
 		}
 		probes.add(new double[] {0, 1.0, STERN_REACH_Z});
 		probes.add(new double[] {0, 6.0, STERN_REACH_Z + 0.5});
+		probes.add(new double[] {0, 9.0, STERN_REACH_Z + 0.6});
 		probes.add(FIGUREHEAD_PROBE.clone());
 		probes.add(FIGUREHEAD_PAW_PROBE.clone());
 		probes.add(HEAD_RAIL_PROBE.clone());
 		// the ends of the braced yards: the courses, the topsails, the mizzen course
-		yardArms(probes, 18.2, FORE_MAST_Z, 0.67, 9.7);
-		yardArms(probes, 19.0, MAIN_MAST_Z, 0.7, YARD_HALF);
-		yardArms(probes, 24.4, FORE_MAST_Z + 0.45, 0.5, 6.8);
-		yardArms(probes, 25.6, MAIN_MAST_Z + 0.45, 0.52, 7.3);
-		yardArms(probes, 19.0, MIZZEN_Z, 0.57, 7.1);
+		yardArms(probes, 19.6, FORE_MAST_Z, 0.67, 10.4);
+		yardArms(probes, 20.0, MAIN_MAST_Z, 0.7, YARD_HALF);
+		yardArms(probes, 26.8, FORE_MAST_Z + 0.45, 0.5, 7.4);
+		yardArms(probes, 27.8, MAIN_MAST_Z + 0.45, 0.52, 7.8);
+		yardArms(probes, 20.2, MIZZEN_Z, 0.57, 7.5);
 		spec.extraProbes = List.copyOf(probes);
 		spec.boundingRadius = BOWSPRIT_TIP[2] + 1.0;
 		spec.aiReach = BOWSPRIT_TIP[2];
@@ -163,7 +167,7 @@ public final class RoyalLionLayout {
 		spec.lowestY = -KEEL_DEPTH;
 		// boarding on the main deck between the crew companionway and the forecastle (clear of both hatches)
 		spec.boardMinZ = -3.0;
-		spec.boardMaxZ = 12.0;
+		spec.boardMaxZ = 11.0;
 		spec.boardHalfWidth = 1.6;
 		spec.avoidZ = new double[] {};
 		spec.sternPost = false;

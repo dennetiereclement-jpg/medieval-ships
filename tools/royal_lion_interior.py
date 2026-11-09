@@ -8,12 +8,13 @@ floors and ceilings of the rooms on the boundaries of these cells, so what is dr
   src/main/resources/assets/medievalships/interiors/royal_lion_ship.grid
 
 Layout (docs/RoyalLion_PLAN.md):
-  quarterdeck (8.0): the helm under the striped awning; the roundhouse at its aft end: the royal state room
-    (8.0 -> 11.0, under the blue mansard roof), its double door on the front wall
-  main deck (4.5): open from the cabin bulkhead to the forecastle; the captain's cabin (4.5, no step) under the
-    quarterdeck, a stair on each side up to the quarterdeck, a stair on each side up to the forecastle (6.0);
+  quarterdeck (8.5): the helm under the striped awning, the mizzen; the roundhouse over its aft part (the upper
+    storey of the castle, 8 blocks long): the royal state room (8.5 -> 12.0, under the blue mansard roof), a double
+    door on each side of the mizzen in its front wall
+  main deck (5.0): open from the cabin bulkhead to the forecastle; the captain's cabin (5.0, no step) under the
+    quarterdeck, a stair on each side up to the quarterdeck, a stair on each side up to the forecastle (7.0);
     two companionways down: starboard of the centre to the crew quarters, on the port side to the cargo hold
-  lower deck (1.0): the crew quarters aft and the cargo hold forward, a bulkhead with a double door between them;
+  lower deck (1.5): the crew quarters aft and the cargo hold forward, a bulkhead with a double door between them;
     the fore and main masts through the hold down to the keel
 """
 import math
@@ -52,10 +53,11 @@ ROOMS = {
 # doors: index -> (name, box); 2 wide doors have two leaves
 DOORS = {
     0: ("cabin", (-1.0, 1.0, C, Q - S, fs.CABIN_FRONT_Z - 0.5, fs.CABIN_FRONT_Z)),
-    1: ("stateroom", (-1.0, 1.0, RH0, RH0 + 2.5, RF - 0.5, RF)),
+    1: ("stateroom", (1.0, 2.5, RH0, RH0 + 2.5, RF - 0.5, RF)),          # port of the mizzen
     2: ("bulkhead", (-1.0, 1.0, L, L + 2.5, B0, B1)),
+    3: ("stateroom_s", (-2.5, -1.0, RH0, RH0 + 2.5, RF - 0.5, RF)),      # starboard of the mizzen
 }
-CABIN_DOOR, STATEROOM_DOOR, BULKHEAD_DOOR = 0, 1, 2
+CABIN_DOOR, STATEROOM_DOOR, BULKHEAD_DOOR, STATEROOM_DOOR_S = 0, 1, 2, 3
 # the masts (1 x 1 block columns, (z, foot)): the fore and main masts stepped on the keel (through the hold), the
 # mizzen on the quarterdeck
 MASTS = [(fs.FORE_MAST_Z, L - S), (fs.MAIN_MAST_Z, L - S), (fs.MIZZEN_Z, Q)]
