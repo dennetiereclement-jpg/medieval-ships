@@ -19,7 +19,7 @@ belt at the deck edge, vertical stone ribs between red panels, iron straps; cren
 along the waist, a raised forecastle with a wooden balustrade and a stone beak at the head of the strongly raked
 stem; a two storey stern castle in stone (lit windows, a keep with corbelled battlements) and a turret of dark timber
 with a pointed red tiled roof and a lantern on its finial; three masts with red square sails bordered and striped
-with white, a beige castle tower with a gate on the fore and main courses, a white jib with a red band, red
+with white, a beige castle tower with a gate on the main course, a small white jib with a red band, red
 swallow-tailed pennants at the mastheads, fighting tops with stone merlons, rope ladders; red banners with the
 white tower along the sides and at the stern, heater shields on the bow, a banner from the bowsprit; a cargo crane
 with a hanging crate on the mizzen; lanterns on the rails, the castle and the turret. Inside, the captain's cabin
@@ -83,7 +83,8 @@ CF, KF, FF = fs.CABIN_FRONT_Z, fs.KEEP_FRONT_Z, fs.FC_FRONT_Z
 TZ = fs.TRANSOM_Z
 BOW_Z = fs.FORE_SCALE - 0.02   # where the planking closes on the stem
 HEAD_Z = fs.STEM_HEAD_Z
-BRACE = math.radians(38)       # square yards braced round (port arms aft): the sails show their faces on the side views
+BRACE = math.radians(45)       # square yards braced round (port arms aft): the sails show their faces on the side views
+                               # (the tower of the main course is foreshortened to 0.75 of its width on the main reference)
 RNG = random.Random(4242)
 GANGPLANK_Z = (-0.2, 3.4)       # starboard: no merlon nor rail over the boarding plank (tools/fortress_gangplank.py)
 
@@ -117,8 +118,10 @@ def hull_rows(z):
         pts.append((max(0.16, fx * w), fy * yk))
     regs = ["hull_brown", "hull_brown", "hull_brown"]
     lf = lift(z)
-    levels = [(0.2, "strake_brown2"), (0.85 + 0.3 * lf, "strake_brown"), (1.5 + 0.45 * lf, "strake_brown2"), (3.3 + 0.8 * lf, "red_panel"),
-              (4.35 + 0.9 * lf, "studs"), (ys, "stone")]
+    # camera-matched main reference, from the rail down: a stone cap 0.8, the studded band 0.95, the red panels 2.1, the
+    # stone wale 0.7 right under them, dark planks to the keel (the stone buttresses of the ribs stepping down on them)
+    levels = [(0.2, "strake_brown2"), (WALE[0] + 0.3 * lf, "strake_brown"), (WALE[1] + 0.35 * lf, "strake_brown2"),
+              (3.55 + 0.8 * lf, "red_panel" if z < FF + 0.6 else "strake_brown"), (BELT_LOW + 0.95 * lf, "studs"), (ys, "stone")]
     for y, reg in levels:
         y = min(y, ys - 0.06 * (len(levels) - len(regs) + 3))
         y = max(y, pts[-1][1] + 0.08)
@@ -128,6 +131,8 @@ def hull_rows(z):
 
 
 STRETCHED = ("strake_brown", "strake_brown2")
+WALE = (0.75, 1.45)     # the stone wale (at the waist; it rises with the sheer forward)
+BELT_LOW = 4.5          # the studded band up to here, then the stone belt to the gunwale
 
 
 def strake(bone, name, a0, a1, b0, b1, th, region, outward, overlap=1.03, inner=None):
@@ -225,9 +230,9 @@ def cladding(bone, detail):
     """The stone wale at the waterline, the heavy studded stone belt under the gunwale (climbing to the forecastle
     and sweeping up to the beak), the vertical stone ribs between the red panels with an iron strap on each side."""
     for side, sn in SIDES:
-        stone_course(bone, "wale_low_" + sn, side, TZ + 0.1, BOW_Z + 0.3, lambda z: -0.05 + 0.3 * lift(z), lambda z: 0.8 + 0.3 * lift(z), 0.24,
+        stone_course(bone, "wale_low_" + sn, side, TZ + 0.1, BOW_Z + 0.3, lambda z: WALE[0] + 0.3 * lift(z), lambda z: WALE[1] + 0.3 * lift(z), 0.24,
                      region="stone_dark", jitter=0.04)
-        stone_course(bone, "belt_" + sn, side, TZ + 0.05, HEAD_Z - 0.2, lambda z: fs.sheer_y(z) - 1.12, lambda z: fs.sheer_y(z) - 0.2, 0.34,
+        stone_course(bone, "belt_" + sn, side, TZ + 0.05, HEAD_Z - 0.2, lambda z: fs.sheer_y(z) - 1.0, lambda z: fs.sheer_y(z) - 0.2, 0.34,
                      region="stone_stud", jitter=0.05)
         # the gunwale's cap stones over the belt, from the outer face in to the bulwark's inner face
         zs = list(np.arange(CF - 0.5, HEAD_Z - 0.4, 1.0))
@@ -245,7 +250,7 @@ def cladding(bone, detail):
                      {"all": "stone_light", "+2": "stone"})
         # the ribs
         for j, z in enumerate(fs.RIB_Z):
-            y0, y1 = 0.8 + 0.3 * lift(z), fs.sheer_y(z) - 1.12
+            y0, y1 = WALE[1] + 0.3 * lift(z), fs.sheer_y(z) - 1.0
             n = max(1, int(round(y1 - y0)))
             for k in range(n):
                 ya, yb = y0 + (y1 - y0) * k / n, y0 + (y1 - y0) * (k + 1) / n
@@ -259,6 +264,17 @@ def cladding(bone, detail):
             for s in (1, -1):
                 hull_decal(detail, "rib_strap_%s%d_%d" % (sn, j, s > 0), z + s * 0.74, (y0 + y1) / 2, side, 0.44, y1 - y0, "iron_strap", out=0.03,
                            th=0.07, stretch=False)
+            # under the wale the rib goes on down the bottom as a buttress of stone blocks stepping aft and in (the
+            # stepped voxel masonry of the main reference; it runs into the water as on the second one)
+            if z < 14.0:
+                yw = WALE[0] + 0.3 * lift(z)
+                for k, (h, w, dz) in enumerate(((0.85, 1.3, 0.0), (0.8, 1.05, -0.3), (0.7, 0.8, -0.5))):
+                    yc = yw - 0.85 * k - h / 2
+                    if fs.hull_x(z + dz, yc) < 1.0:
+                        break
+                    p, u, v, nn = side_frame(z + dz, yc, side)
+                    add_cube(bone, "rib_foot_%s%d_%d" % (sn, j, k), p + nn * 0.1, np.column_stack([u, v, nn]), (w, h, 0.4 - 0.06 * k),
+                             "stone_dark")
 
 
 def merlon(bone, name, c, w=0.9, h=0.85, d=0.55, region="stone"):
@@ -369,10 +385,10 @@ WIN_W, WIN_H = 1.0, 1.25
 
 
 def window(bone, name, z, y, side, w=WIN_W, h=WIN_H, out=0.0):
-    """A lit window on the castle side: the glow in a dark wooden frame, a pale stone sill and lintel."""
+    """A lit window on the castle side: the glow in a dark wooden frame, a dark wooden sill and lintel (main reference)."""
     hull_decal(bone, name, z, y, side, w, h, "glow_window", out=out + 0.02, glow=True)
-    hull_decal(bone, name + "_sill", z, y - h / 2 - 0.08, side, w + 0.3, 0.16, "stone_light", out=out + 0.02, th=0.14, stretch=False)
-    hull_decal(bone, name + "_lintel", z, y + h / 2 + 0.08, side, w + 0.3, 0.16, "stone_light", out=out + 0.02, th=0.14, stretch=False)
+    hull_decal(bone, name + "_sill", z, y - h / 2 - 0.08, side, w + 0.3, 0.16, "wood_dark", out=out + 0.02, th=0.14, stretch=False)
+    hull_decal(bone, name + "_lintel", z, y + h / 2 + 0.08, side, w + 0.3, 0.16, "wood_dark", out=out + 0.02, th=0.14, stretch=False)
     p, u, v, n = side_frame(z, y, side)
     add_cube(bone, name + "_in", p - n * 0.62, np.column_stack([u, v, n]), (w, h, 0.03), {"all": None, "-3": "window_in"}, stretch=True)
 
@@ -388,7 +404,7 @@ def castle(bone, detail, lights):
         # the lower storey (captain's cabin): dark timber walls between stone pilasters, and the stone parapet of the
         # quarterdeck running along the whole castle side (main reference)
         wall(bone, "castle_wall", side, TZ, CF + 0.3, yb, Q - 0.3, th=0.34, region="timber")
-        wall(bone, "castle_parapet", side, TZ, CF + 0.3, Q - 0.32, fs.QD_TOP, th=0.34, region="stone_stud", out=0.06)
+        wall(bone, "castle_parapet", side, TZ, CF + 0.3, Q - 0.32, fs.QD_TOP, th=0.34, region="stone_dark", out=0.06)   # in the keep's shadow
         # the keep, over the aft part: red panels between the pilasters, its battlements standing out on corbels
         wall(bone, "keep_wall", side, TZ - 0.74, KF + 0.3, fs.QD_TOP - 0.02, K - 0.02, th=0.34, region="red_panel")
         wall(bone, "keep_parapet", side, TZ - 0.93, KF + 0.55, K - 0.05, fs.KEEP_TOP, th=0.34, out=0.3, region="stone_stud")
@@ -407,8 +423,9 @@ def castle(bone, detail, lights):
             window(bone, "keep_window_%s%d" % (sn, j), z, Q + 1.4, side, w=1.0, h=1.15, out=0.06)
         for j, z in enumerate((TZ + 0.35, -16.2, KF - 0.25, CF + 0.2)):
             top = fs.KEEP_TOP - 0.9 if z < KF + 0.1 else fs.QD_TOP
-            p0, u, v, n = side_frame(z, (yb + top) / 2, side)
-            add_cube(detail, "pilaster_%s%d" % (sn, j), p0 + n * 0.14, np.column_stack([u, v, n]), (0.75, top - yb, 0.34),
+            bot = Q - 0.32 if j == 1 else yb      # the keep's middle pilaster stands on the string course (main reference)
+            p0, u, v, n = side_frame(z, (bot + top) / 2, side)
+            add_cube(detail, "pilaster_%s%d" % (sn, j), p0 + n * 0.14, np.column_stack([u, v, n]), (0.75, top - bot, 0.34),
                      "stone" if j % 2 else "stone_stud")
         # a red banner with the white tower on the castle's side (and one hanging from the keep's battlements aft)
         banner(lights, "banner_castle_" + sn, hp(-13.6, 7.6, side, 0.14), side, 1.5, 3.2)
@@ -572,7 +589,7 @@ def turret(bone, detail, lights):
     # the eaves: a grey stone band, then the stepped roof of red tiles
     ew, ed = th + 0.65, hz + 0.65
     add_cube(bone, "turret_eave", (0, yt + 0.15, zc), EYE, (2 * ew, 0.3, 2 * ed), {"all": "tile_edge", "+2": "roof_tile", "-2": "stone"})
-    steps = 8
+    steps = 4
     y = yt + 0.3
     dh = (fs.TURRET_ROOF_TOP - 0.4 - y) / steps
     for k in range(steps):
@@ -691,18 +708,20 @@ def bow(bone, detail, lights):
 # ---------------------------------------------------------------- masts, yards, sails
 MASTS = {
     # name: (z, lower top y, topmast crosstrees y, masthead y, lower mast diameter)
-    "fore": (fs.FORE_MAST_Z, 15.9, 21.8, fs.FORE_MAST_TOP, 0.9),
-    "main": (fs.MAIN_MAST_Z, 17.3, 24.4, fs.MAIN_MAST_TOP, 0.96),
+    # the courses hang high under the tops, small topsails over them (main reference, camera-matched: fore yard 16.9,
+    # main yard 20.3, topsails 18.0-20.5 and 20.8-24.1)
+    "fore": (fs.FORE_MAST_Z, 17.3, 21.1, fs.FORE_MAST_TOP, 0.9),
+    "main": (fs.MAIN_MAST_Z, 20.3, 24.6, fs.MAIN_MAST_TOP, 0.96),
     "mizzen": (fs.MIZZEN_Z, 20.4, None, fs.MIZZEN_TOP, 0.74),
 }
 MAST_FOOT = {"fore": L - 0.4, "main": L - 0.4, "mizzen": Q}
 # square sails: mast, name, yard y, foot y, half width at the head, at the foot, belly, texture region
 SQUARE_SAILS = [
-    ("fore", "fore_course", 15.3, 8.9, 7.0, 7.6, 1.9, "fore_course"),
-    ("fore", "fore_topsail", 21.2, 16.7, 4.8, 5.4, 1.2, "fore_topsail"),
-    ("main", "main_course", 16.7, 7.9, 8.6, 9.2, 2.3, "main_course"),
-    ("main", "main_topsail", 23.7, 17.9, 5.8, 6.4, 1.4, "main_topsail"),
-    ("mizzen", "mizzen_course", 19.6, 13.4, 4.8, 5.4, 1.3, "mizzen_course"),
+    ("fore", "fore_course", 16.7, 9.9, 7.0, 7.4, 1.7, "fore_course"),
+    ("fore", "fore_topsail", 20.7, 18.3, 2.5, 2.9, 0.8, "fore_topsail"),
+    ("main", "main_course", 19.7, 9.4, 9.2, 9.5, 2.3, "main_course"),
+    ("main", "main_topsail", 24.2, 21.3, 3.5, 3.9, 1.0, "main_topsail"),
+    ("mizzen", "mizzen_course", 19.6, 13.4, 5.0, 5.5, 1.3, "mizzen_course"),
 ]
 
 
@@ -743,7 +762,7 @@ def mast(root, fittings, name):
     if top2 is not None:
         d2 = d * 0.66
         round_bar(mb, name + "_topmast", (0, top1 - 0.5, z + 0.45), (0, top2 + 0.8, z + 0.45), d2, "mast")
-        for k, y in enumerate((top1 + 2.2, top1 + 4.4)):
+        for k, y in enumerate((top1 + (top2 - top1) * 0.36, top1 + (top2 - top1) * 0.72)):
             round_bar(mb, "%s_topmast_band_%d" % (name, k), (0, y - 0.07, z + 0.45), (0, y + 0.07, z + 0.45), d2 + 0.06, "iron")
         s2 = 0.95
         for sx in (1, -1):
@@ -789,6 +808,9 @@ def square_sail(mb, sails_info, name, z, y_top, y_foot, half_top, half_foot, bel
     return br
 
 
+JIB_ON_STAY = (0.3, 0.84)   # head and tack of the jib, as fractions of the fore stay (from the fore top)
+
+
 def tri_sail(bone, name, head, tack, clew, belly, N, region):
     clew = gn.jib_clew(head, tack, clew)
     cols, rows = ft.SAIL_CELLS[region]
@@ -821,10 +843,11 @@ def sails_and_spars(root, masts, sails_info, bowsprit):
         mb, mz = masts[mast_name]
         z, off = yard_step(mast_name, name)
         square_sail(mb, sails_info, name, z, yt, yf, ht, hf, bel, reg, off=off)
-    # one jib on the fore topmast stay, its tack at the bowsprit cap (white with a red band, as on the main reference)
+    # one jib (a fore staysail) on the fore stay, its tack low over the stem head, its clew over the forecastle: the
+    # small white triangle with a red band before the fore course of the main reference
     st_ = stays(bowsprit)
-    jb = Bone("sail_jibs", origin=tuple(cap), parent=root)
-    jib_tri, clew = tri_sail(jb, "jib", on(st_["fore_topmast_stay"], 0.32), on(st_["fore_topmast_stay"], 0.9), v3(0, 10.6, 15.2), 0.9,
+    jb = Bone("sail_jibs", origin=tuple(on(st_["fore_stay"], JIB_ON_STAY[1])), parent=root)
+    jib_tri, clew = tri_sail(jb, "jib", on(st_["fore_stay"], JIB_ON_STAY[0]), on(st_["fore_stay"], JIB_ON_STAY[1]), v3(0, 10.0, 13.4), 0.6,
                              v3(-1, 0, 0), "jib")
     sails_info.append((jb, True))
     return {"jib": jib_tri, "jib_clew": clew}
@@ -880,7 +903,7 @@ def rigging(bone, hull_bone, masts, bowsprit, sails):
     ropes = [(name, a, b) for name, (a, b) in stays(bowsprit).items()]
     ropes += [
         ("bobstay", cap - d * 0.6 + v3(0, -0.15, 0), v3(0, 1.2, fs.stem_z(1.2) + 0.1)),
-        ("jib_halyard", v3(0, MASTS["fore"][2] + 0.1, fz + 0.6), on(stays(bowsprit)["fore_topmast_stay"], 0.32) + v3(0, 0.1, 0)),
+        ("jib_halyard", v3(0, MASTS["fore"][1] + 0.9, fz + 0.5), on(stays(bowsprit)["fore_stay"], JIB_ON_STAY[0]) + v3(0, 0.1, 0)),
     ]
     for side, sn in SIDES:
         ropes.append(("bowsprit_shroud_" + sn, sa + d * 3.0, hp(18.6, 4.2, side, 0.1)))

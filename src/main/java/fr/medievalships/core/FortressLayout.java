@@ -46,7 +46,7 @@ public final class FortressLayout {
 	public static final double TURRET_HALF = 2.5;
 	public static final double[] TURRET_Z = {-19.0, -15.0};
 	public static final double TURRET_WALL_TOP = 14.5;
-	public static final double TURRET_ROOF_TOP = 18.6;
+	public static final double TURRET_ROOF_TOP = 17.0;
 	/** The fore and main masts, stepped on the keel (through the lower deck); the fore mast stands on the forecastle. */
 	public static final double FORE_MAST_Z = 8.0;
 	public static final double FORE_MAST_TOP = 24.0;
@@ -62,8 +62,8 @@ public final class FortressLayout {
 	public static final double STERN_REACH_Z = -21.3;
 	public static final double FINIAL_TOP = 21.0;
 	/** Half span of the longest yard (the main course) and the angle the square yards are braced round by. */
-	public static final double YARD_HALF = 9.1;
-	public static final double BRACE_DEG = 38.0;
+	public static final double YARD_HALF = 9.7;
+	public static final double BRACE_DEG = 45.0;
 	public static final double HELM_Z = -9.7;
 	public static final double PILOT_Z = -10.5;
 	/** Stairs: main deck -> quarterdeck (both sides), main deck -> forecastle (both sides), keep -> its roof, main deck -> lower deck. */
@@ -148,10 +148,10 @@ public final class FortressLayout {
 		probes.add(BEAK_PROBE.clone());
 		probes.add(new double[] {0, 1.0, STERN_REACH_Z});
 		probes.add(new double[] {0, KEEP_WALL, STERN_REACH_Z + 0.6});
-		yardArms(probes, 15.3, FORE_MAST_Z, 0.62, 7.4);
-		yardArms(probes, 16.7, MAIN_MAST_Z, 0.65, YARD_HALF);
-		yardArms(probes, 23.7, MAIN_MAST_Z + 0.45, 0.49, 6.3);
-		yardArms(probes, 19.6, MIZZEN_Z, 0.54, 5.3);
+		yardArms(probes, 16.7, FORE_MAST_Z, 0.62, 7.5);
+		yardArms(probes, 19.7, MAIN_MAST_Z, 0.65, YARD_HALF);
+		yardArms(probes, 24.2, MAIN_MAST_Z + 0.45, 0.49, 4.0);
+		yardArms(probes, 19.6, MIZZEN_Z, 0.54, 5.5);
 		spec.extraProbes = List.copyOf(probes);
 		spec.boundingRadius = BOWSPRIT_TIP[2] + 1.0;
 		spec.aiReach = BOWSPRIT_TIP[2];

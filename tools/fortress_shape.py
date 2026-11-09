@@ -56,7 +56,7 @@ STEM_HEAD_Z = 22.5         # the stone beak at the head of the raked stem
 TURRET_HALF = 2.5
 TURRET_Z = (-19.0, -15.0)
 TURRET_WALL_TOP = 14.5
-TURRET_ROOF_TOP = 18.6
+TURRET_ROOF_TOP = 17.0
 
 # ---- masts (z, top y) and the bowsprit: three masts as on the references. The fore and main masts are
 # stepped on the keel (through the lower deck), the mizzen on the quarterdeck.

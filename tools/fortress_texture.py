@@ -123,11 +123,11 @@ SAIL_REGIONS = {
     "jib":            (192, 272, 128, 160),
 }
 SAIL_CELLS = {  # (columns, rows) of cloth blocks drawn in each sail region
-    "main_course": (18, 11), "fore_course": (14, 9), "mizzen_course": (12, 8), "main_topsail": (12, 6), "fore_topsail": (10, 5),
+    "main_course": (18, 10), "fore_course": (14, 7), "mizzen_course": (12, 8), "main_topsail": (8, 3), "fore_topsail": (6, 3),
     "jib": (8, 10),
 }
 # which sails carry the castle-tower emblem (the courses of the fore and main masts, as on the references)
-EMBLEM_SAILS = ("main_course", "fore_course")
+EMBLEM_SAILS = ("main_course",)   # the tower on the main course only, as on all three references
 
 _mix, _scale, _planks, _blocks, _fill = ct._mix, ct._scale, ct._planks, ct._blocks, ct._fill
 
@@ -176,9 +176,10 @@ def tower_mask(w, h, cell=None):
 
 
 # ---------------------------------------------------------------- painters
-def _stone(px, region, rng, tones=("a3a29c", "8f8e88", "b2b1aa", "9a9993", "86857f"), mortar="4a4946", studs=False, bh=16, bw=16):
-    """Light grey stone blocks a block square (16 px), each a tone of its own with a lit top edge and a shadowed
-    bottom, dark mortar joints, a few chips; studs: a dark iron stud with a pale glint in some blocks."""
+def _stone(px, region, rng, tones=("a0978c", "8a8278", "aca398", "938a80", "7f786e"), mortar="2e2a26", studs=False, bh=16, bw=16, bevel=True):
+    """Grey stone blocks a block square (16 px), each a tone of its own (a little warm), bevelled as the voxel masonry
+    of the references: a bright top and left edge, a shadowed bottom and right edge, deep dark joints, a few chips;
+    studs: a dark iron stud with a pale glint in some blocks."""
     u, v, w, h = region
     mortar = _rgb(mortar)
     for by in range(0, h, bh):
@@ -195,9 +196,13 @@ def _stone(px, region, rng, tones=("a3a29c", "8f8e88", "b2b1aa", "9a9993", "8685
                         continue
                     if x == 0 or y == bh - 1:
                         c = mortar
-                    else:
+                    elif not bevel:   # the keep's inside: the flatter dressed stone of phase 2
                         k = 1.0 + (0.1 if y == 0 else 0.05 if y == 1 else 0) - (0.1 if y == bh - 2 else 0) + (0.05 if x == 1 else 0) \
                             - (0.06 if x == bw - 1 else 0) + 0.03 * math.sin(x * 1.3 + y * 0.7)
+                        c = _scale(base, k)
+                    else:
+                        k = 1.0 + (0.36 if y == 0 else 0.12 if y == 1 else 0) - (0.36 if y == bh - 2 else 0.14 if y == bh - 3 else 0) \
+                            + (0.22 if x == 1 else 0) - (0.3 if x == bw - 1 else 0.1 if x == bw - 2 else 0) + 0.04 * math.sin(x * 1.3 + y * 0.7)
                         c = _scale(base, k)
                         if (x, y) in chips:
                             c = _scale(base, 0.82)
@@ -363,7 +368,7 @@ def _pennant(px, region, rng):
 def _wall_stone(px, region, rng):
     """Inside the keep and the turret: dressed stone blocks over a wooden dado and a skirting board."""
     u, v, w, h = region
-    _stone(px, (u, v, w, h), rng, tones=("8e8b84", "807d76", "96938b"), mortar="4a4740")
+    _stone(px, (u, v, w, h), rng, tones=("8e8b84", "807d76", "96938b"), mortar="4a4740", bevel=False)
     for y in range(int(h * 0.62), h):
         for x in range(w):
             c = _scale(_rgb("5a3a20"), 1.0 + 0.05 * math.sin(x * 0.4 + y))
@@ -543,10 +548,10 @@ def make_texture(path):
     px = img.load()
     R = REGIONS
     _stone(px, R["stone"], rng)
-    _stone(px, R["stone_dark"], rng, tones=("7f7e78", "74736d", "8a8983", "6c6b66"), mortar="3a3936")
+    _stone(px, R["stone_dark"], rng, tones=("7d766d", "716a62", "877f75", "6a645c"), mortar="28241f")
     _stone(px, R["stone_stud"], rng, studs=True)
-    _stone(px, R["stone_light"], rng, tones=("c4c2ba", "b8b6ae", "cfcdc5"), mortar="6a6862")
-    _stone(px, R["beak"], rng, tones=("a3a29c", "8f8e88", "b2b1aa"), studs=True, bh=16, bw=32)
+    _stone(px, R["stone_light"], rng, tones=("bdb4a8", "b1a89c", "c7beb1"), mortar="4e4943")
+    _stone(px, R["beak"], rng, tones=("a0978c", "8a8278", "aca398"), studs=True, bh=16, bw=32)
     _planks(px, R["hull_brown"], ("3e2616", "36200f", "462c1a", "3a2414"), "1a0f06", rng, plank_h=4, joints=2, grain=0.05)
     _planks(px, R["wood_dark"], ("4e321c", "452c18", "573820", "4a2f1a"), "1e130a", rng)
     _planks(px, R["wood_mid"], ("7a5130", "6e482a", "855a36", "73502e"), "33210f", rng)
@@ -614,8 +619,7 @@ def make_texture(path):
 # ---------------------------------------------------------------- the sails
 def _sail(px, region, cols, rows, rng, style, emblem=False, tri=None):
     """Red blocky sail (one tone per cloth block, lit in the belly, shadowed at the leeches) with white wool:
-    style "course": white bands down both leeches and along the head, a white stripe inside each band (the
-    red-white-red-white leeches of the references); "topsail": a white frame all round; "striped": two white
+    style "course": broad white bands down both leeches, white corners at the head (the main reference); "topsail": a white frame all round; "striped": two white
     stripes (the mizzen); "jib": white with a red band along the foot. The foot of the square sails is ragged
     (the stepped, worn foot of the references: transparent notches). emblem: the castle tower in the middle."""
     u, v, w, h = region
@@ -648,8 +652,8 @@ def _sail(px, region, cols, rows, rng, style, emblem=False, tri=None):
                 continue
             t, k = tone[r_][c_]
             white = False
-            if style == "course":
-                white = c_ in (0, 2, cols - 1, cols - 3) or r_ == 0
+            if style == "course":   # broad white leeches, a red head with white corners (main reference)
+                white = c_ in (0, 1, cols - 2, cols - 1) or (r_ == 0 and (c_ <= 2 or c_ >= cols - 3))
             elif style == "topsail":
                 white = c_ in (0, cols - 1) or r_ == 0
             elif style == "striped":
