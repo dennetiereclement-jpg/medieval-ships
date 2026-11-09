@@ -92,7 +92,8 @@ NAVY = ("26407e", "223b76", "2a4686", "1f376e", "2d4a8c")       # the deep royal
 NAVY_JOINT = "0c1634"
 SAIL_BLUE = ("233e8a", "264394", "213a84", "2a4898", "203b82", "22408c")
 SAIL_JOINT = "0d1a44"
-WOOD_LO = ("64401f", "5a381b", "6e4724", "4c2f16", "7a522c", "5e3c1c", "835a33")
+WOOD_LO = ("5a3f25", "513721", "64462b", "452e1b", "6f5033", "553b22", "77583a")   # 1.27.1: a little less orange
+HULL_BROWN = ("402813", "37220f", "482d16", "301d0d", "51341c")
 WOOD_MID = ("70482a", "653f24", "7b5230", "56371e", "86603a", "6a4426")
 WOOD_DARK = ("3a2414", "33200f", "422918", "2c1a0c", "4a2e1a")
 JOINT_BROWN = "1a0e06"
@@ -107,10 +108,11 @@ def gold_px(shape, rng, base=1.0):
 
 # ---------------------------------------------------------------- planking, blocks
 def p_blocks(w, h, palette, joint, rng, rows=4, blen=32, grain=0.08, ao=(0.0, 0.0), nails=0.25, wear=0.0, jw=2,
-             lens=(1, 1, 1, 0.5, 1.5), bevel=1.0, stagger=True):
+             lens=(1, 1, 1, 0.5, 1.5), bevel=1.0, stagger=True, grad=0.0):
     """The voxel planking of the references: rows of blocks (blen texels long), one tone each with grain along u, a lit
     top edge, a shadowed foot and right end, dark joints; ao = darkening of the top and the foot of the whole region
-    (a band v-stretched on its strake: the shadow under the wale above, the corner over the wale below)."""
+    (a band v-stretched on its strake: the shadow under the wale above, the corner over the wale below); grad = a
+    darkening down the whole region (the lower strakes darker towards the water)."""
     W, H = w * K, h * K
     pal = [hx(c) for c in palette]
     jcol = hx(joint)
@@ -156,6 +158,9 @@ def p_blocks(w, h, palette, joint, rng, rows=4, blen=32, grain=0.08, ao=(0.0, 0.
         v = (np.arange(H) + 0.5) / H
         prof = 1 - ao[0] * np.clip(1 - v / 0.16, 0, 1) ** 1.6 - ao[1] * np.clip((v - 0.86) / 0.14, 0, 1) ** 1.6
         out *= prof[:, None, None]
+    if grad:
+        v = (np.arange(H) + 0.5) / H
+        out *= (1 - grad * v ** 1.2)[:, None, None]
     return np.clip(out, 0, 255)
 
 
@@ -213,6 +218,22 @@ def p_gold_v(w, h, rng, pts=GOLD_STOPS, seam=32, specks=0.004):
     m = rng.random((H, W))
     out[m < specks] *= 0.7
     out[m > 1 - specks] = out[m > 1 - specks] * 0.6 + hx("fff4c8") * 0.4
+    return np.clip(out, 0, 255)
+
+
+RING_STOPS = [(0.0, "fae196"), (0.12, "f6cc64"), (0.32, "f0b23e"), (0.6, "d48e26"), (0.82, "a2661a"), (1.0, "5e360a")]
+GOLD_DIM = 0.8     # the gilding of the state room's storey, a little deeper so that its lit windows lead
+
+
+def p_gold_ring(w, h, rng):
+    """The gold bands round the masts (1.27.1): the light rim, the warm gold and the ochre shadow run along u (the
+    bands' side faces map u along the mast, top at u = 0), the highlight capped so that no face reads white; a slow
+    sheen round the ring (along v)."""
+    W, H = w * K, h * K
+    u = (np.arange(W) + 0.5) / W
+    sheen = vnoise(rng, W, H, 6, 10)
+    t = np.clip(u[None, :] - 0.05 * sheen, 0, 1)
+    out = stops(t, RING_STOPS) * (1 + 0.03 * rng.uniform(-1, 1, (H, W)))[..., None]
     return np.clip(out, 0, 255)
 
 
@@ -311,7 +332,61 @@ def lion_layers(lw, lh, cell, facing=-1, bold=0.0, rt=None):
     return m, dl
 
 
-def paint_lion(out, x0, y0, m, dl, rng, cell, outline=2, outline_col="0b1430", shadow=True):
+def lion_carving(lw, lh, facing=-1):
+    """Masks (bool, lh x lw texels) drawn at the texel resolution over the voxel lion of the sails (1.27.1, after the
+    in-game screenshots: the voxel-sized carved marks read as blotches): the mane as two curved grooves following the
+    back of the head, the brow, the eye (and its glint), the open jaws (the mouth, the tongue, two fangs). The lion is
+    drawn on the 100 x 120 canvas of royal_lion_texture.lion_shapes."""
+    sx, sy = lw / 100.0, lh / 120.0
+    wd = max(2, int(round(1.8 * min(sx, sy))))
+
+    def P(x, y):
+        return ((100 - x) * sx if facing > 0 else x * sx, y * sy)
+
+    def layer(draw):
+        im = Image.new("L", (lw, lh), 0)
+        draw(ImageDraw.Draw(im))
+        return np.asarray(im) > 127
+
+    def curve(pts, n=16):
+        """Points of the quadratic-or-cubic Bezier through the control points pts (canvas units)."""
+        pts = np.array(pts, float)
+        out = []
+        for t in np.linspace(0, 1, n):
+            q = pts.copy()
+            while len(q) > 1:
+                q = q[:-1] * (1 - t) + q[1:] * t
+            out.append(P(*q[0]))
+        return out
+
+    def grooves(d):
+        # three flowing locks of the mane, sweeping back and down from behind the head
+        for pts in (((41, 10), (50, 7), (58, 12), (63, 20)), ((43, 21), (52, 19), (59, 24), (64, 32)),
+                    ((42, 31), (50, 32), (56, 36), (59, 44))):
+            d.line(curve(pts), fill=255, width=wd, joint="curve")
+
+    def eye(d):
+        (x0, y0), (x1, y1) = P(26.6, 12.2), P(33.4, 16.8)
+        d.ellipse((min(x0, x1), y0, max(x0, x1), y1), fill=255)
+
+    def glint(d):
+        X, Y = P(28.6, 13.4)
+        d.rectangle((X - wd / 2, Y - wd / 2, X + wd / 2 - 1, Y + wd / 2 - 1), fill=255)
+
+    def mouth(d):
+        d.polygon([P(9, 21), P(30, 23), P(32, 27), P(12, 30)], fill=255)
+
+    def tongue(d):
+        d.polygon([P(15, 27.2), P(25, 25.6), P(29, 27.0), P(18, 29.2)], fill=255)
+
+    def fangs(d):
+        d.polygon([P(11.5, 21.2), P(15.5, 21.6), P(13.2, 24.6)], fill=255)
+        d.polygon([P(14.5, 29.6), P(18.5, 29.4), P(16.2, 26.8)], fill=255)
+    return dict(carve=layer(grooves), eye=layer(eye), glint=layer(glint), mouth=layer(mouth), tongue=layer(tongue),
+                fang=layer(fangs))
+
+
+def paint_lion(out, x0, y0, m, dl, rng, cell, outline=2, outline_col="0b1430", shadow=True, carving=None):
     """Gold voxel lion into out (H, W, 3) at (x0, y0): a dark outline round it, a drop shadow to the lower right, per
     voxel lit and shadowed rims, the silhouette's lit upper-left and dark lower-right edges, carved lines."""
     H, W = out.shape[:2]
@@ -328,21 +403,35 @@ def paint_lion(out, x0, y0, m, dl, rng, cell, outline=2, outline_col="0b1430", s
     sy, sx = slice(ys.start - Y0, ys.stop - Y0), slice(xs.start - X0, xs.stop - X0)
     sub = out[ys, xs]
     Ms, Ds, Rs, Dr = M[sy, sx], D[sy, sx], ring[sy, sx], drop[sy, sx]
+    C = None
+    if carving is not None:
+        C = {}
+        for key, mk in carving.items():
+            big = np.zeros_like(M)
+            big[pad:pad + lh, pad:pad + lw] = mk
+            C[key] = big[sy, sx]
     if shadow:
         sub[Dr] *= 0.55
     sub[Rs] = hx(outline_col)
+    if C is not None:
+        # the open jaws: a dark red mouth inside the navy lining, the tongue, two fangs
+        mo = C["mouth"] & ~Ms & ~Rs
+        sub[mo] = hx("3a0a0a")
+        sub[mo & C["tongue"]] = hx("a8303a")
+        sub[(C["mouth"] & ~Ms) & C["fang"]] = hx("f2ead6")
     yy, xx = np.mgrid[0:Ms.shape[0], 0:Ms.shape[1]]
     yy = yy + sy.start - pad
     xx = xx + sx.start - pad
     # the volume: lit towards the upper left of the emblem, deeper gold towards its foot, a slow sheen
     t = 0.26 + 0.3 * np.clip(yy / max(1, lh), 0, 1) + 0.08 * np.clip(xx / max(1, lw), 0, 1)
-    t = t - 0.08 * vnoise(rng, Ms.shape[1], Ms.shape[0], 9, 9)
+    t = t - (0.04 if C is not None else 0.08) * vnoise(rng, Ms.shape[1], Ms.shape[0], 9, 9)
     g = stops(np.clip(t, 0, 1), GOLD_STOPS)
-    # the voxels: a tone each and a faint joint (the blocky emblems of the references, without a grid)
+    # the voxels: a tone each and a faint joint (the blocky emblems of the references, without a grid); the sail lions
+    # keep the tones close (wider tones read as blotches at a distance)
     ly, lx = yy % cell, xx % cell
     k = 1 + 0.06 * (ly == 0) - 0.08 * (ly == cell - 1) - 0.04 * (lx == cell - 1)
     tone = (((yy // cell) * 73856093) ^ ((xx // cell) * 19349663)) % 5
-    k = k * np.choose(tone, [1.0, 1.04, 0.97, 1.06, 0.95])
+    k = k * np.choose(tone, [1.0, 1.02, 0.985, 1.03, 0.975] if C is not None else [1.0, 1.04, 0.97, 1.06, 0.95])
     gl = g * k[..., None]
     lit, dark = edges(Ms, 2)
     lit4, dark4 = edges(Ms, 5)
@@ -350,7 +439,16 @@ def paint_lion(out, x0, y0, m, dl, rng, cell, outline=2, outline_col="0b1430", s
     gl[lit4 & ~lit] = gl[lit4 & ~lit] * 0.8 + hx("ffe07e") * 0.2
     gl[lit] = gl[lit] * 0.45 + hx("fff4c0") * 0.55
     gl[dark] = gl[dark] * 0.5 + hx("683c0a") * 0.5
-    gl[Ds] = hx("7a4a10")
+    if C is None:
+        gl[Ds] = hx("7a4a10")
+    else:
+        # carved grooves: a dark line with a lit lip under it; the eye dark with a glint
+        cv = C["carve"] & Ms
+        lip = shifted(cv, 1, 1) & ~cv & Ms
+        gl[lip] = gl[lip] * 0.55 + hx("fff0b0") * 0.45
+        gl[cv] = gl[cv] * 0.4 + hx("5a3008") * 0.6
+        gl[C["eye"] & Ms] = hx("1e0e04")
+        gl[C["glint"] & Ms] = hx("fff0c0")
     sub[Ms] = gl[Ms]
     out[ys, xs] = sub
     return out
@@ -504,9 +602,19 @@ def p_panel(w, h, rng, field, field_joint, frame_kind="gold", boards=10, recess=
     return np.clip(out, 0, 255)
 
 
+# the warm glow of the lit windows and ports (1.27.1, after the in-game screenshots): saturated amber, no pale core.
+# The game lights a "glow" face with the full lightmap but still with the entity shader's diffuse term (about 0.5 to
+# 0.75 on a wall), so a near-white core came out a dull beige; an amber core stays orange, and the panes sit in a dark
+# reveal (not straight against the gilding) so that they read as the brightest thing on the castle.
+GLOW_STOPS = [(0.0, "ffde76"), (0.45, "ffc450"), (0.75, "faa034"), (0.92, "ec8028"), (1.0, "d2641e")]
+GLOW_LEAD = "3c1c08"
+REVEAL = ("100a10", "20160e")      # the dark reveal round the panes (shadowed top-left, a little lighter lower right)
+
+
 def p_window(w, h, rng, arch=True, lit=True, frame=3):
-    """A lit window: a warm glow (a pale core low in the middle, amber, deep orange at the edges) behind dark leading,
-    a bevelled gold frame; the round head cut out above the arch."""
+    """A window: the panes (lit: an amber glow brighter low in the middle, deeper orange at the edges; unlit: grey
+    glass) behind thin dark leading, a dark reveal round them, a thin bevelled gold rim (the jambs and the sill are
+    gold cubes round it); the round head cut out above the arch."""
     W, H = w * K, h * K
     yy, xx = np.mgrid[0:H, 0:W]
     r = W / 2
@@ -518,44 +626,61 @@ def p_window(w, h, rng, arch=True, lit=True, frame=3):
     else:
         dist = np.minimum(np.minimum(xx + 0.5, W - xx - 0.5), yy + 0.5)
     dist = np.minimum(dist, H - yy - 0.5)
-    fk = frame * K
+    rim = 2 if lit else frame * K
+    rev = 4 if lit else 0
     if lit:
         gx = np.abs(cx) / r
-        gy = (yy - H * 0.62) / H
-        t = np.clip(np.sqrt(gx * gx * 0.8 + gy * gy * 2.2), 0, 1)
-        out = stops(t, [(0.0, "fff6cc"), (0.25, "ffd67a"), (0.55, "f4a83e"), (0.85, "c86a1e"), (1.0, "8a3e10")])
-        lead = hx("3a220c")
+        gy = (yy - H * 0.64) / H
+        t = np.clip(np.sqrt(gx * gx * 0.75 + gy * gy * 2.0), 0, 1)
+        out = stops(t, GLOW_STOPS) * (1 + 0.025 * rng.uniform(-1, 1, (H, W)))[..., None]
+        lead = hx(GLOW_LEAD)
     else:
         out = stops(np.clip(yy / H, 0, 1), [(0, "a8c0c8"), (0.5, "7d939c"), (1, "56666e")])
         lead = hx("2a1e12")
+    # the leading: a mullion, two side bars and transoms, one texel wide (two for the unlit glass)
+    lw_ = 0.5 if lit else 1.0
     pane = W / 3
-    mull = (np.abs((xx + 0.5) - W / 2) < 1.0) | ((yy > r) & ((yy % int(pane * 1.2)) < 1)) | ((np.abs(cx) > pane * 0.5) & (np.abs(np.abs(cx) - pane * 0.5) < 0.8))
+    mull = (np.abs((xx + 0.5) - W / 2) < lw_) | ((np.abs(cx) > pane * 0.5) & (np.abs(np.abs(cx) - pane * 0.62) < lw_))
+    mull |= (yy > r) & ((yy % int(pane * 1.5)) < 1)
     out[mull] = lead
-    hl = shifted(mull, 0, 1) & ~mull
-    out[hl] = out[hl] * 1.1 + 10
-    g = stops(np.clip(0.2 + 0.5 * yy / H + 0.15 * (xx > W / 2), 0, 1), GOLD_STOPS)
-    fr = dist < fk
+    if lit:
+        # the lit glass reflects a little on the right of each bar
+        hl = shifted(mull, 0, 1) & ~mull
+        out[hl] = np.minimum(out[hl] * 1.06 + 6, 255)
+        # the dark reveal: deeper on the upper left (in the shadow of the frame)
+        rv = (dist >= rim) & (dist < rim + rev)
+        rc = np.where((yy < H * 0.5) | (xx < W * 0.4), 0, 1)
+        out[rv] = np.array([hx(c) for c in REVEAL])[rc][rv]
+        out[(dist >= rim + rev) & (dist < rim + rev + 1)] *= 0.82
+    g = stops(np.clip(0.25 + 0.45 * yy / H + 0.12 * (xx > W / 2), 0, 1), GOLD_STOPS)
+    fr = dist < rim
     out[fr] = g[fr]
-    out[(dist >= fk - 1) & (dist < fk)] = hx("4a2c08")
     out[dist < 1] = hx("5e380c")
-    out[(dist >= 1) & (dist < 2) & (yy < H * 0.5)] = hx("fff0b0")
+    if lit:
+        out[(dist >= 1) & (dist < 2) & (yy < H * 0.4)] = hx("f6d27a")
+    else:
+        out[(dist >= rim - 1) & (dist < rim)] = hx("4a2c08")
+        out[(dist >= 1) & (dist < 2) & (yy < H * 0.5)] = hx("fff0b0")
     return rgba(out, inside)
 
 
 def p_port(w, h, rng):
-    """A small lit square port: four warm panes behind a dark cross, a gold frame lit at the top-left."""
+    """A small lit square port: four amber panes behind a thin dark cross, a dark reveal, a thin gold frame lit at the
+    top-left."""
     W, H = w * K, h * K
     yy, xx = np.mgrid[0:H, 0:W]
     d = np.minimum(np.minimum(xx, W - 1 - xx), np.minimum(yy, H - 1 - yy))
-    t = np.clip(np.hypot((xx - W / 2) / W, (yy - H * 0.6) / H) * 2.2, 0, 1)
-    out = stops(t, [(0, "fff6cc"), (0.4, "ffc860"), (0.8, "e08a2a"), (1, "a04e14")])
-    cross = (np.abs(xx + 0.5 - W / 2) < 1.1) | (np.abs(yy + 0.5 - H / 2) < 1.1)
-    out[cross] = hx("3a220c")
-    fr = d < 6
-    g = stops(np.clip(0.15 + 0.6 * ((xx + yy) / (W + H)), 0, 1), GOLD_STOPS)
+    t = np.clip(np.hypot((xx + 0.5 - W / 2) / W, (yy + 0.5 - H * 0.58) / H) * 2.1, 0, 1)
+    out = stops(t, GLOW_STOPS)
+    cross = (np.abs(xx + 0.5 - W / 2) < 1.0) | (np.abs(yy + 0.5 - H / 2) < 1.0)
+    out[cross] = hx(GLOW_LEAD)
+    rv = (d >= 3) & (d < 6)
+    out[rv] = np.where(((xx + yy) < W)[..., None], hx(REVEAL[0]), hx(REVEAL[1]))[rv]
+    fr = d < 3
+    g = stops(np.clip(0.2 + 0.55 * ((xx + yy) / (W + H)), 0, 1), GOLD_STOPS)
     out[fr] = g[fr]
     out[d == 0] = hx("4a2c08")
-    out[d == 5] = hx("3a2206")
+    out[(d == 1) & ((xx + yy) < W)] = hx("f6d27a")
     return rgba(out)
 
 
@@ -774,7 +899,8 @@ def p_sail(w, h, cols, rows, rng, rt, lion=0.0, tri=None, leech_stripe=True, wid
         cell = max(4, int(round(min(cw, ch) / 4)))
         lh, lw = lh // cell * cell, lw // cell * cell
         m, dl = lion_layers(lw, lh, cell, bold=1.6, rt=rt)
-        paint_lion(out, (W - lw) // 2, int(H * 0.49 - lh / 2), m, dl, rng, cell, outline=4, outline_col="0a1430")
+        paint_lion(out, (W - lw) // 2, int(H * 0.49 - lh / 2), m, dl, rng, cell, outline=4, outline_col="0a1430",
+                   carving=lion_carving(lw, lh))
     return rgba(out, inside)
 
 
@@ -835,11 +961,15 @@ def hull_pass(base, R, rt):
 
     # hull strakes (stretched over the band's height: the ambient shadow under the wale above and over the one below)
     vox = dict(lens=(1,), stagger=False, bevel=0.7)
-    P("strake_lo", p_blocks(*wh("strake_lo"), WOOD_LO, JOINT_BROWN, g("strake_lo"), rows=2, ao=(0.42, 0.2), wear=0.15, **vox))
-    P("strake_mid", p_blocks(*wh("strake_mid"), WOOD_MID, JOINT_BROWN, g("strake_mid"), rows=1, ao=(0.45, 0.22), wear=0.12, **vox))
+    # (the bow sweeps the low and the dark wood strakes up to 2 to 3 times their height: the variants with more rows
+    # keep the blocks about square there, tools/generate_royal_lion.py picks one by the strake's height; the low
+    # strakes darken towards the water)
+    for name, rows in (("strake_lo", 2), ("strake_lo_r3", 3), ("strake_lo_r4", 4)):
+        P(name, p_blocks(*wh(name), WOOD_LO, JOINT_BROWN, g(name), rows=rows, ao=(0.42, 0.2), wear=0.15, grad=0.3, **vox))
+    for name, rows in (("strake_mid", 1), ("strake_mid_r2", 2), ("strake_mid_r3", 3)):
+        P(name, p_blocks(*wh(name), WOOD_MID, JOINT_BROWN, g(name), rows=rows, ao=(0.45, 0.22), wear=0.12, **vox))
     P("strake_hi", p_blocks(*wh("strake_hi"), NAVY, NAVY_JOINT, g("strake_hi"), rows=2, ao=(0.48, 0.24), wear=0.08, nails=0.15, **vox))
-    P("hull_brown", p_blocks(*wh("hull_brown"), ("4a2e16", "402812", "54341a", "38220f", "5e3c20"), "160c04", g("hull_brown"), rows=2,
-                             wear=0.1, **vox))
+    P("hull_brown", p_blocks(*wh("hull_brown"), HULL_BROWN, "120a04", g("hull_brown"), rows=2, wear=0.1, **vox))
     P("strake_brown2", p_blocks(*wh("strake_brown2"), ("3e2616", "36210f", "46291a"), "140a04", g("strake_brown2"), rows=1, blen=32,
                                 ao=(0.0, 0.3)))
     P("strake_brown", p_blocks(*wh("strake_brown"), WOOD_DARK, JOINT_BROWN, g("strake_brown"), rows=1, ao=(0.25, 0.1)))
@@ -847,6 +977,9 @@ def hull_pass(base, R, rt):
     P("hull_blue2", p_blocks(*wh("hull_blue2"), NAVY, NAVY_JOINT, g("hull_blue2"), rows=2, wear=0.15, nails=0.15, **vox))
     # gold, the cap rail, the gold mouldings
     P("gold", p_gold_v(*wh("gold"), g("gold")))
+    P("gold_dim", p_gold_v(*wh("gold_dim"), g("gold_dim"), pts=[(t, "%02x%02x%02x" % tuple(int(x * GOLD_DIM) for x in hx(c)))
+                                                                for t, c in GOLD_STOPS]))
+    P("gold_ring", p_gold_ring(*wh("gold_ring"), g("gold_ring")))
     P("rail", p_gold_v(*wh("rail"), g("rail"), pts=[(0.0, "fff0b0"), (0.12, "fad472"), (0.35, "eebc54"), (0.62, "d49a34"),
                                                      (0.86, "a06c1c"), (1.0, "5e380c")], seam=48))
     P("gold_band", p_gold_band(*wh("gold_band"), g("gold_band")))

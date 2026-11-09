@@ -75,6 +75,17 @@ REGIONS.update({
     "castle_wood": (0, 336, 64, 32),
     "port_lid":    (64, 336, 32, 16),   # a closed port lid: dark planks, two iron hinge straps, a ring
 })
+# the second visual pass (1.27.1, after the in-game screenshots): the low and the dark wood strakes with more rows of
+# blocks for the bow (where the wales sweep up and the strakes are 2 to 3 times taller), the deeper gilding of the
+# state room's storey, the gold bands of the masts (their shading along u: the band faces map u along the mast)
+REGIONS.update({
+    "strake_lo_r3":  (0, 368, 64, 32),
+    "strake_lo_r4":  (64, 368, 64, 32),
+    "strake_mid_r2": (128, 368, 64, 32),
+    "strake_mid_r3": (192, 368, 64, 32),
+    "gold_dim":      (256, 368, 64, 16),
+    "gold_ring":     (320, 368, 16, 16),
+})
 for _alias, _src in (("hull_mid", "wood_mid"), ("hull_light", "wood_light"), ("hull_dark", "wood_dark"), ("wood_trim", "wood_dark"),
                      ("wood_honey", "wood_mid"), ("blue_paint", "hull_blue"), ("pilaster", "wood_dark"), ("velvet", "red_paint"),
                      ("cushion", "red_paint"), ("brass", "bronze"), ("organ_wood", "wood_dark"), ("steel", "iron"), ("stripe", "white_paint"),
