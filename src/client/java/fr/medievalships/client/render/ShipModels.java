@@ -124,10 +124,13 @@ public final class ShipModels {
 	/** The Fortress Ship: its sails (with their castle towers) are a texture of their own; heavy, it rocks little; foam at the bow. */
 	public static final Visual FORTRESS_SHIP = new Visual(Ships.FORTRESS_SHIP, model("fortress_ship"),
 			List.of(texture("fortress_ship"), texture("fortress_ship_sails")), 0.35f, 34, 36, true);
+	/** The Gear Steamship: its sails (the gold gear) are a texture of their own; foam at the bow (smoke, engine: GearSteamEffects). */
+	public static final Visual GEAR_STEAMSHIP = new Visual(Ships.GEAR_STEAMSHIP, model("gear_steamship"),
+			List.of(texture("gear_steamship"), texture("gear_steamship_sails")), 0.45f, 32, 30, true);
 	public static final List<Visual> ALL = List.of(GALLEY, GALLEON, WARSHIP, MEDIEVAL_GALLEY, STEAM_PADDLEBOAT, ELVEN_SAILBOAT,
 			STEAMPUNK_AIRSHIP, NAUTILUS, OLD_CORSAIR, SKY_LEVIATHAN, CRYSTAL_AIRSHIP,
 			RUSTIC_SKIFF, DRAGON_JUNK, HOT_AIR_BALLOON, BLUE_FRIGATE, ROWBOAT, TRADE_SLOOP, ROYAL_LION_SHIP,
-			FORTRESS_SHIP);
+			FORTRESS_SHIP, GEAR_STEAMSHIP);
 
 	@Nullable
 	public static Visual of(ShipType type) {

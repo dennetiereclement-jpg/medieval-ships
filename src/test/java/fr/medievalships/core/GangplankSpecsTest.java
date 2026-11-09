@@ -28,7 +28,7 @@ class GangplankSpecsTest {
 	/** The vessels equipped by tools/gangplank/ships_g2.py. */
 	static final List<String> SHIPS = List.of("galley", "galleon", "warship", "medieval_galley", "steam_paddleboat", "elven_sailboat",
 			"old_corsair", "blue_frigate", "crystal_airship", "sky_leviathan", "dragon_junk", "royal_lion_ship",
-			"fortress_ship");
+			"fortress_ship", "gear_steamship");
 	/** The two reference vessels (specs written with the system itself); checked the same way when present. */
 	static final List<String> REFERENCE = List.of(); // the airship's spec is checked by GangplankTest
 	/** Vessels without a gangplank (see docs): boarded by a click, a basket, their own boarding staircase. */

@@ -307,6 +307,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 					!tag.equals("solo"));
 			RoyalLionShipGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 			FortressShipGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
+			GearSteamShipGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 		}
 	}
 
