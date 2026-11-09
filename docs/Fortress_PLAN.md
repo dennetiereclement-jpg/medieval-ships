@@ -151,7 +151,7 @@ porter les armes de Havre-Fort (la tour blanche sur fond rouge). Planche des pi�
 * **Contraintes** : coque, ponts, pavois et pièces dessinés sur la grille (ce qui est dessiné est ce qui collisionne :
   surfaces des pièces tirées des cellules, doublage intérieur des pavois sur la face de collision) ; grille fermée sous
   le pont principal (aucune sortie par la coque, vérifié par `FortressShipTest`) ; sondes du pilote automatique au bout
-  du beaupré, au bec, au safran, au parapet arrière et aux bouts de vergues ; ≈ 4 300 cubes.
+  du beaupré, au bec, au safran, au parapet arrière et aux bouts de vergues ; ≈ 5 860 cubes (phase 5).
 * **Physique** (le plus lourd des voiliers) : accélération 0,18 bloc/s², freinage 0,35, virage 5°/s au plus, longue
   erre (`waterDrag` 0,045), roulis 0,55 ; vitesses 1,3 / 3,2 / 5,4 ; pilote automatique : rayon 15, anticipation 30,
   sondes 80.
@@ -265,3 +265,41 @@ chaud et les ombres profondes des images (la pierre y paraît plus contrastée) 
 tribord (brassées dans l'autre sens) et plus hautes ; le passavant de 112 à balustrade de bois (merlons de 151 / 149
 gardés) ; les fenêtres du donjon sombres sur 112 (éclairées ici, comme 149) ; les contreforts sous les nervures en
 blocs séparés sur le bouchain (continus sur 112).
+
+## 11. Passe visuelle (phase 5, 1.27.1)
+
+Planche : [comparaison_fortress_ship.png](comparaison_fortress_ship.png) (référence 112 | après ; puis avant / après depuis
+la caméra de 112, le flanc de près, le château, la grande voile et la poupe, rendus avec l'éclairage des entités de
+Minecraft : deux lumières fixes, chaque face éclairée à plat, les flancs à environ la moitié ; enfin la même vue en jeu
+avant / après, variante decor). Silhouette, pièces, sièges, passerelle, collisions et physique inchangés ; grille et mobilier identiques.
+
+Minecraft éclaire le modèle face par face, sans ombre ni occlusion : l'ombre et la lumière des images sont donc
+**peintes dans les textures** (`fortress_texture.py`, phase 5) :
+* **Pierre** plus claire (les flancs ne reçoivent qu'environ la moitié de la lumière), chaque bloc biseauté (arêtes haute
+  et gauche claires, basse et droite sombres sur un joint noir), marbré, piqueté, écorné, parfois fêlé, d'une teinte un
+  peu chaude ou froide ; deux fois plus de blocs différents (12 normaux, 5 cloutés, 6 sombres, 4 clairs) ; une pierre
+  encrassée et moussue pour les contreforts qui descendent dans l'eau.
+* **Bois** : chaque planche sa teinte, arête haute claire, joint sombre, abouts cloués, nœuds ; le bordé plus sombre et
+  plus vert rang par rang vers la quille (`hull_low`, `hull_deep`), mouillé à la flottaison, dans l'ombre sous la
+  préceinte de pierre ; la bande cloutée haute dans l'ombre du bandeau (`studs_top`) ; bois un peu plus chaud et clair.
+* **Fer** : clous bombés à reflet et ombre portée (bande cloutée, montants, pierres cloutées), plaques des nervures
+  martelées et biseautées à gros bouton et rivets d'angle, coulures de rouille.
+* **Panneaux rouges** plus vifs : quatre planches par bloc, clous aux abouts, usure, ombrés en haut et au pied.
+* **Voiles** à 32 px par bloc (atlas des voiles 1024²) : chaque bloc de toile biseauté comme les voiles en voxels de 112,
+  coutures doubles entre les laizes, bandes de ris et garcettes, ralingue torsadée tout autour, plis, pied plus sombre,
+  têtière dans l'ombre de la vergue ; la tour cernée de sombre, ses assises et son biseau dessinés.
+* Bannières et écus à 32 px par bloc (plis, tour cernée et appareillée, bord d'or à reflet et rivets) ; tuiles du toit
+  bombées ; fenêtres à vitraux sous plomb ; dorures en bandes claire / sombre.
+* Les faces alignées (pierre, panneaux, bandes cloutées) commencent à un bloc entier pris au hasard dans leur région, les
+  plaques et montants sont étirés en travers : les blocs voisins ne se répètent plus et les boutons sont centrés.
+
+**Relief** (69 cubes, 5 792 → 5 861, + 1,2 %) : un bouton de fer en saillie sur chaque plaque de nervure, un appui de
+pierre en saillie sous chaque fenêtre en arc ; haubans, galhaubans, étais et bras plus épais (0,07–0,08) pour rester
+lisibles de loin. Passerelle : la case de camouflage `fortress_ship` suit la pierre plus claire.
+
+Vu en jeu (dernière ligne de la planche, variante decor du premier passage) : les bannières et écus se lisent enfin
+(la tour était presque invisible), les étais ne sont plus pointillés, la coque et les voiles ont du grain. Les garcettes
+claires et les points de couture des voiles scintillaient au loin (pas de mipmaps sur les entités) : garcettes sombres,
+coutures en lignes, plus de trame fine ; l'usure claire des panneaux rouges est atténuée.
+
+Restent : l'éclairage chaud et les ombres portées des images (impossibles sans ombres dans le jeu) ; le reste du § 10.

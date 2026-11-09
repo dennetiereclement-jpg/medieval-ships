@@ -64,6 +64,18 @@ REGIONS = {k: (0,) + r for k, r in gt.REGIONS.items()}
 REGIONS.update({k: (1,) + r for k, r in gt.SAIL_REGIONS.items()})   # the sails: second texture
 gn.REGIONS = REGIONS
 gn.SIZE = gt.SIZE
+_face_uv_16 = gn.face_uv
+
+
+def _face_uv_hd(cube, bbface, spec, seed):
+    """The atlases are painted at 32 px a block (1.27.1, gear_steam_texture.K): a face that samples its region at its
+    own size (not stretched, no sub-rectangle) takes K times as many texels, so that a block stays a block."""
+    if spec.get("sub") is None and not spec["stretch"]:
+        spec = dict(spec, density=spec["density"] * gt.K)
+    return _face_uv_16(cube, bbface, spec, seed)
+
+
+gn.face_uv = _face_uv_hd
 
 v3, norm, Bone, add_cube, beam, board = gg.v3, gg.norm, gg.Bone, gg.add_cube, gg.beam, gg.board
 ry = gg.ry
@@ -153,14 +165,16 @@ BANDS = ("copper", "copper2", "stone", "brass_band", "iron_band")
 
 def map_strip(cube, region, z0, y_lo):
     """The plates and bands run on from board to board: each board shows the stretch of its region (4 blocks
-    long) that its position along the hull falls on; plates also follow their height."""
-    lu = min(1.0, cube.size[0] * 16 / 64)
-    u0 = ((z0 - TZ) * 16 % 64) / 64
+    long for the bands, 8 for the plates) that its position along the hull falls on; plates also follow their height
+    (4 blocks of plates)."""
+    rw, rh = gt.LAYOUT[region][2:]
+    lu = min(1.0, cube.size[0] * 16 / rw)
+    u0 = ((z0 - TZ) * 16 % rw) / rw
     if u0 + lu > 1:
         u0 = max(0.0, 1 - lu)
     if region in PLATES:
-        lv = min(1.0, cube.size[1] * 16 / 32)
-        v0 = ((y_lo + 0.3) * 16 % 32) / 32
+        lv = min(1.0, cube.size[1] * 16 / rh)
+        v0 = ((y_lo + 0.3) * 16 % rh) / rh
         if v0 + lv > 1:
             v0 = max(0.0, 1 - lv)
         sub = (u0, v0, u0 + lu, v0 + lv)
@@ -368,9 +382,11 @@ def railing(bone, name, path, h, every=1.0, post="wood_dark", rail="rail", gaps=
             k += 1
 
 
-def gear(bone, name, c, axis, r, th, teeth=12, spokes=8, region="brass"):
+def gear(bone, name, c, axis, r, th, teeth=12, spokes=8, region="gear_bevel"):
     """A brass gear wheel in its own bone "gear_<name>" (origin at its centre, local x along its axle): a rim,
-    square teeth, spokes, a hub. The engine animation turns it about its axle."""
+    square teeth, spokes, a hub. The engine animation turns it about its axle. Each piece shows the whole bevelled
+    brass bar (1.27.1: lit and shadowed edges, the wheel reads in relief)."""
+    st = region == "gear_bevel"
     axis = norm(v3(*axis))
     c = v3(*c)
     gb = Bone(name, origin=tuple(c), rot=gg.frame_from(axis, v3(0, 1, 0) if abs(axis[1]) < 0.9 else v3(0, 0, 1)), parent=bone)
@@ -381,17 +397,17 @@ def gear(bone, name, c, axis, r, th, teeth=12, spokes=8, region="brass"):
         a0, a1 = 2 * math.pi * k / nr, 2 * math.pi * (k + 1) / nr
         p0 = c + (e1 * math.cos(a0) + e2 * math.sin(a0)) * r * 0.8
         p1 = c + (e1 * math.cos(a1) + e2 * math.sin(a1)) * r * 0.8
-        beam(gb, "%s_rim_%d" % (name, k), p0, p1, r * 0.2, region, width=th, up=np.cross(axis, norm(p1 - p0)), extend=r * 0.03)
+        beam(gb, "%s_rim_%d" % (name, k), p0, p1, r * 0.2, region, width=th, up=np.cross(axis, norm(p1 - p0)), extend=r * 0.03, stretch=st)
     for k in range(teeth):
         a = 2 * math.pi * (k + 0.5) / teeth
         d = e1 * math.cos(a) + e2 * math.sin(a)
         t = np.cross(axis, d)
         add_cube(gb, "%s_tooth_%d" % (name, k), c + d * (r * 0.95), np.column_stack([d, t, axis]), (r * 0.22, 2 * math.pi * r / teeth * 0.45, th * 0.92),
-                 region)
+                 region, stretch=st)
     for k in range(spokes):
         a = 2 * math.pi * k / spokes
         d = e1 * math.cos(a) + e2 * math.sin(a)
-        beam(gb, "%s_spoke_%d" % (name, k), c + d * r * 0.2, c + d * r * 0.74, th * 0.7, region, width=r * 0.12, up=axis)
+        beam(gb, "%s_spoke_%d" % (name, k), c + d * r * 0.2, c + d * r * 0.74, th * 0.7, region, width=r * 0.12, up=axis, stretch=st)
     disc(gb, name + "_hub", c, axis, r * 0.22, th * 1.4, "gear_face", n=3)
     disc(gb, name + "_axle", c + axis * th * 0.6, axis, r * 0.08, th * 0.6, "iron_dark", n=2)
     return gb
@@ -438,9 +454,10 @@ def ring(bone, name, c, r, th, h, region, n=16):
         add_cube(bone, "%s_%d" % (name, k), c + d * (r + th / 2 - 0.05), np.column_stack([t, v3(0, 1, 0), d]), (w, h, th), region)
 
 
-def dome_cap(bone, name, cz, prof, region, n=20):
+def dome_cap(bone, name, cz, prof, region, n=20, top_region=None):
     """A surface of revolution about the vertical axis at (0, cz): prof = [(y, r), ...] from the bottom up, each
-    course made of n plates slanted along the meridian (no steps), the top closed by a disc."""
+    course made of n plates slanted along the meridian (no steps), the top closed by a disc. Each plate shows the
+    whole region (one riveted plate: the gores of the dome line up from course to course)."""
     for j in range(len(prof) - 1):
         (ya, ra), (yb, rb) = prof[j], prof[j + 1]
         for k in range(n):
@@ -452,9 +469,9 @@ def dome_cap(bone, name, cz, prof, region, n=20):
             t = np.cross(m, nrm)                                         # round the dome (a right-handed frame)
             w = 2 * max(ra, rb) * math.tan(math.pi / n) + 0.02
             add_cube(bone, "%s_%d_%d" % (name, j, k), (pa + pb) / 2, np.column_stack([t, m, nrm]), (w, np.linalg.norm(pb - pa) + 0.06, 0.1),
-                     region, u_dir=t, v_dir=-m)
+                     {"all": region, "-3": top_region or region}, u_dir=t, v_dir=-m, stretch=True)
     yt, rt = prof[-1]
-    disc(bone, name + "_top", (0, yt - 0.03, cz), (0, 1, 0), rt, 0.06, region, n=3)
+    disc(bone, name + "_top", (0, yt - 0.03, cz), (0, 1, 0), rt, 0.06, top_region or region, n=3)
 
 
 def pipe(bone, name, pts, d=0.6, flange=True):
@@ -524,9 +541,10 @@ def trims(bone, detail):
             hull_decal(bone, "hull_window_%s%d" % (sn, j), z, y, side, w, h, "glow_window", out=0.03, th=0.04, glow=True)
             p, u, v, n = side_frame(z, y, side)
             R = np.column_stack([u, v3(0, 1, 0), n])
-            for k, (du, dv, sw, sh) in enumerate(((0, h / 2 + 0.08, w + 0.32, 0.16), (0, -h / 2 - 0.08, w + 0.32, 0.16),
-                                                  (w / 2 + 0.08, 0, 0.16, h), (-w / 2 - 0.08, 0, 0.16, h))):
-                add_cube(detail, "hull_window_frame_%s%d_%d" % (sn, j, k), p + u * du + v3(0, dv, 0) + n * 0.245, R, (sw, sh, 0.1), "brass_band")
+            # the frame: a lintel and a deeper sill (1.27.1: they stand out of the plates and catch the light), the jambs
+            for k, (du, dv, sw, sh, dn, sd) in enumerate(((0, h / 2 + 0.09, w + 0.4, 0.18, 0.27, 0.14), (0, -h / 2 - 0.09, w + 0.5, 0.18, 0.3, 0.2),
+                                                          (w / 2 + 0.08, 0, 0.16, h, 0.245, 0.1), (-w / 2 - 0.08, 0, 0.16, h, 0.245, 0.1))):
+                add_cube(detail, "hull_window_frame_%s%d_%d" % (sn, j, k), p + u * du + v3(0, dv, 0) + n * dn, R, (sw, sh, sd), "brass_band")
         # the gear wheels: the big one amidships, the small one at the bow
         y, z, r = gs.BIG_GEAR
         p, u, v, n = side_frame(z, y, side)
@@ -694,8 +712,9 @@ def deckhouse(bone, lights):
             # the big lit windows of the reference, standing clear above the poop railing
             add_cube(bone, "glow_deckhouse_window_%s%d" % (sn, j), (side * (DH + 0.02), WIN_Y, z), EYE, (0.04, 1.5, 1.25), "glow_window", stretch=True,
                      u_dir=v3(0, 0, -side), v_dir=v3(0, -1, 0))
-            for k, (dy, dz, sy, sz) in enumerate(((0.83, 0, 0.16, 1.55), (-0.83, 0, 0.16, 1.55), (0, 0.7, 1.5, 0.16), (0, -0.7, 1.5, 0.16))):
-                add_cube(bone, "deckhouse_window_frame_%s%d_%d" % (sn, j, k), (side * (DH + 0.06), WIN_Y + dy, z + dz), EYE, (0.12, sy, sz), "brass_band")
+            for k, (dy, dz, sy, sz, dx, sx) in enumerate(((0.84, 0, 0.18, 1.6, 0.08, 0.16), (-0.85, 0, 0.18, 1.75, 0.12, 0.24),
+                                                          (0, 0.7, 1.5, 0.16, 0.06, 0.12), (0, -0.7, 1.5, 0.16, 0.06, 0.12))):
+                add_cube(bone, "deckhouse_window_frame_%s%d_%d" % (sn, j, k), (side * (DH + dx), WIN_Y + dy, z + dz), EYE, (sx, sy, sz), "brass_band")
     # the front wall, on the engine house roof, split round the funnel (a small lit window each side of it)
     fz, fr = gs.FUNNEL_Z, gs.FUNNEL_R
     zf = DZ1 - 0.25
@@ -762,19 +781,24 @@ def engine_house(bone, lights, fittings):
     pipe(bone, "funnel_uptake", [(-1.75, B + 0.03, gs.BRIDGE_FRONT_Z + 0.75), (-1.75, 13.3, gs.BRIDGE_FRONT_Z + 0.75), (-0.95, 13.3, fz - 0.95)], d=0.5)
     # the dome
     dz, dr = gs.DOME_Z, gs.DOME_R
-    cylinder(bone, "dome_drum", (0, E, dz), 12.4 - E, dr, "dome_drum", n=16)   # darker than the cap, as on the reference
-    ring(bone, "dome_band_base", (0, E + 0.15, dz), dr, 0.12, 0.3, "brass_band")
-    ring(bone, "dome_band_top", (0, 12.15, dz), dr, 0.14, 0.5, "brass_band")
+    # 1.27.1: the cap is taller and rounder (a superellipse, its shoulder fuller) on a drum 0.2 lower, the top unchanged;
+    # thick brass bands at the foot of the cap and round the lookout ring, as on the reference
+    y0 = 12.2
+    cylinder(bone, "dome_drum", (0, E, dz), y0 - E, dr - 0.08, "dome_drum", n=16)   # darker than the cap, as on the reference
+    ring(bone, "dome_band_base", (0, E + 0.15, dz), dr - 0.08, 0.14, 0.34, "brass_band")
+    ring(bone, "dome_band_top", (0, y0 - 0.3, dz), dr - 0.02, 0.24, 0.72, "brass_band")
     for k in range(8):
         a = 2 * math.pi * k / 8
         d = v3(math.cos(a), 0, math.sin(a))
-        add_cube(bone, "dome_rib_%d" % k, v3(0, (E + 12.4) / 2, dz) + d * (dr + 0.05), ry(-a + math.pi / 2), (0.2, 12.4 - E, 0.12), "brass")
-    # the cap: a smooth flattened dome of slanted riveted plates (an ellipse of revolution, 7 courses of 20
-    # plates up to the lookout ring), its 8 brass ribs following the curve, as the rounded dome of the reference
-    y0, hd, r_top = 12.4, 2.05, 1.45
-    phis = np.linspace(0.0, math.acos(r_top / dr), 8)
-    prof = [(y0 + hd * math.sin(f), dr * math.cos(f)) for f in phis]
-    dome_cap(bone, "dome_cap", dz, prof, "dome", n=20)
+        add_cube(bone, "dome_rib_%d" % k, v3(0, (E + y0) / 2, dz) + d * (dr - 0.03), ry(-a + math.pi / 2), (0.24, y0 - E, 0.14), "brass")
+    # the cap: a smooth rounded dome of slanted riveted plates (a superellipse of revolution, 7 courses of 20 plates up
+    # to the lookout ring, each plate a gore with its rivets), its 8 brass ribs following the curve
+    r_top, pw = 1.45, 2.4
+    hd = (gs.DOME_TOP + 0.02 - y0) / (1 - (r_top / dr) ** pw) ** (1 / pw)
+    th_max = math.acos((r_top / dr) ** (pw / 2))
+    prof = [(y0 + hd * math.sin(f) ** (2 / pw), dr * math.cos(f) ** (2 / pw)) for f in np.linspace(0.0, th_max, 8)]
+    dome_cap(bone, "dome_cap", dz, prof, "dome_gore", n=20, top_region="dome")
+    ring(bone, "dome_band_crown", (0, prof[-1][0] - 0.12, dz), r_top + 0.02, 0.2, 0.3, "brass_band")
     for k in range(8):
         a = 2 * math.pi * k / 8
         d = v3(math.cos(a), 0, math.sin(a))
