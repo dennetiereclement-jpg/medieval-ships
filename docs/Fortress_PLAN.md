@@ -269,9 +269,9 @@ blocs séparés sur le bouchain (continus sur 112).
 ## 11. Passe visuelle (phase 5, 1.27.1)
 
 Planche : [comparaison_fortress_ship.png](comparaison_fortress_ship.png) (référence 112 | après ; puis avant / après depuis
-la caméra de 112, le flanc de près, le château, la grande voile et la poupe), rendue avec l'éclairage des entités de
-Minecraft (deux lumières fixes, chaque face éclairée à plat : les flancs à environ la moitié), qui est ce que voit le
-joueur. Silhouette, pièces, sièges, passerelle, collisions et physique inchangés ; grille et mobilier identiques.
+la caméra de 112, le flanc de près, le château, la grande voile et la poupe, rendus avec l'éclairage des entités de
+Minecraft : deux lumières fixes, chaque face éclairée à plat, les flancs à environ la moitié ; enfin la même vue en jeu
+avant / après, variante decor). Silhouette, pièces, sièges, passerelle, collisions et physique inchangés ; grille et mobilier identiques.
 
 Minecraft éclaire le modèle face par face, sans ombre ni occlusion : l'ombre et la lumière des images sont donc
 **peintes dans les textures** (`fortress_texture.py`, phase 5) :
@@ -296,5 +296,10 @@ Minecraft éclaire le modèle face par face, sans ombre ni occlusion : l'ombre e
 **Relief** (69 cubes, 5 792 → 5 861, + 1,2 %) : un bouton de fer en saillie sur chaque plaque de nervure, un appui de
 pierre en saillie sous chaque fenêtre en arc ; haubans, galhaubans, étais et bras plus épais (0,07–0,08) pour rester
 lisibles de loin. Passerelle : la case de camouflage `fortress_ship` suit la pierre plus claire.
+
+Vu en jeu (dernière ligne de la planche, variante decor du premier passage) : les bannières et écus se lisent enfin
+(la tour était presque invisible), les étais ne sont plus pointillés, la coque et les voiles ont du grain. Les garcettes
+claires et les points de couture des voiles scintillaient au loin (pas de mipmaps sur les entités) : garcettes sombres,
+coutures en lignes, plus de trame fine ; l'usure claire des panneaux rouges est atténuée.
 
 Restent : l'éclairage chaud et les ombres portées des images (impossibles sans ombres dans le jeu) ; le reste du § 10.

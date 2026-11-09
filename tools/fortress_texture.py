@@ -515,7 +515,7 @@ def _red_panel(px, region, rng):
                             c = _mix(c, _rgb("5a2a18"), 0.5)
                         g = _hash(u + X, v + Y, s + 3)
                         if g > 0.965:
-                            c = _mix(c, _rgb("c87060"), 0.35)
+                            c = _mix(c, _rgb("c87060"), 0.18)
                         elif g < 0.035:
                             c = _scale(c, 0.78)
                     k2 = 1.0
@@ -1264,7 +1264,7 @@ def _erode(a, r):
 def _sail(img, region, cols, rows, rng, style, emblem=False, tri=None):
     """Red blocky sail (32 px a block) with white wool, its cloth painted: a tone per cloth block (lit in the belly,
     shadowed at the leeches and darker towards the foot, the head in the shadow of the yard), long soft folds deepening
-    towards the foot, double-stitched vertical seams between the cloths, a fine weave, reef bands with their reef points
+    towards the foot, double-stitched vertical seams between the cloths, reef bands with their reef points
     (courses and mizzen: two, topsails: one), a twisted bolt rope all round the edge. style "course": broad white bands
     down both leeches, white corners at the head (the main reference); "topsail": a white frame all round; "striped":
     two white stripes (the mizzen); "jib": white with a red band along the foot. The foot of the square sails is ragged
@@ -1310,7 +1310,7 @@ def _sail(img, region, cols, rows, rng, style, emblem=False, tri=None):
     fold = 0.65 * np.sin(2 * np.pi * fx * nf + ph[0] + 0.9 * np.sin(fy * 3.0 + ph[1])) + 0.35 * np.sin(2 * np.pi * fx * nf * 2.3 + ph[2])
     k *= 1 + 0.06 * fold * (0.3 + 0.7 * fy)
     xi, yi = xs.astype(int), ys.astype(int)
-    k *= 1 + 0.03 * (((xi + yi) % 2) - 0.5) + rs.uniform(-0.02, 0.02, (h, w))
+    k *= 1 + rs.uniform(-0.02, 0.02, (h, w))      # (no fine weave: it sparkles at a distance in game)
     lx, ly = xs - ci * cw, ys - ri * ch
     if style != "jib":
         # each cloth block bevelled like the voxel sails of the main reference: lit along its top and left, shadowed
@@ -1321,7 +1321,7 @@ def _sail(img, region, cols, rows, rng, style, emblem=False, tri=None):
         k = np.where(lx > cw - 3.0, k * 0.86, k)
         k = np.where(lx < 1.2, k * 0.62, k)                                    # the seam between two cloths
         k = np.where((lx >= 1.2) & (lx < 2.0), k * 1.1, k)                     # the lit edge of the overlap
-        k = np.where((np.abs(lx - 5.5) < 0.5) & (yi % 4 == 0), k * 0.86, k)    # its second row of stitches
+        k = np.where((lx >= 4.5) & (lx < 5.5), k * 0.93, k)                  # its second row of stitches (a line: dots sparkle)
         k = np.where((ly < 1.0) & (lx >= 1.2), k * 0.86, k)                    # the blocks' rows
     else:
         sl = (xs + ys * 0.62) % (w / 5.0)                                      # the jib's cloths, parallel to its leech
@@ -1334,10 +1334,10 @@ def _sail(img, region, cols, rows, rng, style, emblem=False, tri=None):
         d = np.abs(ys - yb)
         k = np.where(d < 3.0, k * 0.92, k)
         k = np.where(np.abs(d - 3.0) < 0.6, k * 0.76, k)
-        k = np.where((d < 2.5) & (xi % 6 == 0) & (np.abs(d - 1.5) < 0.6), k * 0.85, k)
+        k = np.where(np.abs(d - 1.5) < 0.5, k * 0.9, k)                         # (the stitching along the band)
         tie |= (np.abs(lx - cw / 2) < 1.1) & (ys > yb + 3) & (ys < yb + 10)
-    col = np.where(tie[..., None], np.array(_rgb("d6c49a"), float), col)
-    k = np.where(tie, np.where(lx < cw / 2, 1.06, 0.84), k)
+    col = np.where(tie[..., None], np.array(_rgb("7a3024"), float), col)
+    k = np.where(tie, np.where(lx < cw / 2, 1.1, 0.8), k)
     if emblem:
         cell_h = max(2, int(h * 0.58) // 14)
         cell = max(2, int(w * 0.36) // 12)
