@@ -1,0 +1,400 @@
+[06:02:40] [Server thread/INFO]: Teleported Player326 to 1450.007000, -59.020000, 2.422000
+[06:02:41] [Server thread/INFO]: Set Player326's game mode to Survival Mode
+[06:02:41] [Server thread/INFO]: Teleported Player326 to 1450.500000, -59.000000, 2.500000
+[06:02:41] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[06:02:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield unbreakable anchor (hardness -1, blast resistance 3600000)
+[06:02:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield a survival player mining its anchor for 2 s does not break it (targets 3)
+[06:02:44] [Server thread/INFO]: Set Player326's game mode to Spectator Mode
+[06:02:44] [Server thread/INFO]: Killed 3 entities
+[06:02:44] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[06:02:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield /kill leaves the targets alone (3)
+[06:02:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield asking for its targets again spawns no duplicate (3)
+[06:02:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield an explosion next to it leaves the anchor and the targets (3, full health true)
+[06:02:45] [Server thread/INFO]: Aire d'entraînement épée et bouclier retirée en 1450, -59, 0.
+[06:02:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] training_area_shield removed by /training remove, its targets with it (0 left)
+[06:02:45] [Server thread/INFO]: Successfully filled 18 block(s)
+[06:02:45] [Server thread/INFO]: No blocks were filled
+[06:02:45] [Server thread/INFO]: Unmarked 9 chunks in minecraft:overworld from [89, -1] to [91, 1] for force loading
+[06:02:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] the galley has a gangplank spec
+[06:02:45] [Server thread/INFO]: Player326 is not riding any vehicle
+[06:02:45] [Server thread/INFO]: Teleported Player326 to 1208.000000, -40.000000, 0.000000
+[06:02:46] [Server thread/INFO]: Marked 16 chunks in minecraft:overworld from [74, -2] to [77, 1] to be force loaded
+[06:02:47] [Server thread/INFO]: Too many blocks in the specified area (maximum 32768, but specified 66674)
+[06:02:47] [Server thread/INFO]: Successfully filled 14985 block(s)
+[06:02:48] [Server thread/INFO]: Successfully filled 12250 block(s)
+[06:02:48] [Server thread/INFO]: Successfully filled 390 block(s)
+[06:02:48] [Server thread/INFO]: Successfully filled 390 block(s)
+[06:02:48] [Server thread/INFO]: Successfully filled 525 block(s)
+[06:02:48] [Server thread/INFO]: Navire mis à l'eau : Galère [1222 -49 0]
+[06:02:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: the sloop is in the dock
+[06:02:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gangplank dock: sloop at 1222.50 -49.11 0.50 yaw 0.0
+[06:02:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: stowed at spawn
+[06:02:51] [Server thread/INFO]: Teleported Player326 to 1211.500000, -44.731000, 9.500000
+[06:02:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: plank model loaded by the client
+[06:02:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gangplank: stowed pack top 1.503 (hinge 1.630), 0.76 high, 1.11 wide (plank 2.00 x 3.50)
+[06:02:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: the stowed pack hangs under the rail top (top 1.50, hinge 1.63)
+[06:02:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: the stowed pack is small (0.76 high, 1.11 wide)
+[06:02:51] [Server thread/INFO]: Teleported Player326 to 1215.520000, -48.201000, 7.300000
+[06:02:52] [Server thread/INFO]: Set Player326's game mode to Survival Mode
+[06:02:52] [Server thread/INFO]: Unable to apply this effect (target is either immune to effects, or has something stronger)
+[06:02:52] [Server thread/INFO]: Teleported Player326 to 1221.600000, -48.661000, 5.920000
+[06:02:52] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[06:02:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: the crosshair picks the lever on the deck
+[06:02:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: the lever starts the deploy (DEPLOYING)
+[06:02:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: the client sees it moving, no collision yet (state 1, boxes 0)
+[06:02:54] [Server thread/INFO]: Teleported Player326 to 1213.500000, -46.231000, 8.500000
+[06:02:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gangplank: deployed at 6.9 degrees, 60 boxes on the client
+[06:02:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: DEPLOYED about 3 s later (DEPLOYED)
+[06:02:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: the client registered its walkable boxes (60)
+[06:02:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: slopes down to the quay (6.9 degrees)
+[06:02:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: its tip rests on the quay (1216.55 -47.90)
+[06:02:56] [Server thread/INFO]: Teleported Player326 to 1212.500000, -45.731000, 8.000000
+[06:02:56] [Server thread/INFO]: Set Player326's game mode to Spectator Mode
+[06:02:56] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[06:02:57] [Server thread/INFO]: Set Player326's game mode to Survival Mode
+[06:02:57] [Server thread/INFO]: Teleported Player326 to 1215.354000, -47.980000, 3.700000
+[06:02:57] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[06:02:58] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: standing on the quay (y -48.00)
+[06:02:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gangplank: walking up, local -4.38 1.53 3.20
+[06:03:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gangplank: after the walk, local 0.31 0.45 3.20 (deck 0.45)
+[06:03:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: walked from the quay up the plank onto the deck, no jump (local 0.31 0.45 3.20)
+[06:03:01] [Server thread/INFO]: Teleported Player326 to 1222.805000, -48.661000, 3.700000
+[06:03:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gangplank: after the walk back, 1214.85 -48.00 3.70
+[06:03:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: walked back down the plank to the quay (1214.85 -48.00)
+[06:03:03] [Server thread/INFO]: Teleported Player326 to 1218.283000, -47.391000, 3.700000
+[06:03:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: a player stands on the sloping plank (local -4.22 1.53)
+[06:03:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: retract refused while someone is on it (Impossible de replier la passerelle : quelqu'un est dessus.)
+[06:03:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: the player takes the tiller
+[06:03:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: pilot input ignored while deployed, the sloop stays moored (moved 0.000, turned 0.00)
+[06:03:08] [Server thread/INFO]: Player326 stopped riding Medieval Galley
+[06:03:08] [Server thread/INFO]: Teleported Player326 to 1222.500000, -48.641000, -0.500000
+[06:03:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: retract accepted when clear (La passerelle se replie.)
+[06:03:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: back to RETRACTED, no collision left on the client (0, 0)
+[06:03:12] [Server thread/INFO]: Changed the block at 1218, -46, 3
+[06:03:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: deploy refused with a block in the swing (Un bloc gêne le déploiement de la passerelle.)
+[06:03:12] [Server thread/INFO]: Changed the block at 1218, -46, 3
+[06:03:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: deploys again (La passerelle se déploie.)
+[06:03:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank NBT: a deploy in progress reloads deployed (ok)
+[06:03:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank NBT: deployed reloads deployed, same angle
+[06:03:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank NBT: a retraction in progress reloads stowed
+[06:03:18] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank NBT: stowed reloads stowed
+[06:03:21] [Server thread/INFO]: Successfully filled 1225 block(s)
+[06:03:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: no environment scan every tick (still deployed)
+[06:03:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: the deployed sloop saved and loaded again (ok)
+[06:03:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: after the reload its quay is gone, it retracts (RETRACTING)
+[06:03:24] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: stowed again
+[06:03:24] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: no quay, deploy refused (Aucun quai ni ponton à portée : la passerelle ne peut pas être déployée dans le vide.)
+[06:03:24] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] steampunk_airship has a gangplank spec
+[06:03:24] [Server thread/INFO]: Player326 is not riding any vehicle
+[06:03:24] [Server thread/INFO]: Set Player326's game mode to Spectator Mode
+[06:03:24] [Server thread/INFO]: Teleported Player326 to 1304.000000, -31.000000, 0.000000
+[06:03:24] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[06:03:25] [Server thread/INFO]: Marked 9 chunks in minecraft:overworld from [81, -1] to [83, 1] to be force loaded
+[06:03:25] [Server thread/INFO]: Too many blocks in the specified area (maximum 32768, but specified 35937)
+[06:03:25] [Server thread/INFO]: Aéronef mis en place : Dirigeable steampunk [1320 -32 0]
+[06:03:27] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: the airship hovers in the sky
+[06:03:27] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: airship refused in the air with no platform (Aucun quai ni ponton à portée : la passerelle ne peut pas être déployée dans le vide.)
+[06:03:27] [Server thread/INFO]: Successfully filled 63 block(s)
+[06:03:27] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: airship deploys beside a platform (La passerelle se déploie.)
+[06:03:30] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: airship plank deployed and walkable on the client (90 boxes, 11.5 degrees)
+[06:03:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: the airship is held in place while its plank is out
+[06:03:32] [Server thread/INFO]: Teleported Player326 to 1308.500000, -27.970000, 9.500000
+[06:03:33] [Server thread/INFO]: Set Player326's game mode to Survival Mode
+[06:03:33] [Server thread/INFO]: Teleported Player326 to 1313.451000, -31.980000, -2.800000
+[06:03:33] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[06:03:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gangplank: airship walk ends at local 0.33 0.00 -3.30
+[06:03:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gangplank: walked from the platform onto the airship's deck (local 0.33 0.00 -3.30)
+[06:03:36] [Server thread/INFO]: Set Player326's game mode to Spectator Mode
+[06:03:36] [Server thread/INFO]: Unmarked 9 chunks in minecraft:overworld from [81, -1] to [83, 1] for force loading
+[06:03:36] [Server thread/INFO]: Player326 is not riding any vehicle
+[06:03:36] [Server thread/INFO]: Unmarked 16 chunks in minecraft:overworld from [74, -2] to [77, 1] for force loading
+[06:03:36] [Server thread/INFO]: Set Player326's game mode to Survival Mode
+[06:03:36] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[06:03:36] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[06:03:36] [Server thread/INFO]: Player326 is not riding any vehicle
+[06:03:36] [Server thread/INFO]: Set Player326's game mode to Spectator Mode
+[06:03:36] [Server thread/INFO]: Teleported Player326 to 2678.500000, -28.000000, -40.000000
+[06:03:36] [Server thread/INFO]: Marked 64 chunks in minecraft:overworld from [160, -2] to [175, 1] to be force loaded
+[06:03:37] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[06:03:38] [Server thread/INFO]: Successfully filled 29865 block(s)
+[06:03:39] [Server thread/INFO]: Successfully filled 9900 block(s)
+[06:03:39] [Server thread/INFO]: Successfully filled 29925 block(s)
+[06:03:39] [Server thread/INFO]: Successfully filled 11286 block(s)
+[06:03:39] [Server thread/INFO]: Successfully filled 25305 block(s)
+[06:03:39] [Server thread/INFO]: Successfully filled 25305 block(s)
+[06:03:39] [Server thread/INFO]: Successfully filled 660 block(s)
+[06:03:39] [Server thread/INFO]: Successfully filled 660 block(s)
+[06:03:39] [Server thread/INFO]: Successfully filled 280 block(s)
+[06:03:39] [Server thread/INFO]: Successfully filled 280 block(s)
+[06:03:39] [Server thread/INFO]: Successfully filled 280 block(s)
+[06:03:39] [Server thread/INFO]: Successfully filled 280 block(s)
+[06:03:39] [Server thread/INFO]: Successfully filled 63 block(s)
+[06:03:39] [Server thread/INFO]: Successfully filled 95 block(s)
+[06:03:39] [Server thread/INFO]: Successfully filled 19 block(s)
+[06:03:39] [Server thread/INFO]: Successfully filled 19 block(s)
+[06:03:39] [Server thread/INFO]: Changed the block at 2678, -45, -8
+[06:03:39] [Server thread/INFO]: Changed the block at 2678, -45, 8
+[06:03:39] [Server thread/INFO]: No entity was found
+[06:03:42] [Server thread/INFO]: Pont-levis « test_pont » créé dans minecraft:overworld. Sélectionnez ensuite les deux moitiés du tablier : /pontlevis test_pont vantail A pos1 (en visant le bloc), pos2, puis vantail B.
+[06:03:42] [Server thread/INFO]: Vantail A : pos1 = 2676 -45 -9 ; donnez maintenant pos2.
+[06:03:42] [Server thread/INFO]: Vantail A : pos2 = 2680 -43 -1 ; sélection 5 x 3 x 9 blocs.
+[06:03:42] [Server thread/INFO]: Vantail B : pos1 = 2676 -45 0 ; donnez maintenant pos2.
+[06:03:42] [Server thread/INFO]: Vantail B : pos2 = 2680 -43 9 ; sélection 5 x 3 x 10 blocs.
+[06:03:42] [Server thread/INFO]: Changed the block at 2678, -42, -8
+[06:03:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: a block in the swept volume is reported by the check: [les vantaux heurteraient des blocs fixes en montant (angle sûr : 20°) : 2678 -42 -8 (stone) à 25°]
+[06:03:42] [Server thread/INFO]: Changed the block at 2678, -42, -8
+[06:03:42] [Server thread/INFO]: vantail A : 64 blocs, 65 boîtes solides, longueur 9.0, largeur 5.0, épaisseur 3.4, charnière 2678.5 -44.0 -9.0 (automatique, bord bas du plancher)
+[06:03:42] [Server thread/INFO]: vantail B : 71 blocs, 72 boîtes solides, longueur 10.0, largeur 5.0, épaisseur 3.4, charnière 2678.5 -44.0 10.0 (automatique, bord bas du plancher)
+[06:03:42] [Server thread/INFO]: chenal : axe (1.00, 0.00), centre 2678.5 0.3, largeur navigable 19.0 (écart des charnières 19.0), travée 5.0 de large
+[06:03:42] [Server thread/INFO]: eau à -49.11, dessous du tablier à -44.94 : hauteur libre 4.17 (marge 0.50 : un navire de plus de 3.67 ouvre le pont)
+[06:03:42] [Server thread/INFO]: volume balayé jusqu'à 80° : libre de tout bloc fixe
+[06:03:42] [Server thread/INFO]: Vérification réussie : /pontlevis test_pont convertir transforme le tablier en pont-levis (ses blocs restent en place tant qu'il est fermé).
+[06:03:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the check passes once the stone is gone
+[06:03:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] drawbridge: water -49.11, underside -44.94, half width 9.50, half span 2.50, |dx| 1.00, hinges z -9.0 / 10.0 at y -44.0
+[06:03:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: water surface found at -49.11
+[06:03:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: underside measured at the hanging lanterns (-44.938)
+[06:03:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: channel 19 wide, deck 5 along the channel, channel along x
+[06:03:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: automatic hinges on the outer bottom edges of the planks (z -9 and z 10, y -44), not at the lanterns
+[06:03:43] [Server thread/INFO]: vantail A : 64 blocs, 65 boîtes solides, longueur 9.0, largeur 5.0, épaisseur 3.4, charnière 2678.5 -44.0 -9.0 (automatique, bord bas du plancher)
+[06:03:43] [Server thread/INFO]: vantail B : 71 blocs, 72 boîtes solides, longueur 10.0, largeur 5.0, épaisseur 3.4, charnière 2678.5 -44.0 10.0 (automatique, bord bas du plancher)
+[06:03:43] [Server thread/INFO]: chenal : axe (1.00, 0.00), centre 2678.5 0.3, largeur navigable 19.0 (écart des charnières 19.0), travée 5.0 de large
+[06:03:43] [Server thread/INFO]: eau à -49.11, dessous du tablier à -44.94 : hauteur libre 4.17 (marge 0.50 : un navire de plus de 3.67 ouvre le pont)
+[06:03:43] [Server thread/INFO]: volume balayé jusqu'à 80° : libre de tout bloc fixe
+[06:03:43] [Server thread/INFO]: Pont-levis « test_pont » converti et en service (automatique). Les blocs d'origine sont enregistrés : /pontlevis test_pont restaurer les remet et rend la main.
+[06:03:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: converted, closed
+[06:03:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the deck's planks are still in the world once converted
+[06:03:43] [Server thread/INFO]: Le pont « test_pont » est déjà converti.
+[06:03:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: a second conversion is refused, nothing changes
+[06:03:43] [Server thread/INFO]: Aperçu du pont « test_pont » affiché : sélections (vert A, bleu B), charnières (jaune), volume balayé et vantaux levés (orange), barrières (rouge), zones d'approche (cyan), passage (rouge), hauteur libre (violet).
+[06:03:43] [Server thread/INFO]: Débogage du pont « test_pont » : chaque seconde, l'état, l'angle, l'attente éventuelle et les navires pris en compte (distance, côté, verdict) dans la barre d'action ; /pontlevis test_pont etat pour le détail complet.
+[06:03:43] [Server thread/INFO]: Teleported Player326 to 2678.500000, -20.000000, -30.000000
+[06:03:45] [Server thread/INFO]: Aperçu du pont « test_pont » masqué.
+[06:03:45] [Server thread/INFO]: Pont « test_pont » : chaînes de levage dessinées, ancres à 10.8 blocs au-dessus des charnières.
+[06:03:45] [Server thread/INFO]: Teleported Player326 to 2678.500000, -43.000000, 1.500000
+[06:03:47] [Server thread/INFO]: Navire mis à l'eau : Petite barque [2635 -49 0]
+[06:03:48] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the rowboat is on the canal
+[06:03:48] [Server thread/INFO]: Petite barque [2635 -49 0] : cap sur 2705 0 (70 blocs). Le pilote automatique tient la barre ; clic droit sur la barre ou /pilote stop pour reprendre la main.
+[06:04:06] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the empty rowboat never lifts the bridge
+[06:04:06] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the rowboat sailed under the closed deck (x 2696.5)
+[06:04:06] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: its verdict was 'passes under': petite barque : haut à 1.11 + marge 0.50 <= hauteur libre 4.17 : passe sous le pont fermé (modèle 1.1)
+[06:04:06] [Server thread/INFO]: Navire supprimé : Petite barque [2696 -49 0]
+[06:04:07] [Server thread/INFO]: Navire mis à l'eau : Petite barque [2650 -49 0]
+[06:04:08] [Server thread/INFO]: Summoned new Armor Stand
+[06:04:08] [Server thread/INFO]: Armor Stand started riding Rowboat
+[06:04:11] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the rowboat with an occupant does not lift the bridge either
+[06:04:11] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the occupant's head is counted, still passes: petite barque : haut à 2.60 + marge 0.50 <= hauteur libre 4.17 : passe sous le pont fermé (modèle 1.1, occupants +1.5)
+[06:04:11] [Server thread/INFO]: Pont « test_pont », marge de gabarit réglé(e). Approche 50 (+8), angle 80°, durée 8.0 s, délai 5.0 s, sécurité 4.0 s, marge 3.00, arrêt à 6 blocs.
+[06:04:11] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: with a 3 block margin the loaded rowboat asks for the opening (safety wait)
+[06:04:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the leaves start rising after the 4 s warning (80 ticks)
+[06:04:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the deck's blocks leave the world when the leaves rise
+[06:04:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the client has the moving leaves (137 boxes) and the two barriers
+[06:04:15] [Server thread/INFO]: Teleported Player326 to 2660.000000, -36.000000, -22.000000
+[06:04:17] [Server thread/INFO]: Pont « test_pont », marge de gabarit réglé(e). Approche 50 (+8), angle 80°, durée 8.0 s, délai 5.0 s, sécurité 4.0 s, marge 0.50, arrêt à 6 blocs.
+[06:04:17] [Server thread/INFO]: Navire supprimé : Petite barque [2650 -49 0]
+[06:04:17] [Server thread/INFO]: Killed Armor Stand
+[06:04:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: open (80 degrees)
+[06:04:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: closes 5 s after the last vessel is gone (100 ticks)
+[06:04:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: closed again
+[06:04:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: planks, fences and lanterns are back
+[06:04:36] [Server thread/INFO]: Navire mis à l'eau : Galère [2600 -49 0]
+[06:04:37] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the galley is on the canal (west)
+[06:04:37] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: closed before the galley comes (west)
+[06:04:37] [Server thread/INFO]: Galère [2600 -49 0] : cap sur 2757 0 (157 blocs). Le pilote automatique tient la barre ; clic droit sur la barre ou /pilote stop pour reprendre la main.
+[06:05:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] drawbridge west: trigger at 48.3 from the deck, nearest 4.2 before open, speed near the deck 0.00, 22 ticks in the passage
+[06:05:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the galley from the west triggers the opening when its bow is 50 blocks from the deck (48.3)
+[06:05:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the autopilot waited before the deck until open (nearest 4.2 blocks)
+[06:05:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the galley from the west went through
+[06:05:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: open the whole time the galley was in the passage (west)
+[06:05:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: no closing started while the galley was still counted (west)
+[06:05:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: closes once the galley has left the keep zone (west)
+[06:05:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: closed, deck back (west)
+[06:05:28] [Server thread/INFO]: Navire supprimé : Galère [2755 -49 0]
+[06:05:29] [Server thread/INFO]: Navire mis à l'eau : Galère [2757 -49 0]
+[06:05:30] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the galley is on the canal (east)
+[06:05:30] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: closed before the galley comes (east)
+[06:05:30] [Server thread/INFO]: Galère [2757 -49 0] : cap sur 2600 0 (158 blocs). Le pilote automatique tient la barre ; clic droit sur la barre ou /pilote stop pour reprendre la main.
+[06:06:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] drawbridge east: trigger at 47.9 from the deck, nearest 4.1 before open, speed near the deck 0.00, 22 ticks in the passage
+[06:06:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the galley from the east triggers the opening when its bow is 50 blocks from the deck (47.9)
+[06:06:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the autopilot waited before the deck until open (nearest 4.1 blocks)
+[06:06:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the galley from the east went through
+[06:06:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: open the whole time the galley was in the passage (east)
+[06:06:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: no closing started while the galley was still counted (east)
+[06:06:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: closes once the galley has left the keep zone (east)
+[06:06:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: closed, deck back (east)
+[06:06:20] [Server thread/INFO]: Navire supprimé : Galère [2601 -49 0]
+[06:06:21] [Server thread/INFO]: Set Player326's game mode to Survival Mode
+[06:06:21] [Server thread/INFO]: Unable to apply this effect (target is either immune to effects, or has something stronger)
+[06:06:21] [Server thread/INFO]: Teleported Player326 to 2678.500000, -42.000000, 0.000000
+[06:06:21] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[06:06:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the player stands on the closed deck (y -43.00)
+[06:06:22] [Server thread/INFO]: Demande d'ouverture « scenario » enregistrée pour 120 s : le pont s'ouvre (sécurités respectées) et reste ouvert tant qu'elle court ; /pontlevis test_pont demande annuler scenario la retire.
+[06:06:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: a scripted request starts the safety wait
+[06:06:29] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: with the player on the deck the leaves do not move; diagnostic: quelqu'un se trouve sur le tablier
+[06:06:29] [Server thread/INFO]: Teleported Player326 to 2678.500000, -42.000000, -12.000000
+[06:06:29] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the leaves rise once the player has left the deck
+[06:06:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the barrier stops the player at the end of the bank (z -9.90, y -43.00)
+[06:06:37] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: open for the request
+[06:06:37] [Server thread/INFO]: Applied effect Water Breathing to Player326
+[06:06:37] [Server thread/INFO]: Teleported Player326 to 2678.500000, -43.000000, 0.000000
+[06:06:39] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: nothing holds a player where the deck was while open (fell to y -54.51)
+[06:06:39] [Server thread/INFO]: Set Player326's game mode to Spectator Mode
+[06:06:39] [Server thread/INFO]: Teleported Player326 to 2660.000000, -36.000000, -22.000000
+[06:06:39] [Server thread/INFO]: Demande « scenario » annulée.
+[06:06:39] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[06:06:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: closes once the request is withdrawn
+[06:06:46] [Server thread/INFO]: Demande d'ouverture « encore » enregistrée pour 30 s : le pont s'ouvre (sécurités respectées) et reste ouvert tant qu'elle court ; /pontlevis test_pont demande annuler encore la retire.
+[06:06:46] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: a new demand during the closing reverses it without a jump (65.2 -> 68.4 degrees)
+[06:06:46] [Server thread/INFO]: Demande « encore » annulée.
+[06:07:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: back to closed after the reversal
+[06:07:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the deck is back
+[06:07:01] [Server thread/INFO]: Débogage du pont « test_pont » arrêté.
+[06:07:01] [Server thread/INFO]: Pont « test_pont » restauré : ses blocs étaient en place, le tablier redevient une construction ordinaire. Sa définition est conservée (/pontlevis test_pont convertir pour le remettre en service).
+[06:07:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: restored, no longer converted
+[06:07:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the original deck is in place after the restoration
+[06:07:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: towers and high walkway untouched
+[06:07:01] [Server thread/INFO]: Pont-levis « test_pont » supprimé (ses blocs d'origine ont été remis s'ils étaient levés).
+[06:07:02] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: deleted
+[06:07:02] [Server thread/INFO]: Aucun navire ne répond à « galley » (nom donné avec /ship name, UUID, type ou nearest ; voir /ship list).
+[06:07:02] [Server thread/INFO]: Aucun navire ne répond à « rowboat » (nom donné avec /ship name, UUID, type ou nearest ; voir /ship list).
+[06:07:02] [Server thread/INFO]: No entity was found
+[06:07:02] [Server thread/INFO]: Unmarked 64 chunks in minecraft:overworld from [160, -2] to [175, 1] for force loading
+[06:07:02] [Server thread/INFO]: Player326 is not riding any vehicle
+[06:07:02] [Server thread/INFO]: Teleported Player326 to 3900.500000, -30.000000, -39.500000
+[06:07:03] [Server thread/INFO]: Marked 40 chunks in minecraft:overworld from [241, -4] to [245, 3] to be force loaded
+[06:07:04] [Server thread/INFO]: Successfully filled 910 block(s)
+[06:07:04] [Server thread/INFO]: Successfully filled 910 block(s)
+[06:07:04] [Server thread/INFO]: Successfully filled 1386 block(s)
+[06:07:04] [Server thread/INFO]: Successfully filled 1386 block(s)
+[06:07:04] [Server thread/INFO]: Successfully filled 26460 block(s)
+[06:07:04] [Server thread/INFO]: Too many blocks in the specified area (maximum 32768, but specified 37800)
+[06:07:04] [Server thread/INFO]: Successfully filled 26460 block(s)
+[06:07:04] [Server thread/INFO]: Too many blocks in the specified area (maximum 32768, but specified 37800)
+[06:07:04] [Server thread/INFO]: Successfully filled 26460 block(s)
+[06:07:04] [Server thread/INFO]: Too many blocks in the specified area (maximum 32768, but specified 37800)
+[06:07:04] [Server thread/INFO]: Successfully filled 7938 block(s)
+[06:07:04] [Server thread/INFO]: No blocks were filled
+[06:07:04] [Server thread/INFO]: Navire mis à l'eau : Navire royal au lion [3900 -49 -11]
+[06:07:06] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 2005ms or 40 ticks behind
+[06:07:09] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship at 3900.50 -49.11 -11.50, water surface -49.111
+[06:07:09] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship floats on the surface (y -49.11, water -49.11)
+[06:07:11] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the model loaded in game has its two textures and its animations (sails, helm, pennants, lanterns, ropes, doors)
+[06:07:11] [Server thread/INFO]: Teleported Player326 to 3864.500000, -44.731000, 13.500000
+[06:07:12] [Server thread/INFO]: Teleported Player326 to 3958.500000, -28.731000, 2.500000
+[06:07:12] [Server thread/INFO]: Teleported Player326 to 3946.500000, -40.731000, 24.500000
+[06:07:13] [Server thread/INFO]: Teleported Player326 to 3878.500000, -33.731000, -47.500000
+[06:07:14] [Server thread/INFO]: Teleported Player326 to 3960.500000, -38.731000, -7.500000
+[06:07:15] [Server thread/INFO]: Teleported Player326 to 3900.550000, 29.269000, -9.500000
+[06:07:16] [Server thread/INFO]: Set Player326's game mode to Survival Mode
+[06:07:16] [Server thread/INFO]: Teleported Player326 to 3900.500000, -44.091000, -10.000000
+[06:07:16] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[06:07:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship main deck: local 0.00 5.000 1.50, on ground 1.0, water 0.0
+[06:07:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: standing in the main deck (local y 5.000)
+[06:07:17] [Server thread/INFO]: Teleported Player326 to 3900.500000, -42.091000, 4.000000
+[06:07:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship forecastle: local 0.00 7.000 15.50, on ground 1.0, water 0.0
+[06:07:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: standing in the forecastle (local y 7.000)
+[06:07:19] [Server thread/INFO]: Teleported Player326 to 3902.100000, -40.591000, -22.100000
+[06:07:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship quarterdeck: local 1.60 8.500 -10.60, on ground 1.0, water 0.0
+[06:07:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: standing in the quarterdeck (local y 8.500)
+[06:07:20] [Server thread/INFO]: Teleported Player326 to 3900.500000, -44.091000, -24.000000
+[06:07:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship captain's cabin: local 0.00 5.000 -12.50, on ground 1.0, water 0.0
+[06:07:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: standing in the captain's cabin (local y 5.000)
+[06:07:21] [Server thread/INFO]: Teleported Player326 to 3902.500000, -40.591000, -27.500000
+[06:07:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship royal state room: local 2.00 8.500 -16.00, on ground 1.0, water 0.0
+[06:07:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: standing in the royal state room (local y 8.500)
+[06:07:23] [Server thread/INFO]: Teleported Player326 to 3901.500000, -47.591000, -21.500000
+[06:07:24] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship crew quarters: local 1.00 1.500 -10.00, on ground 1.0, water 0.0
+[06:07:24] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: standing in the crew quarters (local y 1.500)
+[06:07:24] [Server thread/INFO]: Teleported Player326 to 3900.500000, -47.591000, -9.500000
+[06:07:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship cargo hold: local 0.00 1.500 2.00, on ground 1.0, water 0.0
+[06:07:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: standing in the cargo hold (local y 1.500)
+[06:07:26] [Server thread/INFO]: Teleported Player326 to 3901.100000, -44.091000, -11.000000
+[06:07:27] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship walked on the main deck to local 0.60 5.000 4.56
+[06:07:27] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the player walks on the main deck (moved to z 4.56, y 5.000)
+[06:07:27] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the cabin, bulkhead and both state room doors open
+[06:07:27] [Server thread/INFO]: Set Player326's game mode to Spectator Mode
+[06:07:27] [Server thread/INFO]: Teleported Player326 to 3900.800000, -44.111000, -20.700000
+[06:07:27] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[06:07:28] [Server thread/INFO]: Teleported Player326 to 3901.100000, -44.111000, -29.900000
+[06:07:28] [Server thread/INFO]: Teleported Player326 to 3900.500000, -40.611000, -24.500000
+[06:07:29] [Server thread/INFO]: Teleported Player326 to 3901.500000, -47.611000, -15.500000
+[06:07:29] [Server thread/INFO]: Teleported Player326 to 3902.000000, -47.611000, -13.600000
+[06:07:30] [Server thread/INFO]: Teleported Player326 to 3900.500000, -39.231000, -19.700000
+[06:07:30] [Server thread/INFO]: Set Player326's game mode to Survival Mode
+[06:07:30] [Server thread/INFO]: Teleported Player326 to 3898.650000, -44.091000, -26.500000
+[06:07:30] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[06:07:31] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 2003ms or 40 ticks behind
+[06:07:31] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship on the captain's chair (seat 3): local -2.75 4.962 -15.00, riding 1.0
+[06:07:31] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the player sits on the captain's chair (seat 3)
+[06:07:31] [Server thread/INFO]: Player326 stopped riding Royal Lion Ship
+[06:07:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship stood up from seat 3 at local -1.85 5.000 -15.00 (spot -1.85 5.02 -15.00), on ground 1.0
+[06:07:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: standing up from the captain's chair onto the floor beside it (local y 5.000)
+[06:07:32] [Server thread/INFO]: Teleported Player326 to 3902.450000, -40.591000, -27.500000
+[06:07:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship on a velvet chair of the state room (seat 7): local 1.05 8.400 -16.00, riding 1.0
+[06:07:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the player sits on a velvet chair of the state room (seat 7)
+[06:07:33] [Server thread/INFO]: Player326 stopped riding Royal Lion Ship
+[06:07:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship stood up from seat 7 at local 1.95 8.500 -16.00 (spot 1.95 8.52 -16.00), on ground 1.0
+[06:07:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: standing up from a velvet chair of the state room onto the floor beside it (local y 8.500)
+[06:07:34] [Server thread/INFO]: Teleported Player326 to 3902.150000, -47.591000, -21.900000
+[06:07:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship on a bench of the crew's mess (seat 14): local 2.55 1.462 -10.40, riding 1.0
+[06:07:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the player sits on a bench of the crew's mess (seat 14)
+[06:07:34] [Server thread/INFO]: Player326 stopped riding Royal Lion Ship
+[06:07:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship stood up from seat 14 at local 1.65 1.500 -10.40 (spot 1.65 1.52 -10.40), on ground 1.0
+[06:07:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: standing up from a bench of the crew's mess onto the floor beside it (local y 1.500)
+[06:07:35] [Server thread/INFO]: Teleported Player326 to 3901.100000, -47.591000, -11.200000
+[06:07:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship walked in the hold to local 0.60 1.500 4.36
+[06:07:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the player walks between the cargo along the hold (z 4.36, y 1.500)
+[06:07:36] [Server thread/INFO]: Teleported Player326 to 3900.500000, -44.091000, -23.300000
+[06:07:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship walked in the captain's cabin to local 0.00 5.000 -16.29
+[06:07:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the player walks across the furnished cabin towards the stern windows (z -16.29, y 5.000)
+[06:07:38] [Server thread/INFO]: Successfully filled 1320 block(s)
+[06:07:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: gangplank stowed at first
+[06:07:38] [Server thread/INFO]: Teleported Player326 to 3899.500000, -44.091000, -11.000000
+[06:07:39] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship gangplank lever: DEPLOYING (La passerelle se déploie.)
+[06:07:39] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the lever deploys the gangplank (DEPLOYING La passerelle se déploie.)
+[06:07:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the gangplank lies on the quay
+[06:07:42] [Server thread/INFO]: Set Player326's game mode to Spectator Mode
+[06:07:42] [Server thread/INFO]: Teleported Player326 to 3878.500000, -40.731000, 0.500000
+[06:07:42] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[06:07:42] [Server thread/INFO]: Set Player326's game mode to Survival Mode
+[06:07:42] [Server thread/INFO]: Teleported Player326 to 3899.500000, -44.091000, -11.000000
+[06:07:42] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[06:07:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the lever retracts the gangplank (La passerelle se replie.)
+[06:07:46] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the gangplank is stowed again
+[06:07:46] [Server thread/INFO]: Successfully filled 88 block(s)
+[06:07:46] [Server thread/INFO]: Successfully filled 1232 block(s)
+[06:07:46] [Server thread/INFO]: Teleported Player326 to 3900.500000, -40.591000, -21.700000
+[06:07:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship at the helm: helm -0.99, sails open 1.00, speed 1.35
+[06:07:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the wheel and the rudder turn with the helm (-0.99)
+[06:07:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the sails are set under way (open 1.00)
+[06:07:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship moved 5.06 blocks in 7 s at the helm
+[06:07:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship sails under the player's control (moved 5.06)
+[06:07:55] [Server thread/INFO]: Player326 stopped riding Royal Lion Ship
+[06:07:55] [Server thread/INFO]: Set Player326's game mode to Spectator Mode
+[06:07:55] [Server thread/INFO]: Teleported Player326 to 3876.980000, -42.731000, 27.891000
+[06:07:55] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[06:07:56] [Server thread/INFO]: Unmarked 40 chunks in minecraft:overworld from [241, -4] to [245, 3] for force loading
+[06:07:56] [Server thread/INFO]: Stopping server
+[06:07:56] [Server thread/INFO]: Saving players
+[06:07:56] [Server thread/INFO]: Player326 lost connection: Disconnected
+[06:07:56] [Server thread/INFO]: Player326 left the game
+[06:07:56] [Server thread/INFO]: Saving worlds
+[06:07:56] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:overworld
+[06:07:57] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_nether
+[06:07:57] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_end
+[06:07:57] [Server thread/INFO]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[06:07:57] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[06:07:57] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[06:07:57] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[06:07:57] [Render thread/INFO]: Stopping!
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1794200313618.json
+
+[Incubating] Problems report is available at: file:///home/runner/work/medieval-ships/medieval-ships/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.2.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1h 9m 30s
+13 actionable tasks: 13 executed
