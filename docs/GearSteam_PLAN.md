@@ -38,13 +38,13 @@ cap 106°, champ 40°).
 | Bandes | cuivre riveté bas (≈ 1,8 → 2,2 bloc), décrochements de laiton vers 4,5 au milieu et 3,4 à l'avant, liston cuivré au ras de l'eau | idem, en bandes saillantes rivetées + montants de laiton (décrochements) |
 | Tuyaux | coude sortant du flanc arrière, course basse vers le grand engrenage, tuyau vertical dans l'eau ; grand U renversé sur la maison des machines | idem des deux côtés (Ø 0,7 et 1,0), brides de laiton |
 | Cheminée | x 485–570, sommet y ≈ 100 px, bague de laiton aux 2/3 | Ø 2,8, de 9,0 à 18,0, bague à 14,0, chapeau évasé à liseré cuivre |
-| Dôme | tambour x 600–770, chapeau cuivré à côtes de laiton, garde-corps rond au sommet | tambour Ø 5,7 de 9,0 à 12,4, dôme jusqu'à 14,2, couronne-garde-corps Ø 2,9 |
+| Dôme | tambour x 600–770, chapeau cuivré à côtes de laiton, garde-corps rond au sommet | tambour Ø 5,7 de 9,0 à 12,4, calotte lisse (ellipse de révolution, 7 rangs de 20 plaques inclinées) jusqu'à 14,2, couronne-garde-corps Ø 2,9 |
 | Rouf du capitaine | 3 fenêtres éclairées (x 355–500), toit à garde-corps, lanterne | rouf 6 × 7 sur la dunette (7,5 → 11), 3 fenêtres par bord, passerelle de commandement (11,0) sur le toit |
 | Grand mât | x ≈ 960, haut coupé par l'image (≈ 27 blocs bruts), cage au sommet, collier de laiton | z 7,5, sommet 19,6, cage 18,5 → 20 ; vergue à 17,2 |
-| Grand-voile | noire, liseré doré à droite et en bas, montant doré à 31 %, engrenage doré Ø 36 % ; son pied passe au-dessus du toit des machines | 10,4 × 6,6 (vergue 17,2, pied 10,6), coupée en trapèze (bas plus étroit), engrenage à 8 rayons et 10 dents |
-| Artimon | x ≈ 270, sommet ≈ 23 bruts, petite cage, voile étroite | z −15,9, sommet 18, cage 16,9 → 18,1 ; voile 3,9 × 5,1 (montant doré à 25 %, sans emblème comme sur l'image) |
-| Vergues | inclinées (extrémité arrière plus haute, ≈ 19° apparents) | brassées de 62° (bras tribord vers l'arrière) et apiquées de 22° (bout tribord plus haut) |
-| Grue | poteau sur la dunette arrière, flèche vers l'arrière, caisse sur 2 chaînes (x 63–130, y 395–435) | poteau z −18,8, flèche jusqu'à z −23,6 / y 12,8, caisse 1,7 × 1,3 × 1,6 à y 7,2–8,5 |
+| Grand-voile | noire, liseré doré à droite et en bas, montant doré à 31 %, engrenage doré Ø 36 % ; son pied passe au-dessus du toit des machines toile pendante (phase 3) : têtière le long de la vergue de x −3,6 à +5,85 (bras arrière nu), chutes verticales, chute 6,6 au guindant → 5,9 à la chute + ventre au point d'écoute avant, engrenage à 8 rayons et 10 dents peint rond |
+| Artimon | x ≈ 270, sommet ≈ 23 bruts, petite cage, voile étroite | z −15,9, sommet 18, cage 16,9 → 18,1 ; voile pendante de x −1,75 à +3,25, haute de 4,3 au guindant et 2,4 à la chute (montant doré à 25 %, sans emblème comme sur l'image) |
+| Vergues | inclinées (extrémité arrière plus haute, ≈ 19° apparents) | brassées de 62° (bras tribord vers l'arrière) et apiquées de 22° (bout tribord plus haut) ; demi-vergues 6,0 et 3,45 |
+| Grue | poteau sur la dunette arrière, flèche vers l'arrière, caisse sur 2 chaînes (x 63–130, y 395–435) | poteau z −18,8, flèche en treillis riveté jusqu'à z −23,6 / y 12,8, caisse 1,9 × 1,3 × 1,8 à y 7,2–8,5 |
 | Galerie de poupe | balcon sous le surplomb de la dunette, engrenage et lanterne sur ses faces | galerie z −20 → −17,5 (plancher 4,5), toit = la dunette prolongée sur deux poteaux |
 | Échelles | échelle de corde sur le flanc de la dunette, échelle depuis l'eau | idem (décoratives) + échelles praticables (grille) vers le toit des machines et la passerelle |
 | Gréement | chaînes sombres « en escalier » | haubans en échelles de chaîne (cubes en escalier + barreaux), étai vers la tête de proue, chaînes vers la passerelle, le dôme et la grue |
@@ -135,7 +135,7 @@ n'est pas dessinée (sous l'eau, invisible sur l'image, seul le remous la suggè
 
 ## 9. Fichiers et tests
 
-* Modèle `blockbench/gear_steamship.bbmodel` et `models/entity/gear_steamship.bbmodel` (≈ 4 900 cubes, 2 textures,
+* Modèle `blockbench/gear_steamship.bbmodel` et `models/entity/gear_steamship.bbmodel` (≈ 5 900 cubes, 2 textures,
   9 animations), textures `textures/entity/gear_steamship.png` et `gear_steamship_sails.png`, icône
   `textures/item/gear_steamship.png`, grille `interiors/gear_steamship.grid`, mobilier `interiors/gear_steamship_decor.json`,
   passerelle `gangplanks/gear_steamship.json` + `models/entity/gangplank_gear_steamship.bbmodel` (style acier, 2,4 × 8 ;
@@ -184,3 +184,42 @@ coque : le centre de chaque bloc est dans une case ouverte de sa pièce ou de so
 Textures : les régions des meubles (douelles, couvercles, coffres, tôle rivetée, cadrans, bocaux, outils, carte murale…)
 sont recopiées de l'atlas intérieur du Léviathan (`tools/leviathan_texture.py`, lu seulement) dans l'atlas de la coque,
 sous les mêmes noms « in_* », pour réutiliser les meubles de `tools/leviathan_furniture.py`.
+
+## 11. Fidélité, phase 3 (regard neuf)
+
+Rendus à la caméra de la référence (`tools/gear_steam_compare.py`, 12 points, ≈ 14,6 px d'écart moyen), comparés côte à
+côte en vue entière et en gros plans poupe / milieu / proue : `docs/comparaison_gear_steamship.png` (référence à gauche,
+modèle à droite). Différences relevées, de la plus visible à la moins visible, et ce qui a été fait :
+
+1. **Grand-voile** (la plus grande surface de l'image) : en phase 2 c'était un rectangle tourné de 22° avec la vergue,
+   chutes penchées, centré sur le mât et cachant le dôme. Sur l'image la toile **pend** de sa vergue apiquée : chutes
+   verticales, têtière et bordure en escalier le long de la vergue, toile sur l'avant de la vergue (bras arrière nu),
+   pied arrondi vers le point d'écoute avant. → Toiles refaites en colonnes de cases droites
+   (`hanging_sail` / `hanging_patch`) : la bande dorée reste droite, l'engrenage est peint rond sur la toile inclinée
+   (`gt.SAIL_COLUMNS`) ; serrée, chaque voile se rassemble entre son guindant et sa chute sur la vergue (échelle de
+   ferlage calculée, les écoutes suivent).
+2. **Artimon** : même défaut ; maintenant haut au guindant, court à la chute, comme sur l'image.
+3. **Dôme** : il se lisait comme une pyramide à gradins de briques saumon. → Calotte lisse de plaques inclinées,
+   cuivre sombre à rivets de laiton, côtes qui suivent la courbe.
+4. **Couleurs** : cuivre saumon « neuf » → cuivre brun-rouge (bandes, tuyaux, dôme) ; tôles et voiles d'un noir chaud au
+   lieu d'un gris-bleu ; plus de gris « pierre » : les rebords des toits (maison des machines, rouf) sont des poutres
+   sombres à boulons de laiton.
+5. **Proue** : murs pleins en gradins → cou incliné à face de laiton + arc-boutant en escalier d'un bloc d'épaisseur,
+   ajouré dessous (le ciel passe entre lui et la lisse, comme sur l'image) ; l'étrave porte une large bande de laiton
+   (joues des deux bords) de l'eau jusqu'à la tête ; pièce de laiton devant l'engrenage de proue, bande de cuivre plus
+   bas, une seule course de cuivre en tête du gaillard.
+6. **Rouf du capitaine** : les fenêtres étaient à moitié cachées par la lisse de la dunette. → Grandes fenêtres éclairées
+   de 1,5 bloc, centrées à 9,85 (vues de l'intérieur à la même hauteur).
+7. **Grue** : flèche en treillis (membrures, croisillons, boulons de laiton) au lieu d'un fin longeron ; caisse plus
+   grande.
+8. **Gréement** : les bras de la grand-vergue sont des chaînes « en escalier » (bras arrière vers la couronne du dôme,
+   comme la grosse chaîne de l'image).
+
+Restent (classés) :
+* La poupe du modèle est ≈ 1,5 à 2 blocs plus longue que sur l'image : galerie, échelle de flanc, fenêtres des quartiers
+  et rouf tombent un peu trop à gauche au même cadrage (changer la longueur toucherait la grille, Java, le mobilier).
+* Cheminée ≈ 0,5 bloc trop en avant (collée au rouf).
+* Coque lisse là où l'image montre des rangs de blocs en retrait sur les fonds de proue et de poupe.
+* Socle de la grue moins haut que sur l'image ; tambour du dôme cuivré (plus sombre sur l'image).
+* Lumière de coucher de soleil non reproduite (l'image est un rendu IA chaud).
+

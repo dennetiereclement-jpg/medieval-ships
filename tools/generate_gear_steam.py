@@ -478,8 +478,9 @@ def trims(bone, detail):
         strip("band_mid_" + sn, 5.85, 9.6, 4.5, 0.42, "brass_band", side)
         riser("riser_b_" + sn, 9.4, 4.5, 5.3, side)   # clear of the stowed gangplank (z 7.5 -> 8.9)
         riser("riser_c_" + sn, 10.25, 2.2, 3.4, side)
-        strip("band_bow_" + sn, 10.0, gs.stem_z(3.4) - 0.6, 3.4, 0.42, "brass_band", side)
-        strip("band_bow2_" + sn, 15.6, gs.stem_z(4.9) - 0.5, 4.9, 0.36, "copper", side)
+        strip("band_bow_" + sn, 10.0, gs.stem_z(3.4) - 0.6, 3.4, 0.5, "copper", side)
+        # the chunky brass piece running forward from the bow gear to the stem, level with the gear's hub
+        strip("band_bow2_" + sn, gs.BOW_GEAR[1] + gs.BOW_GEAR[2] + 0.1, gs.stem_z(gs.BOW_GEAR[0]) - 0.5, gs.BOW_GEAR[0], 0.6, "brass_band", side)
         # the stern: brass brackets climbing to the poop cap, a long copper strip by the ladder
         riser("riser_stern_" + sn, -11.2, 2.4, gs.POOP_CAP_Y - 0.3, side, w=0.36, region="copper")
         riser("riser_stern2_" + sn, -17.0, 2.4, 4.0, side, w=0.4)
@@ -951,8 +952,10 @@ def rigging(bone, yards):
             arm = braced((side * (yh - 0.2), yt, z + off), z, yt)
             clew = clews[side] + v3(0, 0.1, 0)
             if name == "main_sail":
-                beam(bone, "brace_rope_%s_%s" % (name, sn), arm, v3(side * 1.0, 14.3, gs.DOME_Z + 0.4) if side < 0 else
-                     v3(side * (gs.hull_x(14.5, F) - 0.4), gs.FORECASTLE_CAP_Y + 1.2, 14.5), 0.06, "rope")
+                # the braces are chains, as the bold stepped chains of the reference: the aft arm's down to the dome's
+                # lookout ring, the fore arm's down to the forecastle
+                chain(bone, "brace_chain_%s_%s" % (name, sn), arm, v3(side * 1.0, 14.75, gs.DOME_Z + 0.9) if side < 0 else
+                      v3(side * (gs.hull_x(14.5, F) - 0.4), gs.FORECASTLE_CAP_Y + 1.2, 14.5), s=0.24, step=0.27)
                 beam(bone, "sheet_%s_%s" % (name, sn), clew, v3(side * (gs.hull_x(10.5, M) - 0.4), gs.WAIST_CAP_Y + 1.2, 10.5), 0.06, "rope")
             else:
                 beam(bone, "brace_rope_%s_%s" % (name, sn), arm, v3(side * (DH - 0.3), B + 1.0, DZ0 + 0.5), 0.06, "rope")

@@ -32,7 +32,7 @@ REGIONS = {
     "copper2":     (192, 16, 64, 16),   # riveted copper cap (a warmer tone)
     "brass":       (256, 0, 64, 16),    # polished brass
     "brass_band":  (256, 16, 64, 16),   # riveted brass band
-    "stone":       (320, 0, 64, 16),    # dark grey stone course (the engine house roof edge)
+    "stone":       (320, 0, 64, 16),    # dark riveted beam with brass bolts (the engine house and deckhouse roof edges)
     "iron_band":   (320, 16, 64, 16),   # dark iron band with rivets
     "wood_dark":   (384, 0, 64, 32),
     "wood_mid":    (448, 0, 64, 32),
@@ -391,7 +391,7 @@ def _black_sail(px, region, cols, rows, rng, stripe=0.31, emblem=None):
     border on the fore leech (right, seen from starboard) and along the foot from a vertical gold stripe
     at `stripe` of the width; emblem = (centre u, centre v, diameter) fractions of a gold gear."""
     u, v, w, h = region
-    tones = [_rgb(c) for c in ("27272b", "2d2d32", "323237", "222226", "38383e")]
+    tones = [_rgb(c) for c in ("292625", "2f2b2a", "34302f", "232020", "393433")]
     cw, ch = w / cols, h / rows
     tone = []
     for r in range(rows):
@@ -472,7 +472,9 @@ def make_texture(path):
     _band(px, R["copper2"], ("5e240e", "a24f2c", "d88654"), rng, rivet="e8b862")
     polished_metal(img, R["brass"], [(0.0, _rgb("8a6420")), (0.5, _rgb("c9973a")), (0.85, _rgb("e6b85a")), (1.0, _rgb("f4d68a"))], rng)
     _band(px, R["brass_band"], ("7a5818", "c9973a", "f0cc70"), rng, rivet="fff0b0")
-    _blocks(px, R["stone"], ("55575c", "5e6065", "4c4e52"), "2a2b2e", rng, bw=16, bh=16)
+    # the roof edges of the engine house and of the deckhouse: a dark riveted beam with brass bolts (the reference
+    # shows no grey anywhere: black iron, dark wood, copper and brass)
+    _band(px, R["stone"], ("1c1714", "3a2e26", "5a4636"), rng, rivet="d6a848")
     _band(px, R["iron_band"], ("18191b", "3a3b40", "54565c"), rng, rivet="8a7458")
     _planks(px, R["wood_dark"], ("3a2616", "34220f", "40291a"), "160c04", rng, plank_h=8, joints=2)
     _planks(px, R["wood_mid"], ("5e3e22", "56381e", "664428"), "26180c", rng, plank_h=8, joints=2)
