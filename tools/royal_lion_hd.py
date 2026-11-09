@@ -90,7 +90,7 @@ GOLD_STOPS = [(0.0, "fff4c0"), (0.06, "ffe07e"), (0.2, "ffc848"), (0.5, "f4ac30"
 GOLD_FLAT = [(0.0, "6a400e"), (0.2, "b07a22"), (0.45, "dca23a"), (0.7, "eebc54"), (0.88, "fad472"), (1.0, "fff0b0")]
 NAVY = ("26407e", "223b76", "2a4686", "1f376e", "2d4a8c")       # the deep royal blue of the hull (texel values)
 NAVY_JOINT = "0c1634"
-SAIL_BLUE = ("233e8a", "264394", "213a84", "2c4c9e", "1e3780", "22408c", "30529f", "1b337a")
+SAIL_BLUE = ("233e8a", "264394", "213a84", "2a4898", "203b82", "22408c")
 SAIL_JOINT = "0d1a44"
 WOOD_LO = ("64401f", "5a381b", "6e4724", "4c2f16", "7a522c", "5e3c1c", "835a33")
 WOOD_MID = ("70482a", "653f24", "7b5230", "56371e", "86603a", "6a4426")
@@ -197,7 +197,7 @@ def p_planks(w, h, palette, seam, rng, plank=8, grain=0.1, butt=(40, 140), nails
 
 
 # ---------------------------------------------------------------- gold
-def p_gold_v(w, h, rng, pts=GOLD_STOPS, seam=32, specks=0.012):
+def p_gold_v(w, h, rng, pts=GOLD_STOPS, seam=32, specks=0.004):
     """Gold mapped across the full height of each face (the faces' v range covers the region): a bright lit edge at the
     top, warm gold, a deep ochre shadow at the foot; a slow sheen and the joints of the gilded pieces along u."""
     W, H = w * K, h * K
@@ -213,6 +213,37 @@ def p_gold_v(w, h, rng, pts=GOLD_STOPS, seam=32, specks=0.012):
     m = rng.random((H, W))
     out[m < specks] *= 0.7
     out[m > 1 - specks] = out[m > 1 - specks] * 0.6 + hx("fff4c8") * 0.4
+    return np.clip(out, 0, 255)
+
+
+def p_iron(w, h, rng):
+    """Blackened iron across the full height of each face: a lit upper edge, a dark foot, round rivet heads along the
+    middle (lit on their upper left)."""
+    W, H = w * K, h * K
+    v = (np.arange(H) + 0.5) / H
+    out = stops(np.broadcast_to(v[:, None], (H, W)), [(0, "8a8e94"), (0.1, "5a5d62"), (0.5, "3c3e42"), (0.85, "26282b"),
+                                                       (1, "141516")])
+    out *= (1 + 0.06 * vnoise(rng, W, H, 6, 6))[..., None]
+    cy = H // 2
+    for x in range(6, W - 3, 16):
+        out[cy - 2:cy + 2, x - 2:x + 2] = hx("4a4c50")
+        out[cy - 2, x - 2:x + 1] = hx("a4a8ae")
+        out[cy - 1, x - 2] = hx("a4a8ae")
+        out[cy + 1, x - 1:x + 2] = hx("161718")
+    return np.clip(out, 0, 255)
+
+
+def p_rope(w, h, rng, light, dark):
+    """Laid hemp across the full height of each face: diagonal strands (lit crowns, dark lays) over a round profile
+    (lit top, shadowed foot), so that the ratlines and stays read as round ropes."""
+    W, H = w * K, h * K
+    yy, xx = np.mgrid[0:H, 0:W]
+    v = (yy + 0.5) / H
+    lay = ((xx + yy * 3 // max(1, H // 6)) % 6)
+    base = stops(np.clip(0.15 + 0.55 * v, 0, 1), [(0, light), (0.5, light), (1, dark)])
+    out = base * np.choose(lay, [1.12, 1.05, 0.98, 0.9, 0.82, 0.95])[..., None]
+    out *= (1.08 - 0.3 * np.clip((v - 0.6) / 0.4, 0, 1))[..., None]
+    out *= (1 + 0.04 * rng.uniform(-1, 1, (H, W)))[..., None]
     return np.clip(out, 0, 255)
 
 
@@ -672,7 +703,7 @@ def p_sail(w, h, cols, rows, rng, rt, lion=0.0, tri=None, leech_stripe=True, wid
     ci = np.minimum(cols - 1, (xx / cw).astype(int))
     ri = np.minimum(nr - 1, (yy / ch).astype(int))
     pal = np.array([hx(c) for c in SAIL_BLUE])
-    tones = pal[rng.integers(0, len(pal), (nr, cols))] * rng.uniform(0.92, 1.08, (nr, cols, 1))
+    tones = pal[rng.integers(0, len(pal), (nr, cols))] * rng.uniform(0.95, 1.05, (nr, cols, 1))
     col = tones[ri, ci]
     lx, ly = xx - ci * cw, yy - ri * ch
     k = 1 + 0.13 * (ly < 2) + 0.05 * (lx < 2) - 0.13 * (ly > ch - 3) - 0.07 * (lx > cw - 3)
@@ -803,16 +834,17 @@ def hull_pass(base, R, rt):
         return R[name][2], R[name][3]
 
     # hull strakes (stretched over the band's height: the ambient shadow under the wale above and over the one below)
-    P("strake_lo", p_blocks(*wh("strake_lo"), WOOD_LO, JOINT_BROWN, g("strake_lo"), rows=4, ao=(0.42, 0.2), wear=0.15))
-    P("strake_mid", p_blocks(*wh("strake_mid"), WOOD_MID, JOINT_BROWN, g("strake_mid"), rows=3, ao=(0.45, 0.22), wear=0.12))
-    P("strake_hi", p_blocks(*wh("strake_hi"), NAVY, NAVY_JOINT, g("strake_hi"), rows=3, ao=(0.48, 0.24), wear=0.08, nails=0.15))
-    P("hull_brown", p_blocks(*wh("hull_brown"), ("4a2e16", "402812", "54341a", "38220f", "5e3c20"), "160c04", g("hull_brown"), rows=4,
-                             wear=0.1))
+    vox = dict(lens=(1,), stagger=False, bevel=0.7)
+    P("strake_lo", p_blocks(*wh("strake_lo"), WOOD_LO, JOINT_BROWN, g("strake_lo"), rows=2, ao=(0.42, 0.2), wear=0.15, **vox))
+    P("strake_mid", p_blocks(*wh("strake_mid"), WOOD_MID, JOINT_BROWN, g("strake_mid"), rows=1, ao=(0.45, 0.22), wear=0.12, **vox))
+    P("strake_hi", p_blocks(*wh("strake_hi"), NAVY, NAVY_JOINT, g("strake_hi"), rows=2, ao=(0.48, 0.24), wear=0.08, nails=0.15, **vox))
+    P("hull_brown", p_blocks(*wh("hull_brown"), ("4a2e16", "402812", "54341a", "38220f", "5e3c20"), "160c04", g("hull_brown"), rows=2,
+                             wear=0.1, **vox))
     P("strake_brown2", p_blocks(*wh("strake_brown2"), ("3e2616", "36210f", "46291a"), "140a04", g("strake_brown2"), rows=1, blen=32,
                                 ao=(0.0, 0.3)))
     P("strake_brown", p_blocks(*wh("strake_brown"), WOOD_DARK, JOINT_BROWN, g("strake_brown"), rows=1, ao=(0.25, 0.1)))
-    P("hull_blue", p_blocks(*wh("hull_blue"), NAVY, NAVY_JOINT, g("hull_blue"), rows=4, ao=(0.4, 0.2), wear=0.06, nails=0.15))
-    P("hull_blue2", p_blocks(*wh("hull_blue2"), NAVY, NAVY_JOINT, g("hull_blue2"), rows=4, wear=0.15, nails=0.15))
+    P("hull_blue", p_blocks(*wh("hull_blue"), NAVY, NAVY_JOINT, g("hull_blue"), rows=2, ao=(0.4, 0.2), wear=0.06, nails=0.15, **vox))
+    P("hull_blue2", p_blocks(*wh("hull_blue2"), NAVY, NAVY_JOINT, g("hull_blue2"), rows=2, wear=0.15, nails=0.15, **vox))
     # gold, the cap rail, the gold mouldings
     P("gold", p_gold_v(*wh("gold"), g("gold")))
     P("rail", p_gold_v(*wh("rail"), g("rail"), pts=[(0.0, "fff0b0"), (0.12, "fad472"), (0.35, "eebc54"), (0.62, "d49a34"),
@@ -823,6 +855,10 @@ def hull_pass(base, R, rt):
     P("carving", p_scroll(*wh("carving"), g("carving"), period=16, kind="s"))
     P("taffrail", p_scroll(*wh("taffrail"), g("taffrail"), period=24, kind="s"))
     P("bronze", p_gold_v(*wh("bronze"), g("bronze"), seam=0))
+    P("iron", p_iron(*wh("iron"), g("iron")))
+    P("rope", p_rope(*wh("rope"), g("rope"), "c8aa72", "6e5634"))
+    P("rope_light", p_rope(*wh("rope_light"), g("rope_light"), "d8bc84", "7a6040"))
+    P("rope_dark", p_rope(*wh("rope_dark"), g("rope_dark"), "d4b67c", "76603c"))
     # wood
     P("wood_dark", p_planks(*wh("wood_dark"), ("5a3a20", "4e321c", "634126", "553620"), "24170c", g("wood_dark")))
     P("dark_wood", p_planks(*wh("dark_wood"), ("4a2f1a", "40281a", "533420"), "1e140a", g("dark_wood")))

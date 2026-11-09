@@ -146,7 +146,7 @@ STRETCHED = ("strake_brown", "strake_brown2", "gold_band", "castle_panel", "cast
 MOSAIC = ("strake_lo", "strake_mid", "strake_hi")
 # 1.27.1: regions painted with their shading across the full height of the face (tools/royal_lion_hd.py): each face
 # maps the whole v range of the region (the lit top edge, the shadowed foot), u still 16 px a block
-V_FULL = ("gold", "rail", "bronze", "strake_lo", "strake_mid", "strake_hi", "hull_blue")
+V_FULL = ("gold", "rail", "bronze", "iron", "rope", "rope_light", "rope_dark", "strake_lo", "strake_mid", "strake_hi", "hull_blue")
 _face_uv = gn.face_uv
 
 
