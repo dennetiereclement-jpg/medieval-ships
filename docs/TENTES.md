@@ -625,6 +625,450 @@ des étagères à fond de bois avec potions, livres et tissus, des rideaux retro
   ne bouge pas.
 - Les générateurs régénèrent leurs fichiers à l'identique (vérifié à l'intégration).
 
+## Tentes de marché de Lion Port et des villes (1.26.0)
+
+Dix-sept nouvelles tentes marchandes dans l'onglet **Tentes** (liste `TentTypes.MARKET_TENTS`, ajoutée à la fin de
+`ALL`, après le camp militaire), tirées du lot 2 des images de référence (classement complet :
+[REFERENCES_LOT2.md](REFERENCES_LOT2.md)). Même système que les autres tentes : un objet, un bloc d'ancrage, un modèle
+statique, tournée vers le joueur qui la pose, persistante, retirée en cassant le bloc (rend l'objet) ou par commande,
+aucune génération naturelle. Chaque tente a **sa propre silhouette** (toit, taille, plan, auvents) : ce ne sont pas des
+copies recolorées. Chacune a son générateur (`tools/market/generate_<id>.py`, aides de son groupe dans
+`tools/market/props_<groupe>.py`, sans modifier `tentlib.py` ni `merchantlib.py`), son atlas propre
+(`textures/entity/<id>.png`, 512 px, 1024 px pour la tente aux draperies rouges et la tente à la fleur de lys), son icône,
+des lanternes allumées (le bloc d'ancrage éclaire à 12 ou 13) et une **place libre pour un marchand** (EasyNPC) : une
+colonne de 1 × 1 × 2,2 blocs derrière le comptoir, hors de toute boîte de collision et atteignable à pied depuis
+l'avant.
+
+Six groupes : **A** et **B**, les tentes bleues et crème de Lion Port (le lion, la balance bleue) ; **C** et **D**, les
+tentes rouges et crème à la balance ; **E**, les tentes rouges aux draperies, à la fleur de lys et aux cordages ; **F**,
+les trois tentes de la planche 065 (frontière, sylvestre, arsenal).
+
+| id | nom | English | groupe (image) | cubes | emprise l × h × p | lumière | place du PNJ (x, z) |
+|----|-----|---------|----------------|-------|-------------------|---------|---------------------|
+| `tente_lion_pavillon` | Pavillon au lion | Lion Pavilion | A (032) | 672 | 8,5 × 5,8 × 7,0 | 13 | −1,45..−0,45, −0,7..0,3 |
+| `tente_lion_longue` | Longue tente au lion | Long Lion Tent | A (041) | 897 | 10,5 × 7,0 × 6,9 | 13 | −0,4..0,6, −0,85..0,15 |
+| `tente_imperiale` | Tente marchande impériale | Imperial Merchant Tent | A (065) | 749 | 11,0 × 7,0 × 7,8 | 13 | −1,85..−0,85, −1,25..−0,25 |
+| `tente_lion_drapee` | Tente drapée au lion | Draped Lion Tent | B (095) | 884 | 10,9 × 7,75 × 7,3 | 13 | 0,6..1,6, −1,98..−0,98 |
+| `tente_lion_chapiteau` | Chapiteau royal au lion | Royal Lion Marquee | B (109) | 749 | 10,5 × 6,9 × 6,9 | 13 | 0,4..1,4, −0,12..0,88 |
+| `tente_balance_bleue` | Tente bleue à la balance | Blue Scales Tent | B (130) | 505 | 10,2 × 6,5 × 7,0 | 13 | 0,0..1,0, 0,38..1,38 |
+| `tente_balance_chapiteau` | Grand chapiteau à la balance | Great Scales Marquee | C (048) | 791 | 10,3 × 7,3 × 8,0 | 13 | −2,65..−1,65, 0,25..1,25 |
+| `tente_balance_fer` | Pavillon à la balance et ferronnerie | Wrought-Iron Scales Pavilion | C (050) | 670 | 11,0 × 7,3 × 7,2 | 12 | −1,45..−0,45, −0,62..0,38 |
+| `tente_balance_bourse` | Tente à la balance et à la bourse | Scales and Purse Tent | C (154) | 619 | 9,3 × 6,55 × 7,7 | 13 | 0,4..1,4, −0,55..0,45 |
+| `tente_balance_auvent` | Tente à la balance et à l'auvent | Scales Tent with Awning | D (080) | 783 | 9,25 × 6,2 × 8,55 | 13 | 0,75..1,75, 0,15..1,15 |
+| `tente_balance_pignon` | Tente à pignon à la balance | Gabled Scales Tent | D (097) | 879 | 10,85 × 7,1 × 6,8 | 12 | −0,45..0,55, −1,85..−0,85 |
+| `tente_draperie` | Tente aux draperies rouges | Red Drapery Tent | E (122) | 823 | 10,9 × 7,2 × 7,3 | 13 | 0,3..1,3, −0,8..0,2 |
+| `tente_fleur_de_lys` | Tente à la fleur de lys | Fleur-de-lis Tent | E (139) | 633 | 9,6 × 6,9 × 7,6 | 13 | −0,6..0,4, −0,75..0,25 |
+| `tente_cordages` | Tente rouge aux cordages | Red Rope Tent | E (143) | 802 | 10,6 × 6,7 × 8,0 | 13 | 0,9..1,9, −1,05..−0,05 |
+| `tente_frontiere` | Tente marchande de frontière | Frontier Merchant Tent | F (065) | 687 | 11,3 × 6,9 × 8,0 | 13 | 0,6..1,6, −2,73..−1,73 |
+| `tente_sylvestre` | Tente marchande sylvestre | Sylvan Merchant Tent | F (065) | 673 | 9,4 × 6,6 × 8,7 | 13 | 0,9..1,9, −2,96..−1,96 |
+| `tente_arsenal` | Tente marchande de l'arsenal | Arsenal Merchant Tent | F (065) | 646 | 11,3 × 7,3 × 8,4 | 13 | −0,35..0,65, −2,74..−1,74 |
+
+L'emprise compte les tapis, caisses, piquets et haubans posés autour. Les places du PNJ sont en coordonnées de la tente :
+le bloc d'ancrage en (0, 0), l'avant vers +z (une tente posée face au sud) ; elles tournent avec la tente.
+
+```
+/give @p medievalships:tente_lion_pavillon
+/give @p medievalships:tente_balance_chapiteau
+/give @p medievalships:tente_arsenal        (ou tout autre id du tableau ; /tent give <id> [joueurs])
+/tent place tente_imperiale ~ ~ ~ south
+/tent remove nearest
+```
+
+Noms courts acceptés par le code (`TentTypes.byId`) : l'id sans `tente_` (`lion_pavillon`, `imperiale`, `arsenal`…),
+sauf `draperie` qui reste la draperie rouge de rue (`deco_draperie`, 1.20.0) : la tente s'appelle `tente_draperie`. Les
+noms masculins (pavillons et chapiteaux) sont accordés dans les messages (« Pavillon au lion posé »).
+
+Ce qui vaut pour les dix-sept : modèle statique (aucun tick, aucune animation ; seule la tente de l'arsenal a une rare
+particule de fumée côté client), petits objets sous un bone `detail` (dessinés jusqu'à `tentDecorDistance`), toile,
+bannières, tapis et cordes sans collision, poteaux, comptoirs, étagères et meubles pleins avec collisions, entrée et
+avant praticables jusqu'à 2,2 blocs de haut. Pas de système d'échange : la place du marchand est prévue pour un PNJ
+d'un autre mod (EasyNPC), aucun n'est fourni.
+
+### Pavillon au lion
+
+**Pavillon au lion** (`tente_lion_pavillon`, `/give @p medievalships:tente_lion_pavillon`, groupe A, image 032, 672
+cubes, emprise 8,5 × 5,8 × 7,0, lumière 13) — Pavillon à rayures bleu roi et crème d'environ 8,5 x 7 blocs (épi à 5,8) :
+toit bas en cloche, évasé aux bords et pointu sous l'épi doré et sa couronne crème à pattes dorées, lambrequin bleu à
+pattes carrées bordées d'or. Sur l'avant-toit se dresse le blason : une haute bannière bleue au lion d'or sous une barre
+dorée, entre deux flammes crème aux fleurs de lys. À l'avant gauche, un grand mât porte la bannière bleue à croix
+fleuronnée, une grosse corde torsadée et une guirlande de fanions tendue jusqu'à l'épi. Dedans : le comptoir sous un
+drap bleu à dents dorées (livres, carte, petite lanterne), les étagères de potions et de livres, une armoire à fleur de
+lys, la table de gros rouleaux d'étoffe en pyramide et le coffre doré. Dehors : deux gros sacs de toile, des caisses,
+une jardinière de lierre et le tapis bleu à rinceaux d'or. Le marchand (PNJ) se tient derrière le comptoir.
+
+- **Blocs de mods** : `mebahelcreaturesdwarven:dwemer_chest` (→ `minecraft:chest`), `furnish:spruce_crate`
+  (→ `minecraft:barrel`), `furnish:book_pile` (boîte de substitution si le mod manque).
+- **Collisions** : 19 boîtes (poteaux, comptoirs et meubles pleins).
+- **Place du PNJ marchand** : x −1,45..−0,45, z −0,7..0,3, derrière le comptoir ; on y entre par l'avant, entre le
+  comptoir et la table aux étoffes.
+- **Différences avec l'image** : le mât à bannière se dresse à côté du poteau avant gauche au lieu d'en être un ; les
+  sacs restent anguleux ; l'image est éclairée plus chaud et plus sombre ; le toit est un peu plus crème que bleu ; le
+  tapis porte des rinceaux simplifiés.
+- Générateur `tools/market/generate_tente_lion_pavillon.py` (+ `props_a.py`), test JUnit `MarketATest`.
+
+### Longue tente au lion
+
+**Longue tente au lion** (`tente_lion_longue`, `/give @p medievalships:tente_lion_longue`, groupe A, image 041, 897
+cubes, emprise 10,5 × 7,0 × 6,9, lumière 13) — Longue tente bleu et crème d'environ 10,5 x 7 blocs. À gauche, le pic du
+pavillon : toit bas en cloche aux fuseaux bleus et crème, cordes torsadées sur les arêtes et mât portant le long fanion
+au lion. À droite, la halle à pignon : larges bandes sur ses deux pentes, épi doré, lierre, et un épais linteau de bois à
+blocs dorés sous le bord du toit, avec le lambrequin crème et or à croix de fer. Deux auvents crème plus bas sur
+poteaux : à gauche le comptoir des potions, les caisses de lingots d'or et de ballots et la balance de cuivre
+suspendue ; à droite le comptoir aux rouleaux d'étoffe, livres, pièces et coffres cerclés. Entre deux bannières au lion
+et des rideaux noués se trouvent le pupitre au registre ouvert (le marchand derrière), les étagères de sacs, bocaux et
+livres, et le tapis bleu à rinceaux sur un seuil de pierre.
+
+- **Blocs de mods** : `furnish:spruce_crate` (→ `minecraft:barrel`), `mebahelcreaturesdwarven:dwemer_chest`
+  (→ `minecraft:chest`), `farmhouse_decorations:pile_of_books` (boîte de substitution).
+- **Collisions** : 26 boîtes (poteaux, comptoirs et meubles pleins).
+- **Place du PNJ marchand** : x −0,4..0,6, z −0,85..0,15, derrière le pupitre ; par l'entrée, en contournant le bout droit
+  du pupitre (la place empiète sur le bloc d'ancrage : le marchand se tient sur son mince plancher).
+- **Différences avec l'image** : le toit du pavillon est moins bleu ; la toile des auvents est unie, sans taches ; le
+  toit du pic ne se fond pas aussi doucement dans l'auvent gauche ; moins de caisses devant ; rideaux plus minces.
+- Générateur `tools/market/generate_tente_lion_longue.py` (+ `props_a.py`), test JUnit `MarketATest`.
+
+### Tente marchande impériale
+
+**Tente marchande impériale** (`tente_imperiale`, `/give @p medievalships:tente_imperiale`, groupe A, image 065 en haut
+à gauche, 749 cubes, emprise 11,0 × 7,0 × 7,8, lumière 13) — Marquise large et basse d'environ 11 x 7,8 blocs (la tente
+seule fait 7,5 x 5,4) : toit en cloche évasée aux fuseaux crème et bleus semés de fleurs de lys d'or, haut épi doré à
+petit fanion, épis dorés aux quatre poteaux, petite couronne d'or sur une arête, étroit lambrequin doré à fleurs de lys
+bleues et haillons crème au-dessus de l'entrée. Trois bannières bleues au lion pendent de la façade (une longue à chaque
+angle, une à franges au-dessus de l'entrée), avec des rideaux bleus noués aux angles, une lanterne à chaîne et une sur
+potence ; derrière, un mât porte le drapeau à queue d'aronde. Dedans : deux comptoirs (chandeliers, gobelet, coffrets,
+parchemins, statuette) et les étagères de plats d'or. Dehors : caisses, coffre de pierre au heaume doré, cheval d'or,
+lance, coffre à croix d'or et tapis au lion. Le marchand se tient derrière le comptoir de gauche.
+
+- **Blocs de mods** : `furnish:dark_oak_crate` (→ `minecraft:barrel`), `landsoficaria:blue_storage_vase`
+  (→ `minecraft:decorated_pot`).
+- **Collisions** : 17 boîtes (poteaux, comptoirs et meubles pleins).
+- **Place du PNJ marchand** : x −1,85..−0,85, z −1,25..−0,25, derrière le comptoir gauche ; par le passage entre les deux
+  comptoirs (x −0,6..0,6).
+- **Différences avec l'image** : le haut du toit est un peu plus arrondi dans l'image ; les épis des poteaux d'angle sont
+  un peu gros ; le plan reste carré à poteaux d'angle (seuls les bords sont arrondis) ; les marchandises de l'intérieur
+  sont plus simples ; les pavés et l'herbe de la planche ne sont pas modélisés (décor de fond).
+- Générateur `tools/market/generate_tente_imperiale.py` (+ `props_a.py`), test JUnit `MarketATest`.
+
+### Tente drapée au lion
+
+**Tente drapée au lion** (`tente_lion_drapee`, `/give @p medievalships:tente_lion_drapee`, groupe B, image 095, 884
+cubes, emprise 10,9 × 7,75 × 7,3, lumière 13) — Tente carrée bleu roi et crème du port du Lion : toit pyramidal concave
+à larges rayures nettes, mât au drapeau au lion, lambrequins crème à dents carrées pointues bordées d'or, deux bannières
+au lion, rideaux crème noués en éventail aux poteaux sur socles de pierre, parois bleu nuit. Deux auvents rayés : à
+gauche un comptoir sous le drap au lion (rouleaux rouges, linge, fioles) ; à droite des caisses de pommes, de légumes et
+de fromages, un tonneau fleuri et du lierre. Dedans : plancher, tapis bleu au lion, étagères de potions, coffre ferré,
+comptoir du marchand au fond.
+
+- **Blocs de mods** : `furnish:spruce_crate` ×2 (→ `minecraft:barrel`), `farmersdelight:rice_bag`,
+  `farmersdelight:cabbage_crate`, `farmhouse_decorations:pile_of_books` (boîtes de substitution si les mods manquent).
+- **Collisions** : 30 boîtes (poteaux, comptoirs et meubles pleins).
+- **Place du PNJ marchand** : x 0,6..1,6, z −1,98..−0,98, derrière le comptoir du fond à droite ; en passant devant le
+  coffre et en contournant le comptoir par la gauche.
+- **Différences avec l'image** : le toit reste un peu raide ; les toits des auvents sont assez plats ; les festons de
+  corde sont épais ; le plancher n'est pas solide (les pieds s'y enfoncent de 0,08 bloc) ; l'intérieur est moins chargé.
+- Générateur `tools/market/generate_tente_lion_drapee.py` (+ `props_b.py`), test JUnit `MarketBTest`.
+
+### Chapiteau royal au lion
+
+**Chapiteau royal au lion** (`tente_lion_chapiteau`, `/give @p medievalships:tente_lion_chapiteau`, groupe B, image
+109, 749 cubes, emprise 10,5 × 6,9 × 6,9, lumière 13) — Long chapiteau arrondi bleu et crème à vingt rayures liserées
+d'or, couronne ovale crénelée, fleuron doré et panneau au lion. Au-dessus de la boutique, un lambrequin bleu à créneaux
+d'or ; ailleurs, des dents bleues et crème. La partie gauche est fermée de rideaux bleus à bande de losanges dorés, et
+les poteaux sombres portent des fleurons dorés. Un grand poteau porte la bannière au lion. Dedans : comptoir à nappe
+crème et chemin au lion, sphère armillaire, potions, coffre, tapis bleu.
+
+- **Blocs de mods** : `furnish:spruce_crate` ×2 (→ `minecraft:barrel`), `farmersdelight:rice_bag`,
+  `farmhouse_decorations:pile_of_books` (boîtes de substitution).
+- **Collisions** : 27 boîtes (poteaux, comptoirs et meubles pleins).
+- **Place du PNJ marchand** : x 0,4..1,4, z −0,12..0,88 ; entre le poteau de séparation (x = −1,2) et le bout gauche du
+  comptoir.
+- **Différences avec l'image** : la tente de l'image est plus longue et plus basse ; petit zigzag de l'ourlet crème aux
+  angles ; couronne et créneaux simplifiés.
+- Générateur `tools/market/generate_tente_lion_chapiteau.py` (+ `props_b.py`), test JUnit `MarketBTest`.
+
+### Tente bleue à la balance
+
+**Tente bleue à la balance** (`tente_balance_bleue`, `/give @p medievalships:tente_balance_bleue`, groupe B, image 130,
+505 cubes, emprise 10,2 × 6,5 × 7,0, lumière 13) — Tente de changeur bleue et crème : court faîtage entre deux poteaux à
+chapiteaux, toit rayé avec la bannière à la balance, lambrequins à dents bordées d'or, cordes le long des arêtiers,
+parois bleu nuit. Une potence porte l'enseigne à la balance. Auvent rayé à gauche (caisses, sacs, lanterne). Dedans :
+comptoir au drap bleu et à la balance (livres, blé, rouleaux, coffre). Devant : sac de grain, caisse de pommes, tapis
+bleu à grecque.
+
+- **Blocs de mods** : `furnish:spruce_crate` et `landsoficaria:cypress_barrel` (→ `minecraft:barrel`),
+  `farmersdelight:rice_bag`, `farmersdelight:cabbage_crate` (boîtes de substitution).
+- **Collisions** : 25 boîtes (poteaux, comptoirs et meubles pleins).
+- **Place du PNJ marchand** : x 0,0..1,0, z 0,38..1,38 ; entre le bout droit du comptoir et le poteau avant droit (la
+  potence).
+- **Différences avec l'image** : sans Farmer's Delight, la caisse de légumes de l'avant droit est un cube de substitution
+  marbré ; l'intérieur est moins garni ; les poteaux de faîte sont dedans, derrière le comptoir.
+- Générateur `tools/market/generate_tente_balance_bleue.py` (+ `props_b.py`), test JUnit `MarketBTest`.
+
+### Grand chapiteau à la balance
+
+**Grand chapiteau à la balance** (`tente_balance_chapiteau`, `/give @p medievalships:tente_balance_chapiteau`, groupe C,
+image 048, 791 cubes, atlas propre de 512 px) — grand chapiteau à croupes d'environ 10,3 × 8 blocs, mât gauche à 7,3. Le
+toit cramoisi, raide en haut et très évasé vers l'avant-toit, porte de grandes pyramides crème à gradins et une bande
+crème qui descend des pointes ; deux mâts de bois cerclés de fer le percent, et le mât droit porte un drapeau rouge à
+queue d'aronde. Une grande bannière à la balance dorée est posée sur la pente avant. Des festons rouges profonds à dents
+dorées bordent l'avant et le côté gauche. Les gros poteaux de bois chaud reposent sur des pieds de pierre, avec un mât à
+drapeau sur le côté gauche et de grosses cordes vers les mâts. À droite, un auvent avant rayé orange et crème descend
+vers la façade, avec des lanternes sur ses poteaux. Deux grosses bottes d'herbes pendent au-dessus du comptoir avant
+gauche (potions, livres, parchemin). Au fond, des étagères de livres et de potions. Devant : un coffre cerclé, deux gros
+tapis roulés, des sacs de grain et un tapis rouge à médaillon doré. Sous l'auvent : un comptoir à nappe crème au losange
+rouge, un grand coffre avec un livre ouvert, des caisses et des tonneaux. Cinq lanternes éclairent la tente, et le bloc
+d'ancrage émet une lumière de 13. La place libre du PNJ est derrière le comptoir avant gauche.
+
+- **Blocs de mods** : `furnish:spruce_crate` et `landsoficaria:cypress_barrel` (→ `minecraft:barrel`),
+  `farmersdelight:rice_bag`, `furnish:book_pile` (boîtes de substitution).
+- **Collisions** : 29 boîtes (poteaux, mâts, comptoirs et meubles pleins, dont les gros tapis roulés).
+- **Place du PNJ marchand** : x −2,65..−1,65, z 0,25..1,25, derrière le comptoir avant gauche, par l'entrée.
+- **Différences avec l'image** : la tente principale de l'image paraît plus haute et plus étroite, avec un grand drapé
+  crème à l'angle gauche (proportions non reprises) ; le motif du toit est stylisé ; les poinçons partent des entraits,
+  pas du sol (le sol reste libre) ; moins de marchandises.
+- Générateur `tools/market/generate_tente_balance_chapiteau.py` (+ `props_c.py`), test JUnit `MarketCTest`.
+
+### Pavillon à la balance et ferronnerie
+
+**Pavillon à la balance et ferronnerie** (`tente_balance_fer`, `/give @p medievalships:tente_balance_fer`, groupe C,
+image 050, 670 cubes, atlas propre de 512 px) — pavillon rond d'environ 11 × 7,2 blocs, flèche à 7,3. Un toit conique
+large et bas alterne des pointes cramoisies à rinceaux dorés et des pointes crème passées, sous un épi de laiton et une
+longue flamme rouge. Un lambrequin à pointes crème et cramoisi borde la droite de la façade, le côté droit et l'arrière.
+L'ossature est en fer noir à colliers de laiton. Le gros poteau avant gauche monte au-dessus de l'avant-toit et porte
+deux grands arcs de fer forgé, un au-dessus de l'entrée et un le long du côté gauche, garnis de ferronnerie dorée ; un
+petit arc orne le poteau avant droit. Sur la gauche, la toile rayée (cramoisi, bleu, crème) descend jusqu'au sol comme
+une tente cloche. Des rideaux rouges à frange dorée sont retroussés à l'entrée, et des fanions rouges et crème pendent
+sous l'arc. Une potence de fer porte, à gauche, la grande bannière à la balance et au laurier, et à droite l'enseigne au
+parchemin. À l'intérieur : des étagères de rouleaux de tissu, un comptoir sous un chemin à la balance, un second
+comptoir avec des bourses et une lanterne, et un petit coffre. Dehors : des caisses de rouleaux de tissu, un tonneau
+drapé, un sac, un coffre au trésor, du lierre et un tapis rouge à rinceaux. Trois lanternes éclairent la tente, et le
+bloc d'ancrage émet une lumière de 12. La place libre du PNJ est derrière le comptoir gauche.
+
+- **Blocs de mods** : `furnish:spruce_crate` (→ `minecraft:barrel`), `farmersdelight:rice_bag`,
+  `farmhouse_decorations:pile_of_books` (boîtes de substitution).
+- **Collisions** : 22 boîtes (poteaux de fer, potences, comptoirs et meubles pleins, et la jupe de toile gauche, basse).
+- **Place du PNJ marchand** : x −1,45..−0,45, z −0,62..0,38, derrière le comptoir gauche.
+- **Différences avec l'image** : la toile usée et peinte de l'image n'est pas reproduite ; l'épi doré est plus massif que
+  la fine flèche de laiton ; le tapis a un médaillon central que l'image n'a pas ; la ferronnerie est faite de panneaux
+  plats découpés ; l'enseigne ne montre qu'un parchemin.
+- Générateur `tools/market/generate_tente_balance_fer.py` (+ `props_c.py`), test JUnit `MarketCTest`.
+
+### Tente à la balance et à la bourse
+
+**Tente à la balance et à la bourse** (`tente_balance_bourse`, `/give @p medievalships:tente_balance_bourse`, groupe C,
+image 154, 619 cubes, emprise 9,3 × 6,55 × 7,7, lumière 13) — chapiteau rayé rouge cramoisi profond et crème chaud à
+bouts arrondis, coiffé d'une croix de bois, avec un lambrequin avant rayé rouge et crème à bord doré à gradins. Un lourd
+linteau cerclé de fer porte la bannière à la balance ; le grand poteau de droite fait potence pour l'enseigne à la bourse
+et aux pièces, et deux drapeaux rouges flottent au-dessus. Un porche rayé abrite des caisses à gauche. Comptoir à
+chemins rouges devant des étagères de potions, lierre. Devant : un tonneau à lanterne, un gros sac de jute rebondi,
+noué, aux sangles rouges, des coffres empilés et un grand tapis rouge et or. On rejoint le marchand par le passage au
+bout du comptoir. Différente de la tente marchande du camp (`tente_marchande`) : la balance, l'enseigne à la bourse et
+sa propre charpente.
+
+- **Blocs de mods** : `furnish:spruce_crate` ×2 (→ `minecraft:barrel`), `furnish:book_pile`,
+  `farmhouse_decorations:pile_of_books` (boîtes de substitution).
+- **Collisions** : 28 boîtes (poteaux, comptoirs et meubles pleins).
+- **Place du PNJ marchand** : x 0,4..1,4, z −0,55..0,45, derrière le comptoir, par le passage à son bout droit.
+- **Différences avec l'image** : le toit de l'image est un peu plus large ; le tapis est plus chargé que le tapis à pois de
+  l'image ; la façade est chargée de poteaux ; le comptoir est plus court (pour laisser le passage vers le marchand) ;
+  le porche est une interprétation ; les glands des cordes sont omis.
+- Générateur `tools/market/generate_tente_balance_bourse.py` (+ `props_c.py`), test JUnit `MarketCTest`.
+
+### Tente à la balance et à l'auvent
+
+**Tente à la balance et à l'auvent** (`tente_balance_auvent`, `/give @p medievalships:tente_balance_auvent`, groupe D,
+image 080, 783 cubes, emprise 9,25 × 6,2 × 8,55, lumière 13) — Tente rouge et crème des marchands de la balance : toit en
+croupe entre deux poteaux de faîte à petits fleurons dorés, rayures en éventail, lambrequin crème à dents irrégulières,
+mur gauche fermé portant une grande bannière à la balance. Sur l'avant droit, un long auvent rouge presque plat (bandes
+crème dans sa longueur, grecque dorée, dents rouges, dorées et crème) abrite le comptoir tourné vers la rue : chemin de
+table rouge bordé d'or, livre ouvert, fioles, paquets enrubannés. Le marchand se tient derrière, devant l'ouverture. À
+l'intérieur, des étagères de potions, de livres et d'étoffes, un coffre doré et un sac de grain ; dehors, des caisses de
+fruits et légumes, une jardinière de fleurs violettes et un grand tapis rouge et or. Quatre lanternes.
+
+- **Blocs de mods** : `furnish:spruce_crate` (→ `minecraft:barrel`), `farmersdelight:tomato_crate`,
+  `farmersdelight:cabbage_crate`, `farmersdelight:rice_bag`, `furnish:book_pile` (boîtes de substitution).
+- **Collisions** : 25 boîtes (poteaux, comptoirs et meubles pleins).
+- **Place du PNJ marchand** : x 0,75..1,75, z 0,15..1,15, derrière le comptoir sous l'auvent, devant l'ouverture de la
+  tente ; on y arrive depuis le tapis ou par le côté droit ouvert de l'auvent.
+- **Différences avec l'image** : le toit reste en croupe, pas la cloche douce de l'image autour du poteau de faîte gauche ;
+  le comptoir est d'équerre avec la tente (de biais dans l'image, à la perspective incohérente) ; le motif du tapis est
+  plus simple que les arabesques.
+- Générateur `tools/market/generate_tente_balance_auvent.py` (+ `props_d.py`), test JUnit `MarketDTest`.
+
+### Tente à pignon à la balance
+
+**Tente à pignon à la balance** (`tente_balance_pignon`, `/give @p medievalships:tente_balance_pignon`, groupe D, image
+097, 879 cubes, emprise 10,85 × 7,1 × 6,8, lumière 12) — Pavillon rouge et crème à deux pans : quatre grands poteaux
+d'angle à col doré et petits fleurons, rayures larges et droites, faîte relevé au milieu où une traverse aux bouts dorés
+porte la grande bannière à la balance. Profonds lambrequins à redans bordés d'or et deux auvents latéraux rayés. Sous
+l'avant-toit, trois bannières ; le comptoir porte une nappe crème à pointes dorées et un chemin de table rouge, avec un
+livre ouvert, des bouteilles et des parchemins. Derrière, des étagères de potions et des sacs. Sous l'auvent gauche, des
+caisses de pommes, tomates, choux, grain et lavande, des sacs de riz et un tonneau ; sous l'auvent droit, des caisses et
+des coffres (coffre doré, coffre de gemmes, coffre dwemer). Tapis rouge à grosse bordure dorée. Deux lanternes.
+
+- **Blocs de mods** : `furnish:spruce_crate` ×2 (→ `minecraft:barrel`), `mebahelcreaturesdwarven:dwemer_chest`
+  (→ `minecraft:chest`), `farmersdelight:tomato_crate`, `farmersdelight:cabbage_crate`, `farmersdelight:rice_bag` ×2,
+  `farmhouse_decorations:pile_of_books` (boîtes de substitution).
+- **Collisions** : 32 boîtes (poteaux, comptoirs et meubles pleins).
+- **Place du PNJ marchand** : x −0,45..0,55, z −1,85..−0,85, entre le comptoir et les étagères ; en contournant le
+  comptoir par la gauche.
+- **Différences avec l'image** : la bordure du tapis est une rangée de croix au lieu de la chaîne de carrés dorés ; le
+  fond de l'intérieur est en toile au lieu de la charpente sombre ; l'emblème de la bannière du milieu, flou dans
+  l'image, est une balance passée ; un peu moins de marchandises.
+- Générateur `tools/market/generate_tente_balance_pignon.py` (+ `props_d.py`), test JUnit `MarketDTest`.
+
+### Tente aux draperies rouges
+
+**Tente aux draperies rouges** (`tente_draperie`, `/give @p medievalships:tente_draperie`, groupe E, image 122, 823
+cubes, emprise 10,9 × 7,2 × 7,3, lumière 13, atlas de 1024 px) — Tente carrée rouge et crème à lanterneau et fleuron doré,
+de hauts poteaux bardés de fer et une ouverture haute : sous l'avant-toit, des pans rouges et crème frangés d'or, courts,
+laissent voir la boutique éclairée (étagères de potions, raisin, lavande et herbes pendus, lanternes accrochées à des
+blocs de bois), rideau prune noué au poteau droit, guirlande de fanions, auvent rouge à droite avec son étal de fruits et
+de fleurs ; tapis roulés, tonneaux, sacs crème et caisses claires à croisillon devant, tapis rouge devant le comptoir au
+chemin bleu.
+
+- **Blocs de mods** : `furnish:spruce_crate`, `furnish:oak_crate` et `landsoficaria:cypress_barrel`
+  (→ `minecraft:barrel`), `farmersdelight:rice_bag` (boîte de substitution).
+- **Collisions** : 25 boîtes (poteaux, comptoirs et meubles pleins).
+- **Place du PNJ marchand** : x 0,3..1,3, z −0,8..0,2 ; par le passage entre le bout droit du comptoir et le poteau avant
+  droit.
+- **Différences avec l'image** : vu sous cet angle, l'auvent droit est plus petit que dans l'image ; les sacs crème restent
+  un peu anguleux ; tous les pans portent le même losange ; l'arrière et les côtés sont imaginés (absents de l'image).
+- Générateur `tools/market/generate_tente_draperie.py` (+ `props_e.py`), test JUnit `MarketETest`.
+
+### Tente à la fleur de lys
+
+**Tente à la fleur de lys** (`tente_fleur_de_lys`, `/give @p medievalships:tente_fleur_de_lys`, groupe E, image 139, 633
+cubes, emprise 9,6 × 6,9 × 7,6, lumière 13, atlas de 1024 px) — Grand chapiteau pointu rouge vin et crème au profil
+concave et flèche dorée : la grande bannière à deux fleurs de lys couchée sur le toit puis pendante, deux grands festons
+rouges à courte frange d'or tombant du haut des poteaux jusqu'aux pompons, poteaux avant à traverse et lanterne, drapés
+crème noués haut par de grosses cordes ; dedans, ail, piments, lavande et linge pendus, enseigne à la fleur de lys,
+étagère de rouleaux de tissu, comptoir à nappe frangée, fromages, coffre et tonneaux ; devant, jardinière de fleurs
+jaunes, coffre rouge et or, sac, panier de grain et tapis rouge.
+
+- **Blocs de mods** : `farmhouse_decorations:kerosene_lantern` (allumée, → `minecraft:lantern`),
+  `farmhouse_decorations:wine_bottle` ×3, `furnish:spruce_crate` et `landsoficaria:cypress_barrel`
+  (→ `minecraft:barrel`), `farmersdelight:rice_bag` (boîtes de substitution).
+- **Collisions** : 19 boîtes (poteaux, comptoirs et meubles pleins).
+- **Place du PNJ marchand** : x −0,6..0,4, z −0,75..0,25, en contournant le bout gauche du comptoir (la place empiète sur
+  le bloc d'ancrage : le marchand se tient sur son mince plancher).
+- **Différences avec l'image** : les rayures crème du toit sont moins présentes ; les drapés sont plats, sans plis
+  profonds ; la croix du sommet est simplifiée ; les jupes latérales sont imaginées.
+- Générateur `tools/market/generate_tente_fleur_de_lys.py` (+ `props_e.py`), test JUnit `MarketETest`.
+
+### Tente rouge aux cordages
+
+**Tente rouge aux cordages** (`tente_cordages`, `/give @p medievalships:tente_cordages`, groupe E, image 143, 802 cubes,
+emprise 10,6 × 6,7 × 8,0, lumière 13) — Tente rouge semée d'étoiles et de fleurs de lys, au toit pointu concave,
+accrochée à un échafaudage amarré de cordes (portique de levage, poulies, cordages en diagonale) : frise de pans rouges
+et crème à bordure dorée crénelée, bannière à la fleur de lys pendue haut au bras du poteau d'échafaudage, auvent crème
+à dents au-dessus d'un grand rideau rouge à gauche, auvent rouge à droite ; dedans, étagères de potions roses et rouges,
+bouquets d'herbes et de fleurs pendus, grande lanterne, table de piles de tissus, comptoir à nappes rouge et dentelle ;
+devant, caisses à croisillon, coffre ferré, sac, fleurs blanches, tonneau de pommes et tapis rouge sombre.
+
+- **Blocs de mods** : `furnish:spruce_crate` et `landsoficaria:cypress_barrel` (→ `minecraft:barrel`),
+  `farmersdelight:wooden_basket` (boîte de substitution).
+- **Collisions** : 28 boîtes (poteaux, comptoirs et meubles pleins).
+- **Place du PNJ marchand** : x 0,9..1,9, z −1,05..−0,05, entre la table aux tissus et le comptoir.
+- **Différences avec l'image** : les caisses de l'avant gauche restent lourdes et sombres ; la rayure crème du toit est
+  plus étroite ; l'image ne montre pas clairement de poulies (leur place est un choix) ; l'arrière est imaginé.
+- Générateur `tools/market/generate_tente_cordages.py` (+ `props_e.py`), test JUnit `MarketETest`.
+
+### Tente marchande de frontière
+
+**Tente marchande de frontière** (`tente_frontiere`, `/give @p medievalships:tente_frontiere`, groupe F, image 065 en
+haut à droite, 687 cubes, emprise 11,3 × 6,9 × 8,0, lumière 13) — toit en croupe de toile rouge rapiécée de grandes
+pièces crème et mousse, le faîte courant de l'avant à l'arrière, une croupe raide sur l'entrée coiffée d'un grand crâne
+de taureau aux cornes épaisses et de petits totems sculptés ; une épaisse toison blanche jetée sur le pan gauche et
+tombant en frange hirsute, peaux crème et vache au flanc gauche, peaux fauves à droite ; bannières rouges à la rune,
+bouclier aux haches croisées, lanterne sur bras de fer ; dedans, étagères aux lanternes à bougie, comptoir de fourrures,
+râtelier d'armes, tapis rouge aux anneaux crème ; dehors, coffres cerclés de fer, tonneau et billot à la hache. Place du
+marchand derrière le comptoir.
+
+- **Blocs de mods** : `furnish:spruce_crate` et `landsoficaria:loaded_cypress_barrel` (→ `minecraft:barrel`),
+  `farmhouse_decorations:pile_of_books`, `farmersdelight:rice_bag` (boîtes de substitution).
+- **Collisions** : 21 boîtes (les six poteaux cerclés de fer, le comptoir et les meubles pleins).
+- **Place du PNJ marchand** : x 0,6..1,6, z −2,73..−1,73, derrière le comptoir, en contournant son bout gauche.
+- **Différences avec l'image** : l'intérieur reste de toile rouge (brun chaud et éclairé à la bougie dans l'image) ; la
+  frange de fourrure est un peu filandreuse et les fourrures sont des plaques découpées ; le crâne est plus simple ; les
+  piquets des haubans sont enfoncés de 0,13 bloc dans le sol (voulu).
+- Générateur `tools/market/generate_tente_frontiere.py` (+ `props_f.py`), test JUnit `MarketFTest`.
+
+### Tente marchande sylvestre
+
+**Tente marchande sylvestre** (`tente_sylvestre`, `/give @p medievalships:tente_sylvestre`, groupe F, image 065 en bas à
+gauche, 673 cubes, emprise 9,4 × 6,6 × 8,7, lumière 13) — pavillon elfique à rayures vertes et crème tachetées comme des
+feuilles, pointe dorée, bords relevés en arcs entre quatre troncs noueux et des arches de branches vivantes couvertes de
+lierre ; grosses grappes de glycine de part et d'autre de l'entrée, murs crème plissés et mouchetés de vert, grand drapé
+noué d'or à l'avant gauche, panneau vert à la rune de feuille, bannière crème à l'arbre ; lanternes, cristal vert sur son
+bâton ; dedans, étagères de bougies, livres et potions, comptoir au grand cristal cyan, tapis bleu nuit à la rune
+dorée ; dehors, pupitre aux livres, caisse et panier de mousse. Place du marchand derrière le comptoir de droite.
+
+- **Blocs de mods** : `minecraft:amethyst_cluster` (lumineux), `landsoficaria:green_storage_vase`,
+  `farmhouse_decorations:pile_of_books`, `farmersdelight:wooden_basket` (boîtes de substitution si les mods manquent),
+  `furnish:spruce_crate` (→ `minecraft:barrel`).
+- **Collisions** : 15 boîtes (poteaux, comptoirs et meubles pleins).
+- **Place du PNJ marchand** : x 0,9..1,9, z −2,96..−1,96, derrière le comptoir de droite, en contournant son bout gauche.
+- **Différences avec l'image** : le toit déborde moins que dans l'image ; le grand drapé de l'avant gauche est moins
+  gonflé ; les pieds des troncs descendent jusqu'à 0,15 bloc sous le sol.
+- Générateur `tools/market/generate_tente_sylvestre.py` (+ `props_f.py`), test JUnit `MarketFTest`.
+
+### Tente marchande de l'arsenal
+
+**Tente marchande de l'arsenal** (`tente_arsenal`, `/give @p medievalships:tente_arsenal`, groupe F, image 065 en bas à
+droite, 646 cubes, emprise 11,3 × 7,3 × 8,4, lumière 13) — chapiteau steampunk à seize rayures rouille et crème rayonnant
+du sommet, festonné entre les poteaux, lambrequin crénelé ; poteaux bardés d'acier riveté, poutres de fer, grands
+engrenages de laiton boulonnés devant le lambrequin et sur le flanc gauche ; couronne de fer et de laiton au sommet, gros
+tuyaux d'acier sombre à brides de laiton jusqu'à une chaudière à dôme dont la cheminée lâche parfois une bouffée de
+fumée ; bannière brune à l'engrenage doré, lanterne sur potence ; murs de toile rouille plissée ; dedans, étagères de
+lampes, gadgets et rouages, établi-comptoir à l'étau, établi et panneau d'outils ; dehors, réservoir riveté, tonneau,
+caisses aux engrenages et coffre doré. Place du marchand derrière le comptoir.
+
+- **Blocs de mods** : `mebahelcreaturesdwarven:dwemer_metal_pipe_gear`, `farmhouse_decorations:workbench`,
+  `farmhouse_decorations:tool_board` (boîtes de substitution), `farmhouse_decorations:kerosene_lantern` (allumée,
+  → `minecraft:lantern`), `mebahelcreaturesdwarven:dwemer_chest` (→ `minecraft:chest`), `furnish:spruce_crate`
+  (→ `minecraft:barrel`).
+- **Particule** : une bouffée de fumée vanilla (`smoke`) à la cheminée (2,5 ; 6,15 ; 1,35), probabilité 0,15, 2
+  particules, affichage aléatoire côté client (rien ne tick) ; la seule tente de marché qui en a une.
+- **Collisions** : 20 boîtes (poteaux, comptoirs et meubles pleins).
+- **Place du PNJ marchand** : x −0,35..0,65, z −2,74..−1,74, derrière l'établi central, par l'un ou l'autre bout.
+- **Différences avec l'image** : la chaudière est plus petite et moins visible ; les poteaux sont moins massifs et moins
+  sombres que dans l'image ; les piquets des haubans sont enfoncés de 0,13 bloc (voulu).
+- Générateur `tools/market/generate_tente_arsenal.py` (+ `props_f.py`), test JUnit `MarketFTest`.
+
+### Tests (1.26.0)
+
+- JUnit `MarketATest` … `MarketFTest` (un par groupe) : chaque JSON se charge directement par `TentType.load` avec son
+  atlas propre et sa lumière, le décor a ses substituts et les blocs de mods attendus, le modèle se charge, statique,
+  avec un bone `detail` et des lanternes lumineuses, au plus environ 1000 cubes ; emprise de 6 à 12 blocs de large et de
+  profondeur et au plus 10 de haut, boîtes de collision dans l'emprise (et, groupes A et F, aucune boîte plate), au
+  moins 4 poteaux pleins (6 pour la tente de frontière), entrée et allée libres jusqu'à 2,2 blocs, place du PNJ libre
+  avec le comptoir devant et **atteignable à pied** depuis l'avant (recherche d'un joueur de 0,6 × 1,8 bloc) ;
+  silhouettes différentes (groupes C et E) ; seule l'arsenal a une particule.
+- JUnit `MarketTentsTest` (l'enregistrement) : `MARKET_TENTS` dans l'ordre du tableau, à la fin de `ALL`, noms français
+  et anglais (code et langues), genre des noms, fichiers (blockstate aux quatre orientations, objet, modèle d'objet,
+  icône 16 × 16, modèle, copie Blockbench, atlas, décor, générateur), noms courts (`draperie` reste la draperie de rue),
+  place du marchand libre de toute boîte, emprise dans la plateforme du test en jeu dans les quatre orientations. Les
+  tests de comptage (`TentTest`, `CartTest`, `WorkshopTest`, `TrainingTest`, `DecorationTest`, `Merchant4Test`,
+  `StakeTest`) comptent les 42 tentes.
+- `TentGameTest` pose chacune des dix-sept tentes une fois (bloc, orientation sud, entité de bloc, boîtes de collision
+  enregistrées puis une requête de collision, emprise vérifiée dans la plateforme dégagée de 29 × 29 blocs, capture,
+  retrait par `/tent remove x y z`) et met un villageois (sans IA) au centre de la place du marchand : il n'est dans
+  aucune boîte de collision et ne bouge pas.
+- Chaque générateur régénère ses fichiers à l'identique (vérifié à l'intégration : `git status` propre après les
+  dix-sept).
+
+### Non vérifié (1.26.0)
+
+- L'aspect réel des blocs des mods dans ces tentes (les rendus hors jeu des constructeurs montrent les substituts ; la
+  variante « decor » du test en jeu les dessine sur ses captures).
+- La pose au clic droit dans les quatre orientations par un vrai joueur (le test en jeu pose au sud par commande ; les
+  rotations sont couvertes par les tests JUnit communs) et la marche réelle d'un joueur jusqu'à la place du marchand
+  (vérifiée seulement par la recherche de chemin des tests JUnit).
+- Un vrai PNJ EasyNPC sur sa place (le test utilise un villageois sans IA).
+- Les faces de toit à zones transparentes du groupe E (rayures droites) n'ont été vues que dans le rendu hors jeu et
+  sur les captures du test en jeu ; la fumée de l'arsenal n'a pas été regardée en jeu.
+
 ## Performances
 
 - **Aucun tick** : l'entité de bloc n'a pas de ticker, pas de particules, pas d'animation ; le serveur ne fait rien
@@ -632,7 +1076,7 @@ des étagères à fond de bois avec potions, livres et tissus, des rideaux retro
   qui bougent dans l'emprise).
 - **Rendu** : un `BlockEntityRenderer` qui réutilise le chemin statique du rendu des navires (`BbModel.renderStatic`,
   matrices des bones en cache) ; la boîte de rendu est l'emprise de la tente, donc le jeu l'élimine hors champ
-  (frustum culling). Modèles modestes (153 à 816 cubes) : des centaines de tentes restent peu coûteuses.
+  (frustum culling). Modèles modestes (153 à 897 cubes) : des centaines de tentes restent peu coûteuses.
 - **Niveaux de détail** (`config/medievalships.json`, section `server`, lus par le client dans son propre fichier
   de configuration : ils ne sont pas synchronisés depuis le serveur) :
   `tentDecorDistance` (32 blocs) : en deçà, les meubles et petits détails sont dessinés ; entre cette distance et

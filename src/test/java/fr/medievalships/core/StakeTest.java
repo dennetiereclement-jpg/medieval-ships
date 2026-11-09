@@ -311,7 +311,7 @@ public class StakeTest {
 	@Test
 	void campTentsRegistered() throws Exception {
 		assertEquals(List.of("tente_militaire", "tente_commandement", "tente_marchande"), TentTypes.CAMP_TENTS.stream().map(TentType::id).toList());
-		assertEquals(TentTypes.CAMP_TENTS, TentTypes.ALL.subList(TentTypes.ALL.size() - 3, TentTypes.ALL.size()), "appended to the tents' tab");
+		assertEquals(TentTypes.CAMP_TENTS, TentTypes.ALL.subList(22, 25), "appended to the tents' tab (the market tents of 1.26.0 after them)");
 		assertSame(TentTypes.CAMP_MILITARY, TentTypes.byId("militaire"));
 		assertSame(TentTypes.CAMP_COMMAND, TentTypes.byId("commandement"));
 		assertSame(TentTypes.CAMP_MERCHANT, TentTypes.byId("marchande"));

@@ -17,6 +17,19 @@ Le test (`src/gametest/.../ShipClientGameTest.java`) crée un monde, des bassins
 à l'eau puis vérifie (résultats et captures publiés sur les branches `test-results-vanilla` et
 `test-results-lithium`) :
 
+### Tentes de marché de Lion Port et des villes (dix-sept tentes) — 1.26.0
+
+`TentGameTest` pose chacune des dix-sept tentes de marché (`TentTypes.MARKET_TENTS`, de `tente_lion_pavillon` à
+`tente_arsenal`) une fois, face au sud, sur la plateforme de pierre dégagée de 29 × 29 blocs (emprise de chacune vérifiée
+d'abord, la plus grande est notée dans le journal) : bloc d'ancrage, orientation, entité de bloc, boîtes de collision
+enregistrées puis une requête de collision sur la première, capture d'écran, retrait par `/tent remove x y z` et boîtes
+oubliées. Pendant qu'elle est posée, un villageois (sans IA) est mis au centre de la place du marchand laissée par son
+constructeur derrière le comptoir : la colonne de 1 × 1 × 2,2 est hors de toute boîte de collision, le villageois n'est
+dans aucune boîte (chemin du mixin) et ne bouge pas. JUnit `MarketATest` à `MarketFTest` (un par groupe : chargement,
+modèle statique, lumière, emprise, poteaux, entrée, place du PNJ libre et atteignable à pied) et `MarketTentsTest`
+(enregistrement, langues, fichiers, noms courts, place du marchand, emprise dans la plateforme dans les quatre
+orientations). Voir [TENTES.md](TENTES.md#tentes-de-marché-de-lion-port-et-des-villes-1260).
+
 ### Camp militaire (pieu défensif et trois tentes) — 1.25.0
 
 `StakeGameTest` (appelé par `ShipClientGameTest`) : pieu posé par `/deco place` (bloc, orientation, ticker serveur pour

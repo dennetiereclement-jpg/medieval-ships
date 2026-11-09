@@ -148,6 +148,23 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.26.0 ajoute **dix-sept tentes de marché** pour Lion Port et les autres villes (onglet « Tentes ») : un seul
+objet posé d'un clic droit par tente, chacune avec sa propre silhouette et une place libre derrière le comptoir pour un
+marchand EasyNPC : les tentes bleues et crème au lion de Lion Port (pavillon, longue tente, tente impériale, tente
+drapée, chapiteau royal, tente bleue à la balance), les tentes rouges et crème à la balance (grand chapiteau, pavillon en
+ferronnerie, tente à la bourse, tente à l'auvent, tente à pignon), les tentes rouges aux draperies, à la fleur de lys et
+aux cordages, et les tentes marchandes de frontière, sylvestre et de l'arsenal. Par exemple :
+
+```
+/give @p medievalships:tente_lion_pavillon
+/give @p medievalships:tente_balance_chapiteau
+/give @p medievalships:tente_arsenal
+```
+
+Les dix-sept ids, leur contenu, les places du PNJ et les limites sont dans
+[docs/TENTES.md](docs/TENTES.md#tentes-de-marché-de-lion-port-et-des-villes-1260) ; le classement des images de
+référence du lot 2 dans [docs/REFERENCES_LOT2.md](docs/REFERENCES_LOT2.md).
+
 La version 1.25.0 ajoute **un camp militaire**, quatre objets posés d'un clic droit (un bloc = tout le modèle) :
 
 - **Pieu défensif** — `/give @p medievalships:pieu_defensif` (onglet « Décorations ») : un seul pieu taillé incliné,
@@ -473,7 +490,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.25.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.26.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
@@ -500,7 +517,8 @@ pour 1.21.11 sur <https://fabricmc.net/develop>.
 * [Modèle Blockbench, textures et animations](docs/MODELE.md)
 * [Architecture technique (marche sur le pont, collisions, IA, performances)](docs/ARCHITECTURE.md)
 * [Tests effectués et non effectués](docs/TESTS.md)
-* [Les six tentes en un bloc : pose, retrait, commandes, meubles](docs/TENTES.md)
+* [Les tentes en un bloc : pose, retrait, commandes, meubles, tentes de marchands, camp militaire, tentes de marché](docs/TENTES.md)
+* [Références du lot 2 : classement des images (bateaux, tentes marchandes)](docs/REFERENCES_LOT2.md)
 * [Les huit charrettes en un bloc : ids, pose, retrait, commandes, performances](docs/CHARRETTES.md)
 * [Les huit ateliers d'artisanat en un bloc : ids, pose, retrait, commandes, particules, point d'accroche des métiers](docs/ATELIERS.md)
 

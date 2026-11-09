@@ -42,7 +42,7 @@ public class DecorationTest {
 	void eightDecorationsInTheirOwnTab() {
 		assertEquals(9, TentTypes.DECORATIONS.size(), "the eight street decorations, then the defensive stake (1.25.0)");
 		assertSame(TentTypes.STAKE, TentTypes.DECORATIONS.get(8));
-		assertEquals(TentTypes.DECORATIONS, TentTypes.PROPS.subList(46, 55), "after the training areas, before the cannon");
+		assertEquals(TentTypes.DECORATIONS, TentTypes.PROPS.subList(63, 72), "after the training areas, before the cannon");
 		assertSame(TentTypes.CANNON, TentTypes.PROPS.get(TentTypes.PROPS.size() - 1), "the artillery stays last");
 		for (int i = 0; i < IDS.size(); i++) {
 			TentType t = TentTypes.DECORATIONS.get(i);
@@ -189,6 +189,8 @@ public class DecorationTest {
 		for (TentType t : TentTypes.PROPS) {
 			if (t == TentTypes.MERCHANT_JEWELLER) {
 				assertEquals(12, t.light(), "the jeweller's tent (1.21.0) lights its stall (lanterns, glowing gems)");
+			} else if (TentTypes.MARKET_TENTS.contains(t)) {
+				assertTrue(t.light() >= 12 && t.light() <= 13, t.id() + " the market tents (1.26.0) light their stall (lanterns): " + t.light());
 			} else if (TentTypes.CAMP_TENTS.contains(t)) {
 				assertTrue(t.light() >= 0 && t.light() <= TentType.MAX_LIGHT, t.id() + " the military camp (1.25.0): lit or not, its builder decides");
 			} else if (!t.isDecoration()) {

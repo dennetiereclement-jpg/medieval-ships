@@ -19,14 +19,16 @@ public class TentTest {
 
 	@Test
 	void sixTypesLoad() {
-		assertEquals(6 + 6 + 5 + 2 + 2 + 1 + 3, TentTypes.ALL.size(),
-				"six camp tents, six merchant tents, the five of 1.15.0, the two of 1.16.0, the two of 1.17.0, the jeweller's of 1.21.0, the military camp of 1.25.0");
+		assertEquals(6 + 6 + 5 + 2 + 2 + 1 + 3 + 17, TentTypes.ALL.size(),
+				"six camp tents, six merchant tents, the five of 1.15.0, the two of 1.16.0, the two of 1.17.0, the jeweller's of 1.21.0, the military camp of 1.25.0,"
+						+ " the seventeen market tents of 1.26.0");
 		assertEquals(TentTypes.MERCHANTS, TentTypes.ALL.subList(6, 12), "the merchant tents come after the camp tents");
 		assertEquals(TentTypes.MERCHANTS2, TentTypes.ALL.subList(12, 17), "then the merchant tents II (1.15.0)");
 		assertEquals(TentTypes.MERCHANTS3, TentTypes.ALL.subList(17, 19), "then the merchant tents III (1.16.0)");
 		assertEquals(TentTypes.MERCHANTS4, TentTypes.ALL.subList(19, 21), "then the merchant tents IV (1.17.0)");
 		assertEquals(TentTypes.MERCHANTS5, TentTypes.ALL.subList(21, 22), "then the jeweller's tent (1.21.0)");
 		assertEquals(TentTypes.CAMP_TENTS, TentTypes.ALL.subList(22, 25), "then the military camp tents (1.25.0)");
+		assertEquals(TentTypes.MARKET_TENTS, TentTypes.ALL.subList(25, 42), "then the market tents (1.26.0), last");
 		for (TentType t : TentTypes.ALL) {
 			assertTrue(t.id().startsWith("tent_") || t.id().startsWith("tente_"), t.id());
 			assertNotNull(t.extent());

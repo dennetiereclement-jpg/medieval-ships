@@ -35,7 +35,8 @@ public class Merchant4Test {
 	void twoStallsLoadInTheTentsTabAfterTheOthers() {
 		assertEquals(2, TentTypes.MERCHANTS4.size());
 		assertEquals(TentTypes.MERCHANTS4, TentTypes.ALL.subList(19, 21), "after the camp tents and the merchant tents I, II and III");
-		assertEquals(25, TentTypes.ALL.size(), "the merchant stalls IV, then the jeweller's tent (1.21.0) and the military camp (1.25.0) in the tents' tab");
+		assertEquals(42, TentTypes.ALL.size(),
+				"the merchant stalls IV, then the jeweller's tent (1.21.0), the military camp (1.25.0) and the market tents (1.26.0) in the tents' tab");
 		for (int i = 0; i < IDS.size(); i++) {
 			TentType t = TentTypes.MERCHANTS4.get(i);
 			assertEquals(IDS.get(i), t.id());

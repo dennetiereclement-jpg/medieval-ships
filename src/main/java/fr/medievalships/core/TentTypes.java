@@ -4,17 +4,17 @@ import java.util.List;
 
 
 /**
- * The twenty-five tents (six camp tents, sixteen merchant tents, the three military camp tents of 1.25.0), the eight carts
- * and the nomad tavern, the eight crafting
+ * The forty-two tents (six camp tents, sixteen merchant tents, the three military camp tents of 1.25.0, the seventeen market
+ * tents of Lion Port and the other cities of 1.26.0), the eight carts and the nomad tavern, the eight crafting
  * workshops (the jeweller's workbench of 1.22.0 the eighth), the three training areas and the medieval cannon. One line per prop: its id (block, item, model, decor and
  * tents / carts / workshops / artillery JSON are all named after it) and its names. {@link #ALL} = the tents only (their tab "Tentes": the six camp tents, the six
- * {@link #MERCHANTS}, the five {@link #MERCHANTS2}, the two {@link #MERCHANTS3}, the two {@link #MERCHANTS4}, then the jeweller's
- * {@link #MERCHANTS5}),
+ * {@link #MERCHANTS}, the five {@link #MERCHANTS2}, the two {@link #MERCHANTS3}, the two {@link #MERCHANTS4}, the jeweller's
+ * {@link #MERCHANTS5}, the {@link #CAMP_TENTS}, then the {@link #MARKET_TENTS}),
  * {@link #CARTS} = the carts (tab "Charrettes"), {@link #WORKSHOPS} = the workshops (tab "Ateliers"),
  * {@link #ARTILLERY} = the cannon (tab "Artillerie"), {@link #TRAINING} = the training areas (tab "Entraînement"),
  * {@link #DECORATIONS} = the eight street decorations (tab "Décorations", 1.20.0) and the defensive stake (1.25.0),
- * {@link #CAMP_TENTS} = the military camp tents (1.25.0, in {@link #ALL}), {@link #PROPS} = all six families (registration,
- * commands, models).
+ * {@link #CAMP_TENTS} = the military camp tents (1.25.0, in {@link #ALL}), {@link #MARKET_TENTS} = the market tents (1.26.0,
+ * in {@link #ALL}, last), {@link #PROPS} = all six families (registration, commands, models).
  */
 public final class TentTypes {
 	public static final TentType COMMAND = TentType.load("tent_command", "grande tente de commandement", "Command Tent");
@@ -74,12 +74,48 @@ public final class TentTypes {
 	 */
 	public static final List<TentType> CAMP_TENTS = List.of(CAMP_MILITARY, CAMP_COMMAND, CAMP_MERCHANT);
 
+	public static final TentType MARKET_LION_PAVILION = TentType.load("tente_lion_pavillon", "pavillon au lion", "Lion Pavilion")
+			.withGender(true, false);
+	public static final TentType MARKET_LION_LONG = TentType.load("tente_lion_longue", "longue tente au lion", "Long Lion Tent");
+	public static final TentType MARKET_IMPERIAL = TentType.load("tente_imperiale", "tente marchande impériale", "Imperial Merchant Tent");
+	public static final TentType MARKET_LION_DRAPED = TentType.load("tente_lion_drapee", "tente drapée au lion", "Draped Lion Tent");
+	public static final TentType MARKET_LION_MARQUEE = TentType.load("tente_lion_chapiteau", "chapiteau royal au lion", "Royal Lion Marquee")
+			.withGender(true, false);
+	public static final TentType MARKET_SCALES_BLUE = TentType.load("tente_balance_bleue", "tente bleue à la balance", "Blue Scales Tent");
+	public static final TentType MARKET_SCALES_MARQUEE = TentType.load("tente_balance_chapiteau", "grand chapiteau à la balance",
+			"Great Scales Marquee").withGender(true, false);
+	public static final TentType MARKET_SCALES_IRON = TentType.load("tente_balance_fer", "pavillon à la balance et ferronnerie",
+			"Wrought-Iron Scales Pavilion").withGender(true, false);
+	public static final TentType MARKET_SCALES_PURSE = TentType.load("tente_balance_bourse", "tente à la balance et à la bourse",
+			"Scales and Purse Tent");
+	public static final TentType MARKET_SCALES_AWNING = TentType.load("tente_balance_auvent", "tente à la balance et à l'auvent",
+			"Scales Tent with Awning");
+	public static final TentType MARKET_SCALES_GABLED = TentType.load("tente_balance_pignon", "tente à pignon à la balance", "Gabled Scales Tent");
+	public static final TentType MARKET_DRAPERY = TentType.load("tente_draperie", "tente aux draperies rouges", "Red Drapery Tent");
+	public static final TentType MARKET_FLEUR_DE_LIS = TentType.load("tente_fleur_de_lys", "tente à la fleur de lys", "Fleur-de-lis Tent");
+	public static final TentType MARKET_ROPES = TentType.load("tente_cordages", "tente rouge aux cordages", "Red Rope Tent");
+	public static final TentType MARKET_FRONTIER = TentType.load("tente_frontiere", "tente marchande de frontière", "Frontier Merchant Tent");
+	public static final TentType MARKET_SYLVAN = TentType.load("tente_sylvestre", "tente marchande sylvestre", "Sylvan Merchant Tent");
+	public static final TentType MARKET_ARSENAL = TentType.load("tente_arsenal", "tente marchande de l'arsenal", "Arsenal Merchant Tent");
+	/**
+	 * The market tents of Lion Port and the other cities (1.26.0), in the order of the reference table: the blue and
+	 * cream tents of Lion Port (groups A and B: the lion, the blue scales), the red and cream tents of the scales (C and D),
+	 * the red tents of the drapery, the fleur-de-lis and the ropes (E), then the frontier, sylvan and arsenal tents (F).
+	 * Group "tents", each with its own generator (tools/market/generate_&lt;id&gt;.py on its group's props_&lt;g&gt;.py),
+	 * its own atlas and its anchor block lit (JSON "light"); a free 1 x 1 x 2.2 place for a merchant NPC behind the
+	 * counter (docs/TENTES.md). The masculine names (pavilions, marquees) are "posé".
+	 */
+	public static final List<TentType> MARKET_TENTS = List.of(MARKET_LION_PAVILION, MARKET_LION_LONG, MARKET_IMPERIAL, MARKET_LION_DRAPED,
+			MARKET_LION_MARQUEE, MARKET_SCALES_BLUE, MARKET_SCALES_MARQUEE, MARKET_SCALES_IRON, MARKET_SCALES_PURSE, MARKET_SCALES_AWNING,
+			MARKET_SCALES_GABLED, MARKET_DRAPERY, MARKET_FLEUR_DE_LIS, MARKET_ROPES, MARKET_FRONTIER, MARKET_SYLVAN, MARKET_ARSENAL);
+
 	/**
 	 * The tents only (tab "Tentes"): the six camp tents, the six merchant tents, the five of 1.15.0, the two of 1.16.0,
-	 * the two of 1.17.0, the jeweller's of 1.21.0, then the three military camp tents of 1.25.0.
+	 * the two of 1.17.0, the jeweller's of 1.21.0, the three military camp tents of 1.25.0, then the seventeen market
+	 * tents of 1.26.0.
 	 */
 	public static final List<TentType> ALL = java.util.stream.Stream.of(List.of(COMMAND, ADVENTURER, MARKET, CAMP, DWELLING, CHIEF), MERCHANTS,
-			MERCHANTS2, MERCHANTS3, MERCHANTS4, MERCHANTS5, CAMP_TENTS).flatMap(List::stream).toList();
+			MERCHANTS2, MERCHANTS3, MERCHANTS4, MERCHANTS5, CAMP_TENTS, MARKET_TENTS).flatMap(List::stream).toList();
 
 	public static final TentType CART_COVERED_WHITE = cart("cart_covered_white", "charrette couverte blanche", "White Covered Wagon");
 	public static final TentType CART_HAY = cart("cart_hay", "charrette de foin", "Hay Cart");
@@ -189,6 +225,12 @@ public final class TentTypes {
 	private TentTypes() {
 	}
 
+	/**
+	 * The prop of this id ("medievalships:" optional, any case) or of its short name (the id without its "tent_",
+	 * "tente_", "cart_", "workshop_", "canon_", "training_area_" or "deco_" prefix), or null. The market tents (1.26.0)
+	 * are looked up last, so a short name the older props already had keeps its prop ("draperie": the street drapery;
+	 * the market tent is "tente_draperie").
+	 */
 	public static TentType byId(String id) {
 		if (id == null) {
 			return null;
@@ -198,14 +240,23 @@ public final class TentTypes {
 			s = s.substring("medievalships:".length());
 		}
 		for (TentType t : PROPS) {
-			if (t.id().equals(s) || t.id().equals("tent_" + s) || t.id().equals("tente_" + s) || t.id().equals("cart_" + s)
-					|| t.id().equals("workshop_" + s) || t.id().equals("canon_" + s) || t.id().equals("training_area_" + s)
-					|| t.id().equals("deco_" + s)
-					|| t.isCannon() && (s.equals("canon") || s.equals("cannon")) || t == TAVERN && (s.equals("taverne") || s.equals("tavern"))
-					|| t == STAKE && (s.equals("pieu") || s.equals("stake"))) {
+			if (!MARKET_TENTS.contains(t) && matches(t, s)) {
+				return t;
+			}
+		}
+		for (TentType t : MARKET_TENTS) {
+			if (matches(t, s)) {
 				return t;
 			}
 		}
 		return null;
+	}
+
+	private static boolean matches(TentType t, String s) {
+		return t.id().equals(s) || t.id().equals("tent_" + s) || t.id().equals("tente_" + s) || t.id().equals("cart_" + s)
+				|| t.id().equals("workshop_" + s) || t.id().equals("canon_" + s) || t.id().equals("training_area_" + s)
+				|| t.id().equals("deco_" + s)
+				|| t.isCannon() && (s.equals("canon") || s.equals("cannon")) || t == TAVERN && (s.equals("taverne") || s.equals("tavern"))
+				|| t == STAKE && (s.equals("pieu") || s.equals("stake"));
 	}
 }
