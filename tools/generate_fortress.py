@@ -118,13 +118,13 @@ def hull_rows(z):
         zz = z - fs.rake(z, y)
         w, yk = fs.half_width(zz), fs.keel_y(min(zz, fs.HALF_LENGTH + 0.6))
         pts.append((max(0.16, fx * w), fy * yk))
-    regs = ["hull_brown", "hull_brown", "hull_brown"]
+    regs = ["hull_deep", "hull_low", "hull_brown"]    # (phase 5: darker row by row towards the keel)
     lf = lift(z)
     # camera-matched main reference, from the rail down: a stone cap 0.8, the studded band 0.95, the red panels 2.1, the
     # stone wale 0.7 right under them, dark planks to the keel (the stone buttresses of the ribs stepping down on them)
     levels = [(0.2, "strake_brown2"), (WALE[0] + 0.3 * lf, "strake_brown"), (WALE[1] + 0.35 * lf, "strake_brown2"),
               (3.55 + 0.8 * lf, "red_panel" if z < FF + 0.6 or z > 16.4 else "studs"), (fs.KNUCKLE_Y + 0.95 * lf, "studs"),
-              (BELT_LOW + 0.95 * lf, "studs"), (ys, "stone")]
+              (BELT_LOW + 0.95 * lf, "studs_top"), (ys, "stone")]     # (the upper studded row in the shadow of the belt)
     for y, reg in levels:
         y = min(y, ys - 0.06 * (len(levels) - len(regs) + 3))
         y = max(y, pts[-1][1] + 0.08)
@@ -254,7 +254,7 @@ def counter(bone):
     (main reference), dark planks in rows across, the stone wale's course across it, a row of corbels under the
     cabin's floor where it overhangs the counter's top."""
     ys = [fs.COUNTER_FOOT_Y + 0.05, -1.0, -0.3, 0.2, WALE[0], WALE[1], 2.2, 3.0, fs.KNUCKLE_Y]
-    regs = ["hull_brown", "hull_brown", "hull_brown", "strake_brown2", "stone_dark", "strake_brown", "strake_brown2", "strake_brown"]
+    regs = ["hull_deep", "hull_low", "hull_brown", "strake_brown2", "stone_dark", "strake_brown", "strake_brown2", "strake_brown"]
     for k in range(len(ys) - 1):
         ya, yb = ys[k], ys[k + 1]
         za, zb = fs.stern_z(ya + 1e-6), fs.stern_z(yb - 1e-6)
@@ -349,6 +349,9 @@ def cladding(bone, detail):
                 # the iron plate on its face, a big stud in each block
                 add_cube(detail, "rib_plate_%s%d_%d" % (sn, j, k), p + nn * (o - 0.06 + 0.035), np.column_stack([u, v, nn]),
                          (0.56, yb - ya - 0.06, 0.07), {"all": "iron", "+3": "rib_plate"}, u_dir=-u if side > 0 else u, v_dir=v3(0, -1, 0))
+                # (phase 5) the boss standing out of the plate, over the painted one: it catches the light
+                add_cube(detail, "rib_boss_%s%d_%d" % (sn, j, k), p + nn * (o + 0.04), np.column_stack([u, v, nn]), (0.2, 0.2, 0.06),
+                         {"all": "iron", "+3": "stud_head"}, stretch=True)
             # the panels' frame posts on each side of the rib (dark boards with iron studs)
             if z < FF + 0.6:
                 for s in (1, -1):
@@ -370,7 +373,7 @@ def cladding(bone, detail):
                         break
                     xo = fs.hull_x(zk, yc + h / 2) + 0.16
                     d = max(0.45, xo - fs.hull_x(zk, yc - h / 2) + 0.05)
-                    add_cube(bone, "rib_foot_%s%d_%d" % (sn, j, k), v3(side * (xo - d / 2), yc, zk), EYE, (d, h, w), "stone" if k == 0 else "stone_dark")
+                    add_cube(bone, "rib_foot_%s%d_%d" % (sn, j, k), v3(side * (xo - d / 2), yc, zk), EYE, (d, h, w), "stone" if k == 0 else "stone_grime")
 
 
 def merlon(bone, name, c, w=0.9, h=0.85, d=0.55, region="stone"):
@@ -501,6 +504,8 @@ def arch_window(bone, name, c, n, w=1.0, h=1.5, inner=None):
     add_cube(bone, "glow_" + name, c + n * 0.02, axes, (w, h, 0.03), {"all": None, "+3": "arch_lit"}, stretch=True, u_dir=-u, v_dir=v3(0, -1, 0))
     add_cube(bone, name + "_arch", c + n * 0.06 + v3(0, 0.04, 0), axes, (w * 1.5, h * 1.5 * 64 / 72, 0.06), {"all": None, "+3": "arch_ring"},
              stretch=True, u_dir=-u, v_dir=v3(0, -1, 0))
+    # (phase 5) a stone sill standing out under it, its top catching the light
+    add_cube(bone, name + "_sill", c + n * 0.11 + v3(0, 0.04 - h * (0.667 - 0.05), 0), axes, (w * 1.5 + 0.1, 0.12, 0.22), "stone_light")
     if inner is not None:
         add_cube(bone, name + "_in", v3(*inner), axes, (w, h, 0.02), {"all": None, "-3": "arch_dark"}, stretch=True, u_dir=u, v_dir=v3(0, -1, 0))
 
@@ -1060,20 +1065,20 @@ def rigging(bone, hull_bone, masts, bowsprit, sails):
             s = 1.2 + dm * 0.45
             for k in range(2):
                 beam(bone, "futtock_%s_%s%d" % (mname, sn, k), v3(side * s * 0.95, top1 + 0.05, z - 0.4 - 0.6 * k),
-                     v3(side * dm * 0.5, top1 - 1.5, z - 0.1 * k), 0.05, "rope")
+                     v3(side * dm * 0.5, top1 - 1.5, z - 0.1 * k), 0.07, "rope")
             if top2 is None:
                 r2 = dm * 0.31
                 for k in range(2):
                     beam(bone, "%s_topshroud_%s%d" % (mname, sn, k), v3(side * (r2 + 0.04), head - 2.0, z + 0.4),
-                         v3(side * (s - 0.1 - 0.5 * k), top1 + 0.32, z - 0.2 - 0.6 * k), 0.05, "rope")
+                         v3(side * (s - 0.1 - 0.5 * k), top1 + 0.32, z - 0.2 - 0.6 * k), 0.07, "rope")
                 continue
             r2 = dm * 0.33
             t2 = [v3(side * (r2 + 0.04), top2 - 0.1, z + 0.45) for _ in range(3)]
             f2 = [v3(side * (s - 0.08), top1 + 0.32, z - 0.15 - 0.7 * k) for k in range(3)]
             ladder(bone, "%s_top_%s" % (mname, sn), t2, f2, step=0.45, region="rope_dark", th=0.06)
-            beam(bone, "%s_tg_shroud_%s" % (mname, sn), v3(side * 0.22, head - 1.4, z + 0.75), v3(side * 0.95, top2 + 0.05, z + 0.45), 0.05, "rope")
+            beam(bone, "%s_tg_shroud_%s" % (mname, sn), v3(side * 0.22, head - 1.4, z + 0.75), v3(side * 0.95, top2 + 0.05, z + 0.45), 0.07, "rope")
             zb1 = za - (2.6 if mname == "fore" else 2.4)
-            beam(bone, "%s_backstay_%s" % (mname, sn), v3(side * (r2 + 0.04), top2 + 0.3, z + 0.4), channel_point(zb1, side, 0.5, 0.0), 0.06, "rope")
+            beam(bone, "%s_backstay_%s" % (mname, sn), v3(side * (r2 + 0.04), top2 + 0.3, z + 0.4), channel_point(zb1, side, 0.5, 0.0), 0.08, "rope")
     fz, mz, zz = fs.FORE_MAST_Z, fs.MAIN_MAST_Z, fs.MIZZEN_Z
     ropes = [(name, a, b) for name, (a, b) in stays(bowsprit).items()]
     ropes += [
@@ -1104,9 +1109,9 @@ def rigging(bone, hull_bone, masts, bowsprit, sails):
             ropes.append(("%s_sheet_%s" % (mname, sn), clew, hp(zt, fs.sheer_y(zt) + 0.4, side, -0.2)))
     for name, a, b in ropes:
         if name in SLACK:
-            slack_rope(bone, name, a, b, SLACK[name][0])
+            slack_rope(bone, name, a, b, SLACK[name][0], th=0.08)
         else:
-            beam(bone, "rope_" + name, a, b, 0.06, "rope")
+            beam(bone, "rope_" + name, a, b, 0.08, "rope")
 
 
 SLACK = {
@@ -1415,7 +1420,14 @@ def masonry(root):
                 if spec.get("stretch"):
                     continue
                 rw, rh = ft.REGIONS[reg][2], ft.REGIONS[reg][3]
-                spec["sub"] = (0.0, 0.0, min(1.0, du * 16 / rw), min(1.0, dv * 16 / rh))
+                if reg in ft.ALIGNED_V:     # (phase 5) the plates and posts: stretched across, a block = 16 px down
+                    spec["sub"] = (0.0, 0.0, 1.0, min(1.0, dv * 16 / rh))
+                    continue
+                # (phase 5) a whole number of blocks into the region, so that neighbouring faces do not all show the
+                # same blocks
+                k = rng.randrange(0, int(max(0.0, rw - du * 16) // 16) + 1)
+                u0 = 16.0 * k / rw
+                spec["sub"] = (u0, 0.0, min(1.0, u0 + du * 16 / rw), min(1.0, dv * 16 / rh))
         for ch in b.children:
             walk(ch)
     walk(root)
