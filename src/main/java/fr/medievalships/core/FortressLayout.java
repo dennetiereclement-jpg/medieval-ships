@@ -6,9 +6,10 @@ import java.util.List;
 /**
  * The Fortress Ship ({@code fortress_ship}): a floating castle that keeps a ship's shape, 43 blocks over its raked
  * stem and its castle (48.5 with the bowsprit), 13 wide, 30.5 high from the keel to the main masthead. A massive
- * dark-wood hull clad with grey stone (wales, studded belt, ribs, crenellated parapets), red panels between the
- * ribs, a raised forecastle, a two storey stern castle (the captain's cabin under the quarterdeck, the keep with its
- * battlements over the aft part) and a turret with a pointed red roof; three masts with red sails bordered in white
+ * dark-wood hull with grey stone in bands and ribs (wale, belt, plated ribs, crenellated parapets), framed red panels
+ * between the ribs, a raised forecastle, the hull tucking in under a two storey stern castle (the captain's cabin under
+ * the quarterdeck, the keep with its battlements over the aft part, overhanging the transom) and a turret with a
+ * pointed red roof; three masts with red sails bordered in white
  * bearing a castle tower. It sails like the Blue-Sailed Frigate, heavier still, and has rooms on five levels, all
  * described by its interior grid ({@code tools/fortress_interior.py}).
  *

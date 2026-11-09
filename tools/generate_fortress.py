@@ -14,10 +14,12 @@ Outputs:
   src/main/resources/assets/medievalships/interiors/fortress_ship_decor.json   (furniture of the mods, seats)
 
 References: the three pictures of the "Navire forteresse" (docs/Fortress_PLAN.md): a floating castle that keeps a
-ship's shape. A massive dark-wood hull clad with grey stone: a stone wale at the waterline, a heavy studded stone
-belt at the deck edge, vertical stone ribs between red panels, iron straps; crenellated stone parapets and merlons
-along the waist, a raised forecastle with a wooden balustrade and a stone beak at the head of the strongly raked
-stem; a two storey stern castle in stone (lit windows, a keep with corbelled battlements) and a turret of dark timber
+ship's shape. A massive dark-wood hull with grey stone in narrow bands and ribs only (phase 4): a stone wale under the
+red panels, one course of stone under the gunwale, vertical stone ribs with black iron plates, the red panels framed
+by studded dark posts, stepped stone buttresses; crenellated stone parapets and merlons along the waist, a raised
+forecastle with a wooden balustrade and a stone beak at the head of the strongly raked stem; the hull tucks in under
+the stern castle (a stepped counter); a two storey stern castle in dark timber with stone quoins, string courses and
+battlements, lit arched windows, the keep overhanging the transom on corbels; a turret of dark timber
 with a pointed red tiled roof and a lantern on its finial; three masts with red square sails bordered and striped
 with white, a beige castle tower with a gate on the main course, a small white jib with a red band, red
 swallow-tailed pennants at the mastheads, fighting tops with stone merlons, rope ladders; red banners with the
@@ -288,7 +290,10 @@ def stone_course(bone, name, side, z0, z1, ylo, yhi, out, region="stone", jitter
             continue
         o = out + RNG.uniform(-jitter, jitter)
         ya0, ya1, yb0, yb1 = ylo(za), yhi(za), ylo(zb), yhi(zb)
-        za0 = za1 = max(stern_clip(za, ya0, True), stern_clip(za, ya1, False))   # a square end on the counter
+        za0 = max(stern_clip(za, ya0, True), stern_clip(za, ya1, False))   # a square end on the counter
+        if za0 > za:
+            za0 += 0.03                                                         # (just inside the stern line)
+        za1 = za0
         if za0 > zb - 0.15:
             continue  # abaft the counter
         cza0, cza1, czb0, czb1 = stem_clip(za0, ya0), stem_clip(za1, ya1), stem_clip(zb, yb0), stem_clip(zb, yb1)
@@ -357,14 +362,15 @@ def cladding(bone, detail):
             # of the main reference; they run into the water as on the second one)
             if z < 14.0:
                 yw = WALE[0] + 0.3 * lift(z)
-                for k, (h, w, dz) in enumerate(((0.8, 1.0, 0.0), (0.8, 1.0, 0.36), (0.8, 0.95, 0.72))):
-                    yc = yw - 0.76 * k - h / 2 + 0.02
+                # (upright voxel blocks, each standing on the hull at its top and stepping in with the bilge)
+                for k, (h, w, dz) in enumerate(((0.8, 1.0, 0.0), (0.8, 0.95, 0.4), (0.8, 0.9, 0.8))):
+                    yc = yw - 0.78 * k - h / 2 + 0.02
                     zk = z + dz
                     if zk < fs.stern_z(yc) + 0.5 or fs.hull_x(zk, yc) < 1.0:
                         break
-                    p, u, v, nn = side_frame(zk, yc, side)
-                    add_cube(bone, "rib_foot_%s%d_%d" % (sn, j, k), p + nn * (0.12 - 0.04 * k), np.column_stack([u, v, nn]),
-                             (w, h, 0.5 - 0.04 * k), "stone" if k == 0 else "stone_dark")
+                    xo = fs.hull_x(zk, yc + h / 2) + 0.16
+                    d = max(0.45, xo - fs.hull_x(zk, yc - h / 2) + 0.05)
+                    add_cube(bone, "rib_foot_%s%d_%d" % (sn, j, k), v3(side * (xo - d / 2), yc, zk), EYE, (d, h, w), "stone" if k == 0 else "stone_dark")
 
 
 def merlon(bone, name, c, w=0.9, h=0.85, d=0.55, region="stone"):
@@ -556,16 +562,16 @@ def castle(bone, detail, lights):
                  0.14, "rail", width=0.2, extend=0.05)
         # lit arched windows (third reference): three on the captain's cabin, two on the officers' room; framed red
         # panels between them on the keep
-        for j, z in enumerate((-18.15, -15.75, -11.35)):
+        # (where the rooms' furniture expects them: the sea chart, the shields and the bookcase stand between them)
+        for j, z in enumerate((-17.7, -14.75, -11.1)):
             side_arch(detail, "castle_window_%s%d" % (sn, j), z, 6.45, side, w=1.0, h=1.5, out=0.06)
-        for j, z in enumerate((-17.4, -15.3)):
+        for j, z in enumerate((-17.7, -14.75)):
             side_arch(detail, "keep_window_%s%d" % (sn, j), z, Q + 1.45, side, w=0.95, h=1.45, out=0.06)
-        for j, z in enumerate((-18.45, -14.25)):
-            hull_decal(detail, "keep_panel_%s%d" % (sn, j), z, Q + 1.45, side, 0.9, 1.5, "keep_panel", out=0.05, th=0.05)
+        hull_decal(detail, "keep_panel_%s0" % sn, -16.55, Q + 1.45, side, 0.85, 1.5, "keep_panel", out=0.05, th=0.05)
         # stone quoins: the corners of the cabin's storey and of the keep, the keep's middle, the castle's front corner
         quoins(detail, "quoin_cabin_" + sn, TZ + 0.38, yb, Q - 0.3, side)
         quoins(detail, "quoin_keep_" + sn, KS + 0.38, KO + 0.45, K, side)
-        quoins(detail, "quoin_keep_mid_" + sn, -16.35, Q + 0.27, K, side, w=0.6)
+        quoins(detail, "quoin_keep_mid_" + sn, -15.72, Q + 0.27, K, side, w=0.55)
         quoins(detail, "quoin_keep_front_" + sn, KF - 0.3, Q + 0.27, K, side)
         quoins(detail, "quoin_front_" + sn, CF + 0.12, yb, Q - 0.3, side)
         # the corbel table under the keep's overhang (its last block, abaft the cabin's storey)
@@ -573,7 +579,7 @@ def castle(bone, detail, lights):
             p, u, v, n = side_frame(z, KO + 0.2, side)
             add_cube(detail, "keep_overhang_corbel_%s%d" % (sn, j), v3(side * (abs(p[0]) - 0.25), KO - 0.25, z), EYE, (0.5, 0.5, 0.42), "stone")
         # a red banner with the white tower on the castle's side (and one hanging from the keep's battlements aft)
-        banner(lights, "banner_castle_" + sn, hp(-13.55, 7.55, side, 0.14), side, 1.5, 3.1)
+        banner(lights, "banner_castle_" + sn, hp(-13.4, 7.55, side, 0.14), side, 1.5, 3.1)
         banner(lights, "banner_keep_" + sn, hp(-19.65, fs.KEEP_TOP - 0.2, side, 0.62), side, 1.3, 3.3)
     # the front bulkhead of the castle (main deck -> quarterdeck), the cabin's door frame, two windows
     bz = CF - 0.06
