@@ -47,6 +47,19 @@ REGIONS.update({
     "scroll":       (448, 208, 64, 16),  # gold scrollwork band (castle cornices)
     "deck_plank":   (448, 224, 64, 32),
 })
+# the furniture of the decoration phase (P2): the fabrics of the rooms, the deck cargo, the trade goods, the treasure
+REGIONS.update({
+    "royal_rug":   (0, 272, 48, 64),     # royal blue carpet: gold border, a lattice, the gold lion in a medallion
+    "bale_white":  (64, 272, 32, 32),    # the white canvas over the bales of cloth (the deck cargo of 044): seams, folds
+    "velvet_blue": (96, 272, 16, 16),    # deep blue velvet with a sheen (cushions, the bed canopy)
+    "candle":      (112, 272, 16, 16),   # cream wax
+    "coins":       (128, 272, 32, 16),   # a heap of gold coins
+    "globe":       (160, 272, 32, 16),   # the globe: blue seas, tan lands, a gold meridian
+    "silk_red":    (96, 288, 16, 16),    # bolts of red cloth (trade goods)
+    "silk_gold":   (112, 288, 16, 16),   # bolts of gold cloth
+    "ledger":      (128, 288, 32, 16),   # an open account book: two pages of columns
+    "tapestry":    (192, 272, 48, 64),   # a wall tapestry: the gold lion on royal blue, a gold border, a fringe
+})
 for _alias, _src in (("hull_mid", "wood_mid"), ("hull_light", "wood_light"), ("hull_dark", "wood_dark"), ("wood_trim", "wood_dark"),
                      ("wood_honey", "wood_mid"), ("blue_paint", "hull_blue"), ("pilaster", "wood_dark"), ("velvet", "red_paint"),
                      ("cushion", "red_paint"), ("brass", "bronze"), ("organ_wood", "wood_dark"), ("steel", "iron"), ("stripe", "white_paint"),
@@ -475,6 +488,137 @@ def _scroll(px, region, rng):
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
+def _royal_rug(px, region, rng):
+    """Royal blue carpet: a gold border with a dark inner line, a faint diamond lattice, a gold ring round the rampant
+    lion in the middle."""
+    u, v, w, h = region
+    lw = int(w * 0.44)
+    lh = int(lw * 1.2)
+    m = lion_mask(lw, lh, facing=-1)
+    mx, my = (w - lw) // 2, (h - lh) // 2
+    r0 = lh / 2 + 2.5
+    for y in range(h):
+        for x in range(w):
+            d = min(x, y, w - 1 - x, h - 1 - y)
+            rr = math.hypot(x + 0.5 - w / 2, y + 0.5 - h / 2)
+            if d < 1:
+                c = GOLD_DARK
+            elif d < 5:
+                c = _gold_at(x, y, 2) if (x + y) % 6 else GOLD_LO
+            elif d < 6:
+                c = _rgb("0f1f50")
+            else:
+                c = _rgb(ROYAL[(x // 5 + y // 5) % len(ROYAL)])
+                if (x + y) % 10 == 0 or (x - y) % 10 == 0:
+                    c = _scale(c, 0.78)
+                if abs(rr - r0) < 1.2:
+                    c = GOLD
+                if mx <= x < mx + lw and my <= y < my + lh and m.getpixel((x - mx, y - my)):
+                    c = _gold_at(x, y, 2)
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+
+
+def _bale_white(px, region, rng):
+    """White canvas over a bale: an off-white weave, darker seams across, the shading of the folds."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            c = _scale(_rgb("e9e4d6"), 1.0 - 0.07 * (0.5 + 0.5 * math.sin(x * 0.45 + y * 0.12)) - 0.04 * ((x + y) % 2))
+            if y % 11 == 0 or x % 15 == 0:
+                c = _rgb("b8b2a2")
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+
+
+def _velvet(px, region, rng):
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            c = _scale(_rgb("223f9e"), 0.86 + 0.22 * max(0.0, math.sin((x + y) * 0.35)))
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+
+
+def _coins(px, region, rng):
+    """A heap of gold coins: overlapping round coins, bright rims, dark gaps."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            px[u + x, v + y] = _jitter(GOLD_DARK, rng, 4) + (255,)
+    r = random.Random(77)
+    for _ in range(w * h // 6):
+        cx, cy, rad = r.uniform(0, w), r.uniform(0, h), r.uniform(2.0, 3.2)
+        for y in range(int(cy - rad), int(cy + rad) + 1):
+            for x in range(int(cx - rad), int(cx + rad) + 1):
+                if 0 <= x < w and 0 <= y < h:
+                    dd = math.hypot(x + 0.5 - cx, y + 0.5 - cy)
+                    if dd <= rad:
+                        c = GOLD_HI if dd > rad - 1 else (GOLD if (x + y) % 3 else GOLD_LO)
+                        px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+
+
+def _globe(px, region, rng):
+    """The globe's skin (wrapped round it): blue seas, tan and green lands, gold lines of latitude."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            land = math.sin(x * 0.42) * math.cos(y * 0.6) + 0.6 * math.sin(x * 0.17 + y * 0.9)
+            c = _rgb("c9b07a") if land > 0.55 else (_rgb("7a9a52") if land > 0.4 else _rgb("2a5aa8"))
+            if y in (h // 2, 2, h - 3):
+                c = GOLD_LO
+            px[u + x, v + y] = _jitter(c, rng, 4) + (255,)
+
+
+def _ledger(px, region, rng):
+    """An open account book: cream pages with ruled lines and columns of figures, the dark spine in the middle."""
+    u, v, w, h = region
+    for y in range(h):
+        for x in range(w):
+            c = _rgb("ece2c4")
+            if x in (w // 2 - 1, w // 2):
+                c = _rgb("5a3a20")
+            elif y % 3 == 0:
+                c = _rgb("b8a87e")
+            elif (x % 16) in (3, 4, 5, 6, 10, 11, 12) and y % 3 == 1 and (x * 7 + y * 3) % 5:
+                c = _rgb("3a3026")
+            if min(x, y, w - 1 - x, h - 1 - y) == 0:
+                c = _rgb("6e2a1e")
+            px[u + x, v + y] = _jitter(c, rng, 2) + (255,)
+
+
+def _tapestry(px, region, rng):
+    """A wall tapestry: royal blue, a wide gold border with a dark line, the gold rampant lion, a gold fringe at the
+    foot (cut out between the threads)."""
+    u, v, w, h = region
+    lw = int(w * 0.66)
+    lh = int(lw * 1.2)
+    m = lion_mask(lw, lh, facing=-1)
+    e = _outline(m)
+    dl = lion_detail(lw, lh, facing=-1)
+    mx, my = (w - lw) // 2, int(h * 0.12)
+    fringe = h - 6
+    for y in range(h):
+        for x in range(w):
+            if y >= fringe:
+                if x % 2:
+                    px[u + x, v + y] = (0, 0, 0, 0)
+                    continue
+                px[u + x, v + y] = _jitter(GOLD if y < h - 1 else GOLD_LO, rng, 3) + (255,)
+                continue
+            d = min(x, y, w - 1 - x, fringe - 1 - y)
+            c = _scale(_rgb("2044a6"), 1.0 + 0.05 * math.sin(x * 0.9))
+            if d < 1:
+                c = GOLD_DARK
+            elif d < 4:
+                c = _gold_at(x, y, 2)
+            elif d < 5:
+                c = _rgb("0f1f50")
+            elif mx <= x < mx + lw and my <= y < my + lh:
+                if m.getpixel((x - mx, y - my)):
+                    c = _scale(GOLD_LO, 0.75) if dl.getpixel((x - mx, y - my)) else _gold_at(x, y, 2)
+                elif e.getpixel((x - mx, y - my)):
+                    c = _rgb("0f1f50")
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+
+
 def _mane(px, region, rng):
     """Gilded locks of the lion's mane: wavy gold strands with dark grooves."""
     u, v, w, h = region
@@ -600,6 +744,17 @@ def make_texture(path):
     _banner(px, R["banner"], rng)
     _scroll(px, R["scroll"], rng)
     _planks(px, R["deck_plank"], ("8a6340", "7d5838", "936a44"), "3a2716", rng, plank_h=4, joints=2)
+    # the decoration phase's pieces
+    _royal_rug(px, R["royal_rug"], rng)
+    _bale_white(px, R["bale_white"], rng)
+    _velvet(px, R["velvet_blue"], rng)
+    _fill(px, R["candle"], "efe4c4", rng, 4)
+    _coins(px, R["coins"], rng)
+    _globe(px, R["globe"], rng)
+    _planks(px, R["silk_red"], ("b02a30", "9c2228", "c03438"), "5a1014", rng, plank_h=4, joints=0, grain=0.03)
+    _planks(px, R["silk_gold"], ("dcaa36", "c8962a", "e8bc4a"), "7a5a12", rng, plank_h=4, joints=0, grain=0.03)
+    _ledger(px, R["ledger"], rng)
+    _tapestry(px, R["tapestry"], rng)
     img.save(path)
     return img
 

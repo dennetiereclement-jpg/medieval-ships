@@ -24,12 +24,14 @@ import fr.medievalships.entity.ShipEntity;
 import fr.medievalships.entity.ShipTracker;
 
 /**
- * The Royal Lion Ship in a real game (called once from {@link ShipClientGameTest}, about 60 s of game time): placed on
+ * The Royal Lion Ship in a real game (called once from {@link ShipClientGameTest}, about 70 s of game time): placed on
  * a basin beside a stone quay and floating at its waterline, the model loaded with its two textures and its
  * animations, the views of the references photographed (no HUD), the player stands on the main deck, the forecastle,
  * the quarterdeck, in the captain's cabin, the royal state room, the crew quarters and the cargo hold, walks on the main
- * deck, the doors open, the gangplank is deployed onto the quay and retracted with its lever, then the ship sails under
- * the player's control from the helm (the wheel and the rudder turn, the sails stay set) and is removed.
+ * deck, the doors open; the furnished rooms are photographed, the player sits on three seats (the captain's chair, a
+ * velvet chair of the state room, a bench of the crew's mess) and stands up beside each, walks among the cargo of the
+ * hold and across the cabin; the gangplank is deployed onto the quay and retracted with its lever, then the ship sails
+ * under the player's control from the helm (the wheel and the rudder turn, the sails stay set) and is removed.
  */
 public final class RoyalLionShipGameTest {
 	private static final ShipType TYPE = Ships.ROYAL_LION_SHIP;
@@ -102,6 +104,102 @@ public final class RoyalLionShipGameTest {
 		double[] a = p.toWorld(x0, 0, z0), b = p.toWorld(x1, 0, z1);
 		server.runCommand(String.format(Locale.ROOT, "fill %d %d %d %d %d %d %s", (int) Math.floor(Math.min(a[0], b[0])), y0,
 				(int) Math.floor(Math.min(a[2], b[2])), (int) Math.floor(Math.max(a[0], b[0])), y1, (int) Math.floor(Math.max(a[2], b[2])), block));
+	}
+
+	/** Index of the passenger seat nearest to a ship-local point. */
+	private static int seatNear(double x, double y, double z) {
+		int best = -1;
+		double bd = Double.MAX_VALUE;
+		for (ShipGeometry.Seat s : TYPE.geometry().seats()) {
+			double d = Math.pow(s.x() - x, 2) + Math.pow(s.y() - y, 2) + Math.pow(s.z() - z, 2);
+			if (!s.pilot() && d < bd) {
+				bd = d;
+				best = s.index();
+			}
+		}
+		return best;
+	}
+
+	/** The player's ship-local position, whether he stands on the ground, whether he rides a seat (client side). */
+	private static double[] localPlayer(ClientGameTestContext context, TestServerContext server) {
+		double[] c = context.computeOnClient((MinecraftClient mc) -> new double[] {mc.player.getX(), mc.player.getY(), mc.player.getZ(),
+				mc.player.isOnGround() ? 1 : 0, mc.player.hasVehicle() ? 1 : 0});
+		double[] l = pose(server).toLocal(c[0], c[1], c[2]);
+		return new double[] {l[0], l[1], l[2], c[3], c[4]};
+	}
+
+	/**
+	 * The decoration (about 10 s): the furnished rooms photographed from inside (the decoration mods' blocks, their
+	 * stand-ins when a mod is missing), the player sits on the captain's chair, a velvet chair of the state room and a
+	 * bench of the crew's mess and stands up on the floor beside each, then walks among the furniture along the hold's
+	 * centre line and across the captain's cabin to the window seat.
+	 */
+	private static void furnishedRooms(ClientGameTestContext context, TestServerContext server, BiConsumer<Boolean, String> check,
+			Consumer<String> log, Consumer<String> shot) {
+		String id = TYPE.id();
+		double c = RoyalLionLayout.CABIN_FLOOR_Y, s = RoyalLionLayout.STATEROOM_FLOOR_Y, lo = RoyalLionLayout.LOWER_FLOOR_Y;
+		double m = RoyalLionLayout.MAIN_DECK_Y, q = RoyalLionLayout.QUARTERDECK_Y;
+		server.runCommand("gamemode spectator @a");
+		double[][] eyes = {{0.3, c + 1.62, -11.4}, {0.6, c + 1.62, -18.4}, {0.0, s + 1.62, -16.75}, {1.0, lo + 1.62, -4.0}, {1.5, lo + 1.62, -2.1},
+				{0.0, q + 3.0, -10.6}};
+		double[][] targets = {{0, c + 1.0, -19.5}, {0, c + 0.8, -11.0}, {0, s + 0.8, -19.5}, {0.5, lo + 0.6, -15.0}, {0, lo + 0.5, 14.0},
+				{0, m + 0.5, 8.0}};
+		String[] names = {"m1_cabine_vers_poupe", "m2_cabine_vers_porte", "m3_salle_apparat", "m4_quartiers_equipage", "m5_cale", "m6_cargaison_pont"};
+		for (int k = 0; k < eyes.length; k++) {
+			look(server, pose(server), eyes[k][0], eyes[k][1], eyes[k][2], targets[k][0], targets[k][1], targets[k][2]);
+			context.waitTicks(k == 0 ? 15 : 8);
+			shot.accept(id + "_" + names[k]);
+		}
+		server.runCommand("gamemode survival @a");
+		// sitting down and standing up
+		double[][] spots = {{-2.75, c + 0.56, -15.0}, {0.0, s + 0.5, -19.08}, {2.55, lo + 0.56, -10.4}};
+		String[] what = {"the captain's chair", "a velvet chair of the state room", "a bench of the crew's mess"};
+		for (int k = 0; k < spots.length; k++) {
+			int seat = seatNear(spots[k][0], spots[k][1], spots[k][2]);
+			ShipGeometry.Seat st = TYPE.geometry().seats().get(seat);
+			tp(server, pose(server), st.dismountLocal()[0], st.dismountLocal()[1], st.dismountLocal()[2], 0, 10);
+			context.waitTicks(5);
+			boolean sat = server.computeOnServer(srv -> {
+				ServerPlayerEntity player = srv.getPlayerManager().getPlayerList().get(0);
+				ShipEntity e = ship(srv.getOverworld());
+				return e != null && e.seat(player, seat) && e.seatOf(player) == seat;
+			});
+			context.waitTicks(10);
+			double[] l = localPlayer(context, server);
+			log.accept(String.format(Locale.ROOT, "%s on %s (seat %d): local %.2f %.3f %.2f, riding %s", id, what[k], seat, l[0], l[1], l[2], l[4]));
+			check.accept(sat && l[4] > 0 && Math.abs(l[0] - st.x()) < 0.3 && Math.abs(l[2] - st.z()) < 0.3,
+					String.format(Locale.ROOT, "%s: the player sits on %s (seat %d)", id, what[k], seat));
+			if (k == 0) {
+				shot.accept(id + "_m7_assis_au_bureau");
+			}
+			server.runCommand("ride @p dismount");
+			context.waitTicks(15);
+			l = localPlayer(context, server);
+			double[] d = st.dismountLocal();
+			log.accept(String.format(Locale.ROOT, "%s stood up from seat %d at local %.2f %.3f %.2f (spot %.2f %.2f %.2f), on ground %s", id, seat,
+					l[0], l[1], l[2], d[0], d[1], d[2], l[3]));
+			check.accept(l[4] == 0 && l[3] > 0 && Math.abs(l[1] - (d[1] - 0.02)) < 0.1 && Math.hypot(l[0] - d[0], l[2] - d[2]) < 0.6,
+					String.format(Locale.ROOT, "%s: standing up from %s onto the floor beside it (local y %.3f)", id, what[k], l[1]));
+		}
+		// walking among the furniture: forward along the hold's centre line, aft across the captain's cabin
+		tp(server, pose(server), 0.6, lo + 0.02, 0.3, 0, 5);
+		context.waitTicks(5);
+		context.getInput().holdKey(o -> o.forwardKey);
+		context.waitTicks(20);
+		context.getInput().releaseKey(o -> o.forwardKey);
+		double[] h = localPlayer(context, server);
+		log.accept(String.format(Locale.ROOT, "%s walked in the hold to local %.2f %.3f %.2f", id, h[0], h[1], h[2]));
+		check.accept(h[2] > 2.5 && Math.abs(h[1] - lo) < 0.1, String.format(Locale.ROOT,
+				"%s: the player walks between the cargo along the hold (z %.2f, y %.3f)", id, h[2], h[1]));
+		tp(server, pose(server), 0.0, c + 0.02, -11.8, 180, 5);
+		context.waitTicks(5);
+		context.getInput().holdKey(o -> o.forwardKey);
+		context.waitTicks(22);
+		context.getInput().releaseKey(o -> o.forwardKey);
+		double[] w = localPlayer(context, server);
+		log.accept(String.format(Locale.ROOT, "%s walked in the captain's cabin to local %.2f %.3f %.2f", id, w[0], w[1], w[2]));
+		check.accept(w[2] < -15.0 && Math.abs(w[1] - c) < 0.6, String.format(Locale.ROOT,
+				"%s: the player walks across the furnished cabin towards the stern windows (z %.2f, y %.3f)", id, w[2], w[1]));
 	}
 
 	public static void run(ClientGameTestContext context, TestServerContext server, TestClientWorldContext world, BiConsumer<Boolean, String> check,
@@ -214,6 +312,7 @@ public final class RoyalLionShipGameTest {
 			return e.doorOpen(RoyalLionLayout.CABIN_DOOR) && e.doorOpen(RoyalLionLayout.STATEROOM_DOOR) && e.doorOpen(RoyalLionLayout.BULKHEAD_DOOR);
 		});
 		check.accept(opened, id + ": the cabin, state room and bulkhead doors open");
+		furnishedRooms(context, server, check, log, shot);
 
 		// the gangplank onto a stone quay on the starboard side (top one block above the water), with its lever
 		ShipPose pq = pose(server);

@@ -47,6 +47,7 @@ import royal_lion_shape as fs  # noqa: E402
 import royal_lion_interior as fi  # noqa: E402
 import royal_lion_texture as ft  # noqa: E402
 import royal_lion_decor as fd  # noqa: E402
+import royal_lion_furniture as rf  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ID = "royal_lion_ship"
@@ -1238,6 +1239,7 @@ def fallbacks(root):
 
 
 CUSTOM_BUILDERS = dict(gc.CUSTOM_BUILDERS)
+CUSTOM_BUILDERS.update(rf.BUILDERS)
 
 
 # ---------------------------------------------------------------- the model

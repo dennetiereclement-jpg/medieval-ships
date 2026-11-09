@@ -253,6 +253,50 @@ class RoyalLionShipTest {
 		assertEquals(ShipGeometry.PickKind.HELM, p.kind());
 	}
 
+	/** Decor blocks whose bottom-centre lies in the box (x0..x1, y0..y1, z0..z1). */
+	private static long blocksIn(double x0, double x1, double y0, double y1, double z0, double z1) {
+		return G.decor().blocks().stream().filter(b -> b.x() >= x0 && b.x() <= x1 && b.y() >= y0 && b.y() <= y1 && b.z() >= z0 && b.z() <= z1)
+				.count();
+	}
+
+	/**
+	 * The decoration: every room furnished with the mods' blocks (the cabin, the state room, the crew quarters, the
+	 * hold, the deck cargo), lanterns that glow, vanilla paintings on the walls, a seat for many passengers; nothing
+	 * stands in the walls, the decks or the hull, nor beyond the sides; the seats are in the rooms; the solid furniture
+	 * keeps the walkers out (the desk, the bed, the dining table, the bunks, the crates).
+	 */
+	@Test
+	void furnishedRooms() {
+		InteriorDecor d = G.decor();
+		assertTrue(d.blocks().size() >= 120, "decor blocks " + d.blocks().size());
+		assertTrue(d.paintings().size() >= 3, "paintings " + d.paintings().size());
+		assertTrue(G.seats().size() >= 16, "seats " + G.seats().size());
+		assertTrue(d.blocks().stream().filter(InteriorDecor.Block::glow).count() >= 12, "glowing lanterns");
+		assertTrue(blocksIn(-5, 5, C - 0.1, C + 1.5, -19.5, -11.0) >= 15, "the captain's cabin is furnished");
+		assertTrue(blocksIn(-5, 5, S - 0.1, S + 1.5, -19.5, -16.5) >= 15, "the state room is furnished");
+		assertTrue(blocksIn(-6, 6, L - 0.1, L + 1.5, -15.0, -3.0) >= 15, "the crew quarters are furnished");
+		assertTrue(blocksIn(-6, 6, L - 0.1, L + 1.5, -2.5, 14.5) >= 25, "the hold is furnished");
+		assertTrue(blocksIn(-6, 6, M - 0.1, M + 1.5, -10.0, 13.0) >= 15, "cargo on the main deck");
+		for (InteriorDecor.Block b : d.blocks()) {
+			byte k = GRID.kindAt(b.x(), b.y() + 0.05, b.z());
+			assertTrue(k != 1, "decor block in a wall, a deck or the hull: " + b.block() + " at " + b.x() + ", " + b.y() + ", " + b.z());
+			assertTrue(Math.abs(b.x()) < T.hull().halfWidth(b.z()) - 0.4, "decor block beyond the side: " + b.block() + " at " + b.x() + ", " + b.z());
+		}
+		for (InteriorDecor.Painting p : d.paintings()) {
+			assertTrue(GRID.solidAt(p.x() - p.nx() * 0.3, p.y(), p.z() - p.nz() * 0.3, CLOSED), "painting on a wall: " + p.motive());
+			assertFalse(GRID.solidAt(p.x() + p.nx() * 0.3, p.y(), p.z() + p.nz() * 0.3, CLOSED), "painting facing the room: " + p.motive());
+		}
+		for (ShipGeometry.Seat s : G.seats()) {
+			assertTrue(GRID.kindAt(s.x(), s.y() - 0.2, s.z()) != 1, "seat " + s.index() + " in a wall");
+			assertTrue(G.inCarryVolume(s.x(), s.y(), s.z()), "seat " + s.index() + " aboard");
+		}
+		assertFalse(fits(3.45, C, -17.0, CLOSED), "the captain's bed is solid");
+		assertFalse(fits(0.0, S, -18.0, CLOSED), "the state room's table is solid");
+		assertFalse(fits(4.4, L, -13.2, CLOSED), "a crew bunk is solid");
+		assertFalse(fits(-4.35, M, -4.8, CLOSED), "deck cargo is solid");
+		assertTrue(fits(0.0, M, -6.4, CLOSED) && fits(3.25, M, -6.4, CLOSED), "the way to the quarterdeck stair stays clear");
+	}
+
 	@Test
 	void boardingSpotIsOnTheMainDeck() {
 		for (double z = -3; z <= 12; z += 2.5) {

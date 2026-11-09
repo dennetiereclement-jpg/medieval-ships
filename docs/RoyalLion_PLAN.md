@@ -61,11 +61,39 @@ grand mât) est plus grand et plus lourd que la frégate, plus petit que le vais
 Hauteurs libres : pont inférieur 3 blocs, cabine 3, salle d'apparat 3. Toutes les pièces sont dans la coque (grille
 fermée sous le pont : aucune sortie par la coque, vérifié par `RoyalLionShipTest`).
 
-## 4. Sièges (phase 1 : l'essentiel ; la décoration complète vient en phase 2)
+## 4. Sièges (17 places assises en plus de la barre)
 
-La barre (pilote debout), le fauteuil du capitaine devant son bureau, deux chaises à la table de la salle d'apparat,
-deux bancs dans les quartiers de l'équipage, deux bancs sur le pont. Chaque siège a son point de relevé libre sur un
-plancher (`RoyalLionShipTest.helmAndSeats`).
+La barre (pilote debout) ; dans la cabine du capitaine, le fauteuil à haut dossier devant le bureau et deux places sur
+la banquette sous les fenêtres de poupe ; dans la salle d'apparat, trois chaises dorées en velours rouge et deux
+trônes aux bouts de la table ; dans les quartiers de l'équipage, quatre places sur les bancs du carré ; dans la cale, le
+tabouret du commis aux écritures ; sur le pont, deux bancs au pied du grand mât et deux bancs sous l'auvent du gaillard
+d'arrière. Chaque siège a son point de relevé libre sur un plancher (`RoyalLionShipTest.helmAndSeats`), vérifié en jeu
+pour trois d'entre eux (`RoyalLionShipGameTest`).
+
+## 4 bis. Décoration des pièces (phase 2)
+
+Source : `tools/royal_lion_decor.py` (placement, sièges, tableaux) et `tools/royal_lion_furniture.py` (meubles
+modélisés). **Les blocs des mods de décoration d'abord** (Farmhouse Decorations, Furnish, Farmer's Delight, Lands of
+Icaria : 136 blocs dessinés par le navire, jamais posés dans le monde ; boîte de remplacement si un mod manque) ;
+modélisé seulement ce qui manque aux mods ou doit être royal. Les meubles pleins entrent dans la grille (cases
+FURNITURE) : on en fait le tour, on ne passe pas au travers.
+
+| Pièce | Blocs des mods | Meubles modélisés |
+|---|---|---|
+| Cabine du capitaine | lit double à oreillers vers la poupe, table de nuit et sa lampe, commode (boîte à cigares, cadre), grande bibliothèque, bureau à dessus vert (livres, lampe, vin et verre), fauteuil à haut dossier, armoire contre la cloison, lanterne à chaîne, lampes sur potences | banquette de velours bleu sous les quatre fenêtres de poupe (coussins, traversins), **intérieur des fenêtres en arc** (verre et cadres dorés : poupe, flancs, cloison), tapis bleu roi à bordure d'or et lion d'or en médaillon, lustre d'or à six bougies, tapisserie au lion au-dessus du lit, **coffre ouvert plein de pièces d'or** (gobelet renversé), carte marine encadrée, carte et compas sur le bureau, piles de pièces, longue-vue sur trépied, globe terrestre, tableau « sea » dans un cadre doré |
+| Salle d'apparat | longue table de salle à manger (deux bouts à pieds tournés, une rallonge), trois chaises dorées en velours rouge, deux trônes à haut dossier, assiettes de porcelaine, verres, bouteilles, volaille rôtie, cabinet à liqueurs, deux commodes, cadre, lampes sur potences | intérieur des dix fenêtres en arc, tapis au lion sous la table, candélabres d'or, tapisserie royale entre les fenêtres du milieu, portraits « bust » et « wanderer » dans des cadres dorés de part et d'autre de la porte, lustre d'or |
+| Quartiers de l'équipage | table du carré en long, six bancs, coin cuisine (fourneau et marmite, plan de travail et planche à découper), deux tonneaux à robinet, tonneau sur chantier, sac, portemanteau, lanternes à chaîne | deux couchettes doubles contre la coque, quatre coffres de marin, deux hamacs, vaisselle d'étain et chopes, batterie de cuisine pendue au plafond, râtelier de hallebardes de la garde (pompons dorés) sur la cloison |
+| Cale | caisses empilées sur deux rangs, caisses de provisions (pommes de terre, carottes, choux), pyramides de tonneaux sur chantiers, sacs de riz, bottes de paille et d'épeautre, amphores (terre cuite, bleue, jaune), jarres, lanternes à chaîne, tabouret | pupitre du commis aux écritures (registre ouvert, encrier et plume, balance, piles de pièces), **ballots blancs** de toile cordés, râtelier de **rouleaux d'étoffes** bleu roi, rouge et or (marchandises du prince marchand), sacs d'épices, second coffre de pièces d'or |
+| Pont et gaillards | caisses sur deux rangs, tonneaux couchés, sacs, deux bancs au grand mât, deux bancs sous l'auvent | **caisses bâchées de toile blanche** et cordées et ballots blancs (la cargaison de 044 et de 071), tonneaux debout, glènes de cordage au pied des mâts |
+
+Laissé libre (vérifié par `RoyalLionShipTest` et par `apply_to_grid` de l'outil) : les portes et leurs abords, les
+escaliers et descentes avec leur pied, l'axe de la cabine, des quartiers et de la cale, une bande de 1,9 bloc de part et
+d'autre de l'axe du pont principal (points d'embarquement), l'escalier et le levier de la passerelle (tribord, z 1,2 à
+5,3), le passage vers les escaliers du gaillard d'arrière, les points de relevé des sièges. Aucun meuble n'entre dans
+la coque, les cloisons ou les ponts (l'outil refuse plus de 0,3 bloc dans une case pleine ; le test vérifie qu'aucun
+bloc n'est dans une paroi ni au-delà des flancs). Textures ajoutées à l'atlas de la coque (`tools/royal_lion_texture.py`,
+cases libres) : tapis au lion, toile blanche des ballots, velours bleu, cire, pièces d'or, globe, étoffes rouge et or,
+registre, tapisserie au lion. Planche des pièces : `docs/interieur_royal_lion_ship.png`.
 
 ## 5. Extérieur : matériaux, ornements, parties mobiles
 
@@ -106,8 +134,8 @@ plancher (`RoyalLionShipTest.helmAndSeats`).
 
 Écarts restants (pour la phase 3) : voiles un peu moins grandes que sur les images (qui les exagèrent) ; la coque
 reste plus longue et plus basse que sur 071 (perspective exagérée de l'image) ; les bannières pendantes de 044 sont
-remplacées par les écus demandés ; la cargaison des références (ballots blancs) est seulement esquissée (phase 2) ;
-la tête du lion de proue reste plus simple que la sculpture de 126.
+remplacées par les écus demandés ; la tête du lion de proue reste plus simple que la sculpture de 126. La cargaison
+des références (caisses bâchées de blanc, ballots) est faite en phase 2 (§ 4 bis).
 
 ## 6. Passerelle d'embarquement
 
@@ -133,6 +161,8 @@ jeu par `RoyalLionShipGameTest` (quai de pierre, levier, déployée puis replié
 * **Monter à bord** : clic droit sur la coque (dépôt sur le pont principal) ou par la passerelle (levier sur le pont,
   côté tribord) depuis un quai. On marche pendant la navigation sur le pont, les deux gaillards, dans la cabine du
   capitaine, la salle d'apparat (portes doubles, clic droit), les quartiers de l'équipage et la cale (descentes).
+* **S'asseoir** : clic droit sur un siège (fauteuil du capitaine, banquette de poupe, chaises et trônes de la salle
+  d'apparat, bancs du carré et du pont, tabouret de la cale) ; touche de sneak pour se relever à côté.
 * **Piloter** : clic droit sur la roue du gaillard d'arrière ; navire très lourd (≈ 17 s pour prendre l'allure normale,
   longue erre, 5,5°/s en virage au plus) ; écume à l'étrave.
 * **Réglages** : bloc `ships.royal_lion_ship` de `config/medievalships.json` (`slowSpeed` 1.4, `normalSpeed` 3.4,
@@ -141,17 +171,18 @@ jeu par `RoyalLionShipGameTest` (quai de pierre, levier, déployée puis replié
 
 ## 8. Fichiers, tests, limites
 
-* Modèle `blockbench/royal_lion_ship.bbmodel` (≈ 5 200 cubes, 2 textures : coque + voiles/flammes, 9 animations),
+* Modèle `blockbench/royal_lion_ship.bbmodel` (≈ 6 300 cubes dont ≈ 1 070 de meubles, 2 textures : coque + voiles/flammes, 9 animations),
   textures `textures/entity/royal_lion_ship.png` et `royal_lion_ship_sails.png`, icône
   `textures/item/royal_lion_ship.png`, grille `interiors/royal_lion_ship.grid`, mobilier
   `interiors/royal_lion_ship_decor.json` (blocs des mods de décoration ; boîtes de remplacement si un mod manque),
   passerelle `gangplanks/royal_lion_ship.json` + `models/entity/gangplank_royal_lion_ship.bbmodel`.
 * Java : `RoyalLionLayout` (géométrie, sondes, réglages), `RoyalLionShipEntity` ; tests `RoyalLionShipTest` (forme,
-  dimensions, pièces, escaliers, portes, sièges, embarquement, coque fermée, modèle, animations) et
+  dimensions, pièces, escaliers, portes, sièges, embarquement, coque fermée, pièces meublées, modèle, animations) et
   `RoyalLionShipGameTest` (en jeu, solo et serveur dédié : mise à l'eau, flottaison, vues des références, toutes les
-  pièces, marche sur le pont, portes, passerelle, barre).
+  pièces, marche sur le pont, portes, pièces meublées photographiées, assis puis relevé sur trois sièges, marche entre
+  les meubles de la cale et de la cabine, passerelle, barre).
 * Comparaisons rendu / référence : `docs/preview_royal_lion_ship.png` (planche de la phase 1) ; la planche
   `docs/comparaison_royal_lion_ship.png` est faite en phase 3.
-* Limites : les fenêtres ne se voient que de l'extérieur (parois de la grille pleines) ; le toit du château n'est pas
-  praticable ; la figure de proue et les écus sont décoratifs ; sans les mods de décoration, les meubles des mods sont
+* Limites : les fenêtres de la cabine et de la salle d'apparat sont vues de l'intérieur comme des vitres (on ne voit pas
+  la mer au travers : parois de la grille pleines) ; le toit du château n'est pas praticable ; la figure de proue et les écus sont décoratifs ; sans les mods de décoration, les meubles des mods sont
   remplacés par des boîtes.
