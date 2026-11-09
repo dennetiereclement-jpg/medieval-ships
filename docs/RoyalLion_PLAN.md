@@ -28,7 +28,7 @@ Mesures (044, la vue la moins déformée ; 1 bloc ≈ 34 px au maître-couple) :
 | Grand mât | pomme ≈ y 30 (044) ; plus haut sur 071 (huniers) | 25,6 (044) à ≈ 34 (071) : **30,5** (misaine 29,5, artimon 26) ; flèches de 2,7 au-dessus des huniers (071) |
 | Grand-voile | vergue ≈ y 215, bordure ≈ y 560, largeur ≈ 410 px | phase 4 : **8,5 → 20,2 de haut, 21,8 → 24 de large** (misaine 9,2 → 19,8, 20,2 → 22,2) |
 | Hune du grand mât | ≈ y 130 | phase 4 : **21,0** (misaine 20,6, artimon 21,0) ; nids de pie au ton des mâts de hune (27,5 et 26,7) |
-| Bandes de coque (071) | bois sombre ≈ 40 % du franc-bord, puis or / bleu / or / bleu / or | brun jusqu'à 2,25 (sabords éclairés à 1,45), préceinte d'or 2,25–2,6, bande bleue, préceinte d'or 3,8–4,15, bande bleue des écus, lisse d'or à 5,5 (relevées avec la tonture) |
+| Bandes de coque (071) | bois sombre ≈ 40 % du franc-bord, puis or / bleu / or / bleu / or | brun jusqu'à 2,25 (sabords éclairés à 1,45), préceinte d'or 2,25–2,6, virure de bois sombre (1.27.1, mantelets fermés), préceinte d'or 3,35–3,7, bande bleu roi des écus, lisse d'or à 5,5 (relevées avec la tonture) |
 | Écus (071) et bannières (044, 123, 126) | 2 écus visibles par bord sur la moitié vue ; longues bannières pendues entre eux | **4 écus par bord** sur le pont (z −5,5, 0,5, 6,5, 12,5), **bannières au lion** entre eux (z −2,5, 3,5, 9,5 ; pas à tribord devant la passerelle), lanternes à côté |
 | Mâts (044, 071 : rétroprojection sur le plan axial avec les caméras recalées) | misaine à ≈ 0,83 de la longueur depuis la poupe, grand mât ≈ 0,5, artimon ≈ 0,2 à 0,3 | **misaine 12,5, grand mât −0,5 (13 blocs), artimon −11,5** (phase 4) |
 
@@ -109,7 +109,8 @@ registre, tapisserie au lion. Planche des pièces : `docs/interieur_royal_lion_s
 ## 5. Extérieur : matériaux, ornements, parties mobiles
 
 * **Coque** : haute, à forte tonture (relevée de 3,6 à l'étrave, 1,2 à la poupe) ; bois brun sombre (mosaïque de blocs)
-  avec une rangée de petits sabords éclairés à cadre doré ; préceintes d'or ; deux bandes bleu roi en mosaïque ;
+  avec une rangée de petits sabords éclairés (encadrement de bois sombre, appui doré) ; préceintes d'or ; une virure
+  de bois sombre à mantelets fermés puis une bande bleu roi profond sous la lisse (1.27.1 ; avant : deux bandes bleues) ;
   **grands écus bleu roi (2,5 × 3 blocs) en forme d'écu à pointe, bordure d'or et lion rampant d'or**, détachés du
   bordé devant les préceintes, sur planche sombre à clous dorés ; **longues bannières bleues au lion d'or** (1,3 × 3,9)
   pendues sous la lisse à des tringles dorées entre les écus, une lanterne sur potence à côté de chacune ; lisse dorée,
@@ -120,7 +121,8 @@ registre, tapisserie au lion. Planche des pièces : `docs/interieur_royal_lion_s
   arrière repliées contre l'étrave, corps tendu vers l'avant et le haut, poitrail, pattes avant lancées vers l'avant
   et le bas, tête rugissante à crinière, queue enroulée le long de l'étrave ; lanterne pendue sous le beaupré, beaupré
   brun cerclé d'or et bout-dehors.
-* **Château arrière** (phase 4 : 12 blocs de long, étage de 8 blocs) : panneaux bleus encadrés d'or, pilastres dorés,
+* **Château arrière** (phase 4 : 12 blocs de long, étage de 8 blocs) : étage de la cabine en lambris de bois sombre à
+  baguette dorée (1.27.1), étage de la salle d'apparat en panneaux bleus encadrés d'or, pilastres dorés,
   corniche en volutes dorées ; **deux rangs de fenêtres en arc éclairées** (cabine : 4 par bord et 4 au tableau ;
   salle d'apparat : 5 grandes par bord sous moulures dorées et 4 au tableau), un troisième rang de **lucarnes
   éclairées** dans le toit ; **deux galeries de poupe** dorées (celle de la cabine sur consoles, le balcon de la salle
@@ -253,8 +255,52 @@ et rendu superposés pour la silhouette ; quatre itérations :
 4. **126 a des mâts disposés autrement** (grand mât très en avant, artimon au milieu du toit) : la disposition suit
    044 et 071, comme le demande la consigne (126 sert pour la proue et le château).
 5. **Huniers** gardés (071, 123) alors que 044 et 126 n'ont qu'une voile par mât.
-6. Coque un peu plus bleue que sur 044 (plus brune) : les bandes suivent 071, l'image principale.
+6. Coque un peu plus bleue que sur 044 (plus brune) : les bandes suivent 071, l'image principale (corrigé en 1.27.1 :
+   la virure du milieu est en bois sombre, voir 5 quinquies).
 7. Éclairage chaud et reflets des images ; ferrures grises de 044 rendues en or.
+
+## 5 quinquies. Amélioration visuelle (1.27.1) : textures à ombrage intégré
+
+**Constat (captures en jeu de 1.27.0).** Le jeu éclaire un modèle d'entité presque à plat (deux lumières fixes, les
+flancs à ≈ 0,5–0,75) : à côté des images, le navire paraissait plat et « plastique » — grands aplats de bleu vif sur
+presque toute la coque, or jaune uni, voiles bleues unies, aucune usure. Les images ont au contraire un fort grain par
+bloc : joints sombres, arêtes éclairées, creux et dessous dans l'ombre, planches et blocs de tons variés, dorures à
+reflets, toile à coutures et plis.
+
+**Ce qui a été fait.**
+
+| Levier | Avant | Après |
+|---|---|---|
+| Résolution | atlas 512 × 512 (16 texels par bloc) | atlas 1024 × 1024 pour le **même espace UV** (`uv_width` 512 dans le modèle : aucun UV ne bouge ; 32 texels par bloc) ; seconde passe `tools/royal_lion_hd.py` (numpy, déterministe) qui repeint toutes les régions vues de l'extérieur, les autres sont agrandies telles quelles |
+| Bordé | mosaïque de blocs à joints fins | blocs carrés en relief (grille alignée, comme les voxels des images) : arête haute éclairée, pied et bout ombrés, joints sombres, veinage, quelques clous et éraflures ; **ombre portée sous chaque préceinte et sous la lisse** (la bande couvre désormais toute la hauteur de la région) ; bois plus chaud et plus clair (le jeu assombrit les flancs) |
+| Couleurs de coque | bleu de 2,6 à 5,15 (deux bandes) | **virure du milieu en bois sombre**, préceinte du milieu descendue de 0,45 : bois sombre / or / bois sombre / or / **une bande bleu roi profond** sous la lisse (071, 044) |
+| Or, lisse, bronze, fer, cordages | aplat jaune tacheté | chaque face couvre toute la hauteur d'un dégradé : liseré clair en haut, or chaud, ombre ocre au pied (les balustres, préceintes, lisses et bagues ont l'air arrondis) ; joints des pièces dorées ; fer noirci à rivets ; chanvre commis clair (torons en biais) pour les enfléchures et les manœuvres |
+| Moulures | bandes plates | préceintes plates en relief (rouleau éclairé, rouleau ombré, perles) ; rinceaux en C et en S sculptés (bord éclairé, bord ombré, fond sombre) pour corniches, galeries et carènes |
+| Château | panneaux bleus partout | **étage de la cabine en lambris de bois sombre** à baguette dorée, étage de la salle d'apparat en panneaux bleus ; panneaux creux (ombre sous le cadre, lumière sur le bas), rosaces aux angles |
+| Voiles | blocs de toile, bordure d'or | blocs biseautés aux tons plus variés, **coutures verticales marquées**, **bande de ris** et garcettes, **ralingue torsadée**, plis doux (ventre éclairé, chutes plus sombres, plis de tension aux points d'écoute), dégradé du haut (ombre de la vergue) vers le pied |
+| Lions (voiles, écus, bannières, panneaux, étendard, flammes) | silhouette dorée unie | cerne marine, ombre portée, volume (or clair en haut, plus profond au pied), arête éclairée et arête ombrée, lignes sculptées |
+| Écus, bannières | | bordure d'or biseautée à rivets, champ bleu éclairé en haut ; bannières à plis |
+| Fenêtres, sabords | aplat orangé | lueur chaude (cœur pâle en bas, ambre, orange profond aux bords), plombs sombres, cadre doré biseauté |
+| Toit, auvent, proue | | ardoises en recouvrement (ombre sous le rang du dessus, lèvre éclairée) ; auvent à plis et ourlet doré ; crinière à mèches profondes, face du lion modelée |
+| Relief | sabords plats | sabords dans un **encadrement de bois sombre à appui doré**, **mantelets fermés** (planches, pentures, anneau) sur la virure de bois ; 35 cubes de plus (7 306 → 7 341, + 0,5 %) |
+
+**Méthode.** Captures en jeu de 1.27.0 (variante decor) regardées d'abord ; rendus Python à l'éclairage du jeu (les
+deux lumières d'entité de Minecraft et 0,4 d'ambiante, UV à l'échelle de la texture 2x) aux caméras recalées des
+phases 3 et 4 et en gros plans (coque, poupe, voiles, écu, or de la proue) ; quatre itérations sur rendus, puis une
+cinquième d'après les captures en jeu de la branche (le jeu a passé ses 2 786 contrôles dans les trois variantes) :
+
+| Itération | Ce qui restait plat ou faux | Correction |
+|---|---|---|
+| 1 | (textures 2x, virure de bois) coque enfin brune et bleue ; or encore kaki sur les flancs ombrés ; lions des voiles ocre plat | or plus saturé et plus clair, ombre limitée au pied de chaque face ; relief des lions renforcé |
+| 2 | sabords plats ; lion des voiles en « papier millimétré » (joints de chaque voxel trop marqués) ; bande de ris en règle graduée | encadrements et appuis des sabords, mantelets ; lion : volume d'ensemble, joints de voxel discrets, arêtes larges ; garcettes une par laize |
+| 3 | voiles : champ bleu trop uniforme | tons de laizes plus variés, biseau et plis plus marqués |
+| 4 | bas de coque presque noir à distance (le jeu divise par deux la lumière des flancs) ; or « papier de verre » de près | bruns plus chauds et plus clairs ; moins de points dans l'or ; fer à rivets |
+| 5 (captures en jeu de la branche, variante decor) | rangs de demi-blocs décalés : le bordé fait « mur de briques » ; voiles en damier (tons de laizes trop écartés) ; enfléchures fines et sombres sur les voiles | blocs carrés alignés comme les voxels des images (un ton chacun, joints sombres, biseau adouci) ; tons de laizes resserrés ; cordages en chanvre commis clair, arrondis (dégradé sur toute la hauteur) |
+
+**Écarts restants.** Ceux de la phase 4 (voiles vues de biais, lion vers la poupe vu de tribord, perspective de 071,
+mâts de 126, huniers) ; les images ont un éclairage chaud et des reflets que le jeu n'a pas ; les intérieurs gardent les
+textures de la phase 2 (agrandies) ; le camouflage du paquet de la passerelle garde ses couleurs (l'échantillonnage
+donne une peau or quasi identique).
 
 ## 6. Passerelle d'embarquement
 
@@ -291,8 +337,9 @@ jeu par `RoyalLionShipGameTest` (quai de pierre, levier, déployée puis replié
 
 ## 8. Fichiers, tests, limites
 
-* Modèle `blockbench/royal_lion_ship.bbmodel` (≈ 7 300 cubes dont ≈ 1 100 de meubles, 2 textures : coque + voiles/flammes, 10 animations),
-  textures `textures/entity/royal_lion_ship.png` et `royal_lion_ship_sails.png`, icône
+* Modèle `blockbench/royal_lion_ship.bbmodel` (7 341 cubes dont ≈ 1 100 de meubles, 2 textures : coque + voiles/flammes, 10 animations),
+  textures `textures/entity/royal_lion_ship.png` et `royal_lion_ship_sails.png` (1024 × 1024 chacune pour un espace UV
+  de 512, `uv_width` ; seconde passe `tools/royal_lion_hd.py`), icône
   `textures/item/royal_lion_ship.png`, grille `interiors/royal_lion_ship.grid`, mobilier
   `interiors/royal_lion_ship_decor.json` (blocs des mods de décoration ; boîtes de remplacement si un mod manque),
   passerelle `gangplanks/royal_lion_ship.json` + `models/entity/gangplank_royal_lion_ship.bbmodel`.
@@ -301,9 +348,9 @@ jeu par `RoyalLionShipGameTest` (quai de pierre, levier, déployée puis replié
   `RoyalLionShipGameTest` (en jeu, solo et serveur dédié : mise à l'eau, flottaison, vues des références, toutes les
   pièces, marche sur le pont, les quatre portes, pièces meublées photographiées, assis puis relevé sur trois sièges, marche entre
   les meubles de la cale et de la cabine, passerelle, barre).
-* Comparaisons rendu / référence : `docs/comparaison_royal_lion_ship.png` (phase 4 : les quatre images, chacune à côté
-  du rendu au même cadrage — 071 à longue focale —, puis le château arrière, le lion de proue, le profil et les lions
-  des voiles) ; `docs/preview_royal_lion_ship.png` (même planche, refaite avec le modèle de la phase 4) ;
+* Comparaisons : `docs/comparaison_royal_lion_ship.png` (1.27.1 : référence | capture en jeu avant | capture en jeu
+  après pour 071, 044 et 126, puis gros plans avant / après de la coque, de la poupe et des voiles) ;
+  `docs/preview_royal_lion_ship.png` (planche de la phase 4) ;
   `docs/interieur_royal_lion_ship.png` (les pièces, refaites avec la cabine et la salle d'apparat agrandies).
 * Limites : les fenêtres de la cabine et de la salle d'apparat sont vues de l'intérieur comme des vitres (on ne voit pas
   la mer au travers : parois de la grille pleines) ; le toit du château n'est pas praticable ; la figure de proue et les écus sont décoratifs ; sans les mods de décoration, les meubles des mods sont
