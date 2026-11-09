@@ -10,18 +10,27 @@ frames, a blue and white striped awning with a scalloped edge, lanterns; inside,
 (the cabins), plank floors and beams, the plain planks of the lower deck.
 
 Every region is (u, v, w, h); REGIONS and SAIL_REGIONS are shared with tools/generate_royal_lion.py.
+
+1.27.1 (the visual upgrade): both atlases are saved at twice their UV resolution (1024 x 1024 texels for the same
+512 x 512 UV space, the textures' uv_width), and tools/royal_lion_hd.py repaints the regions seen from outside with
+their shading baked in (joints, lit and shadowed edges, ambient shadow under the wales, gold in highlight and shadow
+bands, glowing windows, sail seams and folds, bevelled lions). The middle strake is now dark wood: the hull reads as
+dark wood with one deep royal blue band under the planksheer, as on 071 and 044.
 """
 import math
 import random
+import sys
 
 from PIL import Image, ImageDraw
 
 from galley_texture import _jitter, _rgb, paint_lamp_glass
 import corsair_texture as ct
 import frigate_texture as ftx
+import royal_lion_hd as hd
 
-SIZE = 512
+SIZE = 512          # the UV space of the atlases (the PNGs are TEX_SCALE times larger)
 SAIL_SIZE = 512
+TEX_SCALE = hd.K
 
 REGIONS = dict(ftx.REGIONS)
 REGIONS.update({
@@ -30,7 +39,7 @@ REGIONS.update({
     "hull_blue2":   (64, 0, 64, 32),
     "hull_brown":   (192, 0, 64, 32),    # below the water
     "strake_lo":    (192, 64, 64, 32),   # the dark brown strakes above the water (a mosaic of blocks)
-    "strake_mid":   (448, 112, 64, 32),  # royal blue strake (lower blue band, with the lit ports)
+    "strake_mid":   (448, 112, 64, 32),  # the dark wood strake between the low and the middle gold wales (1.27.1)
     "strake_hi":    (384, 128, 64, 32),  # royal blue strake (upper blue band, with the shields)
     "shield":       (0, 208, 48, 56),    # the heater shield: royal blue, gold border, gold rampant lion
     "port_lit":     (48, 208, 16, 16),   # a small square lit port in a gold frame
@@ -59,6 +68,12 @@ REGIONS.update({
     "silk_gold":   (112, 288, 16, 16),   # bolts of gold cloth
     "ledger":      (128, 288, 32, 16),   # an open account book: two pages of columns
     "tapestry":    (192, 272, 48, 64),   # a wall tapestry: the gold lion on royal blue, a gold border, a fringe
+})
+# the visual upgrade (1.27.1): the cabin storey of the castle in dark wood panelling with a gold bead (071: the blue
+# panels are on the state room's storey only)
+REGIONS.update({
+    "castle_wood": (0, 336, 64, 32),
+    "port_lid":    (64, 336, 32, 16),   # a closed port lid: dark planks, two iron hinge straps, a ring
 })
 for _alias, _src in (("hull_mid", "wood_mid"), ("hull_light", "wood_light"), ("hull_dark", "wood_dark"), ("wood_trim", "wood_dark"),
                      ("wood_honey", "wood_mid"), ("blue_paint", "hull_blue"), ("pilaster", "wood_dark"), ("velvet", "red_paint"),
@@ -809,6 +824,7 @@ def make_texture(path):
     for name in NAVY_REGIONS:
         _navy(px, R[name], NAVY_HULL)
     _navy(px, R["castle_panel"], NAVY_PANEL)
+    img = hd.hull_pass(img, R, sys.modules[__name__])
     img.save(path)
     return img
 
@@ -827,6 +843,8 @@ def make_sail_texture(path, tris=None):
     _royal_standard(px, SAIL_REGIONS["flag_lion"], rng)
     for region in SAIL_REGIONS.values():
         _navy(px, region, NAVY_SAIL)
+    tri = {"jib": (tris or {}).get("jib") or [(0.0, 0.0), (1.0, 0.0), (0.62, 1.0)]}
+    img = hd.sail_pass(img, SAIL_REGIONS, SAIL_CELLS, LION_SAILS, tri, sys.modules[__name__], LION_WIDEN)
     img.save(path)
     return img
 

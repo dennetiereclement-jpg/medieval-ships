@@ -95,7 +95,9 @@ BRACE = math.radians(6)        # square yards braced round a little (port arms a
 QD_RAIL = fs.QD_BULWARK_TOP + 0.15
 FC_RAIL = fs.FC_BULWARK_TOP + 0.15
 GANGPLANK_Z = 3.0               # the starboard gangplank's hinge (tools/gangplank/ships_g2.py)
-WALE_LO, WALE_MID = 2.25, 3.8   # bottom of the low and the middle gold wales amidships (P4: the freeboard is 0.5 higher)
+LID_Z = (-14.3, -8.6, -4.0, 1.9, 7.9, 13.9)   # the closed port lids on the dark wood strake (1.27.1)
+WALE_LO, WALE_MID = 2.25, 3.35  # bottom of the low and the middle gold wales amidships (P4: the freeboard is 0.5 higher;
+#                                 1.27.1: the middle wale 0.45 lower, a wider royal blue band over a dark wood strake)
 
 
 # ---------------------------------------------------------------- hull geometry
@@ -119,7 +121,8 @@ def rail_top(z):
 def hull_rows(z):
     """Points (x, y) of the outer hull section at z (one side, keel to sheer) and the region of each strake: dark
     wood below the water, a band of dark brown blocks, the low gold wale, the lower royal blue band (the lit ports),
-    the middle gold wale, the upper royal blue band (the shields), the gold planksheer."""
+    the middle gold wale, the upper royal blue band (the shields), the gold planksheer. 1.27.1: the strake between
+    the low and the middle wales is dark wood (071, 044: one deep royal blue band under the planksheer)."""
     ys = fs.sheer_y(min(z, BOW_Z))
     pts = []
     for fx, fy in ((0.0, 1.0), (0.45, 0.9), (0.8, 0.55), (0.97, 0.12)):
@@ -139,8 +142,24 @@ def hull_rows(z):
     return pts, regs
 
 
-STRETCHED = ("strake_brown", "strake_brown2", "gold_band", "castle_panel", "taffrail", "carving", "scroll")
+STRETCHED = ("strake_brown", "strake_brown2", "gold_band", "castle_panel", "castle_wood", "taffrail", "carving", "scroll")
 MOSAIC = ("strake_lo", "strake_mid", "strake_hi")
+# 1.27.1: regions painted with their shading across the full height of the face (tools/royal_lion_hd.py): each face
+# maps the whole v range of the region (the lit top edge, the shadowed foot), u still 16 px a block
+V_FULL = ("gold", "rail", "bronze", "strake_lo", "strake_mid", "strake_hi", "hull_blue")
+_face_uv = gn.face_uv
+
+
+def face_uv(cube, bbface, spec, seed):
+    uv, tex = _face_uv(cube, bbface, spec, seed)
+    if spec["region"] in V_FULL and spec.get("sub") is None and not spec["stretch"]:
+        _, u0, v0, rw, rh = REGIONS[spec["region"]]
+        a, b = (v0 + rh, v0) if uv[1] > uv[3] else (v0, v0 + rh)
+        uv = [uv[0], a, uv[2], b]
+    return uv, tex
+
+
+gn.face_uv = face_uv
 
 
 def strake(bone, name, a0, a1, b0, b1, th, region, outward, overlap=1.03, inner=None):
@@ -211,7 +230,7 @@ def hull(bone):
                         u0 = max(0.0, 1 - lu)
                     for spec in cube.faces.values():
                         if spec is not None and spec["region"] == regs[k]:
-                            spec["sub"] = (u0, 0.0, u0 + lu, min(1.0, cube.size[1] * 16 / 32))
+                            spec["sub"] = (u0, 0.0, u0 + lu, 1.0)     # 1.27.1: the band's shading over its height
                             spec["u_dir"], spec["v_dir"] = v3(0, 0, 1), v3(0, -1, 0)
                 n += 1
     for i in range(len(STATIONS) - 2):
@@ -366,7 +385,17 @@ def hull_ornaments(bone, lights):
                          (0.16, 0.16, 0.08), "gold")
         for k, z in enumerate(fs.PORT_Z):
             y = fs.PORT_Y + band_lift(z, 0.45) * 0.6
-            hull_decal(bone, "port_%s%d" % (sn, k), z, y, side, 0.62, 0.62, "port_lit", out=0.02, th=0.05, glow=True)
+            # 1.27.1: the lit pane stands in a dark wood surround with a gold sill (071: framed ports)
+            hull_decal(bone, "port_%s%d" % (sn, k), z, y, side, 0.62, 0.62, "port_lit", out=0.1, th=0.04, glow=True)
+            hull_decal(bone, "port_surround_%s%d" % (sn, k), z, y + 0.02, side, 0.92, 0.9, "dark_wood", out=0.02, th=0.08, stretch=False)
+            hull_decal(bone, "port_sill_%s%d" % (sn, k), z, y - 0.43, side, 1.04, 0.12, "gold", out=0.035, th=0.15, stretch=False)
+        # 1.27.1: closed port lids on the dark wood strake between the low and the middle wales (the protruding dark
+        # blocks of 071), clear of the banners, their lanterns and the starboard gangplank
+        for k, z in enumerate(LID_Z):
+            if side < 0 and abs(z - GANGPLANK_Z) < 2.6:
+                continue
+            y = WALE_LO + 0.34 + (WALE_MID - WALE_LO - 0.34) / 2 + band_lift(z, 0.45)
+            hull_decal(bone, "port_lid_%s%d" % (sn, k), z, y, side, 0.78, 0.56, "port_lid", out=0.015, th=0.1)
         for k, z in enumerate(fs.BANNER_Z):
             if side < 0 and abs(z - GANGPLANK_Z) < 2.6:
                 continue       # the gangplank and its stowed pack are here on the starboard side
@@ -434,7 +463,7 @@ def stern(bone, castle, lights):
         xp = fs.hull_x(z, (ys + yb0) / 2) - 0.26
         add_cube(bone, "transom_pilaster_%d" % j, (s_ * xp, (ys + yb0) / 2, z - 0.14), EYE, (0.36, ys - yb0, 0.16), "gold")
     # the castle's stern from the sheer to the quarterdeck: blue panels, the four arched lit windows of the cabin
-    rows = [(ys, ys + 0.25, "gold_band"), (ys + 0.25, Q - 0.4, "castle_panel"), (Q - 0.4, Q - 0.05, "scroll"), (Q - 0.05, Q + 0.3, "gold_band")]
+    rows = [(ys, ys + 0.25, "gold_band"), (ys + 0.25, Q - 0.4, "castle_wood"), (Q - 0.4, Q - 0.05, "scroll"), (Q - 0.05, Q + 0.3, "gold_band")]
     for k, (ya, yb, reg) in enumerate(rows):
         xa, xb = fs.hull_x(z, ya), fs.hull_x(z, yb)
         for j in range(4):
@@ -492,7 +521,7 @@ def castle(bone, lights):
         for i in range(len(zs) - 1):
             za, zb = zs[i], zs[i + 1]
             ya, yb = fs.sheer_y(za), fs.sheer_y(zb)
-            for r, (fa, fb, reg) in enumerate(((0.0, 0.1, "gold_band"), (0.1, 0.78, "castle_panel"), (0.78, 0.9, "scroll"),
+            for r, (fa, fb, reg) in enumerate(((0.0, 0.1, "gold_band"), (0.1, 0.78, "castle_wood"), (0.78, 0.9, "scroll"),
                                                (0.9, 1.0, "gold_band"))):
                 y0a, y1a = ya + (Q + 0.3 - ya) * fa, ya + (Q + 0.3 - ya) * fb
                 y0b, y1b = yb + (Q + 0.3 - yb) * fa, yb + (Q + 0.3 - yb) * fb
@@ -556,7 +585,7 @@ def castle(bone, lights):
     for side, sn in SIDES:
         x0, x1 = 1.0, wq
         add_cube(bone, "bulkhead_" + sn, (side * (x0 + x1) / 2, (M + Q) / 2, bz), EYE, (x1 - x0, Q - M, 0.16),
-                 {"all": "castle_panel", "-3": "wall_wood"}, stretch=True)
+                 {"all": "castle_wood", "-3": "wall_wood"}, stretch=True)
         add_cube(bone, "bulkhead_jamb_" + sn, (side * 1.1, (M + Q - 0.5) / 2, CF + 0.04), EYE, (0.2, Q - 0.5 - M + 0.2, 0.14), "gold")
         axes = np.column_stack([v3(1, 0, 0), v3(0, 1, 0), v3(0, 0, 1)])
         arch_window(bone, "bulkhead_window_" + sn, (side * 1.9, C + 1.5, CF + 0.0), axes, 0.75, 1.2)
@@ -1544,6 +1573,7 @@ def main():
             png = f.read()
         t = gn.texture_entry(os.path.basename(p), size_, png, "entity", ID + ".png")
         t["id"] = str(k)
+        t["width"] = t["height"] = size_ * ft.TEX_SCALE    # 1.27.1: the PNGs at twice the UV resolution (uv_width stays)
         textures.append(t)
     model = gn.export(root, anims, textures, [
         os.path.join(ROOT, "blockbench/%s.bbmodel" % ID),
