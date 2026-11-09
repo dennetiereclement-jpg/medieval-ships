@@ -7,6 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayDeque;
+import java.util.HashSet;
+import java.util.Set;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -139,7 +142,7 @@ class GearSteamShipTest {
 		room("stern gallery", -2.4, 2.4, M, -19.5, -18.0, false);
 		room("engine room (port of the boiler)", 2.0, 3.8, M, -5.4, 0.0, true);
 		room("engine room (forward)", -1.0, 1.0, M, -2.5, 3.8, true);
-		room("crew quarters (aft of the table)", -2.0, 2.0, M, -16.5, -15.8, true);
+		room("crew quarters (aft of the table)", -1.1, 1.1, M, -16.5, -15.8, true);
 		room("crew quarters (beside the table)", 1.65, 2.15, M, -14.6, -11.0, true);
 		room("captain's cabin", -0.6, 0.6, P, -13.1, -10.0, true);
 		room("hold (centre line)", -0.8, 0.8, H, -14.5, 5.0, true);
@@ -147,6 +150,9 @@ class GearSteamShipTest {
 		// the boiler and the furniture are solid
 		assertFalse(fits(0, M, GearSteamLayout.FUNNEL_Z + 0.5, CLOSED), "the boiler");
 		assertFalse(fits(0, M, -13.0, CLOSED), "the mess table");
+		assertFalse(fits(3.0, M, 1.7, CLOSED), "the steam engine");
+		assertFalse(fits(-3.2, M, -5.3, CLOSED), "the coal bunker of the engine room");
+		assertFalse(fits(0, F, 17.9, CLOSED), "the windlass");
 		// the engine room is 4 blocks high, the cabins 2.5 and 3, the hold 3
 		assertTrue(fits(0, M + 1.9, 1.0, CLOSED), "the engine room's head room");
 		// outside the hull: the sea, not carried; the hull sides and the bottom are solid
@@ -259,13 +265,183 @@ class GearSteamShipTest {
 		assertEquals(GearSteamLayout.ENGINE_DOOR, p.seat());
 	}
 
+	/**
+	 * The furniture (phase 2): the decoration mods' blocks first, every room furnished, enough seats, nothing poking
+	 * through the hull or the walls (every block's centre is in an open cell: a room, a deck or its own furniture
+	 * cell, inside the hull side under the main deck), the solid pieces in the grid.
+	 */
+	@Test
+	void furniture() {
+		InteriorDecor d = G.decor();
+		assertTrue(d.blocks().size() >= 100, "furniture of the decoration mods " + d.blocks().size());
+		assertTrue(d.seats().size() >= 18, "seats " + d.seats().size());
+		for (String mod : new String[] {"farmhouse_decorations:", "furnish:", "farmersdelight:", "landsoficaria:"}) {
+			assertTrue(d.blocks().stream().anyMatch(b -> b.block().startsWith(mod)), "uses " + mod);
+		}
+		// every room has its furniture: a few blocks whose centre lies in each room's box
+		double[][] rooms = {{-2.5, 2.5, P, P + 3, -13.5, -7.5}, {-4.5, 4.5, M, P, -17.0, -7.0}, {-4.5, 4.5, M, E, -6.0, 4.5},
+				{-4.5, 4.5, H, M, -15.5, 15.0}};
+		String[] names = {"captain's cabin", "crew quarters", "engine room", "hold"};
+		int[] least = {8, 20, 4, 30};
+		for (int r = 0; r < rooms.length; r++) {
+			double[] b = rooms[r];
+			long n = d.blocks().stream().filter(k -> k.x() > b[0] && k.x() < b[1] && k.y() >= b[2] - 0.01 && k.y() < b[3] && k.z() > b[4]
+					&& k.z() < b[5]).count();
+			assertTrue(n >= least[r], names[r] + ": " + n + " pieces of furniture");
+		}
+		for (InteriorDecor.Block b : d.blocks()) {
+			int i = (int) Math.floor((b.x() - GRID.x0) / GRID.cell);
+			int j = (int) Math.floor((b.y() + 0.1 - GRID.y0) / GRID.cell);
+			int k = (int) Math.floor((b.z() - GRID.z0) / GRID.cell);
+			byte kind = GRID.kind(i, j, k);
+			assertTrue(kind != InteriorGrid.SOLID, b.block() + " at " + b.x() + ", " + b.y() + ", " + b.z() + " stands in the hull or a wall");
+			if (b.y() < M) {
+				assertTrue(Math.abs(b.x()) < T.hull().halfWidth(b.z()) - 0.4, b.block() + " inside the hull at z " + b.z());
+			}
+		}
+		int furniture = 0;
+		for (int i = 0; i < GRID.nx; i++) {
+			for (int j = 0; j < GRID.ny; j++) {
+				for (int k = 0; k < GRID.nz; k++) {
+					furniture += GRID.kind(i, j, k) == InteriorGrid.FURNITURE ? 1 : 0;
+				}
+			}
+		}
+		assertTrue(furniture > 600, "solid furniture cells " + furniture);
+	}
+
+	/**
+	 * With the furniture in place, every room, deck and seat is still reached from the waist by walking, climbing the
+	 * stairs and the ladders with every door open (standing places of a 1 x 1 block footprint and 2 blocks of head
+	 * room, as tools/gear_steam_interior.walkable_report checks).
+	 */
+	@Test
+	void furnishedRoomsAreConnected() {
+		int nx = GRID.nx, ny = GRID.ny, nz = GRID.nz;
+		boolean[] pass = new boolean[nx * ny * nz];
+		boolean[] lad = new boolean[nx * ny * nz];
+		for (int i = 0; i < nx; i++) {
+			for (int j = 0; j < ny; j++) {
+				for (int k = 0; k < nz; k++) {
+					byte kind = GRID.kind(i, j, k);
+					int idx = (i * ny + j) * nz + k;
+					pass[idx] = kind == InteriorGrid.OUT || kind == InteriorGrid.DRY || kind == InteriorGrid.LADDER || kind >= InteriorGrid.DOOR;
+					lad[idx] = kind == InteriorGrid.LADDER;
+				}
+			}
+		}
+		int[] start = {cellX(-2.0), (int) Math.round((M - GRID.y0) / GRID.cell), cellZ(6.0)};
+		assertTrue(stand(pass, lad, start[0], start[1], start[2]), "start on the waist");
+		Set<Long> seen = new HashSet<>();
+		ArrayDeque<int[]> q = new ArrayDeque<>();
+		q.add(start);
+		seen.add(key(start[0], start[1], start[2]));
+		while (!q.isEmpty()) {
+			int[] c = q.poll();
+			boolean onLadder = any(lad, c[0], c[1], c[2], 2, 2, 2);
+			for (int[] mv : new int[][] {{1, 0}, {-1, 0}, {0, 1}, {0, -1}, {0, 0}}) {
+				boolean step = mv[0] != 0 || mv[1] != 0;
+				int[] dys = step ? new int[] {-1, 0, 1, -2, -3, -4, -5, -6} : new int[] {};
+				if (onLadder) {
+					dys = java.util.stream.IntStream.concat(java.util.Arrays.stream(dys), java.util.stream.IntStream.of(1, -1)).toArray();
+				}
+				for (int dy : dys) {
+					int i = c[0] + mv[0], j = c[1] + dy, k = c[2] + mv[1];
+					if (!seen.contains(key(i, j, k)) && stand(pass, lad, i, j, k)) {
+						seen.add(key(i, j, k));
+						q.add(new int[] {i, j, k});
+					}
+				}
+			}
+		}
+		double[][] places = {{0.0, F, 14.0}, {3.6, E, 1.0}, {1.5, P, -17.0}, {0.0, B, -11.5}, {3.0, M, -2.0}, {0.0, M, -9.0}, {0.0, M, -16.3},
+				{0.0, P, -11.0}, {0.0, H, -12.0}, {0.0, H, 12.0}, {0.0, M, -18.8}, {-2.75, M, -0.5}, {-2.75, H, -5.2}};
+		String[] where = {"forecastle", "engine house roof", "poop deck", "bridge", "engine room (by the aft door)", "crew quarters (forward)",
+				"crew quarters (by the galley)", "captain's cabin", "hold (aft)", "hold (forward)", "stern gallery", "engine room stair's head",
+				"engine room stair's foot in the hold"};
+		for (int p = 0; p < places.length; p++) {
+			assertTrue(reached(seen, places[p][0], places[p][1], places[p][2], 2), where[p] + " reached from the waist");
+		}
+		for (InteriorDecor.SeatSpot s : G.decor().seats()) {
+			assertTrue(reached(seen, s.dismountX(), s.dismountY() - 0.02, s.dismountZ(), 1),
+					"the stand-up spot of the seat at " + s.x() + ", " + s.y() + ", " + s.z() + " reached from the waist");
+		}
+		assertTrue(seen.size() > 2000, "standing places " + seen.size());
+	}
+
+	private static int cellX(double x) {
+		return (int) Math.floor((x - 0.5 - GRID.x0) / GRID.cell) + 1;
+	}
+
+	private static int cellZ(double z) {
+		return (int) Math.floor((z - 0.5 - GRID.z0) / GRID.cell) + 1;
+	}
+
+	/** A standing place (its footprint's min corner cell) within r cells of the point (x, floor, z). */
+	private static boolean reached(Set<Long> seen, double x, double floor, double z, int r) {
+		int j = (int) Math.round((floor - GRID.y0) / GRID.cell);
+		int i0 = (int) Math.floor((x - GRID.x0) / GRID.cell) - 1, k0 = (int) Math.floor((z - GRID.z0) / GRID.cell) - 1;
+		for (int di = -r; di <= r + 1; di++) {
+			for (int dk = -r; dk <= r + 1; dk++) {
+				if (seen.contains(key(i0 + di, j, k0 + dk))) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private static long key(int i, int j, int k) {
+		return ((long) i * 4096 + j) * 4096 + k;
+	}
+
+	private static boolean any(boolean[] m, int i0, int j0, int k0, int di, int dj, int dk) {
+		for (int i = i0; i < i0 + di; i++) {
+			for (int j = j0; j < j0 + dj; j++) {
+				for (int k = k0; k < k0 + dk; k++) {
+					if (i >= 0 && j >= 0 && k >= 0 && i < GRID.nx && j < GRID.ny && k < GRID.nz && m[(i * GRID.ny + j) * GRID.nz + k]) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	/** A 1 x 1 block footprint (2 x 2 cells from (i, k)) with 2 blocks of head room, on a floor or a ladder. */
+	private static boolean stand(boolean[] pass, boolean[] lad, int i, int j, int k) {
+		if (i < 0 || k < 0 || i + 1 >= GRID.nx || k + 1 >= GRID.nz || j < 1 || j + 4 > GRID.ny) {
+			return false;
+		}
+		for (int a = i; a < i + 2; a++) {
+			for (int b = j; b < j + 4; b++) {
+				for (int c = k; c < k + 2; c++) {
+					if (!pass[(a * GRID.ny + b) * GRID.nz + c]) {
+						return false;
+					}
+				}
+			}
+		}
+		if (any(lad, i, j - 1, k, 2, 2, 2)) {
+			return true;
+		}
+		for (int a = i; a < i + 2; a++) {
+			for (int c = k; c < k + 2; c++) {
+				if (!pass[(a * GRID.ny + j - 1) * GRID.nz + c]) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	@Test
 	void helmAndSeats() {
 		ShipGeometry.Seat pilot = G.seats().get(ShipGeometry.PILOT_SEAT);
 		assertTrue(pilot.pilot());
 		assertEquals(B + 0.28, pilot.y(), 1e-9, "the pilot stands on the bridge");
 		assertTrue(Math.abs(pilot.z() - GearSteamLayout.HELM_Z) < 1.2, "behind the wheel");
-		assertTrue(G.seats().size() >= 6, "the pilot and several passengers: " + G.seats().size());
+		assertTrue(G.seats().size() >= 19, "the pilot and the passengers: " + G.seats().size());
 		for (ShipGeometry.Seat s : G.seats()) {
 			double[] d = s.dismountLocal();
 			assertTrue(fits(d[0], d[1], d[2], CLOSED), "free stand-up spot of seat " + s.index());
@@ -310,7 +486,8 @@ class GearSteamShipTest {
 		BbModel m = load();
 		for (String bone : new String[] {"hull", "upperworks", "deck", "bow", "rooms", "furniture", "fittings", "detail", "helm_wheel", "rudder",
 				"mast_main", "mast_mizzen", "sail_main_sail", "sail_mizzen_sail", "gear_big_p", "gear_big_s", "gear_bow_p", "gear_bow_s",
-				"gear_funnel_a_p", "lantern_bow", "lantern_dome", "lantern_gallery_s", "crate_hang", "door_0_a", "door_3_b"}) {
+				"gear_funnel_a_p", "lantern_bow", "lantern_dome", "lantern_gallery_s", "crate_hang", "door_0_a", "door_3_b", "gear_flywheel",
+				"piston_0", "piston_1"}) {
 			assertNotNull(m.bonesByName.get(bone), "bone " + bone);
 		}
 		for (String anim : new String[] {"sail_wind", "sail_furl", "steer", "lantern_sway", "engine", "door_0", "door_1", "door_2", "door_3"}) {
@@ -359,6 +536,7 @@ class GearSteamShipTest {
 		double turn = maxMove(rest, vertices(m, "engine", 1.0f));
 		assertTrue(turn > 0.5 && turn < 6.0, "the gears turn: " + turn);
 		assertTrue(maxMove(vertices(m, "engine", 0f), vertices(m, "engine", 4.0f)) < 1e-3, "the engine loop joins up");
+		assertTrue(maxMove(vertices(m, "engine", 0.5f), vertices(m, "engine", 1.5f)) > 0.3, "the engine room's flywheel and pistons run");
 		assertTrue(maxMove(rest, vertices(m, "steer", 2.0f)) > 0.3, "the helm turns the wheel and the rudder");
 		float[] furled = vertices(m, "sail_furl", 1.0f);
 		assertTrue(furled.length < rest.length || maxMove(rest, furled) > 2.0, "the sails furl");

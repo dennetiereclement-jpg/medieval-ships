@@ -23,11 +23,12 @@ import fr.medievalships.entity.ShipEntity;
 import fr.medievalships.entity.ShipTracker;
 
 /**
- * The Gear Steamship in a real game (called once from {@link ShipClientGameTest}, about 40 s of game time): placed
+ * The Gear Steamship in a real game (called once from {@link ShipClientGameTest}, about 45 s of game time): placed
  * on a basin and floating at its waterline, the model loaded with its two textures and its animations, the
- * reference's viewpoint (starboard bow) and the side, stern and top views photographed (no HUD), the player stands
- * on the waist, the forecastle, the engine house roof, the poop deck, the bridge, in the engine room, the crew
- * quarters, the captain's cabin and the hold, walks on the waist, the engine room door opens, the gangplank is
+ * reference's viewpoint (starboard bow) and the side, stern and top views photographed (no HUD), then the furnished
+ * engine room, engine, crew quarters, captain's cabin and hold; the player stands on the waist, the forecastle, the
+ * engine house roof, the poop deck, the bridge, in the engine room, the crew quarters, the captain's cabin and the
+ * hold, sits in the captain's chair and stands up on the cabin floor, walks on the waist, the engine room door opens, the gangplank is
  * put out and stowed again, and the ship steams under the player's control from the helm (the wheel turns, the
  * gears turn, the funnel smokes, the engine beats); then it is removed.
  */
@@ -142,6 +143,16 @@ public final class GearSteamShipGameTest {
 			context.waitTicks(15);
 			shot.accept(id + "_" + names[k]);
 		}
+		// the furnished rooms (the decoration mods' blocks drawn by the ship, the engine, the galley, the cargo)
+		double mm = GearSteamLayout.MAIN_DECK_Y, pp = GearSteamLayout.POOP_Y, hh = GearSteamLayout.HOLD_FLOOR_Y;
+		double[][] roomEyes = {{0.2, mm + 1.62, 4.1}, {-0.6, mm + 1.62, -0.3}, {2.6, mm + 1.62, -7.6}, {-0.4, pp + 1.62, -13.0}, {0.4, hh + 1.62, 3.0}};
+		double[][] roomTargets = {{-0.3, mm + 1.2, -4.5}, {3.0, mm + 1.5, 1.8}, {-0.5, mm + 0.8, -15.5}, {0.3, pp + 0.9, -7.6}, {0.0, hh + 0.9, -14.0}};
+		String[] roomNames = {"16_salle_des_machines", "17_machine_a_vapeur", "18_quartiers_equipage", "19_cabine_capitaine", "20_cale"};
+		for (int k = 0; k < roomEyes.length; k++) {
+			look(server, pose, roomEyes[k][0], roomEyes[k][1], roomEyes[k][2], roomTargets[k][0], roomTargets[k][1], roomTargets[k][2]);
+			context.waitTicks(12);
+			shot.accept(id + "_" + roomNames[k]);
+		}
 		context.runOnClient(mc -> mc.options.hudHidden = false);
 
 		// walking aboard: every level and room
@@ -174,6 +185,22 @@ public final class GearSteamShipGameTest {
 				shot.accept(id + "_" + (5 + k) + "_" + where[k].replace(' ', '_').replace("'", ""));
 			}
 		}
+		// the captain's chair (the first seat of the furniture), then standing up on the cabin floor
+		boolean sat = server.computeOnServer(srv -> {
+			ServerPlayerEntity player = srv.getPlayerManager().getPlayerList().get(0);
+			ShipEntity e = ship(srv.getOverworld());
+			return e != null && e.seat(player, 1) && e.seatOf(player) == 1;
+		});
+		context.waitTicks(10);
+		check.accept(sat, id + ": the player sits in the captain's chair");
+		server.runCommand("ride @p dismount");
+		context.waitTicks(15);
+		double[] cs = context.computeOnClient((MinecraftClient mc) -> new double[] {mc.player.getX(), mc.player.getY(), mc.player.getZ(),
+				mc.player.hasVehicle() ? 1 : 0});
+		double[] lc = pose(server).toLocal(cs[0], cs[1], cs[2]);
+		log.accept(String.format(Locale.ROOT, "%s stood up from the captain's chair at local %.2f %.3f %.2f", id, lc[0], lc[1], lc[2]));
+		check.accept(cs[3] == 0 && Math.abs(lc[1] - GearSteamLayout.CABIN_FLOOR_Y) < 0.1 && Math.abs(lc[2] + 10.0) < 1.0,
+				String.format(Locale.ROOT, "%s: stands up from the captain's chair on the cabin floor (local y %.3f, z %.2f)", id, lc[1], lc[2]));
 		// a few steps on the waist while the ship is still
 		tp(server, pose(server), -1.5, m + 0.02, 5.8, 0, 5);
 		context.waitTicks(5);

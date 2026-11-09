@@ -26,7 +26,8 @@ the crew quarters, the captain's cabin, the hold; their walls, floors and ceilin
 boundaries of the interior grid (tools/gear_steam_interior.py): what is drawn is what collides.
 
 Bones used by the mod (keep their names when editing in Blockbench):
-  sail_* (sail_wind, sail_furl)  helm_wheel, rudder (steer)  gear_* (engine: the gear wheels turn with the speed)
+  sail_* (sail_wind, sail_furl)  helm_wheel, rudder (steer)  gear_* (engine: the gear wheels turn with the speed;
+  gear_flywheel: the engine room's flywheel)  piston_* (engine: the engine room's pistons)
   lantern_*, crate_hang (lantern_sway)   door_<k> (door k: 0 = closed, 1 = open)   rooms, furniture, fittings, detail
 """
 import math
@@ -45,6 +46,7 @@ import gear_steam_shape as gs  # noqa: E402
 import gear_steam_interior as gi  # noqa: E402
 import gear_steam_texture as gt  # noqa: E402
 import gear_steam_decor as gd  # noqa: E402
+import gear_steam_furniture as gf  # noqa: E402   (imports generate_airship: its module settings are overridden below)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _uuid_counter = [0]
@@ -942,6 +944,7 @@ def boiler(bone, lights):
 
 
 CUSTOM_BUILDERS = dict(gc.CUSTOM_BUILDERS)
+CUSTOM_BUILDERS.update(gf.BUILDERS)
 
 
 # ---------------------------------------------------------------- the rooms, on the interior grid
@@ -1024,8 +1027,9 @@ def surfaces(rooms_bone, g):
                                        center[2] + s * 0.3 if a == 2 else center[2])
                         ry0, ry1 = (gi.ROOMS[room][2], gi.ROOMS[room][3]) if room else (y_lo, y_hi)
                         hgt = max(0.5, ry1 - ry0)
-                        v0 = min(1.0, max(0.0, (ry1 - y_hi) / hgt))
-                        v1 = min(1.0, max(v0 + 0.01, (ry1 - y_lo) / hgt))
+                        # (a wall below the room's floor, round a hatch, samples the bottom band of the region)
+                        v0 = min(0.94, max(0.0, (ry1 - y_hi) / hgt))
+                        v1 = min(1.0, max(v0 + 0.06, (ry1 - y_lo) / hgt))
                         sub = ((hz0 % MAX_TILE) / MAX_TILE, v0, (hz1 % MAX_TILE + 1) / MAX_TILE, v1)
                     for f in cube.faces.values():
                         if f is not None:
@@ -1179,10 +1183,22 @@ def build_animations(root, sails_info):
     tracks = []
     period = 4.0
     for b in bones(root, lambda b: b.name.startswith("gear_") and b is not root):
+        if b.name == "gear_flywheel":
+            # the engine room's flywheel and crankshaft: whole turns a loop (the pistons follow its cranks)
+            spd = 360.0 * gf.FLYWHEEL_TURNS / period
+            tracks.append((b, [rot_kf(round(period * i / 8, 4), (spd * period * i / 8, 0, 0)) for i in range(9)]))
+            continue
         sgn = -1 if any(t in b.name for t in ("_b_", "gear_bow", "gear_gallery")) else 1
         n_teeth = 12 if "big" in b.name else 9
         spd = sgn * 360.0 * (12.0 / n_teeth) / period * (0.5 if "big" in b.name else 1.0)
         tracks.append((b, [rot_kf(round(period * i / 4, 4), (spd * period * i / 4, 0, 0)) for i in range(5)]))
+    # the pistons ride on the cranks (half a turn apart): their height follows the cosine of the flywheel's angle
+    n = 8 * gf.FLYWHEEL_TURNS
+    for b in bones(root, lambda b: b.name.startswith("piston_")):
+        ph = math.pi * int(b.name.split("_")[1])
+        keys = [kf("position", round(period * i / n, 4), (0, 16 * gf.PISTON_STROKE * (math.cos(2 * math.pi * gf.FLYWHEEL_TURNS * i / n + ph) - 1), 0),
+                   "catmullrom") for i in range(n + 1)]
+        tracks.append((b, keys))
     anims.append(animation("engine", period, "loop", tracks))
     return anims
 

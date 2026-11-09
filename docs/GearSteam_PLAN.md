@@ -76,8 +76,11 @@ Toutes les pièces et tous les ponts sont atteignables (rapport de `gear_steam_i
 
 ## 4. Sièges
 
-Pilote (passerelle) + fauteuil du capitaine, quatre places aux bancs du carré, tabouret du chauffeur (salle des machines),
-banc du gaillard. La phase de décoration en ajoute (mobilier des mods d'abord).
+20 places : le pilote (debout à la barre de la passerelle) et 19 sièges posés par le mobilier (§ 10) : le fauteuil du
+capitaine à son bureau et une chaise de visiteur, huit places aux bancs de la table du carré, le tabouret du chauffeur
+devant le foyer, deux places au banc des officiers sur la passerelle, une au banc de la dunette (contre le rouf), deux aux
+bancs du gaillard, trois aux bancs de la galerie de poupe. Chaque siège a sa place pour se relever, libre et sur un
+plancher (vérifié par `GearSteamShipTest`).
 
 ## 5. Matériaux, parties mobiles, contraintes
 
@@ -89,7 +92,8 @@ banc du gaillard. La phase de décoration en ajoute (mobilier des mods d'abord).
   lambris sombre à baguette de laiton (cabine), planches (quartiers, cale).
 * **Parties mobiles** : voiles (`sail_*` : `sail_wind`, `sail_furl`), roue et safran (`steer`), **engrenages** (`gear_*` :
   animation `engine`, jouée par le mod sur la distance parcourue : un quart de tour par seconde à l'allure normale, les
-  voisins tournent en sens inverse), lanternes et caisse de la grue (`lantern_sway`), portes (`door_0` … `door_3`).
+  voisins tournent en sens inverse), lanternes et caisse de la grue (`lantern_sway`), portes (`door_0` … `door_3`) ; dans la salle des machines, le volant et
+  le vilebrequin (`gear_flywheel`) et les deux pistons (`piston_0`, `piston_1`), joués par la même animation `engine`.
 * **Effets** (`GearSteamEffects`, client, près du joueur) : fumée de la cheminée (filet au repos, panache sous vapeur),
   bouffées de vapeur du dôme, battement de la machine (plus rapide avec la vitesse), crépitement du foyer, remous de
   l'hélice sous la voûte, grincements de la coque et du gréement ; écume d'étrave générique.
@@ -138,10 +142,45 @@ n'est pas dessinée (sous l'eau, invisible sur l'image, seul le remous la suggè
   peau de camouflage = case du bateau à vapeur, mêmes couleurs ; l'atlas commun n'est pas modifié), référence
   `src/test/resources/gear_steamship_reference_quads.json` (réécrite par le générateur : **toujours relancer
   `python3 tools/generate_gear_steam.py` après une modification du modèle**), aperçu `docs/preview_gear_steamship.png`.
+* Mobilier : `tools/gear_steam_decor.py` (placement, sièges, cases solides) et `tools/gear_steam_furniture.py` (pièces
+  modélisées), § 10.
 * Java : `GearSteamLayout`, `GearSteamShipEntity`, `GearSteamEffects` ; tests `GearSteamShipTest` (forme, dimensions,
-  niveaux, pièces, escaliers et échelles, portes, sièges, embarquement, passerelle, modèle, engrenages) et
-  `GearSteamShipGameTest` (en jeu : mise à l'eau, vues dont celle de la référence, chaque pont et chaque pièce, marche,
-  porte, passerelle sortie / rangée, barre, engrenages, fumée, sons) ; entrées dans `NoZFightingTest`,
+  niveaux, pièces, escaliers et échelles, portes, sièges, mobilier, pièces meublées toutes atteignables, embarquement,
+  passerelle, modèle, engrenages, volant et pistons) et
+  `GearSteamShipGameTest` (en jeu : mise à l'eau, vues dont celle de la référence, photos des pièces meublées, chaque pont
+  et chaque pièce, le fauteuil du capitaine (s'asseoir, se relever sur le plancher), marche, porte, passerelle sortie /
+  rangée, barre, engrenages, fumée, sons) ; entrées dans `NoZFightingTest`,
   `NewShipModelsTest`, `GangplankSpecsTest`, `GangplankFoldTest`.
 * Comparaison : `python3 tools/gear_steam_compare.py <référence> <sortie.png> [--zoom]` (référence au-dessus, rendu au
   même cadrage en dessous, points de calage, gros plans poupe / milieu / proue).
+
+## 10. Mobilier et décoration (phase 2)
+
+Les blocs des mods de décoration d'abord (Farmhouse Decorations, Furnish, Farmer's Delight, Lands of Icaria : 119 blocs,
+dessinés par le navire là où ils sont, jamais posés dans le monde ; une boîte de remplacement de même taille quand le mod
+manque) ; ce que les mods n'ont pas est modélisé dans `tools/gear_steam_furniture.py` (machine, soutes, tuyauterie,
+instruments, accastillage). Les meubles solides sont dans la grille (cases FURNITURE) : on les contourne ; chaises,
+bancs, tabourets et petits objets sur les tables ne le sont pas.
+
+| Pièce / pont | Blocs des mods | Pièces modélisées |
+| --- | --- | --- |
+| Salle des machines | établi et panneau d'outils (Farmhouse), deux casiers d'acier (Furnish), tonneau d'huile à robinet (Icaria), tabouret du chauffeur, trois lanternes suspendues | **machine à vapeur à deux cylindres** (bâbord avant : socle riveté, paliers, colonnes en A, cylindres cerclés de laiton, coffre à vapeur ; le **volant et le vilebrequin tournent** avec la machine — bone `gear_flywheel`, deux tours par boucle de l'animation `engine` — et les **pistons montent et descendent** sur leurs manivelles, bones `piston_0` / `piston_1`), soute à charbon rivetée avec sa pelle (tribord arrière), tas de charbon devant le foyer, garde-corps de fer autour de la descente vers la cale, conduites de vapeur en cuivre au plafond (chaudière → coffre à vapeur, chaudière → manomètres) avec leurs vannes, deux tableaux de manomètres, leviers, transmetteur d'ordres (répétiteur du télégraphe), porte-voix, coffre à outils |
+| Quartiers de l'équipage | table du carré en quatre éléments (Farmhouse) et huit bancs (Furnish), trois couchettes (lits simples Farmhouse, hors des fenêtres), quatre casiers (Furnish), armoire, portemanteau, guitare ; **cuisine** dans l'angle tribord arrière : fourneau en fonte avec bouilloire et marmites, plan de travail, marmite (Farmer's Delight), étagère à épices ; sur la table : assiettes, bouteilles, poulet rôti, lampe | chopes, tuyau du fourneau jusqu'au plafond, les quatre fenêtres vues de l'intérieur |
+| Cabine du capitaine | lit (Farmhouse), grand bureau à plateau de cuir et fauteuil à haut dossier (Furnish), bibliothèque haute, cabinet à liqueurs, commode avec boîte à cigares et cadre, chaise de visiteur, tapis rond, coucou, lampe et livres sur le bureau | carte marine, compas, encrier, compas à pointes sur le bureau, carte murale au-dessus, les huit fenêtres vues de l'intérieur (trois par bord, deux à l'avant) |
+| Cale | caisses en deux étages et sacs de riz (Furnish, Farmer's Delight) le long du bord bâbord, tonneaux couchés et tonneau à robinet (Icaria) le long du bord tribord, caisses sous les fenêtres, cinq lanternes ; l'axe reste libre | deux grandes soutes à charbon sous la salle des machines, engrenage de rechange appuyé au bordé, tubes de cuivre de rechange sur leurs cales, glène de chaîne, glène de cordage |
+| Dunette | caisses empilées dans l'angle tribord arrière et sur le surplomb (la cargaison qui attend la grue, comme la caisse suspendue de l'image), tonneau couché, banc contre le rouf | glène de chaîne au pied de la grue |
+| Passerelle | banc des officiers (deux places) | transmetteur d'ordres à la machine près de la barre |
+| Toit des machines | — | deux manches à air de cuivre à pavillon, devant le dôme |
+| Passavant | deux tonneaux contre le pavois bâbord, près de la descente | glène de cordage au pied du grand mât |
+| Gaillard d'avant | deux caisses à bâbord, deux bancs à tribord | guindeau à vapeur (barbotins, freins de laiton, engrenage, petit cylindre, chaînes vers les écubiers), deux bittes d'amarrage, glène de chaîne |
+| Galerie de poupe | trois bancs le long de la lisse arrière | — |
+
+Gardés libres (tests et rapport de `tools/gear_steam_interior.py`) : les portes, les escaliers, les échelles, la marche de
+la passerelle d'embarquement et le levier sur le passavant tribord, l'axe de la cale, les places où l'on se relève des
+sièges ; toutes les pièces, tous les ponts et toutes ces places restent atteignables à pied depuis le passavant, portes
+ouvertes (parcours en largeur sur la grille meublée : `GearSteamShipTest.furnishedRoomsAreConnected`). Rien ne dépasse de la
+coque : le centre de chaque bloc est dans une case ouverte de sa pièce ou de son pont.
+
+Textures : les régions des meubles (douelles, couvercles, coffres, tôle rivetée, cadrans, bocaux, outils, carte murale…)
+sont recopiées de l'atlas intérieur du Léviathan (`tools/leviathan_texture.py`, lu seulement) dans l'atlas de la coque,
+sous les mêmes noms « in_* », pour réutiliser les meubles de `tools/leviathan_furniture.py`.

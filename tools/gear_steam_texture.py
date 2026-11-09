@@ -103,6 +103,42 @@ for _alias, _src in (("hull_mid", "wood_mid"), ("hull_light", "wood_light"), ("h
                      ("hull_brown", "wood_dark"), ("wood", "wood_mid")):
     REGIONS[_alias] = REGIONS[_src]
 
+# ---- the furniture of the rooms (decoration phase): regions copied pixel for pixel from the Sky Leviathan's
+# interior atlas (tools/leviathan_texture.py, read only), under their own names, so that the furniture builders of
+# tools/leviathan_furniture.py (barrels, chests, gauges, shelves of jars, tools, maps...) find them here
+IN_COPIED = {
+    "in_staves":      (0, 224, 32, 16),
+    "in_barrel_lid":  (32, 224, 16, 16),
+    "in_chest":       (48, 224, 32, 16),
+    "in_chest_lid":   (80, 224, 32, 16),
+    "in_rivets":      (112, 224, 16, 16),
+    "in_dial_red":    (128, 224, 16, 16),
+    "in_paper":       (144, 224, 16, 16),
+    "in_slate":       (160, 224, 16, 16),
+    "in_candle":      (176, 224, 16, 16),
+    "in_leather":     (192, 224, 16, 16),
+    "in_glass_green": (208, 224, 16, 16),
+    "in_porthole":    (224, 224, 16, 16),
+    "in_brick":       (240, 224, 32, 16),
+    "in_jars":        (272, 224, 64, 16),
+    "in_jars2":       (336, 224, 64, 16),
+    "in_tools":       (400, 224, 48, 16),
+    "in_blanket":     (448, 224, 32, 32),
+    "in_map_wall":    (0, 240, 48, 32),
+    "in_globe":       (48, 240, 64, 32),
+    "in_grate":       (112, 240, 32, 32),
+    "in_window":      (144, 240, 32, 48),
+}
+REGIONS.update(IN_COPIED)
+# the other names of those builders: the ship's own metals, woods and cloths
+for _alias, _src in (("in_iron", "iron"), ("in_brass", "brass"), ("in_gold", "brass"), ("in_copper", "pipe"), ("in_boiler", "boiler"),
+                     ("in_beam", "wood_dark"), ("in_beam_end", "end_grain"), ("in_plank", "wood_mid"), ("in_coal", "coal"), ("in_rope", "rope"),
+                     ("in_sack", "sack"), ("in_canvas", "canvas"), ("in_glow", "glow"), ("in_lamp", "lantern"), ("in_fire", "fire"),
+                     ("in_chart", "chart"), ("in_books", "books"), ("in_bedding", "linen"), ("in_red_cloth", "red_paint"),
+                     ("in_cushion", "red_paint"), ("in_gauge", "gauge"), ("in_rug", "rug"), ("coral_red", "red_paint"),
+                     ("gear_iron", "iron_band"), ("in_boiler_band", "brass_band")):
+    REGIONS[_alias] = REGIONS[_src]
+
 # the sails (second texture): 20 px a block of canvas
 SAIL_REGIONS = {
     "main_sail":   (0, 0, 220, 180),
@@ -472,8 +508,27 @@ def make_texture(path):
     ct._boat(px, R["boat"], rng)
     _blocks(px, R["ham"], ("9a4632", "8a3c2a"), "5a2418", rng, bw=8, bh=4)
     _blocks(px, R["wall_stone"], ("5e6065", "686a6f", "55575c"), "2e2f32", rng, bw=16, bh=8)
+    _copy_interior_regions(img)
     img.save(path)
     return img
+
+
+def _copy_interior_regions(img):
+    """Pastes the furniture regions of the Sky Leviathan's interior atlas (painted by tools/leviathan_texture.py into
+    a temporary file) at their places in this atlas (IN_COPIED)."""
+    import os
+    import shutil
+    import tempfile
+    import leviathan_texture as lt
+    tmp = tempfile.mkdtemp(prefix="gear_steam_tex_")
+    try:
+        src = lt.make_interior_texture(os.path.join(tmp, "interior.png"))
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+    for name, (u, v, w, h) in IN_COPIED.items():
+        su, sv, sw, sh = lt.REGIONS_IN[name]
+        assert (sw, sh) == (w, h), name
+        img.paste(src.crop((su, sv, su + sw, sv + sh)), (u, v))
 
 
 def make_sail_texture(path):
