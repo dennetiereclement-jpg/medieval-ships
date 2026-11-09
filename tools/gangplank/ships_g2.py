@@ -732,6 +732,9 @@ place("old_corsair", "starboard", 0.0, 3.0, 6.0, 4.7, 4.5, 4.0, 8.0, "worn", (-1
 # blue frigate: between the main and fore shrouds; bulwark top 7.0 over the deck at 5.5; the open hatch is on the port side.
 place("blue_frigate", "starboard", 1.0, 3.0, 7.55, 4.6, 5.5, 4.0, 10.0, "dark_wood", (-15, 42), rail_gap=False, lever_end=1,
       lever=[-3.5, 5.5, 2.95])
+# royal lion ship (lot 2): on the waist between the main and fore shrouds, starboard (the hold's companionway is on the
+# port side); the bulwark of the grid tops at 6.5 over the deck at 5.0, the gold cap rail at 6.93: hinge over it.
+place("royal_lion_ship", "starboard", 3.0, 3.0, 6.95, 5.47, 5.0, 5.0, 9.5, "dark_wood", (-15, 42), rail_gap=False, lever_end=1)
 # Large airships (max_drop: the reach to a landing platform under the gallery)
 # crystal airship: on the waist between the side benches (z -5..-4 and 3..4); deck 0, bulwark 1.0 (grid).
 place("crystal_airship", "starboard", -0.5, 3.5, 1.13, 6.03, 0.0, 5.5, 5.5, "crystal", (-25, 45), rail_gap=False, lever_end=-1,
@@ -762,6 +765,7 @@ COMPACT = {
     "crystal_airship":  (None, None, 0.10, 0),
     "sky_leviathan":    (None, None, 0.11, 0),
     "dragon_junk":      (None, 0.24, 0.05, 0),
+    "royal_lion_ship":  (16, 0.9, 0.07, 9),
 }
 for _ship, (_n, _drop, _off, _tilt) in COMPACT.items():
     _s = SPECS[_ship]

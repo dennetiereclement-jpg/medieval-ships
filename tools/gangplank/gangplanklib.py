@@ -64,7 +64,7 @@ for _i, _s in enumerate(STYLES):
 # seams) and of the band under the hinge (trim), sampled from the ship models by `ships_g2.py camo`; one 64 x 16 cell
 # per vessel in the lower half of the atlas: the skin (48 x 16, planks running along u) and the trim (16 x 16).
 CAMO_SHIPS = ("galley", "galleon", "warship", "medieval_galley", "steam_paddleboat", "elven_sailboat", "old_corsair",
-              "blue_frigate", "steampunk_airship", "crystal_airship", "sky_leviathan", "dragon_junk")
+              "blue_frigate", "steampunk_airship", "crystal_airship", "sky_leviathan", "dragon_junk", "royal_lion_ship")
 CAMO = {
     # ship: (skin, seams, trim)            -- from `python3 tools/gangplank/ships_g2.py camo`
     'galley': ('964526', '5a1814', 'bb8648'),
@@ -79,6 +79,7 @@ CAMO = {
     'sky_leviathan': ('7e5639', '5f422c', '5c3b21'),
     'dragon_junk': ('c7b99d', '746650', '5c3a24'),
     'steampunk_airship': ('704a2a', '48301a', 'a77d28'),
+    'royal_lion_ship': ('d3b138', '694e11', 'c29028'),
 }
 for _i, _s in enumerate(CAMO_SHIPS):
     _ox, _oy = (_i % 4) * 64, 128 + (_i // 4) * 16
