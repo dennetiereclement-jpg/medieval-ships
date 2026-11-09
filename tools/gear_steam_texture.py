@@ -15,19 +15,27 @@ Every region is (u, v, w, h); REGIONS and SAIL_REGIONS are shared with tools/gen
 import math
 import random
 
+import numpy as np
 from PIL import Image
 
 from galley_texture import _jitter, _rgb, paint_lamp_glass, polished_metal
 import corsair_texture as ct
 
-SIZE = 512
-SAIL_SIZE = 512
+# visual upgrade (1.27.1): the atlases are painted at 32 px a block (1024 x 1024) instead of 16 (512 x 512). The regions
+# below are laid out in "layout units" (the old 512 atlas, 16 a block); REGIONS / SAIL_REGIONS are the same rectangles
+# in texels (x K), and the model generator doubles the UV density of its faces (tools/generate_gear_steam.py).
+K = 2
+SIZE = 512 * K
+SAIL_SIZE = 512 * K
+BLK = 16 * K     # texels a block
 
 REGIONS = {
     # hull and upper works
-    "plate_a":     (0, 0, 64, 32),      # iron plate mosaic (16 px a block), the hull sides
-    "plate_b":     (64, 0, 64, 32),     # the same, a little lighter (castle walls)
-    "plate_c":     (128, 0, 64, 32),    # the same, darker (the bottom, under the water)
+    "plate_a":     (0, 288, 128, 64),   # iron plate mosaic (a plate a block, 8 x 4 plates), the hull sides
+    "plate_b":     (128, 288, 128, 64), # the same, a little lighter (castle walls)
+    "plate_c":     (256, 288, 128, 64), # the same, darker (the bottom, under the water)
+    "dome_gore":   (384, 288, 32, 16),  # one plate of the dome's cap, stretched on each plate: a gore with rivets on its seams
+    "gear_bevel":  (416, 288, 16, 16),  # a bevelled brass bar, stretched on each piece of a gear wheel (lit and shadowed edges)
     "copper":      (192, 0, 64, 16),    # riveted copper band
     "copper2":     (192, 16, 64, 16),   # riveted copper cap (a warmer tone)
     "brass":       (256, 0, 64, 16),    # polished brass
@@ -150,6 +158,11 @@ SAIL_CELLS = {"main_sail": (11, 9), "mizzen_sail": (7, 5)}
 # height span (top, bottom) of each column of cloths and the sail's width, so that the emblem is painted round on the
 # hanging (slanted) cloths
 SAIL_COLUMNS = {}
+
+# layout units (the old 512 atlas) -> texels
+LAYOUT, SAIL_LAYOUT = REGIONS, SAIL_REGIONS
+REGIONS = {k: tuple(K * c for c in r) for k, r in LAYOUT.items()}
+SAIL_REGIONS = {k: tuple(K * c for c in r) for k, r in SAIL_LAYOUT.items()}
 
 _mix, _scale, _planks, _blocks, _fill = ct._mix, ct._scale, ct._planks, ct._blocks, ct._fill
 # the gold of the sails: a warm bronze-gold, as the orange gold of the reference (not a pale lemon yellow)
@@ -391,83 +404,590 @@ def gear_mask(size, teeth=10, spokes=8):
     return img
 
 
-def _black_sail(px, region, cols, rows, rng, stripe=0.31, emblem=None):
-    """Black blocky sail: a tone per cloth block, lighter in the belly, darker at the leeches; a gold
-    border on the fore leech (right, seen from starboard) and along the foot from a vertical gold stripe
-    at `stripe` of the width; emblem = (centre u, centre v, diameter) fractions of a gold gear."""
+# ---------------------------------------------------------------- HD painters (1.27.1: 32 px a block, baked light)
+# Minecraft lights entities flatly (a face is only darker or lighter by its direction), so the light and the wear are
+# painted in: every block bevelled (lit upper and left edges, shadowed lower and right ones, a dark seam), a tone per
+# plate or plank, soft mottling, rivets lit from the top left with a small cast shadow, polished metals with their
+# reflection and shadow bands, glowing windows in deep orange (the game also darkens their sides).
+def _c(h):
+    return np.array(_rgb(h), float)
+
+
+def _nrs(rng):
+    return np.random.RandomState(rng.randrange(1 << 30))
+
+
+def _noise(w, h, cell, rng, cell_y=None):
+    """Smooth value noise in [-1, 1], features about `cell` texels wide (cell_y tall)."""
+    cy = cell if cell_y is None else cell_y
+    g = _nrs(rng).uniform(-1, 1, (int(h / cy) + 2, int(w / cell) + 2))
+    xs, ys = np.arange(w) / cell, np.arange(h) / cy
+    x0, y0 = xs.astype(int), ys.astype(int)
+    fx, fy = xs - x0, ys - y0
+    fx, fy = fx * fx * (3 - 2 * fx), fy * fy * (3 - 2 * fy)
+    top = g[y0][:, x0] * (1 - fx) + g[y0][:, x0 + 1] * fx
+    bot = g[y0 + 1][:, x0] * (1 - fx) + g[y0 + 1][:, x0 + 1] * fx
+    return top * (1 - fy)[:, None] + bot * fy[:, None]
+
+
+def _grain(w, h, rng, amp):
+    return _nrs(rng).uniform(-amp, amp, (h, w))
+
+
+def _ramp_np(stops, t):
+    """Colour ramp over evenly spaced stops for an array t in [0, 1] -> (..., 3)."""
+    cs = np.array([_c(s) if isinstance(s, str) else np.asarray(s, float) for s in stops])
+    t = np.clip(t, 0, 1) * (len(cs) - 1)
+    i = np.minimum(len(cs) - 2, t.astype(int))
+    f = (t - i)[..., None]
+    return cs[i] * (1 - f) + cs[i + 1] * f
+
+
+def _put(a, region, col):
     u, v, w, h = region
-    tones = [_rgb(c) for c in ("292625", "2f2b2a", "34302f", "232020", "393433")]
+    a[v:v + h, u:u + w, :3] = np.clip(col, 0, 255)
+    a[v:v + h, u:u + w, 3] = 255
+
+
+def _rivet(img, cx, cy, r, base, shadow=0.5, hi=None, lo=None):
+    """A round rivet head lit from the top left, drawn on img (h, w, 3) in place: a lit cap with a bright spot, a dark
+    rim on its lower right, a small cast shadow below right."""
+    h, w = img.shape[:2]
+    base = np.asarray(base, float)
+    hi = np.minimum(255, base * 1.6 + 36) if hi is None else np.asarray(hi, float)
+    lo = base * 0.42 if lo is None else np.asarray(lo, float)
+    for y in range(int(cy - r - 1), int(cy + r + 3)):
+        for x in range(int(cx - r - 1), int(cx + r + 3)):
+            if not (0 <= x < w and 0 <= y < h):
+                continue
+            dx, dy = x + 0.5 - cx, y + 0.5 - cy
+            d = math.hypot(dx, dy)
+            if d <= r:
+                lt = -(dx + dy) / (1.414 * r)
+                c = base * (1.0 + 0.3 * lt)
+                if lt > 0.3 and d < r * 0.75:
+                    c = hi
+                elif d > r - 0.95 and lt < -0.1:
+                    c = lo
+                img[y, x] = c
+            elif d <= r + 1.6 and dx + dy > 0.5 * r:
+                img[y, x] = img[y, x] * shadow
+
+
+def _bevel(block_w, block_h, light=(3.0, 2.5), dark=(4.0, 3.0), kl=(0.85, 0.45), kd=(0.6, 0.4)):
+    """Light and shadow weights of a bevelled block (block_h, block_w): lit upper / left edges, dark lower / right."""
+    ys, xs = np.mgrid[0:block_h, 0:block_w].astype(float)
+    hl = np.clip(np.clip(1 - (ys - 1) / light[0], 0, 1) * kl[0] + np.clip(1 - (xs - 1) / light[1], 0, 1) * kl[1], 0, 1)
+    sh = np.clip(np.clip(1 - (block_h - 2 - ys) / dark[0], 0, 1) * kd[0] + np.clip(1 - (block_w - 2 - xs) / dark[1], 0, 1) * kd[1], 0, 0.78)
+    return hl, sh, ys
+
+
+def _plates_hd(a, region, tones, rng, rivet="5a4636", rust=0.14, seam="0e0a08", lit="140c08", lit_k=1.65, rivets="corners",
+               brown=0.3, block=BLK, scratches=1, rust_col="6e3c1e"):
+    """Riveted plates a block each with baked light: a tone per plate (some browner), soft mottling, each plate a little
+    lighter at its top, a lit bevel on the upper and left edges, a shadowed bevel on the lower and right edges, a dark
+    seam, rivet heads (four corners, or columns along the vertical seams), light scratches and rust runs."""
+    u, v, w, h = region
+    out = np.zeros((h, w, 3))
+    mott = _noise(w, h, 7, rng) * 0.07 + _noise(w, h, 2.5, rng) * 0.035 + _grain(w, h, rng, 0.025)
+    hl, sh, ys = _bevel(block, block)
+    grad = 1.05 - 0.12 * ys / block
+    seam, litc = _c(seam), _c(lit)
+    tones = [_c(t) for t in tones]
+    r = rng
+    for by in range(0, h, block):
+        for bx in range(0, w, block):
+            base = tones[r.randrange(len(tones))] * r.uniform(0.86, 1.14)
+            if r.random() < brown:
+                base = base * 0.82 + _c("4a3020") * 0.18 * r.uniform(0.6, 1.4)
+            m = mott[by:by + block, bx:bx + block]
+            col = base[None, None, :] * (grad * (1 + m))[..., None]
+            col = col * (1 - hl[..., None]) + (col * lit_k + litc) * hl[..., None]
+            col = col * (1 - sh[..., None])
+            col[block - 1, :] = seam
+            col[:, block - 1] = seam
+            for _ in range(r.randrange(0, scratches + 1)):
+                x0, y0 = r.uniform(4, block - 6), r.uniform(5, block - 6)
+                ang = r.uniform(-0.6, 0.6) + (math.pi / 2 if r.random() < 0.3 else 0)
+                ln = r.uniform(3, 8)
+                for t in np.linspace(0, ln, int(ln * 2)):
+                    x, y = int(x0 + t * math.cos(ang)), int(y0 + t * math.sin(ang))
+                    if 1 <= x < block - 2 and 1 <= y < block - 2:
+                        col[y, x] = col[y, x] * 1.3 + 7
+            if r.random() < rust:
+                x0 = r.choice((5, block - 6, r.randrange(6, block - 6)))
+                y0 = 7 if x0 in (5, block - 6) else r.randrange(3, 10)
+                ln = r.randrange(6, 18)
+                rc = _c(rust_col)
+                for t in range(ln):
+                    y = y0 + t
+                    if y >= block - 2:
+                        break
+                    k = 0.6 * (1 - t / ln)
+                    for xx in (x0, x0 + (1 if t % 3 else 0), x0 - (1 if t < 3 else 0)):
+                        if 1 <= xx < block - 2:
+                            col[y, xx] = col[y, xx] * (1 - k) + rc * k
+            out[by:by + block, bx:bx + block] = col
+            tile = out[by:by + block, bx:bx + block]
+            rb = _c(rivet) * r.uniform(0.9, 1.1)
+            if rivets == "corners":
+                for cx, cy in ((5, 5), (block - 6, 5), (5, block - 6), (block - 6, block - 6)):
+                    _rivet(tile, cx + 0.5, cy + 0.5, 1.9, rb)
+            elif rivets == "columns":
+                for cy in range(4, block - 3, 7):
+                    _rivet(tile, 3.5, cy + 0.5, 1.5, rb)
+                    _rivet(tile, block - 4.5, cy + 0.5, 1.5, rb)
+    _put(a, region, out)
+
+
+def _band_hd(a, region, stops, rng, rivet=None, rivets=2, seg=BLK, patina=0.0, rivet_r=None, refl=0.32):
+    """A riveted metal band a block a segment: rounded light across it (a lit upper edge, a bright reflection, a
+    shadowed lower edge), each segment's ends bevelled with a dark joint, big rivets lit from the top left."""
+    u, v, w, h = region
+    dark, mid, light = (_c(s) for s in stops)
+    t = (np.arange(h) + 0.5) / h
+    prof = 0.8 + 0.3 * np.sin(np.pi * np.clip(t * 1.05, 0, 1)) ** 0.8
+    prof = prof + refl * np.exp(-((t - 0.25) / 0.09) ** 2)
+    prof = prof - 0.38 * np.clip((t - 0.78) / 0.22, 0, 1) ** 1.4
+    n = _noise(w, h, 6, rng, 3) * 0.06 + _grain(w, h, rng, 0.03)
+    col = mid[None, None, :] * (prof[:, None] * (1 + n))[..., None]
+    col[0] = light
+    col[1] = (light + col[1]) / 2
+    col[h - 1] = dark * 0.7
+    col[h - 2] = (dark * 0.8 + col[h - 2]) / 2
+    for x in range(w):
+        k = x % seg
+        if k == seg - 1:
+            col[:, x] = dark * 0.55
+        elif k == seg - 2:
+            col[:, x] *= 0.7
+        elif k == seg - 3:
+            col[:, x] *= 0.88
+        elif k == 0:
+            col[:, x] = col[:, x] * 1.25 + 8
+        elif k == 1:
+            col[:, x] *= 1.1
+    if patina:
+        pn = _noise(w, h, 4, rng)
+        m = np.clip((pn - (1 - patina)) * 3, 0, 1)[..., None]
+        col = col * (1 - 0.35 * m) + _c("3e5a48") * 0.35 * m * (col.mean(axis=2, keepdims=True) / 120)
+    if rivet:
+        rr = rivet_r or max(1.8, h * 0.1)
+        rb = _c(rivet)
+        for s0 in range(0, w, seg):
+            for j in range(rivets):
+                _rivet(col, s0 + (j + 0.5) * seg / rivets, h * 0.5, rr, rb * rng.uniform(0.92, 1.06))
+    _put(a, region, col)
+
+
+def _polished_hd(a, region, stops, rng, waves=1.0, streak=0.06, amp=1.0):
+    """Polished brass: soft broad reflections on a ramp from shadow to highlight, brushed streaks along u, the lower
+    edge darker and the upper edge lit."""
+    u, v, w, h = region
+    ys, xs = np.mgrid[0:h, 0:w].astype(float)
+    t = 0.5 + amp * (0.26 * np.sin(xs * 0.09 * waves + np.sin(ys * 0.16) * 1.3) + 0.18 * np.cos(ys * 0.13 + xs * 0.035 * waves)
+                     + 0.12 * np.sin((xs - ys) * 0.11))
+    t = t + streak * _noise(w, h, 16, rng, 1.2) + _grain(w, h, rng, 0.02)
+    t = t + 0.18 * np.exp(-((ys / h - 0.22) / 0.1) ** 2) - 0.22 * np.clip((ys / h - 0.75) / 0.25, 0, 1)
+    col = _ramp_np(stops, t)
+    _put(a, region, col)
+
+
+def _glow_window_hd(a, region, rng):
+    """A square window glowing deep orange (a warm core, saturated edges), four panes behind a cross of bronze bars, in a
+    bevelled brass frame with corner rivets."""
+    u, v, w, h = region
+    fw = max(4, w // 10)
+    ys, xs = np.mgrid[0:h, 0:w].astype(float) + 0.5
+    col = np.zeros((h, w, 3))
+    # glass: a warm glow brighter in the lower middle (the lamp), saturated orange at the edges
+    d = np.hypot((xs - w / 2) / (w / 2), (ys - h * 0.58) / (h / 2))
+    glass = _ramp_np(("fff0b0", "ffc860", "ff9a2a", "e86a14", "b84a0c"), np.clip(d * 0.95, 0, 1))
+    col[:] = glass
+    # each pane a little darker in its upper outer corner (the frame's shadow on the glass)
+    px_ = (xs % (w / 2)) / (w / 2)
+    py_ = (ys % (h / 2)) / (h / 2)
+    col *= (1 - 0.18 * np.clip(1 - py_ * 3, 0, 1))[..., None]
+    # bars
+    bw = max(1.5, w * 0.045)
+    bar = (np.abs(xs - w / 2) < bw) | (np.abs(ys - h / 2) < bw)
+    barc = np.where(((xs - w / 2) < -bw + 1.0)[..., None] | ((ys - h / 2) < -bw + 1.0)[..., None], _c("a0642a"), _c("4a2a12"))
+    col = np.where(bar[..., None], barc, col)
+    # frame
+    inner = (xs > fw) & (xs < w - fw) & (ys > fw) & (ys < h - fw)
+    t = np.full((h, w), 0.55)
+    t = np.where(ys < fw, 0.9 - 0.05 * ys, t)
+    t = np.where(xs < fw, np.maximum(t, 0.75), t)
+    t = np.where(ys > h - fw, 0.25, t)
+    t = np.where(xs > w - fw, np.minimum(t, 0.35), t)
+    t = t + _grain(w, h, rng, 0.04)
+    frame = _ramp_np(BRASS, t)
+    edge = ((xs < 1) | (ys < 1) | (xs > w - 1) | (ys > h - 1))
+    frame = np.where(edge[..., None], _c(BRASS[0]) * 0.7, frame)
+    rebate = (~inner) & (xs > fw - 1.0) & (xs < w - fw + 1.0) & (ys > fw - 1.0) & (ys < h - fw + 1.0)
+    col = np.where(inner[..., None], col, frame)
+    col = np.where(rebate[..., None], _c("2a1608"), col)
+    for cx, cy in ((fw / 2, fw / 2), (w - fw / 2, fw / 2), (fw / 2, h - fw / 2), (w - fw / 2, h - fw / 2)):
+        _rivet(col, cx, cy, max(1.3, fw * 0.3), _c(BRASS[2]))
+    _put(a, region, col)
+
+
+def _gore_hd(a, region, rng):
+    """One copper plate of the dome's cap (stretched on each plate): a soft vertical reflection (the gores of the
+    reference), lit upper seam, dark lower seam, a column of brass rivets along each side seam, a little verdigris."""
+    u, v, w, h = region
+    ys, xs = np.mgrid[0:h, 0:w].astype(float) + 0.5
+    s = xs / w
+    t = 0.42 + 0.34 * np.exp(-((s - 0.38) / 0.2) ** 2) - 0.22 * np.clip((s - 0.72) / 0.28, 0, 1) - 0.15 * np.clip((0.12 - s) / 0.12, 0, 1)
+    t = t + 0.05 * _noise(w, h, 5, rng) + _grain(w, h, rng, 0.025) - 0.08 * ys / h
+    col = _ramp_np(("4a1e0c", "7a3418", "a24c24", "c86a38", "f0a070"), t)
+    col[0:2] = col[0:2] * 1.25 + 10
+    col[h - 2:] = _c("2a1006")
+    col[:, w - 1] = _c("2a1006")
+    col[:, 0] = col[:, 0] * 1.15
+    vn = _noise(w, h, 3, rng)
+    m = np.clip((vn - 0.55) * 2.5, 0, 1)[..., None]
+    col = col * (1 - 0.45 * m) + _c("4f8a72") * 0.45 * m
+    for cy in np.linspace(h * 0.2, h * 0.8, 3):
+        _rivet(col, 3.0, cy, 1.6, _c(BRASS[2]))
+        _rivet(col, w - 4.0, cy, 1.6, _c(BRASS[2]))
+    _put(a, region, col)
+
+
+def _bevel_brass_hd(a, region, rng):
+    """A brass bar seen face on, stretched on each piece of a gear wheel: polished middle, a lit upper and left edge, a
+    shadowed lower and right edge, a dark outline (the pieces read in relief)."""
+    u, v, w, h = region
+    hl, sh, ys = _bevel(w, h, light=(4.0, 4.0), dark=(5.0, 5.0), kl=(0.9, 0.7), kd=(0.75, 0.6))
+    t = 0.5 + 0.1 * _noise(w, h, 8, rng) + _grain(w, h, rng, 0.02) - 0.08 * ys / h
+    col = _ramp_np(("5a2a08", "94501a", "c47a2a", "e8a446", "ffd488"), t + 0.42 * hl - 0.5 * sh)
+    col[0, :] = col[:, 0] = _c("6a3a12")
+    col[h - 1, :] = col[:, w - 1] = _c("2a1404")
+    _put(a, region, col)
+
+
+def _pipe_hd(a, region, rng):
+    """A copper pipe: rounded light across it (a bright reflection in its upper third, a dark underside), long brushed
+    streaks, a joint ring every block."""
+    u, v, w, h = region
+    ys, xs = np.mgrid[0:h, 0:w].astype(float) + 0.5
+    t = ys / h
+    k = 0.18 + 0.7 * np.sin(np.pi * t) ** 0.7 + 0.35 * np.exp(-((t - 0.28) / 0.07) ** 2) - 0.25 * np.clip((t - 0.7) / 0.3, 0, 1)
+    k = k + 0.05 * _noise(w, h, 14, rng, 1.5) + _grain(w, h, rng, 0.02)
+    col = _ramp_np(("2e1006", "6a2c12", "a24e26", "d0763e", "ffc08a"), k * 0.82)
+    for x0 in range(0, w, BLK):
+        for dx, f in ((0, 0.55), (1, 1.25), (2, 1.1), (BLK - 1, 0.7)):
+            if x0 + dx < w:
+                col[:, x0 + dx] *= f
+    _put(a, region, col)
+
+
+def _planks_hd(a, region, tones, seam, rng, plank=BLK // 2, nails=True, grain=0.12, joints=2, vertical=False):
+    """Planks with baked light: a tone per plank, fine grain along the plank, a dark seam under each plank and a lit
+    upper edge, butt joints with nail heads, a few knots."""
+    u, v, w, h = region
+    if vertical:
+        w, h = h, w
+    tones = [_c(t) for t in tones]
+    seam = _c(seam)
+    out = np.zeros((h, w, 3))
+    gn = _noise(w, h, 18, rng, 1.0) * grain + _noise(w, h, 5, rng, 0.7) * grain * 0.5 + _grain(w, h, rng, 0.03)
+    r = rng
+    for py in range(0, h, plank):
+        ph = min(plank, h - py)
+        cuts = sorted(r.randrange(6, w - 6) for _ in range(joints)) if joints else []
+        edges = [0] + cuts + [w]
+        for j in range(len(edges) - 1):
+            x0, x1 = edges[j], edges[j + 1]
+            base = tones[r.randrange(len(tones))] * r.uniform(0.88, 1.12)
+            yy = np.arange(ph)[:, None]
+            prof = 1.0 + 0.22 * np.clip(1 - yy / 2.0, 0, 1) - 0.35 * np.clip((yy - (ph - 3)) / 2.0, 0, 1)
+            blk = base[None, None, :] * (prof * (1 + gn[py:py + ph, x0:x1]))[..., None]
+            if x1 - x0 > 10 and r.random() < 0.25:
+                kx, ky = r.randrange(x0 + 3, x1 - 3), r.uniform(1.5, ph - 1.5)
+                for yk in range(ph):
+                    for xk in range(x0, x1):
+                        dd = math.hypot((xk - kx) / 2.2, (yk - ky) / 1.2)
+                        if dd < 1.0:
+                            blk[yk, xk - x0] *= 0.6
+                        elif dd < 1.8:
+                            blk[yk, xk - x0] *= 0.85
+            out[py:py + ph, x0:x1] = blk
+            if x1 < w:
+                out[py:py + ph, x1 - 1] = seam
+                out[py:py + ph, x1 - 2] *= 0.8
+                out[py:py + ph, min(w - 1, x1)] *= 1.15
+                if nails:
+                    for xn in (x1 - 4, x1 + 2):
+                        if 0 <= xn < w:
+                            _rivet(out[py:py + ph], xn + 0.5, ph * 0.5, 1.1, _c("3a3836"))
+        out[py + ph - 1] = seam
+    if vertical:
+        out = out.transpose(1, 0, 2)
+    _put(a, region, out)
+
+
+def _bar_hd(a, region, base, rng, seg=BLK):
+    """A railing bar: lit top, dark underside, a joint every block, worn lighter edges."""
+    u, v, w, h = region
+    ys, xs = np.mgrid[0:h, 0:w].astype(float) + 0.5
+    t = ys / h
+    k = 0.85 + 0.45 * np.clip(1 - t / 0.2, 0, 1) - 0.45 * np.clip((t - 0.7) / 0.3, 0, 1) + 0.08 * _noise(w, h, 10, rng, 2)
+    col = _c(base)[None, None, :] * k[..., None]
+    for x in range(0, w, seg):
+        col[:, x] *= 1.2
+        if x > 0:
+            col[:, x - 1] *= 0.55
+    _put(a, region, col)
+
+
+def _lamp_hd(a, region, rng):
+    """Lantern glass (the lanterns are drawn full bright): a dark iron frame, a glazing bar, a hot core fading to a
+    saturated orange."""
+    u, v, w, h = region
+    ys, xs = np.mgrid[0:h, 0:w].astype(float) + 0.5
+    d = np.hypot((xs - w / 2) / (w / 2), (ys - h * 0.56) / (h / 2) * 0.85)
+    col = _ramp_np(("fff6d0", "ffd070", "ffa236", "f07a1c", "c85a10"), d)
+    fr = max(1, w // 12)
+    frame = (xs < fr) | (xs > w - fr) | (ys < fr) | (ys > h - fr) | (np.abs(xs - w / 2) < fr * 0.6)
+    col = np.where(frame[..., None], _c("2c2826"), col)
+    _put(a, region, col)
+
+
+def _glow_hd(a, region, rng):
+    u, v, w, h = region
+    ys, xs = np.mgrid[0:h, 0:w].astype(float) + 0.5
+    d = np.hypot((xs - w / 2) / (w / 2), (ys - h / 2) / (h / 2))
+    _put(a, region, _ramp_np(("fff0c0", "ffc060", "ff9a30"), d * 0.8))
+
+
+def _chain_hd(a, region, rng):
+    """Dark iron links: oval links alternating face-on and edge-on, lit on their upper edges."""
+    u, v, w, h = region
+    col = np.zeros((h, w, 3)) + _c("1a1715")
+    L = w // 4
+    for y in range(h):
+        for x in range(w):
+            cx = (x // L) * L + L / 2
+            cy = (y // L) * L + L / 2
+            dx, dy = (x + 0.5 - cx) / (L / 2), (y + 0.5 - cy) / (L / 2)
+            if ((x // L) + (y // L)) % 2 == 0:
+                rr = math.hypot(dx * 0.9, dy * 1.2)
+                if 0.45 < rr < 1.0:
+                    lt = -dy
+                    col[y, x] = _c("4a423a") * (1 + 0.5 * lt)
+            else:
+                if abs(dx) < 0.35 and abs(dy) < 1.0:
+                    col[y, x] = _c("3a332e") * (1.2 - 0.4 * (dx + 0.35))
+    _put(a, region, col)
+
+
+def _cloth_roll_hd(a, region, rng):
+    """Furled black canvas: rolled folds along it (soft light and dark bands), gaskets of light rope every block."""
+    u, v, w, h = region
+    ys, xs = np.mgrid[0:h, 0:w].astype(float) + 0.5
+    k = 0.9 + 0.22 * np.sin(ys / h * math.pi * 3.2 + 0.7 * np.sin(xs * 0.07)) + 0.08 * _noise(w, h, 9, rng, 3) - 0.3 * (ys / h) ** 2
+    col = _c("34302e")[None, None, :] * k[..., None]
+    for x0 in range(BLK // 2, w, BLK):
+        for dx in range(-2, 2):
+            x = x0 + dx
+            if 0 <= x < w:
+                col[:, x] = _c("8a7250") * (1.15 if dx == -2 else 0.8 if dx == 1 else 1.0)
+    _put(a, region, col)
+
+
+def _crate_hd(a, region, rng):
+    u, v, w, h = region
+    _planks_hd(a, region, ("7a5232", "6e4a2c", "84593a"), "2e1c10", rng, plank=w // 4, joints=0, nails=False)
+    col = a[v:v + h, u:u + w, :3].copy()
+    ys, xs = np.mgrid[0:h, 0:w].astype(float) + 0.5
+    fw = w / 9
+    frame = (xs < fw) | (xs > w - fw) | (ys < fw) | (ys > h - fw) | (np.abs(xs - ys) < fw * 0.6)
+    fc = _c("5a3a20") * (1 + 0.25 * np.clip(1 - np.minimum(xs, ys) / fw, 0, 1))[..., None] * (1 + _grain(w, h, rng, 0.05))[..., None]
+    col = np.where(frame[..., None], fc, col)
+    for cx, cy in ((fw / 2, fw / 2), (w - fw / 2, fw / 2), (fw / 2, h - fw / 2), (w - fw / 2, h - fw / 2)):
+        _rivet(col, cx, cy, fw * 0.45, _c("3a3a3e"))
+    _put(a, region, col)
+
+
+def _flag_hd(a, region, rng):
+    u, v, w, h = region
+    ys, xs = np.mgrid[0:h, 0:w].astype(float) + 0.5
+    k = 1.0 + 0.1 * np.sin(xs * 0.25 + ys * 0.1) + _grain(w, h, rng, 0.03)
+    col = _c("2c2a2c")[None, None, :] * k[..., None]
+    gb = max(3, h // 8)
+    gold = (ys < gb) | (ys > h - gb) | (xs < gb)
+    gt_ = np.where(ys < gb, 0.8 - ys / gb * 0.3, np.where(ys > h - gb, 0.35, 0.6))
+    col = np.where(gold[..., None], _ramp_np(GOLD, gt_), col)
+    _put(a, region, col)
+
+
+def _paint_hd(a, rng):
+    """Paints the exterior regions again at 32 px a block over the upscaled base (a: SIZE x SIZE x 4 floats)."""
+    R = REGIONS
+    # charcoal iron: a warm brown-black, as the reference's plates (not blue-grey)
+    _plates_hd(a, R["plate_a"], ("3a2c25", "342923", "3f3028", "302620", "382b24", "44342b", "312722"), rng)
+    _plates_hd(a, R["plate_b"], ("40322a", "3a2d26", "47362d", "362a23", "3f3029"), rng)
+    _plates_hd(a, R["plate_c"], ("231c18", "271e1a", "2b211c", "211a17"), rng, rust=0.22, lit_k=1.4)
+    # the funnel: black plates with rivet columns along their seams, soot
+    _plates_hd(a, R["funnel"], ("2c2826", "302b28", "282423", "34302c"), rng, rivets="columns", rust=0.06, brown=0.1)
+    # the dome's drum: dark brown copper plates
+    _plates_hd(a, R["dome_drum"], ("5a3020", "52291a", "613524", "4c2818"), rng, rivet="c8843e", lit="1a0c06", lit_k=1.5, rust=0.0,
+               rust_col="3e5a48", brown=0.0)
+    _plates_hd(a, R["dome"], ("94481e", "a2522a", "8a4420", "ac5a2c"), rng, rivet="e0a050", lit="201006", lit_k=1.35, rust=0.08,
+               rust_col="4f8a72", brown=0.0)
+    _gore_hd(a, R["dome_gore"], rng)
+    # copper bands and caps, brass bands, the dark beams, iron bands
+    _band_hd(a, R["copper"], ("4e1e0a", "a04c26", "e09058"), rng, rivet="e8b060", patina=0.12)
+    _band_hd(a, R["copper2"], ("561f0a", "aa5528", "eca064"), rng, rivet="f0bc6a", patina=0.1)
+    _band_hd(a, R["brass_band"], ("5a2e0e", "b06a2a", "f4bc6a"), rng, rivet="ffd890", refl=0.4)
+    _band_hd(a, R["stone"], ("161210", "3e3029", "6a5444"), rng, rivet="d6a848", refl=0.18)
+    _band_hd(a, R["iron_band"], ("141416", "3a3a3e", "5e5e64"), rng, rivet="7a6a58", refl=0.2)
+    _polished_hd(a, R["brass"], ("5a2a08", "94501a", "c47a2a", "e8a446", "ffd488"), rng, amp=0.55, streak=0.03)
+    _polished_hd(a, R["plaque"], ("5a2e0e", "a8622a", "e09a48", "ffd08a"), rng, waves=0.6)
+    _polished_hd(a, R["gear_face"], ("4e280c", "8a4c1c", "c07a34", "f0b060"), rng, waves=2.0)
+    _bevel_brass_hd(a, R["gear_bevel"], rng)
+    _polished_hd(a, R["bronze"], ("5a2e0e", "8a4c1c", "b0662a", "e09848"), rng, waves=1.5)
+    _glow_window_hd(a, R["glow_window"], rng)
+    _pipe_hd(a, R["pipe"], rng)
+    _bar_hd(a, R["rail"], "8a4624", rng)
+    _planks_hd(a, R["wood_dark"], ("3e2a18", "36240f", "44301c", "3a2614"), "140a04", rng)
+    _planks_hd(a, R["wood_mid"], ("62422a", "5a3c20", "6a482c"), "24160a", rng)
+    _planks_hd(a, R["deck"], ("5e4228", "563a22", "66482c", "50361f", "5a3e26"), "1e140a", rng, joints=3)
+    _planks_hd(a, R["dark_wood"], ("30200f", "36240f", "2c1c0c"), "120804", rng, joints=1)
+    _planks_hd(a, R["mast"], ("42301c", "4a341e", "3c2a16"), "1c1008", rng, plank=BLK, joints=0, nails=False, grain=0.16)
+    _lamp_hd(a, R["lantern"], rng)
+    _glow_hd(a, R["glow"], rng)
+    _chain_hd(a, R["chain"], rng)
+    _cloth_roll_hd(a, R["cloth_roll"], rng)
+    _crate_hd(a, R["crate"], rng)
+    _flag_hd(a, R["flag"], rng)
+    u, v, w, h = R["iron_dark"]
+    _put(a, R["iron_dark"], _c("1e1d1e")[None, None, :] * (1 + 0.08 * _noise(w, h, 4, rng) + _grain(w, h, rng, 0.04))[..., None])
+    u, v, w, h = R["iron"]
+    _put(a, R["iron"], _c("3c3a3a")[None, None, :] * (1 + 0.1 * _noise(w, h, 4, rng) + _grain(w, h, rng, 0.05))[..., None])
+
+
+def _black_sail_hd(a, name, rng, stripe=0.31, emblem=None):
+    """Black blocky sail at 40 px a cloth: a tone per cloth (lighter in the belly, darker at the leeches), a fine weave,
+    soft vertical folds and a slight top-to-bottom gradient, lit and shadowed seams between the cloths, a stitched panel
+    seam down each cloth, two stitched reinforcement bands with reef points, a twisted bolt rope round the edges; a gold
+    border on the fore leech and along the foot from a vertical gold stripe at `stripe` of the width (lit inner edge,
+    shadowed outer edge, stitches); emblem = (centre u, centre v, diameter) fractions of a gold gear, outlined, bevelled
+    and shaded."""
+    u, v, w, h = SAIL_REGIONS[name]
+    cols, rows = SAIL_CELLS[name]
     cw, ch = w / cols, h / rows
-    tone = []
-    for r in range(rows):
-        row = []
-        for c in range(cols):
-            dx = abs((c + 0.5) / cols - 0.5) * 2
-            dy = (r + 0.5) / rows
-            k = 1.0 + 0.12 * (1 - dx * dx) - 0.12 * dx * dx - 0.05 * dy
-            row.append(_scale(rng.choice(tones), k * rng.uniform(0.96, 1.04)))
-        tone.append(row)
-    mask = None
-    cols_map = SAIL_COLUMNS.get(next((k for k, r in SAIL_REGIONS.items() if r == region), None))
+    tones = [_c(c) for c in ("2c2522", "322a26", "382f2a", "26201d", "3d332d")]
+    tone = np.zeros((rows, cols, 3))
+    for r_ in range(rows):
+        for c_ in range(cols):
+            dx = abs((c_ + 0.5) / cols - 0.5) * 2
+            dy = (r_ + 0.5) / rows
+            k = 1.0 + 0.14 * (1 - dx * dx) - 0.12 * dx * dx - 0.04 * dy
+            tone[r_, c_] = tones[rng.randrange(len(tones))] * k * rng.uniform(0.95, 1.05)
+    ys, xs = np.mgrid[0:h, 0:w].astype(float) + 0.5
+    ci = np.minimum(cols - 1, (xs // cw).astype(int))
+    ri = np.minimum(rows - 1, (ys // ch).astype(int))
+    lx, ly = xs - ci * cw, ys - ri * ch
+    weave = (((xs.astype(int) + ys.astype(int)) % 2) - 0.5) * 0.04 + _grain(w, h, rng, 0.025)
+    folds = 0.12 * np.sin(2 * np.pi * xs / (w / 4.3) + 0.9 * np.sin(ys / h * np.pi * 1.2)) + 0.05 * np.sin(2 * np.pi * xs / (w / 10.5) + 1.3)
+    # diagonal folds running up from the clews (the corners where the sheets pull)
+    folds = folds - 0.08 * np.clip(1 - np.abs((xs / w - (1 - ys / h) * 0.35) - 0.0) * 9, 0, 1) \
+        - 0.08 * np.clip(1 - np.abs((1 - xs / w) - (1 - ys / h) * 0.35) * 9, 0, 1)
+    k = (1.12 - 0.24 * ys / h) * (1 + folds + weave + 0.04 * _noise(w, h, 12, rng))
+    col = tone[ri, ci] * k[..., None]
+    # cloth seams: lit upper / left edge, dark lower / right edge
+    col = np.where(((lx < 1.5) | (ly < 1.5))[..., None], col * 1.28, col)
+    col = np.where(((lx > cw - 2.5) | (ly > ch - 2.5))[..., None], col * 0.62, col)
+    # the panel seam down the middle of each cloth: a dark line and light stitches
+    mid = np.abs(lx - cw / 2) < 0.8
+    col = np.where(mid[..., None], col * 0.72, col)
+    stitch = (np.abs(lx - cw / 2 - 1.6) < 0.6) & ((ys.astype(int) % 5) < 2)
+    col = np.where(stitch[..., None], col * 1.35 + 6, col)
+    # reinforcement bands at a third and two thirds of the height, with reef points
+    for fr in (1 / 3, 2 / 3):
+        yb = h * fr
+        band = np.abs(ys - yb) < 3.5
+        col = np.where(band[..., None], col * 1.3 + 5, col)
+        col = np.where((np.abs(np.abs(ys - yb) - 3.0) < 0.6)[..., None], col * 0.7, col)
+        reef = (np.abs(ys - yb - 6) < 2.5) & (np.abs((xs % (cw / 2)) - cw / 4) < 0.8)
+        col = np.where(reef[..., None], _c("6a5a44") * (1.2 - (ys - yb - 3.5) / 6)[..., None], col)
+    # the bolt rope round the edges (twisted: alternating light and dark strands)
+    rope_w = 3.0
+    edge = np.minimum(np.minimum(xs, w - xs), np.minimum(ys, h - ys))
+    strand = (((xs + ys).astype(int) // 2) % 2).astype(float)
+    rope = _c("4a4038")[None, None, :] * (0.75 + 0.45 * strand)[..., None]
+    col = np.where((edge < rope_w)[..., None], rope, col)
+    # the gold border and stripe
+    gd, gm, gh = (_c(c) for c in GOLD)
+    bw = max(5, int(cw * 0.75))
+    sx = int(stripe * w)
+    in_leech = xs >= w - bw
+    in_foot = (ys >= h - bw) & (xs >= sx)
+    in_stripe = (xs >= sx) & (xs < sx + bw)
+    gold = in_leech | in_foot | in_stripe
+    # distance across the gold strip (0 at its inner / upper-left edge, 1 at its outer edge)
+    gt_ = np.where(in_stripe, (xs - sx) / bw, np.where(in_leech, (xs - (w - bw)) / bw, (ys - (h - bw)) / bw))
+    gk = 0.55 + 0.45 * np.exp(-((gt_ - 0.22) / 0.16) ** 2) - 0.3 * np.clip((gt_ - 0.75) / 0.25, 0, 1)
+    gcol = _ramp_np((gd * 0.7, gd, gm, gh, np.minimum(255, gh * 1.15 + 20)), gk + 0.05 * _noise(w, h, 7, rng))
+    gstitch = (np.abs(gt_ - 0.5) < 0.05) & (((xs + ys).astype(int) % 6) < 2)
+    gcol = np.where(gstitch[..., None], gcol * 0.6, gcol)
+    gcol = np.where(((lx > cw - 2.5) | (ly > ch - 2.5))[..., None], gcol * 0.72, gcol)
+    col = np.where(gold[..., None], gcol, col)
+    # the emblem
     if emblem:
         eu, ev, ed = emblem
         size = int(ed * w)
-        mask = gear_mask(size).load()
-        mx0, my0 = int(eu * w - size / 2), int(ev * h - size / 2)
+        mk = np.array(gear_mask(size)) > 0
+        cols_map = SAIL_COLUMNS.get(name)
         if cols_map:
-            # the hanging sail: a texel (x, y) of column c lies at the world height top_c - y / h * (top_c - bot_c); the
-            # emblem is centred at (eu, ev) of its column and painted round in the world
             spans, width = cols_map
             ce = min(cols - 1, int(eu * cols))
             te, be = spans[ce]
             wc = te - ev * (te - be)
             rad = ed * width / 2
+            tc = np.array([spans[c_][0] for c_ in range(cols)])[ci]
+            bc = np.array([spans[c_][1] for c_ in range(cols)])[ci]
+            wx = xs / w * width - eu * width
+            wy = wc - (tc - ys / h * (tc - bc))
+            mx = ((wx / (2 * rad) + 0.5) * size).astype(int)
+            my = ((wy / (2 * rad) + 0.5) * size).astype(int)
+        else:
+            mx = (xs - (eu * w - size / 2)).astype(int)
+            my = (ys - (ev * h - size / 2)).astype(int)
+        ok = (mx >= 0) & (mx < size) & (my >= 0) & (my < size)
+        M = np.zeros((h, w), bool)
+        M[ok] = mk[my[ok], mx[ok]]
 
-            def emblem_at(x, y):
-                c_ = min(cols - 1, int(x / cw))
-                tc, bc = spans[c_]
-                wx = (x + 0.5) / w * width - eu * width
-                wy = wc - (tc - (y + 0.5) / h * (tc - bc))
-                mx, my = int((wx / (2 * rad) + 0.5) * size), int((wy / (2 * rad) + 0.5) * size)
-                return mx, my
-    gold_dark, gold, gold_hi = (_rgb(c) for c in GOLD)
-    bw = max(3, int(cw * 0.75))
-    sx = int(stripe * w)
-    for y in range(h):
-        r = min(rows - 1, int(y / ch))
-        for x in range(w):
-            c_ = min(cols - 1, int(x / cw))
-            col = tone[r][c_]
-            lx, ly = x - c_ * cw, y - r * ch
-            if lx < 1 or ly < 1:
-                col = _scale(col, 1.25)
-            elif lx > cw - 2 or ly > ch - 2:
-                col = _scale(col, 0.7)
-            gold_px = (x >= w - bw) or (y >= h - bw and x >= sx) or (sx <= x < sx + bw)
-            if gold_px:
-                g = gold
-                if (x >= w - bw and x == w - bw) or (y == h - bw and x >= sx) or x == sx:
-                    g = gold_hi
-                if lx > cw - 2 or ly > ch - 2:
-                    g = gold_dark
-                col = g
-            if mask is not None:
-                mx, my = emblem_at(x, y) if cols_map else (x - mx0, y - my0)
-                if 0 <= mx < size and 0 <= my < size and mask[mx, my]:
-                    if cols_map:
-                        nb = [emblem_at(x + ox, y + oy) for ox, oy in ((1, 0), (0, 1))]
-                    else:
-                        nb = [(mx + ox, my + oy) for ox, oy in ((1, 0), (0, 1))]
-                    edge = any(not (0 <= a < size and 0 <= b < size and mask[a, b]) for a, b in nb)
-                    col = gold_dark if edge else _mix(gold_hi, gold, min(1.0, my / size * 1.3))
-            px[u + x, v + y] = _jitter(col, rng, 3) + (255,)
+        def shift(m, dx, dy):
+            o = np.zeros_like(m)
+            ys0, ys1 = max(0, dy), h + min(0, dy)
+            xs0, xs1 = max(0, dx), w + min(0, dx)
+            o[ys0:ys1, xs0:xs1] = m[ys0 - dy:ys1 - dy, xs0 - dx:xs1 - dx]
+            return o
+        outline = M & ~(shift(M, 1, 0) & shift(M, -1, 0) & shift(M, 0, 1) & shift(M, 0, -1))
+        outline2 = M & ~(shift(M, 2, 0) & shift(M, -2, 0) & shift(M, 0, 2) & shift(M, 0, -2))
+        lit = M & ~shift(M, 3, 3)           # the texel 3 up-left is outside: an upper-left edge
+        dark = M & ~shift(M, -3, -3)
+        radial = np.clip(my / max(1, size) * 1.1, 0, 1)
+        ecol = _ramp_np((np.minimum(255, gh * 1.12 + 16), gh, gm, gd), radial * 0.8 + 0.06 * _noise(w, h, 6, rng))
+        ecol = np.where(lit[..., None], np.minimum(255, ecol * 1.22 + 18), ecol)
+        ecol = np.where(dark[..., None], ecol * 0.62, ecol)
+        ecol = np.where(outline2[..., None], gd * 0.75, ecol)
+        ecol = np.where(outline[..., None], _c("2a1406"), ecol)
+        col = np.where(M[..., None], ecol, col)
+    _put(a, (u, v, w, h), col)
 
 
-def make_texture(path):
+def _paint_base():
+    """The whole atlas at 16 px a block (layout units, 512 x 512): the rooms, the furniture and the small fittings keep
+    this painting (upscaled); the hull, the trims, the metals, the windows, the dome and the funnel are painted again
+    at 32 px a block over it (_paint_hd)."""
     rng = random.Random(4721)
-    img = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
+    img = Image.new("RGBA", (512, 512), (0, 0, 0, 0))
     px = img.load()
-    R = REGIONS
+    R = LAYOUT
     # charcoal iron, a warm black (the reference's plates are black-brown, not blue-grey)
     _plates(px, R["plate_a"], ("2d2b2b", "32302f", "373433", "2a2828", "302d2d", "353130"), rng)
     _plates(px, R["plate_b"], ("33302f", "383534", "3d3a38", "302d2d", "363332"), rng)
@@ -546,7 +1066,15 @@ def make_texture(path):
     _blocks(px, R["ham"], ("9a4632", "8a3c2a"), "5a2418", rng, bw=8, bh=4)
     _blocks(px, R["wall_stone"], ("5e6065", "686a6f", "55575c"), "2e2f32", rng, bw=16, bh=8)
     _copy_interior_regions(img)
-    img.save(path)
+    return img
+
+
+def make_texture(path):
+    img = _paint_base().resize((SIZE, SIZE), Image.NEAREST)
+    a = np.array(img).astype(float)
+    _paint_hd(a, random.Random(18741))
+    img = Image.fromarray(np.clip(np.round(a), 0, 255).astype(np.uint8), "RGBA")
+    img.save(path, optimize=True)
     return img
 
 
@@ -570,11 +1098,11 @@ def _copy_interior_regions(img):
 
 def make_sail_texture(path):
     rng = random.Random(9187)
-    img = Image.new("RGBA", (SAIL_SIZE, SAIL_SIZE), (0, 0, 0, 0))
-    px = img.load()
-    _black_sail(px, SAIL_REGIONS["main_sail"], *SAIL_CELLS["main_sail"], rng, stripe=0.34, emblem=(0.67, 0.44, 0.33))
-    _black_sail(px, SAIL_REGIONS["mizzen_sail"], *SAIL_CELLS["mizzen_sail"], rng, stripe=0.25)
-    img.save(path)
+    a = np.zeros((SAIL_SIZE, SAIL_SIZE, 4))
+    _black_sail_hd(a, "main_sail", rng, stripe=0.34, emblem=(0.67, 0.44, 0.33))
+    _black_sail_hd(a, "mizzen_sail", rng, stripe=0.25)
+    img = Image.fromarray(np.clip(np.round(a), 0, 255).astype(np.uint8), "RGBA")
+    img.save(path, optimize=True)
     return img
 
 
