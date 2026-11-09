@@ -159,6 +159,7 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 							LightmapTextureManager.getSkyLightCoordinates(light))
 					: light;
 			int glowLight = state.interiorLight && state.lightsOff ? light : LightmapTextureManager.MAX_LIGHT_COORDINATE;
+			boolean glowShines = !(state.interiorLight && state.lightsOff);
 			float shutters = state.shutters, airlockWater = state.airlockWater;
 			boolean floodlight = state.floodlight, lifeboatAway = state.lifeboatAway;
 			boolean effects = state.interiorLight && model.hasEffects();
@@ -230,13 +231,17 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 						@Override
 						public void quad(float[] p, float[] uv, float[] n, boolean glow, boolean litFace) {
 							int l = glow ? (fx ? LightmapTextureManager.MAX_LIGHT_COORDINATE : glowLight) : litFace ? lit : light;
+							// a glowing face (lit window, lantern, fire) shines whatever way it faces: an up normal keeps the
+							// entity shading at 1 (its real side normal darkened it to about x 0.5 to x 0.75 on the flanks)
+							boolean shine = glow && (fx || glowShines);
+							float nx = shine ? 0f : n[0], ny = shine ? 1f : n[1], nz = shine ? 0f : n[2];
 							for (int k = 0; k < 4; k++) {
 								vertices.vertex(entry, p[k * 3], p[k * 3 + 1], p[k * 3 + 2])
 										.color(0xFFFFFFFF)
 										.texture(uv[k * 2], uv[k * 2 + 1])
 										.overlay(OverlayTexture.DEFAULT_UV)
 										.light(l)
-										.normal(entry, n[0], n[1], n[2]);
+										.normal(entry, nx, ny, nz);
 							}
 						}
 					});
