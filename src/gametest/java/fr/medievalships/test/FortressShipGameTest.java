@@ -299,7 +299,7 @@ public final class FortressShipGameTest {
 				{0.0, FortressLayout.MAIN_DECK_Y, -7.0, 180},
 				{0.0, FortressLayout.FORECASTLE_Y, 11.0, 0},
 				{2.0, FortressLayout.QUARTERDECK_Y, -11.0, 180},
-				{0.0, FortressLayout.KEEP_Y, -13.95, 180},
+				{0.0, FortressLayout.KEEP_Y, -13.95, 0},
 				{0.0, FortressLayout.KEEP_Y, -16.5, 180},
 				{0.0, FortressLayout.CABIN_FLOOR_Y, -14.0, 180},
 				{0.0, FortressLayout.QUARTERDECK_Y, -16.0, 180},
