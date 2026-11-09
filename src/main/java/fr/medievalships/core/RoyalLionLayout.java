@@ -47,19 +47,19 @@ public final class RoyalLionLayout {
 	public static final double MAIN_MAST_TOP = 30.5;
 	/** The mizzen, stepped on the quarterdeck. */
 	public static final double MIZZEN_Z = -12.2;
-	public static final double MIZZEN_TOP = 22.5;
+	public static final double MIZZEN_TOP = 25.8;
 	public static final double[] BOWSPRIT_FOOT = {0.0, 7.2, 17.0};
 	public static final double[] BOWSPRIT_TIP = {0.0, 13.0, 31.0};
 	/** How far aft the rudder blade, the stern gallery and the stern lanterns reach. */
 	public static final double STERN_REACH_Z = -21.6;
 	/** The gilded lion figurehead (its head and its forepaws) and the lowest head rail reach forward of the stem. */
-	public static final double[] FIGUREHEAD_PROBE = {0.0, 7.4, 24.5};
-	public static final double[] FIGUREHEAD_PAW_PROBE = {0.0, 4.6, 24.9};
+	public static final double[] FIGUREHEAD_PROBE = {0.0, 7.3, 25.5};
+	public static final double[] FIGUREHEAD_PAW_PROBE = {0.0, 3.4, 26.0};
 	public static final double[] HEAD_RAIL_PROBE = {0.0, 7.4, 21.8};
 	/** The square yards are braced round by this angle (port arms aft), as in the model. */
 	public static final double BRACE_DEG = 6.0;
 	/** Half span of the longest yard (the main course's). */
-	public static final double YARD_HALF = 9.3;
+	public static final double YARD_HALF = 10.5;
 	public static final double HELM_Z = -14.0;
 	public static final double PILOT_Z = -14.8;
 	/** Stairs: main deck -> quarterdeck and main deck -> forecastle (both sides), the companionways down. */
@@ -150,11 +150,11 @@ public final class RoyalLionLayout {
 		probes.add(FIGUREHEAD_PAW_PROBE.clone());
 		probes.add(HEAD_RAIL_PROBE.clone());
 		// the ends of the braced yards: the courses, the topsails, the mizzen course
-		yardArms(probes, 18.2, FORE_MAST_Z, 0.67, 8.6);
+		yardArms(probes, 18.2, FORE_MAST_Z, 0.67, 9.7);
 		yardArms(probes, 19.0, MAIN_MAST_Z, 0.7, YARD_HALF);
-		yardArms(probes, 24.4, FORE_MAST_Z + 0.45, 0.5, 6.1);
-		yardArms(probes, 25.6, MAIN_MAST_Z + 0.45, 0.52, 6.5);
-		yardArms(probes, 17.4, MIZZEN_Z, 0.57, 6.3);
+		yardArms(probes, 24.4, FORE_MAST_Z + 0.45, 0.5, 6.8);
+		yardArms(probes, 25.6, MAIN_MAST_Z + 0.45, 0.52, 7.3);
+		yardArms(probes, 19.0, MIZZEN_Z, 0.57, 7.1);
 		spec.extraProbes = List.copyOf(probes);
 		spec.boundingRadius = BOWSPRIT_TIP[2] + 1.0;
 		spec.aiReach = BOWSPRIT_TIP[2];

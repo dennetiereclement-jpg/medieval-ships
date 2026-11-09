@@ -82,6 +82,7 @@ RF = fs.ROUNDHOUSE_FRONT_Z
 RH1 = fs.ROUNDHOUSE_CEIL_Y
 FCZ = fs.FORECASTLE_Z
 BOW_Z = fs.FORE_SCALE - 0.02   # where the planking closes on the stem
+SHIELD_W, SHIELD_H = 2.5, 3.0   # the hull shields (P3: from 1.8 x 2.1, the references show them about 2.5 x 3 to 3.5 x 4.5)
 BRACE = math.radians(6)        # square yards braced round a little (port arms aft): three of the four references are port views
 QD_RAIL = fs.QD_BULWARK_TOP + 0.15
 FC_RAIL = fs.FC_BULWARK_TOP + 0.15
@@ -333,13 +334,15 @@ def hull_ornaments(bone, lights):
     for side, sn in SIDES:
         for k, z in enumerate(fs.SHIELD_Z):
             y = fs.SHIELD_Y + band_lift(z, 0.8) * 0.5
-            hull_decal(bone, "shield_%s%d" % (sn, k), z, y, side, 1.8, 2.1, "shield", out=0.09, th=0.05, faces=None)
+            # big shields as on the references (071: about 2.5 x 3 blocks, over the wales from the rail down past
+            # the middle wale), standing off the planking in front of the gold wales
+            hull_decal(bone, "shield_%s%d" % (sn, k), z, y, side, SHIELD_W, SHIELD_H, "shield", out=0.27, th=0.05, faces=None)
             # a dark backing board (the shield stands off the planking), gold studs
-            p, u, v, nrm = side_frame(z, y + 0.5, side)
-            add_cube(bone, "shield_back_%s%d" % (sn, k), p + nrm * 0.045, np.column_stack([u, v, nrm]), (1.2, 0.7, 0.08), "dark_wood")
+            p, u, v, nrm = side_frame(z, y + 0.7, side)
+            add_cube(bone, "shield_back_%s%d" % (sn, k), p + nrm * 0.15, np.column_stack([u, v, nrm]), (1.5, 0.8, 0.24), "dark_wood")
             for s in (1, -1):
-                add_cube(bone, "shield_stud_%s%d_%d" % (sn, k, s > 0), p + u * s * 0.62 + v * 0.38 + nrm * 0.14, np.column_stack([u, v, nrm]),
-                         (0.14, 0.14, 0.08), "gold")
+                add_cube(bone, "shield_stud_%s%d_%d" % (sn, k, s > 0), p + u * s * 0.86 + v * 0.62 + nrm * 0.33, np.column_stack([u, v, nrm]),
+                         (0.16, 0.16, 0.08), "gold")
         for k, z in enumerate(fs.PORT_Z):
             y = fs.PORT_Y + band_lift(z, 0.45) * 0.6
             hull_decal(bone, "port_%s%d" % (sn, k), z, y, side, 0.62, 0.62, "port_lit", out=0.02, th=0.05, glow=True)
@@ -568,7 +571,7 @@ def roundhouse(bone, lights):
         lantern(lights, "lantern_stern_" + sn, v3(x + side * 0.55, RH1 - 0.55, TZ - 0.45), drop=0.3, s=1.5)
     # the striped awning over the helm, from the roundhouse's front wall forward to its gold posts
     za, zb = RF + 0.05, fs.MIZZEN_Z - 0.75
-    ya, yb = RH1 - 0.3, RH1 - 1.1
+    ya, yb = RH1 - 0.1, RH1 - 1.3      # sloping well down forward: its stripes show from the bow quarter (071)
     xw = 4.3
     for k in range(6):
         x0, x1 = -xw + 2 * xw * k / 6, -xw + 2 * xw * (k + 1) / 6
@@ -621,12 +624,13 @@ def decks(bone, castle_bone):
 
 
 # ---------------------------------------------------------------- the bow and the lion figurehead
-def lion_figurehead(bone, A, s=1.0):
+def lion_figurehead(bone, A, s=1.0, sx=None):
     """The gilded lion of the references at the stem head, under the bowsprit (123, 126): a big maned head thrust
     forward with open roaring jaws, the shaggy mane flowing back over the stem, the chest and the forelegs reaching
     forward and down with their claws out, the body melting into the gilded stem (A: the root of the neck on the
-    stem, s: scale)."""
+    stem, s: scale, sx: scale of the forelegs' spread across the ship)."""
     A = v3(*A)
+    sx = s if sx is None else sx
     gold, mane, face = "gold", "mane", "lion_face"
     H = A + v3(0, 0.55, 1.15) * s                    # the head
     # the chest and the body against the stem
@@ -655,9 +659,9 @@ def lion_figurehead(bone, A, s=1.0):
             add_cube(bone, "figurehead_fang_%s%d" % (t, j), H + v3(x * 0.6, dy + 0.06 * j, 0.7 - 0.12 * j) * s, EYE,
                      (0.07 * s, 0.14 * s, 0.07 * s), "white_paint")
         # the forelegs reaching forward and down, the paws with their claws out
-        sh = A + v3(x * 1.7, -0.45, 0.55) * s
-        el = A + v3(x * 1.9, -0.95, 1.25) * s
-        paw = A + v3(x * 1.75, -1.55, 1.75) * s
+        sh = A + v3(x * 1.7 * sx / s, -0.45, 0.55) * s
+        el = A + v3(x * 1.9 * sx / s, -0.95, 1.25) * s
+        paw = A + v3(x * 1.75 * sx / s, -1.55, 1.75) * s
         beam(bone, "figurehead_foreleg_" + t, sh, el, 0.42 * s, gold, width=0.42 * s, extend=0.12 * s)
         beam(bone, "figurehead_forearm_" + t, el, paw, 0.36 * s, gold, width=0.36 * s, extend=0.1 * s)
         add_cube(bone, "figurehead_paw_" + t, paw + v3(0, -0.04, 0.14) * s, EYE, (0.46 * s, 0.28 * s, 0.52 * s), gold)
@@ -695,7 +699,8 @@ def bow(bone, lights):
     beam(bone, "dolphin_striker", cap + v3(0, -0.1, 0), cap + v3(0, -1.7, 0.15), 0.12, "wood_dark")
     # the lion figurehead on the stem head, under the bowsprit
     zt = 21.6
-    lion_figurehead(bone, v3(0, rail_top(zt) - 1.35, zt + 0.3), 1.35)
+    # P3: bigger, as on 123 and 126 (the lion there is about as tall as the bow's freeboard over the head)
+    lion_figurehead(bone, v3(0, rail_top(zt) - 1.75, zt + 0.3), 1.85, sx=1.4)
     # the gilded head rails: from the forecastle rail curving down and forward to the stem head, stepped gold blocks
     head = v3(0, rail_top(zt) - 0.6, zt + 0.2)
     for side, sn in SIDES:
@@ -739,16 +744,16 @@ MASTS = {
     # name: (z, top y (fighting top), topmast crosstrees y, masthead y, lower mast diameter)
     "fore": (fs.FORE_MAST_Z, 19.2, 25.0, fs.FORE_MAST_TOP, 1.0),
     "main": (fs.MAIN_MAST_Z, 20.0, 26.2, fs.MAIN_MAST_TOP, 1.06),
-    "mizzen": (fs.MIZZEN_Z, 18.4, None, fs.MIZZEN_TOP, 0.8),
+    "mizzen": (fs.MIZZEN_Z, 20.2, None, fs.MIZZEN_TOP, 0.8),
 }
 MAST_FOOT = {"fore": L - 0.4, "main": L - 0.4, "mizzen": Q}
 # square sails: mast, name, yard y, foot y, half width at the head, at the foot, belly, texture region
 SQUARE_SAILS = [
-    ("fore", "fore_course", 18.2, 8.6, 8.1, 8.9, 2.2, "fore_course"),
-    ("fore", "fore_topsail", 24.4, 19.8, 5.6, 6.5, 1.5, "fore_topsail"),
-    ("main", "main_course", 19.0, 8.0, 8.8, 9.6, 2.4, "main_course"),
-    ("main", "main_topsail", 25.6, 20.6, 6.0, 6.9, 1.6, "main_topsail"),
-    ("mizzen", "mizzen_course", 17.4, 11.2, 5.8, 6.4, 1.4, "mizzen_course"),
+    ("fore", "fore_course", 18.2, 8.6, 9.2, 10.1, 2.6, "fore_course"),
+    ("fore", "fore_topsail", 24.4, 19.8, 6.3, 7.3, 1.7, "fore_topsail"),
+    ("main", "main_course", 19.0, 8.0, 10.0, 10.9, 2.9, "main_course"),
+    ("main", "main_topsail", 25.6, 20.6, 6.8, 7.8, 1.8, "main_topsail"),
+    ("mizzen", "mizzen_course", 19.0, 12.8, 6.6, 7.3, 1.7, "mizzen_course"),
 ]
 
 
@@ -786,6 +791,22 @@ def fighting_top(mb, lights, name, z, y, d):
         lantern(lights, "lantern_top_%s%d" % (name, k), p, hang=False, s=0.9)
 
 
+def crows_nest(mb, lights, name, z, y, r=0.95):
+    """A small round crow's nest with a gold rail and two lanterns at the topmast head, just over the topsail yard
+    (the railed tops right under the pennants of 044 and 126, the masthead box of 071)."""
+    for k in range(4):
+        a = math.pi / 4 * k
+        add_cube(mb, "%s_nest_%d" % (name, k), (0, y + 0.05, z), ry(a), (2 * r, 0.14 - 0.01 * k, 2 * r * math.tan(math.pi / 8)),
+                 {"all": "dark_wood", "+2": "deck"})
+    ring = [v3(math.cos(math.pi / 8 + math.pi / 4 * k) * r * 0.97, 0, z + math.sin(math.pi / 8 + math.pi / 4 * k) * r * 0.97) for k in range(8)]
+    for k, (a, b) in enumerate(polyline(ring, closed=True)):
+        beam(mb, "%s_nest_rim_%d" % (name, k), a + v3(0, y + 0.18, 0), b + v3(0, y + 0.18, 0), 0.2, "gold", width=0.1, extend=0.04)
+        beam(mb, "%s_nest_rail_%d" % (name, k), a + v3(0, y + 0.85, 0), b + v3(0, y + 0.85, 0), 0.12, "rail", width=0.12, extend=0.04)
+        add_cube(mb, "%s_nest_stanchion_%d" % (name, k), a + v3(0, y + 0.52, 0), EYE, (0.09, 0.62, 0.09), "gold")
+    for k, a in enumerate((math.pi / 4, 5 * math.pi / 4)):
+        lantern(lights, "lantern_nest_%s%d" % (name, k), v3(math.cos(a) * r * 0.97, y + 0.9, z + math.sin(a) * r * 0.97), hang=False, s=0.75)
+
+
 def mast(root, fittings, lights, name):
     z, top1, top2, head, d = MASTS[name]
     foot = MAST_FOOT[name]
@@ -809,6 +830,7 @@ def mast(root, fittings, lights, name):
         for sx in (1, -1):
             beam(mb, "%s_crosstree2_%d" % (name, sx > 0), (-s2, top2, z + 0.45 + sx * 0.3), (s2, top2, z + 0.45 + sx * 0.3), 0.12, "wood_dark",
                  width=0.12)
+        crows_nest(mb, lights, name, z + 0.45, top2 + 0.08)
         disc(mb, name + "_truck", (0, head + 0.05, z + 0.45), (0, 1, 0), 0.22, 0.16, "gold", n=3)
         mz = z + 0.45
     else:
@@ -822,13 +844,16 @@ def square_sail(mb, sails_info, name, z, y_top, y_foot, half_top, half_foot, bel
     """Yard (braced round with its sail) and the sail billowed forward."""
     br = Bone("brace_" + name, origin=(0, y_top, z), parent=mb)
     zz = z + off
-    round_bar(br, name + "_yard", (-half_top - 0.5, y_top, zz), (half_top + 0.5, y_top, zz), 0.32, "mast", extend=0.05)
+    # chunky yards as on the references (stout dark beams with gold bands and gold yardarm caps)
+    yd = 0.42 if "topsail" in name else 0.52
+    round_bar(br, name + "_yard", (-half_top - 0.5, y_top, zz), (half_top + 0.5, y_top, zz), yd, "mast", extend=0.05)
     for k, x in enumerate((-half_top * 0.6, 0.0, half_top * 0.6)):
-        round_bar(br, "%s_yard_band_%d" % (name, k), (x - 0.1, y_top, zz), (x + 0.1, y_top, zz), 0.38, "gold")
-    add_cube(br, name + "_sling", (0, y_top, zz - 0.1), EYE, (0.42, 0.38, 0.38), "rope")
+        round_bar(br, "%s_yard_band_%d" % (name, k), (x - 0.12, y_top, zz), (x + 0.12, y_top, zz), yd + 0.08, "gold")
+    add_cube(br, name + "_sling", (0, y_top, zz - 0.1), EYE, (yd + 0.12, yd + 0.08, yd + 0.08), "rope")
     for sx in (1, -1):
-        add_cube(br, "%s_yardarm_%d" % (name, sx > 0), (sx * (half_top + 0.4), y_top, zz), EYE, (0.14, 0.38, 0.38), "gold")
-    beam(br, name + "_roll", (-half_top * 0.94, y_top - 0.24, zz + 0.05), (half_top * 0.94, y_top - 0.24, zz + 0.05), 0.28, "cloth_roll")
+        add_cube(br, "%s_yardarm_%d" % (name, sx > 0), (sx * (half_top + 0.4), y_top, zz), EYE, (0.2, yd + 0.1, yd + 0.1), "gold")
+    beam(br, name + "_roll", (-half_top * 0.94, y_top - yd / 2 - 0.1, zz + 0.05), (half_top * 0.94, y_top - yd / 2 - 0.1, zz + 0.05), 0.3,
+         "cloth_roll")
     sb = Bone("sail_" + name, origin=(0, y_top, zz), parent=br)
     height = y_top - y_foot
     cols, rows = ft.SAIL_CELLS[region]
@@ -924,7 +949,7 @@ def rigging(bone, hull_bone, masts, bowsprit, sails):
                 disc(bone, "deadeye_low_%s_%s%d" % (mname, sn, k), foot, (side, 0, 0), 0.12, 0.08, "dark_wood")
                 beam(bone, "lanyard_%s_%s%d" % (mname, sn, k), foot + v3(0, 0.05, 0), foot + v3(0, 0.31, 0), 0.05, "rope")
                 beam(bone, "chain_%s_%s%d" % (mname, sn, k), foot - v3(0, 0.06, 0), hp(zz, foot[1] - 1.1, side, 0.04), 0.06, "iron")
-            ladder(bone, "%s_lower_%s" % (mname, sn), tops, feet, step=0.55, region="rope_dark", th=0.1)
+            ladder(bone, "%s_lower_%s" % (mname, sn), tops, feet, step=0.55, region="rope_dark", th=0.15)
             for k in range(2):
                 beam(bone, "futtock_%s_%s%d" % (mname, sn, k), v3(side * r * 0.9, top1 + 0.05, z - 0.4 - 0.6 * k),
                      v3(side * dm * 0.5, top1 - 1.5, z - 0.1 * k), 0.05, "rope")

@@ -56,7 +56,7 @@ BULKHEAD_Z = (-3.0, -2.5)  # the bulkhead between the crew quarters and the hold
 # and on the quarterdeck (mizzen)
 FORE_MAST_Z, FORE_MAST_TOP = 9.5, 29.0
 MAIN_MAST_Z, MAIN_MAST_TOP = -1.0, 30.5
-MIZZEN_Z, MIZZEN_TOP = -12.2, 22.5
+MIZZEN_Z, MIZZEN_TOP = -12.2, 25.8
 BOWSPRIT_FOOT = (0.0, 7.2, 17.0)
 BOWSPRIT_TIP = (0.0, 13.0, 31.0)    # the jib-boom end (51 blocks over all)
 STERN_REACH_Z = -21.4               # how far aft the rudder, the stern gallery and the lanterns reach
