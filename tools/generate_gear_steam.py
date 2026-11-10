@@ -553,6 +553,9 @@ def trims(bone, detail):
         y, z, r = gs.BOW_GEAR
         p, u, v, n = side_frame(z, y, side)
         gear(bone, "gear_bow_" + sn, p + n * 0.2, n, r, 0.2, teeth=10, spokes=8)
+        # a flat black iron plate behind it (1.27.1: the lit bevels of the plates were as bright as the gear, which
+        # melted into the hull at a distance; on black its spokes and rim read as on the reference)
+        disc(bone, "gear_bow_back_" + sn, p + n * 0.06, n, r * 0.86, 0.05, "iron_dark", n=3)
         # the copper pipes: the low run from the stern quarter to the big gear, a pipe down into the sea, the
         # great inverted U on the engine house wall
         o = 0.36
