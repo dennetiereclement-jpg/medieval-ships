@@ -160,7 +160,7 @@ est dans une pièce, un plancher ou une cloison et qu'aucun n'est hors coque ; �
 points secs l'emportent), et les sections de rendu sont redessinées dès qu'un navire apparaît, quelle que soit la
 distance.
 
-La version 1.28.0 refait aussi le **navire forteresse est refait** (coque de pierre claire à larges bandes et piliers, panneaux rouges biseautés dans des cadres de fer, château contrasté, voiles et bannières retravaillées) ; troisième passe de textures sur le navire au lion et le navire à vapeur ; les **portes du navire à vapeur font 2 blocs** (l'ouverture réelle n'en faisait qu'un, infranchissable de biais) avec un test en jeu de passage du joueur.
+La version 1.28.0 refait aussi le **navire forteresse** (coque de pierre claire à larges bandes et piliers, panneaux rouges biseautés dans des cadres de fer, château contrasté, voiles et bannières retravaillées) ; troisième passe de textures sur le navire au lion et le navire à vapeur ; les **portes du navire à vapeur font 2 blocs** (l'ouverture réelle n'en faisait qu'un, infranchissable de biais) avec un test en jeu de passage du joueur.
 
 La version 1.27.2 termine la passe visuelle des trois navires de ville d'après une relecture des captures en jeu : les **faces lumineuses** (fenêtres éclairées, lanternes, foyers) de **tous les navires** brillent vraiment quelle que soit leur orientation (elles étaient assombries jusqu'à moitié sur les flancs) ; fenêtres ambrées, bagues de mât et proue en blocs carrés sur le navire au lion ; pierre plus claire et plus contrastée, panneaux rouges en carreaux, bras plus épais sur la forteresse ; verre orangé clair, coque charbon, laiton vif, engrenage de proue détaché sur le navire à vapeur.
 
