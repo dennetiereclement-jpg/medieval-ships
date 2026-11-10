@@ -720,7 +720,7 @@ def p_roof(w, h, rng):
     W, H = w * K, h * K
     out = np.zeros((H, W, 3))
     sh, sw = 12, 16
-    pal = [hx(c) for c in ("2c4a8e", "28437f", "32528f", "243d78", "2f4f96")]
+    pal = [hx(c) for c in ("30529c", "2c4a8c", "385a9e", "284484", "3457a4")]     # 1.28.0: a shade lighter (044's roof)
     for r, y0 in enumerate(range(0, H, sh)):
         off = (sw // 2) * (r % 2)
         for x0 in range(-off, W, sw):
@@ -885,9 +885,10 @@ def p_sail(w, h, cols, rows, rng, rt, lion=0.0, tri=None, leech_stripe=True, wid
             L2 = ex * ex + ey * ey
             t = np.clip(((xx + 0.5 - ax) * ex + (yy + 0.5 - ay) * ey) / L2, 0, 1)
             d = np.minimum(d, np.hypot(xx + 0.5 - ax - t * ex, yy + 0.5 - ay - t * ey))
-    border = max(12, int(round(min(W, H) * 0.06)))
+    # 1.28.0: a wider border in half-block blocks (the references' borders are about a block wide, in chunky blocks)
+    border = max(16, int(round(min(W, H) * 0.09)))
     gb = (d >= 3) & (d < border)
-    gcell = 8
+    gcell = 16
     gt = (((yy // gcell) * 31 + (xx // gcell) * 17) % 5)
     gk = np.choose(gt, [1.0, 1.06, 0.95, 1.1, 0.92])
     glx, gly = xx % gcell, yy % gcell

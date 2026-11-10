@@ -111,7 +111,7 @@ SAIL_CELLS = {  # (columns, rows) of cloth blocks drawn in each sail region (clo
 }
 # sail -> height of the lion (fraction of the sail). P4: the big bold lions of the pictures (about three quarters of
 # the course's height, drawn 1.2 times wider than their natural shape: the sails are mostly seen foreshortened)
-LION_SAILS = {"main_course": 0.8, "fore_course": 0.76}
+LION_SAILS = {"main_course": 0.74, "fore_course": 0.7}     # 1.28.0: 0.8 / 0.76 -> 0.74 / 0.7 (room for the wider border)
 LION_WIDEN = 1.55     # 1.28.0: 1.45 -> 1.55 (the sails are seen foreshortened from the quay)
 
 _mix, _scale, _planks, _blocks, _fill = ct._mix, ct._scale, ct._planks, ct._blocks, ct._fill

@@ -302,6 +302,47 @@ mâts de 126, huniers) ; les images ont un éclairage chaud et des reflets que l
 textures de la phase 2 (agrandies) ; le camouflage du paquet de la passerelle garde ses couleurs (l'échantillonnage
 donne une peau or quasi identique).
 
+## 5 sexies. Troisième passe visuelle (1.28.0) : d'après les captures en jeu
+
+**Constat (captures en jeu de 1.27.2, variante decor : vues 071, 044, 126, poupe, flanc, sous voiles, recadrées × 3).**
+
+| Rang | Ce qui paraissait plat, terne, bruité ou faux en jeu | Cause |
+|---|---|---|
+| 1 | **lions des voiles illisibles** : un trait ocre, « une flamme », dès que la voile est vue de biais ; sur 071 (tribord) comme sur 044 (bâbord) on ne reconnaît pas un lion | le jeu voit les voiles de biais (vergues orientées de 6°, voiles creusées par `sail_wind`) : les pattes et le corps du lion de 1.27 (bold 1,6) s'amincissent en traits ; cerne de 4 texels trop fin ; or du lion moyen |
+| 2 | **château arrière : un mur d'or** ; colonnes, balustres et corniches aussi clairs que les fenêtres ; de jour les fenêtres ne se distinguent pas | dorures de l'étage à 0,8 ; cœur des fenêtres ambré (1.27.1 craignait le terme diffus du shader) alors que le rendu éclaire depuis 1.27.2 les faces lumineuses à plein avec une normale vers le haut ; ébrasement de 4 texels |
+| 3 | **or plat** : un ocre uni sur tous les flancs (lisse, préceintes, balustres, éperon, figure de proue) | le jeu éclaire les flancs à ≈ 0,5 (deux lumières fixes, 0,4 d'ambiante, 0,6 de puissance) ; le dégradé d'or de 1.27.1 (liseré pâle sur 6 % de la face) disparaît à cette lumière |
+| 4 | figure de proue : une masse jaune uniforme, la crinière du même ton que le corps | même or partout |
+| 5 | bordé : bien (blocs bruns, préceintes d'or, bande bleue, écus, bannières), un peu monotone ; toit du château presque noir | une seule gamme de bruns ; ardoises sombres |
+
+**Ce qui a été fait** (textures `tools/royal_lion_hd.py`, silhouette du lion `tools/royal_lion_texture.py`, relief
+`tools/generate_royal_lion.py`) :
+
+| Levier | Avant (1.27.2) | Après (1.28.0) |
+|---|---|---|
+| Or | liseré pâle sur 0–6 % de la face, or chaud, ombre de 76 à 100 % | liseré pâle sur 0–10 % (`fff8d4` → `ffe88c`), or saturé jusqu'à 50 %, ombre ocre puis brune de 72 à 100 % (`583206`) : chaque face garde un haut clair et un pied sombre même à 0,5 de lumière ; lisse (`rail`) et préceintes plates (`gold_band`) de même ; dorures de l'étage de la salle d'apparat à 0,7 (− 12 %) |
+| Fenêtres, sabords | cœur ambré `ffde76`, ébrasement de 4 texels | cœur pâle `fff8c8` dégradé vers l'orange aux bords, ébrasement de 6 texels plus sombre (`0a060a`) : **les fenêtres sont l'élément le plus clair du château, de jour comme de nuit** |
+| Lion des voiles | bold 1,6, 1,45 fois plus large que nature, cerne de 4 texels | **bold 1,9, 1,55 fois plus large, cerne de 6 texels marine ; un écart de champ entre les deux pattes avant et entre les deux pattes arrière** (avec des pattes épaisses elles se fondaient en une masse : l'essai à bold 2,4 faisait du lion une patate) ; or des lions plus clair (t 0,26 → 0,2) ; lions des écus à bold 1,0 |
+| Voiles, bordé, toit | bordure d'or des voiles de 6 % du petit côté (0,75 bloc sur la grand-voile) en blocs d'un quart de bloc | **bordure d'or de 9 % (≈ 1,1 bloc) en blocs d'un demi-bloc**, les gros cadres d'or des images ; lions des basses voiles à 0,74 / 0,70 de la hauteur (0,8 / 0,76) pour lui laisser la place ; bleu roi des laizes un peu plus profond (`203a84`…) ; un bloc miel (`8a6642`, `946c42`) de temps en temps dans les bruns du bordé et de la virure ; ardoises du toit un peu plus claires (le toit bleu de 044) |
+| Figure de proue | or uniforme | crinière d'un or plus profond et rougeâtre (t 0,6, × (1 ; 0,94 ; 0,9)) à crêtes éclairées, ventre en or sombre (`gold_dim`) : la tête se détache du corps |
+| Relief (modèle) | montants des fenêtres 0,12 de large à 0,07 du mur, appui 0,16 de profondeur ; préceintes à 0,18 / 0,16 du bordé | montants 0,15 à 0,09 du mur, 0,14 de profondeur, appui 0,22, clé 0,16 ; préceintes de la coque 0,22 / 0,20, du château 0,24 / 0,22 (bagues de `wale_bar`) ; 7 341 cubes (inchangé), quads de référence régénérés |
+
+**Méthode.** Captures en jeu de main (1.27.2, variante decor) recadrées ; rendus Python **à l'éclairage du jeu**
+(`light.glsl` : deux lumières fixes (0,2 ; 1 ; −0,7) et (−0,2 ; 1 ; 0,7), 0,4 d'ambiante, 0,6 de puissance ; faces
+lumineuses à 1 ; mer à la flottaison) **aux caméras mêmes de `RoyalLionShipGameTest`** (071, 044, 126, poupe, flanc :
+les rendus cadrent comme les captures) et en gros plans (château, coque, voiles, proue, quai, tableau) ; trois
+itérations sur rendus, puis une d'après les captures en jeu de la branche :
+
+| Itération | Ce qui restait | Correction |
+|---|---|---|
+| 1 | (or, fenêtres, lion à bold 2,4) le lion des voiles devenu une masse sans pattes ; figure de proue toujours uniforme | bold 1,9 et écarts entre les pattes ; crinière d'un or profond |
+| 2 | lion lisible de face et de trois quarts (126), encore un trait sur 044 (voile vue à ≈ 60°) ; fenêtres bien les plus claires ; or des flancs à reflets | relief des cadres et des préceintes (modèle) |
+| 3 | (modèle régénéré, JUnit 522/522, première poussée en jeu) bordure d'or des voiles fine devant les gros cadres des images ; toit du château presque noir | bordure élargie en blocs d'un demi-bloc, lions un peu moins hauts ; ardoises plus claires |
+| 4 | captures en jeu de `lion-r3` (variante decor) : voir ci-dessous | |
+
+**Écarts restants.** Ceux des phases 4 et 5 quinquies : les voiles sont vues de biais, le lion reste un trait
+depuis l'arrière du travers (044) ; la figure de proue reste une masse d'or simple devant la sculpture de 126 ; les
+images ont un éclairage chaud et des reflets que le jeu n'a pas.
+
 ## 6. Passerelle d'embarquement
 
 Système existant (`docs/PASSERELLES.md`, `core/Gangplank.java`) : spécification ajoutée à `tools/gangplank/ships_g2.py`
@@ -348,8 +389,8 @@ jeu par `RoyalLionShipGameTest` (quai de pierre, levier, déployée puis replié
   `RoyalLionShipGameTest` (en jeu, solo et serveur dédié : mise à l'eau, flottaison, vues des références, toutes les
   pièces, marche sur le pont, les quatre portes, pièces meublées photographiées, assis puis relevé sur trois sièges, marche entre
   les meubles de la cale et de la cabine, passerelle, barre).
-* Comparaisons : `docs/comparaison_royal_lion_ship.png` (1.27.1 : référence | capture en jeu avant | capture en jeu
-  après pour 071, 044 et 126, puis gros plans avant / après de la coque, de la poupe et des voiles) ;
+* Comparaisons : `docs/comparaison_royal_lion_ship.png` (1.28.0 : référence | capture en jeu 1.27.2 | capture en jeu
+  1.28.0 pour 071, 044 et 126, puis gros plans en jeu avant / après du château arrière, de la coque et des voiles) ;
   `docs/preview_royal_lion_ship.png` (planche de la phase 4) ;
   `docs/interieur_royal_lion_ship.png` (les pièces, refaites avec la cabine et la salle d'apparat agrandies).
 * Limites : les fenêtres de la cabine et de la salle d'apparat sont vues de l'intérieur comme des vitres (on ne voit pas
