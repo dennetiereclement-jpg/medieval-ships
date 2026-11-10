@@ -284,10 +284,12 @@ def proper(axes):
     return axes
 
 
-def arch_window(bone, name, c, axes, w, h, lit=True, frame=0.12, inner=None, gold="gold_dim"):
+def arch_window(bone, name, c, axes, w, h, lit=True, frame=0.15, inner=None, gold="gold_dim"):
     """An arched window on a wall (axes: u along the wall, v up, n out of it): the lit (or dark) panes cut out above
     the round head, a gold frame round it (jambs, sill, a keystone), its inside face when `inner` (a point offset).
-    1.27.1: the frame in the deeper gilding (gold_dim), so that the amber panes are the brightest part of the bay."""
+    1.27.1: the frame in the deeper gilding (gold_dim), so that the amber panes are the brightest part of the bay.
+    1.28.0: the frame in higher relief (thicker jambs standing further off the wall, a deeper sill and keystone): the
+    bays read as recessed windows from the quay, not as painted panes."""
     c = v3(*c)
     u, v, n = axes[:, 0], axes[:, 1], axes[:, 2]
     axes = proper(axes)      # the cubes' frame must be a rotation (the offsets and texture hints keep u, v, n)
@@ -295,10 +297,10 @@ def arch_window(bone, name, c, axes, w, h, lit=True, frame=0.12, inner=None, gol
              {"all": None, "+3": "arch_window" if lit else "arch_window_in"}, stretch=True, u_dir=u, v_dir=-v)
     # (the frame stands a little off the wall: its back faces never lie in the wall's plane)
     for s in (1, -1):
-        add_cube(bone, "%s_jamb_%d" % (name, s > 0), c + u * s * (w / 2 + frame / 2) + v * (-h * 0.1) + n * 0.07, axes,
-                 (frame, h * 0.8 + frame, 0.1), gold)
-    add_cube(bone, name + "_sill", c - v * (h / 2 + frame / 2) + n * 0.09, axes, (w + 2.4 * frame, frame, 0.16), gold)
-    add_cube(bone, name + "_key", c + v * (h / 2 + frame * 0.3) + n * 0.08, axes, (0.18, 0.2, 0.12), gold)
+        add_cube(bone, "%s_jamb_%d" % (name, s > 0), c + u * s * (w / 2 + frame / 2) + v * (-h * 0.1) + n * 0.09, axes,
+                 (frame, h * 0.8 + frame, 0.14), gold)
+    add_cube(bone, name + "_sill", c - v * (h / 2 + frame / 2) + n * 0.11, axes, (w + 2.4 * frame, frame * 1.1, 0.22), gold)
+    add_cube(bone, name + "_key", c + v * (h / 2 + frame * 0.3) + n * 0.1, axes, (0.2, 0.22, 0.16), gold)
     if inner is not None:
         add_cube(bone, name + "_in", c + v3(*inner), axes, (w, h, 0.03), {"all": None, "-3": "arch_window_in"}, stretch=True, u_dir=u, v_dir=-v)
 
@@ -317,11 +319,12 @@ def waist(bone, detail, lights):
             board(bone, "bulwark_%s%d" % (sn, i), hp(za, ya, side), hp(za, ya + 0.45, side), hp(zb, yb, side), hp(zb, yb + 0.45, side),
                   0.42, "hull_blue" if za >= FCZ - 0.6 else "strake_brown", v3(side, 0, 0), overlap=1.03, inner="wood_dark")
             beam(bone, "rail_cap_%s%d" % (sn, i), hp(za, ra, side, -0.18), hp(zb, rb, side, -0.18), 0.3, "rail", width=0.44, extend=0.08)
-            gn.wale_bar(bone, "wale_%s%d" % (sn, i), hp(za, ya - 0.3, side, 0.06), hp(zb, yb - 0.3, side, 0.06), 0.22, 0.18, "gold", extend=0.05)
+            # (1.28.0: the wales in higher relief, their beads 0.22 and 0.2 out of the planking)
+            gn.wale_bar(bone, "wale_%s%d" % (sn, i), hp(za, ya - 0.3, side, 0.06), hp(zb, yb - 0.3, side, 0.06), 0.26, 0.22, "gold", extend=0.05)
             if za < BOW_Z - 0.5:
                 for k, (kk, y0) in enumerate(((0.3, WALE_LO + 0.16), (0.6, WALE_MID + 0.16))):
                     la, lb = y0 + band_lift(za, kk), y0 + band_lift(zb, kk)
-                    gn.wale_bar(bone, "wale_low%d_%s%d" % (k, sn, i), hp(za, la, side, 0.05), hp(min(zb, BOW_Z), lb, side, 0.05), 0.2, 0.16,
+                    gn.wale_bar(bone, "wale_low%d_%s%d" % (k, sn, i), hp(za, la, side, 0.05), hp(min(zb, BOW_Z), lb, side, 0.05), 0.24, 0.2,
                                 "gold", extend=0.04)
             if za >= 17.0:
                 board(bone, "bow_bulwark_%s%d" % (sn, i), hp(za, ya + 0.43, side), hp(za, ra, side), hp(zb, yb + 0.43, side), hp(zb, rb, side),
@@ -544,9 +547,10 @@ def castle(bone, lights):
                 y0b, y1b = yb + (Q + 0.3 - yb) * fa, yb + (Q + 0.3 - yb) * fb
                 strake(bone, "castle_wall_%s%d_%d" % (sn, i, r), hp(za, y0a, side), hp(za, y1a, side), hp(zb, y0b, side), hp(zb, y1b, side),
                        0.16, reg, v3(side, 0, 0), overlap=1.03, inner="wall_wood")
-            gn.wale_bar(bone, "castle_wale_%s%d" % (sn, i), hp(za, Q - 0.05, side, 0.06), hp(zb, Q - 0.05, side, 0.06), 0.24, 0.18,
+            # (1.28.0: the wales in higher relief, 0.18 -> 0.24 out of the planking)
+            gn.wale_bar(bone, "castle_wale_%s%d" % (sn, i), hp(za, Q - 0.05, side, 0.06), hp(zb, Q - 0.05, side, 0.06), 0.28, 0.24,
                         "gold", extend=0.05)
-            gn.wale_bar(bone, "castle_wale_low_%s%d" % (sn, i), hp(za, ya - 0.3, side, 0.06), hp(zb, yb - 0.3, side, 0.06), 0.22, 0.18,
+            gn.wale_bar(bone, "castle_wale_low_%s%d" % (sn, i), hp(za, ya - 0.3, side, 0.06), hp(zb, yb - 0.3, side, 0.06), 0.26, 0.22,
                         "gold", extend=0.05)
             if za >= RF - 1e-6:
                 # the blue bulwark of the quarterdeck forward of the roundhouse
@@ -805,7 +809,8 @@ def lion_figurehead(bone, A, s=1.0):
     for k, (a, b) in enumerate(zip(spine[:-1], spine[1:])):
         d = norm(b - a)
         add_cube(bone, "figurehead_body_%d" % k, (a + b) / 2, gg.frame_from(d, v3(0, 1, 0)),
-                 (widths[k] * s, heights[k] * s, np.linalg.norm(b - a) + 0.25 * s), {"all": gold, "+2": mane if k == 2 else gold})
+                 (widths[k] * s, heights[k] * s, np.linalg.norm(b - a) + 0.25 * s),
+                 {"all": gold, "+2": mane if k == 2 else gold, "-2": "gold_dim"})     # 1.28.0: the belly in the deeper gold
     add_cube(bone, "figurehead_haunch", A + v3(0, -0.15, 0.15) * s, rx(-0.3), (1.2 * s, 1.15 * s, 0.9 * s), gold)
     S_ = spine[-1]                                    # the shoulders
     H = S_ + v3(0, 0.75, 0.75) * s                    # the head, raised and thrust forward

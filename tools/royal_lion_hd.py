@@ -10,6 +10,12 @@ edge and carved lines.
 
 The painters work on numpy arrays (rows = v, columns = u) at K texels a UV pixel and are deterministic (one seeded
 generator per region). Regions not repainted here keep the first pass (tools/royal_lion_texture.py) scaled up.
+
+1.28.0 (third pass, from the in-game screenshots of 1.27.2): gold with a wider pale highlight and a deeper shadow on
+every face (the game lights the flanks at about x 0.5), the gilding of the state room's storey deeper, windows with a
+pale core in a wider dark reveal (the renderer draws glowing faces at full light), a stockier sail lion with a gap
+between its legs and a wider outline, a wide gold sail border in half-block blocks, a honey block now and then in the
+planking, the figurehead's mane in a deeper redder gold, lighter roof slates (docs/RoyalLion_PLAN.md, 5 sexies).
 """
 import math
 import zlib
@@ -85,16 +91,19 @@ def put(atlas, region, arr):
 
 
 # ---------------------------------------------------------------- colours
-GOLD_STOPS = [(0.0, "fff4c0"), (0.06, "ffe07e"), (0.2, "ffc848"), (0.5, "f4ac30"), (0.76, "d88c20"), (0.9, "a86618"),
-              (1.0, "683c0a")]
+# 1.28.0 (third pass, from the in-game screenshots): the game lights the flanks at about x 0.5, which turned the gold
+# into a flat dull ochre; a wider pale highlight at the top of each face and a deeper shadow at its foot keep the
+# gilded pieces reading as rounded gold even under that flat light
+GOLD_STOPS = [(0.0, "fff8d4"), (0.1, "ffe88c"), (0.24, "ffd254"), (0.5, "f8b838"), (0.72, "dc9420"), (0.88, "a26216"),
+              (1.0, "583206")]
 GOLD_FLAT = [(0.0, "6a400e"), (0.2, "b07a22"), (0.45, "dca23a"), (0.7, "eebc54"), (0.88, "fad472"), (1.0, "fff0b0")]
 NAVY = ("26407e", "223b76", "2a4686", "1f376e", "2d4a8c")       # the deep royal blue of the hull (texel values)
 NAVY_JOINT = "0c1634"
-SAIL_BLUE = ("233e8a", "264394", "213a84", "2a4898", "203b82", "22408c")
+SAIL_BLUE = ("203a84", "23408e", "1e367e", "274492", "1d377c", "213e88")      # 1.28.0: a shade deeper (the in-game sails read lighter than the pictures)
 SAIL_JOINT = "0d1a44"
-WOOD_LO = ("5a3f25", "513721", "64462b", "452e1b", "6f5033", "553b22", "77583a")   # 1.27.1: a little less orange
+WOOD_LO = ("5a3f25", "513721", "64462b", "452e1b", "6f5033", "553b22", "77583a", "8a6642")   # 1.27.1: a little less orange; 1.28.0: a honey block now and then
 HULL_BROWN = ("402813", "37220f", "482d16", "301d0d", "51341c")
-WOOD_MID = ("70482a", "653f24", "7b5230", "56371e", "86603a", "6a4426")
+WOOD_MID = ("70482a", "653f24", "7b5230", "56371e", "86603a", "6a4426", "946c42")
 WOOD_DARK = ("3a2414", "33200f", "422918", "2c1a0c", "4a2e1a")
 JOINT_BROWN = "1a0e06"
 
@@ -222,7 +231,7 @@ def p_gold_v(w, h, rng, pts=GOLD_STOPS, seam=32, specks=0.004):
 
 
 RING_STOPS = [(0.0, "fae196"), (0.12, "f6cc64"), (0.32, "f0b23e"), (0.6, "d48e26"), (0.82, "a2661a"), (1.0, "5e360a")]
-GOLD_DIM = 0.8     # the gilding of the state room's storey, a little deeper so that its lit windows lead
+GOLD_DIM = 0.7     # the gilding of the state room's storey, deeper so that its lit windows lead (1.28.0: 0.8 -> 0.7)
 
 
 def p_gold_ring(w, h, rng):
@@ -273,8 +282,8 @@ def p_gold_band(w, h, rng):
     small bead studs along the middle."""
     W, H = w * K, h * K
     v = (np.arange(H) + 0.5) / H
-    pts = [(0.0, "4a2c08"), (0.08, "4a2c08"), (0.1, "fff0b0"), (0.22, "f2c45c"), (0.5, "dca23a"), (0.75, "b47822"),
-           (0.9, "7a4c12"), (0.92, "3a2206"), (1.0, "3a2206")]
+    pts = [(0.0, "4a2c08"), (0.08, "4a2c08"), (0.1, "fff8d4"), (0.24, "f6cc5c"), (0.5, "e0a63a"), (0.75, "b07020"),
+           (0.9, "6a400e"), (0.92, "3a2206"), (1.0, "3a2206")]
     out = stops(np.broadcast_to(v[:, None], (H, W)), pts)
     out *= (1 + 0.05 * vnoise(rng, W, H, 12, 4))[..., None]
     for x in range(8, W, 16):
@@ -423,7 +432,7 @@ def paint_lion(out, x0, y0, m, dl, rng, cell, outline=2, outline_col="0b1430", s
     yy = yy + sy.start - pad
     xx = xx + sx.start - pad
     # the volume: lit towards the upper left of the emblem, deeper gold towards its foot, a slow sheen
-    t = 0.26 + 0.3 * np.clip(yy / max(1, lh), 0, 1) + 0.08 * np.clip(xx / max(1, lw), 0, 1)
+    t = 0.2 + 0.3 * np.clip(yy / max(1, lh), 0, 1) + 0.08 * np.clip(xx / max(1, lw), 0, 1)
     t = t - (0.04 if C is not None else 0.08) * vnoise(rng, Ms.shape[1], Ms.shape[0], 9, 9)
     g = stops(np.clip(t, 0, 1), GOLD_STOPS)
     # the voxels: a tone each and a faint joint (the blocky emblems of the references, without a grid); the sail lions
@@ -494,7 +503,7 @@ def p_shield(w, h, rng, rt):
     lw = int(W * 0.64)
     lh = int(lw * 1.2)
     cell = 3
-    m, dl = lion_layers(lw, lh, cell, bold=0.6, rt=rt)
+    m, dl = lion_layers(lw, lh, cell, bold=1.0, rt=rt)
     paint_lion(out, (W - lw) // 2, int(H * 0.14), m, dl, rng, cell, outline=2)
     out[~m3 & ~bord & m2] = hx("2a1a08")
     return rgba(out, m0)
@@ -606,9 +615,12 @@ def p_panel(w, h, rng, field, field_joint, frame_kind="gold", boards=10, recess=
 # The game lights a "glow" face with the full lightmap but still with the entity shader's diffuse term (about 0.5 to
 # 0.75 on a wall), so a near-white core came out a dull beige; an amber core stays orange, and the panes sit in a dark
 # reveal (not straight against the gilding) so that they read as the brightest thing on the castle.
-GLOW_STOPS = [(0.0, "ffde76"), (0.45, "ffc450"), (0.75, "faa034"), (0.92, "ec8028"), (1.0, "d2641e")]
+# 1.28.0: the renderer now draws a glowing face at full light with an up normal (no diffuse darkening), so a pale
+# core comes out pale: the panes are the brightest thing on the castle by day as by night; the reveal round them is
+# wider and darker
+GLOW_STOPS = [(0.0, "fff8c8"), (0.3, "ffe48e"), (0.58, "ffc252"), (0.82, "f89c32"), (1.0, "d66e1c")]
 GLOW_LEAD = "3c1c08"
-REVEAL = ("100a10", "20160e")      # the dark reveal round the panes (shadowed top-left, a little lighter lower right)
+REVEAL = ("0a060a", "160f0a")      # the dark reveal round the panes (shadowed top-left, a little lighter lower right)
 
 
 def p_window(w, h, rng, arch=True, lit=True, frame=3):
@@ -627,7 +639,7 @@ def p_window(w, h, rng, arch=True, lit=True, frame=3):
         dist = np.minimum(np.minimum(xx + 0.5, W - xx - 0.5), yy + 0.5)
     dist = np.minimum(dist, H - yy - 0.5)
     rim = 2 if lit else frame * K
-    rev = 4 if lit else 0
+    rev = 6 if lit else 0
     if lit:
         gx = np.abs(cx) / r
         gy = (yy - H * 0.64) / H
@@ -714,7 +726,7 @@ def p_roof(w, h, rng):
     W, H = w * K, h * K
     out = np.zeros((H, W, 3))
     sh, sw = 12, 16
-    pal = [hx(c) for c in ("2c4a8e", "28437f", "32528f", "243d78", "2f4f96")]
+    pal = [hx(c) for c in ("30529c", "2c4a8c", "385a9e", "284484", "3457a4")]     # 1.28.0: a shade lighter (044's roof)
     for r, y0 in enumerate(range(0, H, sh)):
         off = (sw // 2) * (r % 2)
         for x0 in range(-off, W, sw):
@@ -759,9 +771,12 @@ def p_mane(w, h, rng):
     W, H = w * K, h * K
     yy, xx = np.mgrid[0:H, 0:W].astype(float)
     s = np.sin(xx * 0.38 + np.sin(yy * 0.18) * 2.2 + 0.6 * vnoise(rng, W, H, 8, 8))
-    t = 0.5 - 0.42 * s
-    out = stops(np.clip(t, 0, 1), GOLD_STOPS)
+    # 1.28.0: the mane a deeper, redder gold than the body (the head reads as a separate mass under the game's flat light)
+    t = 0.6 - 0.36 * s
+    out = stops(np.clip(t, 0, 1), GOLD_STOPS) * np.array([1.0, 0.94, 0.9])
     out[s < -0.82] = hx("5e380c")
+    crest = s > 0.84
+    out[crest] = out[crest] * 0.5 + hx("fff4c0") * 0.5     # 1.28.0: lit crests on the locks
     return np.clip(out, 0, 255)
 
 
@@ -876,9 +891,10 @@ def p_sail(w, h, cols, rows, rng, rt, lion=0.0, tri=None, leech_stripe=True, wid
             L2 = ex * ex + ey * ey
             t = np.clip(((xx + 0.5 - ax) * ex + (yy + 0.5 - ay) * ey) / L2, 0, 1)
             d = np.minimum(d, np.hypot(xx + 0.5 - ax - t * ex, yy + 0.5 - ay - t * ey))
-    border = max(12, int(round(min(W, H) * 0.06)))
+    # 1.28.0: a wider border in half-block blocks (the references' borders are about a block wide, in chunky blocks)
+    border = max(16, int(round(min(W, H) * 0.09)))
     gb = (d >= 3) & (d < border)
-    gcell = 8
+    gcell = 16
     gt = (((yy // gcell) * 31 + (xx // gcell) * 17) % 5)
     gk = np.choose(gt, [1.0, 1.06, 0.95, 1.1, 0.92])
     glx, gly = xx % gcell, yy % gcell
@@ -898,8 +914,10 @@ def p_sail(w, h, cols, rows, rng, rt, lion=0.0, tri=None, leech_stripe=True, wid
         lw = int(lh * 100 / 120 * widen * (cw / ch))
         cell = max(4, int(round(min(cw, ch) / 4)))
         lh, lw = lh // cell * cell, lw // cell * cell
-        m, dl = lion_layers(lw, lh, cell, bold=1.6, rt=rt)
-        paint_lion(out, (W - lw) // 2, int(H * 0.49 - lh / 2), m, dl, rng, cell, outline=4, outline_col="0a1430",
+        # (1.28.0: a stockier lion with a wider outline: seen from the quay the sails are foreshortened and the
+        # limbs of the 1.27 lion thinned to streaks)
+        m, dl = lion_layers(lw, lh, cell, bold=1.9, rt=rt)
+        paint_lion(out, (W - lw) // 2, int(H * 0.49 - lh / 2), m, dl, rng, cell, outline=6, outline_col="081028",
                    carving=lion_carving(lw, lh))
     return rgba(out, inside)
 
@@ -980,8 +998,8 @@ def hull_pass(base, R, rt):
     P("gold_dim", p_gold_v(*wh("gold_dim"), g("gold_dim"), pts=[(t, "%02x%02x%02x" % tuple(int(x * GOLD_DIM) for x in hx(c)))
                                                                 for t, c in GOLD_STOPS]))
     P("gold_ring", p_gold_ring(*wh("gold_ring"), g("gold_ring")))
-    P("rail", p_gold_v(*wh("rail"), g("rail"), pts=[(0.0, "fff0b0"), (0.12, "fad472"), (0.35, "eebc54"), (0.62, "d49a34"),
-                                                     (0.86, "a06c1c"), (1.0, "5e380c")], seam=48))
+    P("rail", p_gold_v(*wh("rail"), g("rail"), pts=[(0.0, "fff8d4"), (0.14, "ffe48a"), (0.38, "f6c452"), (0.64, "d89a2e"),
+                                                     (0.88, "985e14"), (1.0, "503004")], seam=48))
     P("gold_band", p_gold_band(*wh("gold_band"), g("gold_band")))
     P("scroll", p_scroll(*wh("scroll"), g("scroll")))
     P("roof_ridge", p_scroll(*wh("roof_ridge"), g("roof_ridge"), period=24))

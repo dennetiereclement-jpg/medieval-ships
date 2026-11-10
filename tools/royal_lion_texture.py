@@ -111,8 +111,8 @@ SAIL_CELLS = {  # (columns, rows) of cloth blocks drawn in each sail region (clo
 }
 # sail -> height of the lion (fraction of the sail). P4: the big bold lions of the pictures (about three quarters of
 # the course's height, drawn 1.2 times wider than their natural shape: the sails are mostly seen foreshortened)
-LION_SAILS = {"main_course": 0.8, "fore_course": 0.76}
-LION_WIDEN = 1.45
+LION_SAILS = {"main_course": 0.74, "fore_course": 0.7}     # 1.28.0: 0.8 / 0.76 -> 0.74 / 0.7 (room for the wider border)
+LION_WIDEN = 1.55     # 1.28.0: 1.45 -> 1.55 (the sails are seen foreshortened from the quay)
 
 _mix, _scale, _planks, _blocks, _fill = ct._mix, ct._scale, ct._planks, ct._blocks, ct._fill
 GOLD, GOLD_HI, GOLD_LO, GOLD_DARK = _rgb("e0ae32"), _rgb("f6d466"), _rgb("b8841e"), _rgb("6e4c0e")
@@ -168,6 +168,12 @@ def lion_shapes(d, B=1.0, fill=255):
     # the tail curling up behind in an S, its flame-shaped tuft
     limb([(80, 82), (89, 76), (94, 64), (90, 52), (85, 42), (88, 32), (91, 27)], 6)
     d.polygon([(84, 30), (81, 19), (86, 8), (92, 1), (96, 9), (100, 13), (98, 25), (93, 31)], fill=fill)
+    # 1.28.0: with thick limbs (B > 1, the sail lions) the legs merged into one mass; a gap of the field keeps the two
+    # forelegs and the two hind legs apart (the voxel lions of the references have a block of blue between their legs)
+    if B > 1.0:
+        gw = int(round(1.5 + 1.2 * B))
+        d.line([(47, 57), (22, 55)], fill=0, width=gw)
+        d.line([(69, 95), (62, 107)], fill=0, width=gw)
 
 
 def lion_mask(w, h, facing=-1, bold=0.0):
