@@ -160,6 +160,8 @@ est dans une pièce, un plancher ou une cloison et qu'aucun n'est hors coque ; �
 points secs l'emportent), et les sections de rendu sont redessinées dès qu'un navire apparaît, quelle que soit la
 distance.
 
+La version 1.28.0 refait aussi le **navire forteresse est refait** (coque de pierre claire à larges bandes et piliers, panneaux rouges biseautés dans des cadres de fer, château contrasté, voiles et bannières retravaillées) ; troisième passe de textures sur le navire au lion et le navire à vapeur ; les **portes du navire à vapeur font 2 blocs** (l'ouverture réelle n'en faisait qu'un, infranchissable de biais) avec un test en jeu de passage du joueur.
+
 La version 1.27.2 termine la passe visuelle des trois navires de ville d'après une relecture des captures en jeu : les **faces lumineuses** (fenêtres éclairées, lanternes, foyers) de **tous les navires** brillent vraiment quelle que soit leur orientation (elles étaient assombries jusqu'à moitié sur les flancs) ; fenêtres ambrées, bagues de mât et proue en blocs carrés sur le navire au lion ; pierre plus claire et plus contrastée, panneaux rouges en carreaux, bras plus épais sur la forteresse ; verre orangé clair, coque charbon, laiton vif, engrenage de proue détaché sur le navire à vapeur.
 
 La version 1.27.1 améliore **le visuel des trois navires de ville** : textures en haute définition avec ombres et matières peintes (joints et coutures sombres, arêtes éclairées, creux ombrés, planches et pierres variées, or et laiton à reflets, rivets, voiles à coutures et plis, emblèmes cernés), relief léger là où il se lit (moulures, cadres, rivets), et corrections propres à chaque navire : coque du navire au lion en bois sombre à bandes bleu roi, pierre et clous plus contrastés sur la forteresse, tôles anthracite chaudes et dôme plus haut sur le navire à vapeur. Silhouettes, pièces, sièges, passerelles et tests inchangés. Comparaisons avant/après dans `docs/comparaison_<id>.png`.
@@ -540,7 +542,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.27.2.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.28.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
