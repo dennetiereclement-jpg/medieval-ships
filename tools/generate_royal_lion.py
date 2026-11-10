@@ -144,9 +144,21 @@ def hull_rows(z):
 
 STRETCHED = ("strake_brown", "strake_brown2", "gold_band", "castle_panel", "castle_wood", "taffrail", "carving", "scroll")
 MOSAIC = ("strake_lo", "strake_mid", "strake_hi")
+# 1.27.1 (second pass): the low and the dark wood strakes sweep up 2 to 3 times taller at the bow; there the faces
+# pick a variant of their region with more rows of blocks (about one row a block of height), so that the blocks stay
+# about square instead of stretching into tall streaks
+ROW_VARIANTS = {"strake_lo": (2, {3: "strake_lo_r3", 4: "strake_lo_r4"}), "strake_mid": (1, {2: "strake_mid_r2", 3: "strake_mid_r3"})}
+
+
+def mosaic_region(region, height):
+    if region not in ROW_VARIANTS:
+        return region
+    rows, variants = ROW_VARIANTS[region]
+    n = int(round(height))
+    return variants.get(min(max(n, rows), max(variants)), region)
 # 1.27.1: regions painted with their shading across the full height of the face (tools/royal_lion_hd.py): each face
 # maps the whole v range of the region (the lit top edge, the shadowed foot), u still 16 px a block
-V_FULL = ("gold", "rail", "bronze", "iron", "rope", "rope_light", "rope_dark", "strake_lo", "strake_mid", "strake_hi", "hull_blue")
+V_FULL = ("gold", "gold_dim", "rail", "bronze", "iron", "rope", "rope_light", "rope_dark", "strake_lo", "strake_mid", "strake_hi", "hull_blue")
 _face_uv = gn.face_uv
 
 
@@ -228,9 +240,11 @@ def hull(bone):
                     u0 = ((za - TZ) * 16 % 64) / 64
                     if u0 + lu > 1:
                         u0 = max(0.0, 1 - lu)
+                    reg = mosaic_region(regs[k], cube.size[1])
                     for spec in cube.faces.values():
                         if spec is not None and spec["region"] == regs[k]:
                             spec["sub"] = (u0, 0.0, u0 + lu, 1.0)     # 1.27.1: the band's shading over its height
+                            spec["region"] = reg
                             spec["u_dir"], spec["v_dir"] = v3(0, 0, 1), v3(0, -1, 0)
                 n += 1
     for i in range(len(STATIONS) - 2):
@@ -241,23 +255,24 @@ def hull(bone):
     return n
 
 
-def gold_rail(bone, name, path, h, posts_every=0.5, big_every=0, post_region="gold"):
+def gold_rail(bone, name, path, h, posts_every=0.5, big_every=0, post_region="gold", gold="gold"):
     """Open gold balustrade along a path: a bottom rail, square gold balusters, a gold cap rail; every `big_every`
-    balusters a stout post with a knob."""
+    balusters a stout post with a knob (gold: the region of the gilded pieces, gold_dim on the state room's storey)."""
     k = 0
+    post_region = gold if post_region == "gold" else post_region
     for i, (a, b) in enumerate(polyline(path)):
-        beam(bone, "%s_cap_%d" % (name, i), a + v3(0, h, 0), b + v3(0, h, 0), 0.14, "rail", width=0.3, extend=0.07)
-        beam(bone, "%s_foot_%d" % (name, i), a + v3(0, 0.09, 0), b + v3(0, 0.09, 0), 0.16, "gold", width=0.24, extend=0.05)
+        beam(bone, "%s_cap_%d" % (name, i), a + v3(0, h, 0), b + v3(0, h, 0), 0.14, "rail" if gold == "gold" else gold, width=0.3, extend=0.07)
+        beam(bone, "%s_foot_%d" % (name, i), a + v3(0, 0.09, 0), b + v3(0, 0.09, 0), 0.16, gold, width=0.24, extend=0.05)
         seg = np.linalg.norm(b - a)
         n = max(1, int(round(seg / posts_every)))
         for j in range(n + (1 if i == len(path) - 2 else 0)):
             p = a + (b - a) * (j / n)
             if big_every and k % big_every == 0:
                 add_cube(bone, "%s_post_%d" % (name, k), p + v3(0, (h + 0.3) / 2, 0), EYE, (0.3, h + 0.3, 0.3), post_region)
-                add_cube(bone, "%s_post_cap_%d" % (name, k), p + v3(0, h + 0.38, 0), EYE, (0.4, 0.16, 0.4), "gold")
-                add_cube(bone, "%s_post_knob_%d" % (name, k), p + v3(0, h + 0.53, 0), EYE, (0.22, 0.14, 0.22), "gold")
+                add_cube(bone, "%s_post_cap_%d" % (name, k), p + v3(0, h + 0.38, 0), EYE, (0.4, 0.16, 0.4), gold)
+                add_cube(bone, "%s_post_knob_%d" % (name, k), p + v3(0, h + 0.53, 0), EYE, (0.22, 0.14, 0.22), gold)
             else:
-                add_cube(bone, "%s_baluster_%d" % (name, k), p + v3(0, h / 2 + 0.05, 0), EYE, (0.12, h - 0.1, 0.12), "gold")
+                add_cube(bone, "%s_baluster_%d" % (name, k), p + v3(0, h / 2 + 0.05, 0), EYE, (0.12, h - 0.1, 0.12), gold)
             k += 1
 
 
@@ -269,9 +284,10 @@ def proper(axes):
     return axes
 
 
-def arch_window(bone, name, c, axes, w, h, lit=True, frame=0.12, inner=None):
+def arch_window(bone, name, c, axes, w, h, lit=True, frame=0.12, inner=None, gold="gold_dim"):
     """An arched window on a wall (axes: u along the wall, v up, n out of it): the lit (or dark) panes cut out above
-    the round head, a gold frame round it (jambs, sill, a keystone), its inside face when `inner` (a point offset)."""
+    the round head, a gold frame round it (jambs, sill, a keystone), its inside face when `inner` (a point offset).
+    1.27.1: the frame in the deeper gilding (gold_dim), so that the amber panes are the brightest part of the bay."""
     c = v3(*c)
     u, v, n = axes[:, 0], axes[:, 1], axes[:, 2]
     axes = proper(axes)      # the cubes' frame must be a rotation (the offsets and texture hints keep u, v, n)
@@ -280,9 +296,9 @@ def arch_window(bone, name, c, axes, w, h, lit=True, frame=0.12, inner=None):
     # (the frame stands a little off the wall: its back faces never lie in the wall's plane)
     for s in (1, -1):
         add_cube(bone, "%s_jamb_%d" % (name, s > 0), c + u * s * (w / 2 + frame / 2) + v * (-h * 0.1) + n * 0.07, axes,
-                 (frame, h * 0.8 + frame, 0.1), "gold")
-    add_cube(bone, name + "_sill", c - v * (h / 2 + frame / 2) + n * 0.09, axes, (w + 2.4 * frame, frame, 0.16), "gold")
-    add_cube(bone, name + "_key", c + v * (h / 2 + frame * 0.3) + n * 0.08, axes, (0.18, 0.2, 0.12), "gold")
+                 (frame, h * 0.8 + frame, 0.1), gold)
+    add_cube(bone, name + "_sill", c - v * (h / 2 + frame / 2) + n * 0.09, axes, (w + 2.4 * frame, frame, 0.16), gold)
+    add_cube(bone, name + "_key", c + v * (h / 2 + frame * 0.3) + n * 0.08, axes, (0.18, 0.2, 0.12), gold)
     if inner is not None:
         add_cube(bone, name + "_in", c + v3(*inner), axes, (w, h, 0.03), {"all": None, "-3": "arch_window_in"}, stretch=True, u_dir=u, v_dir=-v)
 
@@ -497,17 +513,18 @@ def stern(bone, castle, lights):
     for j, x in enumerate(STERN_WIN_X):
         arch_window(castle, "rh_stern_window_%d" % j, (x, UPPER_WIN_Y, z + 0.0), axes, 1.0, UPPER_WIN[1])
     for j, x in enumerate((-3.85, -1.9, 0.0, 1.9, 3.85)):
-        add_cube(castle, "rh_stern_pilaster_%d" % j, (x, (Q + 0.3 + RH1) / 2, z - 0.02), EYE, (0.24, RH1 - Q - 0.3, 0.12), "gold")
+        add_cube(castle, "rh_stern_pilaster_%d" % j, (x, (Q + 0.3 + RH1) / 2, z - 0.02), EYE, (0.24, RH1 - Q - 0.3, 0.12), "gold_dim")
     add_cube(castle, "rh_stern_cornice", (0, RH1 - 0.15, z - 0.05), EYE, (2 * xq + 0.1, 0.32, 0.16), "scroll", stretch=True)
     # the upper balcony: a gold-railed walk along the foot of the state room's stern windows (decorative)
     by = Q + 0.32
     xb_ = xq - 0.25
     add_cube(castle, "balcony_floor", (0, by, z - 0.4), EYE, (2 * xb_, 0.14, 0.7), {"all": "dark_wood", "+2": "deck"})
     add_cube(castle, "balcony_fascia", (0, by - 0.12, z - 0.76), EYE, (2 * xb_ + 0.1, 0.26, 0.08), "carving", stretch=True)
-    gold_rail(castle, "balcony_rail", [v3(-xb_, by + 0.07, z - 0.72), v3(xb_, by + 0.07, z - 0.72)], 0.6, posts_every=0.35, big_every=6)
+    gold_rail(castle, "balcony_rail", [v3(-xb_, by + 0.07, z - 0.72), v3(xb_, by + 0.07, z - 0.72)], 0.6, posts_every=0.35, big_every=6,
+              gold="gold_dim")
     for s_ in (1, -1):
         gold_rail(castle, "balcony_rail_end_%d" % (s_ > 0), [v3(s_ * xb_, by + 0.07, z - 0.72), v3(s_ * xb_, by + 0.07, z - 0.1)], 0.6,
-                  posts_every=0.35)
+                  posts_every=0.35, gold="gold_dim")
 
 
 def castle(bone, lights):
@@ -541,7 +558,7 @@ def castle(bone, lights):
                     strake(bone, "rh_wall_%s%d_%d" % (sn, i, r), hp(za, y0, side), hp(za, y1, side), hp(zb, y0, side), hp(zb, y1, side),
                            0.18, reg, v3(side, 0, 0), overlap=1.03, inner="wall_wood")
                 gn.wale_bar(bone, "rh_cornice_%s%d" % (sn, i), hp(za, RH1 - 0.05, side, 0.08), hp(zb, RH1 - 0.05, side, 0.08), 0.2, 0.22,
-                            "gold", extend=0.05)
+                            "gold_dim", extend=0.05)
         for j, z in enumerate((TZ + 0.25, -17.0, -14.2, -11.4, -8.6)):
             y0 = fs.sheer_y(z)
             p0, p1 = hp(z, y0, side, 0.05), hp(z, Q, side, 0.05)
@@ -565,17 +582,17 @@ def castle(bone, lights):
             arch_window(bone, "rh_window_%s%d" % (sn, j), p, axes, UPPER_WIN[0], UPPER_WIN[1])
             # a gold hood moulding over the arch, with a small crest
             add_cube(bone, "rh_window_hood_%s%d" % (sn, j), p + v * (UPPER_WIN[1] / 2 + 0.22) + n * 0.1, proper(axes),
-                     (UPPER_WIN[0] + 0.3, 0.14, 0.14), "gold")
+                     (UPPER_WIN[0] + 0.3, 0.14, 0.14), "gold_dim")
             add_cube(bone, "rh_window_crest_%s%d" % (sn, j), p + v * (UPPER_WIN[1] / 2 + 0.4) + n * 0.1, proper(axes), (0.3, 0.26, 0.1),
                      "carving")
         for j, z in enumerate(UPPER_PIL_Z):
             p0 = hp(z, Q + 0.3, side, 0.06)
-            add_cube(bone, "rh_pilaster_%s%d" % (sn, j), p0 + v3(0, (RH1 - Q - 0.66) / 2, 0), EYE, (0.26, RH1 - Q - 0.66, 0.26), "gold")
-            add_cube(bone, "rh_pilaster_cap_%s%d" % (sn, j), p0 + v3(side * 0.02, RH1 - Q - 0.62, 0), EYE, (0.36, 0.14, 0.36), "gold")
+            add_cube(bone, "rh_pilaster_%s%d" % (sn, j), p0 + v3(0, (RH1 - Q - 0.66) / 2, 0), EYE, (0.26, RH1 - Q - 0.66, 0.26), "gold_dim")
+            add_cube(bone, "rh_pilaster_cap_%s%d" % (sn, j), p0 + v3(side * 0.02, RH1 - Q - 0.62, 0), EYE, (0.36, 0.14, 0.36), "gold_dim")
         path = [hp(z, Q + 0.35, side, 0.32) for z in np.linspace(TZ + 0.2, RF - 0.05, 7)]
         for k, (pa, pb) in enumerate(polyline(path)):
             beam(bone, "rh_balcony_%s%d" % (sn, k), pa - v3(side * 0.18, 0, 0), pb - v3(side * 0.18, 0, 0), 0.14, "dark_wood", width=0.5, extend=0.04)
-        gold_rail(bone, "rh_balcony_rail_" + sn, [p + v3(0, 0.07, 0) for p in path], 0.5, posts_every=0.4, big_every=5)
+        gold_rail(bone, "rh_balcony_rail_" + sn, [p + v3(0, 0.07, 0) for p in path], 0.5, posts_every=0.4, big_every=5, gold="gold_dim")
         # quarterdeck balustrade, from the roundhouse to the castle front
         path = [hp(z, Q + 0.75, side, -0.22) for z in np.linspace(RF + 0.1, CF - 0.05, 5)]
         gold_rail(bone, "qd_rail_" + sn, path, QD_RAIL - Q - 0.75, posts_every=0.5, big_every=4)
@@ -654,7 +671,7 @@ def roundhouse(bone, lights):
                      (0.18, dh + 0.1, 0.14), "gold")
         add_cube(bone, "rh_front_lintel_" + sn, (side * (d0 + d1) / 2, Q + dh + 0.12, RF + 0.04), EYE, (d1 - d0 + 0.36, 0.24, 0.16), "gold")
         arch_window(bone, "rh_front_window_" + sn, (side * (d1 + w) / 2, UPPER_WIN_Y, RF + 0.0), axes, 0.85, 1.5)
-        add_cube(bone, "rh_front_pilaster_" + sn, (side * (w - 0.1), (Q + RH1) / 2, RF + 0.04), EYE, (0.24, RH1 - Q, 0.14), "gold")
+        add_cube(bone, "rh_front_pilaster_" + sn, (side * (w - 0.1), (Q + RH1) / 2, RF + 0.04), EYE, (0.24, RH1 - Q, 0.14), "gold_dim")
     add_cube(bone, "rh_front_mid", (0, (Q + RH1) / 2, z), EYE, (2 * d0, RH1 - Q, 0.16), {"all": "castle_panel", "-3": "wall_wood"}, stretch=True)
     add_cube(bone, "rh_front_lion", (0, RH1 - 0.75, RF + 0.06), EYE, (0.8, 0.8, 0.04), {"all": "gold", "+3": "lion_relief"}, stretch=True)
     add_cube(bone, "rh_front_cornice", (0, RH1 - 0.15, RF + 0.05), EYE, (2 * w + 0.2, 0.3, 0.14), "scroll", stretch=True)
@@ -997,14 +1014,16 @@ def mast(root, fittings, lights, name):
     round_bar(mb, name + "_lower", (0, deck - 0.1, z), (0, top1 + 1.0, z), d, "mast")
     disc(mb, name + "_partners", (0, deck + 0.12, z), (0, 1, 0), d / 2 + 0.22, 0.24, "wood_dark", n=3)
     for k, y in enumerate(np.arange(deck + 1.8, top1 - 0.6, 2.0)):
-        round_bar(mb, "%s_band_%d" % (name, k), (0, y - 0.1, z), (0, y + 0.1, z), d + 0.08, "gold")
+        # (1.27.1: the gold_ring region shades the band from its top rim down: its side faces map u along the mast)
+        round_bar(mb, "%s_band_%d" % (name, k), (0, y - 0.1, z), (0, y + 0.1, z), d + 0.08, "gold_ring", stretch=True, u_dir=v3(0, -1, 0))
     fighting_top(mb, lights, name, z, top1, d)
     add_cube(mb, name + "_cap", (0, top1 + 1.05, z + 0.2), EYE, (d + 0.2, 0.3, 1.4), "gold")
     if top2 is not None:
         d2 = d * 0.66
         round_bar(mb, name + "_topmast", (0, top1 - 0.5, z + 0.45), (0, head, z + 0.45), d2, "mast")
         for k, y in enumerate((top1 + 2.6, top1 + 5.2)):
-            round_bar(mb, "%s_topmast_band_%d" % (name, k), (0, y - 0.07, z + 0.45), (0, y + 0.07, z + 0.45), d2 + 0.06, "gold")
+            round_bar(mb, "%s_topmast_band_%d" % (name, k), (0, y - 0.07, z + 0.45), (0, y + 0.07, z + 0.45), d2 + 0.06, "gold_ring",
+                      stretch=True, u_dir=v3(0, -1, 0))
         s2 = 1.0
         for sx in (1, -1):
             beam(mb, "%s_crosstree2_%d" % (name, sx > 0), (-s2, top2, z + 0.45 + sx * 0.3), (s2, top2, z + 0.45 + sx * 0.3), 0.12, "wood_dark",
