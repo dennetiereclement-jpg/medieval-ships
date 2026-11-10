@@ -344,3 +344,92 @@ la cale ni sur la poutre de la cabine. Les bras d'artimon (0,12) y restaient poi
 
 Restent : l'éclairage chaud et les ombres portées des images (le jeu éclaire les flancs à environ la moitié : la pierre
 reste moins lumineuse que sur 112) ; le reste du § 10.
+
+## 13. Refonte visuelle en profondeur (phase 7, 1.28.0)
+
+Planche : [comparaison_fortress_ship.png](comparaison_fortress_ship.png) (référence 112 | en jeu avant, main 1.27.2 | rendu
+après avec l'éclairage des entités de Minecraft depuis la caméra de 112 ; puis le flanc de près, le château, la grande
+voile et la poupe, avant / après). Aperçu : [preview_fortress_ship.png](preview_fortress_ship.png). Caméra de 112 recalée
+par moindres carrés sur les trois pommes de mât, le bec, la lisse au grand mât et les bannières (écart ≤ 50 px : 112
+n'est pas une vraie perspective du modèle, sa tourelle et sa poupe diffèrent un peu). Silhouette, pièces, sièges,
+portes, passerelle, collisions et physique inchangés ; grille et mobilier identiques (octets identiques) ; flottaison
+inchangée. 5 769 cubes (5 861 avant : les plaques de fer et leurs boutons en moins, les lisses de fer et la seconde
+assise de la ceinture en plus) ; génération déterministe.
+
+Revue des captures en jeu de 1.27.2 : depuis le quai la coque se lisait encore comme un navire de bois brun à minces
+bandes grises, le château en bois sombre manquait de contraste, les voiles étaient plates. Sur 112 la coque est une
+**forteresse de pierre claire** : deux larges ceintures de pierre (à la flottaison et sous la lisse), des piliers de
+pierre encadrant de grands panneaux rouges biseautés dans des cadres de fer noir à gros rivets, le bois sombre seulement
+dans les fonds et sous le gaillard d'avant ; le château est en pierre claire à panneaux rouges, seul l'étage de la
+cabine (trois fenêtres en arc éclairées) reste en bois sombre. Fait :
+* **Bordé** (`hull_rows`, `cladding`) : la préceinte de pierre descend jusqu'à la flottaison (`WALE` 0,3–1,45, 1,15 de
+  haut, en pierre cloutée), les panneaux rouges 1,45–3,45 (`RED_TOP`), la bande sombre cloutée 3,45–4,15, la ceinture
+  haute 4,15–5,5 (`BELT_H` 1,12 + la lisse) en **deux assises** décalées d'un demi-bloc (`BELT_UP`, `stone_course(phase)`),
+  la haute cloutée. Les **nervures** sont des piliers de pierre claire d'un bloc de large, en saillie d'un tiers de bloc,
+  à clous d'argent (plus de plaque de fer noire ni de bouton). Les panneaux rouges sont **encadrés de fer** : un montant
+  de fer sombre à rivets clairs de chaque côté du pilier (`POST_W` 0,42, `stud_post` redessiné) et une lisse de fer à
+  rivets en haut et au pied de chaque panneau (`panel_rail`, région `iron_rail`). La ceinture de la poupe suit (la
+  préceinte sur la voûte en pierre claire).
+* **Château** : flancs du donjon, parapet de la dunette, cloison avant du château, front et mur de poupe du donjon en
+  pierre claire (appareil aligné un bloc par face), quoins du donjon en pierre plus claire ; la cloison du gaillard
+  d'avant et le garde-corps avant de la dunette en pierre aussi. L'étage de la cabine, la tourelle (bois sombre, toit
+  rouge) et les fenêtres en arc restent.
+* **Pierre** (`fortress_texture.py`) : base autour de `#bcae9e`, biseau haut presque blanc, joints `#2a2420` ; faces
+  plus lisses (moins de marbrure, d'éclats et de fêlures) ; les **clous** sur la pierre en dômes d'argent brillants
+  (`STUD`). Rouge des panneaux `#c43826`. Bande cloutée en brun moyen plus chaud.
+* **Voiles** : cramoisi un ton plus profond (`RED`), chaque bloc de toile à sa propre valeur (± 7 %), biseaux plus
+  marqués (haut et gauche clairs, bas et droite sombres), la têtière dans l'ombre de la vergue sur un rang et demi
+  (− 38 %), le ventre qui prend la lumière (+ 12 %), blancs des chutes plus chauds ; la tour cernée inchangée.
+* **Bannières** : frange d'or (ligne claire dans un bord plus sombre) ; **flammes** : la tour blanche cernée à la
+  drisse. Lanternes des angles du château inchangées.
+* Passerelle : la case de camouflage `fortress_ship` suit la pierre (`#bcae9e`, seule la case 13 de `gangplank.png`) ;
+  le paquet rangé passe toujours au ras de la ceinture (`fortress_gangplank.py compact` : 0,43 au plus, inclinaison 4°).
+
+Quatre itérations comparées à 112 depuis sa caméra (rendu avec les deux lumières fixes du jeu, flancs à ≈ 0,5) :
+1 : bandes, piliers, cadres, château en pierre ; 2 : ceinture en deux assises, pierre plus nette, clous d'argent, voiles
+ombrées ; 3 : pierre + 8 %, bande cloutée plus chaude, blancs des voiles ; 4 : voûte de poupe en pierre claire, tour sur
+les flammes, frange d'or des bannières. Jugement « un joueur le trouverait-il beau ? » : matières lisibles de loin
+(pierre claire, rouge vif, bois sombre), contrastes nets, plus de grésillement, pas de z-fighting (`NoZFightingTest`),
+pas de trou vu de la proue, du flanc, de la poupe ni de dessus.
+
+Restent : l'éclairage chaud et les ombres portées de 112 (le jeu éclaire les flancs à environ la moitié) ; la lisse de bois
+du passavant de 112 (merlons de 151 / 149 gardés) ; la préceinte de 112 est à moitié sous l'eau (ici elle s'arrête
+0,3 au-dessus de la flottaison, que la branche `water-hull` déplace) ; le reste du § 10.
+
+## 14. Seconde passe après relecture (phase 8, 1.28.0)
+
+Relecture des rendus de la phase 7 (éclairage des entités de Minecraft, dix caméras, recalés sur les captures en jeu de
+main) : depuis le quai, le **tiers avant** de la coque (bordé sombre clouté sous le gaillard, un seul écu) et tout le
+**bas de la coque** restaient une masse presque noire ; la **pierre**, crème et aux biseaux mous, se lisait en calcaire
+bouffi plutôt qu'en pierre taillée gris moyen de 112 ; la **grille de fer noir** des panneaux rouges les faisait lire en
+caisses ; sous la préceinte chaque pilier finissait par un **cube isolé** ; les **lanternes** étaient trop petites et
+ternes. Fait (textures et constantes du générateur, silhouette inchangée) :
+* **Coque** : les panneaux rouges courent sur tout le flanc (`hull_rows` : plus de bande cloutée sous le gaillard), un
+  montant de chaque côté de chaque nervure (celles de 10,2 et 15,0 comprises : 28 montants) ; **quoins de pierre en
+  escalier** le long de l'étrave (`stem_quoin_*`, 8 par bord, 0,78 de haut, alternativement 0,92 et 0,64 de large,
+  chacun avancé avec la quête, un sur trois clouté) ; bordé des fonds en **chêne sombre lisible** (base `#5a4030`,
+  arête haute des planches + 20 % (`_boards(edge)`), joints `#20160e`) ; la virure sous la préceinte à 0,72 au lieu de
+  0,56 en haut, celle de la flottaison dans le même chêne.
+* **Pierre** (`fortress_texture.py`) : base `#a9a39c` (gris moyen neutre-chaud), biseau haut-gauche + 21 % (`#cdc7bf`),
+  bas-droite − 35 % (`#6e6862`), **joint de 2 px** (mortier `#2a2420` puis un pixel de biseau sombre), ± 8 % par bloc et
+  **un bloc sur six plus sombre** (`#8e8880`, `STONE_DARKER`, aussi dans les tuiles `sb_*`), un éclat sur deux blocs ;
+  pierre claire des chaperons `#c9c3bb` ; pierre sombre neutre ; clous d'argent gardés.
+* **Cadres des panneaux** : montants en **noyer sombre** `#3a2c20` à clous d'argent (`stud_post`), **lisses de fer
+  supprimées** (`panel_rail`, région `iron_rail` inutilisée), bord haut et bas des cellules rouges en noyer : la pierre
+  et le rouge dominent le flanc.
+* **Contreforts** : sous la préceinte, piles de deux ou trois blocs (`FOOT_W` 1,0 / 0,84 / 0,68, chacun posé sur la
+  coque sur toute sa hauteur) jusqu'où le bouchain rentre, jamais un bloc seul (ici trois partout : 12 piles).
+* **Lanternes** : corps de 0,45 à 0,6 bloc (`s` : passavant 1,5, gaillard 1,7, proue 2,0, dunette 1,7, donjon 1,8,
+  poupe 1,8, fleuron de la tourelle 1,8 dans une cage élargie), verre **ambre plein feu** `#ffb640` à liseré clair de
+  2 px et cœur pâle (`_lamp_glass`, propre au navire), une lanterne de plus **sous la pointe du bec** (`lantern_stem`,
+  bras de fer).
+* Passerelle : la case de camouflage `fortress_ship` suit la pierre (`#a9a39c`, seule la case 13 de `gangplank.png`).
+
+5 785 cubes (5 769 : les 16 quoins et 12 blocs de contrefort en plus, les lisses de fer en moins) ; quads de référence
+régénérés ; grille, mobilier, collisions, flottaison inchangés (`WATERLINE_Y` intact). Planche
+[comparaison_fortress_ship.png](comparaison_fortress_ship.png) refaite : référence 112 | en jeu avant (main 1.27.2) | rendu
+phase 8 depuis la caméra de 112, puis le flanc, la proue, le château et la vue de loin à l'échelle du jeu (phase 7 /
+phase 8) ; aperçu [preview_fortress_ship.png](preview_fortress_ship.png) refait.
+
+Restent : l'éclairage chaud et les ombres portées de 112 (le jeu éclaire les flancs à environ la moitié : la pierre y
+paraît plus sombre que sur l'image) ; la préceinte de 112 à moitié sous l'eau (branche `water-hull`) ; le reste du § 10.

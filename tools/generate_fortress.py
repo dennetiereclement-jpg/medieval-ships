@@ -14,13 +14,15 @@ Outputs:
   src/main/resources/assets/medievalships/interiors/fortress_ship_decor.json   (furniture of the mods, seats)
 
 References: the three pictures of the "Navire forteresse" (docs/Fortress_PLAN.md): a floating castle that keeps a
-ship's shape. A massive dark-wood hull with grey stone in narrow bands and ribs only (phase 4): a stone wale under the
-red panels, one course of stone under the gunwale, vertical stone ribs with black iron plates, the red panels framed
-by studded dark posts, stepped stone buttresses; crenellated stone parapets and merlons along the waist, a raised
-forecastle with a wooden balustrade and a stone beak at the head of the strongly raked stem; the hull tucks in under
-the stern castle (a stepped counter); a two storey stern castle in dark timber with stone quoins, string courses and
-battlements, lit arched windows, the keep overhanging the transom on corbels; a turret of dark timber
-with a pointed red tiled roof and a lantern on its finial; three masts with red square sails bordered and striped
+ship's shape. A light stone fortress on a dark-wood hull (phase 7, main reference): a wide stone wale down to the
+waterline, the red panels over it in dark iron frames with bright rivets (iron posts and rails), a narrow dark studded
+band, a wide stone belt under the gunwale in two staggered courses, vertical stone pillars (the ribs) with iron studs
+standing proud between the panels, stepped stone buttresses under the wale, the dark wood only in the lower strakes and
+under the forecastle; crenellated stone parapets and merlons along the waist, a raised forecastle with a wooden
+balustrade and a stone beak at the head of the strongly raked stem; the hull tucks in under the stern castle (a stepped
+counter); a two storey stern castle in light stone with red panels, string courses and battlements, lit arched windows,
+the captain's cabin's storey in dark timber between stone quoins, the keep overhanging the transom on corbels; a turret
+of dark timber with a pointed red tiled roof and a lantern on its finial; three masts with red square sails bordered and striped
 with white, a beige castle tower with a gate on the main course, a small white jib with a red band, red
 swallow-tailed pennants at the mastheads, fighting tops with stone merlons, rope ladders; red banners with the
 white tower along the sides and at the stern, heater shields on the bow, a banner from the bowsprit; a cargo crane
@@ -109,8 +111,9 @@ def deck_y(z):
 
 
 def hull_rows(z):
-    """Points (x, y) of the outer hull section at z (one side, keel to sheer) and the region of each strake: dark wood
-    under the water, the stone wale's course, a dark strake, the red panels, the studded strake, the stone belt."""
+    """Points (x, y) of the outer hull section at z (one side, keel to sheer) and the region of each strake: dark oak
+    under the water, the stone wale's course, a dark strake, the red panels (phase 8: along the whole flank, under the
+    forecastle too), the studded strake, the stone belt."""
     ys = fs.sheer_y(z)
     pts = []
     for fx, fy in ((0.0, 1.0), (0.5, 0.88), (0.82, 0.5), (0.97, 0.1)):
@@ -120,11 +123,12 @@ def hull_rows(z):
         pts.append((max(0.16, fx * w), fy * yk))
     regs = ["hull_deep", "hull_low", "hull_brown"]    # (phase 5: darker row by row towards the keel)
     lf = lift(z)
-    # camera-matched main reference, from the rail down: a stone cap 0.8, the studded band 0.95, the red panels 2.1, the
-    # stone wale 0.7 right under them, dark planks to the keel (the stone buttresses of the ribs stepping down on them)
-    levels = [(0.2, "strake_brown2"), (WALE[0] + 0.3 * lf, "strake_brown"), (WALE[1] + 0.35 * lf, "strake_brown2"),
-              (3.55 + 0.8 * lf, "red_panel" if z < FF + 0.6 or z > 16.4 else "studs"), (fs.KNUCKLE_Y + 0.95 * lf, "studs"),
-              (BELT_LOW + 0.95 * lf, "studs_top"), (ys, "stone")]     # (the upper studded row in the shadow of the belt)
+    # main reference (phase 7): from the rail down a wide stone belt (1.35 with its cap), a narrow dark studded band
+    # (0.7), the red panels (2.0) in their iron frames, a wide stone wale right under them down to the waterline (1.15),
+    # a wet dark strake and the dark planks to the keel (the stone buttresses of the ribs stepping down on them)
+    levels = [(0.0, "strake_brown2"), (WALE[0] + 0.3 * lf, "strake_brown"), (WALE[1] + 0.35 * lf, "strake_brown2"),
+              (RED_TOP + 0.8 * lf, "red_panel"),
+              (BELT_LOW + 0.95 * lf, "studs_top"), (ys, "stone")]     # (the studded band in the shadow of the belt)
     for y, reg in levels:
         y = min(y, ys - 0.06 * (len(levels) - len(regs) + 3))
         y = max(y, pts[-1][1] + 0.08)
@@ -134,8 +138,9 @@ def hull_rows(z):
 
 
 STRETCHED = ("strake_brown", "strake_brown2")
-WALE = (0.75, 1.45)     # the stone wale (at the waist; it rises with the sheer forward)
-BELT_LOW = 4.65         # the studded band up to here, then the stone belt to the gunwale
+WALE = (0.3, 1.45)      # the stone wale, down to the waterline (at the waist; it rises with the sheer forward); phase 7: 1.15 high
+RED_TOP = 3.45          # the red panels from the wale up to here (2.0), the studded band over them
+BELT_LOW = 4.15         # the studded band up to here, then the stone belt to the gunwale (1.35 with its cap)
 
 
 def strake(bone, name, a0, a1, b0, b1, th, region, outward, overlap=1.03, inner=None):
@@ -253,8 +258,8 @@ def counter(bone):
     """The counter: the stern below the captain's cabin's floor, tucking in from under the transom towards the keel
     (main reference), dark planks in rows across, the stone wale's course across it, a row of corbels under the
     cabin's floor where it overhangs the counter's top."""
-    ys = [fs.COUNTER_FOOT_Y + 0.05, -1.0, -0.3, 0.2, WALE[0], WALE[1], 2.2, 3.0, fs.KNUCKLE_Y]
-    regs = ["hull_deep", "hull_low", "hull_brown", "strake_brown2", "stone_dark", "strake_brown", "strake_brown2", "strake_brown"]
+    ys = [fs.COUNTER_FOOT_Y + 0.05, -1.0, -0.3, WALE[0], WALE[1], 2.2, 3.0, fs.KNUCKLE_Y]
+    regs = ["hull_deep", "hull_low", "hull_brown", "stone_stud", "strake_brown", "strake_brown2", "strake_brown"]
     for k in range(len(ys) - 1):
         ya, yb = ys[k], ys[k + 1]
         za, zb = fs.stern_z(ya + 1e-6), fs.stern_z(yb - 1e-6)
@@ -279,11 +284,11 @@ def counter(bone):
 
 
 # ---------------------------------------------------------------- the stone cladding
-def stone_course(bone, name, side, z0, z1, ylo, yhi, out, region="stone", jitter=0.03, step=1.0, th_in=0.14):
+def stone_course(bone, name, side, z0, z1, ylo, yhi, out, region="stone", jitter=0.03, step=1.0, th_in=0.14, phase=0.0):
     """A course of stone blocks along the hull side between z0 and z1, from ylo(z) to yhi(z) (functions), standing
     `out` proud of the planking (each block a little more or less: the blocky masonry of the references); it stops on
-    the counter at the stern and on the stem at the bow."""
-    zs = list(np.arange(z0, z1 - 1e-6, step)) + [z1]
+    the counter at the stern and on the stem at the bow. phase: the first joint this far from z0 (staggered courses)."""
+    zs = [z0] + list(np.arange(z0 + phase, z1 - 1e-6, step)) + [z1] if phase > 1e-6 else list(np.arange(z0, z1 - 1e-6, step)) + [z1]
     for i in range(len(zs) - 1):
         za, zb = zs[i], zs[i + 1]
         if zb - za < 0.05:
@@ -304,21 +309,28 @@ def stone_course(bone, name, side, z0, z1, ylo, yhi, out, region="stone", jitter
         board(bone, "%s_%d" % (name, i), a0, a1, b0, b1, o + th_in, region, v3(side, 0, 0.2 * max(0.0, za - 14) / 6), overlap=1.0)
 
 
-BELT_H = 0.65          # the stone belt under the gunwale's cap stones (with the cap: about 0.9, one course as on 112)
-RIB_W = 0.9            # the stone ribs, an iron plate on their face, a dark studded post on each side (main reference)
-POST_W = 0.8
+BELT_H = 1.12          # the stone belt under the gunwale's cap stones (with the cap: about 1.35, as the wide belt of 112)
+BELT_UP = 0.54         # its upper course (studded); the lower one fills the rest, its joints staggered
+RIB_W = 1.0            # the stone ribs: light stone pillars with iron studs (phase 7: no iron plate), a dark walnut post
+POST_W = 0.42          # with silver studs on each side of them (phase 8: the studded wooden frames of the red cells of the
+                       # main reference; the black iron rails of phase 7 are gone, stone and red meet the frames directly)
+FOOT_W = (1.0, 0.84, 0.68)   # the stone buttress under each rib: cubes stacked down from the wale, narrowing (phase 8)
+QUOIN_OUT = 0.2        # the stone quoins climbing the stem (phase 8), proud of the planking
 
 
 def cladding(bone, detail):
-    """The stone wale under the red panels, one course of stone under the gunwale (climbing to the forecastle and
-    sweeping up to the beak), the vertical stone ribs between the red panels, each with a black iron plate on its face
-    and a dark wooden post with iron studs on each side (the panels' frames), and under the wale the rib going on down
-    as stepped stone blocks (the voxel buttresses of the main reference)."""
+    """The stone wale under the red panels, the stone belt under the gunwale in two courses (climbing to the forecastle
+    and sweeping up to the beak), the vertical stone ribs between the red panels, a dark walnut post with silver studs on
+    each side of them (the panels' frames), under the wale the rib going on down as a stone buttress of stacked blocks
+    (the voxel buttresses of the main reference), and stone quoins climbing the stem in a staircase (phase 8)."""
     for side, sn in SIDES:
-        stone_course(bone, "wale_low_" + sn, side, TZ + 0.1, BOW_Z + 0.3, lambda z: WALE[0] + 0.3 * lift(z), lambda z: WALE[1] + 0.3 * lift(z), 0.22,
-                     region="stone", jitter=0.02)
-        stone_course(bone, "belt_" + sn, side, TZ + 0.05, HEAD_Z - 0.2, lambda z: fs.sheer_y(z) - 0.2 - BELT_H, lambda z: fs.sheer_y(z) - 0.2, 0.3,
-                     region="stone", jitter=0.03)
+        stone_course(bone, "wale_low_" + sn, side, TZ + 0.1, BOW_Z + 0.3, lambda z: WALE[0] + 0.3 * lift(z), lambda z: WALE[1] + 0.3 * lift(z), 0.24,
+                     region="stone_stud", jitter=0.02)
+        # (phase 7) the belt in two courses, the upper one with studs, the lower one's joints staggered by half a block
+        stone_course(bone, "belt_" + sn, side, TZ + 0.05, HEAD_Z - 0.2, lambda z: fs.sheer_y(z) - 0.2 - BELT_UP, lambda z: fs.sheer_y(z) - 0.2, 0.3,
+                     region="stone_stud", jitter=0.03)
+        stone_course(bone, "belt_low_" + sn, side, TZ + 0.05, HEAD_Z - 0.2, lambda z: fs.sheer_y(z) - 0.2 - BELT_H,
+                     lambda z: fs.sheer_y(z) - 0.2 - BELT_UP, 0.28, region="stone", jitter=0.03, phase=0.5)
         # the gunwale's cap stones over the belt, from the outer face in to the bulwark's inner face
         zs = list(np.arange(CF - 0.5, HEAD_Z - 0.4, 1.0))
         for i, za in enumerate(zs):
@@ -343,39 +355,55 @@ def cladding(bone, detail):
                 if z < fs.stern_z(ya) + 0.5:
                     continue                                 # the counter's corner (stepped quoins there, see counter())
                 p, u, v, nn = side_frame(zk, (ya + yb) / 2, side)
-                o = 0.28 + RNG.uniform(-0.02, 0.02)
+                o = 0.34 + RNG.uniform(-0.02, 0.02)
+                # (phase 7) a light stone pillar standing a third of a block proud, iron studs in some of its blocks, as the
+                # voxel pillars of the main reference (the black iron plates of phases 4-6 are gone)
                 add_cube(bone, "rib_%s%d_%d" % (sn, j, k), p + nn * (o / 2 - 0.06), np.column_stack([u, v, nn]), (RIB_W, yb - ya + 0.02, o + 0.12),
                          "stone_stud" if k % 2 else "stone")
-                # the iron plate on its face, a big stud in each block (phase 6: narrower, the light stone showing a
-                # quarter of a block on each side of it, so that the ribs read as stone pillars from afar)
-                add_cube(detail, "rib_plate_%s%d_%d" % (sn, j, k), p + nn * (o - 0.06 + 0.035), np.column_stack([u, v, nn]),
-                         (ft.RIB_PLATE_W, yb - ya - 0.06, 0.07), {"all": "iron", "+3": "rib_plate"}, u_dir=-u if side > 0 else u,
-                         v_dir=v3(0, -1, 0))
-                # (phase 5) the boss standing out of the plate, over the painted one: it catches the light
-                add_cube(detail, "rib_boss_%s%d_%d" % (sn, j, k), p + nn * (o + 0.04), np.column_stack([u, v, nn]), (0.2, 0.2, 0.06),
-                         {"all": "iron", "+3": "stud_head"}, stretch=True)
-            # the panels' frame posts on each side of the rib (dark boards with iron studs)
-            if z < FF + 0.6:
-                for s in (1, -1):
-                    zp = z + s * (RIB_W + POST_W) / 2
-                    if zp < fs.stern_z(y0) + 0.4:
-                        continue
-                    yt = 3.55 + 0.8 * lift(z)
-                    hull_decal(detail, "rib_post_%s%d_%d" % (sn, j, s > 0), zp, (y0 + yt) / 2, side, POST_W, yt - y0, "stud_post",
-                               out=0.03, th=0.08, stretch=False)
-            # under the wale the rib goes on down as stone blocks stepping forward and in (the stepped voxel buttresses
-            # of the main reference; they run into the water as on the second one)
+            # the panels' frame (phase 8): a dark walnut post with silver studs on each side of the rib, from the wale to
+            # the foot of the studded band, on every rib of the flank (the red cells run on under the forecastle)
+            yt = RED_TOP + 0.8 * lift(z)
+            for s in (1, -1):
+                zp = z + s * (RIB_W + POST_W) / 2
+                if zp < fs.stern_z(y0) + 0.4:
+                    continue
+                hull_decal(detail, "rib_post_%s%d_%d" % (sn, j, s > 0), zp, (y0 + yt) / 2, side, POST_W, yt - y0, "stud_post",
+                           out=0.03, th=0.08, stretch=False)
+            # under the wale the rib goes on down as a stone buttress: blocks stacked from the wale's lower edge, each
+            # narrower than the one over it, down to where the bilge turns under (the voxel buttresses of the main
+            # reference); phase 8: two blocks at least or none (never a single cube on its own), each standing on the
+            # hull along its whole height
             if z < 14.0:
                 yw = WALE[0] + 0.3 * lift(z)
-                # (upright voxel blocks, each standing on the hull at its top and stepping in with the bilge)
-                for k, (h, w, dz) in enumerate(((0.8, 1.0, 0.0), (0.8, 0.95, 0.4), (0.8, 0.9, 0.8))):
+                feet = []
+                for k, w in enumerate(FOOT_W):
+                    h = 0.8
                     yc = yw - 0.78 * k - h / 2 + 0.02
-                    zk = z + dz
-                    if zk < fs.stern_z(yc) + 0.5 or fs.hull_x(zk, yc) < 1.0:
+                    if z < fs.stern_z(yc - h / 2) + 0.5 or fs.hull_x(z, yc - h / 2) < 1.1:
                         break
-                    xo = fs.hull_x(zk, yc + h / 2) + 0.16
-                    d = max(0.45, xo - fs.hull_x(zk, yc - h / 2) + 0.05)
-                    add_cube(bone, "rib_foot_%s%d_%d" % (sn, j, k), v3(side * (xo - d / 2), yc, zk), EYE, (d, h, w), "stone" if k == 0 else "stone_grime")
+                    xo = fs.hull_x(z, yc + h / 2) + 0.2 - 0.03 * k
+                    d = max(0.45, xo - fs.hull_x(z, yc - h / 2) + 0.08)
+                    feet.append((k, v3(side * (xo - d / 2), yc, z), (d, h + 0.02, w)))
+                if len(feet) >= 2:
+                    for k, c, size in feet:
+                        add_cube(bone, "rib_foot_%s%d_%d" % (sn, j, k), c, EYE, size, "stone" if k < 2 else "stone_grime")
+        # (phase 8) stone quoins climbing the stem in a staircase, from the wale's top to the belt, one each side, each
+        # stepping forward with the rake, alternately wide and narrow (the stepped stone bow of the main reference)
+        y = WALE[1] + 0.3 * lift(BOW_Z) + 0.04 + side * 0.015
+        k = 0
+        while True:
+            h = 0.78
+            yc = y + h / 2
+            zs = BOW_Z + fs.rake(BOW_Z, yc)
+            if yc + h / 2 > fs.sheer_y(zs) - 0.2 - BELT_H + 0.1:
+                break
+            w = 0.92 if k % 2 == 0 else 0.64
+            zc = zs - 0.12 - w / 2
+            p, u, v, nn = side_frame(zc, yc, side)
+            add_cube(bone, "stem_quoin_%s%d" % (sn, k), p + nn * (QUOIN_OUT / 2 + 0.06), np.column_stack([u, v, nn]), (w, h + 0.02, QUOIN_OUT + 0.3),
+                     "stone_stud" if k % 3 == 1 else "stone")
+            y += h - 0.02
+            k += 1
 
 
 def merlon(bone, name, c, w=0.9, h=0.85, d=0.55, region="stone"):
@@ -445,18 +473,18 @@ def bulwarks(bone, detail, lights):
             ys = fs.sheer_y(z)
             p = hp(z, ys, side, -0.3)
             add_cube(detail, "lantern_post_%s%d" % (sn, j), p + v3(0, 0.6, 0), EYE, (0.16, 1.2, 0.16), "wood_dark")
-            beam(detail, "lantern_arm_%s%d" % (sn, j), p + v3(0, 1.15, 0), p + v3(side * 0.42, 1.15, 0), 0.08, "iron")
-            lantern(lights, "lantern_waist_%s%d" % (sn, j), p + v3(side * 0.42, 1.12, 0), drop=0.18, s=1.1)
+            beam(detail, "lantern_arm_%s%d" % (sn, j), p + v3(0, 1.15, 0), p + v3(side * 0.56, 1.15, 0), 0.08, "iron")
+            lantern(lights, "lantern_waist_%s%d" % (sn, j), p + v3(side * 0.56, 1.12, 0), drop=0.18, s=1.5)
         z = FF + 0.25
         p = hp(z, fs.sheer_y(z), side, -0.3)
         add_cube(detail, "lantern_fc_post_%s" % sn, p + v3(0, 1.4, 0), EYE, (0.18, 1.0, 0.18), "wood_dark")
-        lantern(lights, "lantern_fc_%s" % sn, p + v3(0, 1.9, 0), hang=False, s=1.2)
+        lantern(lights, "lantern_fc_%s" % sn, p + v3(0, 1.9, 0), hang=False, s=1.7)
         # and the big lantern on a tall post at the bow end of the forecastle (main reference)
         z = 15.4
         p = hp(z, fs.sheer_y(z), side, -0.3)
         add_cube(detail, "lantern_bow_post_%s" % sn, p + v3(0, 0.9, 0), EYE, (0.2, 1.8, 0.2), "wood_dark")
         add_cube(detail, "lantern_bow_cap_%s" % sn, p + v3(0, 1.82, 0), EYE, (0.34, 0.08, 0.34), "iron")
-        lantern(lights, "lantern_bow_%s" % sn, p + v3(0, 1.86, 0), hang=False, s=1.45)
+        lantern(lights, "lantern_bow_%s" % sn, p + v3(0, 1.86, 0), hang=False, s=2.0)
 
 
 def crenels(bone, name, side, z0, z1, y, out=-0.26, spacing=2.0, w=0.9, h=0.8, d=0.62, skip=None):
@@ -526,14 +554,14 @@ def side_arch(bone, name, z, y, side, w=1.0, h=1.5, out=0.0):
              {"all": None, "-3": "arch_dark"}, stretch=True, u_dir=v3(0, 0, side), v_dir=v3(0, -1, 0))
 
 
-def quoins(bone, name, z, y0, y1, side, out=0.1, w=0.72):
+def quoins(bone, name, z, y0, y1, side, out=0.1, w=0.72, region="stone"):
     """A column of stone quoins (blocks about 0.7 high, alternately wider and narrower) on the castle's side."""
     n = max(1, int(round((y1 - y0) / 0.72)))
     for k in range(n):
         ya, yb = y0 + (y1 - y0) * k / n, y0 + (y1 - y0) * (k + 1) / n
         p, u, v, nn = side_frame(z, (ya + yb) / 2, side)
         add_cube(bone, "%s_%d" % (name, k), p + nn * (out / 2 + 0.06), np.column_stack([u, v, nn]), (w + (0.18 if k % 2 else 0), yb - ya + 0.01, out + 0.3),
-                 "stone")
+                 region)
 
 
 def castle(bone, detail, lights):
@@ -548,9 +576,9 @@ def castle(bone, detail, lights):
     for side, sn in SIDES:
         # the captain's cabin's storey and, along the open quarterdeck, its parapet; the keep's walls over the aft part
         wall(bone, "castle_wall", side, TZ, CF + 0.3, yb, Q - 0.3, th=0.34, region="wood_dark")
-        wall(bone, "qd_parapet", side, KF - 0.2, CF + 0.3, Q + 0.25, fs.QD_TOP - 0.1, th=0.34, region="wood_dark")
-        wall(bone, "keep_wall", side, KS, KF + 0.3, Q + 0.25, K - 0.02, th=0.34, region="wood_dark")
-        wall(bone, "keep_wall_low", side, KS, TZ, KO, Q + 0.27, th=0.34, region="wood_dark")
+        wall(bone, "qd_parapet", side, KF - 0.2, CF + 0.3, Q + 0.25, fs.QD_TOP - 0.1, th=0.34, region="stone")
+        wall(bone, "keep_wall", side, KS, KF + 0.3, Q + 0.25, K - 0.02, th=0.34, region="stone")
+        wall(bone, "keep_wall_low", side, KS, TZ, KO, Q + 0.27, th=0.34, region="stone")
         wall(bone, "keep_parapet", side, KS - 0.18, KF + 0.55, K + 0.05, fs.KEEP_TOP, th=0.34, out=0.3, region="stone")
         for j, z in enumerate(np.arange(KS + 0.3, KF + 0.3, 1.0)):
             p, u, v, n = side_frame(z, K - 0.25, side)
@@ -577,9 +605,9 @@ def castle(bone, detail, lights):
         hull_decal(detail, "keep_panel_%s0" % sn, -16.55, Q + 1.45, side, 0.85, 1.5, "keep_panel", out=0.05, th=0.05)
         # stone quoins: the corners of the cabin's storey and of the keep, the keep's middle, the castle's front corner
         quoins(detail, "quoin_cabin_" + sn, TZ + 0.38, yb, Q - 0.3, side)
-        quoins(detail, "quoin_keep_" + sn, KS + 0.38, KO + 0.45, K, side)
-        quoins(detail, "quoin_keep_mid_" + sn, -15.72, Q + 0.27, K, side, w=0.55)
-        quoins(detail, "quoin_keep_front_" + sn, KF - 0.3, Q + 0.27, K, side)
+        quoins(detail, "quoin_keep_" + sn, KS + 0.38, KO + 0.45, K, side, region="stone_light")
+        quoins(detail, "quoin_keep_mid_" + sn, -15.72, Q + 0.27, K, side, w=0.55, region="stone_light")
+        quoins(detail, "quoin_keep_front_" + sn, KF - 0.3, Q + 0.27, K, side, region="stone_light")
         quoins(detail, "quoin_front_" + sn, CF + 0.12, yb, Q - 0.3, side)
         # the corbel table under the keep's overhang (its last block, abaft the cabin's storey)
         for j, z in enumerate((KS + 0.25, KS + 0.75)):
@@ -593,14 +621,14 @@ def castle(bone, detail, lights):
     wq = fs.hull_x(CF, M) - 0.2
     for side, sn in SIDES:
         x0, x1 = 1.0, wq
-        add_cube(bone, "bulkhead_" + sn, (side * (x0 + x1) / 2, (M + Q) / 2, bz), EYE, (x1 - x0, Q - M, 0.12), {"all": "wood_dark", "-3": "wall_wood"})
+        add_cube(bone, "bulkhead_" + sn, (side * (x0 + x1) / 2, (M + Q) / 2, bz), EYE, (x1 - x0, Q - M, 0.12), {"all": "stone", "-3": "wall_wood"})
         add_cube(detail, "bulkhead_jamb_" + sn, (side * 1.12, (M + Q - 0.5) / 2, CF + 0.06), EYE, (0.24, Q - 0.5 - M + 0.2, 0.16), "stone_light")
         arch_window(detail, "bulkhead_window_" + sn, (side * 2.6, 6.35, CF), (0, 0, 1), w=0.8, h=1.2)
     add_cube(detail, "bulkhead_lintel", (0, Q - 0.4, CF + 0.06), EYE, (2.5, 0.3, 0.18), "stone_light")
     add_cube(detail, "bulkhead_band", (0, Q - 0.1, CF + 0.04), EYE, (2 * wq, 0.2, 0.14), "stone")
     # the guard parapet along the front of the quarterdeck, between the stairs (dark timber, a stone cap, low merlons)
     x0 = fs.QD_STAIR_X[0]
-    add_cube(bone, "qd_front_parapet", (0, Q + 0.45, CF - 0.25), EYE, (2 * x0, 0.9, 0.5), {"all": "wood_dark", "+2": "stone"})
+    add_cube(bone, "qd_front_parapet", (0, Q + 0.45, CF - 0.25), EYE, (2 * x0, 0.9, 0.5), {"all": "stone", "+2": "stone_light"})
     add_cube(bone, "qd_front_cap", (0, Q + 0.95, CF - 0.25), EYE, (2 * x0 + 0.1, 0.12, 0.56), "stone")
     for j, x in enumerate((-2.4, 0.0, 2.4)):
         merlon(detail, "qd_front_merlon_%d" % j, v3(x, Q + 1.0, CF - 0.25), w=0.5, h=0.55, d=0.7)
@@ -622,7 +650,7 @@ def castle(bone, detail, lights):
     kz = KF + 0.06
     wk = fs.hull_x(KF, Q) - 0.2
     for side, sn in SIDES:
-        add_cube(bone, "keep_front_" + sn, (side * (1.0 + wk) / 2, (Q + K) / 2, kz), EYE, (wk - 1.0, K - Q, 0.12), {"all": "wood_dark", "-3": "wall_stone"})
+        add_cube(bone, "keep_front_" + sn, (side * (1.0 + wk) / 2, (Q + K) / 2, kz), EYE, (wk - 1.0, K - Q, 0.12), {"all": "stone", "-3": "wall_stone"})
         add_cube(detail, "keep_jamb_" + sn, (side * 1.12, (Q + K - 0.5) / 2, KF + 0.06), EYE, (0.24, K - 0.5 - Q + 0.2, 0.16), "stone_light")
         arch_window(detail, "keep_front_window_" + sn, (side * 2.75, Q + 1.45, KF + 0.12), (0, 0, 1), w=0.8, h=1.2)
         add_cube(detail, "keep_front_quoin_" + sn, (side * (wk - 0.3), (Q + K) / 2, KF + 0.16), EYE, (0.6, K - Q, 0.2), "stone")
@@ -639,9 +667,9 @@ def castle(bone, detail, lights):
     for side, sn in SIDES:
         p = hp(CF - 0.3, fs.QD_TOP, side, -0.3)
         add_cube(detail, "lantern_qd_post_" + sn, p + v3(0, 0.55, 0), EYE, (0.18, 1.1, 0.18), "wood_dark")
-        lantern(lights, "lantern_qd_" + sn, p + v3(0, 1.1, 0), hang=False, s=1.2)
+        lantern(lights, "lantern_qd_" + sn, p + v3(0, 1.1, 0), hang=False, s=1.7)
         p = hp(KF + 0.1, fs.KEEP_TOP, side, 0.0)
-        lantern(lights, "lantern_keep_" + sn, p + v3(0, 1.05, 0), hang=False, s=1.1)
+        lantern(lights, "lantern_keep_" + sn, p + v3(0, 1.05, 0), hang=False, s=1.8)
 
 
 def stern(bone, detail, lights):
@@ -680,7 +708,7 @@ def stern(bone, detail, lights):
         add_cube(detail, "keep_overhang_corbel_%d" % j, (x, KO - 0.22, KS + 0.46), EYE, (0.46, 0.44, 0.88), "stone")
     # the keep's stern wall (its outer face at KS), two lit arched windows, quoins, its string course
     kz = KS
-    add_cube(bone, "keep_stern_wall", (0, (KO + K) / 2, kz + 0.15), EYE, (2 * xs_ - 0.1, K - KO, 0.3), "wood_dark")
+    add_cube(bone, "keep_stern_wall", (0, (KO + K) / 2, kz + 0.15), EYE, (2 * xs_ - 0.1, K - KO, 0.3), "stone")
     add_cube(detail, "keep_stern_string", (0, KO + 0.2, kz - 0.05), EYE, (2 * xs_ + 0.2, 0.44, 0.2), "stone")
     for j, x in enumerate((-2.15, 2.15)):
         arch_window(detail, "keep_stern_window_%d" % j, (x, Q + 1.45, kz), (0, 0, -1), w=0.95, h=1.45)
@@ -701,7 +729,7 @@ def stern(bone, detail, lights):
     for side, sn in SIDES:
         x = side * (xs_ + 0.05)
         beam(detail, "stern_lantern_arm_" + sn, v3(x, K - 0.6, kz + 0.1), v3(x + side * 0.55, K - 0.6, kz - 0.5), 0.1, "iron")
-        lantern(lights, "lantern_stern_" + sn, v3(x + side * 0.55, K - 0.65, kz - 0.5), drop=0.3, s=1.4)
+        lantern(lights, "lantern_stern_" + sn, v3(x + side * 0.55, K - 0.65, kz - 0.5), drop=0.3, s=1.8)
 
 
 def banner(parent, name, top, side, w, h, facing=None):
@@ -772,15 +800,15 @@ def turret(bone, detail, lights):
         add_cube(bone, "turret_roof_%d" % k, (0, y + dh / 2, zc), EYE, (2 * ew * f + 0.1, dh, 2 * ed * f + 0.1), {"all": "roof_tile", "-2": "wood_dark"})
         y += dh
     add_cube(bone, "turret_roof_cap", (0, y + 0.2, zc), EYE, (0.5, 0.4, 0.5), "stone_light")
-    # the finial: a post, a lantern in a little iron cage, a spike with a knob
+    # the finial: a post, a big lantern (phase 8) in a little iron cage, a spike with a knob
     add_cube(detail, "finial_post", (0, y + 0.6, zc), EYE, (0.2, 0.5, 0.2), "wood_dark")
-    lantern(lights, "lantern_finial", v3(0, y + 0.85, zc), hang=False, s=1.3)
+    lantern(lights, "lantern_finial", v3(0, y + 0.85, zc), hang=False, s=1.8)
     for sx in (1, -1):
-        add_cube(detail, "finial_cage_%d" % (sx > 0), (sx * 0.22, y + 1.15, zc), EYE, (0.05, 0.62, 0.05), "iron")
-    add_cube(detail, "finial_roof", (0, y + 1.52, zc), EYE, (0.5, 0.1, 0.5), "iron")
-    round_bar(detail, "finial_spike", (0, y + 1.55, zc), (0, y + 2.4, zc), 0.1, "bronze")
-    disc(detail, "finial_knob", (0, y + 2.0, zc), (0, 1, 0), 0.12, 0.12, "bronze", n=3)
-    add_cube(detail, "finial_cross", (0, y + 2.15, zc), EYE, (0.5, 0.08, 0.08), "bronze")
+        add_cube(detail, "finial_cage_%d" % (sx > 0), (sx * 0.36, y + 1.4, zc), EYE, (0.05, 1.1, 0.05), "iron")
+    add_cube(detail, "finial_roof", (0, y + 1.98, zc), EYE, (0.78, 0.1, 0.78), "iron")
+    round_bar(detail, "finial_spike", (0, y + 2.02, zc), (0, y + 2.85, zc), 0.1, "bronze")
+    disc(detail, "finial_knob", (0, y + 2.45, zc), (0, 1, 0), 0.12, 0.12, "bronze", n=3)
+    add_cube(detail, "finial_cross", (0, y + 2.6, zc), EYE, (0.5, 0.08, 0.08), "bronze")
 
 
 # ---------------------------------------------------------------- decks
@@ -824,7 +852,7 @@ def forecastle(bone, detail, lights):
     bz = FF + 0.06
     wq = fs.hull_x(FF, M) - 0.2
     for side, sn in SIDES:
-        add_cube(bone, "fc_bulkhead_" + sn, (side * (1.0 + wq) / 2, (M + F) / 2, bz), EYE, (wq - 1.0, F - M, 0.12), {"all": "wood_dark", "+3": "hold_wall"})
+        add_cube(bone, "fc_bulkhead_" + sn, (side * (1.0 + wq) / 2, (M + F) / 2, bz), EYE, (wq - 1.0, F - M, 0.12), {"all": "stone", "+3": "hold_wall"})
         add_cube(detail, "fc_bulkhead_jamb_" + sn, (side * 1.12, (M + F - 0.5) / 2, FF - 0.06), EYE, (0.24, F - 0.5 - M + 0.2, 0.16), "stone_light")
         add_cube(detail, "glow_fc_window_" + sn, (side * 3.3, 5.7, FF - 0.02), EYE, (0.7, 0.7, 0.04), "glow_window", stretch=True)
     add_cube(detail, "fc_bulkhead_lintel", (0, F - 0.4, FF - 0.06), EYE, (2.5, 0.3, 0.18), "stone_light")
@@ -860,6 +888,9 @@ def bow(bone, detail, lights):
     yh = fs.sheer_y(HEAD_Z)
     for k, (dz, dy, w, h) in enumerate(((0.0, 0.0, 1.5, 0.9), (0.9, -0.15, 1.2, 0.8), (1.7, -0.35, 0.9, 0.7))):
         add_cube(bone, "beak_%d" % k, (0, yh - 0.35 + dy, HEAD_Z + dz), EYE, (w, h, 1.0), {"all": "beak", "+2": "stone_light"})
+    # (phase 8) the bow light: a big lantern hanging under the beak's tip from an iron arm
+    beam(detail, "stem_lantern_arm", v3(0, yh - 0.9, HEAD_Z + 1.5), v3(0, yh - 1.0, HEAD_Z + 1.75), 0.1, "iron")
+    lantern(lights, "lantern_stem", v3(0, yh - 1.07, HEAD_Z + 1.75), drop=0.25, s=1.7)
     sa, sb = v3(*fs.BOWSPRIT_FOOT), v3(*fs.BOWSPRIT_TIP)
     d = norm(sb - sa)
     round_bar(bone, "bowsprit", sa - d * 0.6, sb, 0.62, "mast")
