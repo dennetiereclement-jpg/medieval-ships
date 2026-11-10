@@ -9,6 +9,11 @@ row by row towards the keel and wet at the waterline, the strakes and the red pa
 overhangs; the sails' cloth blocks bevelled like the voxel sails of the main reference, with stitched seams, reef
 bands and points, a bolt rope, folds and a darker foot; the tower emblems outlined, their masonry and bevel drawn.
 
+Phase 6 (after the in-game screenshots): the stone lighter and warmer again with a near-white top bevel; the red panels
+square bevelled blocks as on the main reference; the planks within a few per cent of each other, with dark brown nail
+heads on every other butt only (no near-black speckle from afar, no nails on the fittings' and furniture's wood); small
+dark iron studs, half as many; the rib plates narrower (more stone round them), drawn for their real width.
+
 Colours of the references (docs/Fortress_PLAN.md): a dark brown planked hull clad with light grey stone blocks
 (stone wales, vertical stone ribs, crenellated stone parapets, iron studs), red panels between the ribs, iron
 straps; the stern castle in grey stone with lit windows in dark wooden frames, the turret of dark timber with a
@@ -148,10 +153,11 @@ for _k in range(N_SBG):
 ALIGNED = ("stone", "stone_dark", "stone_stud", "stone_light", "beak", "stone_grime", "red_panel", "studs", "studs_top", "stud_post",
            "rib_plate")
 ALIGNED_V = ("stud_post", "rib_plate")   # these two stretched across their (narrow) face, aligned down it only
-STONE_TONES = ("a0978d", "938b82", "aba196", "898279", "9c948a", "8f8981")   # (phase 5: lighter, the side faces are lit at about half)
-STONE_DARK = ("746d66", "69635c", "7c756d", "605a54")
-STONE_LIGHT = ("b8ada0", "ada397", "c2b7a9")
-STONE_MORTAR = "1d1915"
+# (phase 6: lighter and warmer again, as the main reference's light stone: the hull's sides are lit at about half in game)
+STONE_TONES = ("b6a898", "a99b8c", "c1b3a2", "9f9284", "b0a291", "a6998a")
+STONE_DARK = ("877c71", "7b7166", "8f8478", "71685f")
+STONE_LIGHT = ("cdc1b2", "c2b6a7", "d6cabb")
+STONE_MORTAR = "241e19"
 # names used by the shared helpers (ship_details, generate_galleon, corsair_furniture): the same pixels
 for _alias, _src in (("hull_mid", "wood_mid"), ("hull_light", "wood_light"), ("hull_dark", "wood_dark"), ("wood_trim", "wood_dark"),
                      ("wood_honey", "wood_mid"), ("blue_paint", "navy"), ("pilaster", "wood_dark"), ("velvet", "red_paint"),
@@ -252,7 +258,7 @@ def _fbm(x, y, s, cell=4.0):
 
 
 # a small domed iron stud (3 x 3), lit from the top left
-STUD = (("cfcfd3", "7c7c82", "46464b"), ("7c7c82", "46464b", "2a2a2e"), ("46464b", "2a2a2e", "17171a"))
+STUD = (("b4b4ba", "4a4a50", "3a3a3e"), ("4a4a50", "3a3a3e", "2c2c30"), ("3a3a3e", "2c2c30", "1a1a1d"))
 
 
 def _stud_px(dx, dy):
@@ -310,10 +316,10 @@ def _stone_block(px, u, v, bw, bh, base, rng, mortar, stud=False, x0=0, y0=0, cl
             else:
                 n = _fbm(u + X, v + Y, s)
                 k = 1.0 + 0.2 * (n - 0.5) - 0.08 * y / bh
-                k += (0.30 if y == 0 else 0.13 if y == 1 else 0.04 if y == 2 else 0)
-                k += (0.16 if x == 0 else 0.06 if x == 1 else 0)
-                k -= (0.36 if y == bh - 2 else 0.17 if y == bh - 3 else 0.05 if y == bh - 4 else 0)
-                k -= (0.27 if x == bw - 2 else 0.10 if x == bw - 3 else 0)
+                k += (0.33 if y == 0 else 0.2 if y == 1 else 0.06 if y == 2 else 0)       # (phase 6: a 2 px lit top bevel)
+                k += (0.18 if x == 0 else 0.07 if x == 1 else 0)
+                k -= (0.30 if y == bh - 2 else 0.13 if y == bh - 3 else 0.04 if y == bh - 4 else 0)
+                k -= (0.22 if x == bw - 2 else 0.08 if x == bw - 3 else 0)
                 g = _hash(u + X, v + Y, s + 5)
                 k += -0.17 if g > 0.93 else 0.11 if g < 0.05 else 0.0
                 c = _scale(base, k)
@@ -387,22 +393,24 @@ def _stone_tiles(px, rng):
 
 def _boards(px, region, tones, seam, rng, plank_h=4, butt=(22, 46), grain=0.07, nails=True, knots=0.18, shade=None, worn=0.0,
             vertical=False, tint=None):
-    """Planks along u (along v if vertical), plank_h px wide: a tone per plank and per length between its butt joints,
-    the grain (a streak and a stretched noise), a lit upper edge, a dark seam under it, butt joints with a nail head on
-    each side, a knot now and then, rubbed spots (worn); shade(fy): a brightness factor down the region (the shading
-    baked in for the face it covers); tint: (colour, amount) mixed in down the region (fy) for wet or grimy planks."""
+    """Planks along u (along v if vertical), plank_h px wide: a tone per plank and per length between its butt joints
+    (phase 6: within a few per cent, so that the hull does not speckle from afar), the grain (a streak and a stretched
+    noise), a lit upper edge, a dark seam under it, butt joints, a dark brown nail head beside every other one (nails),
+    a knot now and then, rubbed spots (worn); shade(fy): a brightness factor down the region (the shading baked in for
+    the face it covers); tint: (colour, amount) mixed in down the region (fy) for wet or grimy planks."""
     u, v, w, h = region
     s = rng.randrange(1 << 20)
     seam = _rgb(seam)
     tones = [_rgb(t) for t in tones]
     L, A = (h, w) if vertical else (w, h)
     for r in range((A + plank_h - 1) // plank_h):
-        base = _scale(rng.choice(tones), rng.uniform(0.9, 1.1))
+        base = _scale(rng.choice(tones), rng.uniform(0.96, 1.04))     # (phase 6: half the spread, less speckle from afar)
         cuts, pos = [], rng.randrange(2, butt[1])
         while pos < L:
             cuts.append(pos)
             pos += rng.randrange(*butt)
-        segs = [_scale(base, rng.uniform(0.93, 1.07)) for _ in range(len(cuts) + 1)]
+        segs = [_scale(base, rng.uniform(0.975, 1.025)) for _ in range(len(cuts) + 1)]
+        nailed = cuts[r % 2::2]                                           # nails on every other butt joint
         f1, p1 = rng.uniform(0.12, 0.3), rng.uniform(0, 6.28)
         knot = (rng.randrange(L), rng.uniform(0.8, 1.6)) if rng.random() < knots else None
         for a in range(L):
@@ -430,10 +438,8 @@ def _boards(px, region, tones, seam, rng, plank_h=4, butt=(22, 46), grain=0.07, 
                             c = _scale(tone, 0.6)
                         elif d < knot[1] + 1.0:
                             c = _scale(tone, 0.84)
-                    if nails and b == max(0, plank_h // 2 - 1) and ((a - 2) in cuts or (a + 2) in cuts):
-                        c = _rgb("17110b")
-                    elif nails and b == max(0, plank_h // 2 - 2) and ((a - 2) in cuts or (a + 2) in cuts):
-                        c = _scale(tone, 1.12)
+                    if nails and b == max(0, plank_h // 2 - 1) and ((a - 2) in nailed or (a + 2) in nailed):
+                        c = _mix(seam, tone, 0.35)                        # a dark brown nail head, read as a joint
                     if worn and _hash(a, yy, s + 9) < worn:
                         c = _scale(c, 1.14)
                 X, Y = (yy, a) if vertical else (a, yy)
@@ -445,19 +451,20 @@ def _boards(px, region, tones, seam, rng, plank_h=4, butt=(22, 46), grain=0.07, 
                 px[u + X, v + Y] = _jitter(c, rng, 3) + (255,)
 
 
-def _strake5(px, region, tones, seam, rng, shade=None, tint=None):
+def _strake5(px, region, tones, seam, rng, shade=None, tint=None, wet=None):
     """One hull strake stretched on each board (two planks high): a dark seam along the top, the bottom and between the
     two planks, a lit edge under each seam, the grain, butt joints with nail heads; shade(fy) baked in (the shadow
-    under the stone wale), tint (colour, amount) rising towards the foot (the wet planks at the waterline)."""
+    under the stone wale), tint (colour, amount) rising towards the foot (the wet planks at the waterline); wet: the
+    tint only in that many rows at the foot (phase 6: a narrow wet band, the strake as bright as before above it)."""
     u, v, w, h = region
     s = rng.randrange(1 << 20)
     seam = _rgb(seam)
     tones = [_rgb(t) for t in tones]
     ph = h // 2
     for r in range(2):
-        base = _scale(rng.choice(tones), rng.uniform(0.93, 1.07))
+        base = _scale(rng.choice(tones), rng.uniform(0.96, 1.04))
         cuts = sorted(rng.sample(range(8, w - 8), 2))
-        segs = [_scale(base, rng.uniform(0.94, 1.06)) for _ in range(3)]
+        segs = [_scale(base, rng.uniform(0.97, 1.03)) for _ in range(3)]
         f1, p1 = rng.uniform(0.1, 0.22), rng.uniform(0, 6.28)
         for x in range(w):
             seg = sum(1 for c_ in cuts if c_ <= x)
@@ -472,63 +479,66 @@ def _strake5(px, region, tones, seam, rng, shade=None, tint=None):
                     k += 0.1 if b == (1 if r == 0 else 0) else 0
                     k -= 0.07 if b == ph - 2 else 0
                     c = _scale(segs[seg], k)
-                    if b == ph // 2 and ((x - 2) in cuts or (x + 2) in cuts):
-                        c = _rgb("17110b")
+                    if b == ph // 2 and (x - 2) in cuts:
+                        c = _mix(seam, segs[seg], 0.35)
                 fy = (y + 0.5) / h
                 if shade is not None:
                     c = _scale(c, shade(fy))
-                if tint is not None:
+                if tint is not None and wet:
+                    c = _mix(c, _rgb(tint[0]), tint[1] * max(0.0, (y - (h - 1 - wet)) / wet))
+                elif tint is not None:
                     c = _mix(c, _rgb(tint[0]), tint[1] * fy * fy)
                 px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
 RED_BOARD = ("b52c2f", "aa282d", "bf3033", "a3262c", "b02a2d", "ba2e30")
+RED_CELL = "c2302a"     # (phase 6) the bright warm red of the main reference's panel blocks
 
 
 def _red_panel(px, region, rng):
-    """The red panels between the ribs (main reference): red boards laid in block-sized panes (four boards a block, a
-    tone each, the grain, a lit upper edge, a dark seam), a dark joint along each block's right and bottom edges, nail
-    heads at the board ends (a rust streak under some), rubbed and grimy spots; the panel darker at its top (in the
-    shade of the studded band and the stone belt) and at its foot (the corner on the stone wale)."""
+    """The red panels between the ribs (main reference, phase 6): square bevelled red blocks, one a block (16 px), a
+    value of their own (within 8 %), a lit top and left edge, a dark bottom and right edge, a faintly mottled face, no
+    nails; a dark iron border along the panel's top and foot, the top rows in the shade of the studded band and the
+    stone belt, the foot a little darker on the stone wale."""
     u, v, w, h = region
     s = rng.randrange(1 << 20)
+    base0 = _rgb(RED_CELL)
     for by in range(0, h, 16):
         for bx in range(0, w, 16):
-            tones = [_scale(_rgb(rng.choice(RED_BOARD)), rng.uniform(0.92, 1.07)) for _ in range(4)]
+            base = _scale(base0, rng.uniform(0.92, 1.08))
+            base = (min(255, base[0] + rng.randint(-4, 4)), base[1], base[2])
             for y in range(16):
                 for x in range(16):
                     X, Y = bx + x, by + y
-                    b, yb = y // 4, y % 4
+                    n = _fbm(u + X, v + Y, s, cell=5.0)
+                    k = 1.0 + 0.12 * (n - 0.5) - 0.05 * y / 16
                     if x == 15 or y == 15:
-                        c = _rgb("2a0a0b")
-                    elif yb == 3:
-                        c = _scale(tones[b], 0.7)
+                        c = _scale(base, 0.42)                  # the dark joint (bottom and right)
                     else:
-                        n = _fbm((u + X) * 0.5, (v + Y) * 2.0, s)
-                        k = 1.0 + 0.08 * math.sin(X * 0.35 + b * 2.1 + by) + 0.15 * (n - 0.5) + (0.13 if yb == 0 else 0) - (0.07 if yb == 2 else 0)
-                        k += 0.07 if x == 0 else 0
-                        k -= 0.11 if x == 14 else 0
-                        c = _scale(tones[b], k)
-                        if x in (1, 13) and yb == 1:
-                            c = _rgb("241c1e")
-                        elif x in (1, 13) and yb == 2 and _hash(u + X, v + Y, s + 2) < 0.5:
-                            c = _mix(c, _rgb("5a2a18"), 0.5)
-                        g = _hash(u + X, v + Y, s + 3)
-                        if g > 0.965:
-                            c = _mix(c, _rgb("c87060"), 0.18)
-                        elif g < 0.035:
-                            c = _scale(c, 0.78)
+                        if y == 0 or x == 0:
+                            k += 0.2                            # the lit top and left edge
+                        elif y == 1 or x == 1:
+                            k += 0.07
+                        if y == 14 or x == 14:
+                            k -= 0.22                           # the shadowed bottom and right edge
+                        c = _scale(base, k)
+                        if _hash(u + X, v + Y, s + 3) < 0.03:
+                            c = _scale(c, 0.85)
                     k2 = 1.0
-                    if Y < 5:
-                        k2 = 0.6 + 0.08 * Y
-                    if Y >= h - 3:
-                        k2 *= 0.85 + 0.05 * (h - 1 - Y)
-                    px[u + X, v + Y] = _jitter(_scale(c, k2), rng, 3) + (255,)
+                    if Y < 2 or Y >= h - 2:
+                        c = _rgb("2a2426") if Y in (0, h - 1) else _rgb("3e3638")    # the iron border
+                    else:
+                        if Y < 6:
+                            k2 = 0.7 + 0.075 * (Y - 2)
+                        if Y >= h - 4:
+                            k2 *= 0.88
+                    px[u + X, v + Y] = _jitter(_scale(c, k2), rng, 2) + (255,)
 
 
 def _stud_post(px, region, rng):
     """The dark post with iron studs beside each rib (stretched across the post, a block = 16 px down it): two dark
-    vertical boards, a lit left edge and a shadowed right edge, two rows of domed studs a block, each casting its shadow."""
+    vertical boards, a lit left edge and a shadowed right edge, a column of domed studs down the middle (phase 6: two a
+    block, not four: fewer dark dots), each casting its shadow."""
     u, v, w, h = region
     s = rng.randrange(1 << 20)
     for y in range(h):
@@ -537,9 +547,9 @@ def _stud_post(px, region, rng):
                        + (0.12 if x == 1 else 0.05 if x == 2 else 0) - (0.16 if x == w - 2 else 0.06 if x == w - 3 else 0))
             if x in (0, w - 1) or x == w // 2:
                 c = _rgb("1c1108")
-            for cx in (4.5, 11.5):
+            for cx in (7.5,):
                 for cy in (4.5, 12.5):
-                    bc = _boss(x - cx, (y % 16) - cy, 1.6)
+                    bc = _boss(x - cx, (y % 16) - cy, 1.6, "5a5a60")
                     if bc == "shadow":
                         c = _scale(c, 0.55)
                     elif bc is not None:
@@ -547,36 +557,42 @@ def _stud_post(px, region, rng):
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
+RIB_PLATE_W = 0.42      # (phase 6) the plate's width on the rib (blocks): the region is stretched across it
+
+
 def _rib_plate(px, region, rng):
-    """The black iron plate on a stone rib (stretched across the plate, a block = 16 px down it): hammered dark iron, a
-    lit top and left bevel, a dark bottom and right edge, a big domed boss in each block with its glint and shadow,
-    small rivets in the corners, rust bleeding from some of them."""
+    """The black iron plate on a stone rib (stretched across the plate, a block = 16 px down it), drawn for its real
+    width RIB_PLATE_W so that its bosses stay round: hammered dark iron, a lit top and left bevel, a dark bottom and
+    right edge, a big domed boss in each block with its glint and shadow, a small rivet above and below it, rust
+    bleeding from some of them."""
     u, v, w, h = region
     s = rng.randrange(1 << 20)
+    sx = RIB_PLATE_W * 16 / w          # physical px per texture px across
     for y in range(h):
         yb = y % 16
         for x in range(w):
-            c = _scale(_rgb("2e2e33"), 1.0 + 0.16 * (_fbm(x * 1.5, y * 1.5, s) - 0.5))
-            if x == 0 or yb == 0:
+            X = (x + 0.5) * sx                       # across the plate, in physical px
+            Wp = w * sx
+            c = _scale(_rgb("2e2e33"), 1.0 + 0.16 * (_fbm(x * 1.5 * sx, y * 1.5, s) - 0.5))
+            if X < 1.0 or yb == 0:
                 c = _rgb("5e5e66")
-            elif x == 1 or yb == 1:
+            elif X < 2.0 or yb == 1:
                 c = _scale(c, 1.25)
-            elif x == w - 1 or yb == 15:
+            elif X > Wp - 1.0 or yb == 15:
                 c = _rgb("101012")
-            elif x == w - 2 or yb == 14:
+            elif X > Wp - 2.0 or yb == 14:
                 c = _scale(c, 0.72)
-            bc = _boss(x - 7.5, yb - 7.5, 2.8, "56565e")
+            bc = _boss(X - Wp / 2, yb - 7.5, 2.4, "56565e")
             if bc == "shadow":
                 c = _scale(c, 0.6)
             elif bc is not None:
                 c = bc
-            for rx in (3, 12):
-                for ry in (3, 12):
-                    sc = _stud_px(x - rx + 1, yb - ry + 1)
-                    if sc is not None and (x - rx, yb - ry) in ((0, 0), (-1, -1), (-1, 0), (0, -1)):
-                        c = sc
-                    elif x == rx and ry < yb <= ry + 3 and _hash(x, y // 16 * 16 + ry, s) < 0.4:
-                        c = _mix(c, _rgb("6a3a1e"), 0.55 - 0.12 * (yb - ry))
+            for ry in (2.5, 12.5):
+                rc = _boss(X - Wp / 2, yb - ry, 0.9, "4a4a50")
+                if rc not in (None, "shadow"):
+                    c = rc
+                elif abs(X - Wp / 2) < 0.6 and ry < yb <= ry + 2.5 and _hash(x, y // 16 * 16 + int(ry), s) < 0.4:
+                    c = _mix(c, _rgb("6a3a1e"), 0.5)
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
@@ -713,12 +729,13 @@ def _keep_panel(px, region, rng):
 
 
 def _studs(px, region, rng, top_shade=False):
-    """Dark planks along u (four a block, a tone each, lit upper edges, dark seams) with a row of big domed iron studs
-    across the middle of each block, two a block, each with its glint and shadow (the band under the stone belt, main
-    reference); top_shade: the upper row, darker under the stone belt that overhangs it."""
+    """Dark planks along u (four a block, a tone each, lit upper edges, dark seams) with small domed iron studs (phase 6:
+    dark iron with a single glint, one a block, staggered by half a block from one row of blocks to the next) and the
+    shadow each casts (the band under the stone belt, main reference); top_shade: the upper row, darker under the stone
+    belt that overhangs it."""
     u, v, w, h = region
     s = rng.randrange(1 << 20)
-    tones = [_scale(_rgb(rng.choice(("4a301d", "432b1e", "523822", "462d1b"))), rng.uniform(0.92, 1.08)) for _ in range(h // 4 * (w // 16))]
+    tones = [_scale(_rgb(rng.choice(("4a301d", "432b1e", "523822", "462d1b"))), rng.uniform(0.95, 1.05)) for _ in range(h // 4 * (w // 16))]
     for y in range(h):
         for x in range(w):
             b = y // 4
@@ -728,14 +745,15 @@ def _studs(px, region, rng, top_shade=False):
             elif x % 16 == 15 and (b % 2 == 0):
                 c = _rgb("21150b")
             else:
-                c = _scale(t, 1.0 + 0.06 * math.sin(x * 0.3 + y * 1.1) + 0.14 * (_fbm(x * 0.5, y * 2, s) - 0.5) + (0.1 if y % 4 == 0 else 0))
-            for sx_ in (3, 11):          # small domed studs (3 x 3) with a bright glint and their shadow
-                dx_, dy_ = x % 16 - sx_, y % 16 - 6
-                sc = _stud_px(dx_, dy_)
-                if sc is not None:
-                    c = sc
-                elif (dx_ == 3 and 1 <= dy_ <= 3) or (dy_ == 3 and 1 <= dx_ <= 3):
-                    c = _scale(c, 0.55)
+                c = _scale(t, 1.0 + 0.06 * math.sin(x * 0.3 + y * 1.1) + 0.12 * (_fbm(x * 0.5, y * 2, s) - 0.5) + (0.1 if y % 4 == 0 else 0))
+            sx_ = 7 if (y // 16) % 2 == 0 else 15
+            dx_, dy_ = (x - sx_) % 16, y % 16 - 6
+            dx_ = dx_ - 16 if dx_ > 8 else dx_
+            sc = _stud_px(dx_, dy_)
+            if sc is not None:
+                c = sc
+            elif (dx_ == 3 and 1 <= dy_ <= 3) or (dy_ == 3 and 1 <= dx_ <= 3):
+                c = _scale(c, 0.6)
             if top_shade and y < 7:
                 c = _scale(c, 0.55 + 0.065 * y)
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
@@ -823,7 +841,7 @@ def _timber(px, region, rng):
             if x < 3 or x >= w - 3:
                 c = _scale(_rgb("2e1d10"), 1.0 + 0.04 * math.sin(y) + (0.18 if x in (0, w - 3) else 0) - (0.2 if x in (2, w - 1) else 0))
             elif x % 4 == 1 and y % 16 in (2, 13):
-                c = _rgb("17110b")
+                c = _rgb("2a1a0e")
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
@@ -1171,18 +1189,21 @@ def make_texture(path):
     _arch_window(px, R["arch_dark"], rng, lit=False)
     _arch_ring(px, R["arch_ring"], rng)
     _keep_panel(px, R["keep_panel"], rng)
-    # the hull's planking under the stone wale, darker row by row towards the keel (and greener: wet, weed)
+    # the hull's planking under the stone wale, a little darker row by row towards the keel (phase 6: as bright as
+    # before the visual pass down to the bilge, only the deepest rows darker and greener)
     hull_tones = ("56361f", "4c2f19", "5e3c23", "50331c")
-    _boards(px, R["hull_brown"], hull_tones, "170d05", rng, grain=0.06, shade=lambda fy: 0.95 - 0.08 * fy)
-    _boards(px, R["hull_low"], hull_tones, "140b04", rng, grain=0.06, shade=lambda fy: 0.86 - 0.08 * fy, tint=("1f2a1c", 0.18))
-    _boards(px, R["hull_deep"], hull_tones, "120a04", rng, grain=0.05, nails=False, shade=lambda fy: 0.76 - 0.1 * fy, tint=("1a2618", 0.3))
-    _boards(px, R["wood_dark"], ("4e321c", "452c18", "573820", "4a2f1a"), "1c1209", rng)
-    _boards(px, R["wood_mid"], ("7a5130", "6e482a", "855a36", "73502e"), "33210f", rng, worn=0.02)
-    _boards(px, R["wood_light"], ("9a6a3e", "a87644", "8e6038", "b07e4a"), "4a2f17", rng, worn=0.02)
-    _boards(px, R["rail"], ("5a3a20", "4e321c"), "24170c", rng, plank_h=8, butt=(40, 64), knots=0.1)
+    _boards(px, R["hull_brown"], hull_tones, "170d05", rng, grain=0.06, knots=0.1, shade=lambda fy: 1.0 - 0.06 * fy)
+    _boards(px, R["hull_low"], hull_tones, "150c05", rng, grain=0.06, knots=0.1, shade=lambda fy: 0.95 - 0.06 * fy, tint=("1f2a1c", 0.06))
+    _boards(px, R["hull_deep"], hull_tones, "130a04", rng, grain=0.05, nails=False, shade=lambda fy: 0.9 - 0.06 * fy, tint=("1a2618", 0.12))
+    # (phase 6) no nail heads on the wood of the fittings, beams and furniture: stretched on a big face they read as
+    # holes punched in the wood
+    _boards(px, R["wood_dark"], ("4e321c", "452c18", "573820", "4a2f1a"), "1c1209", rng, nails=False)
+    _boards(px, R["wood_mid"], ("7a5130", "6e482a", "855a36", "73502e"), "33210f", rng, nails=False, worn=0.02)
+    _boards(px, R["wood_light"], ("9a6a3e", "a87644", "8e6038", "b07e4a"), "4a2f17", rng, nails=False, worn=0.02)
+    _boards(px, R["rail"], ("5a3a20", "4e321c"), "24170c", rng, plank_h=8, butt=(40, 64), nails=False, knots=0.1)
     _boards(px, R["mast"], ("6e4a2a", "634226", "7a5230"), "33210f", rng, plank_h=4, butt=(200, 201), nails=False, grain=0.1, knots=0.25)
     _boards(px, R["deck"], ("7a5838", "6e5032", "86603e", "735436", "634a2e"), "2a1c10", rng, plank_h=4, worn=0.025)
-    _boards(px, R["dark_wood"], ("40281a", "38231a"), "1a110a", rng, plank_h=4, knots=0.1)
+    _boards(px, R["dark_wood"], ("40281a", "38231a"), "1a110a", rng, plank_h=4, nails=False, knots=0.1)
     _planks(px, R["cloth_roll"], ("b02529", "a32226", "bb2c30"), "6e1418", rng, plank_h=4, joints=0)
     _red_panel(px, R["red_panel"], rng)
     _studs(px, R["studs"], rng)
@@ -1191,9 +1212,9 @@ def make_texture(path):
     _roof_tile(px, R["roof_tile"], rng)
     _tile_edge(px, R["tile_edge"], rng)
     _timber(px, R["timber"], rng)
-    # the strakes: the one under the stone wale in its shadow, the one at the waterline wet towards its foot
+    # the strakes: the one under the stone wale in its shadow, the one at the waterline wet in a narrow band at its foot
     _strake5(px, R["strake_brown"], ("4e301b", "482c19"), "160c04", rng, shade=lambda fy: min(1.0, 0.56 + 0.9 * fy))
-    _strake5(px, R["strake_brown2"], ("56331e", "4e2f1b"), "160c04", rng, tint=("1c2618", 0.35))
+    _strake5(px, R["strake_brown2"], ("56331e", "4e2f1b"), "160c04", rng, tint=("1c2618", 0.35), wet=3)
     _gold5(px, R["gold"], rng)
     ct._rope(px, R["rope"], "b0925e", "735a36", rng)
     ct._rope(px, R["rope_light"], "c4a46a", "86683c", rng)

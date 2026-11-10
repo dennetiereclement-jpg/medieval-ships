@@ -298,8 +298,49 @@ pierre en saillie sous chaque fenêtre en arc ; haubans, galhaubans, étais et b
 lisibles de loin. Passerelle : la case de camouflage `fortress_ship` suit la pierre plus claire.
 
 Vu en jeu (dernière ligne de la planche, variante decor du premier passage) : les bannières et écus se lisent enfin
-(la tour était presque invisible), les étais ne sont plus pointillés, la coque et les voiles ont du grain. Les garcettes
+(la tour était presque invisible), les étais sont moins pointillés (encore discontinus de loin : voir § 12), la coque et les voiles ont du grain. Les garcettes
 claires et les points de couture des voiles scintillaient au loin (pas de mipmaps sur les entités) : garcettes sombres,
 coutures en lignes, plus de trame fine ; l'usure claire des panneaux rouges est atténuée.
 
 Restent : l'éclairage chaud et les ombres portées des images (impossibles sans ombres dans le jeu) ; le reste du § 10.
+
+## 12. Passe visuelle, suite (phase 6, 1.27.1)
+
+Planche : la même [comparaison_fortress_ship.png](comparaison_fortress_ship.png), l'« avant » étant désormais main (1.27.0)
+et l'« après » les phases 5 et 6 ; dernière ligne : la vue en jeu de main et de la branche (variante decor).
+Aperçu mis à jour : [preview_fortress_ship.png](preview_fortress_ship.png). Silhouette, pièces, sièges, collisions,
+physique inchangés ; grille et mobilier identiques ; 5 861 cubes (aucun ajouté).
+
+Revue des captures en jeu de la phase 5 : de loin la coque se lisait encore comme un navire de bois brun à minces
+bandes grises (112 : une forteresse de pierre claire aux larges ceintures et piliers encadrant des panneaux rouges vifs),
+les panneaux rouges étaient devenus des planches striées sans plus d'éclat, le bordé grésillait de points clairs et
+noirs, les clous du bandeau ressemblaient à des cailloux, les clous noirs perçaient le bois à l'intérieur et les étais
+restaient pointillés. Corrigé :
+* **Pierre** encore plus claire (≈ + 17 %) et plus chaude (`STONE_TONES` autour de `#a89a8c`), biseau haut de 2 px
+  presque blanc (≈ `#d6ccc0`), pied et flanc droit moins sombres, joint un peu moins noir ; pierre sombre et claire
+  relevées d'autant. **Nervures** : la plaque de fer plus étroite (0,56 → 0,42, `RIB_PLATE_W`), la pierre claire en
+  montre un quart de bloc de chaque côté : de loin la nervure se lit comme un pilier de pierre ; boutons et rivets
+  dessinés pour la vraie largeur de la plaque (ronds).
+* **Panneaux rouges** redessinés comme sur 112 : des blocs carrés biseautés, un par bloc, rouge vif chaud (`#c2302a`,
+  ± 8 % par bloc), arête claire en haut et à gauche, sombre en bas et à droite, sans clous ; un liseré de fer en haut
+  et au pied, les rangs du haut dans l'ombre du bandeau.
+* **Bordé** : l'écart de teinte entre planches divisé par deux, clous brun sombre (plus de pixel presque noir ni de
+  reflet), un about sur deux seulement, moins de nœuds : plus de grésillement de loin. Le bordé des fonds aussi clair
+  qu'avant la phase 5 (seuls les derniers rangs vers la quille un peu plus sombres), la bande mouillée réduite à 3 px
+  au pied de la virure de flottaison.
+* **Clous du bandeau** : fer sombre (`#3a3a3e`) à un seul reflet, un par bloc, en quinconce d'un rang à l'autre
+  (deux fois moins) ; montants des panneaux : une seule colonne de clous (deux par bloc au lieu de quatre).
+* **Intérieur** : plus de têtes de clous sur les bois des ferrures, poutres et meubles (`wood_dark`, `wood_mid`,
+  `wood_light`, `rail`, `dark_wood`) : étirées sur une grande face elles faisaient des trous noirs (cale, poutre de la
+  cabine).
+* **Étais et bras** assez épais pour rester des lignes continues en jeu de loin : étai de misaine et grand étai 0,26,
+  étais de hune et d'artimon 0,20–0,22, sous-barbe 0,18, bras 0,20, écoutes, drisse et haubans de beaupré 0,12 (au lieu
+  de 0,08) ; même nombre de cubes.
+* Passerelle : la case de camouflage `fortress_ship` suit la pierre (`#aea091`, seule la case 13 de `gangplank.png`).
+
+Vu en jeu (dernière ligne de la planche, variante decor, 1029a8f) : étais continus de la proue aux hunes, pierre plus
+claire sur le château et les ceintures, panneaux rouges en blocs vifs, bordé sans points clairs, plus de clous noirs dans
+la cale ni sur la poutre de la cabine. Les bras d'artimon (0,12) y restaient pointillés : portés à 0,20.
+
+Restent : l'éclairage chaud et les ombres portées des images (le jeu éclaire les flancs à environ la moitié : la pierre
+reste moins lumineuse que sur 112) ; le reste du § 10.
