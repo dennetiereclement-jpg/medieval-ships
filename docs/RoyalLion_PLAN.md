@@ -337,11 +337,12 @@ itérations sur rendus, puis une d'après les captures en jeu de la branche :
 | 1 | (or, fenêtres, lion à bold 2,4) le lion des voiles devenu une masse sans pattes ; figure de proue toujours uniforme | bold 1,9 et écarts entre les pattes ; crinière d'un or profond |
 | 2 | lion lisible de face et de trois quarts (126), encore un trait sur 044 (voile vue à ≈ 60°) ; fenêtres bien les plus claires ; or des flancs à reflets | relief des cadres et des préceintes (modèle) |
 | 3 | (modèle régénéré, JUnit 522/522, première poussée en jeu) bordure d'or des voiles fine devant les gros cadres des images ; toit du château presque noir | bordure élargie en blocs d'un demi-bloc, lions un peu moins hauts ; ardoises plus claires |
-| 4 | captures en jeu de `lion-r3` (variante decor) : voir ci-dessous | |
+| 4 | captures en jeu de `lion-r3` (variante decor ; le jeu a passé ses 2 786 contrôles dans les trois variantes) : le lion de la grand-voile se lit sur 071 et 126 (tête, corps, queue) et à peu près sur 044, les bordures des voiles sont les gros cadres d'or des images ; les fenêtres du château sont l'élément le plus clair de jour ; préceintes et lisse à reflets, balustres de l'étage en retrait ; la figure de proue se lit mieux (crinière sombre, corps clair) ; le toit reste d'un bleu sombre | rien de plus : `docs/comparaison_royal_lion_ship.png` refaite (référence, en jeu 1.27.2, en jeu 1.28.0) |
 
 **Écarts restants.** Ceux des phases 4 et 5 quinquies : les voiles sont vues de biais, le lion reste un trait
-depuis l'arrière du travers (044) ; la figure de proue reste une masse d'or simple devant la sculpture de 126 ; les
-images ont un éclairage chaud et des reflets que le jeu n'a pas.
+depuis l'arrière du travers (044) et de l'arrière (vue poupe) ; la figure de proue reste une masse d'or simple devant la
+sculpture de 126 ; le toit du château reste d'un bleu plus sombre que celui de 044 (ses pentes sont éclairées à ≈ 0,9
+mais le bleu roi reste profond) ; les images ont un éclairage chaud et des reflets que le jeu n'a pas.
 
 ## 6. Passerelle d'embarquement
 

@@ -10,6 +10,12 @@ edge and carved lines.
 
 The painters work on numpy arrays (rows = v, columns = u) at K texels a UV pixel and are deterministic (one seeded
 generator per region). Regions not repainted here keep the first pass (tools/royal_lion_texture.py) scaled up.
+
+1.28.0 (third pass, from the in-game screenshots of 1.27.2): gold with a wider pale highlight and a deeper shadow on
+every face (the game lights the flanks at about x 0.5), the gilding of the state room's storey deeper, windows with a
+pale core in a wider dark reveal (the renderer draws glowing faces at full light), a stockier sail lion with a gap
+between its legs and a wider outline, a wide gold sail border in half-block blocks, a honey block now and then in the
+planking, the figurehead's mane in a deeper redder gold, lighter roof slates (docs/RoyalLion_PLAN.md, 5 sexies).
 """
 import math
 import zlib
