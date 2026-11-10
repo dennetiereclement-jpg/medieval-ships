@@ -14,6 +14,11 @@ square bevelled blocks as on the main reference; the planks within a few per cen
 heads on every other butt only (no near-black speckle from afar, no nails on the fittings' and furniture's wood); small
 dark iron studs, half as many; the rib plates narrower (more stone round them), drawn for their real width.
 
+Phase 7 (the deep visual rework, main reference): the stone lighter and warmer again (base about #bcae9e, a near
+white top bevel), smoother faces, bright silver studs; the red panels in dark iron frames with bright rivets (posts and
+rails); the sails a deeper crimson, each cloth block its own value, stronger bevels, the head in the yard's shadow and
+a lit belly, warmer whites; a gold fringe on the banners, the tower on the pennants.
+
 Colours of the references (docs/Fortress_PLAN.md): a dark brown planked hull clad with light grey stone blocks
 (stone wales, vertical stone ribs, crenellated stone parapets, iron studs), red panels between the ribs, iron
 straps; the stern castle in grey stone with lit windows in dark wooden frames, the turret of dark timber with a
@@ -118,8 +123,9 @@ REGIONS = {
     "mail":         (208, 240, 16, 16), # chain mail (the armour stands)
     "velvet_red":   (208, 256, 16, 16), # red velvet cushions
     # phase 4: block-sized pieces (drawn one block per cube face, see generate_fortress.masonry)
-    "stud_post":    (256, 336, 16, 32), # the dark wooden posts with iron studs that frame the red panels beside each rib
-    "rib_plate":    (272, 336, 16, 64), # the black iron plate with big studs on the face of each stone rib
+    "stud_post":    (256, 336, 16, 32), # the dark iron posts with bright rivets that frame the red panels beside each rib (phase 7)
+    "rib_plate":    (272, 336, 16, 64), # (phases 4-6) the black iron plate of the ribs; unused since phase 7, kept drawn
+    "iron_rail":    (304, 440, 48, 8),  # the iron rails with rivets along the top and the foot of each red panel (phase 7)
     "arch_lit":     (288, 336, 32, 48), # a lit arched window (third reference): dark wooden frame, mullion, transom
     "arch_ring":    (320, 336, 48, 64), # the stone arch (voussoirs, jambs, sill) round it, open in the middle
     "keep_panel":   (368, 336, 32, 48), # a framed red panel with iron studs on the keep's timber walls
@@ -154,10 +160,11 @@ ALIGNED = ("stone", "stone_dark", "stone_stud", "stone_light", "beak", "stone_gr
            "rib_plate")
 ALIGNED_V = ("stud_post", "rib_plate")   # these two stretched across their (narrow) face, aligned down it only
 # (phase 6: lighter and warmer again, as the main reference's light stone: the hull's sides are lit at about half in game)
-STONE_TONES = ("b6a898", "a99b8c", "c1b3a2", "9f9284", "b0a291", "a6998a")
-STONE_DARK = ("877c71", "7b7166", "8f8478", "71685f")
-STONE_LIGHT = ("cdc1b2", "c2b6a7", "d6cabb")
-STONE_MORTAR = "241e19"
+# (phase 7: lighter and warmer again, the light stone fortress of 112: base about #b4a696, top bevel near #dcd2c6)
+STONE_TONES = ("c8baaa", "bcae9e", "d2c4b3", "b2a494", "c4b6a5", "b8aa9a")
+STONE_DARK = ("948a7e", "887e72", "9c9185", "7e7569")
+STONE_LIGHT = ("dcd0c1", "d2c6b7", "e4d9ca")
+STONE_MORTAR = "2a2420"
 # names used by the shared helpers (ship_details, generate_galleon, corsair_furniture): the same pixels
 for _alias, _src in (("hull_mid", "wood_mid"), ("hull_light", "wood_light"), ("hull_dark", "wood_dark"), ("wood_trim", "wood_dark"),
                      ("wood_honey", "wood_mid"), ("blue_paint", "navy"), ("pilaster", "wood_dark"), ("velvet", "red_paint"),
@@ -184,8 +191,8 @@ EMBLEM_SAILS = ("main_course",)   # the tower on the main course only, as on all
 
 _mix, _scale, _planks, _blocks, _fill = ct._mix, ct._scale, ct._planks, ct._blocks, ct._fill
 
-RED = ("a82226", "9a1e22", "b2282c", "9f2125", "901b1f")      # deep crimson (the references' sails are darker than pure red)
-WHITE = ("d2d2cc", "c4c5bf", "dcdcd6", "b9bab4")
+RED = ("a21c1f", "961a1d", "ac2024", "8e1719", "9c1b1e")      # deep crimson (phase 7: a shade deeper, as the main reference)
+WHITE = ("d6d1c8", "c8c3ba", "dedad1", "bdb8af")       # (phase 7: warmer, the grey-white wool of the main reference)
 BEIGE = "e2d2b0"
 
 # ---------------------------------------------------------------- the castle-tower emblem
@@ -258,7 +265,7 @@ def _fbm(x, y, s, cell=4.0):
 
 
 # a small domed iron stud (3 x 3), lit from the top left
-STUD = (("b4b4ba", "4a4a50", "3a3a3e"), ("4a4a50", "3a3a3e", "2c2c30"), ("3a3a3e", "2c2c30", "1a1a1d"))
+STUD = (("eaeaf0", "c4c4cc", "5a5a62"), ("c4c4cc", "9a9aa2", "3e3e44"), ("5a5a62", "3e3e44", "202024"))   # (phase 7: silver)
 
 
 def _stud_px(dx, dy):
@@ -294,9 +301,9 @@ def _stone_block(px, u, v, bw, bh, base, rng, mortar, stud=False, x0=0, y0=0, cl
     s = rng.randrange(1 << 20)
     cast = rng.choice(((6, 3, -2), (0, 0, 0), (-3, 0, 5), (3, 1, 0), (0, 0, 0), (-2, -1, 2)))
     base = tuple(max(0, min(255, base[i] + cast[i])) for i in range(3))
-    chips = [(rng.randrange(2, bw - 4), rng.randrange(2, bh - 5), rng.choice((1, 2))) for _ in range(rng.choice((0, 1, 1, 2)))]
+    chips = [(rng.randrange(2, bw - 4), rng.randrange(2, bh - 5), rng.choice((1, 2))) for _ in range(rng.choice((0, 0, 1)))]
     crack = set()
-    if rng.random() < 0.3:
+    if rng.random() < 0.15:
         cx, cy, dx = rng.randrange(3, bw - 4), rng.randrange(2, bh - 6), rng.choice((-1, 1))
         for _ in range(rng.randrange(4, 8)):
             crack.add((cx, cy))
@@ -315,13 +322,13 @@ def _stone_block(px, u, v, bw, bh, base, rng, mortar, stud=False, x0=0, y0=0, cl
                 c = _mix(mortar, base, 0.14 if (u + X + 2 * (v + Y)) % 3 == 0 else 0.0)
             else:
                 n = _fbm(u + X, v + Y, s)
-                k = 1.0 + 0.2 * (n - 0.5) - 0.08 * y / bh
+                k = 1.0 + 0.14 * (n - 0.5) - 0.08 * y / bh                                   # (phase 7: smoother faces)
                 k += (0.33 if y == 0 else 0.2 if y == 1 else 0.06 if y == 2 else 0)       # (phase 6: a 2 px lit top bevel)
-                k += (0.18 if x == 0 else 0.07 if x == 1 else 0)
+                k += (0.2 if x == 0 else 0.08 if x == 1 else 0)
                 k -= (0.30 if y == bh - 2 else 0.13 if y == bh - 3 else 0.04 if y == bh - 4 else 0)
-                k -= (0.22 if x == bw - 2 else 0.08 if x == bw - 3 else 0)
+                k -= (0.24 if x == bw - 2 else 0.09 if x == bw - 3 else 0)
                 g = _hash(u + X, v + Y, s + 5)
-                k += -0.17 if g > 0.93 else 0.11 if g < 0.05 else 0.0
+                k += -0.13 if g > 0.965 else 0.09 if g < 0.03 else 0.0
                 c = _scale(base, k)
                 for cx, cy, r in chips:
                     if cx <= x <= cx + r and cy <= y < cy + r:
@@ -492,7 +499,7 @@ def _strake5(px, region, tones, seam, rng, shade=None, tint=None, wet=None):
 
 
 RED_BOARD = ("b52c2f", "aa282d", "bf3033", "a3262c", "b02a2d", "ba2e30")
-RED_CELL = "c2302a"     # (phase 6) the bright warm red of the main reference's panel blocks
+RED_CELL = "c43826"     # (phase 6-7) the bright warm red of the main reference's panel blocks
 
 
 def _red_panel(px, region, rng):
@@ -536,24 +543,39 @@ def _red_panel(px, region, rng):
 
 
 def _stud_post(px, region, rng):
-    """The dark post with iron studs beside each rib (stretched across the post, a block = 16 px down it): two dark
-    vertical boards, a lit left edge and a shadowed right edge, a column of domed studs down the middle (phase 6: two a
-    block, not four: fewer dark dots), each casting its shadow."""
+    """The frame post beside each rib (phase 7, main reference: the red panels sit in dark iron frames with bright
+    rivets): hammered dark iron (stretched across the post, a block = 16 px down it), a lit left bevel and a dark right
+    edge, a column of bright domed rivets down the middle, two a block, each with its shadow."""
     u, v, w, h = region
     s = rng.randrange(1 << 20)
     for y in range(h):
         for x in range(w):
-            c = _scale(_rgb("3c2716"), 1.0 + 0.07 * math.sin(y * 0.9 + x * 0.3) + 0.14 * (_fbm(x * 2, y * 0.5, s) - 0.5)
-                       + (0.12 if x == 1 else 0.05 if x == 2 else 0) - (0.16 if x == w - 2 else 0.06 if x == w - 3 else 0))
-            if x in (0, w - 1) or x == w // 2:
-                c = _rgb("1c1108")
+            c = _scale(_rgb("34343a"), 1.0 + 0.05 * math.sin(y * 0.9 + x * 0.3) + 0.16 * (_fbm(x * 2, y * 0.5, s) - 0.5)
+                       + (0.45 if x == 0 else 0.18 if x == 1 else 0) - (0.3 if x == w - 1 else 0.14 if x == w - 2 else 0))
             for cx in (7.5,):
                 for cy in (4.5, 12.5):
-                    bc = _boss(x - cx, (y % 16) - cy, 1.6, "5a5a60")
+                    bc = _boss(x - cx, (y % 16) - cy, 2.0, "9a9aa2")
                     if bc == "shadow":
-                        c = _scale(c, 0.55)
+                        c = _scale(c, 0.6)
                     elif bc is not None:
                         c = bc
+            px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
+
+
+def _iron_rail(px, region, rng):
+    """The iron rail along the top and the foot of a red panel (phase 7): hammered dark iron, a lit top bevel, a dark
+    foot, a bright domed rivet every 16 px (one a block when stretched over a three-block panel)."""
+    u, v, w, h = region
+    s = rng.randrange(1 << 20)
+    for y in range(h):
+        for x in range(w):
+            c = _scale(_rgb("34343a"), 1.0 + 0.16 * (_fbm(x * 0.7, y * 2, s) - 0.5) + (0.45 if y == 0 else 0.15 if y == 1 else 0)
+                       - (0.35 if y == h - 1 else 0.14 if y == h - 2 else 0))
+            bc = _boss((x % 16) - 7.5, y - (h - 1) / 2, 1.9, "9a9aa2")
+            if bc == "shadow":
+                c = _scale(c, 0.6)
+            elif bc is not None:
+                c = bc
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
@@ -735,7 +757,7 @@ def _studs(px, region, rng, top_shade=False):
     belt that overhangs it."""
     u, v, w, h = region
     s = rng.randrange(1 << 20)
-    tones = [_scale(_rgb(rng.choice(("4a301d", "432b1e", "523822", "462d1b"))), rng.uniform(0.95, 1.05)) for _ in range(h // 4 * (w // 16))]
+    tones = [_scale(_rgb(rng.choice(("58381f", "503220", "604025", "543622"))), rng.uniform(0.95, 1.05)) for _ in range(h // 4 * (w // 16))]
     for y in range(h):
         for x in range(w):
             b = y // 4
@@ -931,8 +953,8 @@ def _banner(px, region, rng, shield=False):
                     c = _scale(_rgb("d8a63a"), 1.0 + (0.3 if 2 <= dist < 3.5 or 1 <= y < 3 else 0) - (0.25 if dist >= 5 or y >= h - 3 else 0))
                     if (x + 3 * y) % 23 == 0 and dist < 4:
                         c = _rgb("6e5210")
-                else:
-                    c = _scale(_rgb("e0d4b8"), 1.0 + 0.08 * fold - (0.25 if dist >= 4 else 0))
+                else:   # (phase 7) a gold fringe: a bright line inside a darker edge
+                    c = _scale(_rgb("d9b95e"), 1.0 + 0.08 * fold + (0.22 if 1.2 <= dist < 2.6 and y >= 6 else 0) - (0.3 if dist >= 4 or y < 6 else 0))
             elif in_mask(x, y):
                 sh = _tower_shade(mask, x - mx, y - my)
                 c = _scale(emb, 1.0 + 0.08 * fold + 0.14 * sh)
@@ -949,8 +971,11 @@ def _banner(px, region, rng, shield=False):
 
 
 def _pennant(px, region, rng):
-    """Red pennant, long swallow tail cut in steps (transparent notch), darker at the hoist, soft folds along it."""
+    """Red pennant, long swallow tail cut in steps (transparent notch), darker at the hoist, soft folds along it, the
+    white tower at the hoist in a dark outline (phase 7)."""
     u, v, w, h = region
+    mask = tower_mask(12, 14, 1)
+    mx, my = 3, (h - 14) // 2
     for y in range(h):
         for x in range(w):
             fx = x / w
@@ -960,6 +985,11 @@ def _pennant(px, region, rng):
                 px[u + x, v + y] = (0, 0, 0, 0)
                 continue
             c = _scale(_rgb("b8262b"), 1.0 + 0.12 * math.sin(x * 0.45 + 0.8) - 0.08 * (x < 3) - 0.06 * (y / h))
+            if mx <= x < mx + 12 and my <= y < my + 14 and mask.getpixel((x - mx, y - my)):
+                c = _rgb("ece6d6")
+            elif any(mx <= x + dx < mx + 12 and my <= y + dy < my + 14 and mask.getpixel((x + dx - mx, y + dy - my))
+                     for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1))):
+                c = _scale(c, 0.5)
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
 
 
@@ -1183,6 +1213,7 @@ def make_texture(path):
     _stone(px, R["stone_grime"], rng, tones=tuple("%02x%02x%02x" % _scale(_rgb(t), 0.92) for t in STONE_TONES), grime=1.0)
     _stone_tiles(px, random.Random(5150))
     _stud_post(px, R["stud_post"], rng)
+    _iron_rail(px, R["iron_rail"], rng)
     _rib_plate(px, R["rib_plate"], rng)
     _stud_head(px, R["stud_head"], rng)
     _arch_window(px, R["arch_lit"], rng, lit=True)
@@ -1301,7 +1332,7 @@ def _sail(img, region, cols, rows, rng, style, emblem=False, tri=None):
     ci = np.minimum(cols - 1, (xs / cw).astype(int))
     ri = np.minimum(rows - 1, (ys / ch).astype(int))
     tsel = rs.rand(rows, cols)
-    kc = rs.uniform(0.965, 1.035, (rows, cols))
+    kc = rs.uniform(0.92, 1.07, (rows, cols))          # (phase 7: each cloth block its own value, the voxel sails of 112)
     white = np.zeros((rows, cols), bool)
     if style == "course":   # broad white leeches (about a seventh of the sail each), a red head with white corners
         nw = max(2, int(round(cols * 0.14)))
@@ -1325,7 +1356,8 @@ def _sail(img, region, cols, rows, rng, style, emblem=False, tri=None):
     k = kc[ri, ci].copy()
     dx = np.abs(fx - 0.5) * 2
     k *= 1.0 + 0.08 * (1 - dx ** 2) - 0.13 * dx ** 2 - 0.08 * fy
-    k *= 1 - 0.2 * np.clip(1 - ys / (0.05 * h + 4), 0, 1)          # the head, in the shadow of the yard
+    k *= 1.0 + 0.12 * np.clip(1 - (2.2 * fy - 1.0) ** 2, 0, 1)                    # (phase 7) the belly catches the light
+    k *= 1 - 0.38 * np.clip(1 - ys / (1.6 * ch), 0, 1) ** 1.3                      # the head, in the shadow of the yard
     nf = max(3, cols // 3)
     ph = rs.uniform(0, 6.28, 3)
     fold = 0.65 * np.sin(2 * np.pi * fx * nf + ph[0] + 0.9 * np.sin(fy * 3.0 + ph[1])) + 0.35 * np.sin(2 * np.pi * fx * nf * 2.3 + ph[2])
@@ -1336,10 +1368,10 @@ def _sail(img, region, cols, rows, rng, style, emblem=False, tri=None):
     if style != "jib":
         # each cloth block bevelled like the voxel sails of the main reference: lit along its top and left, shadowed
         # along its bottom and right, a dark groove between the cloths (a double-stitched seam), faint row joints
-        k = np.where(ly < 3.0, k * (1.13 - 0.03 * ly), k)
-        k = np.where(ly > ch - 3.0, k * (0.9 - 0.03 * (ly - ch + 3.0)), k)
-        k = np.where((lx >= 2.0) & (lx < 4.0), k * 1.07, k)
-        k = np.where(lx > cw - 3.0, k * 0.86, k)
+        k = np.where(ly < 3.0, k * (1.18 - 0.04 * ly), k)
+        k = np.where(ly > ch - 3.0, k * (0.86 - 0.04 * (ly - ch + 3.0)), k)
+        k = np.where((lx >= 2.0) & (lx < 4.0), k * 1.09, k)
+        k = np.where(lx > cw - 3.0, k * 0.8, k)
         k = np.where(lx < 1.2, k * 0.62, k)                                    # the seam between two cloths
         k = np.where((lx >= 1.2) & (lx < 2.0), k * 1.1, k)                     # the lit edge of the overlap
         k = np.where((lx >= 4.5) & (lx < 5.5), k * 0.93, k)                  # its second row of stitches (a line: dots sparkle)
