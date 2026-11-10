@@ -32,7 +32,7 @@ erreurs de la poupe par la perspective) : résidu moyen ≈ 12 px sur 1672 (`too
 
 | Élément | Mesure sur l'image | Retenu |
 | --- | --- | --- |
-| Coque | flottaison x 210 → 1350 px (81 % de la longueur au pont) ; francs-bords : passavant 4,8, gaillard 6,5, dunette 7,0 blocs (échelle locale) | **42 blocs** de la galerie de poupe à la tête de proue (45 avec le bout-dehors), 35 à la flottaison, **10 de large** |
+| Coque | flottaison x 210 → 1350 px (81 % de la longueur au pont) ; francs-bords : passavant 4,8, gaillard 6,5, dunette 7,0 blocs (échelle locale) | **42 blocs** de la galerie de poupe à la tête de proue (45 avec le bout-dehors), 35 à la flottaison, **10 de large** ; 1.28.0 : l'eau est à y 0,6 du modèle (quille à 3,6 dessous, plancher de la cale 0,4 au-dessus) |
 | Étrave | très inclinée, bande de laiton de la flottaison (x 1340) à la tête (x 1500, y 10,9) | élancement 0,3 bloc par bloc de hauteur jusqu'à 11 ; tête de proue à y 10,9, z 22 |
 | Bout-dehors + lanterne | 120 px vers l'avant, lanterne sur chaîne 1,8 bloc sous lui | espar cuivré jusqu'à z 25,2, grande lanterne (bone `lantern_bow`) |
 | Grand engrenage | Ø 130 px, centre (640, 560) | Ø 4 blocs, centre y 4,5, z −0,4, des deux côtés |

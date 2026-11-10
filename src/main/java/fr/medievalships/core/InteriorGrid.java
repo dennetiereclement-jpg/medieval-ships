@@ -256,6 +256,62 @@ public final class InteriorGrid {
 		return carry[(ix * nz + iz) * ny + iy];
 	}
 
+	// ---- the world's water drawn across the rooms (the client skips it: fr.medievalships.client.render.DryWater)
+
+	/** Where the samples of a water block are taken: at 0.1, 0.5 and 0.9 of the block along each axis (27 points). */
+	private static final double[] WATER_SAMPLE_OFFSETS = {-0.4, 0.0, 0.4};
+
+	/**
+	 * Sorts the 27 sample points of the world's water block whose lower corner is (bx, by, bz) into {outside the hull,
+	 * dry, wet inside}: outside is {@link #OUT}; dry is a room, a wall, a floor, a piece of furniture, a door or the
+	 * airlock above its water (see {@link #dry}); wet inside is the airlock under its water. The vessel is at {@code pose}.
+	 */
+	public int[] waterSamples(ShipPose pose, int bx, int by, int bz, State state) {
+		double c = pose.cos(), s = pose.sin();
+		double dx = bx + 0.5 - pose.x(), dz = bz + 0.5 - pose.z();
+		double lxc = dx * c + dz * s, lzc = -dx * s + dz * c, lyc = by + 0.5 - pose.y();
+		// a block whose centre is more than a block from the grid is wholly outside it (the usual case: the open sea)
+		if (lxc < x0 - 1.0 || lxc > x0 + nx * cell + 1.0 || lyc < y0 - 1.0 || lyc > y0 + ny * cell + 1.0 || lzc < z0 - 1.0
+				|| lzc > z0 + nz * cell + 1.0) {
+			return new int[] {27, 0, 0};
+		}
+		int out = 0, dry = 0, wet = 0;
+		for (double ox : WATER_SAMPLE_OFFSETS) {
+			for (double oz : WATER_SAMPLE_OFFSETS) {
+				// the world offsets (ox, oz) of the sample, turned into the ship's frame
+				double lx = lxc + ox * c + oz * s, lz = lzc - ox * s + oz * c;
+				for (double oy : WATER_SAMPLE_OFFSETS) {
+					double ly = lyc + oy;
+					byte k = kindAt(lx, ly, lz);
+					if (k == OUT) {
+						out++;
+					} else if (dry(k, ly, state)) {
+						dry++;
+					} else {
+						wet++;
+					}
+				}
+			}
+		}
+		return new int[] {out, dry, wet};
+	}
+
+	/**
+	 * The rule on the counts of {@link #waterSamples}: the block is not drawn when at least one of its samples is dry and
+	 * none is outside the hull (it lies in a room, a floor slab, a staircase, a wall); a block straddling the outer hull
+	 * is hidden only when its dry samples outnumber the outside ones. (What would be drawn is the surface of the sea,
+	 * which otherwise cuts across a hold under the waterline, a companionway or a floor slab.)
+	 */
+	public static boolean hidesWater(int[] samples) {
+		int out = samples[0], dry = samples[1];
+		return dry > 0 && (out == 0 || dry > out);
+	}
+
+	/** Is the world's water block whose lower corner is (bx, by, bz) inside this vessel at {@code pose}, not to be drawn? */
+	public boolean hidesWater(ShipPose pose, int bx, int by, int bz, State state) {
+		return hidesWater(waterSamples(pose, bx, by, bz, state));
+	}
+
 	/** Sink for local boxes. */
 	public interface LocalBoxSink {
 		void accept(double minX, double minY, double minZ, double maxX, double maxY, double maxZ);

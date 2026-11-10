@@ -148,6 +148,18 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.28.0 **enfonce les gros navires dans l'eau** : ils flottaient trop haut, les fonds arrondis de la coque
+visibles au-dessus de la mer. La ligne de flottaison est remontée dans le repère de chaque modèle (galion +1,1 bloc,
+grand vaisseau +1,0, Vieux Corsaire +0,5, frégate, navire au lion, forteresse et navire à vapeur à engrenages +0,6,
+bateau à roue +0,45, galère rouge et voilier elfique +0,25), de sorte que la préceinte ou la bande basse court à la
+surface, la quille et le bouchain restant sous l'eau et les sabords, hublots, galeries et ponts au-dessus. Rien ne
+change aux ponts, aux pièces ni aux collisions ; les cales qui passent sous la mer restent sèches. Et **l'eau du
+monde n'est plus dessinée dans les pièces** : la nappe de la mer que l'on voyait en descendant l'escalier d'une cale
+sous la flottaison (ou dans le Nautilus) disparaît, chaque bloc d'eau étant jugé sur 27 points (caché dès qu'un point
+est dans une pièce, un plancher ou une cloison et qu'aucun n'est hors coque ; à cheval sur la coque, caché si les
+points secs l'emportent), et les sections de rendu sont redessinées dès qu'un navire apparaît, quelle que soit la
+distance.
+
 La version 1.27.2 termine la passe visuelle des trois navires de ville d'après une relecture des captures en jeu : les **faces lumineuses** (fenêtres éclairées, lanternes, foyers) de **tous les navires** brillent vraiment quelle que soit leur orientation (elles étaient assombries jusqu'à moitié sur les flancs) ; fenêtres ambrées, bagues de mât et proue en blocs carrés sur le navire au lion ; pierre plus claire et plus contrastée, panneaux rouges en carreaux, bras plus épais sur la forteresse ; verre orangé clair, coque charbon, laiton vif, engrenage de proue détaché sur le navire à vapeur.
 
 La version 1.27.1 améliore **le visuel des trois navires de ville** : textures en haute définition avec ombres et matières peintes (joints et coutures sombres, arêtes éclairées, creux ombrés, planches et pierres variées, or et laiton à reflets, rivets, voiles à coutures et plis, emblèmes cernés), relief léger là où il se lit (moulures, cadres, rivets), et corrections propres à chaque navire : coque du navire au lion en bois sombre à bandes bleu roi, pierre et clous plus contrastés sur la forteresse, tôles anthracite chaudes et dôme plus haut sur le navire à vapeur. Silhouettes, pièces, sièges, passerelles et tests inchangés. Comparaisons avant/après dans `docs/comparaison_<id>.png`.
@@ -655,7 +667,7 @@ itinéraires, réglages, mobilier pièce par pièce, rapport de test) est dans
 
 * **Obtenir / poser** : objet *Le Vieux Corsaire* (créatif) ou `/ship give old_corsair` ; clic droit sur
   l'eau : il est mis à l'eau seulement s'il y a assez d'eau profonde et de place pour toute la coque, la quille
-  (3,4 blocs sous la flottaison), le beaupré et le gui (≈ 55 × 10 blocs).
+  (3,9 blocs sous la flottaison), le beaupré et le gui (≈ 55 × 10 blocs).
 * **Piloter** : clic droit sur la roue du gaillard d'arrière (le pilote se tient debout derrière la roue) ;
   Z/S vitesse (S ralentit puis recule), Q/D barre, Espace / Ctrl allure supérieure / inférieure, Maj quitter.
   Lourd : il met longtemps à prendre son erre et à s'arrêter, vire large, ralentit en virage.

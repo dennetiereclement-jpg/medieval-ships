@@ -19,7 +19,7 @@ public final class GearSteamLayout {
 	public static final double HALF_LENGTH = 18.0;
 	public static final double TIP = 19.0;
 	public static final double MAX_HALF_WIDTH = 5.0;
-	public static final double WATERLINE_Y = 0.0;
+	public static final double WATERLINE_Y = 0.6;
 	public static final double KEEL_DEPTH = 3.0;
 	public static final double HOLD_FLOOR_Y = 1.0;
 	public static final double MAIN_DECK_Y = 4.5;

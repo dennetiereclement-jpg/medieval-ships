@@ -18,7 +18,7 @@ KEEL_DEPTH, KEEL_RISE, KEEL_POW = 1.25, 1.2, 3.0
 # crescent sheer: low amidships, sweeping up to the dragon necks at both ends
 RAIL_BASE, RAIL_RISE_FORE, RAIL_RISE_AFT, RAIL_POW = 1.75, 2.2, 2.2, 3.0
 BOTTOM_SECTION = [(0.0, 1.0), (0.5, 0.88), (0.85, 0.5), (0.98, 0.1)]
-WATERLINE_Y = -0.45
+WATERLINE_Y = -0.2
 
 MAIN_DECK_Y = 0.45
 DECK_MIN_Z, DECK_MAX_Z = -11.2, 11.2

@@ -29,7 +29,7 @@ MAX_HALF_WIDTH = 6.0
 FORE_SCALE, FORE_POW_A, FORE_POW_B = 20.6, 2.6, 0.6     # a full, rounded bow (the bluff bow of the references)
 AFT_SCALE, AFT_POW_A, AFT_POW_B = 25.0, 4.0, 0.5        # a wide stern under the big castle (transom 9.2 wide)
 KEEL_DEPTH, KEEL_RISE, KEEL_POW = 3.6, 2.6, 2.6      # the keel rises earlier to the ends: a shorter waterline
-WATERLINE_Y = 0.0
+WATERLINE_Y = 0.6
 RAIL_BASE, RAIL_RISE_FORE, RAIL_RISE_AFT, RAIL_POW = 6.7, 3.6, 1.2, 2.0   # P4: the strong sheer of 044 / 126
 BOTTOM_SECTION = [(0.0, 1.0), (0.45, 0.9), (0.8, 0.55), (0.97, 0.12)]
 

@@ -160,6 +160,17 @@ public final class CorsairGameTest {
 			}
 			shot.shot(id + "_" + (6 + k) + "_" + where[k].replace(' ', '_').replace("'", ""));
 		}
+		// 1.28.0: the stair down to the hold crosses the sea level (0.5 above the lower deck's floor now): the camera there,
+		// 0.3 under the surface, is in the dry air of the stairwell (no underwater fog or overlay) and no sheet of water is
+		// drawn across the stairwell or the hold; the chunk renderer hides every water block of the basin inside the hull
+		server.runCommand("gamemode spectator @a");
+		look(server, pose(server, type), 0.0, type.hull().waterlineY - 0.3, -15.3, 0.0, CorsairLayout.HOLD_FLOOR_Y + 0.3, -8.0);
+		context.waitTicks(12);
+		shot.shot(id + "_cale_niveau_mer");
+		DryWaterGameTest.checkCameraDry(context, type, "the stairwell of the hold, under the sea level", (ok, m) -> check.check(ok, "%s", m),
+				m -> log.log("%s", m));
+		DryWaterGameTest.check(context, type, (ok, m) -> check.check(ok, "%s", m), m -> log.log("%s", m));
+		server.runCommand("gamemode survival @a");
 		// a door of the lower deck
 		boolean opened = server.computeOnServer(srv -> {
 			ShipEntity s = ship(srv.getOverworld(), type);

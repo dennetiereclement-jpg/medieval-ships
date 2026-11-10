@@ -322,7 +322,8 @@ jeu par `RoyalLionShipGameTest` (quai de pierre, levier, déployée puis replié
 
 * Objet *Navire royal au lion* (*Royal Lion Ship*) dans l'onglet *Navires médiévaux*, ou `/ship give royal_lion_ship`
   ; **clic droit sur l'eau** pour le mettre à l'eau (eau profonde et dégagée : ≈ 53 blocs de long, 12 de large, quille à
-  3,6 sous la flottaison) ; `/ship spawn royal_lion_ship` à votre position.
+  4,2 sous la flottaison depuis 1.28.0 : l'eau est à y 0,6 du modèle, les hublots éclairés 0,5 au-dessus, le pont
+  inférieur 0,9) ; `/ship spawn royal_lion_ship` à votre position.
 * **Monter à bord** : clic droit sur la coque (dépôt sur le pont principal) ou par la passerelle (levier sur le pont,
   côté tribord) depuis un quai. On marche pendant la navigation sur le pont, les deux gaillards, dans la cabine du
   capitaine, la salle d'apparat (à l'étage du château : deux portes doubles de part et d'autre de l'artimon, clic

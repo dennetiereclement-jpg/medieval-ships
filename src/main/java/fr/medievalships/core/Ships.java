@@ -61,8 +61,8 @@ public final class Ships {
 		public static final double DOOR_HALF = 0.7;
 		public static final double DOOR_TOP = 3.05;
 		public static final double TRANSOM_Z = -17.3;
-		/** The galleon floats high: the water is 1.5 blocks under the model origin. */
-		public static final double WATERLINE_Y = -1.5;
+		/** The galleon rides loaded (1.28.0): the water is 0.4 block under the model origin (2.5 of draft, the rounded bilge under). */
+		public static final double WATERLINE_Y = -0.4;
 		/** Poop house (red roof) at the stern of the quarterdeck. */
 		public static final double POOP_FRONT = -14.2;
 		public static final double POOP_BACK = -16.9;
@@ -287,8 +287,8 @@ public final class Ships {
 		public static final double DOOR_HALF = 0.8;
 		public static final double DOOR_TOP = 6.55;
 		public static final double TRANSOM_Z = -27.3;
-		/** The warship floats high: the water is 1.1 blocks under the model origin. */
-		public static final double WATERLINE_Y = -1.1;
+		/** The warship rides loaded (1.28.0): the water is 0.1 block under the model origin (2.8 of draft, the lower gun ports 1.6 above it). */
+		public static final double WATERLINE_Y = -0.1;
 		public static final double DECK_MAX_Z = 27.0;
 		public static final double FORE_MAST_Z = 17.5;
 		public static final double FORE_MAST_TOP = 34.0;
@@ -526,7 +526,7 @@ public final class Ships {
 		public static final double MAX_HALF_WIDTH = 2.5;
 		public static final double MAIN_DECK_Y = 0.45;
 		/** The water is 0.45 blocks under the model origin. */
-		public static final double WATERLINE_Y = -0.45;
+		public static final double WATERLINE_Y = -0.2;
 		public static final double DECK_MIN_Z = -11.2;
 		public static final double DECK_MAX_Z = 11.2;
 		public static final double MAST_Z = 0.6;
@@ -625,7 +625,7 @@ public final class Ships {
 		public static final double FORE_SCALE = 11.2;
 		public static final double AFT_SCALE = 11.6;
 		/** The water is 0.8 blocks under the model origin. */
-		public static final double WATERLINE_Y = -0.8;
+		public static final double WATERLINE_Y = -0.35;
 		public static final double MAIN_DECK_Y = 2.4;
 		public static final double DECK_MIN_Z = -10.3;
 		public static final double DECK_MAX_Z = 10.3;
@@ -789,7 +789,7 @@ public final class Ships {
 		public static final double TIP = 13.0;
 		public static final double MAX_HALF_WIDTH = 3.0;
 		/** The water is 0.6 blocks under the model origin. */
-		public static final double WATERLINE_Y = -0.6;
+		public static final double WATERLINE_Y = -0.35;
 		public static final double MAIN_DECK_Y = 0.6;
 		public static final double DECK_MIN_Z = -11.0;
 		public static final double DECK_MAX_Z = 11.0;

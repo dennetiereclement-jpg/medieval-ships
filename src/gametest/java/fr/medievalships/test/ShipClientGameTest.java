@@ -1754,6 +1754,15 @@ public class ShipClientGameTest implements FabricClientGameTest {
 				nautilusCommand(server, "porte 16 fermer");
 			}
 		}
+		// 1.28.0: at the surface the sea level (0.2 under the main floor) crosses the ladder of the engine room: the camera on
+		// the ladder, 0.4 under the surface, is in dry air (no underwater fog or overlay), no sheet of water is drawn across
+		// the engine room, and the chunk renderer hides every water block of the basin inside the hull
+		lookLocal(server, pose, 2.6, Ships.NAUTILUS.hull().waterlineY - 0.4, -25.8, -1.2, l + 1.0, -22.0);
+		context.waitTicks(12);
+		shot(context, id + "_cale_niveau_mer");
+		DryWaterGameTest.checkCameraDry(context, Ships.NAUTILUS, "the engine room's ladder, under the sea level", (ok, m) -> check(ok, "%s", m),
+				m -> log("%s", m));
+		DryWaterGameTest.check(context, Ships.NAUTILUS, (ok, m) -> check(ok, "%s", m), m -> log("%s", m));
 	}
 
 	/** Leaves a Nautilus with doors, airlock, fittings, lifeboat and an ordered depth set, before the world is closed. */

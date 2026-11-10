@@ -54,9 +54,9 @@ class WarshipTest {
 		assertEquals(13.0, 2 * H.maxHalfWidth, 1e-9);
 		double hullHeight = H.railY(-H.halfLength + 0.5) - H.keelY(0);
 		assertTrue(hullHeight > 12.5 && hullHeight < 14, "hull height " + hullHeight);
-		// above the water: about 7 blocks amidships, 11.5 at the stern
+		// loaded (1.28.0): 2.8 blocks of draft; above the water about 6 blocks amidships, 10.5 at the stern
 		double draft = H.waterlineY - H.keelY(0);
-		assertTrue(draft > 1.6 && draft < 2.0, "draft " + draft);
+		assertTrue(draft > 2.6 && draft < 3.0, "draft " + draft);
 		assertTrue(WarshipLayout.MAIN_MAST_TOP - H.keelY(0) > 41, "too short");
 		assertTrue(G.aiReach() > Ships.GALLEON.geometry().aiReach() + 8);
 	}

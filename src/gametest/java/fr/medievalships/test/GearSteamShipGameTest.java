@@ -185,6 +185,14 @@ public final class GearSteamShipGameTest {
 				shot.accept(id + "_" + (5 + k) + "_" + where[k].replace(' ', '_').replace("'", ""));
 			}
 		}
+		// 1.28.0: the waterline now runs 0.4 block under the hold's floor; seen from the foot of the companionway, no sheet
+		// of water is drawn across the hold, and the chunk renderer hides every water block of the basin inside the hull
+		server.runCommand("gamemode spectator @a");
+		look(server, pose(server), 2.25, GearSteamLayout.HOLD_FLOOR_Y + 1.62, 9.7, 0.0, GearSteamLayout.HOLD_FLOOR_Y + 0.3, -1.0);
+		context.waitTicks(12);
+		shot.accept(id + "_cale_niveau_mer");
+		DryWaterGameTest.check(context, TYPE, check, log);
+		server.runCommand("gamemode survival @a");
 		// the captain's chair (the first seat of the furniture), then standing up on the cabin floor
 		boolean sat = server.computeOnServer(srv -> {
 			ServerPlayerEntity player = srv.getPlayerManager().getPlayerList().get(0);

@@ -17,7 +17,7 @@ public final class FrigateLayout {
 	public static final double HALF_LENGTH = 18.0;
 	public static final double TIP = 19.0;
 	public static final double MAX_HALF_WIDTH = 5.0;
-	public static final double WATERLINE_Y = 0.0;
+	public static final double WATERLINE_Y = 0.6;
 	public static final double KEEL_DEPTH = 3.4;
 	public static final double MAIN_DECK_Y = 5.5;
 	public static final double LOWER_FLOOR_Y = 2.0;

@@ -151,7 +151,7 @@ côté client : deux navires ne craquent jamais en même temps.
 * Objet *Le Vieux Corsaire* (*The Old Corsair*) dans l'inventaire créatif (onglet *Navires médiévaux*), ou
   `/ship give old_corsair [joueurs]` (administrateurs). Aucune apparition naturelle, aucune structure.
 * **Clic droit sur l'eau** : le navire est mis à l'eau, poupe au point visé, seulement si l'eau est assez
-  profonde et dégagée pour toute la coque (quille à 3,4 blocs sous la flottaison), le beaupré et le gui
+  profonde et dégagée pour toute la coque (quille à 3,9 blocs sous la flottaison depuis 1.28.0), le beaupré et le gui
   (≈ 55 blocs de long, 10 de large) ; sinon un message l'indique et rien n'est posé. `/ship spawn
   old_corsair` le met à l'eau à votre position, proue dans votre direction.
 * Récupérer : accroupi + clic gauche sur le navire (administrateurs) ; `/ship remove` le supprime.
@@ -162,6 +162,10 @@ côté client : deux navires ne craquent jamais en même temps.
   On marche librement, **pendant la navigation**, sur le pont principal et le gaillard d'arrière et dans
   toutes les pièces : on suit le navire, on ne tombe pas, on ne traverse ni les murs, ni les planchers, ni la
   coque, ni les meubles pleins. La cale et le pont inférieur, sous la flottaison, restent **secs**.
+* **Flottaison (1.28.0)** : l'eau est à y 0,5 dans le repère du modèle (`CorsairLayout.WATERLINE_Y`, `tools/corsair_shape.py`),
+  0,5 bloc plus haut qu'avant : le bouchain est sous l'eau, la bande crème basse affleure, le plancher du pont
+  inférieur (y 1,0) reste 0,5 au-dessus de la surface, la cale (y −2,0) 2,5 dessous. L'escalier de la cale traverse
+  la surface : la nappe d'eau du monde n'y est plus dessinée (`DryWater`, 27 points par bloc).
 * **Plan** : pont principal (y 4,5) → deux escaliers vers le gaillard d'arrière (barre, canot) ; cabine du
   capitaine sous le gaillard, à l'arrière du pont ; descente bâbord entre les deux mâts vers la salle commune
   du pont inférieur ; de là, la cuisine à l'avant, la coursive vers l'arrière et les deux postes d'équipage
