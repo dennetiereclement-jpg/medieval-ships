@@ -1,0 +1,400 @@
+[21:11:52] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: closed, deck back (east)
+[21:11:52] [Server thread/INFO]: Navire supprimé : Galère [2601 -49 0]
+[21:11:52] [Server thread/INFO]: Set Player578's game mode to Survival Mode
+[21:11:52] [Server thread/INFO]: Unable to apply this effect (target is either immune to effects, or has something stronger)
+[21:11:52] [Server thread/INFO]: Teleported Player578 to 2678.500000, -42.000000, 0.000000
+[21:11:52] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[21:11:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the player stands on the closed deck (y -43.00)
+[21:11:53] [Server thread/INFO]: Demande d'ouverture « scenario » enregistrée pour 120 s : le pont s'ouvre (sécurités respectées) et reste ouvert tant qu'elle court ; /pontlevis test_pont demande annuler scenario la retire.
+[21:11:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: a scripted request starts the safety wait
+[21:12:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: with the player on the deck the leaves do not move; diagnostic: quelqu'un se trouve sur le tablier
+[21:12:00] [Server thread/INFO]: Teleported Player578 to 2678.500000, -42.000000, -12.000000
+[21:12:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the leaves rise once the player has left the deck
+[21:12:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the barrier stops the player at the end of the bank (z -9.90, y -43.00)
+[21:12:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: open for the request
+[21:12:08] [Server thread/INFO]: Applied effect Water Breathing to Player578
+[21:12:08] [Server thread/INFO]: Teleported Player578 to 2678.500000, -43.000000, 0.000000
+[21:12:10] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: nothing holds a player where the deck was while open (fell to y -54.51)
+[21:12:10] [Server thread/INFO]: Set Player578's game mode to Spectator Mode
+[21:12:10] [Server thread/INFO]: Teleported Player578 to 2660.000000, -36.000000, -22.000000
+[21:12:10] [Server thread/INFO]: Demande « scenario » annulée.
+[21:12:10] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[21:12:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: closes once the request is withdrawn
+[21:12:17] [Server thread/INFO]: Demande d'ouverture « encore » enregistrée pour 30 s : le pont s'ouvre (sécurités respectées) et reste ouvert tant qu'elle court ; /pontlevis test_pont demande annuler encore la retire.
+[21:12:18] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: a new demand during the closing reverses it without a jump (65.2 -> 68.4 degrees)
+[21:12:18] [Server thread/INFO]: Demande « encore » annulée.
+[21:12:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: back to closed after the reversal
+[21:12:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the deck is back
+[21:12:32] [Server thread/INFO]: Débogage du pont « test_pont » arrêté.
+[21:12:32] [Server thread/INFO]: Pont « test_pont » restauré : ses blocs étaient en place, le tablier redevient une construction ordinaire. Sa définition est conservée (/pontlevis test_pont convertir pour le remettre en service).
+[21:12:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: restored, no longer converted
+[21:12:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: the original deck is in place after the restoration
+[21:12:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: towers and high walkway untouched
+[21:12:32] [Server thread/INFO]: Pont-levis « test_pont » supprimé (ses blocs d'origine ont été remis s'ils étaient levés).
+[21:12:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] drawbridge: deleted
+[21:12:33] [Server thread/INFO]: Aucun navire ne répond à « galley » (nom donné avec /ship name, UUID, type ou nearest ; voir /ship list).
+[21:12:33] [Server thread/INFO]: Aucun navire ne répond à « rowboat » (nom donné avec /ship name, UUID, type ou nearest ; voir /ship list).
+[21:12:33] [Server thread/INFO]: No entity was found
+[21:12:33] [Server thread/INFO]: Unmarked 64 chunks in minecraft:overworld from [160, -2] to [175, 1] for force loading
+[21:12:33] [Server thread/INFO]: Player578 is not riding any vehicle
+[21:12:33] [Server thread/INFO]: Teleported Player578 to 3900.500000, -30.000000, -39.500000
+[21:12:34] [Server thread/INFO]: Marked 40 chunks in minecraft:overworld from [241, -4] to [245, 3] to be force loaded
+[21:12:35] [Server thread/INFO]: Successfully filled 910 block(s)
+[21:12:35] [Server thread/INFO]: Successfully filled 910 block(s)
+[21:12:35] [Server thread/INFO]: Successfully filled 1386 block(s)
+[21:12:35] [Server thread/INFO]: Successfully filled 1386 block(s)
+[21:12:35] [Server thread/INFO]: Successfully filled 26460 block(s)
+[21:12:35] [Server thread/INFO]: Too many blocks in the specified area (maximum 32768, but specified 37800)
+[21:12:35] [Server thread/INFO]: Successfully filled 26460 block(s)
+[21:12:35] [Server thread/INFO]: Too many blocks in the specified area (maximum 32768, but specified 37800)
+[21:12:35] [Server thread/INFO]: Successfully filled 26460 block(s)
+[21:12:35] [Server thread/INFO]: Too many blocks in the specified area (maximum 32768, but specified 37800)
+[21:12:35] [Server thread/INFO]: Successfully filled 7938 block(s)
+[21:12:35] [Server thread/INFO]: No blocks were filled
+[21:12:35] [Server thread/INFO]: Navire mis à l'eau : Navire royal au lion [3900 -49 -11]
+[21:12:35] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 2388ms or 47 ticks behind
+[21:12:40] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship at 3900.50 -49.71 -11.50, water surface -49.111
+[21:12:40] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship floats on the surface (y -49.71, water -49.11)
+[21:12:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the model loaded in game has its two textures and its animations (sails, helm, pennants, lanterns, ropes, doors)
+[21:12:41] [Server thread/INFO]: Teleported Player578 to 3864.500000, -45.331000, 13.500000
+[21:12:42] [Server thread/INFO]: Teleported Player578 to 3958.500000, -29.331000, 2.500000
+[21:12:43] [Server thread/INFO]: Teleported Player578 to 3946.500000, -41.331000, 24.500000
+[21:12:44] [Server thread/INFO]: Teleported Player578 to 3878.500000, -34.331000, -47.500000
+[21:12:45] [Server thread/INFO]: Teleported Player578 to 3960.500000, -39.331000, -7.500000
+[21:12:45] [Server thread/INFO]: Teleported Player578 to 3900.550000, 28.669000, -9.500000
+[21:12:46] [Server thread/INFO]: Set Player578's game mode to Survival Mode
+[21:12:46] [Server thread/INFO]: Teleported Player578 to 3900.500000, -44.691000, -10.000000
+[21:12:46] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[21:12:48] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship main deck: local 0.00 5.000 1.50, on ground 1.0, water 0.0
+[21:12:48] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: standing in the main deck (local y 5.000)
+[21:12:48] [Server thread/INFO]: Teleported Player578 to 3900.500000, -42.691000, 4.000000
+[21:12:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship forecastle: local 0.00 7.000 15.50, on ground 1.0, water 0.0
+[21:12:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: standing in the forecastle (local y 7.000)
+[21:12:49] [Server thread/INFO]: Teleported Player578 to 3902.100000, -41.191000, -22.100000
+[21:12:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship quarterdeck: local 1.60 8.500 -10.60, on ground 1.0, water 0.0
+[21:12:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: standing in the quarterdeck (local y 8.500)
+[21:12:50] [Server thread/INFO]: Teleported Player578 to 3900.500000, -44.691000, -24.000000
+[21:12:52] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship captain's cabin: local 0.00 5.000 -12.50, on ground 1.0, water 0.0
+[21:12:52] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: standing in the captain's cabin (local y 5.000)
+[21:12:52] [Server thread/INFO]: Teleported Player578 to 3902.500000, -41.191000, -27.500000
+[21:12:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship royal state room: local 2.00 8.500 -16.00, on ground 1.0, water 0.0
+[21:12:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: standing in the royal state room (local y 8.500)
+[21:12:53] [Server thread/INFO]: Teleported Player578 to 3901.500000, -48.191000, -21.500000
+[21:12:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship crew quarters: local 1.00 1.500 -10.00, on ground 1.0, water 0.0
+[21:12:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: standing in the crew quarters (local y 1.500)
+[21:12:54] [Server thread/INFO]: Teleported Player578 to 3900.500000, -48.191000, -9.500000
+[21:12:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship cargo hold: local 0.00 1.500 2.00, on ground 1.0, water 0.0
+[21:12:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: standing in the cargo hold (local y 1.500)
+[21:12:56] [Server thread/INFO]: Set Player578's game mode to Spectator Mode
+[21:12:56] [Server thread/INFO]: Teleported Player578 to 3903.250000, -48.211000, -8.500000
+[21:12:56] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[21:12:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship water blocks: 974 inside the hull (974 hidden), 27498 in the open sea (0 hidden), 634 straddling the hull (269 hidden)
+[21:12:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the world's water is not drawn inside the hull (974 / 974 blocks hidden)
+[21:12:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the sea around the hull is drawn (0 / 27498 blocks hidden)
+[21:12:56] [Server thread/INFO]: Set Player578's game mode to Survival Mode
+[21:12:56] [Server thread/INFO]: Teleported Player578 to 3901.100000, -44.691000, -11.000000
+[21:12:56] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[21:12:58] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship walked on the main deck to local 0.60 5.000 4.56
+[21:12:58] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the player walks on the main deck (moved to z 4.56, y 5.000)
+[21:12:58] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the cabin, bulkhead and both state room doors open
+[21:12:58] [Server thread/INFO]: Set Player578's game mode to Spectator Mode
+[21:12:58] [Server thread/INFO]: Teleported Player578 to 3900.800000, -44.711000, -20.700000
+[21:12:58] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[21:12:59] [Server thread/INFO]: Teleported Player578 to 3901.100000, -44.711000, -29.900000
+[21:12:59] [Server thread/INFO]: Teleported Player578 to 3900.500000, -41.211000, -24.500000
+[21:13:00] [Server thread/INFO]: Teleported Player578 to 3901.500000, -48.211000, -15.500000
+[21:13:00] [Server thread/INFO]: Teleported Player578 to 3902.000000, -48.211000, -13.600000
+[21:13:01] [Server thread/INFO]: Teleported Player578 to 3900.500000, -39.831000, -19.700000
+[21:13:01] [Server thread/INFO]: Set Player578's game mode to Survival Mode
+[21:13:01] [Server thread/INFO]: Teleported Player578 to 3898.650000, -44.691000, -26.500000
+[21:13:01] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[21:13:02] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship on the captain's chair (seat 3): local -2.75 4.962 -15.00, riding 1.0
+[21:13:02] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the player sits on the captain's chair (seat 3)
+[21:13:02] [Server thread/INFO]: Player578 stopped riding Royal Lion Ship
+[21:13:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship stood up from seat 3 at local -1.85 5.000 -15.00 (spot -1.85 5.02 -15.00), on ground 1.0
+[21:13:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: standing up from the captain's chair onto the floor beside it (local y 5.000)
+[21:13:03] [Server thread/INFO]: Teleported Player578 to 3902.450000, -41.191000, -27.500000
+[21:13:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship on a velvet chair of the state room (seat 7): local 1.05 8.400 -16.00, riding 1.0
+[21:13:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the player sits on a velvet chair of the state room (seat 7)
+[21:13:04] [Server thread/INFO]: Player578 stopped riding Royal Lion Ship
+[21:13:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship stood up from seat 7 at local 1.95 8.500 -16.00 (spot 1.95 8.52 -16.00), on ground 1.0
+[21:13:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: standing up from a velvet chair of the state room onto the floor beside it (local y 8.500)
+[21:13:04] [Server thread/INFO]: Teleported Player578 to 3902.150000, -48.191000, -21.900000
+[21:13:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship on a bench of the crew's mess (seat 14): local 2.55 1.462 -10.40, riding 1.0
+[21:13:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the player sits on a bench of the crew's mess (seat 14)
+[21:13:05] [Server thread/INFO]: Player578 stopped riding Royal Lion Ship
+[21:13:06] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship stood up from seat 14 at local 1.65 1.500 -10.40 (spot 1.65 1.52 -10.40), on ground 1.0
+[21:13:06] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: standing up from a bench of the crew's mess onto the floor beside it (local y 1.500)
+[21:13:06] [Server thread/INFO]: Teleported Player578 to 3901.100000, -48.191000, -11.200000
+[21:13:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship walked in the hold to local 0.60 1.500 4.36
+[21:13:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the player walks between the cargo along the hold (z 4.36, y 1.500)
+[21:13:07] [Server thread/INFO]: Teleported Player578 to 3900.500000, -44.691000, -23.300000
+[21:13:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship walked in the captain's cabin to local 0.00 5.000 -16.29
+[21:13:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the player walks across the furnished cabin towards the stern windows (z -16.29, y 5.000)
+[21:13:08] [Server thread/INFO]: Successfully filled 1320 block(s)
+[21:13:09] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: gangplank stowed at first
+[21:13:09] [Server thread/INFO]: Teleported Player578 to 3899.500000, -44.691000, -11.000000
+[21:13:09] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship gangplank lever: DEPLOYING (La passerelle se déploie.)
+[21:13:09] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the lever deploys the gangplank (DEPLOYING La passerelle se déploie.)
+[21:13:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the gangplank lies on the quay
+[21:13:12] [Server thread/INFO]: Set Player578's game mode to Spectator Mode
+[21:13:12] [Server thread/INFO]: Teleported Player578 to 3878.500000, -41.331000, 0.500000
+[21:13:12] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[21:13:13] [Server thread/INFO]: Set Player578's game mode to Survival Mode
+[21:13:13] [Server thread/INFO]: Teleported Player578 to 3899.500000, -44.691000, -11.000000
+[21:13:13] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[21:13:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the lever retracts the gangplank (La passerelle se replie.)
+[21:13:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the gangplank is stowed again
+[21:13:16] [Server thread/INFO]: Successfully filled 88 block(s)
+[21:13:16] [Server thread/INFO]: Successfully filled 1232 block(s)
+[21:13:16] [Server thread/INFO]: Teleported Player578 to 3900.500000, -41.191000, -21.700000
+[21:13:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship at the helm: helm -0.99, sails open 1.00, speed 1.35
+[21:13:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the wheel and the rudder turn with the helm (-0.99)
+[21:13:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship: the sails are set under way (open 1.00)
+[21:13:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] royal_lion_ship moved 5.06 blocks in 7 s at the helm
+[21:13:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] royal_lion_ship sails under the player's control (moved 5.06)
+[21:13:25] [Server thread/INFO]: Player578 stopped riding Royal Lion Ship
+[21:13:25] [Server thread/INFO]: Set Player578's game mode to Spectator Mode
+[21:13:25] [Server thread/INFO]: Teleported Player578 to 3876.980000, -43.331000, 27.891000
+[21:13:25] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[21:13:25] [Server thread/INFO]: Unmarked 40 chunks in minecraft:overworld from [241, -4] to [245, 3] for force loading
+[21:13:25] [Server thread/INFO]: Player578 is not riding any vehicle
+[21:13:25] [Server thread/INFO]: Teleported Player578 to 3400.500000, -30.000000, -39.500000
+[21:13:27] [Server thread/INFO]: Marked 40 chunks in minecraft:overworld from [210, -4] to [214, 3] to be force loaded
+[21:13:28] [Server thread/INFO]: Successfully filled 910 block(s)
+[21:13:28] [Server thread/INFO]: Successfully filled 910 block(s)
+[21:13:28] [Server thread/INFO]: Successfully filled 1386 block(s)
+[21:13:28] [Server thread/INFO]: Successfully filled 1386 block(s)
+[21:13:28] [Server thread/INFO]: Successfully filled 26460 block(s)
+[21:13:28] [Server thread/INFO]: Too many blocks in the specified area (maximum 32768, but specified 37800)
+[21:13:28] [Server thread/INFO]: Successfully filled 26460 block(s)
+[21:13:28] [Server thread/INFO]: Too many blocks in the specified area (maximum 32768, but specified 37800)
+[21:13:28] [Server thread/INFO]: Successfully filled 26460 block(s)
+[21:13:28] [Server thread/INFO]: Too many blocks in the specified area (maximum 32768, but specified 37800)
+[21:13:28] [Server thread/INFO]: Successfully filled 7938 block(s)
+[21:13:28] [Server thread/INFO]: No blocks were filled
+[21:13:28] [Server thread/INFO]: Navire mis à l'eau : Navire forteresse [3400 -49 -5]
+[21:13:28] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 2286ms or 45 ticks behind
+[21:13:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship at 3400.50 -49.71 -5.50 yaw 0.0, water surface -49.111
+[21:13:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship floats on the surface (y -49.71, water -49.11)
+[21:13:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: has a gangplank spec
+[21:13:32] [Server thread/INFO]: Successfully filled 525 block(s)
+[21:13:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: the model loaded in game has its two textures and its animations
+[21:13:34] [Server thread/INFO]: Teleported Player578 to 3460.500000, -40.831000, 6.500000
+[21:13:35] [Server thread/INFO]: Teleported Player578 to 3430.500000, -47.831000, 34.500000
+[21:13:36] [Server thread/INFO]: Teleported Player578 to 3348.500000, -45.331000, -19.500000
+[21:13:36] [Server thread/INFO]: Teleported Player578 to 3422.500000, -36.331000, -41.500000
+[21:13:37] [Server thread/INFO]: Teleported Player578 to 3400.550000, 28.669000, -2.500000
+[21:13:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: the five doors open (cabin, keep, mess, crew quarters, turret)
+[21:13:38] [Server thread/INFO]: Set Player578's game mode to Survival Mode
+[21:13:38] [Server thread/INFO]: Teleported Player578 to 3400.500000, -45.191000, -12.500000
+[21:13:38] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[21:13:39] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship waist: local 0.00 4.500 -7.00, on ground 1.0, water 0.0
+[21:13:39] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: standing in the waist (local y 4.500)
+[21:13:39] [Server thread/INFO]: Teleported Player578 to 3400.500000, -42.691000, 5.500000
+[21:13:40] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship forecastle: local 0.00 7.000 11.00, on ground 1.0, water 0.0
+[21:13:40] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: standing in the forecastle (local y 7.000)
+[21:13:40] [Server thread/INFO]: Teleported Player578 to 3402.500000, -41.691000, -16.500000
+[21:13:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship quarterdeck: local 2.00 8.000 -11.00, on ground 1.0, water 0.0
+[21:13:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: standing in the quarterdeck (local y 8.000)
+[21:13:41] [Server thread/INFO]: Teleported Player578 to 3400.500000, -38.691000, -19.450000
+[21:13:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship keep's roof: local 0.00 11.000 -13.95, on ground 1.0, water 0.0
+[21:13:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: standing in the keep's roof (local y 11.000)
+[21:13:42] [Server thread/INFO]: Teleported Player578 to 3400.500000, -38.691000, -22.000000
+[21:13:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship turret: local 0.00 11.000 -16.50, on ground 1.0, water 0.0
+[21:13:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: standing in the turret (local y 11.000)
+[21:13:43] [Server thread/INFO]: Teleported Player578 to 3400.500000, -45.191000, -19.500000
+[21:13:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship captain's cabin: local 0.00 4.500 -14.00, on ground 1.0, water 0.0
+[21:13:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: standing in the captain's cabin (local y 4.500)
+[21:13:44] [Server thread/INFO]: Teleported Player578 to 3400.500000, -41.691000, -21.500000
+[21:13:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship officers' room: local 0.00 8.000 -16.00, on ground 1.0, water 0.0
+[21:13:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: standing in the officers' room (local y 8.000)
+[21:13:45] [Server thread/INFO]: Teleported Player578 to 3400.500000, -45.191000, 4.500000
+[21:13:46] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship crew's mess: local 0.00 4.500 10.00, on ground 1.0, water 0.0
+[21:13:46] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: standing in the crew's mess (local y 4.500)
+[21:13:46] [Server thread/INFO]: Teleported Player578 to 3400.500000, -48.691000, -13.500000
+[21:13:47] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship hold: local 0.00 1.000 -8.00, on ground 1.0, water 0.0
+[21:13:47] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: standing in the hold (local y 1.000)
+[21:13:47] [Server thread/INFO]: Teleported Player578 to 3400.500000, -48.691000, 5.500000
+[21:13:48] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship crew quarters: local 0.00 1.000 11.00, on ground 1.0, water 0.0
+[21:13:48] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: standing in the crew quarters (local y 1.000)
+[21:13:48] [Server thread/INFO]: Set Player578's game mode to Spectator Mode
+[21:13:48] [Server thread/INFO]: Teleported Player578 to 3403.750000, -48.711000, -11.000000
+[21:13:48] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[21:13:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship water blocks: 850 inside the hull (850 hidden), 20001 in the open sea (0 hidden), 539 straddling the hull (246 hidden)
+[21:13:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: the world's water is not drawn inside the hull (850 / 850 blocks hidden)
+[21:13:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: the sea around the hull is drawn (0 / 20001 blocks hidden)
+[21:13:49] [Server thread/INFO]: Set Player578's game mode to Survival Mode
+[21:13:49] [Server thread/INFO]: Teleported Player578 to 3400.500000, -45.191000, -13.000000
+[21:13:49] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[21:13:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship walked on the waist to local 0.00 4.500 -3.44
+[21:13:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: the player walks on the waist (moved to z -3.44, y 4.500)
+[21:13:50] [Server thread/INFO]: Set Player578's game mode to Spectator Mode
+[21:13:50] [Server thread/INFO]: Teleported Player578 to 3400.800000, -45.211000, -15.700000
+[21:13:50] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[21:13:51] [Server thread/INFO]: Teleported Player578 to 3401.700000, -41.711000, -19.400000
+[21:13:52] [Server thread/INFO]: Teleported Player578 to 3402.100000, -45.211000, 3.500000
+[21:13:52] [Server thread/INFO]: Teleported Player578 to 3401.100000, -48.711000, -0.700000
+[21:13:53] [Server thread/INFO]: Teleported Player578 to 3400.500000, -48.711000, 8.100000
+[21:13:53] [Server thread/INFO]: Teleported Player578 to 3401.700000, -41.731000, -1.300000
+[21:13:54] [Server thread/INFO]: Set Player578's game mode to Survival Mode
+[21:13:54] [Server thread/INFO]: Teleported Player578 to 3402.400000, -45.191000, -24.050000
+[21:13:54] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[21:13:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship on the captain's chair (seat 1): local 0.00 4.462 -18.45, riding 1.0
+[21:13:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: the player sits on the captain's chair (seat 1)
+[21:13:54] [Server thread/INFO]: Player578 stopped riding Fortress Ship
+[21:13:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship stood up from seat 1 at local 1.90 4.500 -18.55 (spot 1.90 4.52 -18.55), on ground 1.0
+[21:13:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: standing up from the captain's chair onto the floor beside it (local y 4.500)
+[21:13:55] [Server thread/INFO]: Teleported Player578 to 3398.600000, -41.691000, -23.950000
+[21:13:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship on the commander's chair of the war table (seat 6): local -1.90 7.962 -17.53, riding 1.0
+[21:13:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: the player sits on the commander's chair of the war table (seat 6)
+[21:13:56] [Server thread/INFO]: Player578 stopped riding Fortress Ship
+[21:13:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship stood up from seat 6 at local -1.90 8.000 -18.45 (spot -1.90 8.02 -18.45), on ground 1.0
+[21:13:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: standing up from the commander's chair of the war table onto the floor beside it (local y 8.000)
+[21:13:57] [Server thread/INFO]: Teleported Player578 to 3402.450000, -45.191000, 7.500000
+[21:13:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship on a bench of the mess (seat 12): local 1.05 4.462 13.00, riding 1.0
+[21:13:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: the player sits on a bench of the mess (seat 12)
+[21:13:57] [Server thread/INFO]: Player578 stopped riding Fortress Ship
+[21:13:58] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship stood up from seat 12 at local 1.95 4.500 13.00 (spot 1.95 4.52 13.00), on ground 1.0
+[21:13:58] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: standing up from a bench of the mess onto the floor beside it (local y 4.500)
+[21:13:58] [Server thread/INFO]: Teleported Player578 to 3400.500000, -48.691000, -16.000000
+[21:13:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship walked in the hold to local 0.00 1.000 -6.44
+[21:13:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: the player walks between the cargo along the hold (z -6.44, y 1.000)
+[21:13:59] [Server thread/INFO]: Teleported Player578 to 3400.500000, -45.191000, -15.700000
+[21:14:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship walked in the captain's cabin to local 0.00 4.500 -14.69
+[21:14:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: the player walks across the furnished cabin from the door to the desk (z -14.69, y 4.500)
+[21:14:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: the gangplank is stowed at spawn
+[21:14:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship: lever -> DEPLOYING (La passerelle se déploie.)
+[21:14:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: the lever deploys the gangplank onto the quay (La passerelle se déploie.)
+[21:14:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: the gangplank lies on the quay
+[21:14:04] [Server thread/INFO]: Set Player578's game mode to Spectator Mode
+[21:14:04] [Server thread/INFO]: Teleported Player578 to 3385.460000, -42.331000, 5.100000
+[21:14:04] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[21:14:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: the gangplank is stowed again
+[21:14:08] [Server thread/INFO]: Set Player578's game mode to Survival Mode
+[21:14:08] [Server thread/INFO]: Teleported Player578 to 3400.500000, -41.691000, -16.000000
+[21:14:08] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[21:14:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship at the helm: helm -0.97, sails open 1.00, speed 1.23
+[21:14:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: the wheel and the rudder turn with the helm (-0.97)
+[21:14:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship moved 4.56 blocks in 7 s at the helm
+[21:14:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship sails under the player's control (moved 4.56)
+[21:14:16] [Server thread/INFO]: Player578 stopped riding Fortress Ship
+[21:14:16] [Server thread/INFO]: Set Player578's game mode to Spectator Mode
+[21:14:16] [Server thread/INFO]: Unmarked 40 chunks in minecraft:overworld from [210, -4] to [214, 3] for force loading
+[21:14:16] [Server thread/INFO]: Player578 is not riding any vehicle
+[21:14:16] [Server thread/INFO]: Teleported Player578 to 4900.500000, -30.000000, -39.500000
+[21:14:16] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[21:14:17] [Server thread/INFO]: Marked 40 chunks in minecraft:overworld from [304, -4] to [308, 3] to be force loaded
+[21:14:18] [Server thread/INFO]: Successfully filled 798 block(s)
+[21:14:18] [Server thread/INFO]: Successfully filled 798 block(s)
+[21:14:18] [Server thread/INFO]: Successfully filled 1386 block(s)
+[21:14:18] [Server thread/INFO]: Successfully filled 1386 block(s)
+[21:14:18] [Server thread/INFO]: Successfully filled 23100 block(s)
+[21:14:18] [Server thread/INFO]: Too many blocks in the specified area (maximum 32768, but specified 33000)
+[21:14:18] [Server thread/INFO]: Successfully filled 23100 block(s)
+[21:14:18] [Server thread/INFO]: Too many blocks in the specified area (maximum 32768, but specified 33000)
+[21:14:18] [Server thread/INFO]: Successfully filled 23100 block(s)
+[21:14:18] [Server thread/INFO]: Too many blocks in the specified area (maximum 32768, but specified 33000)
+[21:14:18] [Server thread/INFO]: Successfully filled 6930 block(s)
+[21:14:18] [Server thread/INFO]: No blocks were filled
+[21:14:18] [Server thread/INFO]: Navire mis à l'eau : Navire à vapeur à engrenages [4900 -49 -13]
+[21:14:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship at 4900.50 -49.71 -13.50, water surface -49.111
+[21:14:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship floats on the surface (y -49.71, water -49.11)
+[21:14:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the model loaded in game has its two textures, its animations and its gears
+[21:14:24] [Server thread/INFO]: Teleported Player578 to 4862.500000, -38.731000, 1.200000
+[21:14:25] [Server thread/INFO]: Teleported Player578 to 4845.500000, -42.331000, -12.500000
+[21:14:26] [Server thread/INFO]: Teleported Player578 to 4886.500000, -39.331000, -59.500000
+[21:14:27] [Server thread/INFO]: Teleported Player578 to 4900.550000, 18.669000, -12.500000
+[21:14:28] [Server thread/INFO]: Teleported Player578 to 4900.700000, -45.211000, -9.400000
+[21:14:29] [Server thread/INFO]: Teleported Player578 to 4899.900000, -45.211000, -13.800000
+[21:14:29] [Server thread/INFO]: Teleported Player578 to 4903.100000, -45.211000, -21.100000
+[21:14:30] [Server thread/INFO]: Teleported Player578 to 4900.100000, -42.211000, -24.700000
+[21:14:31] [Server thread/INFO]: Teleported Player578 to 4900.900000, -48.711000, -10.500000
+[21:14:31] [Server thread/INFO]: Set Player578's game mode to Survival Mode
+[21:14:31] [Server thread/INFO]: Teleported Player578 to 4899.000000, -45.191000, -4.500000
+[21:14:31] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[21:14:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship waist: local -1.50 4.500 9.00, on ground 1.0, water 0.0
+[21:14:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: standing in the waist (local y 4.500)
+[21:14:33] [Server thread/INFO]: Teleported Player578 to 4900.500000, -43.691000, 0.500000
+[21:14:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship forecastle: local 0.00 6.000 14.00, on ground 1.0, water 0.0
+[21:14:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: standing in the forecastle (local y 6.000)
+[21:14:34] [Server thread/INFO]: Teleported Player578 to 4904.100000, -40.691000, -12.500000
+[21:14:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship engine house roof: local 3.60 9.000 1.00, on ground 1.0, water 0.0
+[21:14:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: standing in the engine house roof (local y 9.000)
+[21:14:35] [Server thread/INFO]: Teleported Player578 to 4902.000000, -42.191000, -27.500000
+[21:14:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship poop deck: local 1.50 7.500 -14.00, on ground 1.0, water 0.0
+[21:14:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: standing in the poop deck (local y 7.500)
+[21:14:36] [Server thread/INFO]: Teleported Player578 to 4900.500000, -38.691000, -23.500000
+[21:14:37] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 2004ms or 40 ticks behind
+[21:14:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship bridge: local 0.00 11.000 -10.00, on ground 1.0, water 0.0
+[21:14:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: standing in the bridge (local y 11.000)
+[21:14:38] [Server thread/INFO]: Teleported Player578 to 4903.500000, -45.191000, -15.500000
+[21:14:39] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship engine room: local 3.00 4.500 -2.00, on ground 1.0, water 0.0
+[21:14:39] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: standing in the engine room (local y 4.500)
+[21:14:39] [Server thread/INFO]: Teleported Player578 to 4900.500000, -45.191000, -28.300000
+[21:14:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship crew quarters: local 0.00 4.500 -14.80, on ground 1.0, water 0.0
+[21:14:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: standing in the crew quarters (local y 4.500)
+[21:14:41] [Server thread/INFO]: Teleported Player578 to 4900.500000, -42.191000, -23.300000
+[21:14:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship captain's cabin: local 0.00 7.500 -9.80, on ground 1.0, water 0.0
+[21:14:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: standing in the captain's cabin (local y 7.500)
+[21:14:42] [Server thread/INFO]: Teleported Player578 to 4900.500000, -48.691000, -19.500000
+[21:14:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship hold: local 0.00 1.000 -6.00, on ground 1.0, water 0.0
+[21:14:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: standing in the hold (local y 1.000)
+[21:14:43] [Server thread/INFO]: Teleported Player578 to 4900.500000, -45.191000, -32.500000
+[21:14:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship stern gallery: local 0.00 4.500 -19.00, on ground 1.0, water 0.0
+[21:14:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: standing in the stern gallery (local y 4.500)
+[21:14:44] [Server thread/INFO]: Set Player578's game mode to Spectator Mode
+[21:14:44] [Server thread/INFO]: Teleported Player578 to 4902.750000, -48.711000, -3.800000
+[21:14:44] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[21:14:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship water blocks: 617 inside the hull (617 hidden), 15173 in the open sea (0 hidden), 434 straddling the hull (199 hidden)
+[21:14:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the world's water is not drawn inside the hull (617 / 617 blocks hidden)
+[21:14:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the sea around the hull is drawn (0 / 15173 blocks hidden)
+[21:14:45] [Server thread/INFO]: Set Player578's game mode to Survival Mode
+[21:14:45] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[21:14:46] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the player sits in the captain's chair
+[21:14:46] [Server thread/INFO]: Player578 stopped riding Gear Steamship
+[21:14:46] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship stood up from the captain's chair at local 0.00 7.500 -9.50
+[21:14:46] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: stands up from the captain's chair on the cabin floor (local y 7.500, z -9.50)
+[21:14:46] [Server thread/INFO]: Teleported Player578 to 4899.000000, -45.191000, -7.700000
+[21:14:47] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship walked on the waist to local -1.50 4.500 8.78
+[21:14:47] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the player walks on the waist (z 8.78, y 4.500)
+[21:14:47] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the engine room door opens
+[21:14:48] [Server thread/INFO]: Teleported Player578 to 4886.500000, -44.331000, 2.500000
+[21:14:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the gangplank is put out and stowed again (DEPLOYED, RETRACTED)
+[21:14:49] [Server thread/INFO]: Teleported Player578 to 4900.500000, -38.691000, -22.050000
+[21:14:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship at the helm: helm 1.00, engine phase 0.00 -> 1.60, speed 1.77
+[21:14:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the wheel and the rudder turn with the helm (1.00)
+[21:14:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the gears turn under way (phase 1.60)
+[21:14:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship moved 6.40 blocks in 7 s at the helm
+[21:14:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship steams under the player's control (moved 6.40)
+[21:14:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the funnel smokes and the engine beats (126 puffs, 15 sounds)
+[21:14:57] [Server thread/INFO]: Player578 stopped riding Gear Steamship
+[21:14:57] [Server thread/INFO]: Set Player578's game mode to Spectator Mode
+[21:14:57] [Server thread/INFO]: Teleported Player578 to 4875.857000, -42.331000, 22.388000
+[21:14:57] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[21:14:58] [Server thread/INFO]: Unmarked 40 chunks in minecraft:overworld from [304, -4] to [308, 3] for force loading
+[21:14:58] [Server thread/INFO]: Stopping server
+[21:14:58] [Server thread/INFO]: Saving players
+[21:14:58] [Server thread/INFO]: Player578 lost connection: Disconnected
+[21:14:58] [Server thread/INFO]: Player578 left the game
+[21:14:58] [Server thread/INFO]: Saving worlds
+[21:14:58] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:overworld
+[21:14:58] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_end
+[21:14:58] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_nether
+[21:14:58] [Server thread/INFO]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[21:14:58] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[21:14:58] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[21:14:58] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[21:14:59] [Render thread/INFO]: Stopping!
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1794340925415.json
+
+[Incubating] Problems report is available at: file:///home/runner/work/medieval-ships/medieval-ships/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.2.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1h 13m 3s
+13 actionable tasks: 13 executed
