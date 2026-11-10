@@ -56,14 +56,21 @@ ROOMS = {
 }
 # the stern gallery: an open balcony beyond the transom (floor = the main deck)
 GALLERY = (-3.0, 3.0, M, gs.GALLERY_BULWARK_TOP, gs.GALLERY_Z, gs.TRANSOM_Z)
-# doors: index -> (name, box); 1.5 wide, two leaves
+# doors: index -> (name, box); 2.0 wide (two leaves of 1.0), 2.5 tall where the room allows it (the engine room,
+# the cabin), 2.0 under the 2.5 ceiling of the crew quarters (the crew and gallery doors). The box edges MUST lie on
+# cell boundaries (multiples of 0.5): Grid.sel keeps the cells whose centre is strictly inside, so an edge on a cell
+# centre (1.28.0 and before: +-0.75, 2.25..3.75, -1.25..0.25) lost half a cell on each side and the "1.5 wide" doors
+# were 1.0 wide openings in the game, impassable as soon as the ship was not heading along an axis (the collision
+# boxes of the cells are world-aligned and grow with the heading). Checked by door_openings() and GearSteamShipTest.
 ENGINE_DOOR, CREW_DOOR, GALLERY_DOOR, CABIN_DOOR = 0, 1, 2, 3
+DOOR_WIDTH = 2.0
 DOORS = {
-    ENGINE_DOOR: ("engine_room", (-0.75, 0.75, M, M + 2.5, gs.ENGINE_FRONT_Z - 0.5, gs.ENGINE_FRONT_Z)),
-    CREW_DOOR: ("crew", (2.25, 3.75, M, M + 2.0, gs.POOP_FRONT_Z - 0.5, gs.POOP_FRONT_Z + 0.5)),   # port of the boiler
-    GALLERY_DOOR: ("gallery", (-0.75, 0.75, M, M + 2.0, gs.TRANSOM_Z, gs.TRANSOM_Z + 0.5)),
-    CABIN_DOOR: ("cabin", (-1.25, 0.25, P, P + 2.5, DZ0, DZ0 + 0.5)),
+    ENGINE_DOOR: ("engine_room", (-1.0, 1.0, M, M + 2.5, gs.ENGINE_FRONT_Z - 0.5, gs.ENGINE_FRONT_Z)),
+    CREW_DOOR: ("crew", (2.0, 4.0, M, M + 2.0, gs.POOP_FRONT_Z - 0.5, gs.POOP_FRONT_Z + 0.5)),   # port of the boiler
+    GALLERY_DOOR: ("gallery", (-1.0, 1.0, M, M + 2.0, gs.TRANSOM_Z, gs.TRANSOM_Z + 0.5)),
+    CABIN_DOOR: ("cabin", (-1.0, 1.0, P, P + 2.5, DZ0, DZ0 + 0.5)),
 }
+assert all(abs(v / CELL - round(v / CELL)) < 1e-9 for _, box in DOORS.values() for v in box), "door edges on cell boundaries"
 # ladders (LADDER cells, climbed like a vanilla ladder): on the engine house front wall (both sides), up
 # to its roof; on the deckhouse's aft wall, up to the bridge
 LADDERS = {
@@ -325,6 +332,21 @@ def walkable_report(g, start=(-1.5, M + 0.01, 6.5)):
     return reached, len(seen)
 
 
+def door_openings(g):
+    """The real opening of each door in the grid: index -> (x0, x1, y0, y1, z0, z1) covered by its DOOR cells
+    (what the player can pass when it is open), to compare with DOORS."""
+    out = {}
+    for d in DOORS:
+        m = g.k == DOOR + d
+        if not m.any():
+            out[d] = None
+            continue
+        h = CELL / 2
+        out[d] = (float(g.X[m].min() - h), float(g.X[m].max() + h), float(g.Y[m].min() - h), float(g.Y[m].max() + h),
+                  float(g.Z[m].min() - h), float(g.Z[m].max() + h))
+    return out
+
+
 GRID_PATH = "src/main/resources/assets/medievalships/interiors/gear_steamship.grid"
 
 if __name__ == "__main__":
@@ -337,3 +359,7 @@ if __name__ == "__main__":
     print("standing places reached from the waist (doors open):", total)
     for name, n in reached.items():
         print("  %-14s %s" % (name, n if n else "UNREACHABLE"))
+    for d, box in door_openings(g).items():
+        name, want = DOORS[d]
+        ok = box is not None and all(abs(a - b) < 1e-9 for a, b in zip(box, want))
+        print("door %d %-12s opening %s %s" % (d, name, box, "" if ok else "DIFFERS FROM %s" % (want,)))

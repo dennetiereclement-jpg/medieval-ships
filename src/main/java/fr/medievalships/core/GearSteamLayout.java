@@ -97,6 +97,19 @@ public final class GearSteamLayout {
 	public static final int CREW_DOOR = 1;
 	public static final int GALLERY_DOOR = 2;
 	public static final int CABIN_DOOR = 3;
+	/**
+	 * The opening of each door (ship-local box {x0, x1, y0, y1, z0, z1}, the same as {@code tools/gear_steam_interior.py}
+	 * DOORS, on the 0.5 cell boundaries): 2 blocks wide (two leaves of 1), 2.5 tall in the engine room and the cabin,
+	 * 2 under the low ceiling of the crew quarters. Before 1.28.0 the boxes were "1.5 wide" with their edges on cell
+	 * centres, so the grid kept a 1 block opening that the player could not pass once the ship was not heading along
+	 * an axis.
+	 */
+	public static final double DOOR_WIDTH = 2.0;
+	public static final double[][] DOORS = {
+			{-1.0, 1.0, MAIN_DECK_Y, MAIN_DECK_Y + 2.5, ENGINE_FRONT_Z - 0.5, ENGINE_FRONT_Z},
+			{2.0, 4.0, MAIN_DECK_Y, MAIN_DECK_Y + 2.0, POOP_FRONT_Z - 0.5, POOP_FRONT_Z + 0.5},
+			{-1.0, 1.0, MAIN_DECK_Y, MAIN_DECK_Y + 2.0, TRANSOM_Z, TRANSOM_Z + 0.5},
+			{-1.0, 1.0, POOP_Y, POOP_Y + 2.5, DECKHOUSE_Z[0], DECKHOUSE_Z[0] + 0.5}};
 	public static final String GRID = "/assets/medievalships/interiors/gear_steamship.grid";
 	public static final String DECOR = "/assets/medievalships/interiors/gear_steamship_decor.json";
 

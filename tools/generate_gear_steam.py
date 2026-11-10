@@ -682,7 +682,7 @@ def decks(bone):
     xf = gs.hull_x(FZ, F) - 0.5
     add_cube(bone, "fc_break", (0, (M + F) / 2, FZ + 0.25), EYE, (2 * xf, F - M, 0.5), {"all": "plate_b", "+2": "deck"})
     xe = gs.hull_x(EF, E) - 0.05
-    dx0, dx1, dy0, dy1 = -0.75, 0.75, M, M + 2.5
+    dx0, dx1, dy0, dy1 = gi.DOORS[gi.ENGINE_DOOR][1][:4]     # the hole of the door, the same as the grid's opening
     for k, (x0, x1, y0, y1) in enumerate(((-xe, dx0, M, E), (dx1, xe, M, E), (dx0, dx1, dy1, E))):
         add_cube(bone, "engine_front_%d" % k, ((x0 + x1) / 2, (y0 + y1) / 2, EF - 0.25), EYE, (x1 - x0, y1 - y0, 0.5),
                  {"all": "plate_b", "-3": "wall_iron"})
@@ -730,7 +730,7 @@ def deckhouse(bone, lights):
         add_cube(bone, "deckhouse_foot_f" + sn, (side * (xg + DH) / 2, E + 0.1, DZ1 + 0.01), EYE, (DH - xg, 0.2, 0.05), "copper")
     # the aft wall (the door, the ladder, a window)
     z = DZ0 + 0.25
-    d0, d1, dy1 = -1.25, 0.25, P + 2.5
+    d0, d1, _, dy1 = gi.DOORS[gi.CABIN_DOOR][1][:4]     # the hole of the door, the same as the grid's opening
     for j, (x0, x1, y0, y1) in enumerate(((-DH + 0.5, d0, P, h1), (d1, DH - 0.5, P, h1), (d0, d1, dy1, h1))):
         add_cube(bone, "deckhouse_aft_%d" % j, ((x0 + x1) / 2, (y0 + y1) / 2, z), EYE, (x1 - x0, y1 - y0, 0.5), {"all": "plate_b", "+3": "wall_wood"})
     add_cube(bone, "glow_deckhouse_aft_window", (-2.1, 9.4, z - 0.27), EYE, (0.8, 0.9, 0.04), "glow_window", stretch=True)

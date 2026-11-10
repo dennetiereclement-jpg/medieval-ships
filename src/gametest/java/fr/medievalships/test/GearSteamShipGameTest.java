@@ -28,7 +28,8 @@ import fr.medievalships.entity.ShipTracker;
  * reference's viewpoint (starboard bow) and the side, stern and top views photographed (no HUD), then the furnished
  * engine room, engine, crew quarters, captain's cabin and hold; the player stands on the waist, the forecastle, the
  * engine house roof, the poop deck, the bridge, in the engine room, the crew quarters, the captain's cabin and the
- * hold, sits in the captain's chair and stands up on the cabin floor, walks on the waist, the engine room door opens, the gangplank is
+ * hold, sits in the captain's chair and stands up on the cabin floor, walks on the waist, the engine room door opens, the player walks
+ * through each of the four doors and back without jumping (heading along the axis, then turned 35 degrees), the gangplank is
  * put out and stowed again, and the ship steams under the player's control from the helm (the wheel turns, the
  * gears turn, the funnel smokes, the engine beats); then it is removed.
  */
@@ -218,6 +219,83 @@ public final class GearSteamShipGameTest {
 			return e.doorOpen(GearSteamLayout.ENGINE_DOOR);
 		});
 		check.accept(opened, id + ": the engine room door opens");
+		// through every door on foot, without jumping (1.28.0: the player could not pass the old "1.5 wide" doors, whose
+		// grid openings were 1 block wide): from before the door to beyond its far face and back, every door open, first
+		// with the ship heading along the axis, then turned 35 degrees (the collision boxes of the grid's cells are
+		// world-aligned and grow with the heading, which closed the old openings beyond about 15 degrees)
+		server.runOnServer(srv -> {
+			ShipEntity e = ship(srv.getOverworld());
+			for (int k = 0; k < GearSteamLayout.DOORS.length; k++) {
+				e.setDoor(k, true);
+			}
+		});
+		context.waitTicks(5);
+		String[] doorNames = {"engine room door", "crew quarters door", "stern gallery door", "captain's cabin door"};
+		// per door: x of the walk (the door's centre line), the floor, the z to start from outside, the local yaw that walks
+		// in, the z to reach inside (the player's box wholly through the wall), the z to reach back outside
+		double[][] walks = {
+				{0.0, m, GearSteamLayout.ENGINE_FRONT_Z + 1.3, 180, GearSteamLayout.ENGINE_FRONT_Z - 1.3, GearSteamLayout.ENGINE_FRONT_Z + 0.8},
+				{3.0, m, GearSteamLayout.POOP_FRONT_Z + 1.8, 180, GearSteamLayout.POOP_FRONT_Z - 1.0, GearSteamLayout.POOP_FRONT_Z + 1.3},
+				{0.0, m, GearSteamLayout.TRANSOM_Z + 1.9, 180, GearSteamLayout.TRANSOM_Z - 1.0, GearSteamLayout.TRANSOM_Z + 1.0},
+				{0.0, GearSteamLayout.POOP_Y, GearSteamLayout.DECKHOUSE_Z[0] - 1.3, 0, GearSteamLayout.DECKHOUSE_Z[0] + 1.5,
+						GearSteamLayout.DECKHOUSE_Z[0] - 0.7}};
+		for (float heading : new float[] {0f, 35f}) {
+			server.runOnServer(srv -> {
+				ShipEntity e = ship(srv.getOverworld());
+				if (e != null) {
+					e.setShipYaw(heading);
+				}
+			});
+			context.waitTicks(10);
+			for (int k = 0; k < walks.length; k++) {
+				double[] w = walks[k];
+				boolean in = w[3] == 180;    // walking towards -z
+				String name = doorNames[k] + " (heading " + (int) heading + ")";
+				ShipPose p = pose(server);
+				tp(server, p, w[0], w[1] + 0.02, w[2], (float) w[3], 8);
+				context.waitTicks(6);
+				if (heading == 0f && (k == 0 || k == 3)) {
+					context.runOnClient(mc -> mc.options.hudHidden = true);
+					context.waitTicks(2);
+					shot.accept(id + (k == 0 ? "_21_porte_salle_des_machines" : "_22_porte_cabine"));
+					context.runOnClient(mc -> mc.options.hudHidden = false);
+				}
+				context.getInput().holdKey(o -> o.forwardKey);
+				context.waitTicks(20);
+				context.getInput().releaseKey(o -> o.forwardKey);
+				double[] ci = context.computeOnClient((MinecraftClient mc) -> new double[] {mc.player.getX(), mc.player.getY(), mc.player.getZ(),
+						mc.player.isOnGround() ? 1 : 0});
+				double[] li = pose(server).toLocal(ci[0], ci[1], ci[2]);
+				log.accept(String.format(Locale.ROOT, "%s through the %s: from z %.2f to local %.2f %.3f %.2f (on ground %s)", id, name, w[2], li[0],
+						li[1], li[2], ci[3]));
+				boolean through = in ? li[2] < w[4] : li[2] > w[4];
+				check.accept(through && Math.abs(li[1] - w[1]) < 0.1 && ci[3] > 0 && Math.abs(li[0] - w[0]) < 0.6,
+						String.format(Locale.ROOT, "%s: the player walks through the %s without jumping (z %.2f, floor %.3f)", id, name, li[2], li[1] - w[1]));
+				// about turn (the same place, facing back), and out again
+				server.runCommand(String.format(Locale.ROOT, "tp @p %.3f %.3f %.3f %.1f %.1f", ci[0], ci[1], ci[2], (float) (pose(server).yaw() + w[3] + 180), 8f));
+				context.waitTicks(4);
+				context.getInput().holdKey(o -> o.forwardKey);
+				context.waitTicks(20);
+				context.getInput().releaseKey(o -> o.forwardKey);
+				double[] co = context.computeOnClient((MinecraftClient mc) -> new double[] {mc.player.getX(), mc.player.getY(), mc.player.getZ(),
+						mc.player.isOnGround() ? 1 : 0});
+				double[] lo = pose(server).toLocal(co[0], co[1], co[2]);
+				log.accept(String.format(Locale.ROOT, "%s back through the %s: local %.2f %.3f %.2f", id, name, lo[0], lo[1], lo[2]));
+				boolean back = in ? lo[2] > w[5] : lo[2] < w[5];
+				check.accept(back && Math.abs(lo[1] - w[1]) < 0.1 && co[3] > 0,
+						String.format(Locale.ROOT, "%s: and back out through the %s (z %.2f)", id, name, lo[2]));
+			}
+		}
+		server.runOnServer(srv -> {
+			ShipEntity e = ship(srv.getOverworld());
+			if (e != null) {
+				e.setShipYaw(0f);
+				for (int k = 1; k < GearSteamLayout.DOORS.length; k++) {
+					e.setDoor(k, false);
+				}
+			}
+		});
+		context.waitTicks(10);
 		// the gangplank: put out (as deployed onto a quay), then stowed again
 		Gangplank.State[] states = server.computeOnServer(srv -> {
 			ShipEntity e = ship(srv.getOverworld());

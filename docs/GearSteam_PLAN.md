@@ -357,3 +357,35 @@ laiton, un or des voiles pâle et une bande de cheminée réduite à un pointill
 * **Voiles** : or plus saturé (`7a3e10` / `d8902c` / `ffc860`), reflet du liseré et de l'emblème moins pâle ; chaque laize
   est arrondie comme un coussin éclairé à gauche (± 15 %), visible à distance, toile un peu moins brune.
 * Coût : 6 207 cubes (+8 : les deux plaques de l'engrenage de proue ; 6 183 en 1.27.0), aucune entité, rien par tick.
+
+## 14. Portes élargies, version 1.28.0
+
+Constat du joueur : « le joueur ne passe pas » les portes. Causes trouvées (`tools/gear_steam_interior.py`,
+`ShipGeometry.collectBoxes`) :
+
+1. **Les portes « 1,5 bloc » n'ouvraient qu'un bloc dans la grille.** Leurs boîtes (x ± 0,75 ; 2,25 → 3,75 ; −1,25 → 0,25)
+   avaient leurs bords sur des *centres* de cases de 0,5 ; `Grid.sel` ne garde que les cases dont le centre est strictement
+   dans la boîte, donc une demi-case était perdue de chaque côté : ouverture réelle 1,0 × 2,5 (machines), 1,0 × 2,0 (quartiers,
+   galerie), 1,0 × 2,5 (cabine), derrière des vantaux et un cadre dessinés à 1,5.
+2. **Un bloc ne se passe que cap sur un axe.** Chaque case solide devient en jeu une boîte alignée sur le monde de demi-côté
+   0,25 (|cos| + |sin|) : à 45° les cases grossissent de 41 %. Simulation (le même calcul que `GearSteamShipTest.doorsPassableAtAnyHeading`, joueur de 0,6) :
+   une ouverture de 1,0 se passe à 0° et 10° de cap (tolérance latérale 0,39), plus du tout à partir de 20° ; une ouverture
+   de 2,0 se passe à tous les caps (tolérance 1,39 à 0°, 0,67 à 45°).
+3. Ni marche au seuil (planchers au même niveau des deux côtés), ni plafond trop bas (2,0 ou 2,5 libres), ni trou entre la
+   porte et les cases DRY.
+
+Correction : les quatre portes font **2 blocs de large (deux vantaux de 1), bords sur les frontières de cases** ; 2,5 de haut
+dans la salle des machines et la cabine, 2,0 sous le plafond de 2,5 des quartiers (portes des quartiers et de la galerie, un
+linteau de 0,5 reste). Boîtes : machines x −1 → 1 ; quartiers x 2 → 4 ; galerie x −1 → 1 ; cabine x −1 → 1 (recentrée : elle
+était décalée à bâbord, l'échelle de la passerelle reste à 1,5 → 2,5). Les trous des murs extérieurs (façade de la maison des
+machines, mur arrière du rouf) sont pris sur `gi.DOORS` ; `GearSteamLayout.DOORS` porte les mêmes boîtes. Meubles déplacés :
+les deux casiers bâbord de la cloison avant des quartiers (x 0,4 et 1,4), l'armoire (z −9,42, dégagée de l'entrée), le coucou
+de la cabine (x 1,9), le porte-voix des machines (x −1,35). Une assertion du générateur refuse une boîte de porte hors des
+frontières de cases, et `python3 tools/gear_steam_interior.py` imprime l'ouverture réelle de chaque porte.
+
+Tests : `GearSteamShipTest.doorOpeningsFillTheirBoxes` (chaque case de la boîte est une case de la porte, mur à côté, linteau
+au-dessus, même plancher des deux côtés) et `doorsPassableAtAnyHeading` (le parallélépipède du joueur, 0,6 × 1,8, balaye
+chaque porte ouverte à 11 caps de 0° à 304° sans toucher une boîte, tolérance latérale ≥ 0,3, le mur à côté arrête bien) ;
+en jeu, `GearSteamShipGameTest` fait marcher le joueur (sans sauter) du passavant à la salle des machines, de la salle des
+machines aux quartiers, des quartiers à la galerie et de la dunette à la cabine, et retour, cap 0° puis navire tourné de 35°
+(captures `21_porte_salle_des_machines`, `22_porte_cabine`).
