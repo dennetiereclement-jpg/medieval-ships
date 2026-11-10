@@ -374,7 +374,7 @@ vitesse, souffle du vent en vitesse, battement du moteur, craquement du bois.
   voiles triangulaires sont ignorées). Les cinq croisements trouvés en 1.5.0 (misaine/focs et
   foc/civadière sur le vaisseau et le galion, grand-voile/hunier du voilier) sont corrigés.
 * Galion et vaisseau de guerre (1.5.0) : ils flottent plus haut (eau à −1,5 et −1,1 bloc sous
-  l'origine du modèle) sur une coque plus profonde dont les fonds arrondis se voient au-dessus de
+  l'origine du modèle ; 1.28.0 : −0,4 et −0,1, chargés, le bouchain sous l'eau) sur une coque plus profonde dont les fonds arrondis se voient au-dessus de
   l'eau ; leurs vergues sont orientées de 22° et leurs voiles plus gonflées, la bordure inférieure
   incurvée. Le vaisseau a désormais les pavillons rouges à croix blanche et les balustrades
   rouges de la nouvelle image (`warship_flag.png` reste remplaçable par un pack de ressources).

@@ -65,6 +65,23 @@ sièges, boîtes de collision, visée, embarquement) à un instantané pris sur 
 * Commandes : `Ships.ALIASES` (`grand_warship` → `warship`) ; les identifiants des entités et
   des sauvegardes ne changent jamais.
 
+### Flottaison chargée et eau du monde cachée dans les pièces (1.28.0)
+
+* `WATERLINE_Y` de chaque navire (constante de son `Layout`, reflétée dans `tools/<navire>_shape.py`) remontée pour
+  que la coque soit visiblement dans l'eau, la préceinte ou la bande basse à la surface : galion −1,5 → −0,4,
+  vaisseau −1,1 → −0,1, galère rouge −0,45 → −0,2, bateau à roue −0,8 → −0,35, voilier elfique −0,6 → −0,35,
+  Vieux Corsaire 0 → 0,5, frégate, navire au lion, forteresse et vapeur à engrenages 0 → 0,6. Choisies sur le profil
+  de chaque coque : quille et bouchain sous l'eau, sabords, hublots, galeries et planchers des ponts inférieurs au
+  moins 0,4 à 0,5 au-dessus, charnière de passerelle au-dessus d'un quai d'un bloc. Tout ce qui lit `waterlineY`
+  suit (flottaison, mise à l'eau, navigabilité, sondes, écume, gabarit des ponts-levis) ; ponts, pièces, grilles,
+  modèles et collisions inchangés. Galère, chaloupe, sloop, aéronefs et Nautilus inchangés.
+* `InteriorGrid.hidesWater` (règle pure, testée par `DryWaterTest`) et `DryWater` (client) : un bloc d'eau du monde
+  n'est pas dessiné quand, sur 27 points du bloc (0,1 / 0,5 / 0,9 de chaque axe, dans le repère du navire), au moins
+  un est sec (pièce, cloison, plancher, meuble, porte, sas vidé) et aucun hors coque ; à cheval sur la coque, caché
+  seulement si les points secs sont plus nombreux que les points extérieurs. Les blocs loin de la grille sont écartés
+  d'un seul test. Les sections de rendu autour d'une coque sont redessinées dès que le navire est vu pour la première
+  fois (posé, chargé, téléporté, suivi de loin), puis quand il bouge ou ouvre une porte près du joueur.
+
 ### Aéronefs : le dirigeable (1.6.0)
 
 Le dirigeable partage tout le reste du mod (entité `ShipEntity`, objet, réseau, sièges, marche

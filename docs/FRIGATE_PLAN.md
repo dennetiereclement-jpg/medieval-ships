@@ -77,7 +77,8 @@ plancher (vérifié par `FrigateTest.helmAndSeats`).
 * Objet *Grand navire aux voiles bleues* (*Blue-Sailed Frigate*) dans l'onglet créatif *Navires
   médiévaux*, ou `/ship give blue_frigate [joueurs]` ; **clic droit sur l'eau** pour le mettre à l'eau
   (eau assez profonde et dégagée pour la coque, le beaupré et le gui : ≈ 48 blocs de long, 10 de large,
-  quille à 3,4 blocs sous la flottaison) ; `/ship spawn blue_frigate` à votre position.
+  quille à 4,0 blocs sous la flottaison depuis 1.28.0 : l'eau est à y 0,6 du modèle, la bande dorée basse à la surface) ;
+  `/ship spawn blue_frigate` à votre position.
 * **Monter à bord** : clic droit sur la coque (on est déposé sur le pont principal). On marche pendant
   la navigation sur le pont principal, le gaillard d'arrière, dans la cabine (porte double, clic droit)
   et dans la cale (descente bâbord entre les deux mâts). **Sièges** (clic droit) : la barre, le fauteuil

@@ -322,6 +322,14 @@ public final class FortressShipGameTest {
 				shot.accept(id + "_" + (6 + k) + "_" + where[k].replace(' ', '_').replace("'", ""));
 			}
 		}
+		// 1.28.0: the waterline now runs 0.4 block under the hold's floor; seen from the foot of the companionway, no sheet
+		// of water is drawn across the hold, and the chunk renderer hides every water block of the basin inside the hull
+		server.runCommand("gamemode spectator @a");
+		look(server, pose(server), 3.25, FortressLayout.LOWER_FLOOR_Y + 1.62, -5.5, 0.0, FortressLayout.LOWER_FLOOR_Y + 0.3, -13.0);
+		context.waitTicks(12);
+		shot.accept(id + "_cale_niveau_mer");
+		DryWaterGameTest.check(context, TYPE, check, log);
+		server.runCommand("gamemode survival @a");
 		// a few steps forward on the waist
 		tp(server, pose(server), 0.0, FortressLayout.MAIN_DECK_Y + 0.02, -7.5, 0, 5);
 		context.waitTicks(5);

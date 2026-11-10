@@ -20,7 +20,7 @@ public final class RoyalLionLayout {
 	public static final double HALF_LENGTH = 20.0;
 	public static final double TIP = 21.0;
 	public static final double MAX_HALF_WIDTH = 6.0;
-	public static final double WATERLINE_Y = 0.0;
+	public static final double WATERLINE_Y = 0.6;
 	public static final double KEEL_DEPTH = 3.6;
 	public static final double MAIN_DECK_Y = 5.0;
 	public static final double LOWER_FLOOR_Y = 1.5;

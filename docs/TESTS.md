@@ -30,7 +30,9 @@ conseil et tourelle, salle des machines, quartiers, cale, galerie…), ouvre les
 sièges (un seul, le fauteuil du capitaine, pour le vapeur) et se relever à côté, marcher dans la cale et la cabine
 meublées (navire royal et forteresse), déploie la passerelle par son levier sur le quai puis la replie (sortie puis
 rangée sans quai pour le vapeur), et le fait piloter quelques secondes à la barre (le navire avance ; engrenages, fumée et machine pour le
-vapeur) ; captures des vues des références et des pièces meublées, puis retrait. Vérifications par mode : 27 (navire
+vapeur) ; captures des vues des références et des pièces meublées ; depuis 1.28.0, capture `<id>_cale_niveau_mer` depuis le pied de
+l'escalier de la cale et comptage côté client des blocs d'eau du bassin dans l'emprise de la coque (tous ceux entièrement dans la
+coque cachés, aucun de la mer libre) ; puis retrait. Vérifications par mode : 27 (navire
 royal au lion), 29 (forteresse), 21 (vapeur à engrenages). JUnit : `RoyalLionShipTest`, `FortressShipTest`,
 `GearSteamShipTest` (grille fermée, pièces atteignables à pied, sièges et places pour se relever, mobilier dans la
 coque, sondes de la grille et des mâts identiques à la forme Python), `NewShipModelsTest` (os, animations et quads de
@@ -293,6 +295,8 @@ Ce qui est vérifié :
 * **Déplacements à bord** :
   * marche sur le pont principal ;
   * pont inférieur **sec sous la ligne de flottaison** : pas d'eau, pas de vue sous-marine, l'air reste plein ;
+  * depuis 1.28.0, en surface : caméra sur l'échelle de la salle des machines 0,4 bloc sous le niveau de la mer, hors de l'eau
+    pour le brouillard (`NONE`), capture `nautilus_cale_niveau_mer`, et aucun bloc d'eau du bassin dessiné dans la coque ;
   * montée de **l'escalier en colimaçon** ;
   * **échelle** jusque sous le panneau fermé, puis sortie sur la coque une fois le panneau ouvert.
 * **Plongée** :

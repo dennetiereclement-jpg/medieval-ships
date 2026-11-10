@@ -56,9 +56,9 @@ class GalleonTest {
 		assertEquals(9.0, 2 * H.maxHalfWidth, 1e-9);
 		double hullHeight = H.railY(-H.halfLength + 0.5) - H.keelY(0);
 		assertTrue(hullHeight > 7 && hullHeight < 8, "hull height " + hullHeight);
-		// it floats high: 1.4 blocks of draft, the rounded sides show above the water
+		// loaded (1.28.0): 2.5 blocks of draft, the rounded bilge under the water, the sides rising from it
 		double draft = H.waterlineY - H.keelY(0);
-		assertTrue(draft > 1.2 && draft < 1.6, "draft " + draft);
+		assertTrue(draft > 2.3 && draft < 2.7, "draft " + draft);
 		assertTrue(GalleonLayout.MAIN_MAST_TOP - H.keelY(0) > 26, "too short");
 		assertTrue(G.boundingRadius() > 18 && G.aiReach() > 17);
 	}

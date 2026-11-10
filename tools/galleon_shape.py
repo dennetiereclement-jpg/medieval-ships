@@ -14,7 +14,7 @@ MAX_HALF_WIDTH = 4.5
 FORE_SCALE, FORE_POW_A, FORE_POW_B = 18.0, 2.0, 0.6
 AFT_SCALE, AFT_POW_A, AFT_POW_B = 19.5, 3.0, 0.5
 KEEL_DEPTH, KEEL_RISE, KEEL_POW = 2.9, 2.1, 3.0
-WATERLINE_Y = -1.5  # water surface under the model origin when afloat (the hull floats high)
+WATERLINE_Y = -0.4  # water surface under the model origin when afloat (1.28.0: loaded, 2.5 of draft)
 RAIL_BASE, RAIL_RISE_FORE, RAIL_RISE_AFT, RAIL_POW = 2.2, 0.8, 0.8, 2.5
 BOTTOM_SECTION = [(0.0, 1.0), (0.45, 0.92), (0.8, 0.6), (0.97, 0.15)]
 

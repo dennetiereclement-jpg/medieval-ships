@@ -294,6 +294,14 @@ public final class RoyalLionShipGameTest {
 					String.format(Locale.ROOT, "%s: standing in the %s (local y %.3f)", id, where[k], l[1]));
 			shot.accept(id + "_" + (7 + k) + "_" + where[k].replace(' ', '_').replace("'", ""));
 		}
+		// 1.28.0: the waterline now runs 0.9 block under the lower deck; seen from the foot of the hold's stair, no sheet of
+		// water is drawn across the cargo hold, and the chunk renderer hides every water block of the basin inside the hull
+		server.runCommand("gamemode spectator @a");
+		look(server, pose(server), 2.75, RoyalLionLayout.LOWER_FLOOR_Y + 1.62, 3.0, -1.0, RoyalLionLayout.LOWER_FLOOR_Y + 0.3, 12.0);
+		context.waitTicks(12);
+		shot.accept(id + "_cale_niveau_mer");
+		DryWaterGameTest.check(context, TYPE, check, log);
+		server.runCommand("gamemode survival @a");
 		// walking on the main deck while the ship is still: a few steps forward, still on the deck
 		tp(server, pose(server), 0.6, RoyalLionLayout.MAIN_DECK_Y + 0.02, 0.5, 0, 5);
 		context.waitTicks(5);

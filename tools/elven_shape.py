@@ -19,7 +19,7 @@ KEEL_DEPTH, KEEL_RISE, KEEL_POW = 1.9, 1.3, 2.5
 # long elegant sheer, rising at the bow more than at the stern
 RAIL_BASE, RAIL_RISE_FORE, RAIL_RISE_AFT, RAIL_POW = 1.85, 1.6, 1.2, 2.5
 BOTTOM_SECTION = [(0.0, 1.0), (0.4, 0.9), (0.78, 0.55), (0.97, 0.12)]
-WATERLINE_Y = -0.6
+WATERLINE_Y = -0.35
 
 MAIN_DECK_Y = 0.6
 DECK_MIN_Z, DECK_MAX_Z = -11.0, 11.0
