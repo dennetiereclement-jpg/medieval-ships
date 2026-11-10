@@ -261,7 +261,7 @@ class GearSteamShipTest {
 				{0, M, GearSteamLayout.ENGINE_FRONT_Z - 0.25, GearSteamLayout.ENGINE_DOOR},
 				{3.0, M, GearSteamLayout.POOP_FRONT_Z, GearSteamLayout.CREW_DOOR},
 				{0, M, GearSteamLayout.TRANSOM_Z + 0.25, GearSteamLayout.GALLERY_DOOR},
-				{-0.5, P, GearSteamLayout.DECKHOUSE_Z[0] + 0.25, GearSteamLayout.CABIN_DOOR}};
+				{0, P, GearSteamLayout.DECKHOUSE_Z[0] + 0.25, GearSteamLayout.CABIN_DOOR}};
 		for (double[] d : at) {
 			int k = (int) d[3];
 			assertFalse(fits(d[0], d[1], d[2], CLOSED), "door " + k + " closed");
@@ -273,6 +273,93 @@ class GearSteamShipTest {
 		assertNotNull(p);
 		assertEquals(ShipGeometry.PickKind.DOOR, p.kind());
 		assertEquals(GearSteamLayout.ENGINE_DOOR, p.seat());
+	}
+
+	/**
+	 * The doors are really 2 blocks wide (and 2.5 or 2 tall) in the grid: every cell of {@link GearSteamLayout#DOORS}
+	 * is a cell of that door, the cells beside and above the box are wall. Before 1.28.0 the boxes' edges fell on cell
+	 * centres and the grid kept a 1 block opening behind 1.5 block leaves, which the player could not pass once the
+	 * ship was not heading along an axis.
+	 */
+	@Test
+	void doorOpeningsFillTheirBoxes() {
+		for (int k = 0; k < GearSteamLayout.DOORS.length; k++) {
+			double[] b = GearSteamLayout.DOORS[k];
+			assertEquals(GearSteamLayout.DOOR_WIDTH, b[1] - b[0], 1e-9, "door " + k + " width");
+			assertTrue(b[3] - b[2] >= 2.0, "door " + k + " height " + (b[3] - b[2]));
+			for (double v : b) {
+				assertEquals(0.0, Math.abs(v / GRID.cell - Math.rint(v / GRID.cell)), 1e-9, "door " + k + " edge on a cell boundary: " + v);
+			}
+			double h = GRID.cell / 2;
+			int cells = 0;
+			for (double x = b[0] + h; x < b[1]; x += GRID.cell) {
+				for (double y = b[2] + h; y < b[3]; y += GRID.cell) {
+					for (double z = b[4] + h; z < b[5]; z += GRID.cell) {
+						assertEquals(InteriorGrid.DOOR + k, GRID.kindAt(x, y, z), "door " + k + " cell at " + x + ", " + y + ", " + z);
+						cells++;
+					}
+				}
+			}
+			assertEquals(Math.round((b[1] - b[0]) / GRID.cell) * Math.round((b[3] - b[2]) / GRID.cell) * Math.round((b[5] - b[4]) / GRID.cell), cells);
+			double ym = (b[2] + b[3]) / 2, zm = (b[4] + b[5]) / 2, xm = (b[0] + b[1]) / 2;
+			assertTrue(InteriorGrid.solid(GRID.kindAt(b[0] - h, ym, zm), OPEN), "wall beside door " + k + " (starboard)");
+			assertTrue(InteriorGrid.solid(GRID.kindAt(b[1] + h, ym, zm), OPEN), "wall beside door " + k + " (port)");
+			assertTrue(InteriorGrid.solid(GRID.kindAt(xm, b[3] + h, zm), OPEN), "lintel over door " + k);
+			assertTrue(InteriorGrid.solid(GRID.kindAt(xm, b[2] - h, zm), OPEN), "sill under door " + k);
+			// the same floor on both sides and in the doorway: no step at the sill
+			for (double dz : new double[] {-0.75, 0.0, 0.75}) {
+				assertEquals(b[2], floorUnder(xm, b[2], zm + dz, OPEN), 1e-9, "door " + k + " floor at dz " + dz);
+			}
+		}
+	}
+
+	/**
+	 * A walking player (0.6 wide, 1.8 tall, no jump) passes every open door at any heading of the ship: the world
+	 * boxes of the grid's cells are axis aligned and grow with the heading (x 1.41 at 45 degrees), so a 1 block
+	 * opening closed up beyond about 15 degrees; the 2 block openings keep at least 0.6 of lateral tolerance.
+	 */
+	@Test
+	void doorsPassableAtAnyHeading() {
+		for (int k = 0; k < GearSteamLayout.DOORS.length; k++) {
+			double[] b = GearSteamLayout.DOORS[k];
+			double xm = (b[0] + b[1]) / 2, floor = b[2];
+			for (double yaw : new double[] {0, 15, 23, 35, 45, 60, 77, 90, 123, 200, 304}) {
+				ShipPose pose = new ShipPose(100.0, 20.0, -50.0, yaw);
+				double tol = 0.0;
+				for (double off = 0.0; off <= 0.7; off += 0.05) {
+					if (sweep(pose, xm + off, floor, b[4] - 0.7, b[5] + 0.7) && sweep(pose, xm - off, floor, b[4] - 0.7, b[5] + 0.7)) {
+						tol = off;
+					} else {
+						break;
+					}
+				}
+				assertTrue(sweep(pose, xm, floor, b[4] - 0.7, b[5] + 0.7), "door " + k + " passable on its centre line at yaw " + yaw);
+				assertTrue(tol >= 0.3, "door " + k + " at yaw " + yaw + ": lateral tolerance " + tol);
+				assertFalse(sweep(pose, b[1] + 0.6, floor, b[4] - 0.7, b[5] + 0.7), "the wall beside door " + k + " stops the player at yaw " + yaw);
+			}
+		}
+	}
+
+	/**
+	 * Does the player's box, walking along the ship's z axis at local x from za to zb on the floor, meet no box? (0.7 beyond
+	 * each face of the wall: the box is wholly through on both sides; further, the furniture of the rooms stands.)
+	 */
+	private static boolean sweep(ShipPose pose, double x, double floor, double za, double zb) {
+		double z0 = Math.min(za, zb), z1 = Math.max(za, zb);
+		for (double z = z0; z <= z1 + 1e-9; z += 0.05) {
+			double[] w = pose.toWorld(x, floor, z);
+			double x0 = w[0] - 0.3, x1 = w[0] + 0.3, y0 = w[1] + 0.01, y1 = w[1] + 1.8, zz0 = w[2] - 0.3, zz1 = w[2] + 0.3;
+			boolean[] hit = {false};
+			G.collectBoxes(pose, OPEN, x0, y0, zz0, x1, y1, zz1, (a, bb, c, d, e, f) -> {
+				if (a < x1 && d > x0 && bb < y1 && e > y0 && c < zz1 && f > zz0) {
+					hit[0] = true;
+				}
+			});
+			if (hit[0]) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**

@@ -120,7 +120,7 @@
   },
   {
    "block": "farmhouse_decorations:cuckoo_clock",
-   "x": 0.85,
+   "x": 1.9,
    "y": 9.05,
    "z": -10.994,
    "yaw": 180.0,
@@ -338,7 +338,7 @@
   },
   {
    "block": "furnish:locker",
-   "x": 0.85,
+   "x": 0.4,
    "y": 4.5,
    "z": -7.5,
    "yaw": 0.0,
@@ -347,7 +347,7 @@
   },
   {
    "block": "furnish:locker",
-   "x": 1.75,
+   "x": 1.4,
    "y": 4.5,
    "z": -7.5,
    "yaw": 0.0,
@@ -376,7 +376,7 @@
    "block": "farmhouse_decorations:wardrobe",
    "x": 3.422,
    "y": 4.5,
-   "z": -9.12,
+   "z": -9.92,
    "yaw": 90.0,
    "scale": 1.0,
    "fallback": "fallback_41"

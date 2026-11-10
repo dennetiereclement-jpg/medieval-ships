@@ -155,7 +155,7 @@ def crate(x, y, z, kind=None, facing="stern"):
 # ---------------------------------------------------------------- the rooms
 def captain_cabin():
     """Cabine du capitaine (the deckhouse on the poop deck, floor 7.5, x -2.5..2.5, z -11.5 -> -7.0: its front wall is the
-    funnel casing; the door aft at x -1.25..0.25): the bed against the port wall aft, the desk across the front wall with
+    funnel casing; the door aft at x -1..1, 2 wide): the bed against the port wall aft, the desk across the front wall with
     the captain's chair, the bookcase in the starboard aft corner, the liquor cabinet under the starboard windows and a
     visitor's chair, a dresser under the port windows, a rug, the wall clock, a chart on the front wall, the windows seen
     from inside (two a side: the third pane of each side lights the funnel casing)."""
@@ -183,7 +183,7 @@ def captain_cabin():
     block(FD + "cigar_box", 2.1, y + 1.016, -8.55, "starboard", solid=False)
     block(FU + "picture_frame", 2.15, y + 1.016, -8.0, "starboard", solid=False)
     block(FD + "rug_3x_3", 0.0, y, -9.3, "stern", solid=False)
-    block(FD + "cuckoo_clock", 0.85, y + 1.55, za + 0.1, "bow", solid=False)
+    block(FD + "cuckoo_clock", 1.9, y + 1.55, za + 0.1, "bow", solid=False)   # beside the door, over the bed's head
     lantern(0.0, CABIN_CEIL, -9.25)
     # the windows seen from inside: the two aftmost panes of each side (the outside panes of tools/generate_gear_steam.deckhouse)
     for side in (1, -1):
@@ -223,11 +223,11 @@ def crew_quarters():
     block(FD + "single_bed", 2.48, y, za + 0.61, "port")
     block(FD + "single_bed", -3.3, y, -9.0, "stern")
     # lockers: two against the forward bulkhead each side of the centre line, a wardrobe along the port side forward
-    for x in (0.85, 1.75):
+    for x in (0.4, 1.4):     # clear of the crew door (x 2..4)
         block(FU + "locker", x, y, -7.5, "stern")
     for x in (-3.9, -2.9):
         block(FU + "locker", x, y, -7.5, "stern")
-    block(FD + "wardrobe", 3.5, y, -8.62, "starboard")
+    block(FD + "wardrobe", 3.5, y, -9.42, "starboard")   # aft of the crew door's way (x 2..4, free to z -8.5)
     block(FD + "coat_hanger", -1.9, y, -7.48, "stern")
     block(FD + "acoustic_guitar", -1.05, y, -7.3, "stern", solid=False)
     # the galley in the starboard aft corner: the range, its counter, a pot, the spice rack, the stovepipe
@@ -277,7 +277,7 @@ def engine_room():
     for x in (-2.0, -3.0):
         block(FU + "locker", x, y, 4.0, "stern")
     custom("telegraph", solid=(-1.95, -1.45, y, y + 1.4, 2.65, 3.15), name="engine_telegraph", p=(-1.7, y, 2.9), facing=(0, 0, -1))
-    custom("speaking_tube", name="engine_voice_pipe", p=(-1.2, y, 4.32), top=1.55)
+    custom("speaking_tube", name="engine_voice_pipe", p=(-1.35, y, 4.32), top=1.55)   # clear of the door's jamb (x -1.16)
     # the stair hatch: an iron railing along both sides; the coal bunker aft of it
     x0, x1 = gs.ENGINE_STAIR_X
     z_top, z_bot = gs.ENGINE_STAIR_Z
