@@ -490,14 +490,14 @@ def _plates_hd(a, region, tones, rng, rivet="503e30", rust=0.14, seam="0e0a08", 
     u, v, w, h = region
     out = np.zeros((h, w, 3))
     mott = _noise(w, h, 7, rng) * 0.07 + _noise(w, h, 2.5, rng) * 0.035 + _grain(w, h, rng, 0.025)
-    hl, sh, ys = _bevel(block, block, light=(4.0, 3.0), dark=(5.0, 4.0))
-    grad = 1.05 - 0.12 * ys / block
+    hl, sh, ys = _bevel(block, block, light=(5.0, 4.0), dark=(6.0, 5.0), kl=(0.9, 0.5), kd=(0.65, 0.45))
+    grad = 1.09 - 0.2 * ys / block
     seam, litc = _c(seam), _c(lit)
     tones = [_c(t) for t in tones]
     r = rng
     for by in range(0, h, block):
         for bx in range(0, w, block):
-            base = tones[r.randrange(len(tones))] * r.uniform(0.86, 1.14)
+            base = tones[r.randrange(len(tones))] * r.uniform(0.8, 1.22)
             if r.random() < brown:
                 base = base * 0.82 + _c("4a3020") * 0.18 * r.uniform(0.6, 1.4)
             m = mott[by:by + block, bx:bx + block]
@@ -608,7 +608,7 @@ def _glow_window_hd(a, region, rng):
     col = np.zeros((h, w, 3))
     # glass: a warm glow brighter in the lower middle (the lamp), saturated orange at the edges
     d = np.hypot((xs - w / 2) / (w / 2), (ys - h * 0.58) / (h / 2))
-    glass = _ramp_np(("fff8d8", "ffe49a", "ffcc62", "ffb446", "ff9c30"), np.clip(d * 0.9, 0, 1))
+    glass = _ramp_np(("fff2c4", "ffd872", "ffbc48", "ffa236", "ff8a28"), np.clip(d * 0.9, 0, 1))
     col[:] = glass
     # each pane a little darker in its upper outer corner (the frame's shadow on the glass)
     px_ = (xs % (w / 2)) / (w / 2)
@@ -644,7 +644,7 @@ def _gore_hd(a, region, rng):
     s = xs / w
     t = 0.42 + 0.34 * np.exp(-((s - 0.38) / 0.2) ** 2) - 0.22 * np.clip((s - 0.72) / 0.28, 0, 1) - 0.15 * np.clip((0.12 - s) / 0.12, 0, 1)
     t = t + 0.05 * _noise(w, h, 5, rng) + _grain(w, h, rng, 0.025) - 0.08 * ys / h
-    col = _ramp_np(("4a1e0c", "7a3418", "a24c24", "c86a38", "f0a070"), t)
+    col = _ramp_np(("4a1e0c", "843a1a", "b4582a", "dc8044", "f8b484"), t)
     col[0:2] = col[0:2] * 1.25 + 10
     col[h - 2:] = _c("2a1006")
     col[:, w - 1] = _c("2a1006")
@@ -662,9 +662,9 @@ def _bevel_brass_hd(a, region, rng):
     """A brass bar seen face on, stretched on each piece of a gear wheel: polished middle, a lit upper and left edge, a
     shadowed lower and right edge, a dark outline (the pieces read in relief)."""
     u, v, w, h = region
-    hl, sh, ys = _bevel(w, h, light=(4.0, 4.0), dark=(4.0, 4.0), kl=(0.9, 0.7), kd=(0.75, 0.6))
+    hl, sh, ys = _bevel(w, h, light=(4.0, 4.0), dark=(4.0, 4.0), kl=(1.0, 0.8), kd=(0.85, 0.7))
     t = 0.52 + 0.08 * _noise(w, h, 8, rng) + _grain(w, h, rng, 0.02) - 0.06 * ys / h
-    col = _ramp_np(("6a380c", "a8661e", "d08c2c", "f0b040", "ffd47a"), t + 0.4 * hl - 0.44 * sh)
+    col = _ramp_np(("5e300a", "a8621a", "d48c28", "f4b23c", "ffd878"), t + 0.42 * hl - 0.46 * sh)
     col[h - 1, :] = col[:, w - 1] = _c("4a2608")
     _put(a, region, col)
 
@@ -677,7 +677,7 @@ def _pipe_hd(a, region, rng):
     t = ys / h
     k = 0.18 + 0.7 * np.sin(np.pi * t) ** 0.7 + 0.35 * np.exp(-((t - 0.28) / 0.07) ** 2) - 0.25 * np.clip((t - 0.7) / 0.3, 0, 1)
     k = k + 0.05 * _noise(w, h, 14, rng, 1.5) + _grain(w, h, rng, 0.02)
-    col = _ramp_np(("2e1006", "6a2c12", "a24e26", "d0763e", "ffc08a"), k * 0.82)
+    col = _ramp_np(("2e1006", "6a2c12", "a84e24", "d87c40", "ffc48e"), k * 0.9)
     for x0 in range(0, w, BLK):
         for dx, f in ((0, 0.55), (1, 1.25), (2, 1.1), (BLK - 1, 0.7)):
             if x0 + dx < w:
@@ -830,15 +830,18 @@ def _paint_hd(a, rng):
     R = REGIONS
     # charcoal iron: a near-neutral warm charcoal, as the reference's plates (not blue-grey, not brown: the copper and
     # brass bands must stand out of it), the lit bevel kept to about +20 of luminance
-    soft = dict(lit="060505", lit_k=1.28, rivet="463c34", rivet_hi=(1.3, 8), brown=0.12)
-    _plates_hd(a, R["plate_a"], ("2c2826", "292523", "312c29", "272321", "2e2a27", "35302c", "2a2624"), rng, **soft)
-    _plates_hd(a, R["plate_b"], ("312d2a", "2d2926", "36312d", "2a2623", "322d29"), rng, **soft)
+    # (1.28.0: a wider, brighter lit bevel and a stronger top light, plates from near-black to a lighter charcoal: the
+    # relief and the block-by-block variation of the reference read from the quay, where the rivets and seams vanish)
+    soft = dict(lit="0c0a0a", lit_k=1.5, rivet="4a3f36", rivet_hi=(1.3, 8), brown=0.12)
+    _plates_hd(a, R["plate_a"], ("2c2927", "292524", "322d2b", "262221", "2f2b29", "3a3531", "2a2625", "231f1e", "2a2b2f", "2f3136"), rng,
+               **soft)
+    _plates_hd(a, R["plate_b"], ("322e2b", "2d2926", "38332f", "2a2623", "342f2b", "3e3833", "2e3035", "34363c"), rng, **soft)
     # under the copper boot-top: darker, with joints, rivets and rust a third less contrasted (they sparkled at a distance)
-    _plates_hd(a, R["plate_c"], ("201c1a", "231e1c", "26211e", "1e1a18"), rng, rust=0.06, rust_col="3e2818", lit="040302", lit_k=1.2,
+    _plates_hd(a, R["plate_c"], ("201c1a", "231e1c", "26211e", "1e1a18"), rng, rust=0.06, rust_col="3e2818", lit="060404", lit_k=1.3,
                seam="15110f", rivet="342c26", rivet_hi=(1.2, 5), brown=0.15)
     # the funnel: charcoal plates (as the hull) with rivet columns along their seams
-    _plates_hd(a, R["funnel"], ("2a2523", "26211f", "2e2825", "231f1d"), rng, rivets="columns", rust=0.06, brown=0.2, lit="060403",
-               lit_k=1.28, rivet_hi=(1.3, 8))
+    _plates_hd(a, R["funnel"], ("2a2523", "26211f", "2e2825", "231f1d", "332d2a"), rng, rivets="columns", rust=0.06, brown=0.2, lit="0a0806",
+               lit_k=1.45, rivet_hi=(1.3, 8))
     # the dome's drum: dark brown copper plates
     _plates_hd(a, R["dome_drum"], ("5a3020", "52291a", "613524", "4c2818"), rng, rivet="c8843e", lit="1a0c06", lit_k=1.5, rust=0.0,
                rust_col="3e5a48", brown=0.0)
@@ -847,10 +850,10 @@ def _paint_hd(a, rng):
     _gore_hd(a, R["dome_gore"], rng)
     # copper bands and caps, brass bands, the dark beams, iron bands
     # (rivet heads close to the band's colour: pale brass dots read as dust at a distance and shimmered)
-    _band_hd(a, R["copper"], ("4e1e0a", "a8502a", "e8985c"), rng, rivet="b87840", patina=0.08)
-    _band_hd(a, R["copper2"], ("561f0a", "b0582a", "f0a468"), rng, rivet="c08048", patina=0.07)
+    _band_hd(a, R["copper"], ("4a1c08", "c86028", "ffb06a"), rng, rivet="d89050", patina=0.08, refl=0.42)
+    _band_hd(a, R["copper2"], ("521e08", "d06a2c", "ffb874"), rng, rivet="e09858", patina=0.07, refl=0.42)
     # brass: a saturated bright gold (the funnel band, the stem, the window frames: the reference's bold shiny brass)
-    _band_hd(a, R["brass_band"], ("6a3810", "c8842a", "fcc868"), rng, rivet="d89a48", refl=0.4)
+    _band_hd(a, R["brass_band"], ("6a3810", "d48c2a", "ffd470"), rng, rivet="e0a450", refl=0.44)
     _band_hd(a, R["stone"], ("161210", "3e3029", "6a5444"), rng, rivet="a87c3a", refl=0.18)
     _band_hd(a, R["iron_band"], ("141416", "3a3a3e", "5e5e64"), rng, rivet="5e544a", refl=0.2)
     _polished_hd(a, R["brass"], ("5a2a08", "94501a", "c47a2a", "e8a446", "ffd488"), rng, amp=0.55, streak=0.03)
@@ -889,14 +892,14 @@ def _black_sail_hd(a, name, rng, stripe=0.31, emblem=None):
     u, v, w, h = SAIL_REGIONS[name]
     cols, rows = SAIL_CELLS[name]
     cw, ch = w / cols, h / rows
-    tones = [_c(c) for c in ("2c2524", "322a29", "382f2d", "262020", "3d3331")]
+    tones = [_c(c) for c in ("2a2423", "332b2a", "3c3331", "252020", "42403f", "4a4746")]
     tone = np.zeros((rows, cols, 3))
     for r_ in range(rows):
         for c_ in range(cols):
             dx = abs((c_ + 0.5) / cols - 0.5) * 2
             dy = (r_ + 0.5) / rows
             k = 1.0 + 0.14 * (1 - dx * dx) - 0.12 * dx * dx - 0.04 * dy
-            tone[r_, c_] = tones[rng.randrange(len(tones))] * k * rng.uniform(0.95, 1.05)
+            tone[r_, c_] = tones[rng.randrange(len(tones))] * k * rng.uniform(0.9, 1.12)
     ys, xs = np.mgrid[0:h, 0:w].astype(float) + 0.5
     ci = np.minimum(cols - 1, (xs // cw).astype(int))
     ri = np.minimum(rows - 1, (ys // ch).astype(int))
@@ -912,8 +915,8 @@ def _black_sail_hd(a, name, rng, stripe=0.31, emblem=None):
     k = (1.1 - 0.26 * ys / h) * (1 + folds + weave + 0.04 * _noise(w, h, 12, rng))
     col = tone[ri, ci] * k[..., None]
     # cloth seams: lit upper / left edge, dark lower / right edge
-    col = np.where(((lx < 1.5) | (ly < 1.5))[..., None], col * 1.28, col)
-    col = np.where(((lx > cw - 2.5) | (ly > ch - 2.5))[..., None], col * 0.62, col)
+    col = np.where(((lx < 2.5) | (ly < 2.5))[..., None], col * 1.4, col)
+    col = np.where(((lx > cw - 3.0) | (ly > ch - 3.0))[..., None], col * 0.55, col)
     # the panel seam down the middle of each cloth: a dark line and light stitches
     mid = np.abs(lx - cw / 2) < 0.8
     col = np.where(mid[..., None], col * 0.72, col)

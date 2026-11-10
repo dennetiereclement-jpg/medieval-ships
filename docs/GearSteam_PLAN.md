@@ -389,3 +389,46 @@ chaque porte ouverte à 11 caps de 0° à 304° sans toucher une boîte, toléra
 en jeu, `GearSteamShipGameTest` fait marcher le joueur (sans sauter) du passavant à la salle des machines, de la salle des
 machines aux quartiers, des quartiers à la galerie et de la dunette à la cabine, et retour, cap 0° puis navire tourné de 35°
 (captures `21_porte_salle_des_machines`, `22_porte_cabine`).
+
+## 15. Visuel, version 1.28.0 (troisième passe)
+
+Point de départ : les captures en jeu de la 1.27.2 (branche `test-results-decor`, vue de la référence, flanc, arrière,
+dessus, en route) et le rendu à la caméra de la référence (`tools/gear_steam_compare.py`), comparés à l'image 063 en vue
+entière et en gros plans poupe / milieu / proue. Ce qui restait plat ou terne : les tôles d'un seul ton (la coque se lisait
+comme une surface unie, sans le relief ni la variation bloc par bloc de l'image, dont les blocs vont du noir au gris-bleu
+ardoise) ; le cuivre des bandes et des tuyaux un peu brun à côté du laiton ; les fenêtres jaune pâle, presque blanches de
+loin, alors que l'image les montre ambre-orange ; les voiles d'un noir plat (l'image montre une toile en blocs, chaque bloc
+d'un ton différent, arêtes éclairées) ; le dôme un peu sombre.
+
+Trois itérations de rendu (caméra de la référence, gros plans milieu / poupe / proue / voiles, vue à 60 blocs à la densité
+de pixels du jeu, le passavant et la dunette avec les portes ouvertes ; `/tmp/claude-0/agent_g/r1..r3`), textures seules
+(`tools/gear_steam_texture.py`, 32 px par bloc, rien ne change dans le modèle ni dans la grille) :
+
+1. **Tôles** (`_plates_hd`) : biseau éclairé plus large (5 × 4 px) et plus clair (× 1,5), lumière de haut de plaque plus
+   forte (1,09 → 0,89), ton par plaque tiré de 0,8 à 1,22 au lieu de 0,86 à 1,14, et dix tons au lieu de sept, du presque noir
+   (`231f1e`) au charbon clair (`3a3531`) avec deux tons d'acier froid (`2a2b2f`, `2f3136` ; parois des châteaux `2e3035`,
+   `34363c`) : les blocs de l'image, noirs et gris-bleu mêlés, se lisent de loin, là où rivets et joints disparaissent. Les
+   tôles de la cheminée suivent (cinq tons, biseau × 1,45), celles du fond un peu (× 1,3). Cuivre et laiton gardent un fond
+   neutre pour ressortir (critique de la 1.27.2 : « coque trop brune qui étouffait le cuivre »).
+2. **Cuivre** (`copper`, `copper2`) : plus saturé et plus clair (`bc5c28` → `c86028`, reflet `ffb06a` / `ffb874`), reflet
+   plus marqué (0,42), rivets de la couleur de la bande ; **tuyaux** un peu plus clairs (× 0,9 au lieu de 0,82, reflet
+   `ffc48e`) ; **laiton des bandes** (`brass_band` : cheminée, étrave, cadres, bandeaux du dôme) `d48c2a` → `ffd470`.
+3. **Engrenages** (`gear_bevel`) : biseau plus contrasté (lumière 1,0 / 0,8, ombre 0,85 / 0,7), or plus saturé
+   (`d48c28` → `ffd878`) : jante, dents et rayons se lisent en relief de la quai.
+4. **Fenêtres** (`_glow_window_hd`) : verre ambre (cœur `fff2c4`, bords `ff8a28`) au lieu du jaune pâle ; elles restent les
+   faces les plus claires (faces « glow » à pleine lumière depuis le `ShipRenderer` de la 1.27.2) mais chaudes, comme sur
+   l'image.
+5. **Dôme** (`_gore_hd`) : fuseaux de cuivre plus clairs (`b4582a` → `f8b484`), reflet vertical plus fort.
+6. **Voiles** (`_black_sail_hd`) : six tons de toile au lieu de cinq, du noir chaud (`252020`) au gris (`4a4746`), tirage par
+   laize 0,9 → 1,12 ; arête éclairée de 2,5 px (× 1,4) et arête ombrée de 3 px (× 0,55) : chaque bloc de toile se lit, comme
+   sur l'image.
+
+Pas de détail d'un texel : joints de 2 px, rivets de 4 px adoucis, biseaux larges ; à 60 blocs (rendu à la densité du jeu) la
+coque se lit en blocs sombres variés sous les bandes de cuivre et d'or, sans mouchetis. Coût : textures seules (≈ 0,4 Mo et
+0,25 Mo), 6 205 cubes (−2 : les cadres de portes élargis), aucune entité, rien par tick.
+
+`docs/comparaison_gear_steamship.png` : référence | en jeu 1.27.2 ; rendu 1.27.2 | 1.28.0 à la caméra de la référence ;
+milieu, poupe, voiles, vue à 60 blocs avant | après ; en jeu 1.28.0 et les portes.
+
+Restent : la lumière dorée du coucher de soleil de l'image ; le relief réel des blocs (chaque bloc en saillie), imité par les
+biseaux peints ; les gradins de l'avant restent discrets ; le dôme de l'image a des bandeaux plus épais.
