@@ -37,7 +37,7 @@ import fr.medievalships.entity.ShipTracker;
  * arrive in any order; a vessel is seen here one tick after its entity): the sections around a hull are drawn again on
  * its first sight, once more two seconds later, and, while the local player stands in a dry room near the sea level,
  * every five seconds the sections of the water band around the hull that were not meshed since its last redraw (each
- * section meshed near a hull stamps the time of the snapshot it used) are scheduled again.
+ * section meshed near a hull stamps the time of the snapshot it used) are scheduled again, at most once per redraw.
  */
 public final class DryWater {
 	private record Hull(ShipPose pose, InteriorGrid grid, InteriorGrid.State state, double radius) {
@@ -45,6 +45,10 @@ public final class DryWater {
 
 	/** The hulls as the chunk builder threads see them, and the world time they were published at. */
 	private record Snapshot(Hull[] hulls, long time) {
+	}
+
+	/** The water under a vessel: the y of its top block in the hull's centre column, and the level of its surface. */
+	private record Sea(int top, double level) {
 	}
 
 	/** Per ship: the pose and state its sections were last drawn again for, and when; its first sight; the checks done. */
@@ -81,6 +85,14 @@ public final class DryWater {
 
 	/** Called once at client init: hooks the water's render handler. */
 	public static void init() {
+		DryWaterFluidHandler.register();
+	}
+
+	/**
+	 * Called on joining a world: hooks the water's render handler again, in case a mod whose client entrypoint ran after
+	 * this mod's registered its own handler (replacing ours in the registry; it is wrapped in turn).
+	 */
+	public static void joined() {
 		DryWaterFluidHandler.register();
 	}
 
@@ -178,8 +190,8 @@ public final class DryWater {
 				s.drawnAt = now;
 			}
 			if (player != null && now - s.drawnAt >= STALE_SETTLE && now - s.staleCheckAt >= STALE_PERIOD && inside(player, pose, grid, state, r)) {
-				double sea = seaLevel(world, pose, grid);
-				if (!Double.isNaN(sea) && Math.abs(player.getEyeY() - sea) <= SEA_BAND) {
+				Sea sea = seaLevel(world, pose, grid);
+				if (sea != null && Math.abs(player.getEyeY() - sea.level) <= SEA_BAND) {
 					s.staleCheckAt = now;
 					redrawStale(client, pose, r, sea, s.drawnAt);
 				}
@@ -224,10 +236,10 @@ public final class DryWater {
 	}
 
 	/**
-	 * The surface of the water in the hull's centre column, within the height of its grid (the water of the world is
-	 * still there under the vessel); NaN when there is none (a dry dock, an airship).
+	 * The water in the hull's centre column, within the height of its grid (the water of the world is still there under
+	 * the vessel): its top block and the level of its surface; null when there is none (a dry dock, an airship).
 	 */
-	private static double seaLevel(ClientWorld world, ShipPose pose, InteriorGrid grid) {
+	private static Sea seaLevel(ClientWorld world, ShipPose pose, InteriorGrid grid) {
 		int x = (int) Math.floor(pose.x()), z = (int) Math.floor(pose.z());
 		int top = (int) Math.ceil(pose.y() + grid.y0 + grid.ny * grid.cell), bottom = (int) Math.floor(pose.y() + grid.y0) - 1;
 		BlockPos.Mutable p = new BlockPos.Mutable();
@@ -235,23 +247,25 @@ public final class DryWater {
 			p.set(x, y, z);
 			FluidState f = world.getFluidState(p);
 			if (f.isIn(FluidTags.WATER)) {
-				return y + f.getHeight(world, p);
+				return new Sea(y, y + f.getHeight(world, p));
 			}
 		}
-		return Double.NaN;
+		return null;
 	}
 
 	/**
-	 * Schedules again the sections of the water band around the hull (from {@link #SEA_BAND} under the sea level to just
-	 * above it, within the hull's radius) that were not meshed since the hull's last redraw.
+	 * Schedules again the sections of the water band around the hull (from {@link #SEA_BAND} under the sea level to the
+	 * layer of its top block, within the hull's radius) that were not meshed since the hull's last redraw, at most once
+	 * per redraw: the scheduling stamps the section with the redraw's time, as a section without a water block near the
+	 * hull (a quay, the land) is never stamped by the meshing and would be scheduled again at every check.
 	 */
-	private static void redrawStale(MinecraftClient client, ShipPose pose, double r, double sea, long drawnAt) {
+	private static void redrawStale(MinecraftClient client, ShipPose pose, double r, Sea sea, long drawnAt) {
 		if (client.worldRenderer == null) {
 			return;
 		}
 		int sx0 = ((int) Math.floor(pose.x() - r) - 1) >> 4, sx1 = ((int) Math.ceil(pose.x() + r) + 1) >> 4;
 		int sz0 = ((int) Math.floor(pose.z() - r) - 1) >> 4, sz1 = ((int) Math.ceil(pose.z() + r) + 1) >> 4;
-		int sy0 = ((int) Math.floor(sea - SEA_BAND)) >> 4, sy1 = ((int) Math.floor(sea + 1)) >> 4;
+		int sy0 = ((int) Math.floor(sea.level - SEA_BAND)) >> 4, sy1 = sea.top >> 4;
 		for (int sx = sx0; sx <= sx1; sx++) {
 			for (int sz = sz0; sz <= sz1; sz++) {
 				// the nearest point of the section's column to the hull's axis must be within its radius
@@ -261,9 +275,12 @@ public final class DryWater {
 					continue;
 				}
 				for (int sy = sy0; sy <= sy1; sy++) {
-					Long t = meshed.get(ChunkSectionPos.asLong(sx, sy, sz));
+					long key = ChunkSectionPos.asLong(sx, sy, sz);
+					Long t = meshed.get(key);
 					if (t == null || t < drawnAt) {
 						client.worldRenderer.scheduleChunkRender(sx, sy, sz);
+						// a section meshed with water near the hull overwrites this with the (newer) time of its snapshot
+						meshed.merge(key, drawnAt, Math::max);
 					}
 				}
 			}

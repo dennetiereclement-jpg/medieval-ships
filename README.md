@@ -151,7 +151,8 @@ Pour tous :
 La version 1.28.1 **cache l'eau du monde dans les pièces aussi avec Sodium** : l'eau n'est plus écartée par un mixin sur le
 moteur de rendu de Minecraft (que Sodium, et donc Iris et Nvidium, n'appellent jamais : la nappe de la mer restait visible
 dans la cale du navire au lion sur un client ainsi équipé) mais par le gestionnaire de rendu des fluides de Fabric API,
-que Sodium honore bloc par bloc ; le mixin reste en secours. Deux filets de sécurité contre les sections dessinées avant
+que Sodium honore bloc par bloc, réinstallé à chaque connexion au cas où un mod chargé après celui-ci l'aurait remplacé ;
+le mixin reste en secours. Deux filets de sécurité contre les sections dessinées avant
 que le navire ne soit connu du client (en rejoignant un serveur, les tronçons de monde et les navires arrivent dans
 n'importe quel ordre) : les sections autour d'un navire sont redessinées une seconde fois deux secondes après sa première
 apparition, et, tant que le joueur est dans une pièce sèche près du niveau de la mer, toutes les cinq secondes celles de la

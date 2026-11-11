@@ -26,9 +26,10 @@ import net.minecraft.world.BlockRenderView;
  * {@code net.caffeinemc.mods.sodium.fabric.render.FluidRendererImpl.render} looks the handler up in
  * {@code FluidRenderHandlerRegistry} and calls {@code FluidRendering.render(handler, ...)}, that is
  * {@code handler.renderFluid}, with its own fast renderer as the default geometry; so returning early here draws nothing
- * under Sodium as well (and under Iris or Nvidium, which build on Sodium's meshing). The mixin on the vanilla renderer
- * ({@code FluidRendererMixin}) stays as a fallback for a client where another mod registers its own water handler after
- * this one, without Sodium.
+ * under Sodium as well (and under Iris or Nvidium, which build on Sodium's meshing). A mod whose client entrypoint runs
+ * after this mod's and registers its own water handler replaces this one in the registry: the wrapping is done again on
+ * joining a world, around that handler. The mixin on the vanilla renderer ({@code FluidRendererMixin}) stays as a
+ * fallback for a client where a mod registers its own water handler later still, without Sodium.
  */
 final class DryWaterFluidHandler implements FluidRenderHandler {
 	private final FluidRenderHandler delegate;
@@ -37,7 +38,7 @@ final class DryWaterFluidHandler implements FluidRenderHandler {
 		this.delegate = delegate;
 	}
 
-	/** Wraps the handlers of the still and the flowing water (once). */
+	/** Wraps the handlers of the still and the flowing water (once: a handler already wrapped is left alone). */
 	static void register() {
 		for (Fluid fluid : new Fluid[] {Fluids.WATER, Fluids.FLOWING_WATER}) {
 			FluidRenderHandler previous = FluidRenderHandlerRegistry.INSTANCE.get(fluid);

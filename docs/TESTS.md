@@ -381,15 +381,19 @@ Les captures sont aussi à regarder : aucune nappe d'eau ne doit traverser la ca
 
 Filets de sécurité (`DryWater.tick`), indépendants du moteur : second redessin des sections autour d'un navire 2 s après
 sa première apparition ; tant que le joueur est dans une pièce sèche à moins de 3 blocs de la surface de l'eau, toutes
-les 5 s les sections de la bande d'eau autour de la coque qui n'ont pas été maillées depuis le dernier redessin (chaque
-section maillée avec une coque à portée est horodatée) sont replanifiées. Un tronçon qui se charge près d'un navire déjà
+les 5 s les sections de la bande d'eau autour de la coque (de 3 blocs sous la surface à la couche du bloc d'eau le plus
+haut) qui n'ont pas été maillées depuis le dernier redessin (chaque section maillée avec une coque à portée est horodatée)
+sont replanifiées, une seule fois par redessin : la planification horodate la section, car une section sans bloc d'eau
+près de la coque (quai, terre) n'est jamais horodatée par le maillage et serait sinon remaillée à chaque vérification. Un tronçon qui se charge près d'un navire déjà
 suivi est maillé après la publication de l'instantané (fin du tick client ; le maillage a lieu au rendu qui suit), donc
 avec la coque : rien à faire pour `ClientChunkEvents.CHUNK_LOAD` ; un navire arrivé dans le même lot qu'un tronçon est
 couvert par le redessin de sa première apparition, puis par le second.
 
-Non couvert : Embeddium (absent pour Fabric 1.21.x) et VulkanMod ; un autre mod qui enregistrerait son propre
-gestionnaire pour l'eau *après* le nôtre le remplacerait (sans Sodium, le mixin prend le relais ; avec Sodium, l'eau
-redeviendrait visible dans les pièces).
+Non couvert : Embeddium (absent pour Fabric 1.21.x) et VulkanMod. Un autre mod dont le point d'entrée client passe
+après le nôtre et qui enregistre son propre gestionnaire pour l'eau le remplace dans le registre de Fabric API : le
+nôtre est réinstallé à chaque connexion à un monde (`ClientPlayConnectionEvents.JOIN`), autour du gestionnaire trouvé
+(idempotent : un gestionnaire déjà enveloppé est laissé tel quel). Reste non couvert un mod qui enregistrerait le sien
+*après* la connexion (sans Sodium, le mixin prend le relais ; avec Sodium, l'eau redeviendrait visible dans les pièces).
 
 ### Filets de sécurité (collisions désactivées)
 
