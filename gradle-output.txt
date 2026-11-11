@@ -1,0 +1,400 @@
+[19:37:36] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:36] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:36] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:36] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:36] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:36] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 1827 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:37:37] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:37:38] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:37:38] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:37:38] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:37:38] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:37:38] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:37:38] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:37:38] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:37:38] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:37:38] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:37:38] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:37:38] [Server thread/INFO]: Successfully filled 19894 block(s)
+[19:37:39] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:37:39] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:37:39] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:37:39] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:37:39] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:37:39] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:37:40] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:37:40] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:37:40] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:37:40] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:37:40] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:37:41] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:37:41] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:37:41] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:37:41] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:37:41] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:37:41] [Server thread/INFO]: Successfully filled 14070 block(s)
+[19:37:42] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 9935ms or 198 ticks behind
+[19:37:43] [Server thread/INFO]: Grande tente de commandement posée en 5944, -59, -28, entrée vers south.
+[19:37:43] [Server thread/INFO]: Petite tente d'aventurier posée en 5960, -59, -28, entrée vers south.
+[19:37:43] [Server thread/INFO]: Grand abri de marché posée en 5976, -59, -28, entrée vers south.
+[19:37:43] [Server thread/INFO]: Tente triangulaire de campement posée en 5992, -59, -28, entrée vers south.
+[19:37:43] [Server thread/INFO]: Tente d'habitation posée en 6008, -59, -28, entrée vers south.
+[19:37:43] [Server thread/INFO]: Grande tente de chef posée en 6024, -59, -28, entrée vers south.
+[19:37:43] [Server thread/INFO]: Tente du marchand d'armes et d'armures posée en 6040, -59, -28, entrée vers south.
+[19:37:43] [Server thread/INFO]: Tente du marchand d'alchimie posée en 6056, -59, -28, entrée vers south.
+[19:37:43] [Server thread/INFO]: Tente de l'herboriste posée en 5944, -59, -14, entrée vers south.
+[19:37:43] [Server thread/INFO]: Tente du forgeron posée en 5960, -59, -14, entrée vers south.
+[19:37:43] [Server thread/INFO]: Tente du marchand de nourriture posée en 5976, -59, -14, entrée vers south.
+[19:37:43] [Server thread/INFO]: Tente du marchand de tissus posée en 5992, -59, -14, entrée vers south.
+[19:37:43] [Server thread/INFO]: Pavillon au lion posé en 6008, -59, -14, entrée vers south.
+[19:37:43] [Server thread/INFO]: Longue tente au lion posée en 6024, -59, -14, entrée vers south.
+[19:37:43] [Server thread/INFO]: Tente marchande impériale posée en 6040, -59, -14, entrée vers south.
+[19:37:43] [Server thread/INFO]: Tente drapée au lion posée en 6056, -59, -14, entrée vers south.
+[19:37:43] [Server thread/INFO]: Chapiteau royal au lion posé en 5944, -59, 0, entrée vers south.
+[19:37:43] [Server thread/INFO]: Tente bleue à la balance posée en 5960, -59, 0, entrée vers south.
+[19:37:43] [Server thread/INFO]: Tente aux draperies rouges posée en 5976, -59, 0, entrée vers south.
+[19:37:43] [Server thread/INFO]: Tente à la fleur de lys posée en 5992, -59, 0, entrée vers south.
+[19:37:43] [Server thread/INFO]: Charrette couverte blanche posée en 6008, -59, 0, entrée vers south.
+[19:37:43] [Server thread/INFO]: Charrette de foin posée en 6024, -59, 0, entrée vers south.
+[19:37:43] [Server thread/INFO]: Roulotte de marchand posée en 6040, -59, 0, entrée vers south.
+[19:37:43] [Server thread/INFO]: Charrette de marché posée en 6056, -59, 0, entrée vers south.
+[19:37:43] [Server thread/INFO]: Charrette de bûcheron posée en 5944, -59, 14, entrée vers south.
+[19:37:43] [Server thread/INFO]: Charrette à tonneaux posée en 5960, -59, 14, entrée vers south.
+[19:37:43] [Server thread/INFO]: Atelier du forgeron posé en 5976, -59, 14, avant vers south.
+[19:37:43] [Server thread/INFO]: Atelier du tailleur de lin posé en 5992, -59, 14, avant vers south.
+[19:37:43] [Server thread/INFO]: Atelier du cuisinier posé en 6008, -59, 14, avant vers south.
+[19:37:43] [Server thread/INFO]: Atelier de l'alchimiste posé en 6024, -59, 14, avant vers south.
+[19:37:43] [Server thread/INFO]: Taverne nomade posée en 6040, -59, 14, entrée vers south.
+[19:37:43] [Server thread/INFO]: Guirlande festive posée en 6056, -59, 14, avant vers south.
+[19:37:43] [Server thread/INFO]: Étendoir à linge posé en 5944, -59, 28, avant vers south.
+[19:37:43] [Server thread/INFO]: Lanterne suspendue posée en 5960, -59, 28, avant vers south.
+[19:37:43] [Server thread/INFO]: Bannière de la Couronne posée en 5976, -59, 28, avant vers south.
+[19:37:43] [Server thread/INFO]: Filet suspendu posé en 5992, -59, 28, avant vers south.
+[19:37:43] [Server thread/INFO]: Séchoir à herbes posé en 6008, -59, 28, avant vers south.
+[19:37:43] [Server thread/INFO]: Pieu défensif posé en 6024, -59, 28, avant vers south.
+[19:37:43] [Server thread/INFO]: Pieu défensif posé en 6040, -59, 28, avant vers south.
+[19:37:43] [Server thread/INFO]: Pieu défensif posé en 6056, -59, 28, avant vers south.
+[19:37:43] [Server thread/INFO]: Navire mis à l'eau : Navire royal au lion [6090 -49 0]
+[19:37:43] [Server thread/INFO]: Navire mis à l'eau : Navire forteresse [6115 -49 0]
+[19:37:43] [Server thread/INFO]: Navire mis à l'eau : Navire à vapeur à engrenages [6140 -49 0]
+[19:37:43] [Server thread/INFO]: Navire mis à l'eau : Grand galion [6165 -48 0]
+[19:37:43] [Server thread/INFO]: Navire mis à l'eau : Grand vaisseau de guerre [6190 -49 0]
+[19:37:43] [Server thread/INFO]: Navire mis à l'eau : Grand navire aux voiles bleues [6215 -49 0]
+[19:37:43] [Server thread/INFO]: Navire mis à l'eau : Nautilus [6248 -48 0]
+[19:37:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf scene: 40 of 40 props placed (40 registered), 7 of 7 vessels afloat, 24 of 24 mobs alive
+[19:37:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] perf scene: the city of 40 props and the 7 vessels are in place (40 props registered, 7 vessels)
+[19:37:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf models (faces): royal_lion_ship=37227 fortress_ship=29489 gear_steamship=34742 galleon=35388 warship=52702 blue_frigate=26482 nautilus=121863
+[19:37:47] [Server thread/INFO]: Teleported Player736 to 6000.000000, -58.120000, -46.000000
+[19:37:58] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] perf client [market]: 145 + 201 frames, frame 41.3 ms with the mod's renderers vs 16.8 ms without (24.5 ms attributable), mod vertex emission 3.38 ms/frame, 31174 quads + 15 furniture blocks per frame, 0 mesh cells (0 culled), 3.20 MB/frame allocated on the render thread
+[19:37:58] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf client [market]: without the mod 0 quads/frame, 0.17 MB/frame allocated
+[19:37:58] [Server thread/INFO]: Teleported Player736 to 6040.000000, -42.620000, -70.000000
+[19:38:01] [Server thread/INFO]: Villager class_1646['Villager'/1560, l='ServerLevel[New World]', x=5981.30, y=-59.00, z=-27.45] died, message: 'Villager was slain by Zombie'
+[19:38:01] [Render thread/INFO]: Villager class_1646['Villager'/1560, l='ClientLevel', x=5981.30, y=-59.00, z=-27.51] died, message: 'Villager died'
+[19:38:02] [Server thread/INFO]: Villager class_1646['Villager'/1564, l='ServerLevel[New World]', x=6044.67, y=-59.00, z=-15.70] died, message: 'Villager was slain by Zombie'
+[19:38:02] [Render thread/INFO]: Villager class_1646['Villager'/1564, l='ClientLevel', x=6044.67, y=-59.00, z=-15.70] died, message: 'Villager died'
+[19:38:09] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] perf client [harbour]: 201 + 201 frames, frame 24.7 ms with the mod's renderers vs 20.6 ms without (4.1 ms attributable), mod vertex emission 1.18 ms/frame, 11218 quads + 0 furniture blocks per frame, 0 mesh cells (0 culled), 1.18 MB/frame allocated on the render thread
+[19:38:09] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf client [harbour]: without the mod 0 quads/frame, 0.10 MB/frame allocated
+[19:38:09] [Server thread/INFO]: Teleported Player736 to 6090.500000, -44.631000, -5.500000
+[19:38:12] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 2017ms or 40 ticks behind
+[19:38:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] perf client [deck]: 60 + 200 frames, frame 99.1 ms with the mod's renderers vs 22.9 ms without (76.2 ms attributable), mod vertex emission 14.53 ms/frame, 144370 quads + 0 furniture blocks per frame, 0 mesh cells (0 culled), 1.88 MB/frame allocated on the render thread
+[19:38:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf client [deck]: without the mod 0 quads/frame, 0.23 MB/frame allocated
+[19:38:23] [Server thread/INFO]: Teleported Player736 to 6040.000000, -42.620000, -70.000000
+[19:38:28] [Server thread/INFO]: Itinéraire inconnu : perf_lion
+[19:38:28] [Server thread/INFO]: Itinéraire perf_lion créé (pingpong). Ajoutez des points avec /ship route addstop|addpoint perf_lion
+[19:38:28] [Server thread/INFO]: Point 1 ajouté à perf_lion : 6090.5 0.5 (escale A, 1 s)
+[19:38:28] [Server thread/INFO]: Point 2 ajouté à perf_lion : 6090.5 40.5 (escale B, 1 s)
+[19:38:28] [Server thread/INFO]: Navire royal au lion [6090 -49 0] suit maintenant l'itinéraire perf_lion (DOCKED).
+[19:38:30] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 2784ms or 55 ticks behind
+[19:38:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf server: the royal lion ship sails at 1.09 blocks/s during the second measure
+[19:38:35] [Server thread/INFO]: Itinéraire perf_lion supprimé.
+[19:38:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] perf server: 100 ticks, MSPT 4.11 ms (24 mobs, 7 vessels at rest) vs 4.31 ms with the royal lion ship under way; collision hook 51 calls/tick, 0.336 ms/tick, 357 hull queries/tick, 186 boxes/tick; dry-room queries 61/tick; 559 KB/tick allocated on the server thread (576 KB/tick under way)
+[19:38:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf server under way: collision hook 51 calls/tick, 0.119 ms/tick, 355 hull queries/tick, 187 boxes/tick
+[19:38:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] perf run: 15 garbage collections in 61 s of wall time
+[19:38:35] [Server thread/INFO]: Villager class_1646['Villager'/1558, l='ServerLevel[New World]', x=5942.58, y=-59.00, z=-32.60] died, message: 'Villager was killed'
+[19:38:35] [Server thread/INFO]: Villager class_1646['Villager'/1562, l='ServerLevel[New World]', x=6000.49, y=-59.00, z=-32.52] died, message: 'Villager was killed'
+[19:38:35] [Server thread/INFO]: Villager class_1646['Villager'/1566, l='ServerLevel[New World]', x=5892.41, y=-60.00, z=28.70] died, message: 'Villager was killed'
+[19:38:35] [Server thread/INFO]: Villager class_1646['Villager'/1568, l='ServerLevel[New World]', x=5975.50, y=-59.00, z=2.34] died, message: 'Villager was killed'
+[19:38:35] [Server thread/INFO]: Villager class_1646['Villager'/1570, l='ServerLevel[New World]', x=6023.45, y=-60.00, z=-58.35] died, message: 'Villager was killed'
+[19:38:35] [Server thread/INFO]: Villager class_1646['Villager'/1572, l='ServerLevel[New World]', x=6039.50, y=-59.00, z=-1.73] died, message: 'Villager was killed'
+[19:38:35] [Server thread/INFO]: Villager class_1646['Villager'/1574, l='ServerLevel[New World]', x=5889.03, y=-60.00, z=29.03] died, message: 'Villager was killed'
+[19:38:35] [Server thread/INFO]: Villager class_1646['Villager'/1576, l='ServerLevel[New World]', x=5982.34, y=-59.00, z=-17.63] died, message: 'Villager was killed'
+[19:38:35] [Server thread/INFO]: Villager class_1646['Villager'/1578, l='ServerLevel[New World]', x=6089.20, y=-44.71, z=-4.58] died, message: 'Villager was killed'
+[19:38:35] [Server thread/INFO]: Villager class_1646['Villager'/1579, l='ServerLevel[New World]', x=6092.13, y=-44.71, z=0.63] died, message: 'Villager was killed'
+[19:38:35] [Server thread/INFO]: Villager class_1646['Villager'/1580, l='ServerLevel[New World]', x=6089.13, y=-44.71, z=5.63] died, message: 'Villager was killed'
+[19:38:35] [Server thread/INFO]: Villager class_1646['Villager'/1581, l='ServerLevel[New World]', x=6092.13, y=-44.71, z=10.63] died, message: 'Villager was killed'
+[19:38:35] [Server thread/INFO]: Killed 22 entities
+[19:38:35] [Render thread/INFO]: Villager class_1646['Villager'/1562, l='ClientLevel', x=6000.20, y=-59.00, z=-32.82] died, message: 'Villager died'
+[19:38:35] [Render thread/INFO]: Villager class_1646['Villager'/1570, l='ClientLevel', x=6022.76, y=-60.00, z=-57.76] died, message: 'Villager died'
+[19:38:35] [Render thread/INFO]: Villager class_1646['Villager'/1572, l='ClientLevel', x=6039.50, y=-59.00, z=-1.73] died, message: 'Villager died'
+[19:38:35] [Render thread/INFO]: Villager class_1646['Villager'/1576, l='ClientLevel', x=5982.17, y=-59.00, z=-17.99] died, message: 'Villager died'
+[19:38:39] [Test thread/INFO]: [STDOUT]: [medievalships-test] FAIL [dedie] perf broad phase: a villager 150 blocks from every vessel went through the collision hook 280 times in 40 ticks and no hull was queried (1960)
+[19:38:39] [Server thread/INFO]: Villager class_1646['Villager'/1632, l='ServerLevel[New World]', x=5943.97, y=-59.00, z=-36.03] died, message: 'Villager was killed'
+[19:38:39] [Server thread/INFO]: Killed Villager
+[19:38:39] [Server thread/INFO]: Grande tente de commandement retirée en 5944, -59, -28.
+[19:38:39] [Server thread/INFO]: Petite tente d'aventurier retirée en 5960, -59, -28.
+[19:38:39] [Server thread/INFO]: Grand abri de marché retirée en 5976, -59, -28.
+[19:38:39] [Server thread/INFO]: Tente triangulaire de campement retirée en 5992, -59, -28.
+[19:38:39] [Server thread/INFO]: Tente d'habitation retirée en 6008, -59, -28.
+[19:38:39] [Server thread/INFO]: Grande tente de chef retirée en 6024, -59, -28.
+[19:38:39] [Server thread/INFO]: Tente du marchand d'armes et d'armures retirée en 6040, -59, -28.
+[19:38:39] [Server thread/INFO]: Tente du marchand d'alchimie retirée en 6056, -59, -28.
+[19:38:39] [Server thread/INFO]: Tente de l'herboriste retirée en 5944, -59, -14.
+[19:38:39] [Server thread/INFO]: Tente du forgeron retirée en 5960, -59, -14.
+[19:38:39] [Server thread/INFO]: Tente du marchand de nourriture retirée en 5976, -59, -14.
+[19:38:39] [Server thread/INFO]: Tente du marchand de tissus retirée en 5992, -59, -14.
+[19:38:39] [Server thread/INFO]: Pavillon au lion retiré en 6008, -59, -14.
+[19:38:39] [Server thread/INFO]: Longue tente au lion retirée en 6024, -59, -14.
+[19:38:39] [Server thread/INFO]: Tente marchande impériale retirée en 6040, -59, -14.
+[19:38:39] [Server thread/INFO]: Tente drapée au lion retirée en 6056, -59, -14.
+[19:38:39] [Server thread/INFO]: Chapiteau royal au lion retiré en 5944, -59, 0.
+[19:38:39] [Server thread/INFO]: Tente bleue à la balance retirée en 5960, -59, 0.
+[19:38:39] [Server thread/INFO]: Tente aux draperies rouges retirée en 5976, -59, 0.
+[19:38:39] [Server thread/INFO]: Tente à la fleur de lys retirée en 5992, -59, 0.
+[19:38:39] [Server thread/INFO]: Charrette couverte blanche retirée en 6008, -59, 0.
+[19:38:39] [Server thread/INFO]: Charrette de foin retirée en 6024, -59, 0.
+[19:38:39] [Server thread/INFO]: Roulotte de marchand retirée en 6040, -59, 0.
+[19:38:39] [Server thread/INFO]: Charrette de marché retirée en 6056, -59, 0.
+[19:38:39] [Server thread/INFO]: Charrette de bûcheron retirée en 5944, -59, 14.
+[19:38:39] [Server thread/INFO]: Charrette à tonneaux retirée en 5960, -59, 14.
+[19:38:39] [Server thread/INFO]: Atelier du forgeron retiré en 5976, -59, 14.
+[19:38:39] [Server thread/INFO]: Atelier du tailleur de lin retiré en 5992, -59, 14.
+[19:38:39] [Server thread/INFO]: Atelier du cuisinier retiré en 6008, -59, 14.
+[19:38:39] [Server thread/INFO]: Atelier de l'alchimiste retiré en 6024, -59, 14.
+[19:38:39] [Server thread/INFO]: Taverne nomade retirée en 6040, -59, 14.
+[19:38:39] [Server thread/INFO]: Guirlande festive retirée en 6056, -59, 14.
+[19:38:39] [Server thread/INFO]: Étendoir à linge retiré en 5944, -59, 28.
+[19:38:39] [Server thread/INFO]: Lanterne suspendue retirée en 5960, -59, 28.
+[19:38:39] [Server thread/INFO]: Bannière de la Couronne retirée en 5976, -59, 28.
+[19:38:39] [Server thread/INFO]: Filet suspendu retiré en 5992, -59, 28.
+[19:38:39] [Server thread/INFO]: Séchoir à herbes retiré en 6008, -59, 28.
+[19:38:39] [Server thread/INFO]: Pieu défensif retiré en 6024, -59, 28.
+[19:38:39] [Server thread/INFO]: Pieu défensif retiré en 6040, -59, 28.
+[19:38:39] [Server thread/INFO]: Pieu défensif retiré en 6056, -59, 28.
+[19:38:39] [Server thread/INFO]: Unmarked 80 chunks in minecraft:overworld from [370, -4] to [379, 3] for force loading
+[19:38:39] [Server thread/INFO]: Unmarked 174 chunks in minecraft:overworld from [379, -6] to [392, 6] for force loading
+[19:38:39] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf cleanup: vessels left []
+[19:38:39] [Server thread/INFO]: Stopping server
+[19:38:39] [Server thread/INFO]: Saving players
+[19:38:39] [Server thread/INFO]: Player736 lost connection: Disconnected
+[19:38:39] [Server thread/INFO]: Player736 left the game
+[19:38:39] [Server thread/INFO]: Saving worlds
+[19:38:40] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:overworld
+[19:38:40] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_end
+[19:38:40] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_nether
+[19:38:40] [Server thread/INFO]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[19:38:40] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[19:38:40] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[19:38:40] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[19:38:40] [Test thread/ERROR]: Client gametests failed with an exception
+java.lang.AssertionError: 2 check(s) failed: [solo] perf broad phase: a villager 150 blocks from every vessel went through the collision hook 280 times in 40 ticks and no hull was queried (1960) | [dedie] perf broad phase: a villager 150 blocks from every vessel went through the collision hook 280 times in 40 ticks and no hull was queried (1960)
+	at knot//fr.medievalships.test.ShipClientGameTest.finish(ShipClientGameTest.java:1977)
+	at knot//fr.medievalships.test.ShipClientGameTest.runTest(ShipClientGameTest.java:101)
+	at knot//net.fabricmc.fabric.impl.client.gametest.FabricClientGameTestRunner.lambda$start$0(FabricClientGameTestRunner.java:54)
+	at knot//net.fabricmc.fabric.impl.client.gametest.threading.ThreadingImpl.lambda$runTestThread$1(ThreadingImpl.java:142)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+[19:38:40] [Render thread/ERROR]: Minecraft has crashed!
+net.fabricmc.loader.impl.FormattedException: java.lang.AssertionError: 2 check(s) failed: [solo] perf broad phase: a villager 150 blocks from every vessel went through the collision hook 280 times in 40 ticks and no hull was queried (1960) | [dedie] perf broad phase: a villager 150 blocks from every vessel went through the collision hook 280 times in 40 ticks and no hull was queried (1960)
+	at net.fabricmc.loader.impl.FormattedException.ofLocalized(FormattedException.java:63)
+	at net.fabricmc.loader.impl.game.minecraft.MinecraftGameProvider.launch(MinecraftGameProvider.java:516)
+	at net.fabricmc.loader.impl.launch.knot.Knot.launch(Knot.java:72)
+	at net.fabricmc.loader.impl.launch.knot.KnotClient.main(KnotClient.java:23)
+Caused by: java.lang.AssertionError: 2 check(s) failed: [solo] perf broad phase: a villager 150 blocks from every vessel went through the collision hook 280 times in 40 ticks and no hull was queried (1960) | [dedie] perf broad phase: a villager 150 blocks from every vessel went through the collision hook 280 times in 40 ticks and no hull was queried (1960)
+	at knot//fr.medievalships.test.ShipClientGameTest.finish(ShipClientGameTest.java:1977)
+	at knot//fr.medievalships.test.ShipClientGameTest.runTest(ShipClientGameTest.java:101)
+	at knot//net.fabricmc.fabric.impl.client.gametest.FabricClientGameTestRunner.lambda$start$0(FabricClientGameTestRunner.java:54)
+	at knot//net.fabricmc.fabric.impl.client.gametest.threading.ThreadingImpl.lambda$runTestThread$1(ThreadingImpl.java:142)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+
+> Task :runProductionClientGameTest FAILED
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1794421122366.json
+
+[Incubating] Problems report is available at: file:///home/runner/work/medieval-ships/medieval-ships/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':runProductionClientGameTest'.
+> Process 'command '/usr/bin/xvfb-run'' finished with non-zero exit value 1
+
+* Try:
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+* Exception is:
+org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runProductionClientGameTest'.
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+	at org.gradle.api.internal.tasks.execution.FinalizePropertiesTaskExecuter.execute(FinalizePropertiesTaskExecuter.java:46)
+	at org.gradle.api.internal.tasks.execution.ResolveTaskExecutionModeExecuter.execute(ResolveTaskExecutionModeExecuter.java:51)
+	at org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter.execute(SkipTaskWithNoActionsExecuter.java:57)
+	at org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter.execute(SkipOnlyIfTaskExecuter.java:74)
+	at org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter.execute(CatchExceptionTaskExecuter.java:36)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.executeTask(EventFiringTaskExecuter.java:77)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:55)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter$1.call(EventFiringTaskExecuter.java:52)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.api.internal.tasks.execution.EventFiringTaskExecuter.execute(EventFiringTaskExecuter.java:52)
+	at org.gradle.execution.plan.DefaultNodeExecutor.executeLocalTaskNode(DefaultNodeExecutor.java:55)
+	at org.gradle.execution.plan.DefaultNodeExecutor.execute(DefaultNodeExecutor.java:34)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:355)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$InvokeNodeExecutorsAction.execute(DefaultTaskExecutionGraph.java:343)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.lambda$execute$0(DefaultTaskExecutionGraph.java:339)
+	at org.gradle.internal.operations.CurrentBuildOperationRef.with(CurrentBuildOperationRef.java:84)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:339)
+	at org.gradle.execution.taskgraph.DefaultTaskExecutionGraph$BuildOperationAwareExecutionAction.execute(DefaultTaskExecutionGraph.java:328)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.execute(DefaultPlanExecutor.java:459)
+	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.run(DefaultPlanExecutor.java:376)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:47)
+Caused by: org.gradle.process.ProcessExecutionException: Process 'command '/usr/bin/xvfb-run'' finished with non-zero exit value 1
+	at org.gradle.process.internal.DefaultExecHandle$ExecResultImpl.assertNormalExitValue(DefaultExecHandle.java:450)
+	at org.gradle.process.internal.DefaultExecAction.execute(DefaultExecAction.java:49)
+	at org.gradle.process.internal.DefaultExecActionFactory.exec(DefaultExecActionFactory.java:216)
+	at org.gradle.process.internal.DefaultExecOperations.exec(DefaultExecOperations.java:37)
+	at net.fabricmc.loom.task.prod.AbstractProductionRunTask.run(AbstractProductionRunTask.java:148)
+	at net.fabricmc.loom.task.prod.ClientProductionRunTask.run(ClientProductionRunTask.java:120)
+	at org.gradle.internal.reflect.JavaMethod.invoke(JavaMethod.java:125)
+	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.doExecute(StandardTaskAction.java:58)
+	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.execute(StandardTaskAction.java:51)
+	at org.gradle.api.internal.project.taskfactory.StandardTaskAction.execute(StandardTaskAction.java:29)
+	at org.gradle.api.internal.tasks.execution.TaskExecution$3.run(TaskExecution.java:252)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:29)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:26)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.run(DefaultBuildOperationRunner.java:47)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeAction(TaskExecution.java:237)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeActions(TaskExecution.java:220)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.executeWithPreviousOutputFiles(TaskExecution.java:203)
+	at org.gradle.api.internal.tasks.execution.TaskExecution.execute(TaskExecution.java:170)
+	at org.gradle.internal.execution.steps.ExecuteStep.executeInternal(ExecuteStep.java:105)
+	at org.gradle.internal.execution.steps.ExecuteStep.access$000(ExecuteStep.java:44)
+	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:59)
+	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:56)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:56)
+	at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:44)
+	at org.gradle.internal.execution.steps.CancelExecutionStep.execute(CancelExecutionStep.java:42)
+	at org.gradle.internal.execution.steps.TimeoutStep.executeWithoutTimeout(TimeoutStep.java:75)
+	at org.gradle.internal.execution.steps.TimeoutStep.execute(TimeoutStep.java:55)
+	at org.gradle.internal.execution.steps.PreCreateOutputParentsStep.execute(PreCreateOutputParentsStep.java:50)
+	at org.gradle.internal.execution.steps.PreCreateOutputParentsStep.execute(PreCreateOutputParentsStep.java:28)
+	at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.execute(RemovePreviousOutputsStep.java:68)
+	at org.gradle.internal.execution.steps.RemovePreviousOutputsStep.execute(RemovePreviousOutputsStep.java:38)
+	at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:61)
+	at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:26)
+	at org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep.execute(CaptureOutputsAfterExecutionStep.java:69)
+	at org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep.execute(CaptureOutputsAfterExecutionStep.java:46)
+	at org.gradle.internal.execution.steps.ResolveInputChangesStep.execute(ResolveInputChangesStep.java:39)
+	at org.gradle.internal.execution.steps.ResolveInputChangesStep.execute(ResolveInputChangesStep.java:28)
+	at org.gradle.internal.execution.steps.BuildCacheStep.executeWithoutCache(BuildCacheStep.java:189)
+	at org.gradle.internal.execution.steps.BuildCacheStep.lambda$execute$1(BuildCacheStep.java:75)
+	at org.gradle.internal.Either$Right.fold(Either.java:176)
+	at org.gradle.internal.execution.caching.CachingState.fold(CachingState.java:62)
+	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:73)
+	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:48)
+	at org.gradle.internal.execution.steps.StoreExecutionStateStep.execute(StoreExecutionStateStep.java:46)
+	at org.gradle.internal.execution.steps.StoreExecutionStateStep.execute(StoreExecutionStateStep.java:35)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.executeBecause(SkipUpToDateStep.java:75)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.lambda$execute$2(SkipUpToDateStep.java:53)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:53)
+	at org.gradle.internal.execution.steps.SkipUpToDateStep.execute(SkipUpToDateStep.java:35)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:37)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:27)
+	at org.gradle.internal.execution.steps.ResolveIncrementalCachingStateStep.executeDelegate(ResolveIncrementalCachingStateStep.java:49)
+	at org.gradle.internal.execution.steps.ResolveIncrementalCachingStateStep.executeDelegate(ResolveIncrementalCachingStateStep.java:27)
+	at org.gradle.internal.execution.steps.AbstractResolveCachingStateStep.execute(AbstractResolveCachingStateStep.java:71)
+	at org.gradle.internal.execution.steps.AbstractResolveCachingStateStep.execute(AbstractResolveCachingStateStep.java:39)
+	at org.gradle.internal.execution.steps.ResolveChangesStep.execute(ResolveChangesStep.java:64)
+	at org.gradle.internal.execution.steps.ResolveChangesStep.execute(ResolveChangesStep.java:35)
+	at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:62)
+	at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:40)
+	at org.gradle.internal.execution.steps.AbstractCaptureStateBeforeExecutionStep.execute(AbstractCaptureStateBeforeExecutionStep.java:76)
+	at org.gradle.internal.execution.steps.AbstractCaptureStateBeforeExecutionStep.execute(AbstractCaptureStateBeforeExecutionStep.java:45)
+	at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.executeWithNonEmptySources(AbstractSkipEmptyWorkStep.java:136)
+	at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.execute(AbstractSkipEmptyWorkStep.java:61)
+	at org.gradle.internal.execution.steps.AbstractSkipEmptyWorkStep.execute(AbstractSkipEmptyWorkStep.java:38)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep.execute(MarkSnapshottingInputsStartedStep.java:38)
+	at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.execute(LoadPreviousExecutionStateStep.java:36)
+	at org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep.execute(LoadPreviousExecutionStateStep.java:23)
+	at org.gradle.internal.execution.steps.HandleStaleOutputsStep.execute(HandleStaleOutputsStep.java:75)
+	at org.gradle.internal.execution.steps.HandleStaleOutputsStep.execute(HandleStaleOutputsStep.java:41)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.lambda$execute$0(AssignMutableWorkspaceStep.java:35)
+	at org.gradle.api.internal.tasks.execution.TaskExecution$4.withWorkspace(TaskExecution.java:297)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.execute(AssignMutableWorkspaceStep.java:31)
+	at org.gradle.internal.execution.steps.AssignMutableWorkspaceStep.execute(AssignMutableWorkspaceStep.java:22)
+	at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:40)
+	at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:23)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.lambda$execute$2(ExecuteWorkBuildOperationFiringStep.java:67)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationFiringStep.java:67)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationFiringStep.java:39)
+	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:46)
+	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:34)
+	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:44)
+	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:31)
+	at org.gradle.internal.execution.impl.DefaultExecutionEngine$1.execute(DefaultExecutionEngine.java:64)
+	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:132)
+	... 30 more
+
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.2.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 1h 20m 5s
+13 actionable tasks: 13 executed
