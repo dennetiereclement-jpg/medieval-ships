@@ -34,21 +34,23 @@ warship 52 702, blue_frigate 26 482, nautilus 121 819 (133 723 avant l'élagage 
 
 ## Avant / après (CI, llvmpipe, solo)
 
-_Chiffres relevés par la CI ; voir les lignes `perf client` et `perf server` de `medievalships-test.txt`._
+_Chiffres relevés par la CI (variante vanilla, solo) : avant = branche `perf-baseline` (92e896ca), après = main 1.29.0
+(4a842d80) ; voir les lignes `perf client` et `perf server` de `medievalships-test.txt`. Le rendu y est logiciel
+(llvmpipe) : seuls les écarts relatifs comptent. Sous Sodium, le pont coûte 18,5 ms par trame au mod en 1.29.0._
 
 | Mesure | 1.28.0 (avant) | 1.29.0 (après) |
 |---|---|---|
-| Quai : temps de trame avec / sans le mod | à compléter | à compléter |
-| Quai : émission de sommets du mod par trame | à compléter | à compléter |
-| Quai : quads soumis par trame | à compléter | à compléter |
-| Pont : temps de trame avec / sans le mod | à compléter | à compléter |
-| Pont : émission de sommets du mod par trame | à compléter | à compléter |
-| Pont : quads soumis par trame | à compléter | à compléter |
-| Marché : temps de trame avec / sans le mod | à compléter | à compléter |
-| Mémoire allouée par trame (fil de rendu, quai) | à compléter | à compléter |
-| MSPT à l'arrêt / navire en route | à compléter | à compléter |
-| Crochet de collision : appels, temps, coques interrogées par tick | à compléter | à compléter |
-| Mémoire allouée par tick (fil serveur) | à compléter | à compléter |
+| Quai : temps de trame avec / sans le mod | 25,5 / 20,6 ms (4,9 ms dus au mod) | 23,6 / 20,8 ms (2,9 ms dus au mod) |
+| Quai : émission de sommets du mod par trame | 1,42 ms | 0,24 ms |
+| Quai : quads soumis par trame | 11 218 | 2 535 |
+| Pont : temps de trame avec / sans le mod | 113,9 / 24,6 ms (89,2 ms dus au mod) | 58,1 / 24,0 ms (34,2 ms dus au mod) |
+| Pont : émission de sommets du mod par trame | 14,89 ms | 4,27 ms |
+| Pont : quads soumis par trame | 144 734 | 40 948 |
+| Marché : temps de trame avec / sans le mod | 42,1 / 18,2 ms (24,0 ms dus au mod) | 30,5 / 18,5 ms (12,0 ms dus au mod) |
+| Mémoire allouée par trame (fil de rendu, quai) | 1,18 Mo | 0,12 Mo |
+| MSPT à l'arrêt / navire en route | 3,44 / 4,38 ms | 3,86 / 3,83 ms (bruit de la machine partagée) |
+| Crochet de collision : appels, temps, coques interrogées par tick | 52 appels, 0,141 ms, 365 coques | 44 appels, 0,124 ms, 16 coques |
+| Mémoire allouée par tick (fil serveur) | 495 Ko | 430 Ko |
 
 ## Ce qui a été optimisé en 1.29.0
 
