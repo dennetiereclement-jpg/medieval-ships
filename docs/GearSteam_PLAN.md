@@ -432,3 +432,53 @@ milieu, poupe, voiles, vue à 60 blocs avant | après ; en jeu 1.28.0 et les por
 
 Restent : la lumière dorée du coucher de soleil de l'image ; le relief réel des blocs (chaque bloc en saillie), imité par les
 biseaux peints ; les gradins de l'avant restent discrets ; le dôme de l'image a des bandeaux plus épais.
+
+## 16. Visuel, version 1.28.1 (quatrième passe : les pièces, le foyer, le dôme, la cheminée)
+
+Point de départ : les captures en jeu de la 1.28.0 (branche `test-results-decor` : vue de la référence, flanc, arrière,
+dessus, salle des machines, machine, quartiers, cabine, cale, passerelle) comparées à l'image 063 et regardées de près. Ce
+qui restait plat ou terne : **les pièces en fer** (salle des machines, cale, chaudière) se lisaient en gris-bleu uniforme
+(`44464b`, tôles de 16 px, rivets dorés en pointillé : un quadrillage « lego » sans relief ni matière), le sol de la salle
+des machines en damier gris clair, le foyer de la chaudière en petit rectangle orange terne ; les quartiers en planches d'un
+seul ton du sol au plafond ; dehors, la cheminée d'un noir plat (l'image la montre en tôles brun-gris, plus claires que la
+coque), les fenêtres encore jaune pâle de loin, le cuivre un peu gris à côté de l'or, le dôme sans ses côtes de laiton.
+
+Trois itérations de rendu (caméras des captures en jeu : `tools/preview.py` depuis les mêmes yeux que
+`GearSteamShipGameTest`, pièces et vues extérieures ; `/tmp/claude-0/agent_g/r0..r2`), textures seules
+(`tools/gear_steam_texture.py`, 32 px par bloc, nouveau `_paint_rooms_hd`), le modèle ne changeant que par la porte du
+foyer :
+
+1. **Pièces en fer** (`_wall_iron_hd`, `_plates_hd` avec des plaques d'un bloc de large sur `block_h` de haut) : tôles de
+   fer sombre et chaud (`34302e` → `443e3a`, deux tons d'acier froid, un cinquième de plaques brunies), biseau éclairé en
+   haut et à gauche, biseau ombré en bas et à droite, joint de 2 px, **rivets le long des recouvrements** (une rangée en
+   haut, une colonne à gauche de chaque plaque : les plaques se lisent chevauchées), coulures de rouille, corniche sombre le
+   long du plafond, plinthe rivetée le long du sol, **main courante de cuivre** à 1,1 bloc du sol (elle était à 2,3). La
+   région d'un mur fait 4 blocs de large et toute la hauteur de la pièce : les plaques font 0,87 bloc de haut dans la salle
+   des machines (3,5 de haut) et 0,75 dans la cale (3 de haut). **Cale** : même fer, plus rouillé, avec une **bande de fond
+   de cale** plus sombre et mouillée sur le tiers bas (elle est sous la flottaison). **Sol** de la salle des machines
+   (`_checker_hd`) : tôle larmée sombre (`2e2b2a`), losanges en relief deux par bloc (éclairés en haut à gauche, ombrés en
+   bas à droite), joints de tôle à chaque bloc avec un rivet par coin.
+2. **Chaudière** : coque en tôles rivetées à colonnes de rivets (plus de gris-bleu), bandes de laiton inchangées ; la
+   **porte du foyer** (`_boiler_front_hd`, cube `glow_boiler_fire`, pleine lumière) passe de 1,4 × 0,8 à **1,7 × 1 bloc** :
+   plaque rivetée, cadre de laiton biseauté, barreaux de la grille, lit de braises blanc-orangé au centre dégradé à
+   l'orange, au rouge et au rouge sombre sur les bords, langues de flamme entre les barreaux. La face avant du socle est en
+   tôle (`boiler`) : la région `boiler_front` n'est plus que la porte. Braises des meubles (`fire`) en lit moucheté.
+3. **Bois** : quartiers (`_panel_wall_hd`) en planches à lumière peinte (quatre tons, veinage, clous), **lambris bas** en
+   planches verticales plus sombres sur les 38 % du bas, main courante de bronze ; cabine en lambris sombre à main courante
+   de laiton et lambris bas ; planchers, plancher de cale et plafonds en planches HD (tons variés, joints sombres, arête
+   éclairée) ; **portes** (`_door_hd`, un vantail par région) en planches verticales à deux pentures de fer rivetées et
+   anneau de laiton sur sa platine ; fer uni (`iron` : garde-corps, conduit de la chaudière) en acier sombre brossé.
+4. **Extérieur** : cheminée en tôles **brunes** un peu plus claires que la coque (`312824` → `453a32`, près de la moitié
+   brunies, rivets en colonnes) ; fenêtres au cœur plus chaud (`ffeaa8`, bords `ff8026`) ; cuivre des bandes plus saturé
+   (moins de bleu : `d05e22` / `d86826`, reflet 0,46) ; **côtes de laiton** biseautées (9 px sur 64, soit ≈ 0,13 bloc) le
+   long de la couture gauche de chaque fuseau du dôme, avec leurs rivets, comme les bandeaux épais de l'image.
+
+Vérifié au rendu à 60 blocs : pas de mouchetis nouveau (côtes du dôme et rivets ≥ 2 px, joints de 2 px). Coût : textures
+seules (≈ 0,45 Mo et 0,25 Mo), 6 205 cubes, aucune entité, rien par tick. JUnit 529 réussis.
+
+`docs/comparaison_gear_steamship.png` : référence | en jeu 1.28.0 ; en jeu 1.28.1 et le flanc de près ; la vue de la
+référence agrandie avant | après ; salle des machines, machine, cale, quartiers, cabine en jeu avant | après.
+
+Restent : la lumière dorée du coucher de soleil de l'image ; le relief réel des blocs (imité par les biseaux peints) ; les
+gradins de l'avant discrets ; le dôme de l'image a des bandeaux horizontaux plus épais ; les pièces sont éclairées à plat par
+le jeu (faces « lit » à pleine lumière) : leur relief est entièrement celui des textures.

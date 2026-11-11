@@ -674,6 +674,34 @@ def _panel_wall_hd(a, region, tones, seam, rng, rail=None, rail_stops=None, wain
     _put(a, region, col)
 
 
+def _door_hd(a, region, rng):
+    """One door leaf (stretched on each leaf): vertical dark planks with baked light, two riveted iron straps, a brass
+    ring handle, a dark rebate all round."""
+    u, v, w, h = region
+    tmp = np.zeros((w, h, 4))
+    _planks_hd(tmp, (0, 0, h, w), ("4e3420", "462e1c", "563a24", "402a18"), "160c06", rng, plank=w // 4, joints=0, nails=False, grain=0.14)
+    col = tmp[..., :3].transpose(1, 0, 2).copy()
+    ys, xs = np.mgrid[0:h, 0:w].astype(float) + 0.5
+    for yc in (h * 0.2, h * 0.78):
+        band = np.abs(ys - yc) < h * 0.045
+        k = 1.0 + 0.3 * np.clip(1 - (ys - (yc - h * 0.045)) / 2.0, 0, 1) - 0.35 * np.clip(1 - ((yc + h * 0.045) - ys) / 2.0, 0, 1)
+        strap = _c("2a2826")[None, None, :] * (k * (1 + _grain(w, h, rng, 0.05)))[..., None]
+        col = np.where(band[..., None], strap, col)
+        for cx_ in np.linspace(w * 0.12, w * 0.88, 4):
+            _rivet(col, cx_, yc, 1.9, _c("4a4642"), shadow=0.6, hi=_c("7a746c"))
+    # the ring handle: a brass ring on a square plate, at hand height near the leaf's inner edge
+    hx, hy, r = w * 0.72, h * 0.5, w * 0.075
+    d = np.hypot(xs - hx, ys - hy)
+    plate = (np.abs(xs - hx) < w * 0.07) & (np.abs(ys - hy) < w * 0.07)
+    col = np.where(plate[..., None], _c("1e1a18"), col)
+    ring = (d > r * 0.55) & (d < r)
+    rt = 0.6 + 0.3 * np.clip(-(xs - hx + ys - hy) / r, -1, 1)
+    col = np.where(ring[..., None], _ramp_np(BRASS, rt), col)
+    edge = (xs < 1.5) | (xs > w - 1.5) | (ys < 1.5) | (ys > h - 1.5)
+    col = np.where(edge[..., None], _c("120a04"), col)
+    _put(a, region, col)
+
+
 def _paint_rooms_hd(a, rng):
     """The rooms again at 32 px a block: dark warm riveted iron for the engine room and the hold (they read as a flat
     blue-grey in the 1.28.0 captures), dark checker plate, a hotter firebox, planks and panelling with baked light."""
@@ -703,6 +731,10 @@ def _paint_rooms_hd(a, rng):
     _planks_hd(a, R["hold_floor"], ("4a3622", "42301e", "523c28", "3e2c1c"), "1a1008", rng, joints=3, grain=0.16)
     # the ceiling: dark planks (the beams are modelled)
     _planks_hd(a, R["ceil"], ("46301a", "402a16", "4c3620", "3c2814"), "1a1008", rng, joints=2, grain=0.1)
+    _door_hd(a, R["door"], rng)
+    # plain iron (railings, the boiler's uptake, fittings): dark warm steel, brushed
+    u, v, w, h = R["iron"]
+    _put(a, R["iron"], _c("3a3735")[None, None, :] * (1 + 0.1 * _noise(w, h, 5, rng) + 0.06 * _noise(w, h, 12, rng, 1.5) + _grain(w, h, rng, 0.04))[..., None])
     # glowing coals (the "fire" faces of the furniture): a mottled bed from white-hot to deep red
     u, v, w, h = R["fire"]
     t = 0.35 + 0.4 * _noise(w, h, 4, rng) + 0.25 * _noise(w, h, 2, rng) + _grain(w, h, rng, 0.05)
