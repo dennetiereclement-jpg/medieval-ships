@@ -48,7 +48,13 @@ jobs:
           done
           ls -la libs
       - name: Install virtual display
-        run: sudo apt-get update -q && sudo apt-get install -y -q xvfb mesa-utils
+        # the runners' Azure apt mirror sometimes stops resolving (every variant then failed here, 1.29.0): the main
+        # archive is used instead, and the install is tried three times
+        run: |
+          sudo sed -i 's|azure.archive.ubuntu.com|archive.ubuntu.com|g' /etc/apt/apt-mirrors.txt /etc/apt/sources.list /etc/apt/sources.list.d/*.sources 2>/dev/null || true
+          sudo apt-get update -q || true
+          for i in 1 2 3; do sudo apt-get install -y -q xvfb mesa-utils && break; sleep 30; sudo apt-get update -q || true; done
+          command -v xvfb-run
       - name: Run the real client with the mod
         # 1.9.0 (three more flying vessels and the shared features): ~48 min with the decoration mods
         # 1.27.0 (lot 2 ships): ~74 min with the decoration mods (one run hit 75): 90
