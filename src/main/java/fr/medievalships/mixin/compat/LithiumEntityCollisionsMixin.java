@@ -27,6 +27,10 @@ abstract class LithiumEntityCollisionsMixin {
 	@Inject(method = "appendEntityCollisions", at = @At("TAIL"), remap = false, require = 0)
 	private static void medievalships$appendHulls(List<VoxelShape> entityCollisions, World world, Entity entity, Box box,
 			CallbackInfo ci) {
+		long t0 = System.nanoTime();
+		int side = world.isClient() ? 1 : 0;
+		ShipCollisions.CALLS[side]++;
 		ShipCollisions.appendHulls(entityCollisions, entity, box, world);
+		ShipCollisions.NANOS[side] += System.nanoTime() - t0;
 	}
 }

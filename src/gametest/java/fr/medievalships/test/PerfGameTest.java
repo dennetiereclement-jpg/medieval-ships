@@ -354,6 +354,19 @@ public final class PerfGameTest {
 		check.accept(true, String.format(Locale.ROOT, "perf run: %d garbage collections in %.0f s of wall time", gcCount() - gc0,
 				(System.currentTimeMillis() - wall0) / 1000.0));
 
+		// ---- the broad phase of the collision hook: a lone villager 150 blocks from every vessel moves for two seconds,
+		// the hook is called for its every step and asks no hull for a single box (1.29.0)
+		server.runCommand("kill @e[type=!player,tag=perfmob]");
+		context.waitTicks(5);
+		spawn(server, EntityType.VILLAGER, X - 60, GROUND + 1, Z - 40, 0f);
+		context.waitTicks(5);
+		long[] far0 = server.computeOnServer(srv -> ShipCollisions.stats(false));
+		context.waitTicks(40);
+		long[] far1 = server.computeOnServer(srv -> ShipCollisions.stats(false));
+		check.accept(far1[1] - far0[1] == 0, String.format(Locale.ROOT,
+				"perf broad phase: a villager 150 blocks from every vessel went through the collision hook %d times in 40 ticks and no hull was queried (%d)",
+				far1[0] - far0[0], far1[1] - far0[1]));
+
 		// ---- cleanup
 		server.computeOnServer(srv -> {
 			for (ShipType t : SHIPS) {
