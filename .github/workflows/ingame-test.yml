@@ -69,13 +69,15 @@ jobs:
         # the runners' default mirror (azure.archive.ubuntu.com) sometimes fails to resolve: retry, then fall back to
         # archive.ubuntu.com (2026-11-11: every run failed here for hours)
         run: |
-          for i in 1 2 3 4; do
+          for i in 1 2; do
             sudo apt-get update -q && sudo apt-get install -y -q xvfb mesa-utils && exit 0
             echo "apt failed (attempt $i), switching the mirror"
             printf 'http://archive.ubuntu.com/ubuntu/\tpriority:1\nhttp://security.ubuntu.com/ubuntu/\tpriority:2\n' | sudo tee /etc/apt/apt-mirrors.txt >/dev/null
             sudo sed -i 's|azure.archive.ubuntu.com|archive.ubuntu.com|g' /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list 2>/dev/null || true
-            sleep 30
+            sleep 20
           done
+          # the runner image ships xvfb already; mesa-utils (glxinfo) is only a convenience: go on without apt
+          if command -v xvfb-run >/dev/null; then echo "apt unavailable: using the preinstalled xvfb"; exit 0; fi
           exit 1
       - name: Run the real client with the mod
         # 1.9.0 (three more flying vessels and the shared features): ~48 min with the decoration mods
