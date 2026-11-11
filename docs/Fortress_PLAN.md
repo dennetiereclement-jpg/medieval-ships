@@ -433,3 +433,49 @@ phase 8) ; aperçu [preview_fortress_ship.png](preview_fortress_ship.png) refait
 
 Restent : l'éclairage chaud et les ombres portées de 112 (le jeu éclaire les flancs à environ la moitié : la pierre y
 paraît plus sombre que sur l'image) ; la préceinte de 112 à moitié sous l'eau (branche `water-hull`) ; le reste du § 10.
+
+## 15. La pierre devient un blindage métallique (phase 9, 1.28.1)
+
+Relecture des captures en jeu de 1.28.0 : la pierre claire (gris-blanc, biseaux crème) **faisait bizarre sur l'eau**,
+une coque de calcaire bouffi posée sur la mer. Demande : « donne un côté plus métallique à la pierre ». Fait, dans les
+textures et les régions des cubes (silhouette, grille, mobilier, portes, passerelle, collisions et flottaison
+inchangés ; 5 785 cubes, génération déterministe) :
+* **Plaques d'acier** (`fortress_texture.py`, `_stone_block`) : gris acier moyen-sombre à léger reflet froid, base
+  `#6e7378` (`STONE_TONES`, un bloc sur cinq plus sombre `#5c6166`, ± 10 % par plaque), **rehaut** de deux pixels sur
+  les arêtes haut et gauche vers `#a9aeb3` (`STONE_HI`), **biseau sombre** en bas et à droite vers `#3e4246`
+  (`STONE_LO`), joint **fin** (1 px, `#1a1d20`), reflet glacé en diagonale (plus clair vers le haut-gauche), grain
+  brossé le long de la plaque et surface martelée discrets, une rayure claire une plaque sur huit ; plus d'éclats, de
+  fêlures, de mouchetures ni de mousse (rien ne grésille à 60 blocs, vérifié sur un rendu à l'échelle du jeu).
+* **Rangées de rivets** (`_rivet`) : deux rivets bombés par plaque, point brillant en haut à gauche, corps dégradé vers
+  un gris moyen (jamais un trou sombre), fin anneau d'ombre et ombre portée ; sur la ceinture haute (`belt_stud`,
+  plaques de 16 × 8 px pour son demi-bloc de haut, rivets ronds), sur la préceinte et sur **chaque bloc des piliers**
+  (`stone_stud` partout, plus d'alternance avec la pierre nue) ; les montants de noyer à clous d'argent restent.
+* **Préceinte à la flottaison** (`wale_iron`, tuiles `sbw_*`) : tôle lourde plus sombre (`WALE_TONES` autour de
+  `#50555b`), rivetée, **mouillée sur son demi-bloc du bas** (dégradé vers `#1c2024`, le bas de la préceinte étant à
+  0,3 sous l'eau au milieu) ; même tôle mouillée au pied des contreforts (`stone_grime`) et sur la préceinte du tableau.
+* **Château** : mêmes plaques (murs, parapets, voûte de poupe, quoins en acier plus clair `#878c92`, `STONE_LIGHT`) ;
+  **merlons à chaperon d'acier poli** (tuiles `merlon` : une plaque sous une bande polie de 4 px à trait sombre, dessus
+  poli) sur le passavant, la dunette, le donjon et la poupe ; bandeau d'avant-toit de la tourelle en acier ; pierre
+  sombre des quoins du tableau en acier sombre.
+* Gardés : les panneaux rouges vifs, les cadres de noyer cloutés, le chêne sombre des fonds, les voiles, bannières,
+  flammes et lanternes. Passerelle : seule la case de camouflage `fortress_ship` suit (`gangplanklib.CAMO`,
+  pixels (64,176)–(111,191) de `gangplank.png`) ; icône d'objet assortie ; quads de référence régénérés.
+
+Quatre itérations : 1 : palette acier, biseaux, rivets (`_boss` : ils se lisaient en trous sombres), préceinte mouillée ;
+2 : rivets refaits en dômes clairs, rendu de la coque, de la flottaison, du château et à 60 blocs ; 3 : chaperons
+d'acier des merlons, blocs plus variés ; 4, d'après les captures en jeu de la branche (`test-results-*-fortress-metal`,
+le jeu éclaire les flancs plus fort que les rendus et les plaques s'y lisaient en gris moyen neutre) : teinte un peu
+plus froide (base `#6c727a`), reflet glacé de 16 à 22 %, pied de la préceinte plus mouillé (72 %). Captures en jeu de
+la branche comparées à celles de main aux mêmes vues : depuis le quai le navire ne se lit plus en masse blanche posée
+sur l'eau mais en coque sombre à bandes d'acier et panneaux rouges ; de la passerelle, plaques rivetées, préceinte
+sombre à la flottaison ; château en acier à bannières rouges ; rien ne grésille de loin.
+
+Planche [comparaison_fortress_ship.png](comparaison_fortress_ship.png) refaite : référence 112 | en jeu avant
+(main 1.28.0, decor) | en jeu après (fortress-metal, captures de la passe 3, e5220f36, variante decor : la passe 4 ne
+change que la teinte) aux vues de référence et à la passerelle (la coque au ras de l'eau), puis les rendus avant / après
+de la passe 4 (flanc, flottaison, château, 60 blocs). Aperçu [preview_fortress_ship.png](preview_fortress_ship.png)
+refait. En jeu : 2 842 PASS, 0 FAIL sur vanilla, lithium et decor (62 PASS pour `fortress_ship`), grille, mobilier,
+portes, passerelle et barre inchangés.
+
+Restent : la pierre de 112 est plus claire que cet acier (choix du joueur : « sur l'eau ça fait bizarre ») ; l'éclairage
+chaud et les ombres portées de 112 ; le reste du § 10.
