@@ -350,6 +350,26 @@ def p_cabin_wall(w, h, rng, palette=CABIN_WALL, joint="2a1a0d"):
     return np.clip(out, 0, 255)
 
 
+def p_end_grain(w, h, rng):
+    """The sawn end of a big timber (the bowsprit's heel faces the player on the forecastle): growth rings round an
+    off-centre heart, darker late wood, a few checks, a shadowed rim."""
+    W, H = w * K, h * K
+    yy, xx = np.mgrid[0:H, 0:W].astype(float)
+    cx, cy = W * 0.46, H * 0.54
+    r = np.hypot(xx + 0.5 - cx, yy + 0.5 - cy) * (1 + 0.06 * vnoise(rng, W, H, 6, 6))
+    ring = 0.5 + 0.5 * np.cos(r * 2 * math.pi / 3.2)
+    t = 0.45 + 0.3 * ring + 0.15 * np.clip(r / (0.5 * W), 0, 1)
+    out = stops(np.clip(t, 0, 1), [(0.0, "c89a62"), (0.5, "a67a48"), (0.8, "7a5230"), (1.0, "5a3a1e")])
+    out *= (1 + 0.04 * rng.uniform(-1, 1, (H, W)))[..., None]
+    for ang in rng.uniform(0, 2 * math.pi, 3):              # shrinkage checks from the heart
+        a = np.arctan2(yy + 0.5 - cy, xx + 0.5 - cx)
+        chk = (np.abs(((a - ang + math.pi) % (2 * math.pi)) - math.pi) < 0.035) & (r > 3) & (r < 0.42 * W)
+        out[chk] = hx("3a2410")
+    e = np.minimum(np.minimum(xx, W - 1 - xx), np.minimum(yy, H - 1 - yy))
+    out[e < 1] *= 0.55
+    return np.clip(out, 0, 255)
+
+
 def p_cabin_floor(w, h, rng):
     """The cabin and state room floors: narrow polished planks along v, pegged (no nails), a soft sheen."""
     W, H = w * K, h * K
@@ -1216,6 +1236,7 @@ def hull_pass(base, R, rt):
     P("ceil", p_ceiling(*wh("ceil"), g("ceil")))
     P("wall_wood", p_cabin_wall(*wh("wall_wood"), g("wall_wood")))
     P("floor", p_cabin_floor(*wh("floor"), g("floor")))
+    P("end_grain", p_end_grain(*wh("end_grain"), g("end_grain")))
     return Image.fromarray(atlas, "RGBA")
 
 

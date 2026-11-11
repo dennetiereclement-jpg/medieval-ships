@@ -892,6 +892,12 @@ def bow(bone, lights):
     round_bar(bone, "bowsprit", sa - d * 1.4, cap + d * 0.3, 0.7, "mast")
     for k, t in enumerate((0.6, 2.4, 4.2, 6.0, 7.8)):
         round_bar(bone, "bowsprit_band_%d" % k, sa + d * (t - 0.1), sa + d * (t + 0.1), 0.78, "gold")
+    # 1.28.1: the heel of the bowsprit faces the player standing on the forecastle (a plain box of planks in the
+    # screenshots): an iron hoop and a dark iron plate on its end, a gold band ahead of it
+    round_bar(bone, "bowsprit_heel_hoop", sa - d * 1.3, sa - d * 1.1, 0.76, "iron")
+    round_bar(bone, "bowsprit_heel_band", sa - d * 0.7, sa - d * 0.5, 0.78, "gold")
+    add_cube(bone, "bowsprit_heel_plate", sa - d * 1.43, gg.frame_from(d, v3(0, 1, 0)), (0.06, 1.3, 1.3),
+             {"all": "iron", "-1": "end_grain"}, stretch=True)
     add_cube(bone, "bowsprit_cap", cap + d * 0.15 + v3(0, 0.2, 0), gg.frame_from(d, v3(0, 1, 0)), (0.42, 0.9, 0.55), "gold")
     round_bar(bone, "jib_boom", cap - d * 1.8 + v3(0, 0.4, 0), sb + v3(0, 0.4, 0), 0.36, "mast")
     add_cube(bone, "jib_boom_end", sb + v3(0, 0.4, 0) + d * 0.1, gg.frame_from(d, v3(0, 1, 0)), (0.42, 0.42, 0.26), "gold")
