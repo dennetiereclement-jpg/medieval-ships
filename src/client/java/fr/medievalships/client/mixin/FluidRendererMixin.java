@@ -15,7 +15,12 @@ import net.minecraft.world.BlockRenderView;
 
 import fr.medievalships.client.render.DryWater;
 
-/** The water of the world is not drawn inside the dry rooms of a vessel (see {@link DryWater}). */
+/**
+ * The water of the world is not drawn inside the dry rooms of a vessel (see {@link DryWater}). Since 1.28.1 the skipping
+ * is done first by Fabric API's fluid render handler ({@code DryWaterFluidHandler}), which Sodium honours while it never
+ * calls this vanilla renderer; this injection is the fallback for a client without Sodium where another mod replaced
+ * the water's handler after ours.
+ */
 @Mixin(FluidRenderer.class)
 abstract class FluidRendererMixin {
 	@Inject(method = "render", at = @At("HEAD"), cancellable = true)

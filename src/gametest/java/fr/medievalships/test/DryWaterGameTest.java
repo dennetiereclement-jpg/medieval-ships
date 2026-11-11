@@ -1,8 +1,13 @@
 package fr.medievalships.test;
 
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Locale;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+
+import javax.imageio.ImageIO;
 
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 
@@ -23,10 +28,60 @@ import fr.medievalships.entity.ShipTracker;
  * basin: on the client, every water block of the basin within the hull's bounding box is sorted by the rule's samples
  * (wholly inside the hull, wholly in the open sea, straddling the outer hull) and asked of the chunk renderer's filter;
  * all the inside ones must be hidden and none of the open sea. The camera's submersion type is read too (the fog of a
- * dry room under the sea must be that of the air).
+ * dry room under the sea must be that of the air). Since 1.28.1 the {@code <id>_cale_niveau_mer} screenshot itself is
+ * read back and its blue pixels counted ({@link #checkScreenshot}): the one check that sees what the chunk meshing
+ * pipeline really drew, Sodium's included, where the count above only asks the rule.
  */
 final class DryWaterGameTest {
 	private DryWaterGameTest() {
+	}
+
+	/** The last screenshot the scenario took (set by {@code ShipClientGameTest.shot}). */
+	static Path lastScreenshot;
+
+	/** The share of blue-dominant pixels above which a frame is judged to show the sea (a clean hold has under 1 %). */
+	static final double BLUE_LIMIT = 4.0;
+
+	/**
+	 * The share (in %) of the pixels of a screenshot that are blue-dominant (b > r + 40, b > g + 10, b > 70: the sea, which
+	 * is the only blue thing in a wooden hold; a blue chest or a glimpse of sky weigh under 1 %); -1 when it cannot be read.
+	 */
+	static double bluePixels(Path png) {
+		if (png == null) {
+			return -1;
+		}
+		try {
+			BufferedImage im = ImageIO.read(png.toFile());
+			if (im == null) {
+				return -1;
+			}
+			long blue = 0, total = 0;
+			for (int y = 0; y < im.getHeight(); y += 2) {
+				for (int x = 0; x < im.getWidth(); x += 2) {
+					int rgb = im.getRGB(x, y);
+					int r = (rgb >> 16) & 0xFF, g = (rgb >> 8) & 0xFF, b = rgb & 0xFF;
+					total++;
+					if (b > r + 40 && b > g + 10 && b > 70) {
+						blue++;
+					}
+				}
+			}
+			return total == 0 ? -1 : 100.0 * blue / total;
+		} catch (IOException | RuntimeException e) {
+			return -1;
+		}
+	}
+
+	/**
+	 * Reads the last screenshot back (the hold seen from the foot of its stair at the sea level) and checks that no sheet of
+	 * water shows across it: the sheet the user saw covered 10 to 25 % of the frame in blue, a clean hold under 1 %.
+	 */
+	static void checkScreenshot(ShipType type, String where, BiConsumer<Boolean, String> check, Consumer<String> log) {
+		Path png = lastScreenshot;
+		double share = bluePixels(png);
+		log.accept(String.format(Locale.ROOT, "%s screenshot %s: %.2f %% blue pixels", type.id(), png == null ? "(none)" : png.getFileName(), share));
+		check.accept(share >= 0 && share < BLUE_LIMIT, String.format(Locale.ROOT,
+				"%s: no sheet of water drawn across %s on the screenshot (%.2f %% blue pixels, limit %.0f %%)", type.id(), where, share, BLUE_LIMIT));
 	}
 
 	/**

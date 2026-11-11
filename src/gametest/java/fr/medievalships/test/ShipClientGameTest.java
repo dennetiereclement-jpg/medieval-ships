@@ -1760,6 +1760,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		lookLocal(server, pose, 2.6, Ships.NAUTILUS.hull().waterlineY - 0.4, -25.8, -1.2, l + 1.0, -22.0);
 		context.waitTicks(12);
 		shot(context, id + "_cale_niveau_mer");
+		DryWaterGameTest.checkScreenshot(Ships.NAUTILUS, "the engine room", (ok, m) -> check(ok, "%s", m), m -> log("%s", m));
 		DryWaterGameTest.checkCameraDry(context, Ships.NAUTILUS, "the engine room's ladder, under the sea level", (ok, m) -> check(ok, "%s", m),
 				m -> log("%s", m));
 		DryWaterGameTest.check(context, Ships.NAUTILUS, (ok, m) -> check(ok, "%s", m), m -> log("%s", m));
@@ -1932,7 +1933,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 	}
 
 	private void shot(ClientGameTestContext context, String name) {
-		context.takeScreenshot(tag + "_" + name);
+		DryWaterGameTest.lastScreenshot = context.takeScreenshot(tag + "_" + name);
 	}
 
 	private void log(String fmt, Object... args) {

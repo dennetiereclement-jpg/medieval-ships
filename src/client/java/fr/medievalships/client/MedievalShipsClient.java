@@ -56,9 +56,13 @@ public final class MedievalShipsClient implements ClientModInitializer {
 				.register((entity, world) -> fr.medievalships.client.render.TrainingTargetRenderer.loaded(entity));
 		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents.ENTITY_UNLOAD
 				.register((entity, world) -> fr.medievalships.client.render.TrainingTargetRenderer.unloaded(entity));
+		// the water of the world is not drawn in the dry rooms (1.28.0; 1.28.1: through Fabric API's fluid render handler,
+		// the path Sodium honours too)
+		fr.medievalships.client.render.DryWater.init();
 		ClientTickEvents.END_WORLD_TICK.register(ClientShipEvents::endWorldTick);
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
 			ShipTracker.clearClientWorlds();
+			fr.medievalships.client.render.DryWater.clear();
 			fr.medievalships.tent.TentCollisions.clearClientWorlds();
 			fr.medievalships.client.bridge.DrawbridgeClient.clear();
 			fr.medievalships.bridge.DrawbridgeCollisions.clearClientWorlds();

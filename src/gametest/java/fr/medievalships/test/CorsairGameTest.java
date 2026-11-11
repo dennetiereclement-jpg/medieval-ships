@@ -168,6 +168,7 @@ public final class CorsairGameTest {
 		look(server, pose(server, type), 0.0, CorsairLayout.LOWER_FLOOR_Y + 1.62, -12.8, 0.0, CorsairLayout.HOLD_FLOOR_Y + 0.4, -16.6);
 		context.waitTicks(12);
 		shot.shot(id + "_cale_niveau_mer");
+		DryWaterGameTest.checkScreenshot(type, "the stairwell and the hold", (ok, m) -> check.check(ok, "%s", m), m -> log.log("%s", m));
 		DryWaterGameTest.check(context, type, (ok, m) -> check.check(ok, "%s", m), m -> log.log("%s", m));
 		look(server, pose(server, type), 0.0, type.hull().waterlineY - 0.3, -15.3, 0.0, CorsairLayout.HOLD_FLOOR_Y + 0.3, -8.0);
 		context.waitTicks(8);

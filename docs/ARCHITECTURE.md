@@ -65,7 +65,7 @@ sièges, boîtes de collision, visée, embarquement) à un instantané pris sur 
 * Commandes : `Ships.ALIASES` (`grand_warship` → `warship`) ; les identifiants des entités et
   des sauvegardes ne changent jamais.
 
-### Flottaison chargée et eau du monde cachée dans les pièces (1.28.0)
+### Flottaison chargée et eau du monde cachée dans les pièces (1.28.0, 1.28.1)
 
 * `WATERLINE_Y` de chaque navire (constante de son `Layout`, reflétée dans `tools/<navire>_shape.py`) remontée pour
   que la coque soit visiblement dans l'eau, la préceinte ou la bande basse à la surface : galion −1,5 → −0,4,
@@ -81,6 +81,19 @@ sièges, boîtes de collision, visée, embarquement) à un instantané pris sur 
   seulement si les points secs sont plus nombreux que les points extérieurs. Les blocs loin de la grille sont écartés
   d'un seul test. Les sections de rendu autour d'une coque sont redessinées dès que le navire est vu pour la première
   fois (posé, chargé, téléporté, suivi de loin), puis quand il bouge ou ouvre une porte près du joueur.
+* 1.28.1 : l'eau est écartée par `DryWaterFluidHandler`, un `FluidRenderHandler` de Fabric API enregistré pour l'eau
+  calme et courante autour du gestionnaire précédent (celui de Fabric API ou d'un autre mod), qui lui délègue sprites,
+  couleur et dessin et ne fait que sauter les blocs cachés. C'est le chemin que suit **Sodium** : son
+  `fabric/render/FluidRendererImpl.render` (0.8.14, mc1.21.11) cherche le gestionnaire dans `FluidRenderHandlerRegistry`
+  et appelle `FluidRendering.render(handler, …)`, c'est-à-dire `handler.renderFluid`, avec son propre moteur rapide comme
+  géométrie par défaut ; il n'appelle jamais le `FluidRenderer` de Minecraft, sur lequel le mixin `FluidRendererMixin`
+  (conservé en secours) est donc sans effet. La règle compte aussi les 9 points de la face supérieure du bloc
+  (`waterSamples` renvoie `{hors coque, sec, mouillé, face sup. hors coque, face sup. sèche}`) : face supérieure
+  entièrement dans la coque et sèche → caché quoi qu'il y ait dessous. Filets de sécurité dans `DryWater.tick` : second
+  redessin 2 s après la première apparition ; chaque section maillée avec une coque à portée est horodatée de l'instantané
+  utilisé (`DryWater.skip`), et tant que l'œil du joueur est dans une pièce sèche à moins de 3 blocs de la surface de l'eau
+  (lue dans la colonne centrale de la coque), toutes les 5 s les sections de la bande d'eau autour de la coque plus
+  anciennes que son dernier redessin sont replanifiées.
 
 ### Aéronefs : le dirigeable (1.6.0)
 

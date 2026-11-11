@@ -300,6 +300,7 @@ public final class RoyalLionShipGameTest {
 		look(server, pose(server), 2.75, RoyalLionLayout.LOWER_FLOOR_Y + 1.62, 3.0, -1.0, RoyalLionLayout.LOWER_FLOOR_Y + 0.3, 12.0);
 		context.waitTicks(12);
 		shot.accept(id + "_cale_niveau_mer");
+		DryWaterGameTest.checkScreenshot(TYPE, "the cargo hold", check, log);
 		DryWaterGameTest.check(context, TYPE, check, log);
 		server.runCommand("gamemode survival @a");
 		// walking on the main deck while the ship is still: a few steps forward, still on the deck
