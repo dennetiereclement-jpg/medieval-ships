@@ -74,5 +74,7 @@ public final class MedievalShipsClient implements ClientModInitializer {
 				(payload, context) -> fr.medievalships.client.bridge.DrawbridgeClient.receive(payload, context.client().world));
 		WorldRenderEvents.AFTER_ENTITIES.register(fr.medievalships.client.bridge.DrawbridgeRenderer::render);
 		HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, MedievalShips.id("pilot_panel"), PilotHudOverlay::render);
+		// the frame clock and counters of the in-game benchmark (1.29.0)
+		fr.medievalships.client.render.RenderStats.install();
 	}
 }

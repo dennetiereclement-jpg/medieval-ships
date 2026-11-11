@@ -68,7 +68,7 @@ public class TentBlockEntityRenderer implements BlockEntityRenderer<TentBlockEnt
 	@Override
 	public void render(State state, MatrixStack matrices, OrderedRenderCommandQueue queue, CameraRenderState cameraState) {
 		TentType type = state.tent;
-		if (type == null) {
+		if (type == null || RenderStats.skip) {
 			return;
 		}
 		double far = ConfigManager.server().tentRenderDistance;
@@ -90,6 +90,7 @@ public class TentBlockEntityRenderer implements BlockEntityRenderer<TentBlockEnt
 		RenderLayer layer = RenderLayers.entityCutoutNoCull(TentModels.texture(type));
 		long targetsDrawn = state.targetsDrawn;
 		queue.submitCustom(matrices, layer, (entry, vertices) -> {
+			long t0 = System.nanoTime();
 			BbModel.Pose pose = model.newPose();
 			// the training targets that their entity draws (moving, TrainingTargetRenderer); the others stay here, at rest
 			for (int i = 0; targetsDrawn != 0 && i < type.targets().size() && i < 64; i++) {
@@ -108,6 +109,7 @@ public class TentBlockEntityRenderer implements BlockEntityRenderer<TentBlockEnt
 			}
 			model.render(pose, (p, uv, n, isGlow) -> {
 				int l = isGlow ? glow : light;
+				RenderStats.quads++;
 				for (int k = 0; k < 4; k++) {
 					vertices.vertex(entry, p[k * 3], p[k * 3 + 1], p[k * 3 + 2])
 							.color(0xFFFFFFFF)
@@ -117,6 +119,7 @@ public class TentBlockEntityRenderer implements BlockEntityRenderer<TentBlockEnt
 							.normal(entry, n[0], n[1], n[2]);
 				}
 			});
+			RenderStats.emitNanos += System.nanoTime() - t0;
 		});
 		if (decor != null) {
 			for (int i = 0; i < decor.states.length; i++) {
@@ -132,6 +135,7 @@ public class TentBlockEntityRenderer implements BlockEntityRenderer<TentBlockEnt
 				}
 				matrices.translate(-0.5, 0, -0.5);
 				queue.submitBlock(matrices, decor.states[i], b.glow() ? glow : light, OverlayTexture.DEFAULT_UV, 0);
+				RenderStats.decorBlocks++;
 				matrices.pop();
 			}
 		}

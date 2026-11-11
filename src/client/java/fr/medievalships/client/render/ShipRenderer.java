@@ -122,7 +122,7 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 
 	@Override
 	public void render(ShipRenderState state, MatrixStack matrices, OrderedRenderCommandQueue queue, CameraRenderState cameraState) {
-		BbModel model = ShipModels.get(visual);
+		BbModel model = RenderStats.skip ? null : ShipModels.get(visual);
 		if (model != null) {
 			matrices.push();
 			matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-state.yaw));
@@ -171,6 +171,7 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 				RenderLayer layer = fx ? RenderLayers.entityTranslucent(visual.textures().get(tex))
 						: RenderLayers.entityCutoutNoCull(visual.textures().get(tex));
 				queue.submitCustom(matrices, layer, (entry, vertices) -> {
+					long t0 = System.nanoTime();
 					BbModel.Pose pose = model.newPose();
 					pose.fxPass = fx;
 					model.apply(pose, "row", oarTime, oarWeight);
@@ -231,6 +232,7 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 						@Override
 						public void quad(float[] p, float[] uv, float[] n, boolean glow, boolean litFace) {
 							int l = glow ? (fx ? LightmapTextureManager.MAX_LIGHT_COORDINATE : glowLight) : litFace ? lit : light;
+							RenderStats.quads++;
 							// a glowing face (lit window, lantern, fire) shines whatever way it faces: an up normal keeps the
 							// entity shading at 1 (its real side normal darkened it to about x 0.5 to x 0.75 on the flanks)
 							boolean shine = glow && (fx || glowShines);
@@ -245,6 +247,7 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 							}
 						}
 					});
+					RenderStats.emitNanos += System.nanoTime() - t0;
 				});
 			}
 			}
@@ -277,6 +280,7 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 					}
 					matrices.translate(-0.5, 0, -0.5);
 					queue.submitBlock(matrices, decor.states[i], b.glow() && lampsOn ? glowLight : lit, OverlayTexture.DEFAULT_UV, 0);
+					RenderStats.decorBlocks++;
 					matrices.pop();
 				}
 			}
