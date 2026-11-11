@@ -177,9 +177,9 @@ public final class DryWater {
 				redraw(client, pose, r, grid);
 				s.drawnAt = now;
 			}
-			if (player != null && now - s.drawnAt >= STALE_SETTLE && now - s.staleCheckAt >= STALE_PERIOD) {
+			if (player != null && now - s.drawnAt >= STALE_SETTLE && now - s.staleCheckAt >= STALE_PERIOD && inside(player, pose, grid, state, r)) {
 				double sea = seaLevel(world, pose, grid);
-				if (!Double.isNaN(sea) && insideNear(player, pose, grid, state, r, sea)) {
+				if (!Double.isNaN(sea) && Math.abs(player.getEyeY() - sea) <= SEA_BAND) {
 					s.staleCheckAt = now;
 					redrawStale(client, pose, r, sea, s.drawnAt);
 				}
@@ -212,11 +212,11 @@ public final class DryWater {
 				(int) Math.ceil(pose.x() + r) + 1, y1, (int) Math.ceil(pose.z() + r) + 1);
 	}
 
-	/** Are the player's eyes in a dry room of this hull, within {@link #SEA_BAND} of the sea level? */
-	private static boolean insideNear(Entity player, ShipPose pose, InteriorGrid grid, InteriorGrid.State state, double r, double sea) {
+	/** Are the player's eyes in a dry room of this hull? */
+	private static boolean inside(Entity player, ShipPose pose, InteriorGrid grid, InteriorGrid.State state, double r) {
 		double ex = player.getX(), ey = player.getEyeY(), ez = player.getZ();
 		double dx = ex - pose.x(), dz = ez - pose.z();
-		if (dx * dx + dz * dz > r * r || Math.abs(ey - sea) > SEA_BAND) {
+		if (dx * dx + dz * dz > r * r) {
 			return false;
 		}
 		double[] l = pose.toLocal(ex, ey, ez);
