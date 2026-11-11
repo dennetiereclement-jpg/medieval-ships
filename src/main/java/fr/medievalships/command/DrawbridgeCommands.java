@@ -208,7 +208,7 @@ public final class DrawbridgeCommands {
 
 	private static void lines(CommandContext<ServerCommandSource> ctx, List<String> lines, Formatting color) {
 		for (String l : lines) {
-			ctx.getSource().sendFeedback(() -> Text.literal(l).formatted(color), false);
+			ShipCommands.say(ctx, Text.literal(l).formatted(color));
 		}
 	}
 
@@ -220,13 +220,13 @@ public final class DrawbridgeCommands {
 
 	private static int list(CommandContext<ServerCommandSource> ctx) {
 		if (Drawbridges.all().isEmpty()) {
-			ctx.getSource().sendFeedback(() -> Text.literal("Aucun pont-levis. /pontlevis creer <id> pour en définir un.").formatted(Formatting.YELLOW), false);
+			ShipCommands.say(ctx, Text.literal("Aucun pont-levis. /pontlevis creer <id> pour en définir un.").formatted(Formatting.YELLOW));
 			return 0;
 		}
 		for (Drawbridge b : Drawbridges.all()) {
 			String line = String.format(Locale.ROOT, "« %s » (%s) : %s, %s%s", b.id, b.dimension.getValue(), b.converted() ? "converti" : "en définition",
 					b.cycle().state().french(), b.cycle().suspended() ? ", automatisme suspendu" : "");
-			ctx.getSource().sendFeedback(() -> Text.literal(line).formatted(Formatting.AQUA), false);
+			ShipCommands.say(ctx, Text.literal(line).formatted(Formatting.AQUA));
 		}
 		return Drawbridges.all().size();
 	}
@@ -356,7 +356,7 @@ public final class DrawbridgeCommands {
 				Drawbridge.Report r = b.analyse(world(ctx, b), false);
 				if (!r.ok()) {
 					lines(ctx, r.problems(), Formatting.YELLOW);
-					ctx.getSource().sendFeedback(() -> Text.literal("L'aperçu montrera les sélections ; le reste viendra quand l'analyse passera.").formatted(Formatting.GRAY), false);
+					ShipCommands.say(ctx, Text.literal("L'aperçu montrera les sélections ; le reste viendra quand l'analyse passera.").formatted(Formatting.GRAY));
 				}
 			}
 			b.previewPlayers().add(player.getUuid());
@@ -376,7 +376,7 @@ public final class DrawbridgeCommands {
 		lines(ctx, r.warnings(), Formatting.YELLOW);
 		if (!r.ok()) {
 			lines(ctx, r.problems(), Formatting.RED);
-			ctx.getSource().sendFeedback(() -> Text.literal("Vérification échouée : corrigez puis relancez /pontlevis " + b.id + " verifier.").formatted(Formatting.RED), false);
+			ShipCommands.say(ctx, Text.literal("Vérification échouée : corrigez puis relancez /pontlevis " + b.id + " verifier.").formatted(Formatting.RED));
 			return 0;
 		}
 		saved(ctx, b);
