@@ -151,9 +151,10 @@ REGIONS = {
 }
 # single stone blocks (16 x 16, a joint along their right and bottom edges, bevelled): a tone each
 # (phase 5: twice as many tiles, so that neighbouring blocks seldom repeat; a grimy set for the courses low on the hull)
-N_SB, N_SBS, N_SBD, N_SBL, N_SBG, N_SBW, N_SBH = 12, 5, 6, 4, 4, 4, 4
+N_SB, N_SBS, N_SBD, N_SBL, N_SBG, N_SBW, N_SBH, N_SBM = 12, 5, 6, 4, 4, 4, 4, 4
 STONE_TILES = {"stone": ["sb_%d" % k for k in range(N_SB)],
                "wale_iron": ["sbw_%d" % k for k in range(N_SBW)], "belt_stud": ["sbh_%d" % k for k in range(N_SBH)],
+               "merlon": ["sbm_%d" % k for k in range(N_SBM)],
                "stone_stud": ["sb_0", "sbs_0", "sb_2", "sbs_1", "sb_4", "sbs_2", "sb_7", "sbs_3", "sb_9", "sbs_4"],
                "stone_dark": ["sbd_%d" % k for k in range(N_SBD)], "stone_light": ["sbl_%d" % k for k in range(N_SBL)],
                "beak": ["sb_1", "sbs_0", "sb_3", "sbs_2", "sb_8", "sbs_3"], "stone_grime": ["sbg_%d" % k for k in range(N_SBG)]}
@@ -171,9 +172,12 @@ for _k in range(N_SBW):
     REGIONS["sbw_%d" % _k] = (400 + 16 * _k, 64, 16, 16)      # (phase 9) the wale's plates, wet at their foot
 for _k in range(N_SBH):
     REGIONS["sbh_%d" % _k] = (416 + 16 * _k, 80, 16, 8)       # (phase 9) the belt's upper course, half-height plates
+for _k in range(N_SBM):
+    REGIONS["sbm_%d" % _k] = (448 + 16 * _k, 112, 16, 16)     # (phase 9) the merlons: a polished steel cap over the plate
+REGIONS["merlon"] = REGIONS["sbm_0"]                           # (the tiles are picked from STONE_TILES["merlon"])
 # regions mapped one block = 16 px from the face's corner (joints and studs aligned with the cube's edges)
 ALIGNED = ("stone", "stone_dark", "stone_stud", "stone_light", "beak", "stone_grime", "red_panel", "studs", "studs_top", "stud_post",
-           "rib_plate", "wale_iron", "belt_stud")
+           "rib_plate", "wale_iron", "belt_stud", "merlon")
 ALIGNED_V = ("stud_post", "rib_plate")   # these two stretched across their (narrow) face, aligned down it only
 # (phase 6: lighter and warmer again, as the main reference's light stone: the hull's sides are lit at about half in game)
 # (phase 7: lighter and warmer again, the light stone fortress of 112: base about #b4a696, top bevel near #dcd2c6)
@@ -392,9 +396,9 @@ def _stone_block(px, u, v, bw, bh, base, rng, mortar, stud=False, x0=0, y0=0, cl
 def _stone_tone(rng, tones, darker=None):
     """A block's base tone: one of tones within 8 %, or (darker given) about one block in six that darker tone (phase 8:
     the visibly different cubes of the main reference)."""
-    if darker is not None and rng.random() < 1 / 6:
+    if darker is not None and rng.random() < 1 / 5:
         return _scale(_rgb(darker), rng.uniform(0.95, 1.05))
-    return _scale(_rgb(rng.choice(tones)), rng.uniform(0.92, 1.08))
+    return _scale(_rgb(rng.choice(tones)), rng.uniform(0.9, 1.1))
 
 
 def _stone(px, region, rng, tones=STONE_TONES, mortar=STONE_MORTAR, studs=False, bh=16, bw=16, bevel=True, grime=0.0, darker=None):
@@ -450,6 +454,25 @@ def _stone_tiles(px, rng):
         u, v, w, h = REGIONS["sbh_%d" % k]
         _stone_block(px, u, v, w, h, _scale(_rgb(STONE_DARKER if k == 3 else STONE_TONES[(2 * k + 1) % 6]), rng.uniform(0.96, 1.04)), rng,
                      STONE_MORTAR, stud=True)
+    # (phase 9) the merlons: a plate under a cap of polished steel (its lit top, a dark line under its lip)
+    for k in range(N_SBM):
+        u, v, w, h = REGIONS["sbm_%d" % k]
+        _stone_block(px, u, v, w, h, _scale(_rgb(STONE_TONES[(k * 2) % 6]), rng.uniform(0.96, 1.04)), rng, STONE_MORTAR)
+        cap = _scale(_rgb(STONE_LIGHT[k % 3]), rng.uniform(0.97, 1.03))
+        for y in range(5):
+            for x in range(w - 1):
+                c = _scale(cap, 1.0 + 0.08 * (_vnoise((u + x) * 0.5, (v + y) * 2.5, k * 31, 3.0) - 0.5) + 0.06 * (0.5 - x / w))
+                if y == 0:
+                    c = _mix(_rgb(STONE_HI), c, 0.1)
+                elif y == 1:
+                    c = _mix(_rgb(STONE_HI), c, 0.55)
+                elif y == 4:
+                    c = _rgb("23262a")
+                elif y == 3:
+                    c = _scale(c, 0.8)
+                if x == 0 and y < 4:
+                    c = _mix(_rgb(STONE_HI), c, 0.3)
+                px[u + x, v + y] = _jitter(c, rng, 1) + (255,)
 
 
 def _boards(px, region, tones, seam, rng, plank_h=4, butt=(22, 46), grain=0.07, nails=True, knots=0.18, shade=None, worn=0.0,

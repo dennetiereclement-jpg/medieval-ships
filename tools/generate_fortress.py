@@ -407,7 +407,8 @@ def cladding(bone, detail):
             k += 1
 
 
-def merlon(bone, name, c, w=0.9, h=0.85, d=0.55, region="stone"):
+def merlon(bone, name, c, w=0.9, h=0.85, d=0.55, region="merlon"):
+    """A merlon (phase 9: steel-capped, the `merlon` tiles: a polished steel cap over the plate; its top polished too)."""
     add_cube(bone, name, c + v3(0, h / 2, 0), EYE, (d, h, w) if True else None, {"all": region, "+2": "stone_light"})
 
 
