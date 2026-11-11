@@ -1,0 +1,400 @@
+[19:27:47] [Server thread/INFO]: Set Player863's game mode to Survival Mode
+[19:27:47] [Server thread/INFO]: Teleported Player863 to 3400.500000, -41.691000, -16.000000
+[19:27:47] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[19:27:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship at the helm: helm -0.97, sails open 1.00, speed 1.23
+[19:27:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship: the wheel and the rudder turn with the helm (-0.97)
+[19:27:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] fortress_ship moved 4.56 blocks in 7 s at the helm
+[19:27:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] fortress_ship sails under the player's control (moved 4.56)
+[19:27:56] [Server thread/INFO]: Player863 stopped riding Fortress Ship
+[19:27:56] [Server thread/INFO]: Set Player863's game mode to Spectator Mode
+[19:27:56] [Server thread/INFO]: Unmarked 40 chunks in minecraft:overworld from [210, -4] to [214, 3] for force loading
+[19:27:56] [Server thread/INFO]: Player863 is not riding any vehicle
+[19:27:56] [Server thread/INFO]: Teleported Player863 to 4900.500000, -30.000000, -39.500000
+[19:27:56] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[19:27:57] [Server thread/INFO]: Marked 40 chunks in minecraft:overworld from [304, -4] to [308, 3] to be force loaded
+[19:27:58] [Server thread/INFO]: Successfully filled 798 block(s)
+[19:27:58] [Server thread/INFO]: Successfully filled 798 block(s)
+[19:27:58] [Server thread/INFO]: Successfully filled 1386 block(s)
+[19:27:58] [Server thread/INFO]: Successfully filled 1386 block(s)
+[19:27:58] [Server thread/INFO]: Successfully filled 23100 block(s)
+[19:27:58] [Server thread/INFO]: Too many blocks in the specified area (maximum 32768, but specified 33000)
+[19:27:58] [Server thread/INFO]: Successfully filled 23100 block(s)
+[19:27:58] [Server thread/INFO]: Too many blocks in the specified area (maximum 32768, but specified 33000)
+[19:27:58] [Server thread/INFO]: Successfully filled 23100 block(s)
+[19:27:58] [Server thread/INFO]: Too many blocks in the specified area (maximum 32768, but specified 33000)
+[19:27:58] [Server thread/INFO]: Successfully filled 6930 block(s)
+[19:27:58] [Server thread/INFO]: No blocks were filled
+[19:27:58] [Server thread/INFO]: Navire mis à l'eau : Navire à vapeur à engrenages [4900 -49 -13]
+[19:27:59] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 2000ms or 40 ticks behind
+[19:28:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship at 4900.50 -49.71 -13.50, water surface -49.111
+[19:28:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship floats on the surface (y -49.71, water -49.11)
+[19:28:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the model loaded in game has its two textures, its animations and its gears
+[19:28:05] [Server thread/INFO]: Teleported Player863 to 4862.500000, -38.731000, 1.200000
+[19:28:06] [Server thread/INFO]: Teleported Player863 to 4845.500000, -42.331000, -12.500000
+[19:28:06] [Server thread/INFO]: Teleported Player863 to 4886.500000, -39.331000, -59.500000
+[19:28:07] [Server thread/INFO]: Teleported Player863 to 4900.550000, 18.669000, -12.500000
+[19:28:08] [Server thread/INFO]: Teleported Player863 to 4900.700000, -45.211000, -9.400000
+[19:28:09] [Server thread/INFO]: Teleported Player863 to 4899.900000, -45.211000, -13.800000
+[19:28:10] [Server thread/INFO]: Teleported Player863 to 4903.100000, -45.211000, -21.100000
+[19:28:10] [Server thread/INFO]: Teleported Player863 to 4900.100000, -42.211000, -24.700000
+[19:28:11] [Server thread/INFO]: Teleported Player863 to 4900.900000, -48.711000, -10.500000
+[19:28:12] [Server thread/INFO]: Set Player863's game mode to Survival Mode
+[19:28:12] [Server thread/INFO]: Teleported Player863 to 4899.000000, -45.191000, -4.500000
+[19:28:12] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[19:28:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship waist: local -1.50 4.500 9.00, on ground 1.0, water 0.0
+[19:28:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: standing in the waist (local y 4.500)
+[19:28:13] [Server thread/INFO]: Teleported Player863 to 4900.500000, -43.691000, 0.500000
+[19:28:14] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship forecastle: local 0.00 6.000 14.00, on ground 1.0, water 0.0
+[19:28:14] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: standing in the forecastle (local y 6.000)
+[19:28:14] [Server thread/INFO]: Teleported Player863 to 4904.100000, -40.691000, -12.500000
+[19:28:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship engine house roof: local 3.60 9.000 1.00, on ground 1.0, water 0.0
+[19:28:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: standing in the engine house roof (local y 9.000)
+[19:28:15] [Server thread/INFO]: Teleported Player863 to 4902.000000, -42.191000, -27.500000
+[19:28:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship poop deck: local 1.50 7.500 -14.00, on ground 1.0, water 0.0
+[19:28:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: standing in the poop deck (local y 7.500)
+[19:28:17] [Server thread/INFO]: Teleported Player863 to 4900.500000, -38.691000, -23.500000
+[19:28:18] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship bridge: local 0.00 11.000 -10.00, on ground 1.0, water 0.0
+[19:28:18] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: standing in the bridge (local y 11.000)
+[19:28:18] [Server thread/INFO]: Teleported Player863 to 4903.500000, -45.191000, -15.500000
+[19:28:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship engine room: local 3.00 4.500 -2.00, on ground 1.0, water 0.0
+[19:28:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: standing in the engine room (local y 4.500)
+[19:28:19] [Server thread/INFO]: Teleported Player863 to 4900.500000, -45.191000, -28.300000
+[19:28:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship crew quarters: local 0.00 4.500 -14.80, on ground 1.0, water 0.0
+[19:28:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: standing in the crew quarters (local y 4.500)
+[19:28:21] [Server thread/INFO]: Teleported Player863 to 4900.500000, -42.191000, -23.300000
+[19:28:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship captain's cabin: local 0.00 7.500 -9.80, on ground 1.0, water 0.0
+[19:28:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: standing in the captain's cabin (local y 7.500)
+[19:28:22] [Server thread/INFO]: Teleported Player863 to 4900.500000, -48.691000, -19.500000
+[19:28:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship hold: local 0.00 1.000 -6.00, on ground 1.0, water 0.0
+[19:28:23] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: standing in the hold (local y 1.000)
+[19:28:23] [Server thread/INFO]: Teleported Player863 to 4900.500000, -45.191000, -32.500000
+[19:28:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship stern gallery: local 0.00 4.500 -19.00, on ground 1.0, water 0.0
+[19:28:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: standing in the stern gallery (local y 4.500)
+[19:28:25] [Server thread/INFO]: Set Player863's game mode to Spectator Mode
+[19:28:25] [Server thread/INFO]: Teleported Player863 to 4902.750000, -48.711000, -3.800000
+[19:28:25] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[19:28:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship water blocks: 617 inside the hull (617 hidden), 15173 in the open sea (0 hidden), 434 straddling the hull (199 hidden)
+[19:28:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the world's water is not drawn inside the hull (617 / 617 blocks hidden)
+[19:28:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the sea around the hull is drawn (0 / 15173 blocks hidden)
+[19:28:25] [Server thread/INFO]: Set Player863's game mode to Survival Mode
+[19:28:25] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[19:28:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the player sits in the captain's chair
+[19:28:26] [Server thread/INFO]: Player863 stopped riding Gear Steamship
+[19:28:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship stood up from the captain's chair at local 0.00 7.500 -9.50
+[19:28:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: stands up from the captain's chair on the cabin floor (local y 7.500, z -9.50)
+[19:28:26] [Server thread/INFO]: Teleported Player863 to 4899.000000, -45.191000, -7.700000
+[19:28:27] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship walked on the waist to local -1.50 4.500 8.78
+[19:28:27] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the player walks on the waist (z 8.78, y 4.500)
+[19:28:27] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the engine room door opens
+[19:28:28] [Server thread/INFO]: Teleported Player863 to 4900.500000, -45.191000, -7.200000
+[19:28:30] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship through the engine room door (heading 0): from z 6.30 to local 0.00 4.500 2.24 (on ground 1.0)
+[19:28:30] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the player walks through the engine room door (heading 0) without jumping (z 2.24, floor 0.000)
+[19:28:30] [Server thread/INFO]: Teleported Player863 to 4900.500000, -45.211000, -11.258000
+[19:28:31] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship back through the engine room door (heading 0): local 0.00 4.500 6.30
+[19:28:31] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: and back out through the engine room door (heading 0) (z 6.30)
+[19:28:31] [Server thread/INFO]: Teleported Player863 to 4903.500000, -45.191000, -18.200000
+[19:28:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship through the crew quarters door (heading 0): from z -4.70 to local 3.00 4.500 -8.20 (on ground 1.0)
+[19:28:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the player walks through the crew quarters door (heading 0) without jumping (z -8.20, floor 0.000)
+[19:28:32] [Server thread/INFO]: Teleported Player863 to 4903.500000, -45.211000, -21.700000
+[19:28:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship back through the crew quarters door (heading 0): local 3.00 4.500 -4.14
+[19:28:33] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: and back out through the crew quarters door (heading 0) (z -4.14)
+[19:28:33] [Server thread/INFO]: Teleported Player863 to 4900.500000, -45.191000, -27.600000
+[19:28:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship through the stern gallery door (heading 0): from z -14.10 to local 0.00 4.500 -18.16 (on ground 1.0)
+[19:28:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the player walks through the stern gallery door (heading 0) without jumping (z -18.16, floor 0.000)
+[19:28:35] [Server thread/INFO]: Teleported Player863 to 4900.500000, -45.211000, -31.658000
+[19:28:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship back through the stern gallery door (heading 0): local 0.00 4.500 -14.30
+[19:28:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: and back out through the stern gallery door (heading 0) (z -14.30)
+[19:28:36] [Server thread/INFO]: Teleported Player863 to 4900.500000, -42.191000, -26.800000
+[19:28:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship through the captain's cabin door (heading 0): from z -13.30 to local 0.00 7.500 -9.24 (on ground 1.0)
+[19:28:38] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the player walks through the captain's cabin door (heading 0) without jumping (z -9.24, floor 0.000)
+[19:28:38] [Server thread/INFO]: Teleported Player863 to 4900.500000, -42.211000, -22.742000
+[19:28:39] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship back through the captain's cabin door (heading 0): local 0.00 7.500 -13.30
+[19:28:39] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: and back out through the captain's cabin door (heading 0) (z -13.30)
+[19:28:39] [Server thread/INFO]: Teleported Player863 to 4896.886000, -45.191000, -8.339000
+[19:28:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship through the engine room door (heading 35): from z 6.30 to local 0.00 4.500 2.24 (on ground 1.0)
+[19:28:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the player walks through the engine room door (heading 35) without jumping (z 2.24, floor 0.000)
+[19:28:41] [Server thread/INFO]: Teleported Player863 to 4899.215000, -45.211000, -11.662000
+[19:28:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship back through the engine room door (heading 35): local 0.00 4.500 6.30
+[19:28:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: and back out through the engine room door (heading 35) (z 6.30)
+[19:28:42] [Server thread/INFO]: Teleported Player863 to 4905.653000, -45.191000, -15.629000
+[19:28:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship through the crew quarters door (heading 35): from z -4.70 to local 2.63 4.500 -8.50 (on ground 1.0)
+[19:28:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the player walks through the crew quarters door (heading 35) without jumping (z -8.50, floor 0.000)
+[19:28:43] [Server thread/INFO]: Teleported Player863 to 4907.533000, -45.211000, -18.953000
+[19:28:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship back through the crew quarters door (heading 35): local 2.76 4.500 -4.53
+[19:28:44] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: and back out through the crew quarters door (heading 35) (z -4.53)
+[19:28:44] [Server thread/INFO]: Teleported Player863 to 4908.587000, -45.191000, -25.050000
+[19:28:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship through the stern gallery door (heading 35): from z -14.10 to local -0.00 4.500 -18.16 (on ground 1.0)
+[19:28:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the player walks through the stern gallery door (heading 35) without jumping (z -18.16, floor 0.000)
+[19:28:45] [Server thread/INFO]: Teleported Player863 to 4910.914000, -45.211000, -28.374000
+[19:28:47] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship back through the stern gallery door (heading 35): local 0.07 4.500 -14.42
+[19:28:47] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: and back out through the stern gallery door (heading 35) (z -14.42)
+[19:28:47] [Server thread/INFO]: Teleported Player863 to 4908.129000, -42.191000, -24.395000
+[19:28:48] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship through the captain's cabin door (heading 35): from z -13.30 to local 0.00 7.500 -9.24 (on ground 1.0)
+[19:28:48] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the player walks through the captain's cabin door (heading 35) without jumping (z -9.24, floor 0.000)
+[19:28:48] [Server thread/INFO]: Teleported Player863 to 4905.802000, -42.211000, -21.071000
+[19:28:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship back through the captain's cabin door (heading 35): local 0.00 7.500 -13.30
+[19:28:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: and back out through the captain's cabin door (heading 35) (z -13.30)
+[19:28:50] [Server thread/INFO]: Teleported Player863 to 4886.500000, -44.331000, 2.500000
+[19:28:51] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the gangplank is put out and stowed again (DEPLOYED, RETRACTED)
+[19:28:51] [Server thread/INFO]: Teleported Player863 to 4900.500000, -38.691000, -22.050000
+[19:28:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship at the helm: helm 1.00, engine phase 0.00 -> 1.60, speed 1.77
+[19:28:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the wheel and the rudder turn with the helm (1.00)
+[19:28:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the gears turn under way (phase 1.60)
+[19:28:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] gear_steamship moved 6.40 blocks in 7 s at the helm
+[19:28:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship steams under the player's control (moved 6.40)
+[19:28:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] gear_steamship: the funnel smokes and the engine beats (126 puffs, 19 sounds)
+[19:28:59] [Server thread/INFO]: Player863 stopped riding Gear Steamship
+[19:28:59] [Server thread/INFO]: Set Player863's game mode to Spectator Mode
+[19:28:59] [Server thread/INFO]: Teleported Player863 to 4875.857000, -42.331000, 22.388000
+[19:28:59] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[19:29:00] [Server thread/INFO]: Unmarked 40 chunks in minecraft:overworld from [304, -4] to [308, 3] for force loading
+[19:29:00] [Server thread/INFO]: Player863 is not riding any vehicle
+[19:29:00] [Server thread/INFO]: Teleported Player863 to 6000.500000, -48.000000, -59.500000
+[19:29:00] [Server thread/INFO]: Marked 80 chunks in minecraft:overworld from [370, -4] to [379, 3] to be force loaded
+[19:29:00] [Server thread/INFO]: Marked 174 chunks in minecraft:overworld from [379, -6] to [392, 6] to be force loaded
+[19:29:02] [Server thread/INFO]: No entity was found
+[19:29:02] [Server thread/INFO]: Successfully filled 31347 block(s)
+[19:29:02] [Server thread/INFO]: No blocks were filled
+[19:29:02] [Server thread/INFO]: No blocks were filled
+[19:29:02] [Server thread/INFO]: No blocks were filled
+[19:29:02] [Server thread/INFO]: No blocks were filled
+[19:29:02] [Server thread/INFO]: No blocks were filled
+[19:29:02] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:02] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:02] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:02] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:02] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:02] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:02] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:02] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:02] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:02] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:02] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:02] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:02] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:02] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:02] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:02] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:02] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:02] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:02] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:02] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 2436 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 1827 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:29:03] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:29:04] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:29:04] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:29:04] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:29:04] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:29:04] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:29:04] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:29:04] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:29:04] [Server thread/INFO]: Successfully filled 31262 block(s)
+[19:29:04] [Server thread/INFO]: Successfully filled 19894 block(s)
+[19:29:04] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:29:05] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:29:05] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:29:05] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:29:05] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:29:05] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:29:05] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:29:06] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:29:06] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:29:06] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:29:06] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:29:06] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:29:06] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:29:06] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:29:07] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:29:07] [Server thread/INFO]: Successfully filled 30954 block(s)
+[19:29:07] [Server thread/INFO]: Successfully filled 14070 block(s)
+[19:29:07] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 6369ms or 127 ticks behind
+[19:29:09] [Server thread/INFO]: Grande tente de commandement posée en 5944, -59, -28, entrée vers south.
+[19:29:09] [Server thread/INFO]: Petite tente d'aventurier posée en 5960, -59, -28, entrée vers south.
+[19:29:09] [Server thread/INFO]: Grand abri de marché posée en 5976, -59, -28, entrée vers south.
+[19:29:09] [Server thread/INFO]: Tente triangulaire de campement posée en 5992, -59, -28, entrée vers south.
+[19:29:09] [Server thread/INFO]: Tente d'habitation posée en 6008, -59, -28, entrée vers south.
+[19:29:09] [Server thread/INFO]: Grande tente de chef posée en 6024, -59, -28, entrée vers south.
+[19:29:09] [Server thread/INFO]: Tente du marchand d'armes et d'armures posée en 6040, -59, -28, entrée vers south.
+[19:29:09] [Server thread/INFO]: Tente du marchand d'alchimie posée en 6056, -59, -28, entrée vers south.
+[19:29:09] [Server thread/INFO]: Tente de l'herboriste posée en 5944, -59, -14, entrée vers south.
+[19:29:09] [Server thread/INFO]: Tente du forgeron posée en 5960, -59, -14, entrée vers south.
+[19:29:09] [Server thread/INFO]: Tente du marchand de nourriture posée en 5976, -59, -14, entrée vers south.
+[19:29:09] [Server thread/INFO]: Tente du marchand de tissus posée en 5992, -59, -14, entrée vers south.
+[19:29:09] [Server thread/INFO]: Pavillon au lion posé en 6008, -59, -14, entrée vers south.
+[19:29:09] [Server thread/INFO]: Longue tente au lion posée en 6024, -59, -14, entrée vers south.
+[19:29:09] [Server thread/INFO]: Tente marchande impériale posée en 6040, -59, -14, entrée vers south.
+[19:29:09] [Server thread/INFO]: Tente drapée au lion posée en 6056, -59, -14, entrée vers south.
+[19:29:09] [Server thread/INFO]: Chapiteau royal au lion posé en 5944, -59, 0, entrée vers south.
+[19:29:09] [Server thread/INFO]: Tente bleue à la balance posée en 5960, -59, 0, entrée vers south.
+[19:29:09] [Server thread/INFO]: Tente aux draperies rouges posée en 5976, -59, 0, entrée vers south.
+[19:29:09] [Server thread/INFO]: Tente à la fleur de lys posée en 5992, -59, 0, entrée vers south.
+[19:29:09] [Server thread/INFO]: Charrette couverte blanche posée en 6008, -59, 0, entrée vers south.
+[19:29:09] [Server thread/INFO]: Charrette de foin posée en 6024, -59, 0, entrée vers south.
+[19:29:09] [Server thread/INFO]: Roulotte de marchand posée en 6040, -59, 0, entrée vers south.
+[19:29:09] [Server thread/INFO]: Charrette de marché posée en 6056, -59, 0, entrée vers south.
+[19:29:09] [Server thread/INFO]: Charrette de bûcheron posée en 5944, -59, 14, entrée vers south.
+[19:29:09] [Server thread/INFO]: Charrette à tonneaux posée en 5960, -59, 14, entrée vers south.
+[19:29:09] [Server thread/INFO]: Atelier du forgeron posé en 5976, -59, 14, avant vers south.
+[19:29:09] [Server thread/INFO]: Atelier du tailleur de lin posé en 5992, -59, 14, avant vers south.
+[19:29:09] [Server thread/INFO]: Atelier du cuisinier posé en 6008, -59, 14, avant vers south.
+[19:29:09] [Server thread/INFO]: Atelier de l'alchimiste posé en 6024, -59, 14, avant vers south.
+[19:29:09] [Server thread/INFO]: Taverne nomade posée en 6040, -59, 14, entrée vers south.
+[19:29:09] [Server thread/INFO]: Guirlande festive posée en 6056, -59, 14, avant vers south.
+[19:29:09] [Server thread/INFO]: Étendoir à linge posé en 5944, -59, 28, avant vers south.
+[19:29:09] [Server thread/INFO]: Lanterne suspendue posée en 5960, -59, 28, avant vers south.
+[19:29:09] [Server thread/INFO]: Bannière de la Couronne posée en 5976, -59, 28, avant vers south.
+[19:29:09] [Server thread/INFO]: Filet suspendu posé en 5992, -59, 28, avant vers south.
+[19:29:09] [Server thread/INFO]: Séchoir à herbes posé en 6008, -59, 28, avant vers south.
+[19:29:09] [Server thread/INFO]: Pieu défensif posé en 6024, -59, 28, avant vers south.
+[19:29:09] [Server thread/INFO]: Pieu défensif posé en 6040, -59, 28, avant vers south.
+[19:29:09] [Server thread/INFO]: Pieu défensif posé en 6056, -59, 28, avant vers south.
+[19:29:09] [Server thread/INFO]: Navire mis à l'eau : Navire royal au lion [6090 -49 0]
+[19:29:09] [Server thread/INFO]: Navire mis à l'eau : Navire forteresse [6115 -49 0]
+[19:29:09] [Server thread/INFO]: Navire mis à l'eau : Navire à vapeur à engrenages [6140 -49 0]
+[19:29:09] [Server thread/INFO]: Navire mis à l'eau : Grand galion [6165 -48 0]
+[19:29:09] [Server thread/INFO]: Navire mis à l'eau : Grand vaisseau de guerre [6190 -49 0]
+[19:29:09] [Server thread/INFO]: Navire mis à l'eau : Grand navire aux voiles bleues [6215 -49 0]
+[19:29:09] [Server thread/INFO]: Navire mis à l'eau : Nautilus [6248 -48 0]
+[19:29:11] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf scene: 40 of 40 props placed (40 registered), 7 of 7 vessels afloat, 24 of 24 mobs alive
+[19:29:11] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] perf scene: the city of 40 props and the 7 vessels are in place (40 props registered, 7 vessels)
+[19:29:11] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf models (faces): royal_lion_ship=37227 fortress_ship=29489 gear_steamship=34742 galleon=35388 warship=52702 blue_frigate=26482 nautilus=121863
+[19:29:13] [Server thread/INFO]: Teleported Player863 to 6000.000000, -58.120000, -46.000000
+[19:29:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] perf client [market]: 201 + 201 frames, frame 29.6 ms with the mod's renderers vs 17.8 ms without (11.7 ms attributable), mod vertex emission 1.09 ms/frame, 12857 quads + 15 furniture blocks per frame, 449 mesh cells (25 culled), 0.27 MB/frame allocated on the render thread
+[19:29:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf client [market]: without the mod 0 quads/frame, 0.19 MB/frame allocated
+[19:29:25] [Server thread/INFO]: Teleported Player863 to 6040.000000, -42.620000, -70.000000
+[19:29:27] [Server thread/INFO]: Villager class_1646['Villager'/1569, l='ServerLevel[New World]', x=5948.10, y=-59.00, z=-10.50] died, message: 'Villager was slain by Zombie'
+[19:29:28] [Server thread/INFO]: Villager class_1646['Villager'/1561, l='ServerLevel[New World]', x=5947.59, y=-59.00, z=-11.20] died, message: 'Villager was slain by Zombie'
+[19:29:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] perf client [harbour]: 200 + 202 frames, frame 23.4 ms with the mod's renderers vs 21.7 ms without (1.7 ms attributable), mod vertex emission 0.22 ms/frame, 2535 quads + 0 furniture blocks per frame, 63 mesh cells (18 culled), 0.14 MB/frame allocated on the render thread
+[19:29:35] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf client [harbour]: without the mod 0 quads/frame, 0.12 MB/frame allocated
+[19:29:35] [Server thread/INFO]: Teleported Player863 to 6090.500000, -44.631000, -5.500000
+[19:29:41] [Server thread/INFO]: Villager class_1646['Villager'/1571, l='ServerLevel[New World]', x=5974.52, y=-59.00, z=-2.26] died, message: 'Villager was slain by Zombie'
+[19:29:45] [Server thread/INFO]: Villager class_1646['Villager'/1577, l='ServerLevel[New World]', x=5945.77, y=-59.00, z=14.43] died, message: 'Villager was slain by Zombie'
+[19:29:47] [Server thread/INFO]: Villager class_1646['Villager'/1565, l='ServerLevel[New World]', x=5980.39, y=-59.00, z=-10.72] died, message: 'Villager was slain by Zombie'
+[19:29:48] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] perf client [deck]: 108 + 200 frames, frame 55.5 ms with the mod's renderers vs 23.9 ms without (31.6 ms attributable), mod vertex emission 3.95 ms/frame, 40917 quads + 0 furniture blocks per frame, 1192 mesh cells (529 culled), 0.38 MB/frame allocated on the render thread
+[19:29:48] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf client [deck]: without the mod 0 quads/frame, 0.24 MB/frame allocated
+[19:29:48] [Server thread/INFO]: Teleported Player863 to 6040.000000, -42.620000, -70.000000
+[19:29:50] [Server thread/INFO]: Villager class_1646['Villager'/1579, l='ServerLevel[New World]', x=5948.40, y=-58.18, z=2.17] died, message: 'Villager was slain by Zombie'
+[19:29:53] [Server thread/INFO]: Itinéraire inconnu : perf_lion
+[19:29:53] [Server thread/INFO]: Itinéraire perf_lion créé (pingpong). Ajoutez des points avec /ship route addstop|addpoint perf_lion
+[19:29:53] [Server thread/INFO]: Point 1 ajouté à perf_lion : 6090.5 0.5 (escale A, 1 s)
+[19:29:53] [Server thread/INFO]: Point 2 ajouté à perf_lion : 6090.5 40.5 (escale B, 1 s)
+[19:29:53] [Server thread/INFO]: Navire royal au lion [6090 -49 0] suit maintenant l'itinéraire perf_lion (DOCKED).
+[19:30:00] [Server thread/INFO]: Villager class_1646['Villager'/1573, l='ServerLevel[New World]', x=5959.96, y=-59.00, z=12.54] died, message: 'Villager was slain by Zombie'
+[19:30:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf server: the royal lion ship sails at 1.09 blocks/s during the second measure
+[19:30:00] [Server thread/INFO]: Itinéraire perf_lion supprimé.
+[19:30:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] perf server: 100 ticks, MSPT 3.51 ms (24 mobs, 7 vessels at rest) vs 3.58 ms with the royal lion ship under way; collision hook 42 calls/tick, 0.112 ms/tick, 16 hull queries/tick, 186 boxes/tick; dry-room queries 54/tick; 416 KB/tick allocated on the server thread (393 KB/tick under way)
+[19:30:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf server under way: collision hook 40 calls/tick, 0.112 ms/tick, 16 hull queries/tick, 186 boxes/tick
+[19:30:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] perf run: 9 garbage collections in 60 s of wall time
+[19:30:00] [Server thread/INFO]: Villager class_1646['Villager'/1563, l='ServerLevel[New World]', x=5948.92, y=-58.45, z=-27.51] died, message: 'Villager was killed'
+[19:30:00] [Server thread/INFO]: Villager class_1646['Villager'/1567, l='ServerLevel[New World]', x=6046.50, y=-59.00, z=-7.45] died, message: 'Villager was killed'
+[19:30:00] [Server thread/INFO]: Villager class_1646['Villager'/1575, l='ServerLevel[New World]', x=6036.55, y=-59.00, z=-16.75] died, message: 'Villager was killed'
+[19:30:00] [Server thread/INFO]: Villager class_1646['Villager'/1581, l='ServerLevel[New World]', x=6089.13, y=-44.71, z=-4.37] died, message: 'Villager was killed'
+[19:30:00] [Server thread/INFO]: Villager class_1646['Villager'/1582, l='ServerLevel[New World]', x=6092.13, y=-44.71, z=0.63] died, message: 'Villager was killed'
+[19:30:00] [Server thread/INFO]: Villager class_1646['Villager'/1583, l='ServerLevel[New World]', x=6089.13, y=-44.71, z=5.63] died, message: 'Villager was killed'
+[19:30:00] [Server thread/INFO]: Villager class_1646['Villager'/1584, l='ServerLevel[New World]', x=6092.13, y=-44.71, z=10.63] died, message: 'Villager was killed'
+[19:30:00] [Server thread/INFO]: Killed 17 entities
+[19:30:00] [Render thread/INFO]: Villager class_1646['Villager'/1567, l='ClientLevel', x=6046.50, y=-59.00, z=-7.50] died, message: 'Villager died'
+[19:30:00] [Render thread/INFO]: Villager class_1646['Villager'/1575, l='ClientLevel', x=6036.55, y=-59.00, z=-16.75] died, message: 'Villager died'
+[19:30:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] perf broad phase: a villager 150 blocks from every vessel went through the collision hook 280 times in 40 ticks and no hull was queried (0)
+[19:30:04] [Server thread/INFO]: Villager class_1646['Villager'/1625, l='ServerLevel[New World]', x=5939.65, y=-59.00, z=-39.65] died, message: 'Villager was killed'
+[19:30:04] [Server thread/INFO]: Killed Villager
+[19:30:04] [Server thread/INFO]: Grande tente de commandement retirée en 5944, -59, -28.
+[19:30:04] [Server thread/INFO]: Petite tente d'aventurier retirée en 5960, -59, -28.
+[19:30:04] [Server thread/INFO]: Grand abri de marché retirée en 5976, -59, -28.
+[19:30:04] [Server thread/INFO]: Tente triangulaire de campement retirée en 5992, -59, -28.
+[19:30:04] [Server thread/INFO]: Tente d'habitation retirée en 6008, -59, -28.
+[19:30:04] [Server thread/INFO]: Grande tente de chef retirée en 6024, -59, -28.
+[19:30:04] [Server thread/INFO]: Tente du marchand d'armes et d'armures retirée en 6040, -59, -28.
+[19:30:04] [Server thread/INFO]: Tente du marchand d'alchimie retirée en 6056, -59, -28.
+[19:30:04] [Server thread/INFO]: Tente de l'herboriste retirée en 5944, -59, -14.
+[19:30:04] [Server thread/INFO]: Tente du forgeron retirée en 5960, -59, -14.
+[19:30:04] [Server thread/INFO]: Tente du marchand de nourriture retirée en 5976, -59, -14.
+[19:30:04] [Server thread/INFO]: Tente du marchand de tissus retirée en 5992, -59, -14.
+[19:30:04] [Server thread/INFO]: Pavillon au lion retiré en 6008, -59, -14.
+[19:30:04] [Server thread/INFO]: Longue tente au lion retirée en 6024, -59, -14.
+[19:30:04] [Server thread/INFO]: Tente marchande impériale retirée en 6040, -59, -14.
+[19:30:04] [Server thread/INFO]: Tente drapée au lion retirée en 6056, -59, -14.
+[19:30:04] [Server thread/INFO]: Chapiteau royal au lion retiré en 5944, -59, 0.
+[19:30:04] [Server thread/INFO]: Tente bleue à la balance retirée en 5960, -59, 0.
+[19:30:04] [Server thread/INFO]: Tente aux draperies rouges retirée en 5976, -59, 0.
+[19:30:04] [Server thread/INFO]: Tente à la fleur de lys retirée en 5992, -59, 0.
+[19:30:04] [Server thread/INFO]: Charrette couverte blanche retirée en 6008, -59, 0.
+[19:30:04] [Server thread/INFO]: Charrette de foin retirée en 6024, -59, 0.
+[19:30:04] [Server thread/INFO]: Roulotte de marchand retirée en 6040, -59, 0.
+[19:30:04] [Server thread/INFO]: Charrette de marché retirée en 6056, -59, 0.
+[19:30:04] [Server thread/INFO]: Charrette de bûcheron retirée en 5944, -59, 14.
+[19:30:04] [Server thread/INFO]: Charrette à tonneaux retirée en 5960, -59, 14.
+[19:30:04] [Server thread/INFO]: Atelier du forgeron retiré en 5976, -59, 14.
+[19:30:04] [Server thread/INFO]: Atelier du tailleur de lin retiré en 5992, -59, 14.
+[19:30:04] [Server thread/INFO]: Atelier du cuisinier retiré en 6008, -59, 14.
+[19:30:04] [Server thread/INFO]: Atelier de l'alchimiste retiré en 6024, -59, 14.
+[19:30:04] [Server thread/INFO]: Taverne nomade retirée en 6040, -59, 14.
+[19:30:04] [Server thread/INFO]: Guirlande festive retirée en 6056, -59, 14.
+[19:30:04] [Server thread/INFO]: Étendoir à linge retiré en 5944, -59, 28.
+[19:30:04] [Server thread/INFO]: Lanterne suspendue retirée en 5960, -59, 28.
+[19:30:04] [Server thread/INFO]: Bannière de la Couronne retirée en 5976, -59, 28.
+[19:30:04] [Server thread/INFO]: Filet suspendu retiré en 5992, -59, 28.
+[19:30:04] [Server thread/INFO]: Séchoir à herbes retiré en 6008, -59, 28.
+[19:30:04] [Server thread/INFO]: Pieu défensif retiré en 6024, -59, 28.
+[19:30:04] [Server thread/INFO]: Pieu défensif retiré en 6040, -59, 28.
+[19:30:04] [Server thread/INFO]: Pieu défensif retiré en 6056, -59, 28.
+[19:30:04] [Server thread/INFO]: Unmarked 80 chunks in minecraft:overworld from [370, -4] to [379, 3] for force loading
+[19:30:04] [Server thread/INFO]: Unmarked 174 chunks in minecraft:overworld from [379, -6] to [392, 6] for force loading
+[19:30:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf cleanup: vessels left []
+[19:30:05] [Server thread/INFO]: Stopping server
+[19:30:05] [Server thread/INFO]: Saving players
+[19:30:05] [Server thread/INFO]: Player863 lost connection: Disconnected
+[19:30:05] [Server thread/INFO]: Player863 left the game
+[19:30:05] [Server thread/INFO]: Saving worlds
+[19:30:05] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:overworld
+[19:30:05] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_end
+[19:30:05] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_nether
+[19:30:05] [Server thread/INFO]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[19:30:05] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[19:30:05] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[19:30:05] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[19:30:05] [Render thread/INFO]: Stopping!
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1794421080904.json
+
+[Incubating] Problems report is available at: file:///home/runner/work/medieval-ships/medieval-ships/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.2.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1h 12m 12s
+13 actionable tasks: 13 executed
