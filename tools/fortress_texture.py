@@ -19,6 +19,13 @@ white top bevel), smoother faces, bright silver studs; the red panels in dark ir
 rails); the sails a deeper crimson, each cloth block its own value, stronger bevels, the head in the yard's shadow and
 a lit belly, warmer whites; a gold fringe on the banners, the tower on the pennants.
 
+Phase 9 (1.28.1, "un côté plus métallique à la pierre"): the stone as iron-bound plating / plate armour: a mid-dark
+steel grey with a slight cool tint (base about #6e7378), a bright highlight along the top and left edges (#a9aeb3), a
+dark bevel along the bottom and right edges (#3e4246) over a thin dark joint, a glossy sheen across each plate, a faint
+brushed grain and a hammered dent or two, no chips, cracks nor moss; rows of domed rivets with a glint on the belts,
+the wale and the pillars; the wale at the waterline heavier and darker, wet in its lowest half block (`wale_iron`); the
+belt's upper course drawn at its own aspect (`belt_stud`); the caps, quoins and sills in polished steel.
+
 Colours of the references (docs/Fortress_PLAN.md): a dark brown planked hull clad with light grey stone blocks
 (stone wales, vertical stone ribs, crenellated stone parapets, iron studs), red panels between the ribs, iron
 straps; the stern castle in grey stone with lit windows in dark wooden frames, the turret of dark timber with a
@@ -137,11 +144,16 @@ REGIONS = {
     "studs_top":    (128, 464, 64, 32),
     "stone_grime":  (240, 432, 64, 32),
     "stud_head":    (304, 432, 8, 8),
+    # phase 9 (metallic): the heavy dark plating of the wale at the waterline (wet at its foot) and the belt's upper
+    # course (0.54 block high: 16 x 8 px blocks, so that its rivets stay round)
+    "wale_iron":    (384, 128, 64, 32),
+    "belt_stud":    (352, 80, 64, 16),
 }
 # single stone blocks (16 x 16, a joint along their right and bottom edges, bevelled): a tone each
 # (phase 5: twice as many tiles, so that neighbouring blocks seldom repeat; a grimy set for the courses low on the hull)
-N_SB, N_SBS, N_SBD, N_SBL, N_SBG = 12, 5, 6, 4, 4
+N_SB, N_SBS, N_SBD, N_SBL, N_SBG, N_SBW, N_SBH = 12, 5, 6, 4, 4, 4, 4
 STONE_TILES = {"stone": ["sb_%d" % k for k in range(N_SB)],
+               "wale_iron": ["sbw_%d" % k for k in range(N_SBW)], "belt_stud": ["sbh_%d" % k for k in range(N_SBH)],
                "stone_stud": ["sb_0", "sbs_0", "sb_2", "sbs_1", "sb_4", "sbs_2", "sb_7", "sbs_3", "sb_9", "sbs_4"],
                "stone_dark": ["sbd_%d" % k for k in range(N_SBD)], "stone_light": ["sbl_%d" % k for k in range(N_SBL)],
                "beak": ["sb_1", "sbs_0", "sb_3", "sbs_2", "sb_8", "sbs_3"], "stone_grime": ["sbg_%d" % k for k in range(N_SBG)]}
@@ -155,19 +167,29 @@ for _k in range(N_SBL):
     REGIONS["sbl_%d" % _k] = (208 + 16 * _k, 336, 16, 16) if _k < 3 else (160, 432, 16, 16)
 for _k in range(N_SBG):
     REGIONS["sbg_%d" % _k] = (176 + 16 * _k, 432, 16, 16)
+for _k in range(N_SBW):
+    REGIONS["sbw_%d" % _k] = (400 + 16 * _k, 64, 16, 16)      # (phase 9) the wale's plates, wet at their foot
+for _k in range(N_SBH):
+    REGIONS["sbh_%d" % _k] = (416 + 16 * _k, 80, 16, 8)       # (phase 9) the belt's upper course, half-height plates
 # regions mapped one block = 16 px from the face's corner (joints and studs aligned with the cube's edges)
 ALIGNED = ("stone", "stone_dark", "stone_stud", "stone_light", "beak", "stone_grime", "red_panel", "studs", "studs_top", "stud_post",
-           "rib_plate")
+           "rib_plate", "wale_iron", "belt_stud")
 ALIGNED_V = ("stud_post", "rib_plate")   # these two stretched across their (narrow) face, aligned down it only
 # (phase 6: lighter and warmer again, as the main reference's light stone: the hull's sides are lit at about half in game)
 # (phase 7: lighter and warmer again, the light stone fortress of 112: base about #b4a696, top bevel near #dcd2c6)
 # (phase 8: the chiselled mid grey of 112 instead of cream: base about #a9a39c, top-left bevel #cdc7bf, bottom-right
 # bevel #6e6862 over a 2 px joint, each block its own value within 8 %, about one block in six darker, #8e8880)
-STONE_TONES = ("a9a39c", "a39d96", "b0aaa3", "9e9891", "aca69f", "a59f98")
-STONE_DARKER = "8e8880"
-STONE_DARK = ("8a847d", "817b74", "908a83", "77716a")
-STONE_LIGHT = ("c9c3bb", "c2bcb4", "d0cac2")
-STONE_MORTAR = "2a2420"
+# (phase 9, 1.28.1: the stone metallic, "sur l'eau ça fait bizarre": a mid-dark steel grey with a slight cool tint instead
+# of the bright limestone, highlights #a9aeb3 along the top-left edges, shadow #3e4246 along the bottom-right, thin dark
+# joints, one block in six darker; the wale's plating darker still; polished steel for the caps, quoins and sills)
+STONE_TONES = ("6e7378", "6a6f74", "72777c", "676c71", "70757a", "6c7177")
+STONE_DARKER = "5c6166"
+STONE_DARK = ("54595f", "4e5359", "585d63", "4a4f55")
+STONE_LIGHT = ("878c92", "82878d", "8c9197")
+STONE_MORTAR = "1a1d20"
+STONE_HI = "a9aeb3"          # the highlight along the top and left edges of a plate (relative to the nominal base)
+STONE_LO = "3e4246"          # the shadow along its bottom and right edges
+WALE_TONES = ("50555b", "4c5157", "545960")   # the heavy plating at the waterline
 # names used by the shared helpers (ship_details, generate_galleon, corsair_furniture): the same pixels
 for _alias, _src in (("hull_mid", "wood_mid"), ("hull_light", "wood_light"), ("hull_dark", "wood_dark"), ("wood_trim", "wood_dark"),
                      ("wood_honey", "wood_mid"), ("blue_paint", "navy"), ("pilaster", "wood_dark"), ("velvet", "red_paint"),
@@ -294,68 +316,77 @@ def _boss(dx, dy, r, base="4c4c52"):
     return None
 
 
+def _rivet(dx, dy, r):
+    """A domed steel rivet of radius r centred on (0, 0) (phase 9), lit from the top left: a bright glint, a body shading
+    from light to a mid grey towards the bottom right (never a dark hole), a thin dark ring on its shadow side, and
+    "shadow" one px down and right of it; None outside."""
+    d = math.hypot(dx, dy)
+    if d <= r:
+        if math.hypot(dx + 0.38 * r, dy + 0.38 * r) < max(0.7, 0.3 * r):
+            return _rgb("f2f4f6")
+        k = 1.3 - 0.45 * (d / r) ** 2 - 0.4 * (dx + dy) / (2 * r)
+        return _scale(_rgb("9ea2a8"), max(0.5, min(1.45, k)))
+    if d <= r + 0.8:
+        return _rgb("2a2d31") if dx + dy > 0.2 * r else None
+    if math.hypot(dx - 0.8, dy - 0.8) <= r + 0.5:
+        return "shadow"
+    return None
+
+
 def _stone_block(px, u, v, bw, bh, base, rng, mortar, stud=False, x0=0, y0=0, clip=None, grime=0.0):
-    """One bevelled stone block (the voxel masonry of the references) with its shading painted in: a lit top and left
-    edge, a shadowed bottom and right edge over a dark joint (along its right and bottom edges), the lower half a little
-    darker, a mottled face, dark and light grains, a chip or two (a pit lit on its lower lip), now and then a hairline
-    crack; a slight warm or cool cast of its own. stud: a domed iron stud and its shadow. grime: dirt and moss rising
-    from its foot (the courses low on the hull)."""
+    """One bevelled metal plate (phase 9: the fortress's stone as iron-bound plating / plate armour), its shading
+    painted in: a thin dark joint along its right and bottom edges, a bright highlight along its top and left edges
+    (two px, the outer one near STONE_HI), a dark bevel along its bottom and right edges (STONE_LO), a glossy sheen
+    brighter towards the top left corner, a faint brushed grain along the plate and a hammered dent or two shaded to
+    their upper left, now and then a bright scratch; no chips, cracks, speckle nor moss (nothing to shimmer from afar).
+    stud: a row of two domed rivets with a glint and the shadow each casts (the rivet rows of the belts, the wale and
+    the pillars). grime: the plate wet and dark towards its foot (the wale at the waterline, the buttresses' feet)."""
     mortar = _rgb(mortar)
     s = rng.randrange(1 << 20)
-    cast = rng.choice(((6, 3, -2), (0, 0, 0), (-3, 0, 5), (3, 1, 0), (0, 0, 0), (-2, -1, 2)))
+    cast = rng.choice(((0, 0, 0), (-2, -1, 2), (0, 0, 0), (-3, 0, 4), (2, 1, -1), (0, 0, 0), (-1, 0, 3)))   # a slight cool cast now and then
     base = tuple(max(0, min(255, base[i] + cast[i])) for i in range(3))
-    chips = [(rng.randrange(2, bw - 4), rng.randrange(2, bh - 5), rng.choice((1, 2))) for _ in range(rng.choice((0, 1)))]
-    crack = set()
-    if rng.random() < 0.15:
-        cx, cy, dx = rng.randrange(3, bw - 4), rng.randrange(2, bh - 6), rng.choice((-1, 1))
-        for _ in range(rng.randrange(4, 8)):
-            crack.add((cx, cy))
-            cy += 1
-            if rng.random() < 0.5:
-                cx += dx
-            if not (1 <= cx < bw - 2 and cy < bh - 2):
-                break
-    sx, sy = rng.randrange(4, bw - 7), rng.randrange(3, bh - 7)
+    kb = base[1] / 115.0                                   # the plate's value against the nominal base: its edges follow it
+    hi, lo = _scale(_rgb(STONE_HI), kb), _scale(_rgb(STONE_LO), kb)
+    scratch = (rng.randrange(3, bw - 6), rng.randrange(2, bh - 5), rng.randrange(3, 6)) if bh >= 12 and rng.random() < 0.12 else None
+    dents = [(rng.uniform(3, bw - 4), rng.uniform(2.5, bh - 3.5), rng.uniform(2.0, 3.2)) for _ in range(rng.choice((0, 1, 1, 2)))]
+    r = 1.8 if bh >= 12 else 1.35
+    rivets = ((bw * 0.28, bh * 0.44 - 0.3), (bw * 0.72, bh * 0.44 - 0.3)) if stud else ()
     for y in range(bh):
         for x in range(bw):
             X, Y = x0 + x, y0 + y
             if clip and not (0 <= X < clip[0] and 0 <= Y < clip[1]):
                 continue
             if x == bw - 1 or y == bh - 1:
-                c = _mix(mortar, base, 0.14 if (u + X + 2 * (v + Y)) % 3 == 0 else 0.0)
-            elif x == bw - 2 or y == bh - 2:
-                c = _mix(mortar, _scale(base, 0.62), 0.45)      # (phase 8: the joint 2 px wide, its inner px the dark bevel)
+                c = _mix(mortar, base, 0.1 if (u + X + 2 * (v + Y)) % 3 == 0 else 0.0)     # the thin dark joint
             else:
-                n = _fbm(u + X, v + Y, s)
-                k = 1.0 + 0.14 * (n - 0.5) - 0.06 * y / bh                                   # (phase 7: smoother faces)
-                k += (0.21 if y == 0 else 0.1 if y == 1 else 0.04 if y == 2 else 0)       # (phase 8: the lit top-left bevel, + 21 %)
-                k += (0.18 if x == 0 else 0.07 if x == 1 else 0)
-                k -= (0.3 if y == bh - 3 else 0.12 if y == bh - 4 else 0)                 # (the dark bottom-right bevel, - 35 %)
-                k -= (0.26 if x == bw - 3 else 0.1 if x == bw - 4 else 0)
-                g = _hash(u + X, v + Y, s + 5)
-                k += -0.13 if g > 0.965 else 0.09 if g < 0.03 else 0.0
+                k = 1.0 + 0.16 * (0.5 - (x + y) / (bw + bh - 4.0))                            # the glossy sheen
+                k += 0.07 * (_vnoise((u + X) * 0.5, (v + Y) * 2.5, s, 3.0) - 0.5)            # the brushed grain, along the plate
+                k += 0.05 * (_vnoise(u + X, v + Y, s + 7, 6.0) - 0.5)                        # the hammered surface
+                for dx_, dy_, dr in dents:
+                    d = math.hypot(x - dx_, y - dy_)
+                    if d < dr:
+                        k -= 0.07 * (1 - d / dr) * (1 + 0.8 * (dx_ - x + dy_ - y) / dr)     # a dent: dark to the top left, lit at its lip
                 c = _scale(base, k)
-                for cx, cy, r in chips:
-                    if cx <= x <= cx + r and cy <= y < cy + r:
-                        c = _scale(base, 0.6)
-                    elif cx <= x <= cx + r and y == cy + r:
-                        c = _scale(base, 1.22)
-                if (x, y) in crack:
-                    c = _scale(base, 0.62)
-                elif (x - 1, y) in crack:
-                    c = _scale(c, 1.08)
+                if y == 0 or (x == 0 and y < bh - 2):
+                    c = _mix(hi, c, 0.12)                                                     # the highlight along the top and left
+                elif y == 1 or (x == 1 and y < bh - 3):
+                    c = _mix(hi, c, 0.55)
+                if y == bh - 2 or (x == bw - 2 and y >= 1):
+                    c = _mix(lo, c, 0.12)                                                     # the dark bevel along the bottom and right
+                elif (y == bh - 3 and x >= 2) or (x == bw - 3 and y >= 2):
+                    c = _mix(lo, c, 0.62)
+                if scratch and scratch[1] <= y < scratch[1] + scratch[2] and x == scratch[0] + (y - scratch[1]):
+                    c = _scale(c, 1.28)
                 if grime:
-                    t = max(0.0, (y - bh * 0.4) / (bh * 0.6))
-                    c = _mix(c, _rgb("2e2c22"), min(0.55, grime * t ** 1.4 * (0.5 + n)))
-                    if y > bh * 0.55 and _hash(u + X, v + Y, s + 9) < 0.12 * grime:
-                        c = _mix(c, _rgb("56622e"), 0.65)
-                if stud:
-                    sc = _stud_px(x - sx, y - sy)
-                    if sc is not None:
-                        c = sc
-                    elif (x - sx == 3 and 1 <= y - sy <= 3) or (y - sy == 3 and 1 <= x - sx <= 3):
-                        c = _scale(c, 0.6)
-            px[u + X, v + Y] = _jitter(c, rng, 3) + (255,)
+                    t = max(0.0, (y - bh * 0.42) / (bh * 0.58))
+                    c = _mix(c, _rgb("1c2024"), min(0.62, grime * t ** 1.3))
+                for rx, ry in rivets:
+                    bc = _rivet(x - rx, y - ry, r)
+                    if bc == "shadow":
+                        c = _scale(c, 0.78)
+                    elif bc is not None:
+                        c = bc
+            px[u + X, v + Y] = _jitter(c, rng, 1) + (255,)
 
 
 def _stone_tone(rng, tones, darker=None):
@@ -376,7 +407,7 @@ def _stone(px, region, rng, tones=STONE_TONES, mortar=STONE_MORTAR, studs=False,
         for bx in range(-off, w, bw):
             base = _stone_tone(rng, tones, darker)
             if bevel:
-                _stone_block(px, u, v, bw, bh, base, rng, mortar, stud=studs and rng.random() < 0.55, x0=bx, y0=by, clip=(w, h), grime=grime)
+                _stone_block(px, u, v, bw, bh, base, rng, mortar, stud=studs, x0=bx, y0=by, clip=(w, h), grime=grime)   # (phase 9: rivet rows)
                 continue
             for y in range(bh):
                 for x in range(bw):
@@ -403,13 +434,22 @@ def _stone_tiles(px, rng):
                      STONE_MORTAR, stud=True)
     for k in range(N_SBD):
         u, v, w, h = REGIONS["sbd_%d" % k]
-        _stone_block(px, u, v, w, h, _scale(_rgb(STONE_DARK[k % 4]), rng.uniform(0.95, 1.05)), rng, "151210", grime=0.35)
+        _stone_block(px, u, v, w, h, _scale(_rgb(STONE_DARK[k % 4]), rng.uniform(0.95, 1.05)), rng, "121416", grime=0.35)
     for k in range(N_SBL):
         u, v, w, h = REGIONS["sbl_%d" % k]
-        _stone_block(px, u, v, w, h, _scale(_rgb(STONE_LIGHT[k % 3]), rng.uniform(0.96, 1.04)), rng, "3a352f")
+        _stone_block(px, u, v, w, h, _scale(_rgb(STONE_LIGHT[k % 3]), rng.uniform(0.96, 1.04)), rng, "2a2d30")
     for k in range(N_SBG):
         u, v, w, h = REGIONS["sbg_%d" % k]
-        _stone_block(px, u, v, w, h, _scale(_rgb(STONE_TONES[(3 * k) % 6]), rng.uniform(0.86, 0.96)), rng, STONE_MORTAR, grime=1.0)
+        _stone_block(px, u, v, w, h, _scale(_rgb(WALE_TONES[k % 3]), rng.uniform(0.94, 1.02)), rng, STONE_MORTAR, grime=1.0)
+    # (phase 9) the wale's plates at the waterline: heavy dark iron, riveted, wet in their lowest half block; the belt's
+    # upper course: half-height plates, a rivet row each
+    for k in range(N_SBW):
+        u, v, w, h = REGIONS["sbw_%d" % k]
+        _stone_block(px, u, v, w, h, _scale(_rgb(WALE_TONES[k % 3]), rng.uniform(0.96, 1.04)), rng, STONE_MORTAR, stud=True, grime=1.0)
+    for k in range(N_SBH):
+        u, v, w, h = REGIONS["sbh_%d" % k]
+        _stone_block(px, u, v, w, h, _scale(_rgb(STONE_DARKER if k == 3 else STONE_TONES[(2 * k + 1) % 6]), rng.uniform(0.96, 1.04)), rng,
+                     STONE_MORTAR, stud=True)
 
 
 def _boards(px, region, tones, seam, rng, plank_h=4, butt=(22, 46), grain=0.07, nails=True, knots=0.18, shade=None, worn=0.0,
@@ -855,10 +895,10 @@ def _tile_edge(px, region, rng):
                 if y == 3:
                     c = _rgb("3a120e")
             else:
-                c = _scale(_rgb(("a3a29c", "8f8e88", "b2b1aa")[(x // 16) % 3]), 1.0 + (0.16 if y == 4 else 0) - (0.2 if y == h - 1 else 0.08 if y == h - 2 else 0)
-                           + 0.14 * (_fbm(x, y, s) - 0.5) - 0.12 * (y == 5))
+                c = _scale(_rgb(("6e7378", "626771", "787d82")[(x // 16) % 3]), 1.0 + (0.3 if y == 4 else 0) - (0.3 if y == h - 1 else 0.1 if y == h - 2 else 0)
+                           + 0.08 * (_fbm(x, y, s) - 0.5) - 0.1 * (y == 5))             # (phase 9: steel)
                 if x % 16 == 0:
-                    c = _rgb("3a3936")
+                    c = _rgb("1a1d20")
                 elif x % 16 == 1:
                     c = _scale(c, 1.12)
             px[u + x, v + y] = _jitter(c, rng, 3) + (255,)
@@ -1239,11 +1279,13 @@ def make_texture(path):
     px = img.load()
     R = REGIONS
     _stone(px, R["stone"], rng, darker=STONE_DARKER)
-    _stone(px, R["stone_dark"], rng, tones=STONE_DARK, mortar="151210", grime=0.35)
+    _stone(px, R["stone_dark"], rng, tones=STONE_DARK, mortar="121416", grime=0.35)
     _stone(px, R["stone_stud"], rng, studs=True, darker=STONE_DARKER)
-    _stone(px, R["stone_light"], rng, tones=STONE_LIGHT, mortar="3a352f")
+    _stone(px, R["stone_light"], rng, tones=STONE_LIGHT, mortar="2a2d30")
     _stone(px, R["beak"], rng, studs=True, darker=STONE_DARKER)
-    _stone(px, R["stone_grime"], rng, tones=tuple("%02x%02x%02x" % _scale(_rgb(t), 0.92) for t in STONE_TONES), grime=1.0)
+    _stone(px, R["stone_grime"], rng, tones=WALE_TONES, grime=1.0)
+    _stone(px, R["wale_iron"], rng, tones=WALE_TONES, studs=True, grime=1.0)          # (phase 9) the plating at the waterline
+    _stone(px, R["belt_stud"], rng, studs=True, bh=8, darker=STONE_DARKER)            # (phase 9) the belt's upper course
     _stone_tiles(px, random.Random(5150))
     _stud_post(px, R["stud_post"], rng)
     _iron_rail(px, R["iron_rail"], rng)
@@ -1494,7 +1536,7 @@ def make_item_icon(path):
     masts with red sails bordered in white (a beige tower on the main course), red pennants."""
     img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
     px = img.load()
-    stone, red, brown, dark = _rgb("a3a29c"), _rgb("b8262b"), _rgb("3e2616"), _rgb("2a1a0e")
+    stone, red, brown, dark = _rgb("6e7378"), _rgb("b8262b"), _rgb("3e2616"), _rgb("2a1a0e")
     white, mast, beige, roof = _rgb("dcdcd6"), _rgb("6e4a2a"), _rgb(BEIGE), _rgb("a8302a")
     for x in range(1, 15):
         for y in range(10, 15):
@@ -1507,7 +1549,7 @@ def make_item_icon(path):
     # the stern castle and its turret
     for x in range(11, 15):
         for y in range(7, 10):
-            px[x, y] = (stone if (x + y) % 2 else _rgb("8f8e88")) + (255,)
+            px[x, y] = (stone if (x + y) % 2 else _rgb("5c6166")) + (255,)
     px[13, 8] = _rgb("ffd27a") + (255,)
     for x, y in ((12, 5), (13, 5), (12, 6), (13, 6)):
         px[x, y] = dark + (255,)

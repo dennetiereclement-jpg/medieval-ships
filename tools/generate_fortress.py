@@ -259,7 +259,7 @@ def counter(bone):
     (main reference), dark planks in rows across, the stone wale's course across it, a row of corbels under the
     cabin's floor where it overhangs the counter's top."""
     ys = [fs.COUNTER_FOOT_Y + 0.05, -1.0, -0.3, WALE[0], WALE[1], 2.2, 3.0, fs.KNUCKLE_Y]
-    regs = ["hull_deep", "hull_low", "hull_brown", "stone_stud", "strake_brown", "strake_brown2", "strake_brown"]
+    regs = ["hull_deep", "hull_low", "hull_brown", "wale_iron", "strake_brown", "strake_brown2", "strake_brown"]
     for k in range(len(ys) - 1):
         ya, yb = ys[k], ys[k + 1]
         za, zb = fs.stern_z(ya + 1e-6), fs.stern_z(yb - 1e-6)
@@ -324,11 +324,12 @@ def cladding(bone, detail):
     each side of them (the panels' frames), under the wale the rib going on down as a stone buttress of stacked blocks
     (the voxel buttresses of the main reference), and stone quoins climbing the stem in a staircase (phase 8)."""
     for side, sn in SIDES:
+        # (phase 9) the wale: heavy dark riveted plating, wet in its lowest half block at the waterline
         stone_course(bone, "wale_low_" + sn, side, TZ + 0.1, BOW_Z + 0.3, lambda z: WALE[0] + 0.3 * lift(z), lambda z: WALE[1] + 0.3 * lift(z), 0.24,
-                     region="stone_stud", jitter=0.02)
+                     region="wale_iron", jitter=0.02)
         # (phase 7) the belt in two courses, the upper one with studs, the lower one's joints staggered by half a block
         stone_course(bone, "belt_" + sn, side, TZ + 0.05, HEAD_Z - 0.2, lambda z: fs.sheer_y(z) - 0.2 - BELT_UP, lambda z: fs.sheer_y(z) - 0.2, 0.3,
-                     region="stone_stud", jitter=0.03)
+                     region="belt_stud", jitter=0.03)          # (phase 9: half-height riveted plates)
         stone_course(bone, "belt_low_" + sn, side, TZ + 0.05, HEAD_Z - 0.2, lambda z: fs.sheer_y(z) - 0.2 - BELT_H,
                      lambda z: fs.sheer_y(z) - 0.2 - BELT_UP, 0.28, region="stone", jitter=0.03, phase=0.5)
         # the gunwale's cap stones over the belt, from the outer face in to the bulwark's inner face
@@ -356,10 +357,10 @@ def cladding(bone, detail):
                     continue                                 # the counter's corner (stepped quoins there, see counter())
                 p, u, v, nn = side_frame(zk, (ya + yb) / 2, side)
                 o = 0.34 + RNG.uniform(-0.02, 0.02)
-                # (phase 7) a light stone pillar standing a third of a block proud, iron studs in some of its blocks, as the
-                # voxel pillars of the main reference (the black iron plates of phases 4-6 are gone)
+                # (phase 7) a stone pillar standing a third of a block proud, as the voxel pillars of the main reference (the
+                # black iron plates of phases 4-6 are gone); phase 9: riveted plating on every block of it
                 add_cube(bone, "rib_%s%d_%d" % (sn, j, k), p + nn * (o / 2 - 0.06), np.column_stack([u, v, nn]), (RIB_W, yb - ya + 0.02, o + 0.12),
-                         "stone_stud" if k % 2 else "stone")
+                         "stone_stud")
             # the panels' frame (phase 8): a dark walnut post with silver studs on each side of the rib, from the wale to
             # the foot of the studded band, on every rib of the flank (the red cells run on under the forecastle)
             yt = RED_TOP + 0.8 * lift(z)
