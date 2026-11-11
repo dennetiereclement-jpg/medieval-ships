@@ -29,6 +29,6 @@ abstract class WorldRendererMixin {
 	private void medievalships$frustum(ObjectAllocator allocator, RenderTickCounter tickCounter, boolean renderBlockOutline, Camera camera,
 			Matrix4f positionMatrix, Matrix4f basicProjectionMatrix, Matrix4f projectionMatrix, GpuBufferSlice fogBuffer, Vector4f fogColor,
 			boolean renderSky, CallbackInfo ci) {
-		RenderCulling.frame(projectionMatrix);
+		RenderCulling.frame(positionMatrix, projectionMatrix);
 	}
 }

@@ -7,13 +7,15 @@ import org.joml.Matrix4fc;
 import net.fabricmc.loader.api.FabricLoader;
 
 /**
- * The view frustum of the frame being drawn, in view space (the camera at the origin, looking down -z), for the
- * mod's own culling of what vanilla cannot cull: the cells of a ship's static mesh ({@link BbModel.MeshSink#cellVisible})
- * and the props drawn outside their block ({@link TentBlockEntityRenderer}). Fed by {@code WorldRendererMixin} with the
- * projection matrix of each world render; a box is tested after its corners are transformed by the render command's
- * position matrix (ship-local or block-local to view space), with a margin of one block. Without a frustum (the mixin
- * did not apply, a frame not yet drawn) everything is visible. Switched off under Iris: its shadow pass draws the
- * entities again from the sun's point of view, where the player's frustum would cut their shadows.
+ * The view frustum of the frame being drawn, in camera-relative world space (the camera at the origin, the world's
+ * axes: the space the entity and block entity render commands are submitted in), for the mod's own culling of what
+ * vanilla cannot cull: the cells of a ship's static mesh ({@link BbModel.MeshSink#cellVisible}) and the props drawn
+ * outside their block ({@link TentBlockEntityRenderer}). Fed by {@code WorldRendererMixin} with the camera rotation and
+ * the projection matrix of each world render (what vanilla builds its own frustum with); a box is tested after its
+ * corners are transformed by the render command's position matrix (ship-local or block-local to that space), with a
+ * margin of one block. Without a frustum (the mixin did not apply, a frame not yet drawn) everything is visible.
+ * Switched off under Iris: its shadow pass draws the entities again from the sun's point of view, where the player's
+ * frustum would cut their shadows.
  */
 public final class RenderCulling {
 	/** Margin around a tested box (blocks), against the rounding of the corners and the cells' tight boxes. */
@@ -30,18 +32,23 @@ public final class RenderCulling {
 		return ENABLED && ready;
 	}
 
-	/** Start of a world render: the frustum of this frame, from its projection matrix (view space). */
-	public static void frame(Matrix4fc projection) {
-		if (!ENABLED || projection == null) {
+	/**
+	 * Start of a world render: the frustum of this frame, from its projection matrix and the camera's rotation (the
+	 * {@code positionMatrix} vanilla builds its own frustum with): the entity and block entity commands are submitted in
+	 * camera-relative world space (their matrix stack carries no camera rotation, the camera being the origin), which
+	 * is the space of these planes.
+	 */
+	public static void frame(Matrix4fc positionMatrix, Matrix4fc projection) {
+		if (!ENABLED || projection == null || positionMatrix == null) {
 			return;
 		}
-		FRUSTUM.set(new Matrix4f(projection), false);
+		FRUSTUM.set(new Matrix4f(projection).mul(positionMatrix), false);
 		ready = true;
 	}
 
 	/**
-	 * Is a box, given in the space of {@code m} (a render command's position matrix, to view space), at least partly in
-	 * the frustum? True when culling is not active.
+	 * Is a box, given in the space of {@code m} (a render command's position matrix, to camera-relative world space),
+	 * at least partly in the frustum? True when culling is not active.
 	 */
 	public static boolean visible(Matrix4fc m, float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
 		if (!active()) {

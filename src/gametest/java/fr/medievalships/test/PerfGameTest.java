@@ -50,9 +50,12 @@ public final class PerfGameTest {
 	private static final int X = 6000, Z = 0;
 	/** Top of the stone square; the anchors of the props sit on it. */
 	private static final int GROUND = -60;
-	/** The water of the harbour (its surface, where the ships are put, is the top of y -59). */
+	/**
+	 * The water of the harbour: a stone-walled basin raised above the flat world's ground (bedrock is at -64: the only
+	 * way to the 14 blocks of depth the Nautilus needs), its surface, where the ships are put, the top of y -50.
+	 */
 	private static final int HARBOUR_X0 = X + 70, HARBOUR_X1 = X + 270, HARBOUR_Z0 = Z - 90, HARBOUR_Z1 = Z + 90;
-	private static final int WATER_TOP = -59;
+	private static final int WATER_TOP = -50;
 	private static final String[] PROPS = {
 			"tent_command", "tent_adventurer", "tent_market", "tent_camp", "tent_dwelling", "tent_chief",
 			"tente_armurier", "tente_alchimiste", "tente_herboriste", "tente_forgeron", "tente_nourriture", "tente_tissus",
@@ -231,7 +234,8 @@ public final class PerfGameTest {
 				HARBOUR_X1 + 10 - (X - 70), HARBOUR_Z1 + 10 - (Z - 95)));
 		fill(server, X - 64, GROUND - 2, Z - 40, X + 64, GROUND, Z + 40, "stone");
 		fill(server, X - 64, GROUND + 1, Z - 40, X + 64, GROUND + 14, Z + 40, "air");
-		fill(server, HARBOUR_X0, -63, HARBOUR_Z0, HARBOUR_X1, -40, HARBOUR_Z1, "air");
+		fill(server, HARBOUR_X0 - 1, -63, HARBOUR_Z0 - 1, HARBOUR_X1 + 1, -30, HARBOUR_Z1 + 1, "air");
+		fill(server, HARBOUR_X0 - 1, -63, HARBOUR_Z0 - 1, HARBOUR_X1 + 1, WATER_TOP, HARBOUR_Z1 + 1, "stone");
 		fill(server, HARBOUR_X0, -63, HARBOUR_Z0, HARBOUR_X1, WATER_TOP, HARBOUR_Z1, "water");
 		world.waitForChunksRender();
 		context.waitTicks(20);
@@ -310,7 +314,7 @@ public final class PerfGameTest {
 		context.waitTicks(20);
 		shot.accept("perf_market");
 		camera(context, "market", check, log);
-		look(server, X + 62, GROUND + 4, Z - 60, X + 160, WATER_TOP, Z);
+		look(server, X + 64, WATER_TOP + 5, Z - 60, X + 160, WATER_TOP + 1, Z);
 		context.waitTicks(20);
 		shot.accept("perf_harbour");
 		camera(context, "harbour", check, log);
@@ -324,7 +328,7 @@ public final class PerfGameTest {
 		}
 
 		// ---- server: at rest, then with the royal lion ship under way
-		look(server, X + 62, GROUND + 4, Z - 60, X + 160, WATER_TOP, Z);
+		look(server, X + 64, WATER_TOP + 5, Z - 60, X + 160, WATER_TOP + 1, Z);
 		context.waitTicks(10);
 		double[] rest = serverMeasure(context, server);
 		double[] moving = rest;
@@ -357,7 +361,7 @@ public final class PerfGameTest {
 		// ---- the broad phase of the collision hook: a lone villager 150 blocks from every vessel moves for two seconds,
 		// the hook is called for its every step and asks no hull for a single box (1.29.0)
 		server.runCommand("kill @e[type=!player,tag=perfmob]");
-		context.waitTicks(5);
+		context.waitTicks(40); // the killed mobs fall and twitch for a second, some on a deck: let them go first
 		spawn(server, EntityType.VILLAGER, X - 60, GROUND + 1, Z - 40, 0f);
 		context.waitTicks(5);
 		long[] far0 = server.computeOnServer(srv -> ShipCollisions.stats(false));
