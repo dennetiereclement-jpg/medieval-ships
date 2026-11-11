@@ -14,6 +14,8 @@ package fr.medievalships.core;
 public final class HullContact {
 	/** Deepest overlap still taken for a contact (blocks). */
 	public static final double DEPTH = 0.1;
+	/** The axes in the order they are tried: y first, so that on a tie a floor or a ceiling wins over a wall (no array per call). */
+	private static final int[] AXES = {1, 0, 2};
 
 	private HullContact() {
 	}
@@ -29,7 +31,7 @@ public final class HullContact {
 		}
 		double m = Double.MAX_VALUE;
 		int axis = -1;
-		for (int a : new int[] {1, 0, 2}) {   // on a tie, a floor or a ceiling rather than a wall
+		for (int a : AXES) {   // on a tie, a floor or a ceiling rather than a wall
 			double o = Math.min(box[a + 3], body[a + 3]) - Math.max(box[a], body[a]);
 			if (o <= 1e-7) {
 				return box; // not overlapping: an ordinary collider

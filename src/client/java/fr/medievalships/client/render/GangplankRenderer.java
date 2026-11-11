@@ -96,7 +96,7 @@ final class GangplankRenderer {
 			matrices.translate(spec.leverX(), spec.leverY(), spec.leverZ());
 			matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((float) spec.leverYawOrDefault()));
 			queue.submitCustom(matrices, layer, (entry, vertices) -> {
-				BbModel.Pose pose = lever.newPose();
+				BbModel.Pose pose = lever.scratchPose();
 				lever.hide(pose, "handle");
 				lever.render(pose, sink(entry, vertices, light));
 			});
@@ -107,7 +107,7 @@ final class GangplankRenderer {
 				matrices.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(32f - 64f * state.gangplankLever));
 				matrices.translate(-pivot[0], -pivot[1], -pivot[2]);
 				queue.submitCustom(matrices, layer, (entry, vertices) -> {
-					BbModel.Pose pose = lever.newPose();
+					BbModel.Pose pose = lever.scratchPose();
 					lever.renderSubtree(pose, "handle", sink(entry, vertices, light));
 				});
 			}

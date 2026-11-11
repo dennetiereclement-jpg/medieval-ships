@@ -62,6 +62,12 @@ public final class ShipPicker {
 			if (ship.isRemoved() || camera.getRootVehicle() == ship && ship.seatOf(camera) == ShipGeometry.PILOT_SEAT) {
 				continue;
 			}
+			// out of reach altogether (the eye farther from the hull than the ray goes): nothing of it is cast
+			double r = ship.geometry().boundingRadius() + bestDist;
+			double dx = eye.x - ship.getX(), dz = eye.z - ship.getZ();
+			if (dx * dx + dz * dz > r * r) {
+				continue;
+			}
 			ShipGeometry.Pick pick = ship.geometry().pick(ship.pose(), eye.x, eye.y, eye.z, look.x, look.y, look.z, bestDist);
 			if (pick != null && pick.distance() < bestDist) {
 				best = new Target(ship, pick);

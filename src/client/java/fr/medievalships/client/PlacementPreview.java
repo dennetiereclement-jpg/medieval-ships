@@ -164,7 +164,7 @@ public final class PlacementPreview {
 			int texture = visual.textures().size() > 1 ? tex : -1;
 			RenderLayer layer = RenderLayers.entityTranslucent(visual.textures().get(tex));
 			context.commandQueue().submitCustom(matrices, layer, (entry, vertices) -> {
-				BbModel.Pose bp = model.newPose();
+				BbModel.Pose bp = model.scratchPose();
 				for (String bone : HIDDEN_BONES) {
 					model.hide(bp, bone);
 				}

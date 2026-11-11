@@ -117,6 +117,37 @@ public final class TentCollisions {
 		return byPos == null ? List.of() : new ArrayList<>(byPos.values());
 	}
 
+	/**
+	 * The tents whose extent touches the chunks of a box (the seat picker's reach around the eye, each frame): a walk of
+	 * a few chunk entries instead of a copy of every tent of the world; an empty list when none.
+	 */
+	public static synchronized List<Placed> nearby(World world, Box box) {
+		Map<Long, List<Placed>> chunks = BY_WORLD.get(world);
+		if (chunks == null || chunks.isEmpty()) {
+			return List.of();
+		}
+		List<Placed> near = null;
+		int cx0 = ((int) Math.floor(box.minX)) >> 4, cx1 = ((int) Math.floor(box.maxX)) >> 4;
+		int cz0 = ((int) Math.floor(box.minZ)) >> 4, cz1 = ((int) Math.floor(box.maxZ)) >> 4;
+		for (int cx = cx0; cx <= cx1; cx++) {
+			for (int cz = cz0; cz <= cz1; cz++) {
+				List<Placed> list = chunks.get(ChunkPos.toLong(cx, cz));
+				if (list == null) {
+					continue;
+				}
+				if (near == null) {
+					near = new ArrayList<>();
+				}
+				for (Placed p : list) {
+					if (!near.contains(p)) {
+						near.add(p);
+					}
+				}
+			}
+		}
+		return near == null ? List.of() : near;
+	}
+
 	/** Any tent known in this world? (cheap: the common case of a world without tents skips everything) */
 	public static synchronized boolean any(World world) {
 		Map<Long, List<Placed>> chunks = BY_WORLD.get(world);
