@@ -189,7 +189,7 @@ public class TrainingTargetRenderer extends EntityRenderer<TrainingTargetEntity,
 		matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-90f * state.quarter));
 		RenderLayer layer = RenderLayers.entityCutoutNoCull(TentModels.texture(type));
 		queue.submitCustom(matrices, layer, (entry, vertices) -> {
-			BbModel.Pose pose = model.newPose();
+			BbModel.Pose pose = model.scratchPose();
 			for (String bone : hidden) {
 				model.hide(pose, bone);
 			}

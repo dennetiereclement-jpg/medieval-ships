@@ -67,9 +67,23 @@ class BbModelSubtreeTest {
 		assertEquals(18, whole.size());
 		assertEquals(12, target.size(), "the post and the head");
 		assertEquals(6, rest.size(), "the plate");
-		// the exact same floats (the static renderer's cached path and the subtree's path agree bit for bit)
+		// the exact same floats (the static mesh and the subtree's path agree bit for bit); the mesh groups a bone's
+		// quads by cell (a face on a cell boundary goes with its neighbours), so the two lists are compared sorted
+		List<float[]> wholeTarget = new ArrayList<>(whole.subList(6, 18));
+		List<float[]> subtree = new ArrayList<>(target);
+		java.util.Comparator<float[]> order = (a, b) -> {
+			for (int k = 0; k < a.length; k++) {
+				int c = Float.compare(a[k], b[k]);
+				if (c != 0) {
+					return c;
+				}
+			}
+			return 0;
+		};
+		wholeTarget.sort(order);
+		subtree.sort(order);
 		for (int i = 0; i < target.size(); i++) {
-			assertArrayEquals(whole.get(6 + i), target.get(i), "quad " + i);
+			assertArrayEquals(wholeTarget.get(i), subtree.get(i), "quad " + i);
 		}
 		assertTrue(quads(m, m.newPose(), "nothing").isEmpty());
 	}

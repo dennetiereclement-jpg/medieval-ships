@@ -148,6 +148,21 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.29.0 est une **passe de performances sur tout le mod**, mesurée avant et après par un banc en jeu (une
+ville de 40 accessoires, les six gros navires et le Nautilus à quai, 24 mobs ; voir
+[docs/PERFORMANCE.md](docs/PERFORMANCE.md)). Côté client, les os des modèles qu'aucune animation ne bouge (les neuf
+dixièmes d'un navire) sont cuits une fois en un maillage plat découpé en cellules de 8 blocs, émis par l'appel de
+sommet unique que vanilla et Sodium écrivent directement en mémoire (plus de deux objets alloués par sommet) ; les
+cellules hors du champ de la caméra et les faces vues de dos (quand leur cube a la face opposée) ne sont plus émises
+— la même image avec bien moins de travail par trame ; les accessoires hors champ ne sont plus soumis du tout ;
+au-delà de 160 blocs les cordages et canons s'ajoutent aux détails laissés ; la visée ignore les navires hors de
+portée et ne regarde que les accessoires des chunks voisins. Côté serveur, le crochet de collision (chaque mouvement
+de chaque entité) ne copie plus la liste vanilla que s'il ajoute une boîte et élimine chaque coque lointaine par son
+cercle englobant avant tout calcul ; un navire à l'arrêt ne balaye plus les entités de son pont à chaque tick. Les
+chiffres avant / après de la CI sont dans docs/PERFORMANCE.md. Sous Iris/Oculus l'élimination par cellule est
+désactivée (passe d'ombre) ; tout le reste s'applique.
+La 1.29.0 retravaille aussi la **pierre du navire forteresse en acier riveté** (gris acier à reflets froids, rangs de rivets, plus sombre et mouillée au ras de l'eau) et fait une quatrième passe de textures sur le navire à vapeur.
+
 La version 1.28.1 **cache l'eau du monde dans les pièces aussi avec Sodium** : l'eau n'est plus écartée par un mixin sur le
 moteur de rendu de Minecraft (que Sodium, et donc Iris et Nvidium, n'appellent jamais : la nappe de la mer restait visible
 dans la cale du navire au lion sur un client ainsi équipé) mais par le gestionnaire de rendu des fluides de Fabric API,

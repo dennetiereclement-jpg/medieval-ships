@@ -67,9 +67,12 @@ public final class SeatPicker {
 			// not, nor somebody already sitting (his seat is picked through him: the server answers "Cette place est prise.")
 			max = Math.min(max, hit.getPos().distanceTo(eye));
 		}
-		double reach2 = (Seating.PICK_RANGE + 1.0) * (Seating.PICK_RANGE + 1.0);
+		double reach = Seating.PICK_RANGE + 1.0;
+		double reach2 = reach * reach;
 		Target best = null;
-		for (TentCollisions.Placed p : TentCollisions.all(client.world)) {
+		// only the props of the chunks within reach of the eye (not a copy of every prop of the world, each frame)
+		for (TentCollisions.Placed p : TentCollisions.nearby(client.world,
+				new net.minecraft.util.math.Box(eye.x - reach, eye.y - reach, eye.z - reach, eye.x + reach, eye.y + reach, eye.z + reach))) {
 			List<TentType.Seat> seats = p.type().seats(p.quarter());
 			if (seats.isEmpty() || p.extent().squaredMagnitude(eye) > reach2) {
 				continue;

@@ -114,6 +114,17 @@ public class ShipClientGameTest implements FabricClientGameTest {
 					!tag.equals("solo"));
 			return;
 		}
+		if (ONLY.equals("perf")) {
+			// the performance benchmark alone (1.29.0): -PgametestOnly=perf
+			var server = sp.getServer();
+			server.runCommand("gamerule doDaylightCycle false");
+			server.runCommand("gamerule doWeatherCycle false");
+			server.runCommand("gamerule doMobSpawning false");
+			server.runCommand("time set 6000");
+			server.runCommand("weather clear");
+			PerfGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
+			return;
+		}
 		{
 			var server = sp.getServer();
 			log("world loaded");
@@ -308,6 +319,8 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			RoyalLionShipGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 			FortressShipGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 			GearSteamShipGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
+			// the performance benchmark (1.29.0): a city of props, the big ships and the Nautilus, mobs; numbers only
+			PerfGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 		}
 	}
 

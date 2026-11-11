@@ -2,9 +2,11 @@ package fr.medievalships.client.model;
 
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -22,6 +24,15 @@ import com.google.gson.JsonParser;
  * <p>Output coordinates are ship-local blocks: x = -bbX/16, y = bbY/16, z = -bbZ/16
  * (Blockbench north = ship bow = +z). Elements whose name starts with {@code glow} are flagged
  * to be rendered full bright.
+ *
+ * <p>Performance (1.29.0): the bones no animation moves (nine tenths of a ship) are baked once into a flat
+ * <b>static mesh</b> of ship-local quads ({@link #QUAD_FLOATS} floats each), grouped per bone into cells of
+ * {@link #CELL_SIZE} blocks, each cell split per texture and per light class (plain, {@code lit}, {@code glow}). A
+ * renderer that implements {@link MeshSink} gets those runs whole ({@link MeshSink#mesh}) after a visibility test of
+ * each cell ({@link MeshSink#cellVisible}, the renderer's frustum), so nothing of a static bone is transformed or
+ * copied quad by quad every frame; a plain {@link QuadSink} still gets every quad one by one, exactly as before. Only
+ * the animated bones (sails, flags, doors, oars...) are transformed each frame, through scratch arrays of the pose
+ * (no allocation per bone or per quad).
  */
 public final class BbModel {
 	/** Face order and conventions (Minecraft block-model UV rules). */
@@ -29,6 +40,15 @@ public final class BbModel {
 	private static final int[][] FACE_AXES = {
 			// normal, u dir, v dir (as axis index * sign: 1=x, 2=y, 3=z)
 			{-3, -1, -2}, {3, 1, -2}, {-1, 3, -2}, {1, -3, -2}, {2, 1, 3}, {-2, 1, -3}};
+	/** Floats per baked quad of the static mesh: four corners (x, y, z, u, v) then the face normal (nx, ny, nz). */
+	public static final int QUAD_FLOATS = 23;
+	/** Side of the cells the static quads of a bone are grouped in (blocks). */
+	public static final float CELL_SIZE = 8f;
+	/** Light classes of a run of baked quads: lit by the world, by the vessel's own lamps ({@code lit}), full bright ({@code glow}). */
+	public static final int LIGHT_WORLD = 0, LIGHT_LAMPS = 1, LIGHT_GLOW = 2;
+	private static final float[] IDENTITY = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0};
+	/** Static quads baked so far in this JVM (benchmark counter: it stops growing once every drawn model is baked). */
+	public static long bakedQuads;
 
 	public final int textureWidth;
 	public final int textureHeight;
@@ -43,8 +63,14 @@ public final class BbModel {
 	/** ...and wider than this on both other sides has no edge faces. */
 	private static final float THIN_PLATE_MIN_SIZE_PX = 6.4f;
 	private int quadCount;
+	/** Highest face texture index + 1 (at least {@link #textureCount}): the texture slots of the static mesh. */
+	private int textureSlots = 1;
 	/** Opt-in (model field "medievalships_cull_thin_plates"): thin plates are drawn without their edge faces. */
 	private boolean cullThinPlates;
+	/** The baked static bones (lazily, at the first render). */
+	private StaticMesh mesh;
+	/** A pose reused by a renderer between frames ({@link #scratchPose}). */
+	private Pose scratch;
 
 	public static final class Bone {
 		public final String name;
@@ -58,10 +84,10 @@ public final class BbModel {
 		boolean fx;
 		/** Moved by an animation (itself or one of its parents): its quads are transformed every frame. */
 		boolean animated;
-		/** A bone that never moves: its transform and its quads in ship-local blocks, computed once. */
+		/** A bone that never moves: its transform in ship-local Blockbench pixels (3x4 affine), computed by the bake. */
 		float[] staticMatrix;
-		float[] staticPos;
-		float[] staticNormal;
+		/** Its cells in the static mesh: [cellFrom, cellTo). */
+		int cellFrom, cellTo;
 		/** Its parents' transforms at rest, composed ({@link BbModel#renderPart}), computed once. */
 		float[] restParent;
 
@@ -80,12 +106,53 @@ public final class BbModel {
 		final float[] normal = new float[3];
 		final boolean glow;
 		boolean lit;
+		/**
+		 * Seen from both sides: its cube has no face opposite to it (a deck slab with its top only, an inner window pane),
+		 * so its back may be what the model shows there. A face whose cube has the opposite face is hidden by it when
+		 * seen from behind, and a renderer may skip it then (back-face culling).
+		 */
+		boolean twoSided;
 		/** Index in the model's texture list. */
 		final int texture;
 
 		Quad(boolean glow, int texture) {
 			this.glow = glow;
 			this.texture = texture;
+		}
+
+		int lightClass() {
+			return glow ? LIGHT_GLOW : lit ? LIGHT_LAMPS : LIGHT_WORLD;
+		}
+
+		/** The run of a cell this quad belongs to: its light class, the two-sided ones after the others. */
+		int runClass() {
+			return lightClass() + (twoSided ? 3 : 0);
+		}
+	}
+
+	/** Runs per texture slot in a cell: three light classes, one-sided then two-sided. */
+	private static final int RUNS = 6;
+
+	/**
+	 * The baked static bones: every quad of a bone no animation moves, in ship-local blocks with its normal, grouped
+	 * per bone into cells of {@link #CELL_SIZE} blocks; in a cell the quads are ordered by texture slot, and by light
+	 * class within a slot. {@code ranges} holds, per cell, {@code perCell} = slots x 3 + 1 quad indices into
+	 * {@code data}: the start of each (slot, class) run and the end of the cell. {@code bounds}: per cell, the tight
+	 * box of its quads (min x, y, z, max x, y, z).
+	 */
+	static final class StaticMesh {
+		final float[] data;
+		final float[] bounds;
+		final int[] ranges;
+		final int perCell;
+		final int cells;
+
+		StaticMesh(float[] data, float[] bounds, int[] ranges, int perCell, int cells) {
+			this.data = data;
+			this.bounds = bounds;
+			this.ranges = ranges;
+			this.perCell = perCell;
+			this.cells = cells;
 		}
 	}
 
@@ -170,10 +237,15 @@ public final class BbModel {
 		/** Draw only the translucent effects ("fx_*" bones), or only the rest. */
 		public boolean fxPass;
 		private final float[] tmp = new float[3];
-		/** Scratch corners, uvs and normal of {@link BbModel#renderPart} (no allocation per call). */
+		/** Scratch corners, uvs and normal of {@link BbModel#renderPart} and {@link BbModel#render} (no allocation per call). */
 		final float[] partPos = new float[12];
 		final float[] partUv = new float[8];
 		final float[] partNormal = new float[3];
+		/** Scratch of the animated bones' transforms: Euler angles, rotation matrix, local and composed matrices per depth. */
+		final float[] euler = new float[3];
+		final float[] rotation = new float[9];
+		final float[] local = new float[12];
+		private float[][] stack = new float[16][];
 
 		Pose(int bones) {
 			rot = new float[bones][3];
@@ -190,6 +262,24 @@ public final class BbModel {
 				scale[i][0] = scale[i][1] = scale[i][2] = 1;
 				hidden[i] = false;
 			}
+			fxPass = false;
+		}
+
+		/** Number of bones this pose was made for. */
+		public int bones() {
+			return rot.length;
+		}
+
+		/** The composed matrix scratch of a nesting depth. */
+		float[] matrix(int depth) {
+			if (depth >= stack.length) {
+				stack = Arrays.copyOf(stack, Math.max(depth + 1, stack.length * 2));
+			}
+			float[] m = stack[depth];
+			if (m == null) {
+				m = stack[depth] = new float[12];
+			}
+			return m;
 		}
 	}
 
@@ -253,19 +343,19 @@ public final class BbModel {
 			}
 			chain.push(a);
 		}
-		float[] m = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0};
+		float[] m = IDENTITY.clone();
 		for (Bone a : chain) {
 			m = compose(m, restMatrix(a));
 		}
 		float[] p = new float[12], uv = new float[8], n = new float[3];
-		renderBone(b, m, pose, -1, sink, p, uv, n, true);
+		renderBone(b, m, pose, -1, sink, null, p, uv, n, true, 0);
 	}
 
 	/**
-	 * Emits the quads of one bone and its children at rest, in model-local blocks, through the same per-bone cache as
-	 * {@link #render} (for bones no animation moves: transformed once, then copied out): exactly the quads the full
-	 * render draws for that subtree, with no per-call allocation (the pose's scratch arrays). The caller places the part
-	 * (a folding gangplank's segments). Hidden bones of the pose are skipped, as is the whole part under a hidden parent.
+	 * Emits the quads of one bone and its children at rest, in model-local blocks, from the static mesh ({@link #render}:
+	 * baked once, copied out): exactly the quads the full render draws for that subtree, with no per-call allocation (the
+	 * pose's scratch arrays). The caller places the part (a folding gangplank's segments). Hidden bones of the pose are
+	 * skipped, as is the whole part under a hidden parent.
 	 */
 	public void renderPart(Pose pose, String bone, QuadSink sink) {
 		Bone b = bonesByName.get(bone);
@@ -282,13 +372,14 @@ public final class BbModel {
 			for (Bone a = b.parent; a != null; a = a.parent) {
 				chain.push(a);
 			}
-			float[] m = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0};
+			float[] m = IDENTITY.clone();
 			for (Bone a : chain) {
 				m = compose(m, restMatrix(a));
 			}
 			b.restParent = m;
 		}
-		renderBone(b, b.restParent, pose, -1, sink, pose.partPos, pose.partUv, pose.partNormal);
+		mesh();
+		renderBone(b, b.restParent, pose, -1, sink, sink instanceof MeshSink ms ? ms : null, pose.partPos, pose.partUv, pose.partNormal, false, 0);
 	}
 
 	/** A bone's own transform at rest (3x4 affine, Blockbench pixels): R * (v - o) + o. */
@@ -323,6 +414,30 @@ public final class BbModel {
 		default void quad(float[] p, float[] uv, float[] normal, boolean glow, boolean lit) {
 			quad(p, uv, normal, glow);
 		}
+
+		/** {@code twoSided}: a face whose cube has no opposite face (see {@link Quad#twoSided}): never to be back-face culled. */
+		default void quad(float[] p, float[] uv, float[] normal, boolean glow, boolean lit, boolean twoSided) {
+			quad(p, uv, normal, glow, lit);
+		}
+	}
+
+	/**
+	 * A sink that takes the static mesh in runs: the quads of the bones no animation moves come baked
+	 * ({@link #QUAD_FLOATS} floats each, ship-local blocks, the face normal once), a cell at a time, after
+	 * {@link #cellVisible} let the cell through. The animated bones still come quad by quad ({@link QuadSink}).
+	 */
+	public interface MeshSink extends QuadSink {
+		/** Is a cell of static quads (its tight box, ship-local blocks) worth drawing? */
+		default boolean cellVisible(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
+			return true;
+		}
+
+		/**
+		 * A run of baked quads of one light class ({@link #LIGHT_WORLD}, {@link #LIGHT_LAMPS}, {@link #LIGHT_GLOW}):
+		 * quads {@code from} (inclusive) to {@code to} (exclusive) of {@code data}, {@link #QUAD_FLOATS} floats each.
+		 * {@code twoSided}: faces that may be seen from behind (never to be back-face culled, see {@link Quad#twoSided}).
+		 */
+		void mesh(float[] data, int from, int to, int lightClass, boolean twoSided);
 	}
 
 	public BbModel(Reader reader) {
@@ -364,6 +479,7 @@ public final class BbModel {
 				}
 			}
 		}
+		textureSlots = Math.max(textureSlots, textureCount());
 	}
 
 	private static void markAnimated(Bone b) {
@@ -379,6 +495,31 @@ public final class BbModel {
 
 	public Pose newPose() {
 		return new Pose(bones.size());
+	}
+
+	/** A pose of this model reused between frames by its renderer (one thread), reset before each use. */
+	public Pose scratchPose() {
+		if (scratch == null) {
+			scratch = newPose();
+		} else {
+			scratch.reset();
+		}
+		return scratch;
+	}
+
+	/** Quads of the bones no animation moves (the static mesh), and the cells they are grouped in. */
+	public int staticQuadCount() {
+		StaticMesh m = mesh();
+		return m.cells == 0 ? 0 : m.ranges[(m.cells - 1) * m.perCell + m.perCell - 1];
+	}
+
+	public int staticCellCount() {
+		return mesh().cells;
+	}
+
+	/** Is the static mesh baked already (it is at the first render)? */
+	public boolean isBaked() {
+		return mesh != null;
 	}
 
 	private Bone readGroup(JsonObject g, Bone parent, Map<String, JsonObject> elements, Map<String, String> names) {
@@ -452,8 +593,12 @@ public final class BbModel {
 			float u1 = uvArr.get(0).getAsFloat() / tw, v1 = uvArr.get(1).getAsFloat() / th;
 			float u2 = uvArr.get(2).getAsFloat() / tw, v2 = uvArr.get(3).getAsFloat() / th;
 			int faceRot = face.has("rotation") ? face.get("rotation").getAsInt() : 0;
-			Quad q = new Quad(glow, tex);
+			Quad q = new Quad(glow, Math.max(0, tex));
 			q.lit = lit;
+			// the opposite face of the cube (north/south, west/east, up/down are consecutive in FACE_NAMES)
+			JsonObject back = faces.has(FACE_NAMES[f ^ 1]) ? faces.getAsJsonObject(FACE_NAMES[f ^ 1]) : null;
+			q.twoSided = back == null || !back.has("texture") || back.get("texture").isJsonNull();
+			textureSlots = Math.max(textureSlots, q.texture + 1);
 			int[] ax = FACE_AXES[f];
 			float[] cu = {0, 1, 1, 0}, cv = {0, 0, 1, 1};
 			for (int k = 0; k < 4; k++) {
@@ -589,12 +734,16 @@ public final class BbModel {
 		render(pose, -1, sink);
 	}
 
-	/** Same, limited to the faces using texture {@code texture} (-1 = all). */
+	/**
+	 * Same, limited to the faces using texture {@code texture} (-1 = all). A {@link MeshSink} gets the static bones as
+	 * baked runs, a plain sink quad by quad.
+	 */
 	public void render(Pose pose, int texture, QuadSink sink) {
-		float[] identity = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0};
-		float[] p = new float[12], uv = new float[8], n = new float[3];
+		mesh();
+		MeshSink ms = sink instanceof MeshSink m ? m : null;
+		float[] p = pose.partPos, uv = pose.partUv, n = pose.partNormal;
 		for (Bone root : roots) {
-			renderBone(root, identity, pose, texture, sink, p, uv, n);
+			renderBone(root, IDENTITY, pose, texture, sink, ms, p, uv, n, false, 0);
 		}
 	}
 
@@ -603,92 +752,196 @@ public final class BbModel {
 		return Math.max(1, textureSizes.size());
 	}
 
-	private void renderBone(Bone bone, float[] parent, Pose pose, int texture, QuadSink sink, float[] p, float[] uv, float[] n) {
-		renderBone(bone, parent, pose, texture, sink, p, uv, n, false);
-	}
-
-	/** {@code dynamic}: transform this bone and its children with the pose even if no animation moves them ({@link #renderSubtree}). */
-	private void renderBone(Bone bone, float[] parent, Pose pose, int texture, QuadSink sink, float[] p, float[] uv, float[] n, boolean dynamic) {
+	/**
+	 * Emits a bone and its children. {@code dynamic}: transform this bone and its children with the pose even if no
+	 * animation moves them ({@link #renderSubtree}); otherwise a static bone comes from the baked mesh.
+	 */
+	private void renderBone(Bone bone, float[] parent, Pose pose, int texture, QuadSink sink, MeshSink ms, float[] p, float[] uv, float[] n,
+			boolean dynamic, int depth) {
 		int b = bone.index;
 		if (pose.hidden[b]) {
 			return;
 		}
 		if (!bone.animated && !dynamic) {
-			renderStatic(bone, parent, pose, texture, sink, p, uv, n);
+			renderStatic(bone, pose, texture, sink, ms, p, uv, n, depth);
 			return;
 		}
-		float[] r = {bone.rotation[0] + pose.rot[b][0], bone.rotation[1] + pose.rot[b][1], bone.rotation[2] + pose.rot[b][2]};
-		float[][] R = rotationMatrix(r);
+		float[] r = pose.euler;
+		r[0] = bone.rotation[0] + pose.rot[b][0];
+		r[1] = bone.rotation[1] + pose.rot[b][1];
+		r[2] = bone.rotation[2] + pose.rot[b][2];
+		float[] R = rotationMatrix(r, pose.rotation);
 		float[] s = pose.scale[b], o = bone.origin, t = pose.pos[b];
 		// local = R * S * (v - o) + o + t   (3x4 affine, row major)
-		float[] local = new float[12];
+		float[] local = pose.local;
 		for (int i = 0; i < 3; i++) {
 			float off = o[i] + t[i];
 			for (int j = 0; j < 3; j++) {
-				local[i * 4 + j] = R[i][j] * s[j];
-				off -= R[i][j] * s[j] * o[j];
+				float v = R[i * 3 + j] * s[j];
+				local[i * 4 + j] = v;
+				off -= v * o[j];
 			}
 			local[i * 4 + 3] = off;
 		}
-		float[] m = compose(parent, local);
-		for (Quad q : bone.quads) {
-			if (bone.fx != pose.fxPass) {
-				break;
+		float[] m = compose(parent, local, pose.matrix(depth));
+		if (bone.fx == pose.fxPass) {
+			for (Quad q : bone.quads) {
+				if (texture >= 0 && q.texture != texture) {
+					continue;
+				}
+				for (int k = 0; k < 4; k++) {
+					float x = q.pos[k * 3], y = q.pos[k * 3 + 1], z = q.pos[k * 3 + 2];
+					float wx = m[0] * x + m[1] * y + m[2] * z + m[3];
+					float wy = m[4] * x + m[5] * y + m[6] * z + m[7];
+					float wz = m[8] * x + m[9] * y + m[10] * z + m[11];
+					p[k * 3] = -wx / 16f;
+					p[k * 3 + 1] = wy / 16f;
+					p[k * 3 + 2] = -wz / 16f;
+				}
+				System.arraycopy(q.uv, 0, uv, 0, 8);
+				float nx = m[0] * q.normal[0] + m[1] * q.normal[1] + m[2] * q.normal[2];
+				float ny = m[4] * q.normal[0] + m[5] * q.normal[1] + m[6] * q.normal[2];
+				float nz = m[8] * q.normal[0] + m[9] * q.normal[1] + m[10] * q.normal[2];
+				float len = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
+				if (len < 1e-6f) {
+					continue; // fully collapsed (e.g. furled to zero)
+				}
+				n[0] = -nx / len;
+				n[1] = ny / len;
+				n[2] = -nz / len;
+				sink.quad(p, uv, n, q.glow, q.lit, q.twoSided);
 			}
-			if (texture >= 0 && q.texture != texture) {
-				continue;
-			}
-			for (int k = 0; k < 4; k++) {
-				float x = q.pos[k * 3], y = q.pos[k * 3 + 1], z = q.pos[k * 3 + 2];
-				float wx = m[0] * x + m[1] * y + m[2] * z + m[3];
-				float wy = m[4] * x + m[5] * y + m[6] * z + m[7];
-				float wz = m[8] * x + m[9] * y + m[10] * z + m[11];
-				p[k * 3] = -wx / 16f;
-				p[k * 3 + 1] = wy / 16f;
-				p[k * 3 + 2] = -wz / 16f;
-			}
-			System.arraycopy(q.uv, 0, uv, 0, 8);
-			float nx = m[0] * q.normal[0] + m[1] * q.normal[1] + m[2] * q.normal[2];
-			float ny = m[4] * q.normal[0] + m[5] * q.normal[1] + m[6] * q.normal[2];
-			float nz = m[8] * q.normal[0] + m[9] * q.normal[1] + m[10] * q.normal[2];
-			float len = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
-			if (len < 1e-6f) {
-				continue; // fully collapsed (e.g. furled to zero)
-			}
-			n[0] = -nx / len;
-			n[1] = ny / len;
-			n[2] = -nz / len;
-			sink.quad(p, uv, n, q.glow, q.lit);
 		}
 		for (Bone c : bone.children) {
-			renderBone(c, m, pose, texture, sink, p, uv, n, dynamic);
+			renderBone(c, m, pose, texture, sink, ms, p, uv, n, dynamic, depth + 1);
 		}
 	}
 
-	/** A bone that never moves: its quads are transformed once, then copied out every frame. */
-	private void renderStatic(Bone bone, float[] parent, Pose pose, int texture, QuadSink sink, float[] p, float[] uv, float[] n) {
-		if (bone.staticMatrix == null) {
-			float[][] R = rotationMatrix(bone.rotation);
-			float[] o = bone.origin;
-			float[] local = new float[12];
-			for (int i = 0; i < 3; i++) {
-				float off = o[i];
-				for (int j = 0; j < 3; j++) {
-					local[i * 4 + j] = R[i][j];
-					off -= R[i][j] * o[j];
+	/** A bone that never moves: its cells of baked quads, whole to a mesh sink, one quad at a time to a plain sink. */
+	private void renderStatic(Bone bone, Pose pose, int texture, QuadSink sink, MeshSink ms, float[] p, float[] uv, float[] n, int depth) {
+		StaticMesh sm = mesh;
+		if (bone.fx == pose.fxPass && bone.cellFrom < bone.cellTo && texture < textureSlots) {
+			int perCell = sm.perCell;
+			int[] ranges = sm.ranges;
+			float[] data = sm.data;
+			for (int cell = bone.cellFrom; cell < bone.cellTo; cell++) {
+				int base = cell * perCell;
+				int q0 = texture < 0 ? ranges[base] : ranges[base + texture * RUNS];
+				int q1 = texture < 0 ? ranges[base + perCell - 1] : ranges[base + texture * RUNS + RUNS];
+				if (q0 == q1) {
+					continue;
 				}
-				local[i * 4 + 3] = off;
+				if (ms != null) {
+					int bb = cell * 6;
+					if (!ms.cellVisible(sm.bounds[bb], sm.bounds[bb + 1], sm.bounds[bb + 2], sm.bounds[bb + 3], sm.bounds[bb + 4], sm.bounds[bb + 5])) {
+						continue;
+					}
+				}
+				int t0 = texture < 0 ? 0 : texture, t1 = texture < 0 ? textureSlots - 1 : texture;
+				for (int t = t0; t <= t1; t++) {
+					for (int c = 0; c < RUNS; c++) {
+						int from = ranges[base + t * RUNS + c], to = ranges[base + t * RUNS + c + 1];
+						if (from >= to) {
+							continue;
+						}
+						if (ms != null) {
+							ms.mesh(data, from, to, c % 3, c >= 3);
+						} else {
+							for (int q = from; q < to; q++) {
+								int o = q * QUAD_FLOATS;
+								for (int k = 0; k < 4; k++) {
+									p[k * 3] = data[o + k * 5];
+									p[k * 3 + 1] = data[o + k * 5 + 1];
+									p[k * 3 + 2] = data[o + k * 5 + 2];
+									uv[k * 2] = data[o + k * 5 + 3];
+									uv[k * 2 + 1] = data[o + k * 5 + 4];
+								}
+								n[0] = data[o + 20];
+								n[1] = data[o + 21];
+								n[2] = data[o + 22];
+								sink.quad(p, uv, n, c % 3 == LIGHT_GLOW, c % 3 == LIGHT_LAMPS, c >= 3);
+							}
+						}
+					}
+				}
 			}
-			float[] m = compose(parent, local);
-			float[] pos = new float[bone.quads.size() * 12];
-			float[] nor = new float[bone.quads.size() * 3];
-			for (int qi = 0; qi < bone.quads.size(); qi++) {
+		}
+		for (Bone c : bone.children) {
+			renderBone(c, bone.staticMatrix, pose, texture, sink, ms, p, uv, n, false, depth + 1);
+		}
+	}
+
+	// ------------------------------------------------------------------ static mesh
+
+	/** The baked static bones, baked at the first call. */
+	StaticMesh mesh() {
+		if (mesh == null) {
+			mesh = bake();
+		}
+		return mesh;
+	}
+
+	/** Grows a float buffer: {buffer, length}. */
+	private static final class FloatBuf {
+		float[] a = new float[QUAD_FLOATS * 256];
+		int n;
+
+		void add(float v) {
+			if (n == a.length) {
+				a = Arrays.copyOf(a, a.length * 2);
+			}
+			a[n++] = v;
+		}
+	}
+
+	private StaticMesh bake() {
+		int perCell = textureSlots * RUNS + 1;
+		FloatBuf data = new FloatBuf();
+		List<Float> boundsList = new ArrayList<>();
+		List<Integer> rangesList = new ArrayList<>();
+		int[] cells = {0};
+		for (Bone root : roots) {
+			bakeBone(root, IDENTITY, perCell, data, boundsList, rangesList, cells);
+		}
+		float[] bounds = new float[boundsList.size()];
+		for (int i = 0; i < bounds.length; i++) {
+			bounds[i] = boundsList.get(i);
+		}
+		int[] ranges = new int[rangesList.size()];
+		for (int i = 0; i < ranges.length; i++) {
+			ranges[i] = rangesList.get(i);
+		}
+		return new StaticMesh(Arrays.copyOf(data.a, data.n), bounds, ranges, perCell, cells[0]);
+	}
+
+	/** Bakes a static bone (its quads into cells), then its static children; an animated child's subtree is left to the frame. */
+	private void bakeBone(Bone bone, float[] parent, int perCell, FloatBuf data, List<Float> bounds, List<Integer> ranges, int[] cells) {
+		if (bone.animated) {
+			return;
+		}
+		float[] m = compose(parent, restMatrix(bone));
+		bone.staticMatrix = m;
+		bone.cellFrom = cells[0];
+		int nq = bone.quads.size();
+		if (nq > 0) {
+			// every quad in ship-local blocks, with its normal (exactly what the old per-frame copy produced)
+			float[] pos = new float[nq * 12];
+			float[] nor = new float[nq * 3];
+			long[] keys = new long[nq];
+			for (int qi = 0; qi < nq; qi++) {
 				Quad q = bone.quads.get(qi);
+				float cx = 0, cy = 0, cz = 0;
 				for (int k = 0; k < 4; k++) {
 					float x = q.pos[k * 3], y = q.pos[k * 3 + 1], z = q.pos[k * 3 + 2];
-					pos[qi * 12 + k * 3] = -(m[0] * x + m[1] * y + m[2] * z + m[3]) / 16f;
-					pos[qi * 12 + k * 3 + 1] = (m[4] * x + m[5] * y + m[6] * z + m[7]) / 16f;
-					pos[qi * 12 + k * 3 + 2] = -(m[8] * x + m[9] * y + m[10] * z + m[11]) / 16f;
+					float px = -(m[0] * x + m[1] * y + m[2] * z + m[3]) / 16f;
+					float py = (m[4] * x + m[5] * y + m[6] * z + m[7]) / 16f;
+					float pz = -(m[8] * x + m[9] * y + m[10] * z + m[11]) / 16f;
+					pos[qi * 12 + k * 3] = px;
+					pos[qi * 12 + k * 3 + 1] = py;
+					pos[qi * 12 + k * 3 + 2] = pz;
+					cx += px;
+					cy += py;
+					cz += pz;
 				}
 				float nx = m[0] * q.normal[0] + m[1] * q.normal[1] + m[2] * q.normal[2];
 				float ny = m[4] * q.normal[0] + m[5] * q.normal[1] + m[6] * q.normal[2];
@@ -698,25 +951,59 @@ public final class BbModel {
 				nor[qi * 3] = -nx / len;
 				nor[qi * 3 + 1] = ny / len;
 				nor[qi * 3 + 2] = -nz / len;
+				int ix = (int) Math.floor(cx / 4 / CELL_SIZE), iy = (int) Math.floor(cy / 4 / CELL_SIZE), iz = (int) Math.floor(cz / 4 / CELL_SIZE);
+				keys[qi] = ((long) (ix + 0x8000) << 40) | ((long) (iy + 0x8000) << 20) | (iz + 0x8000);
 			}
-			bone.staticPos = pos;
-			bone.staticNormal = nor;
-			bone.staticMatrix = m;
-		}
-		if (bone.fx == pose.fxPass) {
-			for (int qi = 0; qi < bone.quads.size(); qi++) {
-				Quad q = bone.quads.get(qi);
-				if (texture >= 0 && q.texture != texture) {
-					continue;
+			// the quads of each cell, by texture slot then light class
+			TreeMap<Long, List<Integer>> byCell = new TreeMap<>();
+			for (int qi = 0; qi < nq; qi++) {
+				byCell.computeIfAbsent(keys[qi], k -> new ArrayList<>()).add(qi);
+			}
+			for (List<Integer> cell : byCell.values()) {
+				float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE, minZ = Float.MAX_VALUE;
+				float maxX = -Float.MAX_VALUE, maxY = -Float.MAX_VALUE, maxZ = -Float.MAX_VALUE;
+				for (int t = 0; t < textureSlots; t++) {
+					for (int c = 0; c < RUNS; c++) {
+						ranges.add(data.n / QUAD_FLOATS);
+						for (int qi : cell) {
+							Quad q = bone.quads.get(qi);
+							if (q.texture != t || q.runClass() != c) {
+								continue;
+							}
+							for (int k = 0; k < 4; k++) {
+								float px = pos[qi * 12 + k * 3], py = pos[qi * 12 + k * 3 + 1], pz = pos[qi * 12 + k * 3 + 2];
+								data.add(px);
+								data.add(py);
+								data.add(pz);
+								data.add(q.uv[k * 2]);
+								data.add(q.uv[k * 2 + 1]);
+								minX = Math.min(minX, px);
+								minY = Math.min(minY, py);
+								minZ = Math.min(minZ, pz);
+								maxX = Math.max(maxX, px);
+								maxY = Math.max(maxY, py);
+								maxZ = Math.max(maxZ, pz);
+							}
+							data.add(nor[qi * 3]);
+							data.add(nor[qi * 3 + 1]);
+							data.add(nor[qi * 3 + 2]);
+							bakedQuads++;
+						}
+					}
 				}
-				System.arraycopy(bone.staticPos, qi * 12, p, 0, 12);
-				System.arraycopy(q.uv, 0, uv, 0, 8);
-				System.arraycopy(bone.staticNormal, qi * 3, n, 0, 3);
-				sink.quad(p, uv, n, q.glow, q.lit);
+				ranges.add(data.n / QUAD_FLOATS);
+				bounds.add(minX);
+				bounds.add(minY);
+				bounds.add(minZ);
+				bounds.add(maxX);
+				bounds.add(maxY);
+				bounds.add(maxZ);
+				cells[0]++;
 			}
 		}
+		bone.cellTo = cells[0];
 		for (Bone c : bone.children) {
-			renderBone(c, bone.staticMatrix, pose, texture, sink, p, uv, n);
+			bakeBone(c, m, perCell, data, bounds, ranges, cells);
 		}
 	}
 
@@ -724,12 +1011,24 @@ public final class BbModel {
 
 	/** Blockbench / three.js Euler order ZYX: R = Rz * Ry * Rx (degrees). */
 	static float[][] rotationMatrix(float[] deg) {
+		float[] r = rotationMatrix(deg, new float[9]);
+		return new float[][] {{r[0], r[1], r[2]}, {r[3], r[4], r[5]}, {r[6], r[7], r[8]}};
+	}
+
+	/** Same, row major into {@code out} (9 floats). */
+	static float[] rotationMatrix(float[] deg, float[] out) {
 		double a = Math.toRadians(deg[0]), b = Math.toRadians(deg[1]), c = Math.toRadians(deg[2]);
 		double ca = Math.cos(a), sa = Math.sin(a), cb = Math.cos(b), sb = Math.sin(b), cc = Math.cos(c), sc = Math.sin(c);
-		return new float[][] {
-				{(float) (cc * cb), (float) (cc * sb * sa - sc * ca), (float) (cc * sb * ca + sc * sa)},
-				{(float) (sc * cb), (float) (sc * sb * sa + cc * ca), (float) (sc * sb * ca - cc * sa)},
-				{(float) (-sb), (float) (cb * sa), (float) (cb * ca)}};
+		out[0] = (float) (cc * cb);
+		out[1] = (float) (cc * sb * sa - sc * ca);
+		out[2] = (float) (cc * sb * ca + sc * sa);
+		out[3] = (float) (sc * cb);
+		out[4] = (float) (sc * sb * sa + cc * ca);
+		out[5] = (float) (sc * sb * ca - cc * sa);
+		out[6] = (float) (-sb);
+		out[7] = (float) (cb * sa);
+		out[8] = (float) (cb * ca);
+		return out;
 	}
 
 	private static float[] mul(float[][] m, float[] v) {
@@ -747,7 +1046,11 @@ public final class BbModel {
 
 	/** a * b for 3x4 affine matrices. */
 	private static float[] compose(float[] a, float[] b) {
-		float[] r = new float[12];
+		return compose(a, b, new float[12]);
+	}
+
+	/** a * b for 3x4 affine matrices, into {@code r} (neither operand). */
+	private static float[] compose(float[] a, float[] b, float[] r) {
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 4; j++) {
 				float v = a[i * 4] * b[j] + a[i * 4 + 1] * b[4 + j] + a[i * 4 + 2] * b[8 + j];

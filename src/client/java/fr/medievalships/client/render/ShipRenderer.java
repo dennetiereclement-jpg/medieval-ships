@@ -58,7 +58,12 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 	private static final float MURK_U = 420f / 512f, MURK_V = 100f / 512f;
 	/** A painting is drawn this far in front of the centre of its frame's canvas. */
 	private static final float PAINTING_OFFSET = 0.062f;
+	/** Beyond this distance the thin rigging and the guns (sub-pixel things) are left out too (1.29.0). */
+	private static final double FAR_DISTANCE = 2 * DETAIL_DISTANCE;
+	private static final String[] FAR_BONES = {"ropes", "guns"};
 	private final Visual visual;
+	/** Writes the model's quads to the vertex consumer (reused by every command of this renderer, render thread). */
+	private final MeshEmitter emitter = new MeshEmitter();
 
 	public ShipRenderer(EntityRendererFactory.Context context, Visual visual) {
 		super(context);
@@ -122,7 +127,7 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 
 	@Override
 	public void render(ShipRenderState state, MatrixStack matrices, OrderedRenderCommandQueue queue, CameraRenderState cameraState) {
-		BbModel model = ShipModels.get(visual);
+		BbModel model = RenderStats.skip ? null : ShipModels.get(visual);
 		if (model != null) {
 			matrices.push();
 			matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-state.yaw));
@@ -151,6 +156,7 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 			boolean decorDrawn = decor != null && state.squaredDistanceToCamera < DECOR_DISTANCE * DECOR_DISTANCE;
 			boolean farInterior = state.interiorLight && state.squaredDistanceToCamera > INTERIOR_DISTANCE * INTERIOR_DISTANCE;
 			boolean farDetail = state.squaredDistanceToCamera > DETAIL_DISTANCE * DETAIL_DISTANCE;
+			boolean farAway = state.squaredDistanceToCamera > FAR_DISTANCE * FAR_DISTANCE;
 			int light = state.light;
 			// the rooms of a vessel are lit by its own lamps, even deep under the sea (unless they are switched off)
 			boolean lampsOn = state.interiorLight && !state.lightsOff;
@@ -171,7 +177,8 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 				RenderLayer layer = fx ? RenderLayers.entityTranslucent(visual.textures().get(tex))
 						: RenderLayers.entityCutoutNoCull(visual.textures().get(tex));
 				queue.submitCustom(matrices, layer, (entry, vertices) -> {
-					BbModel.Pose pose = model.newPose();
+					long t0 = System.nanoTime();
+					BbModel.Pose pose = model.scratchPose();
 					pose.fxPass = fx;
 					model.apply(pose, "row", oarTime, oarWeight);
 					model.apply(pose, "paddle", wheel, 1f);
@@ -208,6 +215,11 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 					if (farDetail) {
 						model.hide(pose, "detail");
 					}
+					if (farAway) {
+						for (String bone : FAR_BONES) {
+							model.hide(pose, bone);
+						}
+					}
 					if (doors != null) {
 						model.apply(pose, "shutters", shutters, 1f);
 						model.apply(pose, "airlock_water", airlockWater, 1f);
@@ -222,29 +234,14 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 							model.hide(pose, "lifeboat");
 						}
 					}
-					model.render(pose, visual.textures().size() > 1 ? texture : -1, new BbModel.QuadSink() {
-						@Override
-						public void quad(float[] p, float[] uv, float[] n, boolean glow) {
-							quad(p, uv, n, glow, false);
-						}
-
-						@Override
-						public void quad(float[] p, float[] uv, float[] n, boolean glow, boolean litFace) {
-							int l = glow ? (fx ? LightmapTextureManager.MAX_LIGHT_COORDINATE : glowLight) : litFace ? lit : light;
-							// a glowing face (lit window, lantern, fire) shines whatever way it faces: an up normal keeps the
-							// entity shading at 1 (its real side normal darkened it to about x 0.5 to x 0.75 on the flanks)
-							boolean shine = glow && (fx || glowShines);
-							float nx = shine ? 0f : n[0], ny = shine ? 1f : n[1], nz = shine ? 0f : n[2];
-							for (int k = 0; k < 4; k++) {
-								vertices.vertex(entry, p[k * 3], p[k * 3 + 1], p[k * 3 + 2])
-										.color(0xFFFFFFFF)
-										.texture(uv[k * 2], uv[k * 2 + 1])
-										.overlay(OverlayTexture.DEFAULT_UV)
-										.light(l)
-										.normal(entry, nx, ny, nz);
-							}
-						}
-					});
+					// the glowing faces (lit windows, lanterns, fires) shine whatever way they face: an up normal keeps the
+					// entity shading at 1 (their real side normal darkened them to about x 0.5 to x 0.75 on the flanks);
+					// the effects pass keeps both faces of its translucent beams and water
+					MeshEmitter sink = emitter.begin(entry, vertices, light, lit, fx ? LightmapTextureManager.MAX_LIGHT_COORDINATE : glowLight,
+							fx || glowShines, RenderCulling.active(), !fx);
+					model.render(pose, visual.textures().size() > 1 ? texture : -1, sink);
+					RenderStats.staticQuadsBaked = BbModel.bakedQuads;
+					RenderStats.emitNanos += System.nanoTime() - t0;
 				});
 			}
 			}
@@ -277,6 +274,7 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 					}
 					matrices.translate(-0.5, 0, -0.5);
 					queue.submitBlock(matrices, decor.states[i], b.glow() && lampsOn ? glowLight : lit, OverlayTexture.DEFAULT_UV, 0);
+					RenderStats.decorBlocks++;
 					matrices.pop();
 				}
 			}

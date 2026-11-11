@@ -927,6 +927,10 @@ public abstract class ShipEntity extends Entity {
 	/** Moves mobs, items and other entities standing on the deck along with the hull (server side). */
 	private void carryEntities(ServerWorld world, ShipPose before, ShipPose after) {
 		double dYaw = after.yaw() - before.yaw();
+		if (dYaw == 0 && after.x() == before.x() && after.y() == before.y() && after.z() == before.z() && age % 10 != 0) {
+			// at rest: nothing to carry; the safety net for an entity sunk into the deck still runs twice a second
+			return;
+		}
 		double r = geometry().boundingRadius();
 		Box area = new Box(before.x() - r, before.y() + Math.min(-2, geometry().lowestY() - 1), before.z() - r,
 				before.x() + r, before.y() + Math.max(8, geometry().topY() + 3), before.z() + r);

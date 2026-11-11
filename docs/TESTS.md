@@ -18,6 +18,23 @@ toutes réussies** (version 1.6.0, avec et sans Lithium, en solo et sur serveur 
 Le test (`src/gametest/.../ShipClientGameTest.java`) crée un monde, des bassins, met les navires
 à l'eau puis vérifie (résultats et captures publiés sur les branches `test-results-<variante>`) :
 
+### Banc de performances — 1.29.0
+
+`PerfGameTest`, joué en dernier dans la séquence, en solo puis sur le serveur dédié (environ 70 s de jeu chacun), seul
+avec `-PgametestOnly=perf`. Sur un terrain à part (x 6000) : une place de 40 accessoires (tentes de camp, de marchands
+et de marché, charrettes, ateliers, taverne, décorations, pieux), un port avec les six gros navires à quai côte à
+côte et le Nautilus, 24 mobs avec leur IA (villageois, zombies casqués) dans les rues et sur un pont. Il vérifie que
+la scène est en place (accessoires enregistrés, vaisseaux à flot) puis **mesure sans seuil** (la CI dessine avec
+llvmpipe) et imprime en lignes PASS : depuis trois caméras (marché, quai, pont), le temps de trame avec et sans les
+rendus du mod (bascule `RenderStats.skip`), le temps que le mod passe à émettre ses sommets, les quads et meubles
+soumis par trame, les cellules de maillage coupées, la mémoire allouée par trame par le fil de rendu ; côté
+serveur, sur 100 ticks à l'arrêt puis 100 ticks avec le navire au lion en route, le MSPT, les appels, coques,
+boîtes et temps du crochet de collision, les requêtes de pièces sèches, la mémoire allouée par tick ; les collectes
+du ramasse-miettes du banc. Trois captures (`perf_market`, `perf_harbour`, `perf_deck`). Les chiffres avant / après de
+chaque version sont reportés dans [PERFORMANCE.md](PERFORMANCE.md). Les faits structurels (maillage statique cuit une
+seule fois, mêmes quads qu'avant, cellule coupée = ses seuls quads, faces à deux côtés) sont des tests unitaires
+(`BbModelMeshTest`).
+
 ### Navires de ville (navire royal au lion, navire forteresse, navire à vapeur à engrenages) — 1.27.0
 
 Trois tests appelés à la fin de la séquence de `ShipClientGameTest`, en solo puis sur le serveur dédié, chacun dans son

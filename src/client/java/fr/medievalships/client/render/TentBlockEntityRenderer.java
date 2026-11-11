@@ -40,6 +40,9 @@ public class TentBlockEntityRenderer implements BlockEntityRenderer<TentBlockEnt
 		long targetsDrawn;
 	}
 
+	/** Writes the model's quads to the vertex consumer (reused by every command of this renderer, render thread). */
+	private final MeshEmitter emitter = new MeshEmitter();
+
 	@Override
 	public State createRenderState() {
 		return new State();
@@ -68,7 +71,7 @@ public class TentBlockEntityRenderer implements BlockEntityRenderer<TentBlockEnt
 	@Override
 	public void render(State state, MatrixStack matrices, OrderedRenderCommandQueue queue, CameraRenderState cameraState) {
 		TentType type = state.tent;
-		if (type == null) {
+		if (type == null || RenderStats.skip) {
 			return;
 		}
 		double far = ConfigManager.server().tentRenderDistance;
@@ -86,11 +89,21 @@ public class TentBlockEntityRenderer implements BlockEntityRenderer<TentBlockEnt
 		int glow = LightmapTextureManager.MAX_LIGHT_COORDINATE;
 		matrices.push();
 		matrices.translate(0.5, 0, 0.5);
+		// out of the view (vanilla never culls a block entity drawn outside its block): nothing is submitted (1.29.0)
+		TentType.Box extent = type.extent(state.quarter);
+		RenderStats.cells++;
+		if (!RenderCulling.visible(matrices.peek().getPositionMatrix(), (float) extent.x0(), (float) extent.y0(), (float) extent.z0(),
+				(float) extent.x1(), (float) extent.y1(), (float) extent.z1())) {
+			RenderStats.cellsCulled++;
+			matrices.pop();
+			return;
+		}
 		matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-90f * state.quarter));
 		RenderLayer layer = RenderLayers.entityCutoutNoCull(TentModels.texture(type));
 		long targetsDrawn = state.targetsDrawn;
 		queue.submitCustom(matrices, layer, (entry, vertices) -> {
-			BbModel.Pose pose = model.newPose();
+			long t0 = System.nanoTime();
+			BbModel.Pose pose = model.scratchPose();
 			// the training targets that their entity draws (moving, TrainingTargetRenderer); the others stay here, at rest
 			for (int i = 0; targetsDrawn != 0 && i < type.targets().size() && i < 64; i++) {
 				if ((targetsDrawn >> i & 1) != 0) {
@@ -106,17 +119,10 @@ public class TentBlockEntityRenderer implements BlockEntityRenderer<TentBlockEnt
 				model.hide(pose, "detail");
 				model.hide(pose, "furniture");
 			}
-			model.render(pose, (p, uv, n, isGlow) -> {
-				int l = isGlow ? glow : light;
-				for (int k = 0; k < 4; k++) {
-					vertices.vertex(entry, p[k * 3], p[k * 3 + 1], p[k * 3 + 2])
-							.color(0xFFFFFFFF)
-							.texture(uv[k * 2], uv[k * 2 + 1])
-							.overlay(OverlayTexture.DEFAULT_UV)
-							.light(l)
-							.normal(entry, n[0], n[1], n[2]);
-				}
-			});
+			// every bone of a prop is static: the baked mesh, its cells out of view and its back faces skipped
+			model.render(pose, emitter.begin(entry, vertices, light, light, glow, false, RenderCulling.active(), true));
+			RenderStats.staticQuadsBaked = BbModel.bakedQuads;
+			RenderStats.emitNanos += System.nanoTime() - t0;
 		});
 		if (decor != null) {
 			for (int i = 0; i < decor.states.length; i++) {
@@ -132,6 +138,7 @@ public class TentBlockEntityRenderer implements BlockEntityRenderer<TentBlockEnt
 				}
 				matrices.translate(-0.5, 0, -0.5);
 				queue.submitBlock(matrices, decor.states[i], b.glow() ? glow : light, OverlayTexture.DEFAULT_UV, 0);
+				RenderStats.decorBlocks++;
 				matrices.pop();
 			}
 		}

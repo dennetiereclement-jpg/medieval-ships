@@ -40,12 +40,16 @@ public final class ShipInteriors {
 		return null;
 	}
 
+	/** Benchmark counter ({@code PerfGameTest}): calls of {@link #dryAt}, [0] server worlds, [1] client worlds. */
+	public static final long[] DRY_CALLS = new long[2];
+
 	/** Is this world point dry air inside a vessel (a compartment, an open door, the airlock pumped out)? */
 	public static boolean dryAt(World world, double x, double y, double z) {
 		ShipEntity[] ships = ShipTracker.ships(world);
 		if (ships.length == 0) {
 			return false;
 		}
+		DRY_CALLS[world.isClient() ? 1 : 0]++;
 		for (ShipEntity ship : ships) {
 			InteriorGrid grid = ship.geometry().interior();
 			if (grid == null || ship.isRemoved()) {
