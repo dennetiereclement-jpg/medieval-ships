@@ -186,14 +186,16 @@ ALIGNED_V = ("stud_post", "rib_plate")   # these two stretched across their (nar
 # (phase 9, 1.28.1: the stone metallic, "sur l'eau ça fait bizarre": a mid-dark steel grey with a slight cool tint instead
 # of the bright limestone, highlights #a9aeb3 along the top-left edges, shadow #3e4246 along the bottom-right, thin dark
 # joints, one block in six darker; the wale's plating darker still; polished steel for the caps, quoins and sills)
-STONE_TONES = ("6e7378", "6a6f74", "72777c", "676c71", "70757a", "6c7177")
-STONE_DARKER = "5c6166"
-STONE_DARK = ("54595f", "4e5359", "585d63", "4a4f55")
-STONE_LIGHT = ("878c92", "82878d", "8c9197")
+# (iteration 4, after the in-game screenshots: the game lights the flanks brighter than the renders, the plates read
+# a neutral mid grey there: a touch cooler, a stronger sheen, the wale's foot wetter)
+STONE_TONES = ("6c727a", "686e76", "70767e", "656b73", "6e747c", "6a7078")
+STONE_DARKER = "5a6068"
+STONE_DARK = ("52585f", "4c5259", "565c63", "484e55")
+STONE_LIGHT = ("858b92", "80868d", "8a9097")
 STONE_MORTAR = "1a1d20"
-STONE_HI = "a9aeb3"          # the highlight along the top and left edges of a plate (relative to the nominal base)
-STONE_LO = "3e4246"          # the shadow along its bottom and right edges
-WALE_TONES = ("50555b", "4c5157", "545960")   # the heavy plating at the waterline
+STONE_HI = "a9afb6"          # the highlight along the top and left edges of a plate (relative to the nominal base)
+STONE_LO = "3c4147"          # the shadow along its bottom and right edges
+WALE_TONES = ("4e545b", "4a5057", "525860")   # the heavy plating at the waterline
 # names used by the shared helpers (ship_details, generate_galleon, corsair_furniture): the same pixels
 for _alias, _src in (("hull_mid", "wood_mid"), ("hull_light", "wood_light"), ("hull_dark", "wood_dark"), ("wood_trim", "wood_dark"),
                      ("wood_honey", "wood_mid"), ("blue_paint", "navy"), ("pilaster", "wood_dark"), ("velvet", "red_paint"),
@@ -363,7 +365,7 @@ def _stone_block(px, u, v, bw, bh, base, rng, mortar, stud=False, x0=0, y0=0, cl
             if x == bw - 1 or y == bh - 1:
                 c = _mix(mortar, base, 0.1 if (u + X + 2 * (v + Y)) % 3 == 0 else 0.0)     # the thin dark joint
             else:
-                k = 1.0 + 0.16 * (0.5 - (x + y) / (bw + bh - 4.0))                            # the glossy sheen
+                k = 1.0 + 0.22 * (0.5 - (x + y) / (bw + bh - 4.0))                            # the glossy sheen
                 k += 0.07 * (_vnoise((u + X) * 0.5, (v + Y) * 2.5, s, 3.0) - 0.5)            # the brushed grain, along the plate
                 k += 0.05 * (_vnoise(u + X, v + Y, s + 7, 6.0) - 0.5)                        # the hammered surface
                 for dx_, dy_, dr in dents:
@@ -382,8 +384,8 @@ def _stone_block(px, u, v, bw, bh, base, rng, mortar, stud=False, x0=0, y0=0, cl
                 if scratch and scratch[1] <= y < scratch[1] + scratch[2] and x == scratch[0] + (y - scratch[1]):
                     c = _scale(c, 1.28)
                 if grime:
-                    t = max(0.0, (y - bh * 0.42) / (bh * 0.58))
-                    c = _mix(c, _rgb("1c2024"), min(0.62, grime * t ** 1.3))
+                    t = max(0.0, (y - bh * 0.4) / (bh * 0.6))
+                    c = _mix(c, _rgb("1a1e22"), min(0.72, grime * t ** 1.2))
                 for rx, ry in rivets:
                     bc = _rivet(x - rx, y - ry, r)
                     if bc == "shadow":
@@ -1559,7 +1561,7 @@ def make_item_icon(path):
     masts with red sails bordered in white (a beige tower on the main course), red pennants."""
     img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
     px = img.load()
-    stone, red, brown, dark = _rgb("6e7378"), _rgb("b8262b"), _rgb("3e2616"), _rgb("2a1a0e")
+    stone, red, brown, dark = _rgb("6c727a"), _rgb("b8262b"), _rgb("3e2616"), _rgb("2a1a0e")
     white, mast, beige, roof = _rgb("dcdcd6"), _rgb("6e4a2a"), _rgb(BEIGE), _rgb("a8302a")
     for x in range(1, 15):
         for y in range(10, 15):
@@ -1572,7 +1574,7 @@ def make_item_icon(path):
     # the stern castle and its turret
     for x in range(11, 15):
         for y in range(7, 10):
-            px[x, y] = (stone if (x + y) % 2 else _rgb("5c6166")) + (255,)
+            px[x, y] = (stone if (x + y) % 2 else _rgb("5a6068")) + (255,)
     px[13, 8] = _rgb("ffd27a") + (255,)
     for x, y in ((12, 5), (13, 5), (12, 6), (13, 6)):
         px[x, y] = dark + (255,)
