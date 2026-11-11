@@ -148,6 +148,19 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.28.1 **cache l'eau du monde dans les pièces aussi avec Sodium** : l'eau n'est plus écartée par un mixin sur le
+moteur de rendu de Minecraft (que Sodium, et donc Iris et Nvidium, n'appellent jamais : la nappe de la mer restait visible
+dans la cale du navire au lion sur un client ainsi équipé) mais par le gestionnaire de rendu des fluides de Fabric API,
+que Sodium honore bloc par bloc, réinstallé à chaque connexion au cas où un mod chargé après celui-ci l'aurait remplacé ;
+le mixin reste en secours. Deux filets de sécurité contre les sections dessinées avant
+que le navire ne soit connu du client (en rejoignant un serveur, les tronçons de monde et les navires arrivent dans
+n'importe quel ordre) : les sections autour d'un navire sont redessinées une seconde fois deux secondes après sa première
+apparition, et, tant que le joueur est dans une pièce sèche près du niveau de la mer, toutes les cinq secondes celles de la
+bande d'eau autour de la coque qui n'ont pas été redessinées depuis. Un bloc d'eau dont le corps est sous la coque ou dans
+un plancher mais dont la face supérieure (la surface de la mer) est entièrement dans la coque est caché quoi qu'il y ait
+dessous (plancher plus mince que l'écart des points de mesure, fond en pente d'une coque tournée). Le test en jeu tourne
+dans une quatrième variante, avec Sodium, et relit chaque capture `<id>_cale_niveau_mer` pour y compter les pixels bleus.
+
 La version 1.28.0 **enfonce les gros navires dans l'eau** : ils flottaient trop haut, les fonds arrondis de la coque
 visibles au-dessus de la mer. La ligne de flottaison est remontée dans le repère de chaque modèle (galion +1,1 bloc,
 grand vaisseau +1,0, Vieux Corsaire +0,5, frégate, navire au lion, forteresse et navire à vapeur à engrenages +0,6,
@@ -542,7 +555,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.28.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.28.1.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation

@@ -258,13 +258,19 @@ public final class InteriorGrid {
 
 	// ---- the world's water drawn across the rooms (the client skips it: fr.medievalships.client.render.DryWater)
 
-	/** Where the samples of a water block are taken: at 0.1, 0.5 and 0.9 of the block along each axis (27 points). */
+	/** Where the samples of a water block are taken across it: at 0.1, 0.5 and 0.9 of the block along x and z. */
 	private static final double[] WATER_SAMPLE_OFFSETS = {-0.4, 0.0, 0.4};
+	/** The three sample planes: at 0.1 and 0.5 of the block, and on its top face (a source block is 8/9 high). */
+	private static final double[] WATER_SAMPLE_HEIGHTS = {-0.4, 0.0, 8.0 / 9.0 - 0.5};
+	/** The index of the top-face plane in {@link #WATER_SAMPLE_HEIGHTS}. */
+	private static final int TOP_PLANE = 2;
 
 	/**
 	 * Sorts the 27 sample points of the world's water block whose lower corner is (bx, by, bz) into {outside the hull,
-	 * dry, wet inside}: outside is {@link #OUT}; dry is a room, a wall, a floor, a piece of furniture, a door or the
-	 * airlock above its water (see {@link #dry}); wet inside is the airlock under its water. The vessel is at {@code pose}.
+	 * dry, wet inside, top face outside, top face dry}: outside is {@link #OUT}; dry is a room, a wall, a floor, a piece
+	 * of furniture, a door or the airlock above its water (see {@link #dry}); wet inside is the airlock under its water.
+	 * The last two counts are those of the 9 samples of the top face alone (the surface of the sea, the one face that
+	 * shows across a room). The vessel is at {@code pose}.
 	 */
 	public int[] waterSamples(ShipPose pose, int bx, int by, int bz, State state) {
 		double c = pose.cos(), s = pose.sin();
@@ -273,38 +279,51 @@ public final class InteriorGrid {
 		// a block whose centre is more than a block from the grid is wholly outside it (the usual case: the open sea)
 		if (lxc < x0 - 1.0 || lxc > x0 + nx * cell + 1.0 || lyc < y0 - 1.0 || lyc > y0 + ny * cell + 1.0 || lzc < z0 - 1.0
 				|| lzc > z0 + nz * cell + 1.0) {
-			return new int[] {27, 0, 0};
+			return new int[] {27, 0, 0, 9, 0};
 		}
-		int out = 0, dry = 0, wet = 0;
+		int out = 0, dry = 0, wet = 0, topOut = 0, topDry = 0;
 		for (double ox : WATER_SAMPLE_OFFSETS) {
 			for (double oz : WATER_SAMPLE_OFFSETS) {
 				// the world offsets (ox, oz) of the sample, turned into the ship's frame
 				double lx = lxc + ox * c + oz * s, lz = lzc - ox * s + oz * c;
-				for (double oy : WATER_SAMPLE_OFFSETS) {
-					double ly = lyc + oy;
+				for (int p = 0; p < WATER_SAMPLE_HEIGHTS.length; p++) {
+					double ly = lyc + WATER_SAMPLE_HEIGHTS[p];
 					byte k = kindAt(lx, ly, lz);
 					if (k == OUT) {
 						out++;
+						if (p == TOP_PLANE) {
+							topOut++;
+						}
 					} else if (dry(k, ly, state)) {
 						dry++;
+						if (p == TOP_PLANE) {
+							topDry++;
+						}
 					} else {
 						wet++;
 					}
 				}
 			}
 		}
-		return new int[] {out, dry, wet};
+		return new int[] {out, dry, wet, topOut, topDry};
 	}
 
 	/**
 	 * The rule on the counts of {@link #waterSamples}: the block is not drawn when at least one of its samples is dry and
 	 * none is outside the hull (it lies in a room, a floor slab, a staircase, a wall); a block straddling the outer hull
 	 * is hidden only when its dry samples outnumber the outside ones. (What would be drawn is the surface of the sea,
-	 * which otherwise cuts across a hold under the waterline, a companionway or a floor slab.)
+	 * which otherwise cuts across a hold under the waterline, a companionway or a floor slab.) Since 1.28.1 a block whose
+	 * body lies under the hull or in a floor but whose top face is wholly within the hull, in a dry cell, is hidden too,
+	 * whatever the count below it: the surface of the sea would otherwise show just above that floor (a floor thinner than
+	 * the spacing of the samples, a sloped bottom under a turned hull). A top face partly outside the hull keeps the
+	 * majority rule, so the sea beside the hull is never holed.
 	 */
 	public static boolean hidesWater(int[] samples) {
 		int out = samples[0], dry = samples[1];
-		return dry > 0 && (out == 0 || dry > out);
+		if (dry > 0 && (out == 0 || dry > out)) {
+			return true;
+		}
+		return samples.length > 4 && samples[4] > 0 && samples[3] == 0;
 	}
 
 	/** Is the world's water block whose lower corner is (bx, by, bz) inside this vessel at {@code pose}, not to be drawn? */

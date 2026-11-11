@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: [vanilla, lithium, decor]
+        variant: [vanilla, lithium, decor, sodium]
     env:
       MS_TEST_MINIMAL: ${{ matrix.variant == 'minimal' && '1' || '' }}
     steps:
@@ -47,6 +47,24 @@ jobs:
             [ -n "$url" ] && curl -sL -o "libs/$slug.jar" "$url" || true
           done
           ls -la libs
+      - name: Download Sodium (chunk meshing pipeline variant, 1.28.1)
+        if: matrix.variant == 'sodium'
+        run: |
+          mkdir -p libs /tmp/out
+          # the latest release (not a beta) for this game version, downloaded from Modrinth for the test only
+          json=$(curl -s 'https://api.modrinth.com/v2/project/sodium/version?game_versions=%5B%221.21.11%22%5D&loaders=%5B%22fabric%22%5D')
+          url=$(echo "$json" | jq -r '[.[] | select(.version_type == "release")][0].files[0].url // .[0].files[0].url')
+          echo "Sodium: $(echo "$json" | jq -r '[.[] | select(.version_type == "release")][0].version_number // .[0].version_number') $url"
+          curl -sL -o libs/sodium.jar "$url"
+          ls -la libs
+          # evidence from the real jar, kept with the results: Sodium's Fabric fluid renderer looks the handler up in
+          # FluidRenderHandlerRegistry and renders through FluidRendering.render (FluidRenderHandler#renderFluid)
+          {
+            echo "== classes of the jar about fluids"; unzip -l libs/sodium.jar | grep -i fluid
+            echo; echo "== net.caffeinemc.mods.sodium.fabric.render.FluidRendererImpl (javap -p -c, calls only)"
+            javap -p -c -cp libs/sodium.jar net.caffeinemc.mods.sodium.fabric.render.FluidRendererImpl | grep -E "^  [a-z].*\(|^[a-z].*class|invoke(static|virtual|interface|special)"
+          } > /tmp/out/sodium-fluid-renderer.txt 2>&1 || true
+          cat /tmp/out/sodium-fluid-renderer.txt
       - name: Install virtual display
         run: sudo apt-get update -q && sudo apt-get install -y -q xvfb mesa-utils
       - name: Run the real client with the mod
@@ -54,6 +72,7 @@ jobs:
         # 1.27.0 (lot 2 ships): ~74 min with the decoration mods (one run hit 75): 90
         # 1.27.0 integration (17 market tents + the three city ships together): 1.26.0 alone took 66-73 min, each ship
         # branch 62-77 min; the three ships add several minutes each: 110 (job 120)
+        # 1.28.1: the sodium variant (Fabric API + Sodium) runs the same scenario on Sodium's chunk meshing pipeline
         timeout-minutes: 110
         run: |
           set -o pipefail

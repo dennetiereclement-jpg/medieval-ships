@@ -9,13 +9,14 @@ le `.jar` obtenu est celui qui vous est livré.
 ## Tests dans le vrai jeu (automatiques, GitHub Actions)
 
 La tâche *In-game test* lance un **vrai client Minecraft 1.21.11** avec le `.jar` de
-production (mod remappé, comme sur un vrai serveur), deux fois : **sans** et **avec Lithium**.
+production (mod remappé, comme sur un vrai serveur), en quatre variantes : `vanilla` (Fabric API seule), `lithium`,
+`decor` (les mods de décoration du Nautilus) et, depuis 1.28.1, `sodium` (Fabric API + Sodium, le moteur de rendu des
+tronçons remplacé).
 Chaque fois, tout le scénario est joué **en solo** puis sur un **vrai serveur dédié** auquel le
 client se connecte par le réseau (contrôles de mouvement du serveur actifs) : **194 vérifications,
 toutes réussies** (version 1.6.0, avec et sans Lithium, en solo et sur serveur dédié).
 Le test (`src/gametest/.../ShipClientGameTest.java`) crée un monde, des bassins, met les navires
-à l'eau puis vérifie (résultats et captures publiés sur les branches `test-results-vanilla` et
-`test-results-lithium`) :
+à l'eau puis vérifie (résultats et captures publiés sur les branches `test-results-<variante>`) :
 
 ### Navires de ville (navire royal au lion, navire forteresse, navire à vapeur à engrenages) — 1.27.0
 
@@ -32,8 +33,10 @@ meublées (navire royal et forteresse), déploie la passerelle par son levier su
 rangée sans quai pour le vapeur), et le fait piloter quelques secondes à la barre (le navire avance ; engrenages, fumée et machine pour le
 vapeur) ; captures des vues des références et des pièces meublées ; depuis 1.28.0, capture `<id>_cale_niveau_mer` depuis le pied de
 l'escalier de la cale et comptage côté client des blocs d'eau du bassin dans l'emprise de la coque (tous ceux entièrement dans la
-coque cachés, aucun de la mer libre) ; puis retrait. Vérifications par mode : 27 (navire
-royal au lion), 29 (forteresse), 21 (vapeur à engrenages). JUnit : `RoyalLionShipTest`, `FortressShipTest`,
+coque cachés, aucun de la mer libre) ; depuis 1.28.1 la capture est relue et ses pixels bleus comptés (moins de 4 % du cadre,
+la nappe de la mer en couvre 10 à 25 %, une cale propre moins de 1 %) : la seule vérification qui voit ce que le moteur de
+rendu a vraiment dessiné, Sodium compris ; puis retrait. Vérifications par mode : 28 (navire
+royal au lion), 30 (forteresse), 22 (vapeur à engrenages). JUnit : `RoyalLionShipTest`, `FortressShipTest`,
 `GearSteamShipTest` (grille fermée, pièces atteignables à pied, sièges et places pour se relever, mobilier dans la
 coque, sondes de la grille et des mâts identiques à la forme Python), `NewShipModelsTest` (os, animations et quads de
 référence des trois modèles), `NoZFightingTest`, `GangplankSpecsTest` et `GangplankFoldTest` (passerelles et paquets
@@ -283,10 +286,11 @@ passagers).
 
 ### Nautilus — 1.7.0
 
-Le scénario tourne dans un bassin de 28 × 142 blocs, profond de 26 blocs et fermé par des vitres. Il est joué **en solo puis sur un serveur dédié**, en trois variantes :
+Le scénario tourne dans un bassin de 28 × 142 blocs, profond de 26 blocs et fermé par des vitres. Il est joué **en solo puis sur un serveur dédié**, en quatre variantes :
 
 * **sans** Lithium ;
 * **avec** Lithium ;
+* **avec Sodium** (depuis 1.28.1 : le maillage des tronçons par Sodium, pour l'eau cachée dans les pièces) ;
 * **avec les mods de décoration**. Furnish, Farmhouse Decorations et Farmer's Delight Refabricated sont téléchargés depuis Modrinth pour le test seulement ; Fabric Loader 0.19.5 est nécessaire à ces mods. Le journal du jeu indique alors « 172 des 188 meubles dessinés depuis les mods installés ». Les 16 autres (Lands of Icaria, introuvable sur Modrinth, et Mebahel, non public) sont remplacés par leurs volumes de remplacement.
 
 Ce qui est vérifié :
@@ -296,7 +300,8 @@ Ce qui est vérifié :
   * marche sur le pont principal ;
   * pont inférieur **sec sous la ligne de flottaison** : pas d'eau, pas de vue sous-marine, l'air reste plein ;
   * depuis 1.28.0, en surface : caméra sur l'échelle de la salle des machines 0,4 bloc sous le niveau de la mer, hors de l'eau
-    pour le brouillard (`NONE`), capture `nautilus_cale_niveau_mer`, et aucun bloc d'eau du bassin dessiné dans la coque ;
+    pour le brouillard (`NONE`), capture `nautilus_cale_niveau_mer` (relue depuis 1.28.1 : moins de 4 % de pixels bleus), et
+    aucun bloc d'eau du bassin dessiné dans la coque ;
   * montée de **l'escalier en colimaçon** ;
   * **échelle** jusque sous le panneau fermé, puis sortie sur la coque une fois le panneau ouvert.
 * **Plongée** :
@@ -350,9 +355,45 @@ Non vérifié automatiquement :
 
 * **plusieurs joueurs réels** à bord en même temps (le test n'a qu'un client) ;
 * les **sons**, joués côté client et inaudibles pour le test ;
-* le rendu avec **Sodium**, qui dessine l'eau par son propre moteur : l'eau du monde pourrait y rester visible dans les salles qui traversent la ligne de flottaison ;
+* le rendu avec **Embeddium** (plus publié pour Fabric 1.21.x) ou **VulkanMod** (moteur entièrement différent, incompatible
+  avec Sodium) : l'eau du monde pourrait y rester visible dans les salles qui traversent la ligne de flottaison ; Sodium,
+  Iris et Nvidium (qui maillent par Sodium) passent par le gestionnaire de fluides de Fabric API, vérifié par la variante
+  `sodium` (voir ci-dessous) ;
 * un long voyage automatique en vraie mer, avec récifs et hauts-fonds (seuls les tests unitaires le couvrent) ;
 * les meubles de **Lands of Icaria** et de **Mebahel** dessinés depuis leurs mods (absents du test).
+
+### Eau du monde cachée dans les pièces, avec Sodium (1.28.1)
+
+Sur le serveur de l'utilisateur (client avec Sodium), la nappe de la mer restait visible dans la cale du navire au lion
+malgré 1.28.0 : Sodium remplace le maillage des tronçons et n'appelle jamais le `FluidRenderer` de Minecraft, sur lequel
+portait le mixin. Vérifié dans les sources de Sodium `mc1.21.11-0.8.14` (`fabric/src/main/java/net/caffeinemc/mods/sodium/
+fabric/render/FluidRendererImpl.java`) et, à chaque exécution de la variante `sodium`, par `javap` sur le `.jar` téléchargé
+(`sodium-fluid-renderer.txt` publié avec les résultats) : `FluidRendererImpl.render` lit le gestionnaire dans
+`FluidRenderHandlerRegistry` et appelle `FluidRendering.render(handler, …)`, donc `FluidRenderHandler#renderFluid`, avec son
+propre moteur comme géométrie par défaut. Le mod enregistre donc depuis 1.28.1 un gestionnaire pour l'eau qui saute les
+blocs cachés et délègue tout le reste au gestionnaire précédent (`DryWaterFluidHandler`) ; le mixin reste en secours sans
+Sodium.
+
+Ce que vérifie la variante `sodium` (mêmes vérifications que `vanilla`, sur le moteur de Sodium) : le comptage des blocs
+d'eau cachés par la règle, et surtout la relecture des captures `<id>_cale_niveau_mer` (nautilus, Vieux Corsaire, navire
+au lion, forteresse, vapeur à engrenages, en solo et sur serveur dédié) : moins de 4 % de pixels bleus dans le cadre.
+Les captures sont aussi à regarder : aucune nappe d'eau ne doit traverser la cale.
+
+Filets de sécurité (`DryWater.tick`), indépendants du moteur : second redessin des sections autour d'un navire 2 s après
+sa première apparition ; tant que le joueur est dans une pièce sèche à moins de 3 blocs de la surface de l'eau, toutes
+les 5 s les sections de la bande d'eau autour de la coque (de 3 blocs sous la surface à la couche du bloc d'eau le plus
+haut) qui n'ont pas été maillées depuis le dernier redessin (chaque section maillée avec une coque à portée est horodatée)
+sont replanifiées, une seule fois par redessin : la planification horodate la section, car une section sans bloc d'eau
+près de la coque (quai, terre) n'est jamais horodatée par le maillage et serait sinon remaillée à chaque vérification. Un tronçon qui se charge près d'un navire déjà
+suivi est maillé après la publication de l'instantané (fin du tick client ; le maillage a lieu au rendu qui suit), donc
+avec la coque : rien à faire pour `ClientChunkEvents.CHUNK_LOAD` ; un navire arrivé dans le même lot qu'un tronçon est
+couvert par le redessin de sa première apparition, puis par le second.
+
+Non couvert : Embeddium (absent pour Fabric 1.21.x) et VulkanMod. Un autre mod dont le point d'entrée client passe
+après le nôtre et qui enregistre son propre gestionnaire pour l'eau le remplace dans le registre de Fabric API : le
+nôtre est réinstallé à chaque connexion à un monde (`ClientPlayConnectionEvents.JOIN`), autour du gestionnaire trouvé
+(idempotent : un gestionnaire déjà enveloppé est laissé tel quel). Reste non couvert un mod qui enregistrerait le sien
+*après* la connexion (sans Sodium, le mixin prend le relais ; avec Sodium, l'eau redeviendrait visible dans les pièces).
 
 ### Filets de sécurité (collisions désactivées)
 

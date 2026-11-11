@@ -328,6 +328,7 @@ public final class FortressShipGameTest {
 		look(server, pose(server), 3.25, FortressLayout.LOWER_FLOOR_Y + 1.62, -5.5, 0.0, FortressLayout.LOWER_FLOOR_Y + 0.3, -13.0);
 		context.waitTicks(12);
 		shot.accept(id + "_cale_niveau_mer");
+		DryWaterGameTest.checkScreenshot(TYPE, "the hold", check, log);
 		DryWaterGameTest.check(context, TYPE, check, log);
 		server.runCommand("gamemode survival @a");
 		// a few steps forward on the waist

@@ -192,6 +192,7 @@ public final class GearSteamShipGameTest {
 		look(server, pose(server), 2.25, GearSteamLayout.HOLD_FLOOR_Y + 1.62, 9.7, 0.0, GearSteamLayout.HOLD_FLOOR_Y + 0.3, -1.0);
 		context.waitTicks(12);
 		shot.accept(id + "_cale_niveau_mer");
+		DryWaterGameTest.checkScreenshot(TYPE, "the hold", check, log);
 		DryWaterGameTest.check(context, TYPE, check, log);
 		server.runCommand("gamemode survival @a");
 		// the captain's chair (the first seat of the furniture), then standing up on the cabin floor
