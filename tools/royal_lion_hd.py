@@ -106,6 +106,7 @@ HULL_BROWN = ("402813", "37220f", "482d16", "301d0d", "51341c")
 WOOD_MID = ("70482a", "653f24", "7b5230", "56371e", "86603a", "6a4426", "946c42")
 WOOD_DARK = ("3a2414", "33200f", "422918", "2c1a0c", "4a2e1a")
 JOINT_BROWN = "1a0e06"
+DECK_WOOD = ("b48254", "a67650", "c08e5c", "a87e52", "946c46")     # 1.28.1: x 1.3 (the game lights the decks at x 0.4)
 
 
 def gold_px(shape, rng, base=1.0):
@@ -207,6 +208,153 @@ def p_planks(w, h, palette, seam, rng, plank=8, grain=0.1, butt=(40, 140), nails
                     blk[:ph - 1] = blk[:ph - 1] * 0.7 + hx(worn_col) * 0.3
                 out[y0:y1, x0:x1] = blk
             x += L
+    return np.clip(out, 0, 255)
+
+
+# ---------------------------------------------------------------- the rooms (1.28.1)
+# 1.28.1: measured on the in-game screenshots of 1.28.0, the game lights the floors and the decks at about x 0.4, the
+# side walls at x 0.5, the end walls at x 0.74 and the ceilings at x 1.0 (the two fixed lights reach the faces as if
+# from below), so the floors are painted light and the ceilings muted for the rooms to read evenly. The hold and the
+# crew quarters are below the waterline since 1.28.0 and the player walks there: their walls, floors and ceilings
+# (phase 2 textures scaled up until now: half-block boards, 4-texel black joints, a brick wall) are repainted here.
+HOLD_WALL = ("9a6e46", "8e643e", "a4784e", "865c38", "ae8054", "92683f")
+HOLD_JOINT = "2c1a0c"
+HOLD_FLOOR = ("c89a66", "bc8e5c", "d2a46e", "b08454", "c49460")
+CEIL_WOOD = ("6e4c2e", "664628", "785434", "5e4024")
+CABIN_WALL = ("5e3e24", "573822", "66442a", "503420", "6c4a2e")
+CABIN_FLOOR = ("c08a58", "b48052", "cc9662", "a87848", "bc885a")
+
+
+def planks_v(W, H, palette, joint, rng, pw=11, butt=(48, 120), grain=0.1, knots=0.35, nails=True, lit=0.14, tone=(0.9, 1.08)):
+    """Planks along v (pw texels wide) with staggered butt joints: a tone each, grain along v, a lit left edge, a
+    dark seam on the right and at the butts, two nail heads at each butt, a dark knot now and then."""
+    pal = [hx(c) for c in palette]
+    jc = hx(joint)
+    out = np.zeros((H, W, 3))
+    gr = vnoise(rng, W, H, 2, 18)
+    kn = vnoise(rng, W, H, 5, 5)
+    fine = rng.uniform(-1, 1, (H, W))
+    x = 0
+    while x < W:
+        x1 = min(W, x + pw)
+        y = -int(rng.integers(0, butt[1]))
+        while y < H:
+            L = int(rng.integers(butt[0], butt[1]))
+            y0, y1 = max(0, y), min(H, y + L)
+            if y1 > y0:
+                base = pal[int(rng.integers(len(pal)))] * rng.uniform(*tone)
+                ly = np.arange(y0, y1)[:, None] - y
+                lx = np.arange(x1 - x)[None, :]
+                g = 1 + grain * gr[y0:y1, x:x1] + 0.03 * fine[y0:y1, x:x1]
+                if knots:
+                    g = g - 0.45 * np.clip((kn[y0:y1, x:x1] - (0.95 - 0.3 * knots)) * 6, 0, 1)
+                k = 1 + lit * (lx < 1) + 0.05 * (lx == 1) - 0.1 * (lx >= pw - 2) - 0.08 * (ly >= L - 2) + 0.05 * (ly < 1)
+                blk = base[None, None, :] * (g * k)[..., None]
+                seam = np.broadcast_to((lx >= pw - 1) | (ly >= L - 1), blk.shape[:2])
+                blk[seam] = jc * rng.uniform(0.85, 1.1)
+                if nails and pw >= 6 and x1 - x >= pw:
+                    for ny in (2, L - 4):
+                        yy = y + ny
+                        if y0 <= yy and yy + 1 < y1:
+                            blk[yy - y0, pw // 2 - 1:pw // 2 + 1] = jc * 1.4
+                            blk[yy - y0 + 1, pw // 2 - 1:pw // 2 + 1] = jc * 0.9
+                out[y0:y1, x:x1] = blk
+            y += L
+        x = x1
+    return out
+
+
+def gold_band_v(H, W, rng, t0=0.05, t1=0.92):
+    """A horizontal gold moulding (rows): a pale lit top, a saturated middle, a deep foot."""
+    v = (np.arange(H) + 0.5) / max(1, H)
+    g = stops(t0 + (t1 - t0) * v, GOLD_STOPS)
+    return np.repeat(g[:, None, :], W, axis=1) * (1 + 0.02 * rng.uniform(-1, 1, (H, W)))[..., None]
+
+
+def p_hold_wall(w, h, rng, palette=HOLD_WALL, joint=HOLD_JOINT, plank=9, frames=2, frame_w=10, shelf=0.06, foot=0.09, wet=0.18):
+    """The walls of the hold and of the crew quarters (v from the ceiling, 0, to the floor, 1; a tile is 4 blocks
+    wide): horizontal planking in narrow planks with thin seams, two vertical frames (ribs) a tile with bolt heads
+    and the shadow they throw, a heavy clamp under the ceiling, a dark foot waling, the lowest part darker (it is
+    below the waterline)."""
+    W, H = w * K, h * K
+    out = p_planks(w, h, palette, joint, rng, plank=plank, grain=0.12, butt=(44, 120), nails=True, bevel=0.9)
+    yy, xx = np.mgrid[0:H, 0:W]
+    v = (yy + 0.5) / H
+    sb, fb = int(shelf * H), int((1 - foot) * H)
+    for k in range(frames):
+        cx = int((k + 0.5) * W / frames)
+        x0, x1 = cx - frame_w // 2, cx + frame_w // 2
+        out[:, x1:x1 + 2] *= 0.72                     # the shadow the frame throws on the planks
+        out[:, x0:x1] = hx("563618")[None, None, :] * (0.95 + 0.12 * vnoise(rng, x1 - x0, H, 2, 14))[..., None]
+        out[:, x0] = hx("8a5e34")                      # lit left edge
+        out[:, x1 - 1] = hx("2a180a")                  # dark right edge
+        for y in range(sb + 6, fb - 4, 12):            # the bolt heads
+            out[y:y + 2, cx - 1:cx + 1] = hx("5c5e62")
+            out[y, cx - 1] = hx("9a9ca0")
+    out[:sb] = hx("5a3a20")[None, None, :] * (0.95 + 0.1 * vnoise(rng, W, sb, 16, 2))[..., None]
+    out[sb - 1] = hx("8a6240")                         # the lit lower edge of the clamp
+    out[0] = hx("2c1a0c")
+    out[fb:] = hx("3e2814")[None, None, :] * (0.95 + 0.1 * vnoise(rng, W, H - fb, 12, 3))[..., None]
+    out[fb] = hx("6a4a2a")                             # the lit top edge of the foot waling
+    out[fb:][(xx[fb:] % 24) == 5] *= 0.8
+    out *= (1 - wet * np.clip((v - 0.6) / 0.4, 0, 1) ** 1.5)[..., None]
+    return np.clip(out, 0, 255)
+
+
+def p_room_floor(w, h, rng, palette, joint, pw=11, butt=(48, 120), stains=0.0, sheen=0.0, nails=True, knots=0.35):
+    """A floor: planks along v (fore and aft; the floors' u is athwartships), thin seams, a few darker stains."""
+    W, H = w * K, h * K
+    out = planks_v(W, H, palette, joint, rng, pw=pw, butt=butt, nails=nails, knots=knots)
+    if sheen:
+        out *= (1 + sheen * vnoise(rng, W, H, 28, 28))[..., None]
+    if stains:
+        st = vnoise(rng, W, H, 9, 9)
+        out *= (1 - stains * np.clip((st - 0.55) * 3, 0, 1))[..., None]
+    return np.clip(out, 0, 255)
+
+
+def p_ceiling(w, h, rng):
+    """The ceilings (the undersides of the decks, lit at full in game): muted planks along v between the beams (the
+    beams are cubes under them), thin seams, no nails."""
+    W, H = w * K, h * K
+    return np.clip(planks_v(W, H, CEIL_WOOD, "24160a", rng, pw=12, butt=(60, 128), nails=False, knots=0.2, lit=0.08, grain=0.08), 0, 255)
+
+
+def p_cabin_wall(w, h, rng, palette=CABIN_WALL, joint="2a1a0d"):
+    """The captain's cabin and the state room (v from the ceiling to the floor): a gold cornice, vertical walnut
+    boards, a gold chair rail at the height of the window sills, a wainscot of raised panels (one a block, bevelled:
+    lit top and left, shadowed foot and right), a dark skirting."""
+    W, H = w * K, h * K
+    out = planks_v(W, H, palette, joint, rng, pw=12, butt=(H * 2, H * 2 + 1), nails=False, knots=0.0, lit=0.12, grain=0.08)
+    yy, xx = np.mgrid[0:H, 0:W]
+    fine = 1 + 0.05 * rng.uniform(-1, 1, (H, W))
+    y0, y1 = int(0.63 * H), int(0.95 * H)
+    for px in range(0, W, 32):
+        fx0, fx1 = px, min(W, px + 32)
+        fr = (xx >= fx0) & (xx < fx1) & (yy >= y0) & (yy < y1)
+        inner = (xx >= fx0 + 4) & (xx < fx1 - 4) & (yy >= y0 + 4) & (yy < y1 - 4)
+        out[fr & ~inner] = (hx("4c3019")[None, None, :] * fine[..., None])[fr & ~inner]
+        out[fr & ((xx == fx0) | (yy == y0))] = hx("6a4628")
+        out[fr & ((xx == fx1 - 1) | (yy == y1 - 1))] = hx("2a180c")
+        core = inner & (xx > fx0 + 4) & (xx < fx1 - 5) & (yy > y0 + 4) & (yy < y1 - 5)
+        out[core] *= 1.1
+        out[inner & ((xx == fx0 + 4) | (yy == y0 + 4))] = hx("8e6638")
+        out[inner & ((xx == fx1 - 5) | (yy == y1 - 5))] = hx("2e1c0e")
+    for a, b in ((0.0, 0.05), (0.585, 0.63)):
+        ya, yb = int(a * H), int(b * H)
+        out[ya:yb] = gold_band_v(yb - ya, W, rng)
+        out[yb - 1] = hx("583206")
+    ys = int(0.95 * H)
+    out[ys:] = hx("3a2412")[None, None, :] * (0.95 + 0.1 * vnoise(rng, W, H - ys, 10, 3))[..., None]
+    out[ys] = hx("6e4c2c")
+    return np.clip(out, 0, 255)
+
+
+def p_cabin_floor(w, h, rng):
+    """The cabin and state room floors: narrow polished planks along v, pegged (no nails), a soft sheen."""
+    W, H = w * K, h * K
+    out = planks_v(W, H, CABIN_FLOOR, "3a2614", rng, pw=8, butt=(64, 150), nails=False, knots=0.15, lit=0.1, grain=0.07, tone=(0.94, 1.06))
+    out *= (1 + 0.07 * vnoise(rng, W, H, 28, 28))[..., None]
     return np.clip(out, 0, 255)
 
 
@@ -726,7 +874,8 @@ def p_roof(w, h, rng):
     W, H = w * K, h * K
     out = np.zeros((H, W, 3))
     sh, sw = 12, 16
-    pal = [hx(c) for c in ("30529c", "2c4a8c", "385a9e", "284484", "3457a4")]     # 1.28.0: a shade lighter (044's roof)
+    # 1.28.0: a shade lighter (044's roof); 1.28.1: lighter again, the game lights the roof slopes at only x 0.4 (see p_hold_wall)
+    pal = [hx(c) for c in ("4a78d2", "4470c4", "5284da", "3e68b8", "4e7edc")]
     for r, y0 in enumerate(range(0, H, sh)):
         off = (sw // 2) * (r % 2)
         for x0 in range(-off, W, sw):
@@ -767,16 +916,38 @@ def p_awning(w, h, rng, fringe=False):
 
 
 def p_mane(w, h, rng):
-    """Gilded locks of the figurehead's mane: wavy strands, deep grooves, lit crests."""
+    """Gilded locks of the figurehead's mane. 1.28.1: the wavy stripes of 1.28.0 read as a zebra from the quay; the
+    mane is now hanging locks (rounded lobes in staggered rows, the lower rows over the upper), each dark at its root
+    and its edges, lit along its crest and at its tip, over deep shadowed gaps; a deeper, redder gold than the body
+    so that the head reads as a separate mass under the game's flat light."""
     W, H = w * K, h * K
     yy, xx = np.mgrid[0:H, 0:W].astype(float)
-    s = np.sin(xx * 0.38 + np.sin(yy * 0.18) * 2.2 + 0.6 * vnoise(rng, W, H, 8, 8))
-    # 1.28.0: the mane a deeper, redder gold than the body (the head reads as a separate mass under the game's flat light)
-    t = 0.6 - 0.36 * s
-    out = stops(np.clip(t, 0, 1), GOLD_STOPS) * np.array([1.0, 0.94, 0.9])
-    out[s < -0.82] = hx("5e380c")
-    crest = s > 0.84
-    out[crest] = out[crest] * 0.5 + hx("fff4c0") * 0.5     # 1.28.0: lit crests on the locks
+    out = hx("4a2806")[None, None, :] * (0.9 + 0.1 * vnoise(rng, W, H, 6, 6))[..., None]
+    rows = 3
+    for r in range(rows):
+        for k in range(8):
+            cx = (k + 0.5 * (r % 2)) * W / 8 + rng.uniform(-2, 2)
+            cy = (r + 0.6) * H / rows + rng.uniform(-3, 3)
+            a, b = rng.uniform(3.6, 5.0), rng.uniform(16, 24)
+            th = rng.uniform(-0.5, 0.5)
+            dx, dy = xx - cx, yy - cy
+            xr = dx * math.cos(th) + dy * math.sin(th)
+            yr = -dx * math.sin(th) + dy * math.cos(th)
+            d = (xr / a) ** 2 + (yr / b) ** 2
+            inside = d < 1
+            t = 0.58 - 0.3 * (1 - np.abs(xr) / a) - 0.18 * np.clip(yr / b, -1, 1) + 0.04 * vnoise(rng, W, H, 4, 4)
+            col = stops(np.clip(t, 0, 1), GOLD_STOPS) * np.array([1.0, 0.94, 0.88])
+            crest = (np.abs(xr) < 1.1) & (yr > -b * 0.45)
+            col[crest] = col[crest] * 0.55 + hx("fff4c0") * 0.45
+            edge = (d > 0.76) & inside
+            col[edge] *= 0.62
+            out[inside] = col[inside]
+            # the wrap at the tile's sides (the lobes cut by the left edge continue on the right)
+            if cx - a < 0 or cx + a > W:
+                for sx in (-W, W):
+                    d2 = ((xr - sx * math.cos(th)) / a) ** 2 + ((yr + sx * math.sin(th)) / b) ** 2
+                    m2 = d2 < 1
+                    out[m2] = col[m2]
     return np.clip(out, 0, 255)
 
 
@@ -1015,10 +1186,10 @@ def hull_pass(base, R, rt):
     P("dark_wood", p_planks(*wh("dark_wood"), ("4a2f1a", "40281a", "533420"), "1e140a", g("dark_wood")))
     P("wood_mid", p_planks(*wh("wood_mid"), ("7a5130", "6e482a", "855a36", "73502e"), "33210f", g("wood_mid")))
     P("wood_light", p_planks(*wh("wood_light"), ("9a6a3e", "a87644", "8e6038", "b07e4a"), "4a2f17", g("wood_light")))
-    P("deck", p_planks(*wh("deck"), ("8a6340", "7d5838", "936a44", "80603e", "6f5234"), "2e1e10", g("deck"), worn=0.15,
-                       worn_col="a08060"))
-    P("deck_plank", p_planks(*wh("deck_plank"), ("8a6340", "7d5838", "936a44"), "2e1e10", g("deck_plank")))
-    P("mast", p_planks(*wh("mast"), ("6a4626", "5e3e20", "74502c"), "2e1d0c", g("mast"), plank=16, grain=0.16, butt=(200, 300), nails=False))
+    # 1.28.1: the decks lighter (the game lights the up faces at only x 0.4, they read dark brown in the screenshots)
+    P("deck", p_planks(*wh("deck"), DECK_WOOD, "3a2614", g("deck"), worn=0.15, worn_col="c8a880"))
+    P("deck_plank", p_planks(*wh("deck_plank"), DECK_WOOD[:3], "3a2614", g("deck_plank")))
+    P("mast", p_planks(*wh("mast"), ("7a5430", "6e4a28", "865c36"), "2e1d0c", g("mast"), plank=16, grain=0.2, butt=(200, 300), nails=False))
     # the castle: blue panels in gold frames (the state room), dark wood panelling with a gold bead (the cabin storey)
     P("castle_panel", p_panel(*wh("castle_panel"), g("castle_panel"), NAVY, NAVY_JOINT, "gold"))
     P("castle_wood", p_panel(*wh("castle_wood"), g("castle_wood"), WOOD_MID, JOINT_BROWN, "wood"))
@@ -1039,6 +1210,12 @@ def hull_pass(base, R, rt):
     P("lion_face", p_lion_face(*wh("lion_face"), g("lion_face")))
     P("bale_white", p_canvas(*wh("bale_white"), g("bale_white")))
     P("cloth_roll", p_canvas(*wh("cloth_roll"), g("cloth_roll"), base="2c4890", seam_every=16))
+    # the rooms (1.28.1): the hold and the crew quarters, the cabin and the state room, the ceilings
+    P("hold_wall", p_hold_wall(*wh("hold_wall"), g("hold_wall")))
+    P("hold_floor", p_room_floor(*wh("hold_floor"), g("hold_floor"), HOLD_FLOOR, HOLD_JOINT, pw=11, stains=0.12))
+    P("ceil", p_ceiling(*wh("ceil"), g("ceil")))
+    P("wall_wood", p_cabin_wall(*wh("wall_wood"), g("wall_wood")))
+    P("floor", p_cabin_floor(*wh("floor"), g("floor")))
     return Image.fromarray(atlas, "RGBA")
 
 
