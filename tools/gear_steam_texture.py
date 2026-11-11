@@ -483,65 +483,262 @@ def _bevel(block_w, block_h, light=(3.0, 2.5), dark=(4.0, 3.0), kl=(0.85, 0.45),
 
 
 def _plates_hd(a, region, tones, rng, rivet="503e30", rust=0.14, seam="0e0a08", lit="140c08", lit_k=1.65, rivets="corners",
-               brown=0.3, block=BLK, scratches=0, rust_col="6e3c1e", rivet_hi=(1.45, 16)):
-    """Riveted plates a block each with baked light: a tone per plate (some browner), soft mottling, each plate a little
-    lighter at its top, a lit bevel on the upper and left edges, a shadowed bevel on the lower and right edges, a dark
-    seam, rivet heads (four corners, or columns along the vertical seams), light scratches and rust runs."""
+               brown=0.3, block=BLK, scratches=0, rust_col="6e3c1e", rivet_hi=(1.45, 16), block_h=None, rust_len=(6, 18)):
+    """Riveted plates a block each (block wide, block_h tall) with baked light: a tone per plate (some browner), soft
+    mottling, each plate a little lighter at its top, a lit bevel on the upper and left edges, a shadowed bevel on the
+    lower and right edges, a dark seam, rivet heads (four corners, or columns along the vertical seams), light scratches
+    and rust runs."""
     u, v, w, h = region
+    bh = block_h or block
     out = np.zeros((h, w, 3))
     mott = _noise(w, h, 7, rng) * 0.07 + _noise(w, h, 2.5, rng) * 0.035 + _grain(w, h, rng, 0.025)
-    hl, sh, ys = _bevel(block, block, light=(5.0, 4.0), dark=(6.0, 5.0), kl=(0.9, 0.5), kd=(0.65, 0.45))
-    grad = 1.09 - 0.2 * ys / block
+    hl, sh, ys = _bevel(block, bh, light=(5.0, 4.0), dark=(6.0, 5.0), kl=(0.9, 0.5), kd=(0.65, 0.45))
+    grad = 1.09 - 0.2 * ys / bh
     seam, litc = _c(seam), _c(lit)
     tones = [_c(t) for t in tones]
     r = rng
-    for by in range(0, h, block):
+    for by in range(0, h, bh):
         for bx in range(0, w, block):
             base = tones[r.randrange(len(tones))] * r.uniform(0.8, 1.22)
             if r.random() < brown:
                 base = base * 0.82 + _c("4a3020") * 0.18 * r.uniform(0.6, 1.4)
-            m = mott[by:by + block, bx:bx + block]
+            m = mott[by:by + bh, bx:bx + block]
             col = base[None, None, :] * (grad * (1 + m))[..., None]
             col = col * (1 - hl[..., None]) + (col * lit_k + litc) * hl[..., None]
             col = col * (1 - sh[..., None])
             # a 2 px seam (1 px vanished at a distance in game: the textures are not mipmapped)
-            col[block - 1, :] = seam
+            col[bh - 1, :] = seam
             col[:, block - 1] = seam
-            col[block - 2, :] = seam * 0.6 + col[block - 2, :] * 0.4
+            col[bh - 2, :] = seam * 0.6 + col[bh - 2, :] * 0.4
             col[:, block - 2] = seam * 0.6 + col[:, block - 2] * 0.4
             for _ in range(r.randrange(0, scratches + 1)):
-                x0, y0 = r.uniform(4, block - 6), r.uniform(5, block - 6)
+                x0, y0 = r.uniform(4, block - 6), r.uniform(5, bh - 6)
                 ang = r.uniform(-0.6, 0.6) + (math.pi / 2 if r.random() < 0.3 else 0)
                 ln = r.uniform(3, 8)
                 for t in np.linspace(0, ln, int(ln * 2)):
                     x, y = int(x0 + t * math.cos(ang)), int(y0 + t * math.sin(ang))
-                    if 1 <= x < block - 2 and 1 <= y < block - 2:
+                    if 1 <= x < block - 2 and 1 <= y < bh - 2:
                         col[y, x] = col[y, x] * 1.3 + 7
             if r.random() < rust:
                 x0 = r.choice((5, block - 6, r.randrange(6, block - 6)))
                 y0 = 7 if x0 in (5, block - 6) else r.randrange(3, 10)
-                ln = r.randrange(6, 18)
+                ln = r.randrange(*rust_len)
                 rc = _c(rust_col)
                 for t in range(ln):
                     y = y0 + t
-                    if y >= block - 2:
+                    if y >= bh - 2:
                         break
                     k = 0.6 * (1 - t / ln)
                     for xx in (x0, x0 + (1 if t % 3 else 0), x0 - (1 if t < 3 else 0)):
                         if 1 <= xx < block - 2:
                             col[y, xx] = col[y, xx] * (1 - k) + rc * k
-            out[by:by + block, bx:bx + block] = col
-            tile = out[by:by + block, bx:bx + block]
+            out[by:by + bh, bx:bx + block] = col
+            tile = out[by:by + bh, bx:bx + block]
             rb = _c(rivet) * r.uniform(0.9, 1.1)
             rh = np.minimum(255, rb * rivet_hi[0] + rivet_hi[1])      # soft highlights: the rivets read as relief, not as sparkles
             if rivets == "corners":
-                for cx, cy in ((5, 5), (block - 7, 5), (5, block - 7), (block - 7, block - 7)):
+                for cx, cy in ((5, 5), (block - 7, 5), (5, bh - 7), (block - 7, bh - 7)):
                     _rivet(tile, cx + 0.5, cy + 0.5, 2.0, rb, shadow=0.6, hi=rh)
             elif rivets == "columns":
-                for cy in range(4, block - 4, 7):
+                for cy in range(4, bh - 4, 7):
                     _rivet(tile, 3.5, cy + 0.5, 1.5, rb, shadow=0.6, hi=rh)
                     _rivet(tile, block - 5.5, cy + 0.5, 1.5, rb, shadow=0.6, hi=rh)
+            elif rivets == "edges":
+                # a row of rivets along the upper seam and a column along the left seam (the plates overlap)
+                for cx in range(6, block - 4, 8):
+                    _rivet(tile, cx + 0.5, 4.5, 1.7, rb, shadow=0.6, hi=rh)
+                for cy in range(12, bh - 4, 8):
+                    _rivet(tile, 4.5, cy + 0.5, 1.7, rb, shadow=0.6, hi=rh)
     _put(a, region, out)
+
+
+# ---------------------------------------------------------------- the rooms (1.28.1: painted at 32 px a block too)
+# The room walls sample their region 4 blocks wide (MAX_TILE cells of generate_gear_steam.surfaces) and stretched over the
+# room's height (the top row of texels is the ceiling line, the bottom row the floor line); the floors tile 4 x 4 blocks.
+def _band_rows(col, y0, y1, stops, rng, rivet=None, seg=BLK, refl=0.3):
+    """A horizontal metal band painted over rows y0..y1 of col (h, w, 3): a rail, a skirting, a cornice."""
+    h, w = col.shape[:2]
+    tmp = np.zeros((y1 - y0, w, 4))
+    _band_hd(tmp, (0, 0, w, y1 - y0), stops, rng, rivet=rivet, seg=seg, refl=refl)
+    col[y0:y1] = tmp[..., :3]
+
+
+def _wall_iron_hd(a, region, rng, tones, rail=None, skirting=True, cornice=True, rust=0.12, rust_col="6e3c1e", rivets="edges",
+                  bilge=0.0, lit="100c0a", lit_k=1.55, rivet="4e4238", brown=0.18, block_h=BLK):
+    """A room wall of riveted iron plates (dark warm iron, a lit bevel on each plate, rivet rows along the laps, a few rust
+    runs): a dark cornice along the ceiling, a riveted skirting along the floor, a copper hand rail (rail = (row0, row1)),
+    and, for the hold, a darker, wetter bilge band at the foot (bilge = fraction of the height)."""
+    u, v, w, h = region
+    _plates_hd(a, region, tones, rng, rivet=rivet, rust=rust, rust_col=rust_col, lit=lit, lit_k=lit_k, rivets=rivets, brown=brown,
+               block_h=block_h, seam="0c0a09", rivet_hi=(1.35, 10))
+    col = a[v:v + h, u:u + w, :3]
+    if bilge:
+        t = np.clip((np.arange(h) / h - (1 - bilge)) / bilge, 0, 1)[:, None, None]
+        col[:] = col * (1 - 0.45 * t) + _c("1a1612")[None, None, :] * 0.2 * t
+    if cornice:
+        _band_rows(col, 0, 5, ("121010", "3a3432", "66605c"), rng, rivet=None, refl=0.2)
+    if skirting:
+        _band_rows(col, h - 7, h, ("0e0c0b", "2e2a28", "56504c"), rng, rivet="5a4e42", refl=0.18)
+    if rail:
+        r0, r1 = rail
+        _band_rows(col, r0, r1, ("4a1c08", "c45c26", "ffb06a"), rng, rivet="d89050", refl=0.4)
+        col[r1] = col[r1] * 0.55     # the rail's shadow on the plates
+        col[min(h - 1, r1 + 1)] = col[min(h - 1, r1 + 1)] * 0.8
+    _put(a, region, col)
+
+
+def _checker_hd(a, region, rng, base="2e2b2a", lozenge="4a4642", dark="171514", block=BLK):
+    """Dark checker plate (the engine room floor): raised lozenges lit from the top left on a dark warm iron sheet, the
+    sheets a block each with a dark joint and a rivet in each corner, worn lighter down the middle of the room."""
+    u, v, w, h = region
+    ys, xs = np.mgrid[0:h, 0:w].astype(float)
+    col = np.zeros((h, w, 3)) + _c(base)[None, None, :] * (1 + 0.08 * _noise(w, h, 9, rng) + _grain(w, h, rng, 0.03))[..., None]
+    # lozenges on a staggered grid of 16 texels (two a block: chunky enough to read from eye height)
+    period = 16
+    cx = (xs % period) - period / 2 + 0.5
+    cy = (ys % period) - period / 2 + 0.5
+    stag = ((ys // period) % 2) == 1
+    cx = np.where(stag, (xs + period / 2) % period - period / 2 + 0.5, cx)
+    d = np.abs(cx) * 0.6 + np.abs(cy)
+    loz = d < 4.4
+    lit_ = (d < 4.4) & ((cx * 0.6 + cy) < -1.2)
+    sh = (d < 4.4) & ((cx * 0.6 + cy) > 1.6)
+    lc = _c(lozenge)[None, None, :] * (1 + 0.1 * _noise(w, h, 12, rng))[..., None]
+    col = np.where(loz[..., None], lc, col)
+    col = np.where(lit_[..., None], np.minimum(255, lc * 1.28 + 10), col)
+    col = np.where(sh[..., None], lc * 0.62, col)
+    # plate joints every block, a rivet in each corner
+    for k in range(0, w, block):
+        col[:, k] = _c(dark)
+        col[:, min(w - 1, k + 1)] = col[:, min(w - 1, k + 1)] * 0.6
+        col[:, (k - 1) % w] = col[:, (k - 1) % w] * 0.75
+    for k in range(0, h, block):
+        col[k, :] = _c(dark)
+        col[min(h - 1, k + 1), :] = col[min(h - 1, k + 1), :] * 0.6
+    for by in range(0, h, block):
+        for bx in range(0, w, block):
+            for cx_, cy_ in ((4.5, 4.5), (block - 3.5, 4.5), (4.5, block - 3.5), (block - 3.5, block - 3.5)):
+                _rivet(col, bx + cx_, by + cy_, 1.8, _c("5a5048"), shadow=0.65, hi=_c("8a7e72"))
+    _put(a, region, col)
+
+
+def _boiler_front_hd(a, region, rng):
+    """The firebox door (drawn full bright): a riveted iron plate round a bevelled brass frame, and behind the grate bars a
+    bed of white-hot coals fading to orange and deep red at the edges, flames licking up between the bars."""
+    u, v, w, h = region
+    ys, xs = np.mgrid[0:h, 0:w].astype(float) + 0.5
+    col = np.zeros((h, w, 3)) + _c("2a2624")[None, None, :] * (1 + 0.06 * _noise(w, h, 8, rng) + _grain(w, h, rng, 0.03))[..., None]
+    fx0, fx1, fy0, fy1 = w * 0.09, w * 0.91, h * 0.14, h * 0.9      # the brass frame's outer edge
+    fw = w * 0.07
+    inner = (xs > fx0 + fw) & (xs < fx1 - fw) & (ys > fy0 + fw) & (ys < fy1 - fw)
+    frame = (xs > fx0) & (xs < fx1) & (ys > fy0) & (ys < fy1) & ~inner
+    # the coals: hottest low in the middle, flames as bright tongues rising
+    nx = (xs - w / 2) / ((fx1 - fx0) / 2 - fw)
+    ny = (ys - (fy0 + fw + (fy1 - fw - fy0 - fw) * 0.72)) / ((fy1 - fy0) / 2 - fw)
+    d = np.hypot(nx * 1.05, ny * 1.3)
+    d = d - 0.18 * np.clip(_noise(w, h, 5, rng), -1, 1) - 0.12 * np.clip(np.sin(xs * 1.4 + 2.5 * _noise(w, h, 6, rng)) * (0.5 - ny), 0, 1)
+    glow = _ramp_np(("fff8dc", "ffe08a", "ffb038", "ff7a1c", "d83a0c", "7a1408", "3a0c06"), np.clip(d * 0.78, 0, 1))
+    bars = ((xs - fx0 - fw) % (w * 0.125)) < w * 0.045
+    glow = np.where(bars[..., None], _c("1c1412") * (1 + 0.5 * np.clip(1 - d, 0, 1))[..., None], glow)
+    col = np.where(inner[..., None], glow, col)
+    ft = 0.55 + 0.35 * np.clip(1 - (ys - fy0) / fw, 0, 1) + 0.25 * np.clip(1 - (xs - fx0) / fw, 0, 1) - 0.3 * np.clip(1 - (fy1 - ys) / fw, 0, 1) \
+        - 0.2 * np.clip(1 - (fx1 - xs) / fw, 0, 1)
+    col = np.where(frame[..., None], _ramp_np(BRASS, ft + _grain(w, h, rng, 0.04)), col)
+    # the plate's rivets round the door
+    for cx_ in np.linspace(w * 0.04, w * 0.96, 7):
+        _rivet(col, cx_, h * 0.07, 1.8, _c("564a40"), shadow=0.6, hi=_c("8a7a6a"))
+        _rivet(col, cx_, h * 0.955, 1.8, _c("564a40"), shadow=0.6, hi=_c("8a7a6a"))
+    for cy_ in np.linspace(h * 0.25, h * 0.8, 3):
+        _rivet(col, w * 0.04, cy_, 1.8, _c("564a40"), shadow=0.6, hi=_c("8a7a6a"))
+        _rivet(col, w * 0.96, cy_, 1.8, _c("564a40"), shadow=0.6, hi=_c("8a7a6a"))
+    _put(a, region, col)
+
+
+def _panel_wall_hd(a, region, tones, seam, rng, rail=None, rail_stops=None, wainscot=None, plank=BLK // 2, grain=0.12, joints=2):
+    """A wooden room wall (planks a block long with baked light), a brass or dark rail at hand height, a darker wainscot
+    with vertical boards below it."""
+    u, v, w, h = region
+    _planks_hd(a, region, tones, seam, rng, plank=plank, joints=joints, grain=grain)
+    col = a[v:v + h, u:u + w, :3]
+    if wainscot:
+        # vertical boards: planks painted along u in a (w tall, h - y0 wide) buffer, then transposed
+        y0 = wainscot
+        tmp = np.zeros((w, h - y0, 4))
+        _planks_hd(tmp, (0, 0, h - y0, w), tuple(tones), seam, rng, plank=BLK // 2, joints=0, nails=False, grain=grain * 0.8)
+        col[y0:h] = tmp[..., :3].transpose(1, 0, 2) * 0.72
+        col[h - 1] = _c(seam) * 0.5
+    if rail:
+        r0, r1 = rail
+        _band_rows(col, r0, r1, rail_stops or ("3a2010", "a8622a", "eeae58"), rng, rivet=None, refl=0.35)
+        col[r1] = col[r1] * 0.55
+    _put(a, region, col)
+
+
+def _door_hd(a, region, rng):
+    """One door leaf (stretched on each leaf): vertical dark planks with baked light, two riveted iron straps, a brass
+    ring handle, a dark rebate all round."""
+    u, v, w, h = region
+    tmp = np.zeros((w, h, 4))
+    _planks_hd(tmp, (0, 0, h, w), ("4e3420", "462e1c", "563a24", "402a18"), "160c06", rng, plank=w // 4, joints=0, nails=False, grain=0.14)
+    col = tmp[..., :3].transpose(1, 0, 2).copy()
+    ys, xs = np.mgrid[0:h, 0:w].astype(float) + 0.5
+    for yc in (h * 0.2, h * 0.78):
+        band = np.abs(ys - yc) < h * 0.045
+        k = 1.0 + 0.3 * np.clip(1 - (ys - (yc - h * 0.045)) / 2.0, 0, 1) - 0.35 * np.clip(1 - ((yc + h * 0.045) - ys) / 2.0, 0, 1)
+        strap = _c("2a2826")[None, None, :] * (k * (1 + _grain(w, h, rng, 0.05)))[..., None]
+        col = np.where(band[..., None], strap, col)
+        for cx_ in np.linspace(w * 0.12, w * 0.88, 4):
+            _rivet(col, cx_, yc, 1.9, _c("4a4642"), shadow=0.6, hi=_c("7a746c"))
+    # the ring handle: a brass ring on a square plate, at hand height near the leaf's inner edge
+    hx, hy, r = w * 0.72, h * 0.5, w * 0.075
+    d = np.hypot(xs - hx, ys - hy)
+    plate = (np.abs(xs - hx) < w * 0.07) & (np.abs(ys - hy) < w * 0.07)
+    col = np.where(plate[..., None], _c("1e1a18"), col)
+    ring = (d > r * 0.55) & (d < r)
+    rt = 0.6 + 0.3 * np.clip(-(xs - hx + ys - hy) / r, -1, 1)
+    col = np.where(ring[..., None], _ramp_np(BRASS, rt), col)
+    edge = (xs < 1.5) | (xs > w - 1.5) | (ys < 1.5) | (ys > h - 1.5)
+    col = np.where(edge[..., None], _c("120a04"), col)
+    _put(a, region, col)
+
+
+def _paint_rooms_hd(a, rng):
+    """The rooms again at 32 px a block: dark warm riveted iron for the engine room and the hold (they read as a flat
+    blue-grey in the 1.28.0 captures), dark checker plate, a hotter firebox, planks and panelling with baked light."""
+    R = REGIONS
+    u, v, w, h = R["wall_iron"]
+    # the engine room (3.5 high): plates of a block, a copper hand rail a block above the floor, cornice and skirting
+    rail = (int(h * (1 - 1.12 / 3.5)), int(h * (1 - 1.12 / 3.5)) + 6)
+    _wall_iron_hd(a, R["wall_iron"], rng, ("3a3533", "36312f", "403a37", "332e2c", "3c3835", "443e3a", "35353a", "3a3b40"), rail=rail,
+                  rust=0.14, block_h=h // 4)
+    u, v, w, h = R["hold_wall"]
+    # the hold (3 high, under the waterline): the same iron, rustier, a dark wet bilge band at the foot
+    _wall_iron_hd(a, R["hold_wall"], rng, ("34302e", "302c2a", "3a3532", "2e2a28", "363230", "3e3834"), rail=None, rust=0.3,
+                  rust_col="7a4420", bilge=0.3, block_h=h // 4, brown=0.3)
+    _checker_hd(a, R["floor_iron"], rng)
+    _boiler_front_hd(a, R["boiler_front"], rng)
+    # the boiler shell: riveted iron plates (rivet columns), a little browner than the walls
+    _plates_hd(a, R["boiler"], ("3a3230", "342c2a", "403734", "2e2826"), rng, rivets="columns", rust=0.1, brown=0.35, lit="100c0a", lit_k=1.5,
+               rivet="56483c", rivet_hi=(1.35, 10), seam="0c0a09")
+    # wood: the crew quarters (planks, a dark wainscot, a bronze rail), the cabin (dark panelling, brass rail), floors, ceiling
+    u, v, w, h = R["crew_wall"]
+    _panel_wall_hd(a, R["crew_wall"], ("5a3e26", "4e3420", "64462c", "523822"), "1a1008", rng, rail=(int(h * 0.56), int(h * 0.56) + 4),
+                   rail_stops=("2a1a0c", "6a4a2c", "a8845a"), wainscot=int(h * 0.62), grain=0.14)
+    u, v, w, h = R["wall_wood"]
+    _panel_wall_hd(a, R["wall_wood"], ("3c2616", "42291a", "382212", "462e1c"), "160c04", rng, rail=(int(h * 0.6), int(h * 0.6) + 4),
+                   rail_stops=("4a2608", "b0702c", "f0bc62"), wainscot=int(h * 0.66), grain=0.1, joints=0, plank=BLK // 2)
+    _planks_hd(a, R["floor"], ("5e3e22", "56381e", "664428", "4e3420", "5a3c24"), "22140a", rng, joints=3)
+    _planks_hd(a, R["hold_floor"], ("4a3622", "42301e", "523c28", "3e2c1c"), "1a1008", rng, joints=3, grain=0.16)
+    # the ceiling: dark planks (the beams are modelled)
+    _planks_hd(a, R["ceil"], ("46301a", "402a16", "4c3620", "3c2814"), "1a1008", rng, joints=2, grain=0.1)
+    _door_hd(a, R["door"], rng)
+    # plain iron (railings, the boiler's uptake, fittings): dark warm steel, brushed
+    u, v, w, h = R["iron"]
+    _put(a, R["iron"], _c("3a3735")[None, None, :] * (1 + 0.1 * _noise(w, h, 5, rng) + 0.06 * _noise(w, h, 12, rng, 1.5) + _grain(w, h, rng, 0.04))[..., None])
+    # glowing coals (the "fire" faces of the furniture): a mottled bed from white-hot to deep red
+    u, v, w, h = R["fire"]
+    t = 0.35 + 0.4 * _noise(w, h, 4, rng) + 0.25 * _noise(w, h, 2, rng) + _grain(w, h, rng, 0.05)
+    _put(a, R["fire"], _ramp_np(("fff4cc", "ffd060", "ff8a20", "d83a0a", "6a1406"), np.clip(t, 0, 1)))
 
 
 def _band_hd(a, region, stops, rng, rivet=None, rivets=2, seg=BLK, patina=0.0, rivet_r=None, refl=0.32):
@@ -607,8 +804,9 @@ def _glow_window_hd(a, region, rng):
     ys, xs = np.mgrid[0:h, 0:w].astype(float) + 0.5
     col = np.zeros((h, w, 3))
     # glass: a warm glow brighter in the lower middle (the lamp), saturated orange at the edges
+    # (1.28.1: a warmer core, the panes amber rather than pale yellow from the quay)
     d = np.hypot((xs - w / 2) / (w / 2), (ys - h * 0.58) / (h / 2))
-    glass = _ramp_np(("fff2c4", "ffd872", "ffbc48", "ffa236", "ff8a28"), np.clip(d * 0.9, 0, 1))
+    glass = _ramp_np(("ffeaa8", "ffcc5e", "ffb040", "ff9a32", "ff8026"), np.clip(d * 0.95, 0, 1))
     col[:] = glass
     # each pane a little darker in its upper outer corner (the frame's shadow on the glass)
     px_ = (xs % (w / 2)) / (w / 2)
@@ -652,8 +850,15 @@ def _gore_hd(a, region, rng):
     vn = _noise(w, h, 3, rng)
     m = np.clip((vn - 0.55) * 2.5, 0, 1)[..., None]
     col = col * (1 - 0.45 * m) + _c("4f8a72") * 0.45 * m
-    for cy in np.linspace(h * 0.2, h * 0.8, 3):
-        _rivet(col, 3.0, cy, 1.6, _c(BRASS[2]))
+    # 1.28.1: a brass rib along the left seam of each gore (the reference's dome shows thick brass ribs between its copper
+    # gores), bevelled: lit on its left, shadowed on its right, rivets down its middle
+    rw = max(6, w // 7)
+    rt = 0.64 + 0.3 * np.clip(1 - xs / 2.5, 0, 1) - 0.38 * np.clip(1 - (rw - xs) / 2.5, 0, 1) - 0.1 * ys / h + _grain(w, h, rng, 0.03)
+    rib = _ramp_np(("5e300a", "a8621a", "d48c28", "f4b23c", "ffd878"), rt)
+    col[:, :rw] = rib[:, :rw]
+    col[:, rw] = col[:, rw] * 0.5
+    for cy in np.linspace(h * 0.18, h * 0.82, 3):
+        _rivet(col, rw / 2, cy, 1.5, _c("d08c2c"), shadow=0.7, hi=_c("ffe090"))
         _rivet(col, w - 4.0, cy, 1.6, _c(BRASS[2]))
     _put(a, region, col)
 
@@ -839,9 +1044,10 @@ def _paint_hd(a, rng):
     # under the copper boot-top: darker, with joints, rivets and rust a third less contrasted (they sparkled at a distance)
     _plates_hd(a, R["plate_c"], ("201c1a", "231e1c", "26211e", "1e1a18"), rng, rust=0.06, rust_col="3e2818", lit="060404", lit_k=1.3,
                seam="15110f", rivet="342c26", rivet_hi=(1.2, 5), brown=0.15)
-    # the funnel: charcoal plates (as the hull) with rivet columns along their seams
-    _plates_hd(a, R["funnel"], ("2a2523", "26211f", "2e2825", "231f1d", "332d2a"), rng, rivets="columns", rust=0.06, brown=0.2, lit="0a0806",
-               lit_k=1.45, rivet_hi=(1.3, 8))
+    # the funnel: browner, a little lighter plates than the hull (the reference's funnel is a sooty brown-grey, not black)
+    # with rivet columns along their seams (1.28.1)
+    _plates_hd(a, R["funnel"], ("3a302a", "362c26", "40352e", "312824", "453a32", "3c3430"), rng, rivets="columns", rust=0.1, brown=0.45,
+               lit="0e0a08", lit_k=1.5, rivet_hi=(1.3, 8), rivet="5a4a3c")
     # the dome's drum: dark brown copper plates
     _plates_hd(a, R["dome_drum"], ("5a3020", "52291a", "613524", "4c2818"), rng, rivet="c8843e", lit="1a0c06", lit_k=1.5, rust=0.0,
                rust_col="3e5a48", brown=0.0)
@@ -850,8 +1056,9 @@ def _paint_hd(a, rng):
     _gore_hd(a, R["dome_gore"], rng)
     # copper bands and caps, brass bands, the dark beams, iron bands
     # (rivet heads close to the band's colour: pale brass dots read as dust at a distance and shimmered)
-    _band_hd(a, R["copper"], ("4a1c08", "c86028", "ffb06a"), rng, rivet="d89050", patina=0.08, refl=0.42)
-    _band_hd(a, R["copper2"], ("521e08", "d06a2c", "ffb874"), rng, rivet="e09858", patina=0.07, refl=0.42)
+    # (1.28.1: a more saturated copper, less blue in it: the bands read brown-grey from the quay next to the gold)
+    _band_hd(a, R["copper"], ("4a1a06", "d05e22", "ffb262"), rng, rivet="dc9048", patina=0.07, refl=0.46)
+    _band_hd(a, R["copper2"], ("521c06", "d86826", "ffba6c"), rng, rivet="e49850", patina=0.06, refl=0.46)
     # brass: a saturated bright gold (the funnel band, the stem, the window frames: the reference's bold shiny brass)
     _band_hd(a, R["brass_band"], ("6a3810", "d48c2a", "ffd470"), rng, rivet="e0a450", refl=0.44)
     _band_hd(a, R["stone"], ("161210", "3e3029", "6a5444"), rng, rivet="a87c3a", refl=0.18)
@@ -1091,6 +1298,7 @@ def make_texture(path):
     img = _paint_base().resize((SIZE, SIZE), Image.NEAREST)
     a = np.array(img).astype(float)
     _paint_hd(a, random.Random(18741))
+    _paint_rooms_hd(a, random.Random(30917))
     img = Image.fromarray(np.clip(np.round(a), 0, 255).astype(np.uint8), "RGBA")
     img.save(path, optimize=True)
     return img

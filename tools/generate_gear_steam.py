@@ -1155,8 +1155,10 @@ def boiler(bone, lights):
     gauges, its uptake to the ceiling (in the engine room, lit by the room)."""
     x0, x1, y0, y1, z0, z1 = gi.BOILER
     zc = (z0 + z1) / 2
-    add_cube(bone, "lit_boiler_base", (0, y0 + 0.6, zc), EYE, (x1 - x0, 1.2, z1 - z0), {"all": "boiler", "+3": "boiler_front"}, stretch=False)
-    add_cube(bone, "glow_boiler_fire", (0, y0 + 0.55, z1 + 0.01), EYE, (1.4, 0.8, 0.02), "boiler_front", stretch=True)
+    # (1.28.1: the base is riveted iron all round; the firebox door, a larger glowing plate, carries the whole boiler_front
+    # region: brass frame, grate bars, white-hot coals)
+    add_cube(bone, "lit_boiler_base", (0, y0 + 0.6, zc), EYE, (x1 - x0, 1.2, z1 - z0), "boiler", stretch=False)
+    add_cube(bone, "glow_boiler_fire", (0, y0 + 0.58, z1 + 0.01), EYE, (1.7, 0.98, 0.02), "boiler_front", stretch=True)
     cylinder(bone, "lit_boiler_shell", (0, y0 + 1.2, zc), 2.2, 1.35, "boiler", n=12)
     disc(bone, "lit_boiler_top", (0, y0 + 3.42, zc), (0, 1, 0), 1.38, 0.06, "boiler", n=3)
     ring(bone, "lit_boiler_band_a", (0, y0 + 1.5, zc), 1.35, 0.08, 0.2, "brass", n=12)
