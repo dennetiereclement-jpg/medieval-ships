@@ -344,6 +344,51 @@ depuis l'arrière du travers (044) et de l'arrière (vue poupe) ; la figure de p
 sculpture de 126 ; le toit du château reste d'un bleu plus sombre que celui de 044 (ses pentes sont éclairées à ≈ 0,9
 mais le bleu roi reste profond) ; les images ont un éclairage chaud et des reflets que le jeu n'a pas.
 
+## 5 septies. Quatrième passe visuelle (1.28.1) : la cale et l'entrepont sous la flottaison, d'après les captures en jeu
+
+**Constat (captures en jeu de 1.28.0, variante decor : les vues 071, 044, 126, poupe, flanc, sous voiles, les ponts
+et toutes les pièces).**
+
+| Rang | Ce qui paraissait plat, terne, bruité ou faux en jeu | Cause |
+|---|---|---|
+| 1 | **cale et quartiers de l'équipage** (sous la flottaison depuis 1.28.0, le joueur y marche) : des murs en « mur de briques » (planches d'un demi-bloc à joints noirs de 4 texels), un sol en larges planches posées en travers, tout d'un même brun ; plafonds de planches unies | textures de la phase 2 agrandies telles quelles (`hold_wall`, `hold_floor`, `ceil`) |
+| 2 | cabine du capitaine et salle d'apparat : planches verticales unies sous la cimaise d'or, sol à gros joints | idem (`wall_wood`, `floor`) |
+| 3 | **ponts et planchers sombres, plafonds clairs** : mesuré sur les captures contre les rendus (pont principal en jeu à 36 % du rendu, plafond de la cale à 280 %, planchers à 40 %, flancs égaux) : le jeu éclaire les faces du dessus à ≈ 0,4, les flancs à 0,5, les bouts à 0,74 et les dessous à 1,0 — les deux lumières fixes atteignent les faces comme venant d'en bas | les normales du modèle arrivent au shader d'entité inversées en y (chargeur de modèle et renderer partagés : hors du périmètre de cette passe) ; les rendus Python des passes précédentes éclairaient les dessus à 1,0, d'où le toit « presque noir » et les ponts sombres constatés en jeu |
+| 4 | figure de proue : la crinière rayée (sinus) fait zèbre de près et se fond en une masse de loin | `p_mane` à rayures |
+| 5 | gaillard d'avant : le joueur debout à la proue a sous les yeux le talon du beaupré, un mur de planches (`mast` étiré) | bout du beaupré nu, à 0,7 bloc de l'œil |
+| 6 | toit du château encore d'un bleu sombre | ses pentes sont éclairées à 0,4 (voir 3) |
+
+**Ce qui a été fait** (textures `tools/royal_lion_hd.py`, talon du beaupré `tools/generate_royal_lion.py`) :
+
+| Levier | Avant (1.28.0) | Après (1.28.1) |
+|---|---|---|
+| Murs de la cale et de l'entrepont (`hold_wall`, v du plafond au sol, une tuile = 4 blocs) | planches d'un demi-bloc, joints de 4 texels | **bordé horizontal en planches de 9 texels à joint d'un texel**, arête haute éclairée, clous aux abouts, nœuds ; **deux membrures verticales par tuile** (arête gauche éclairée, ombre portée à droite, têtes de boulons) ; serre-bauquière sombre sous le plafond, bauquière de pied sombre, le bas assombri de 18 % (sous la flottaison) |
+| Planchers (`hold_floor`, `floor`) | larges planches en travers, joints de 3 texels | **planches dans le sens de la longueur** (u des planchers = le travers), 11 texels (cale) et 8 texels (cabine, cirées : un lustre doux, sans clous), joints d'un texel, abouts décalés à deux clous, quelques taches sombres dans la cale ; **peintes 1,5 fois plus claires** (le jeu les éclaire à 0,4) |
+| Plafonds (`ceil`) | planches unies | planches sourdes dans le sens de la longueur entre les barrots (cubes réels), sans clous, **assombries** (le jeu les éclaire à 1,0) |
+| Murs de la cabine et de la salle d'apparat (`wall_wood`) | planches verticales, cimaise | corniche d'or sous le plafond, planches de noyer, **cimaise d'or à la hauteur des appuis de fenêtres, lambris à panneaux saillants** (un par bloc, biseau éclairé en haut et à gauche, ombré en bas et à droite), plinthe sombre |
+| Ponts (`deck`, `deck_plank`), mâts | bruns moyens | bois 1,3 fois plus clair (ponts à 0,4 en jeu) ; mâts un peu plus clairs et plus veinés |
+| Toit | ardoises `30529c`… | ardoises `4a78d2`… (1,5 fois plus claires : pentes à 0,4 en jeu) |
+| Crinière (`mane`) | rayures en sinus | **mèches pendantes** : lobes allongés en trois rangs décalés, les rangs du bas sur ceux du haut, racine et bords sombres, crête et pointe éclairées, fond `4a2806` |
+| Talon du beaupré (modèle) | bout nu | cercle de fer, bande d'or, plaque de bout dont la face arrière montre le **bois scié** (nouvelle texture `end_grain` : cernes autour d'un cœur décentré, fentes de retrait) ; 7 346 cubes (+ 5), quads de référence régénérés |
+
+**Méthode.** Captures en jeu de main (1.28.0, variante decor) : vues extérieures recadrées × 3, toutes les pièces ;
+rendus Python aux caméras mêmes de `RoyalLionShipGameTest` (`look` et `tp` du test : œil, cible, 70° de champ)
+avec les textures régénérées ; **l'éclairage du rendu recalé sur les captures** (y des deux lumières inversé) : les
+moyennes des zones mesurées (mur, sol, plafond, cloison de la cale ; pont ; mur, sol, plafond des quartiers ; coque
+et voile sur 071) tombent à moins de 10 % des captures. Quatre itérations :
+
+| Itération | Ce qui restait | Correction |
+|---|---|---|
+| 1 | (pièces repeintes) les planches des murs de la cale lisibles, les membrures et boulons lisent le navire ; crinière en « écailles » rondes | lobes de la crinière allongés (3,6–5 × 16–24 texels), trois rangs, fond plus sombre |
+| 2 | (modèle régénéré, JUnit 529/529, poussée en jeu) le talon du beaupré en plein dans l'œil sur le gaillard d'avant | cercle de fer et bande d'or sur le talon, plaque de bout en fer |
+| 3 | la plaque de fer : un mur gris devant le joueur | sa face arrière en bois scié à cernes (`end_grain`), ses chants en fer |
+| 4 | captures en jeu de `lion-r4` (variante decor) | voir ci-dessous |
+
+**Écarts restants.** Ceux des phases 4 à 5 sexies (voiles vues de biais, perspective de 071, mâts de 126, éclairage
+chaud et reflets des images) ; l'éclairage inversé des faces du dessus (constat 3) n'est pas corrigé ici : les ponts
+restent à 0,4 et les dessous à 1,0, les textures le compensent en partie seulement (un pont peint deux fois et demie
+plus clair aurait l'air blanc dans Blockbench et dans l'icône).
+
 ## 6. Passerelle d'embarquement
 
 Système existant (`docs/PASSERELLES.md`, `core/Gangplank.java`) : spécification ajoutée à `tools/gangplank/ships_g2.py`
@@ -380,7 +425,7 @@ jeu par `RoyalLionShipGameTest` (quai de pierre, levier, déployée puis replié
 
 ## 8. Fichiers, tests, limites
 
-* Modèle `blockbench/royal_lion_ship.bbmodel` (7 341 cubes dont ≈ 1 100 de meubles, 2 textures : coque + voiles/flammes, 10 animations),
+* Modèle `blockbench/royal_lion_ship.bbmodel` (7 346 cubes dont ≈ 1 100 de meubles, 2 textures : coque + voiles/flammes, 10 animations),
   textures `textures/entity/royal_lion_ship.png` et `royal_lion_ship_sails.png` (1024 × 1024 chacune pour un espace UV
   de 512, `uv_width` ; seconde passe `tools/royal_lion_hd.py`), icône
   `textures/item/royal_lion_ship.png`, grille `interiors/royal_lion_ship.grid`, mobilier
@@ -391,8 +436,9 @@ jeu par `RoyalLionShipGameTest` (quai de pierre, levier, déployée puis replié
   `RoyalLionShipGameTest` (en jeu, solo et serveur dédié : mise à l'eau, flottaison, vues des références, toutes les
   pièces, marche sur le pont, les quatre portes, pièces meublées photographiées, assis puis relevé sur trois sièges, marche entre
   les meubles de la cale et de la cabine, passerelle, barre).
-* Comparaisons : `docs/comparaison_royal_lion_ship.png` (1.28.0 : référence | capture en jeu 1.27.2 | capture en jeu
-  1.28.0 pour 071, 044 et 126, puis gros plans en jeu avant / après du château arrière, de la coque et des voiles) ;
+* Comparaisons : `docs/comparaison_royal_lion_ship.png` (1.28.1 : référence | capture en jeu 1.28.0 | capture en jeu
+  1.28.1 pour 071, 044 et 126, puis en jeu avant / après la cale, les quartiers de l'équipage, la cabine, le gaillard
+  d'avant et la figure de proue) ;
   `docs/preview_royal_lion_ship.png` (planche de la phase 4) ;
   `docs/interieur_royal_lion_ship.png` (les pièces, refaites avec la cabine et la salle d'apparat agrandies).
 * Limites : les fenêtres de la cabine et de la salle d'apparat sont vues de l'intérieur comme des vitres (on ne voit pas

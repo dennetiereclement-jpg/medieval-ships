@@ -16,6 +16,13 @@ every face (the game lights the flanks at about x 0.5), the gilding of the state
 pale core in a wider dark reveal (the renderer draws glowing faces at full light), a stockier sail lion with a gap
 between its legs and a wider outline, a wide gold sail border in half-block blocks, a honey block now and then in the
 planking, the figurehead's mane in a deeper redder gold, lighter roof slates (docs/RoyalLion_PLAN.md, 5 sexies).
+
+1.28.1 (fourth pass): the rooms repainted at this resolution (the hold and the crew quarters are below the waterline
+since 1.28.0 and the player walks there): narrow horizontal planking with bolted frames, a clamp and a foot waling
+on their walls, planks fore and aft on the floors, muted ceilings, a wainscot with raised panels under the gold chair
+rail of the cabin and the state room; the game was measured to light the up faces at about x 0.4 and the down faces
+at x 1.0 (the two lights reach the faces as if from below), so the floors, the decks and the roof slates are painted
+lighter and the ceilings darker; the mane in hanging locks; a sawn end grain (docs/RoyalLion_PLAN.md, 5 septies).
 """
 import math
 import zlib
