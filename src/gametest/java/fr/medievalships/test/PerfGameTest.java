@@ -314,13 +314,16 @@ public final class PerfGameTest {
 		context.waitTicks(20);
 		shot.accept("perf_market");
 		camera(context, "market", check, log);
-		look(server, X + 64, WATER_TOP + 5, Z - 60, X + 160, WATER_TOP + 1, Z);
+		// from the south-west corner of the harbour, the seven vessels side by side, 85 to 220 blocks away (a row seen
+		// from the quay in line with it only shows the first one)
+		look(server, X + 40, WATER_TOP + 9, Z - 70, X + 170, WATER_TOP + 1, Z);
 		context.waitTicks(20);
 		shot.accept("perf_harbour");
 		camera(context, "harbour", check, log);
 		if (lion != null) {
-			double[] e = lion.toWorld(2.5, 0, -24);
-			double[] t = lion.toWorld(40, 0, 60);
+			// on the lion's main deck, amidships, looking over the bow with the next vessels to the right
+			double[] e = lion.toWorld(0, 0, -6);
+			double[] t = lion.toWorld(35, 0, 50);
 			look(server, e[0], lionDeck + 1.7, e[2], t[0], lionDeck + 2, t[2]);
 			context.waitTicks(20);
 			shot.accept("perf_deck");
@@ -328,7 +331,9 @@ public final class PerfGameTest {
 		}
 
 		// ---- server: at rest, then with the royal lion ship under way
-		look(server, X + 64, WATER_TOP + 5, Z - 60, X + 160, WATER_TOP + 1, Z);
+		// from the south-west corner of the harbour, the seven vessels side by side, 85 to 220 blocks away (a row seen
+		// from the quay in line with it only shows the first one)
+		look(server, X + 40, WATER_TOP + 9, Z - 70, X + 170, WATER_TOP + 1, Z);
 		context.waitTicks(10);
 		double[] rest = serverMeasure(context, server);
 		double[] moving = rest;
