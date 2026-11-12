@@ -148,6 +148,13 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.30.0 apporte :
+- **Éclairage corrigé** sur tous les modèles du mod : les dessus (ponts, toits de tentes) étaient sombres et les dessous clairs, car les faces étaient émises à l'envers pour OpenGL ; ils sont maintenant éclairés comme en vanilla.
+- **Huit navires plus enfoncés dans l'eau**, comme chargés : environ un demi-bloc pour le Vieux Corsaire, le bateau à roue, le vapeur à engrenages, le voilier elfique, le petit voilier de commerce et la frégate, un quart de bloc pour le grand galion, 0,2 pour le navire au lion (ses sabords éclairés restent hors de l'eau). Les cales sous la mer restent sèches.
+- **Barques utilisables** : le grand galion, le grand vaisseau de guerre, le Vieux Corsaire et le Nautilus mettent réellement leur barque à l'eau. Clic droit sur la barque rangée : la petite barque du mod est posée sur l'eau de votre côté ; clic droit à nouveau (ou sur la coque depuis la barque) pour la hisser à bord avec son équipage. Commande `/ship barque lancer|rembarquer|remplacer`. Voir docs/BARQUES.md.
+- **Échelles de coupée** sur les deux flancs de chaque navire qui flotte, de 1,6 bloc sous l'eau jusqu'au pavois : tombé à l'eau, on nage jusqu'à une échelle et on avance ou on saute pour remonter, même navire en marche. Voir docs/ECHELLES.md.
+- **Multijoueur sur navire en marche** : chaque joueur reste collé au pont, pour lui comme pour les autres, quel que soit son ping. Un joueur déconnecté à bord revient au même endroit du pont même si le navire a navigué (ou en lieu sûr si le navire a disparu). Compatible avec les mods à plusieurs personnages comme Nexus Characters, sans dépendance. Voir docs/MULTIJOUEUR.md.
+
 La version 1.29.0 est une **passe de performances sur tout le mod**, mesurée avant et après par un banc en jeu (une
 ville de 40 accessoires, les six gros navires et le Nautilus à quai, 24 mobs ; voir
 [docs/PERFORMANCE.md](docs/PERFORMANCE.md)). Côté client, les os des modèles qu'aucune animation ne bouge (les neuf
