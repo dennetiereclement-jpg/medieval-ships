@@ -1,0 +1,400 @@
+[19:04:12] [Server thread/INFO]: Teleported Player215 to 1.500000, -55.000000, -2.500000
+[19:04:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] ship moved 9.00 blocks under player control
+[19:04:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steering: the ship should move forward (moved 9.00)
+[19:04:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] zombie local after sailing: 0.80 0.45 3.00
+[19:04:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] carry: zombie should still be aboard
+[19:04:19] [Server thread/INFO]: Player215 stopped riding Medieval Galley
+[19:04:19] [Server thread/INFO]: Set Player215's game mode to Spectator Mode
+[19:04:19] [Server thread/INFO]: Successfully filled 18315 block(s)
+[19:04:19] [Server thread/INFO]: Teleported Player215 to 46.500000, -40.000000, 20.500000
+[19:04:19] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[19:04:20] [Server thread/INFO]: Navire mis à l'eau : Grand galion [46 -57 -7]
+[19:04:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] galleon at 46.50 -57.96 -7.50 yaw 0.0
+[19:04:22] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] galleon: the galley is still there (both ships coexist)
+[19:04:22] [Server thread/INFO]: Teleported Player215 to 72.500000, -43.581000, 16.500000
+[19:04:24] [Server thread/INFO]: Teleported Player215 to 12.500000, -52.581000, -5.500000
+[19:04:25] [Server thread/INFO]: Teleported Player215 to 37.500000, -53.581000, -38.500000
+[19:04:26] [Server thread/INFO]: Teleported Player215 to 56.500000, -50.581000, 26.500000
+[19:04:28] [Server thread/INFO]: Set Player215's game mode to Survival Mode
+[19:04:28] [Server thread/INFO]: Teleported Player215 to 48.000000, -53.961000, -4.500000
+[19:04:28] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[19:04:31] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] galleon falling: player on the main deck (y=-56.961, deck=-56.961)
+[19:04:34] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] galleon jumping: back on the deck (y=-56.961 min=-56.961)
+[19:04:34] [Server thread/INFO]: Teleported Player215 to 46.500000, -56.941000, -13.500000
+[19:04:37] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] galleon cabin: local 0.00 1.00 -12.08
+[19:04:37] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] galleon cabin: player walked into the cabin (local z=-12.08 y=1.00)
+[19:04:37] [Server thread/INFO]: Teleported Player215 to 46.500000, -56.941000, -22.500000
+[19:04:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] galleon balcony: local 0.00 1.00 -17.88
+[19:04:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] galleon balcony: player on the balcony, held by the balustrade (local z=-17.88 y=1.00)
+[19:04:41] [Server thread/INFO]: Teleported Player215 to 49.250000, -56.941000, -12.500000
+[19:04:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] galleon quarterdeck: local 2.75 3.60 -13.90
+[19:04:45] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] galleon stairs: player climbed onto the quarterdeck (local y=3.60 z=-13.90)
+[19:04:46] [Server thread/INFO]: Teleported Player215 to 48.750000, -56.941000, 0.100000
+[19:04:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] galleon forecastle: local 2.25 3.00 13.16
+[19:04:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] galleon stairs: player climbed onto the forecastle (local y=3.00 z=13.16)
+[19:04:49] [Server thread/INFO]: Summoned new Armor Stand
+[19:04:49] [Server thread/INFO]: Summoned new Armor Stand
+[19:04:49] [Server thread/INFO]: Summoned new Armor Stand
+[19:04:49] [Server thread/INFO]: Summoned new Armor Stand
+[19:04:49] [Server thread/INFO]: Summoned new Armor Stand
+[19:04:49] [Server thread/INFO]: Summoned new Armor Stand
+[19:04:49] [Server thread/INFO]: Summoned new Armor Stand
+[19:04:49] [Server thread/INFO]: Summoned new Armor Stand
+[19:04:49] [Server thread/INFO]: Summoned new Armor Stand
+[19:04:49] [Server thread/INFO]: Summoned new Armor Stand
+[19:04:49] [Server thread/INFO]: Summoned new Armor Stand
+[19:04:49] [Server thread/INFO]: Summoned new Armor Stand
+[19:04:49] [Server thread/INFO]: Summoned new Armor Stand
+[19:04:49] [Server thread/INFO]: Summoned new Armor Stand
+[19:04:49] [Server thread/INFO]: Summoned new Armor Stand
+[19:04:49] [Server thread/INFO]: Summoned new Armor Stand
+[19:04:49] [Server thread/INFO]: Summoned new Armor Stand
+[19:04:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] galleon seats: 15 crew seated, pilot 1, passengers 16, refusals 17/17
+[19:04:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] galleon seats: 16 passengers seated (15 + 1)
+[19:04:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] galleon seats: a 17th passenger is refused
+[19:05:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] galleon handling: 0.68 blocks in 2 s, 11.13 in 8 s, speed 2.77, 9.35 blocks coasting in 4 s while turning 9.2 deg
+[19:05:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] galleon handling: slow acceleration (0.68 in 2 s, 11.13 in 8 s)
+[19:05:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] galleon handling: inertia, keeps going without power (9.35)
+[19:05:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] galleon handling: turns, but slowly (9.2 deg in 4 s)
+[19:05:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] galleon carry: the 16 passengers are still seated (16)
+[19:05:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] galleon deck mob local after sailing: 2.13 1.00 2.56
+[19:05:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] galleon carry: the mob standing on deck is carried
+[19:05:03] [Server thread/INFO]: Player215 stopped riding Great Galleon
+[19:05:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] galleon dismount: the pilot steps off onto the quarterdeck (local 1.17 3.60 -10.42)
+[19:05:04] [Server thread/INFO]: Player215 stopped riding Great Galleon
+[19:05:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] galleon dismount: a passenger steps off beside his seat (local 2.33 1.00 -1.56, 0.06 from its spot)
+[19:05:05] [Server thread/INFO]: Set Player215's game mode to Spectator Mode
+[19:05:05] [Server thread/INFO]: Teleported Player215 to 63.215000, -46.581000, 41.850000
+[19:05:05] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[19:05:06] [Server thread/INFO]: Teleported Player215 to 31.641000, -50.581000, 43.611000
+[19:05:06] [Server thread/INFO]: Set Player215's game mode to Survival Mode
+[19:05:06] [Server thread/INFO]: Teleported Player215 to 42.492000, -47.961000, 20.459000
+[19:05:06] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[19:05:09] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] no collisions, drop 0: local -1.47 1.00 2.18
+[19:05:09] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] safety net: without collisions the player is still caught by the main deck (local y=1.00)
+[19:05:09] [Server thread/INFO]: Teleported Player215 to 46.040000, -45.361000, 9.457000
+[19:05:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] no collisions, drop 1: local -1.52 3.60 -12.57
+[19:05:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] safety net: without collisions the player is still caught by the quarterdeck (local y=3.60)
+[19:05:12] [Server thread/INFO]: No items were found on player Player215
+[19:05:12] [Server thread/INFO]: Grand galion donné(e) à 1 joueur(s).
+[19:05:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] galleon item: /ship give galleon gives the item (1)
+[19:05:12] [Server thread/INFO]: Player215 is not riding any vehicle
+[19:05:12] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] warship: the galley and the galleon are still there before the third ship is launched
+[19:05:12] [Server thread/INFO]: Set Player215's game mode to Spectator Mode
+[19:05:12] [Server thread/INFO]: Teleported Player215 to -89.500000, -30.000000, 10.500000
+[19:05:12] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[19:05:14] [Server thread/INFO]: Successfully filled 28905 block(s)
+[19:05:14] [Server thread/INFO]: Navire mis à l'eau : Grand vaisseau de guerre [-89 -58 -19]
+[19:05:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] warship at -89.50 -58.01 -19.50 yaw 0.0
+[19:05:17] [Server thread/INFO]: Teleported Player215 to -49.500000, -37.631000, 14.500000
+[19:05:18] [Server thread/INFO]: Teleported Player215 to -139.500000, -49.631000, -15.500000
+[19:05:18] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 2041ms or 40 ticks behind
+[19:05:20] [Server thread/INFO]: Teleported Player215 to -103.500000, -48.631000, -69.500000
+[19:05:21] [Server thread/INFO]: Teleported Player215 to -73.500000, -47.631000, 32.500000
+[19:05:22] [Server thread/INFO]: Set Player215's game mode to Survival Mode
+[19:05:22] [Server thread/INFO]: Teleported Player215 to -87.500000, -48.511000, -14.000000
+[19:05:22] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[19:05:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] warship falling: player on the main deck (y=-53.511, deck=-53.511)
+[19:05:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] warship jumping: back on the deck (y=-53.511 min=-53.511)
+[19:05:29] [Server thread/INFO]: Teleported Player215 to -89.500000, -53.491000, -27.500000
+[19:05:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] warship cabin: local 0.00 4.50 -13.88
+[19:05:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] warship cabin: player walked into the great cabin (local z=-13.88 y=4.50)
+[19:05:32] [Server thread/INFO]: Teleported Player215 to -86.300000, -53.491000, -26.300000
+[19:05:37] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] warship poop deck: local 3.20 9.40 -21.91
+[19:05:37] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] warship stairs: player climbed to the quarterdeck then the poop deck (local y=9.40 z=-21.91)
+[19:05:37] [Server thread/INFO]: Teleported Player215 to -86.900000, -53.491000, -5.700000
+[19:05:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] warship forecastle: local 2.60 6.80 22.43
+[19:05:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] warship stairs: player climbed onto the forecastle (local y=6.80 z=22.43)
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:41] [Server thread/INFO]: Summoned new Armor Stand
+[19:05:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] warship seats: 23 crew seated, pilot 1, passengers 24, refusals 1
+[19:05:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] warship seats: 24 passengers seated (23 + 1)
+[19:05:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] warship seats: a 25th passenger is refused
+[19:05:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] warship handling: 0.43 blocks in 2 s, 10.94 in 10 s, 7.84 coasting in 4 s while turning 4.2 deg
+[19:05:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] warship handling: very slow acceleration (0.43 in 2 s, 10.94 in 10 s)
+[19:05:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] warship handling: strong inertia (7.84)
+[19:05:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] warship handling: wide, slow turns (4.2 deg in 4 s)
+[19:05:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] warship carry: the 24 passengers are still seated (24)
+[19:05:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] warship deck mob local after sailing: 1.50 4.50 -2.00
+[19:05:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] warship carry: the mob standing on deck is carried
+[19:05:56] [Server thread/INFO]: Player215 stopped riding Great Warship
+[19:05:57] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] warship dismount: the pilot steps off onto the quarterdeck (local 1.40 7.10 -12.07)
+[19:05:57] [Server thread/INFO]: Set Player215's game mode to Spectator Mode
+[19:05:57] [Server thread/INFO]: Teleported Player215 to -51.241000, -39.631000, 39.837000
+[19:05:57] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[19:05:58] [Server thread/INFO]: Set Player215's game mode to Survival Mode
+[19:05:58] [Server thread/INFO]: Teleported Player215 to -92.024000, -44.511000, 6.642000
+[19:05:58] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[19:06:01] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] warship safety net: without collisions the player is still caught by the main deck (local y=4.50)
+[19:06:01] [Server thread/INFO]: Teleported Player215 to -87.591000, -39.611000, -17.936000
+[19:06:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] warship safety net: without collisions the player is still caught by the poop deck (local y=9.40)
+[19:06:04] [Server thread/INFO]: Removed 1 item(s) from player Player215
+[19:06:04] [Server thread/INFO]: Grand vaisseau de guerre donné(e) à 1 joueur(s).
+[19:06:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] warship item: /ship give warship gives the item (1)
+[19:06:04] [Server thread/INFO]: Player215 is not riding any vehicle
+[19:06:04] [Server thread/INFO]: No entity was found
+[19:06:04] [Server thread/INFO]: Set Player215's game mode to Spectator Mode
+[19:06:04] [Server thread/INFO]: Teleported Player215 to -41.500000, -40.000000, 112.500000
+[19:06:04] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[19:06:06] [Server thread/INFO]: Successfully filled 22725 block(s)
+[19:06:06] [Server thread/INFO]: Navire mis à l'eau : Galère rouge [-41 -57 125]
+[19:06:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] medieval_galley at -41.50 -57.91 125.50 yaw 0.0
+[19:06:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] medieval_galley floats: water line at y=-58.11 (basin surface -58)
+[19:06:08] [Server thread/INFO]: Teleported Player215 to -65.300000, -56.331000, 125.700000
+[19:06:09] [Server thread/INFO]: Teleported Player215 to -17.700000, -56.331000, 125.700000
+[19:06:10] [Server thread/INFO]: Teleported Player215 to -41.100000, -55.931000, 151.340000
+[19:06:11] [Server thread/INFO]: Teleported Player215 to -41.100000, -55.931000, 99.660000
+[19:06:12] [Server thread/INFO]: Teleported Player215 to -41.490000, -25.531000, 125.500000
+[19:06:13] [Render thread/INFO]: Resizing Chunk Sections UBO, capacity limit of 128 reached during a single frame. New capacity will be 256.
+[19:06:13] [Server thread/INFO]: Teleported Player215 to -24.500000, -53.531000, 143.180000
+[19:06:14] [Server thread/INFO]: Set Player215's game mode to Survival Mode
+[19:06:14] [Server thread/INFO]: Teleported Player215 to -39.753000, -53.461000, 124.500000
+[19:06:14] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[19:06:17] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] medieval_galley falling: player on the deck (y=-57.461, deck=-57.461)
+[19:06:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] medieval_galley jumping: back on the deck (y=-57.461 min=-57.461)
+[19:06:20] [Server thread/INFO]: Summoned new Armor Stand
+[19:06:20] [Server thread/INFO]: Summoned new Armor Stand
+[19:06:20] [Server thread/INFO]: Summoned new Armor Stand
+[19:06:20] [Server thread/INFO]: Summoned new Armor Stand
+[19:06:20] [Server thread/INFO]: Summoned new Armor Stand
+[19:06:20] [Server thread/INFO]: Summoned new Armor Stand
+[19:06:20] [Server thread/INFO]: Summoned new Armor Stand
+[19:06:20] [Server thread/INFO]: Summoned new Armor Stand
+[19:06:20] [Server thread/INFO]: Summoned new Armor Stand
+[19:06:20] [Server thread/INFO]: Summoned new Armor Stand
+[19:06:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] medieval_galley seats: 10 passengers seated (9 + pilot 1)
+[19:06:21] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] medieval_galley seats: one passenger too many is refused
+[19:06:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] medieval_galley handling: 8.69 blocks in 4 s, 26.5 deg in 3 s
+[19:06:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] medieval_galley sailing: moves forward under command (8.69 blocks in 4 s)
+[19:06:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] medieval_galley sailing: turns under command (26.5 deg)
+[19:06:28] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] medieval_galley carry: the 10 passengers are still seated (10)
+[19:06:29] [Server thread/INFO]: Player215 stopped riding Red Medieval Galley
+[19:06:29] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] medieval_galley dismount: the pilot steps off onto the deck (local 0.00 0.45 -9.44)
+[19:06:29] [Server thread/INFO]: Killed 10 entities
+[19:06:29] [Server thread/INFO]: Set Player215's game mode to Spectator Mode
+[19:06:29] [Server thread/INFO]: Itinéraire essai_medieval_galley créé (once). Ajoutez des points avec /ship route addstop|addpoint essai_medieval_galley
+[19:06:29] [Server thread/INFO]: Point 1 ajouté à essai_medieval_galley : -43.4 144.0
+[19:06:29] [Server thread/INFO]: Point 2 ajouté à essai_medieval_galley : -42.0 175.0
+[19:06:29] [Server thread/INFO]: Galère rouge [-43 -57 143] suit maintenant l'itinéraire essai_medieval_galley (SAILING).
+[19:06:29] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[19:06:39] [Render thread/INFO]: [System] [CHAT] Le navire est arrivé à destination.
+[19:06:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] medieval_galley autopilot: 31.0 -> 1.2 blocks from the second point
+[19:06:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] medieval_galley autopilot: follows its route (31.0 -> 1.2 blocks)
+[19:06:49] [Server thread/INFO]: Teleported Player215 to -16.321000, -53.131000, 178.121000
+[19:06:50] [Server thread/INFO]: Pilote automatique désactivé, le navire s'arrête.
+[19:06:50] [Server thread/INFO]: Itinéraire essai_medieval_galley supprimé.
+[19:06:50] [Server thread/INFO]: Removed 1 item(s) from player Player215
+[19:06:50] [Server thread/INFO]: Galère rouge donné(e) à 1 joueur(s).
+[19:06:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] medieval_galley item: /ship give medieval_galley gives the item (1)
+[19:06:50] [Server thread/INFO]: Removed 1 item(s) from player Player215
+[19:06:51] [Server thread/INFO]: Player215 is not riding any vehicle
+[19:06:51] [Server thread/INFO]: No entity was found
+[19:06:51] [Server thread/INFO]: Teleported Player215 to -41.500000, -40.000000, 112.500000
+[19:06:53] [Server thread/INFO]: No blocks were filled
+[19:06:53] [Server thread/INFO]: Navire mis à l'eau : Bateau à roue à vapeur [-41 -58 125]
+[19:06:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] steam_paddleboat at -41.50 -58.26 125.50 yaw 0.0
+[19:06:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steam_paddleboat floats: water line at y=-58.11 (basin surface -58)
+[19:06:55] [Server thread/INFO]: Teleported Player215 to -61.100000, -56.681000, 125.700000
+[19:06:56] [Server thread/INFO]: Teleported Player215 to -21.900000, -56.681000, 125.700000
+[19:06:57] [Server thread/INFO]: Teleported Player215 to -41.100000, -56.281000, 146.780000
+[19:06:58] [Server thread/INFO]: Teleported Player215 to -41.100000, -56.281000, 104.220000
+[19:06:59] [Server thread/INFO]: Teleported Player215 to -41.490000, -31.881000, 125.500000
+[19:07:00] [Server thread/INFO]: Teleported Player215 to -27.500000, -53.881000, 140.060000
+[19:07:01] [Server thread/INFO]: Set Player215's game mode to Survival Mode
+[19:07:01] [Server thread/INFO]: Teleported Player215 to -38.291000, -51.861000, 124.500000
+[19:07:01] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[19:07:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steam_paddleboat falling: player on the deck (y=-55.861, deck=-55.861)
+[19:07:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steam_paddleboat jumping: back on the deck (y=-55.861 min=-55.861)
+[19:07:07] [Server thread/INFO]: Summoned new Armor Stand
+[19:07:07] [Server thread/INFO]: Summoned new Armor Stand
+[19:07:07] [Server thread/INFO]: Summoned new Armor Stand
+[19:07:07] [Server thread/INFO]: Summoned new Armor Stand
+[19:07:07] [Server thread/INFO]: Summoned new Armor Stand
+[19:07:07] [Server thread/INFO]: Summoned new Armor Stand
+[19:07:07] [Server thread/INFO]: Summoned new Armor Stand
+[19:07:07] [Server thread/INFO]: Summoned new Armor Stand
+[19:07:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steam_paddleboat seats: 8 passengers seated (7 + pilot 1)
+[19:07:08] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steam_paddleboat seats: one passenger too many is refused
+[19:07:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] steam_paddleboat handling: 3.95 blocks in 4 s, 16.3 deg in 3 s
+[19:07:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steam_paddleboat sailing: moves forward under command (3.95 blocks in 4 s)
+[19:07:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steam_paddleboat sailing: turns under command (16.3 deg)
+[19:07:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steam_paddleboat carry: the 8 passengers are still seated (8)
+[19:07:16] [Server thread/INFO]: Player215 stopped riding Steam Paddleboat
+[19:07:16] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steam_paddleboat dismount: the pilot steps off onto the deck (local 1.40 2.40 4.96)
+[19:07:16] [Server thread/INFO]: Killed 8 entities
+[19:07:16] [Server thread/INFO]: Set Player215's game mode to Spectator Mode
+[19:07:16] [Server thread/INFO]: Itinéraire essai_steam_paddleboat créé (once). Ajoutez des points avec /ship route addstop|addpoint essai_steam_paddleboat
+[19:07:16] [Server thread/INFO]: Point 1 ajouté à essai_steam_paddleboat : -42.2 135.0
+[19:07:16] [Server thread/INFO]: Point 2 ajouté à essai_steam_paddleboat : -42.0 175.0
+[19:07:16] [Server thread/INFO]: Bateau à roue à vapeur [-42 -58 134] suit maintenant l'itinéraire essai_steam_paddleboat (SAILING).
+[19:07:16] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[19:07:31] [Render thread/INFO]: [System] [CHAT] Le navire est arrivé à destination.
+[19:07:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] steam_paddleboat autopilot: 40.0 -> 0.6 blocks from the second point
+[19:07:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steam_paddleboat autopilot: follows its route (40.0 -> 0.6 blocks)
+[19:07:36] [Server thread/INFO]: Teleported Player215 to -24.892000, -53.481000, 188.474000
+[19:07:37] [Server thread/INFO]: Pilote automatique désactivé, le navire s'arrête.
+[19:07:37] [Server thread/INFO]: Itinéraire essai_steam_paddleboat supprimé.
+[19:07:37] [Server thread/INFO]: No items were found on player Player215
+[19:07:37] [Server thread/INFO]: Bateau à roue à vapeur donné(e) à 1 joueur(s).
+[19:07:37] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steam_paddleboat item: /ship give steam_paddleboat gives the item (1)
+[19:07:37] [Server thread/INFO]: Removed 1 item(s) from player Player215
+[19:07:37] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 2039ms or 40 ticks behind
+[19:07:38] [Server thread/INFO]: Player215 is not riding any vehicle
+[19:07:38] [Server thread/INFO]: No entity was found
+[19:07:38] [Server thread/INFO]: Teleported Player215 to -41.500000, -40.000000, 112.500000
+[19:07:40] [Server thread/INFO]: No blocks were filled
+[19:07:40] [Server thread/INFO]: Navire mis à l'eau : Voilier elfique [-41 -58 125]
+[19:07:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] elven_sailboat at -41.50 -58.16 125.50 yaw 0.0
+[19:07:42] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] elven_sailboat floats: water line at y=-58.11 (basin surface -58)
+[19:07:42] [Server thread/INFO]: Teleported Player215 to -64.250000, -56.581000, 125.700000
+[19:07:43] [Server thread/INFO]: Teleported Player215 to -18.750000, -56.581000, 125.700000
+[19:07:44] [Server thread/INFO]: Teleported Player215 to -41.100000, -56.181000, 150.200000
+[19:07:45] [Server thread/INFO]: Teleported Player215 to -41.100000, -56.181000, 100.800000
+[19:07:46] [Server thread/INFO]: Teleported Player215 to -41.490000, -27.281000, 125.500000
+[19:07:47] [Server thread/INFO]: Teleported Player215 to -25.250000, -53.781000, 142.400000
+[19:07:47] [Server thread/INFO]: Set Player215's game mode to Survival Mode
+[19:07:47] [Server thread/INFO]: Teleported Player215 to -39.267000, -53.561000, 124.500000
+[19:07:48] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[19:07:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] elven_sailboat falling: player on the deck (y=-57.561, deck=-57.561)
+[19:07:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] elven_sailboat jumping: back on the deck (y=-57.561 min=-57.561)
+[19:07:54] [Server thread/INFO]: Summoned new Armor Stand
+[19:07:54] [Server thread/INFO]: Summoned new Armor Stand
+[19:07:54] [Server thread/INFO]: Summoned new Armor Stand
+[19:07:54] [Server thread/INFO]: Summoned new Armor Stand
+[19:07:54] [Server thread/INFO]: Summoned new Armor Stand
+[19:07:54] [Server thread/INFO]: Summoned new Armor Stand
+[19:07:54] [Server thread/INFO]: Summoned new Armor Stand
+[19:07:54] [Server thread/INFO]: Summoned new Armor Stand
+[19:07:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] elven_sailboat seats: 8 passengers seated (7 + pilot 1)
+[19:07:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] elven_sailboat seats: one passenger too many is refused
+[19:08:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] elven_sailboat handling: 6.32 blocks in 4 s, 11.0 deg in 3 s
+[19:08:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] elven_sailboat sailing: moves forward under command (6.32 blocks in 4 s)
+[19:08:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] elven_sailboat sailing: turns under command (11.0 deg)
+[19:08:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] elven_sailboat carry: the 8 passengers are still seated (8)
+[19:08:03] [Server thread/INFO]: Player215 stopped riding Elven Sailboat
+[19:08:04] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] elven_sailboat dismount: the pilot steps off onto the deck (local 0.70 0.60 -9.38)
+[19:08:04] [Server thread/INFO]: Killed 8 entities
+[19:08:04] [Server thread/INFO]: Set Player215's game mode to Spectator Mode
+[19:08:04] [Server thread/INFO]: Itinéraire essai_elven_sailboat créé (once). Ajoutez des points avec /ship route addstop|addpoint essai_elven_sailboat
+[19:08:04] [Server thread/INFO]: Point 1 ajouté à essai_elven_sailboat : -42.4 141.5
+[19:08:04] [Server thread/INFO]: Point 2 ajouté à essai_elven_sailboat : -42.0 175.0
+[19:08:04] [Server thread/INFO]: Voilier elfique [-42 -58 141] suit maintenant l'itinéraire essai_elven_sailboat (SAILING).
+[19:08:04] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[19:08:24] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] elven_sailboat autopilot: 33.5 -> 1.3 blocks from the second point
+[19:08:24] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] elven_sailboat autopilot: follows its route (33.5 -> 1.3 blocks)
+[19:08:24] [Server thread/INFO]: Teleported Player215 to -18.797000, -53.381000, 182.753000
+[19:08:25] [Server thread/INFO]: Pilote automatique désactivé, le navire s'arrête.
+[19:08:25] [Server thread/INFO]: Itinéraire essai_elven_sailboat supprimé.
+[19:08:25] [Server thread/INFO]: No items were found on player Player215
+[19:08:25] [Server thread/INFO]: Voilier elfique donné(e) à 1 joueur(s).
+[19:08:25] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] elven_sailboat item: /ship give elven_sailboat gives the item (1)
+[19:08:25] [Server thread/INFO]: Removed 1 item(s) from player Player215
+[19:08:25] [Server thread/INFO]: Player215 is not riding any vehicle
+[19:08:25] [Server thread/INFO]: No entity was found
+[19:08:25] [Server thread/INFO]: Teleported Player215 to 100.500000, -40.000000, -19.500000
+[19:08:27] [Server thread/INFO]: Aéronef mis en place : Dirigeable steampunk [100 -57 0]
+[19:08:29] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] steampunk_airship at 100.50 -57.35 0.50, ground top -60
+[19:08:29] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steampunk_airship placed in the air: keel -59.00 above the ground (-60)
+[19:08:29] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steampunk_airship placed in the air: inside nothing
+[19:08:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steampunk_airship hovers: no fall (y -57.350 -> -57.350 in 3 s)
+[19:08:32] [Server thread/INFO]: Teleported Player215 to 71.900000, -54.470000, -0.500000
+[19:08:34] [Server thread/INFO]: Teleported Player215 to 129.100000, -54.470000, -0.500000
+[19:08:35] [Server thread/INFO]: Teleported Player215 to 100.900000, -52.670000, 31.700000
+[19:08:35] [Render thread/WARN]: Received passengers for unknown entity
+[19:08:35] [Render thread/WARN]: Received passengers for unknown entity
+[19:08:35] [Render thread/WARN]: Received passengers for unknown entity
+[19:08:35] [Render thread/WARN]: Received passengers for unknown entity
+[19:08:35] [Render thread/WARN]: Received passengers for unknown entity
+[19:08:35] [Render thread/WARN]: Received passengers for unknown entity
+[19:08:35] [Render thread/WARN]: Received passengers for unknown entity
+[19:08:35] [Render thread/WARN]: Received passengers for unknown entity
+[19:08:36] [Server thread/INFO]: Teleported Player215 to 100.900000, -52.670000, -33.300000
+[19:08:36] [Server thread/INFO]: Teleported Player215 to 100.510000, -17.370000, -0.500000
+[19:08:37] [Render thread/WARN]: Received passengers for unknown entity
+[19:08:37] [Render thread/WARN]: Received passengers for unknown entity
+[19:08:37] [Render thread/WARN]: Received passengers for unknown entity
+[19:08:37] [Render thread/WARN]: Received passengers for unknown entity
+[19:08:37] [Render thread/WARN]: Received passengers for unknown entity
+[19:08:37] [Render thread/WARN]: Received passengers for unknown entity
+[19:08:37] [Render thread/WARN]: Received passengers for unknown entity
+[19:08:37] [Server thread/INFO]: Teleported Player215 to 121.300000, -48.170000, 22.600000
+[19:08:38] [Server thread/INFO]: Set Player215's game mode to Survival Mode
+[19:08:38] [Server thread/INFO]: Summoned new Armor Stand
+[19:08:38] [Server thread/INFO]: Summoned new Armor Stand
+[19:08:38] [Server thread/INFO]: Summoned new Armor Stand
+[19:08:38] [Server thread/INFO]: Summoned new Armor Stand
+[19:08:38] [Server thread/INFO]: Summoned new Armor Stand
+[19:08:38] [Server thread/INFO]: Summoned new Armor Stand
+[19:08:38] [Server thread/INFO]: Teleported Player215 to 100.500000, -57.250000, -1.500000
+[19:08:38] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[19:08:38] [Render thread/WARN]: Received passengers for unknown entity
+[19:08:38] [Render thread/WARN]: Received passengers for unknown entity
+[19:08:39] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steampunk_airship seats: 6 aboard (5 passengers + pilot 1)
+[19:08:39] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steampunk_airship seats: one passenger too many is refused
+[19:08:47] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] steampunk_airship climb: -57.35 -> -52.41, then -50.950, -50.950
+[19:08:47] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steampunk_airship climbs under command (4.94 blocks in 4 s)
+[19:08:47] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steampunk_airship holds its altitude (-50.950 -> -50.950)
+[19:08:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] steampunk_airship flight: 6.81 blocks in 5 s, 13.9 deg in 3 s, altitude -50.950 -> -50.950
+[19:08:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steampunk_airship flies forward under command (6.81 blocks in 5 s)
+[19:08:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steampunk_airship turns under command (13.9 deg)
+[19:08:55] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steampunk_airship level flight while moving (-50.950 -> -50.950)
+[19:08:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steampunk_airship comes down under command (-50.95 -> -54.20)
+[19:08:59] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steampunk_airship carry: the 6 aboard are still seated (6)
+[19:08:59] [Server thread/INFO]: Player215 stopped riding Steampunk Airship
+[19:09:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steampunk_airship dismount: the pilot steps off onto the deck of the gondola (local 0.90 0.00 -4.11)
+[19:09:00] [Server thread/INFO]: Killed 6 entities
+[19:09:00] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steampunk_airship manual flight: never inside anything
+[19:09:00] [Server thread/INFO]: Set Player215's game mode to Spectator Mode
+[19:09:00] [Server thread/INFO]: Successfully filled 1392 block(s)
+[19:09:00] [Server thread/INFO]: Itinéraire aérien essai_air créé (once). Ajoutez des points avec /ship route addstop|addpoint essai_air (à l'endroit et à la hauteur où doit se trouver le pont de la nacelle)
+[19:09:00] [Server thread/INFO]: Point 1 ajouté à essai_air : 98.7 -54.2 16.6
+[19:09:00] [Server thread/INFO]: Point 2 ajouté à essai_air : 98.7 -42.2 76.6 (escale Arrivee, 20 s, cap 90)
+[19:09:00] [Server thread/INFO]: Dirigeable steampunk [98 -54 16] suit maintenant l'itinéraire essai_air (SAILING).
+[19:09:00] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[19:09:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] [solo] steampunk_airship autopilot: 2.4 blocks from the stop, deck at -42.16 (stop -42.20), keel over the wall -39.04 (wall top -44)
+[19:09:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steampunk_airship autopilot: climbs over the wall (keel -39.04, wall top -44)
+[19:09:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steampunk_airship autopilot: never inside the wall or the ground
+[19:09:32] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steampunk_airship autopilot: reaches the stop in 3D (2.4 blocks away, deck -42.16 for -42.20)
+[19:09:32] [Server thread/INFO]: Teleported Player215 to 124.906000, -29.781000, 93.790000
+[19:09:32] [Render thread/INFO]: [System] [CHAT] Le navire est arrivé à Arrivee. Terminus.
+[19:09:32] [Render thread/INFO]: [System] [CHAT] Le navire est arrivé à destination.
+[19:09:53] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steampunk_airship autopilot: turns to the stop's heading while waiting (87.6)
+[19:09:53] [Server thread/INFO]: Pilote automatique désactivé, le navire s'arrête.
+[19:09:53] [Server thread/INFO]: Itinéraire essai_air supprimé.
+[19:09:53] [Server thread/INFO]: Set Player215's game mode to Creative Mode
+[19:09:53] [Server thread/INFO]: Teleported Player215 to 150.500000, -60.000000, -39.500000
+[19:09:54] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Creative Mode
+[19:09:54] [Server thread/INFO]: Replaced a slot on Player215 with [Steampunk Airship]
+[19:09:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steampunk_airship item: right click on the ground places an airship (1 -> 2)
+[19:09:56] [Server thread/INFO]: Removed 1 item(s) from player Player215
+[19:09:56] [Server thread/INFO]: Dirigeable steampunk donné(e) à 1 joueur(s).
+[19:09:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [solo] steampunk_airship item: /ship give steampunk_airship gives the item (1)
+[19:09:56] [Server thread/INFO]: Removed 1 item(s) from player Player215
+[19:09:56] [Server thread/INFO]: Player215 is not riding any vehicle
+[19:09:56] [Server thread/INFO]: Set Player215's game mode to Spectator Mode
+[19:09:56] [Server thread/INFO]: Teleported Player215 to 215.500000, -20.000000, -89.500000
+[19:09:56] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[19:09:58] [Server thread/INFO]: Marked 30 chunks in minecraft:overworld from [12, -5] to [14, 4] to be force loaded
