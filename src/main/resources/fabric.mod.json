@@ -15,7 +15,9 @@
   "mixins": [
     "medievalships.mixins.json",
     "medievalships.compat.mixins.json",
-    { "config": "medievalships.client.mixins.json", "environment": "client" }
+    "medievalships.sync.mixins.json",
+    { "config": "medievalships.client.mixins.json", "environment": "client" },
+    { "config": "medievalships.sync.client.mixins.json", "environment": "client" }
   ],
   "depends": {
     "fabricloader": ">=0.18.0",

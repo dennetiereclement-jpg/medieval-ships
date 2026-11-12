@@ -1,9 +1,6 @@
 package fr.medievalships;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -131,12 +128,6 @@ public final class MedievalShips implements ModInitializer {
 		return ITEMS.get(type);
 	}
 
-	/** Players who logged out aboard a ship: put back on deck shortly after they join. */
-	private static final List<PendingRejoin> REJOINS = new ArrayList<>();
-
-	private record PendingRejoin(UUID player, UUID ship, int[] delay) {
-	}
-
 	public static Identifier id(String path) {
 		return Identifier.of(MOD_ID, path);
 	}
@@ -215,8 +206,15 @@ public final class MedievalShips implements ModInitializer {
 		fr.medievalships.bridge.Drawbridges.init();
 
 		ServerLifecycleEvents.SERVER_STARTED.register(MedievalShips::reloadFerries);
-		ServerTickEvents.END_SERVER_TICK.register(MedievalShips::processRejoins);
 		ServerTickEvents.END_SERVER_TICK.register(MedievalShips::serverTick);
+		// several players on moving decks (1.30.0): deck frames, deck positions to the other clients, back aboard at login
+		fr.medievalships.entity.DeckSync.init();
+		fr.medievalships.entity.DeckAnchors.init();
+		// a new player entity (respawn) or another world: the last position of the old one means nothing
+		net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents.AFTER_RESPAWN
+				.register((oldPlayer, newPlayer, alive) -> PLAYER_POS.remove(newPlayer.getUuid()));
+		net.fabricmc.fabric.api.entity.event.v1.ServerEntityWorldChangeEvents.AFTER_PLAYER_CHANGE_WORLD
+				.register((player, origin, destination) -> PLAYER_POS.remove(player.getUuid()));
 		ServerWorldEvents.UNLOAD.register((server, world) -> ShipTracker.clear(world));
 
 		// a player logging out while seated would otherwise take the whole ship (and the other
@@ -230,18 +228,19 @@ public final class MedievalShips implements ModInitializer {
 				player.stopRiding();
 				player.refreshPositionAndAngles(spot.x, spot.y, spot.z, player.getYaw(), player.getPitch());
 			} else {
-				ship = ShipTracker.shipUnder(player);
+				ship = fr.medievalships.entity.DeckSync.standingOn(player);
 			}
-			ShipData.get(server).setPlayerShip(player.getUuid(), ship == null ? null : ship.getUuid());
+			// the spot aboard goes into the player's own data (each character of a multi-character mod has its own)
+			fr.medievalships.entity.DeckAnchors.onDisconnect(player, ship, server);
+			PLAYER_POS.remove(player.getUuid());
 		});
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
 			if (ServerPlayNetworking.canSend(handler.player, ServerConfigPayload.ID)) {
 				sender.sendPacket(ServerConfigPayload.current()); // what the client shows follows this server's config
 			}
-			UUID shipId = ShipData.get(server).playerShip(handler.player.getUuid());
-			if (shipId != null) {
-				REJOINS.add(new PendingRejoin(handler.player.getUuid(), shipId, new int[] {20}));
-			}
+			PLAYER_POS.remove(handler.player.getUuid());
+			// logged out aboard a ship that may have sailed on: back on its deck, at the same spot (1.30.0)
+			fr.medievalships.entity.DeckAnchors.onJoin(handler.player, server);
 		});
 		LOGGER.info("Medieval ships loaded");
 	}
@@ -319,6 +318,8 @@ public final class MedievalShips implements ModInitializer {
 						.dimensions(width, height)
 						.maxTrackingRange(trackingRange)
 						.trackingTickInterval(1)
+						// the clients interpolate the hull's position and never use its velocity: not sent every tick
+						.alwaysUpdateVelocity(false)
 						.makeFireImmune()
 						.build(entityKey));
 		ENTITY_TYPES.put(type, entityType);
@@ -343,37 +344,6 @@ public final class MedievalShips implements ModInitializer {
 		}
 		if (n > 0) {
 			LOGGER.info("Loading the chunks of {} autopilot ship(s)", n);
-		}
-	}
-
-	private static void processRejoins(MinecraftServer server) {
-		if (REJOINS.isEmpty()) {
-			return;
-		}
-		Iterator<PendingRejoin> it = REJOINS.iterator();
-		while (it.hasNext()) {
-			PendingRejoin r = it.next();
-			if (--r.delay()[0] > 0) {
-				continue;
-			}
-			it.remove();
-			ServerPlayerEntity player = server.getPlayerManager().getPlayer(r.player());
-			if (player == null) {
-				continue;
-			}
-			ShipData.get(server).setPlayerShip(r.player(), null);
-			for (ServerWorld world : server.getWorlds()) {
-				Entity e = world.getEntity(r.ship());
-				if (e instanceof ShipEntity ship && world == player.getEntityWorld()) {
-					if (ShipTracker.shipUnder(player) == ship) {
-						break; // still on deck
-					}
-					// the ship sailed on while the player was away: put him back aboard
-					Vec3d spot = ship.boardingPosition(ship.getX(), ship.getZ() + 0.01);
-					player.requestTeleport(spot.x, spot.y, spot.z);
-					break;
-				}
-			}
 		}
 	}
 }
