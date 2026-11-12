@@ -489,6 +489,17 @@ public final class DrawbridgeGameTest {
 		check.accept(opened >= 0 && "air".equals(blockAt(server, DECK_X0 + 2, DECK_Y, 0)), "drawbridge: open before the restart, deck blocks out");
 	}
 
+	/**
+	 * Solo, right after the world reopens: the scripted requests are not saved, so the one of the scenario is renewed at
+	 * once; otherwise the bridge would start closing (5 s of hold) while the Nautilus checks run before it is looked at.
+	 */
+	public static void renewAfterRestart(TestServerContext server) {
+		if (server.computeOnServer(srv -> Drawbridges.get(ID) == null)) {
+			return;
+		}
+		server.runCommand("pontlevis " + ID + " demande redemarrage 3600");
+	}
+
 	/** Solo, the world reopened: the bridge is still open with its leaves, closes when asked, then is restored. */
 	public static void afterRestart(ClientGameTestContext context, TestServerContext server, TestClientWorldContext world, BiConsumer<Boolean, String> check,
 			Consumer<String> shot) {

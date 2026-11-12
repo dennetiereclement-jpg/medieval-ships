@@ -366,8 +366,11 @@ public final class ShipBoatGameTest {
 			ShipEntity s = ship(w, type);
 			Text a = ShipBoatHandling.use(s, w, player(srv));
 			Text b = ShipBoatHandling.use(s, w, null);
-			return new Object[] {a == null ? "" : a.getString(), b == null ? "" : b.getString(), s.toggle(ShipBoats.AWAY_BIT), boatsOf(w, s.getUuid())};
+			return new Object[] {a == null ? "" : a.getString(), b == null ? "" : b.getString(), s.toggle(ShipBoats.AWAY_BIT), 0};
 		});
+		// a vessel only joins the tracker on its first tick: count the boats once it has ticked
+		context.waitTicks(3);
+		race[3] = server.computeOnServer(srv -> boatsOf(srv.getOverworld(), ship(srv.getOverworld(), type).getUuid()));
 		log.accept(String.format(Locale.ROOT, "%s boat: two clicks on the same tick -> '%s' / '%s'", id, race[0], race[1]));
 		check.accept(Boolean.TRUE.equals(race[2]) && (Integer) race[3] == 1, String.format(Locale.ROOT,
 				"%s boat: two players clicking on the same tick: one boat on the water (away %s, %s boat)", id, race[2], race[3]));

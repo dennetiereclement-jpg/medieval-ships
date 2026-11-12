@@ -77,6 +77,7 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		if (save != null) {
 			try (TestSingleplayerContext sp = save.open()) {
 				tag = "solo-redemarrage";
+				DrawbridgeGameTest.renewAfterRestart(sp.getServer());
 				if (ONLY.isEmpty()) {
 					nautilusAfterRestart(context, new Env(sp.getServer(), sp.getClientWorld()));
 				}
