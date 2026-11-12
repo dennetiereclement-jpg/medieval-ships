@@ -938,8 +938,9 @@ public abstract class ShipEntity extends Entity {
 				&& !(e instanceof ShipEntity) && !e.isRemoved());
 		for (Entity e : list) {
 			double[] l = before.toLocal(e.getX(), e.getY(), e.getZ());
-			if (!geometry().inCarryVolume(l[0], l[1], l[2])) {
-				continue;
+			if (!geometry().inCarryVolume(l[0], l[1], l[2])
+					&& !ShipLadders.on(this, before.x(), before.y(), before.z(), before.yaw(), e.getX(), e.getY(), e.getZ(), false)) {
+				continue; // neither on the deck nor on a side ladder
 			}
 			double rescue = geometry().deckRescueY(l[0], l[1], l[2], interiorState());
 			if (!Double.isNaN(rescue)) {

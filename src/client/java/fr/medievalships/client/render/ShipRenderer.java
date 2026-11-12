@@ -249,6 +249,10 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 			if (state.gangplank != null) {
 				GangplankRenderer.render(state, visual.type().id(), matrices, queue, light, farDetail);
 			}
+			// the side ladders (1.30.0), a baked mesh
+			if (!farAway) {
+				LadderRenderer.render(visual.type(), matrices, queue, light);
+			}
 			// the murky sea behind the glass, seen from the rooms under water
 			if (state.murk && !visual.textures().isEmpty()) {
 				submitMurk(matrices, queue, visual.textures().get(0), LightmapTextureManager.MAX_LIGHT_COORDINATE);

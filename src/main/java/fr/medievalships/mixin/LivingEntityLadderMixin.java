@@ -19,6 +19,11 @@ abstract class LivingEntityLadderMixin {
 		if (!self.isSpectator() && (ShipInteriors.ladderAt(self.getEntityWorld(), self.getX(), self.getY() + 0.3, self.getZ())
 				|| ShipInteriors.ladderAt(self.getEntityWorld(), self.getX(), self.getY() - 0.45, self.getZ()))) {
 			cir.setReturnValue(true);
+			return;
+		}
+		// the side ladders of the vessels (1.30.0): the same zone on the client and on the server
+		if (!self.isSpectator() && fr.medievalships.entity.ShipLadders.climbing(self)) {
+			cir.setReturnValue(true);
 		}
 	}
 }
