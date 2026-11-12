@@ -61,6 +61,8 @@ public final class MedievalShipsClient implements ClientModInitializer {
 		fr.medievalships.client.render.DryWater.init();
 		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> fr.medievalships.client.render.DryWater.joined());
 		ClientTickEvents.END_WORLD_TICK.register(ClientShipEvents::endWorldTick);
+		// several players on moving decks (1.30.0): this client's frame, the others drawn on the decks (after the carry)
+		DeckClient.init();
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
 			ShipTracker.clearClientWorlds();
 			fr.medievalships.client.render.DryWater.clear();

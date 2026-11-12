@@ -393,6 +393,7 @@ public abstract class ShipEntity extends Entity {
 		if (reason.shouldDestroy() && getEntityWorld() instanceof ServerWorld sw) {
 			ShipBoatHandling.onShipRemoved(this, sw); // its boat on the water stays, a Rowboat like any other
 			ShipData.get(sw.getServer()).removeFerry(getUuid());
+			ShipData.get(sw.getServer()).removeCrewAway(getUuid()); // the players logged out aboard will land safely instead
 			if (GotoRoutes.isGoto(routeName)) {
 				ShipData.get(sw.getServer()).removeRoute(routeName);
 			}
@@ -566,6 +567,10 @@ public abstract class ShipEntity extends Entity {
 			clientTick();
 		} else {
 			serverTick((ServerWorld) getEntityWorld());
+			if (age % 100 == 50 && getEntityWorld() instanceof ServerWorld sw && ShipData.get(sw.getServer()).hasCrewAway(getUuid())) {
+				// players logged out aboard: where to find this ship when they come back (DeckAnchors)
+				ShipData.get(sw.getServer()).updateCrewAway(getUuid(), sw.getRegistryKey().getValue().toString(), getX(), getY(), getZ());
+			}
 		}
 		yawDelta = (float) ShipPose.wrapDegrees(getYaw() - lastTickYaw);
 	}
@@ -946,14 +951,16 @@ public abstract class ShipEntity extends Entity {
 		double r = geometry().boundingRadius();
 		Box area = new Box(before.x() - r, before.y() + Math.min(-2, geometry().lowestY() - 1), before.z() - r,
 				before.x() + r, before.y() + Math.max(8, geometry().topY() + 3), before.z() + r);
-		List<Entity> list = world.getOtherEntities(this, area, e -> !(e instanceof PlayerEntity) && !e.hasVehicle()
-				&& !(e instanceof ShipEntity) && !e.isRemoved());
+		// players are moved by their own client, except those whose client reports this hull's frame (their server copy
+		// stays on the same spot of this hull between two of their packets, see DeckSync) and fake players (no client)
+		List<Entity> list = world.getOtherEntities(this, area, e -> (!(e instanceof PlayerEntity) || DeckSync.carriedByServer(e, this))
+				&& !e.hasVehicle() && !(e instanceof ShipEntity) && !e.isRemoved());
 		for (Entity e : list) {
 			double[] l = before.toLocal(e.getX(), e.getY(), e.getZ());
 			if (!geometry().inCarryVolume(l[0], l[1], l[2])) {
 				continue;
 			}
-			double rescue = geometry().deckRescueY(l[0], l[1], l[2], interiorState());
+			double rescue = e instanceof PlayerEntity ? Double.NaN : geometry().deckRescueY(l[0], l[1], l[2], interiorState());
 			if (!Double.isNaN(rescue)) {
 				l[1] = rescue; // sank into the deck (another mod replaced the collisions): put it back on top
 				if (e.getVelocity().y < 0) {
@@ -1836,6 +1843,8 @@ public abstract class ShipEntity extends Entity {
 				seat = freeSeat(true);
 			}
 		}
+		// the last seats of entities gone for good are forgotten (an entity id comes back with a respawned player)
+		lastSeatByEntity.keySet().removeIf(id -> !seatByEntity.containsKey(id) && id != passenger.getId());
 		seatByEntity.put(passenger.getId(), seat);
 		lastSeatByEntity.put(passenger.getId(), seat);
 		seatsDirty = true;

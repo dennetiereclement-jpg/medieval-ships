@@ -20,7 +20,9 @@ import fr.medievalships.core.Route;
 /**
  * World-level data, stored in the overworld's {@code data/medievalships.dat}:
  * routes, the last known position of autopilot ships (so their chunks are loaded again after a
- * restart), the ship each player was aboard when disconnecting and the saved destinations.
+ * restart), the saved destinations, and the last known position of the ships some players logged out aboard (1.30.0:
+ * found again, their chunk loaded, when those players come back; the spot each player stood on is in his own data,
+ * see {@code DeckAnchors}). {@code playerShips} is the per-account record of the versions before 1.30.0, only read once.
  */
 public final class ShipData extends PersistentState {
 	private static final Gson GSON = new GsonBuilder().create();
@@ -30,6 +32,8 @@ public final class ShipData extends PersistentState {
 		Map<String, Route> routes = new TreeMap<>();
 		Map<String, FerryRecord> ferries = new HashMap<>();
 		Map<String, String> playerShips = new HashMap<>();
+		/** Ships with players who logged out aboard (1.30.0), by ship UUID. */
+		Map<String, CrewShipRecord> crewAway = new HashMap<>();
 		/** Saved destinations ({@code /ship destination add}), by name. */
 		Map<String, Destination> destinations = new TreeMap<>();
 		/**
@@ -56,6 +60,24 @@ public final class ShipData extends PersistentState {
 		}
 	}
 
+	/** Last known position of a ship some players logged out aboard (1.30.0). */
+	public static final class CrewShipRecord {
+		public String dimension;
+		public double x;
+		public double y;
+		public double z;
+
+		public CrewShipRecord() {
+		}
+
+		public CrewShipRecord(String dimension, double x, double y, double z) {
+			this.dimension = dimension;
+			this.x = x;
+			this.y = y;
+			this.z = z;
+		}
+	}
+
 	private static final Codec<ShipData> CODEC = Codec.STRING.fieldOf("json").codec().xmap(
 			json -> {
 				ShipData d = new ShipData();
@@ -71,6 +93,9 @@ public final class ShipData extends PersistentState {
 						}
 						if (c.playerShips == null) {
 							c.playerShips = new HashMap<>();
+						}
+						if (c.crewAway == null) {
+							c.crewAway = new HashMap<>();
 						}
 						if (c.destinations == null) {
 							c.destinations = new TreeMap<>();
@@ -132,23 +157,52 @@ public final class ShipData extends PersistentState {
 		}
 	}
 
-	public void setPlayerShip(UUID player, UUID ship) {
-		if (ship == null) {
-			if (contents.playerShips.remove(player.toString()) != null) {
-				markDirty();
-			}
-		} else {
-			contents.playerShips.put(player.toString(), ship.toString());
+	/**
+	 * The ship a player was aboard when he logged out, recorded per account before 1.30.0 (now kept in each player's own
+	 * data): read once and forgotten.
+	 */
+	public UUID takeLegacyPlayerShip(UUID player) {
+		String s = contents.playerShips.remove(player.toString());
+		if (s == null) {
+			return null;
+		}
+		markDirty();
+		try {
+			return UUID.fromString(s);
+		} catch (IllegalArgumentException e) {
+			return null;
+		}
+	}
+
+	/** Players logged out aboard this ship: it records where it goes from now on. */
+	public void markCrewAway(UUID ship, String dimension, double x, double y, double z) {
+		contents.crewAway.put(ship.toString(), new CrewShipRecord(dimension, x, y, z));
+		markDirty();
+	}
+
+	public CrewShipRecord crewAway(UUID ship) {
+		return contents.crewAway.get(ship.toString());
+	}
+
+	/** Called by a ship every few seconds: its new position, if players logged out aboard it. */
+	public void updateCrewAway(UUID ship, String dimension, double x, double y, double z) {
+		CrewShipRecord r = contents.crewAway.get(ship.toString());
+		if (r != null && (!dimension.equals(r.dimension) || Math.abs(r.x - x) > 1 || Math.abs(r.y - y) > 1 || Math.abs(r.z - z) > 1)) {
+			r.dimension = dimension;
+			r.x = x;
+			r.y = y;
+			r.z = z;
 			markDirty();
 		}
 	}
 
-	public UUID playerShip(UUID player) {
-		String s = contents.playerShips.get(player.toString());
-		try {
-			return s == null ? null : UUID.fromString(s);
-		} catch (IllegalArgumentException e) {
-			return null;
+	public boolean hasCrewAway(UUID ship) {
+		return contents.crewAway.containsKey(ship.toString());
+	}
+
+	public void removeCrewAway(UUID ship) {
+		if (contents.crewAway.remove(ship.toString()) != null) {
+			markDirty();
 		}
 	}
 
