@@ -64,7 +64,10 @@ public final class ClientShipEvents {
 				continue;
 			}
 			double[] local = last.toLocal(player.getX(), player.getY(), player.getZ());
-			if (!ship.geometry().inCarryVolume(local[0], local[1], local[2])) {
+			// on the deck, or on a side ladder (1.30.0): a climber is carried along with the hull too
+			if (!ship.geometry().inCarryVolume(local[0], local[1], local[2])
+					&& !fr.medievalships.entity.ShipLadders.on(ship, last.x(), last.y(), last.z(), last.yaw(), player.getX(), player.getY(), player.getZ(),
+							false)) {
 				continue;
 			}
 			double[] w = now.toWorld(local[0], local[1], local[2]);

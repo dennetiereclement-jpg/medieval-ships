@@ -157,6 +157,9 @@ public final class ShipCollisions {
 					query.maxX, query.maxY, query.maxZ, boatGap(ship, sink));
 			// a deployed gangplank: its steps along the slope and its inboard stairs
 			ship.collectGangplankBoxes(query.minX, query.minY, query.minZ, query.maxX, query.maxY, query.maxZ, sink);
+			// the side ladders (1.30.0): the slab a climber rests against, outboard of the hull
+			fr.medievalships.core.SideLadder.collectBoxes(fr.medievalships.core.SideLadder.of(ship.shipType().id()),
+					ship.geometry().hull().waterlineY, ship.pose(), query.minX, query.minY, query.minZ, query.maxX, query.maxY, query.maxZ, sink);
 		}
 		return tents || out.size() > before;
 	}

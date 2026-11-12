@@ -264,7 +264,7 @@ public final class MedievalShips implements ModInitializer {
 			}
 			// players walking on a ship are not flying, whatever the blocks under the raised decks say
 			if (ShipTracker.shipUnder(player) != null || ShipTracker.onGangplank(player)
-					|| fr.medievalships.bridge.DrawbridgeCollisions.standsOn(player)) {
+					|| fr.medievalships.bridge.DrawbridgeCollisions.standsOn(player) || fr.medievalships.entity.ShipLadders.climbing(player)) {
 				((ServerPlayNetworkHandlerAccessor) player.networkHandler).medievalships$setFloatingTicks(0);
 			}
 			// a real fall, not a teleport: moving down at most at terminal speed, barely sideways
