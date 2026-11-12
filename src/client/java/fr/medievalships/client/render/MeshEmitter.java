@@ -18,6 +18,10 @@ import fr.medievalships.client.model.BbModel;
  * out of the frame's view ({@link RenderCulling}), and a face whose cube has the face opposite to it is skipped when it
  * is seen from behind (that face hides it; the two-sided faces are never skipped): the same picture with fewer vertices.
  * One instance per renderer, filled before each command runs ({@link #begin}); render thread only.
+ *
+ * <p>The corners come counter-clockwise seen from the normal's side ({@link BbModel.QuadSink}, 1.30.0) and are written in
+ * that order: the entity layers with per-face lighting light the front of a face by its normal, its back by the reversed
+ * normal, so a top face is lit as a top (it was lit as a bottom, dark, while the corners came clockwise).
  */
 final class MeshEmitter implements BbModel.MeshSink {
 	/** Back faces of the cubes skipped (benchmark toggle; the furled sails and effects keep both faces anyway). */
@@ -112,13 +116,16 @@ final class MeshEmitter implements BbModel.MeshSink {
 			float vx = m00 * x + m10 * y + m20 * z + m30;
 			float vy = m01 * x + m11 * y + m21 * z + m31;
 			float vz = m02 * x + m12 * y + m22 * z + m32;
-			if (skipBack && nx * vx + ny * vy + nz * vz > 0f) {
+			boolean behind = nx * vx + ny * vy + nz * vz > 0f;
+			if (skipBack && behind) {
 				continue; // seen from behind: the opposite face of its cube is in front of it
 			}
 			if (override) {
-				nx = shineX;
-				ny = shineY;
-				nz = shineZ;
+				// seen from behind (a two-sided face), OpenGL lights its back with the normal reversed: the down normal then
+				float s = behind ? -1f : 1f;
+				nx = shineX * s;
+				ny = shineY * s;
+				nz = shineZ * s;
 			} else {
 				float len = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
 				if (len > 1e-8f) {
@@ -162,13 +169,15 @@ final class MeshEmitter implements BbModel.MeshSink {
 		float vx = m00 * x + m10 * y + m20 * z + m30;
 		float vy = m01 * x + m11 * y + m21 * z + m31;
 		float vz = m02 * x + m12 * y + m22 * z + m32;
-		if (backCull && !twoSided && nx * vx + ny * vy + nz * vz > 0f) {
+		boolean behind = nx * vx + ny * vy + nz * vz > 0f;
+		if (backCull && !twoSided && behind) {
 			return;
 		}
 		if (glow && shine) {
-			nx = shineX;
-			ny = shineY;
-			nz = shineZ;
+			float s = behind ? -1f : 1f;
+			nx = shineX * s;
+			ny = shineY * s;
+			nz = shineZ * s;
 		} else {
 			float len = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
 			if (len > 1e-8f) {

@@ -124,10 +124,11 @@ class NewShipsTest {
 		for (double y = PaddleboatLayout.WHEEL_Y - r; y <= PaddleboatLayout.WHEEL_Y + r; y += 0.25) {
 			assertTrue(PaddleboatLayout.WHEEL_X0 > h.halfWidth(z) + 0.1, "the wheel cuts into the hull");
 		}
-		// partly immersed: about a third of its diameter under water, the axle above it
+		// partly immersed: a little over a third of its diameter under water since the boat rides half a block deeper
+		// (1.30.0: 1.85 of 4.9; it was 1.35), the axle above the water
 		double under = h.waterlineY - (PaddleboatLayout.WHEEL_Y - r);
-		assertTrue(under > 0.6 && under < 1.6, "immersion " + under);
-		assertTrue(PaddleboatLayout.WHEEL_Y > h.waterlineY + 1);
+		assertTrue(under > 0.6 && under < 0.4 * 2 * r, "immersion " + under);
+		assertTrue(PaddleboatLayout.WHEEL_Y > h.waterlineY + 0.5, "the axle above the water");
 		assertTrue(PaddleboatLayout.BOX_X1 > PaddleboatLayout.WHEEL_X1);
 		// the box above it is solid (players, swimmers), and the autopilot knows how wide the ship is
 		assertTrue(intersectsSolid(g, -(PaddleboatLayout.WHEEL_X0 + PaddleboatLayout.WHEEL_X1) / 2, PaddleboatLayout.WHEEL_Y + r - 0.2, z,

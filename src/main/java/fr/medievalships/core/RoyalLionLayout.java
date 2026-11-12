@@ -20,7 +20,11 @@ public final class RoyalLionLayout {
 	public static final double HALF_LENGTH = 20.0;
 	public static final double TIP = 21.0;
 	public static final double MAX_HALF_WIDTH = 6.0;
-	public static final double WATERLINE_Y = 0.6;
+	/**
+	 * 1.30.0: 0.2 deeper only: the lit ports of the lower deck (their gold sills at 0.97 amidships) must stay out of the
+	 * water, even heeled in a turn.
+	 */
+	public static final double WATERLINE_Y = 0.8;
 	public static final double KEEL_DEPTH = 3.6;
 	public static final double MAIN_DECK_Y = 5.0;
 	public static final double LOWER_FLOOR_Y = 1.5;

@@ -55,9 +55,11 @@ class SloopTest {
 		// the bow rises well above the waist, the stern a little
 		assertTrue(H.railY(7.0) - H.railY(0) > 1.0, "bow sheer " + (H.railY(7.0) - H.railY(0)));
 		assertTrue(H.railY(-7.0) - H.railY(0) > 0.15 && H.railY(-7.0) < H.railY(7.0));
-		// freeboard of a chunky little merchant: about 2.6 blocks at the waist, a shallow draught
-		assertEquals(2.6, H.railY(0) - H.waterlineY, 0.05);
-		assertTrue(H.keelY(0) - H.waterlineY > -1.1);
+		// freeboard of a chunky little laden merchant (1.30.0: 0.6 deeper, it was 2.6): 2 blocks at the waist, the water
+		// just under the blue band, a draught of 1.6
+		assertEquals(2.0, H.railY(0) - H.waterlineY, 0.05);
+		assertTrue(H.keelY(0) - H.waterlineY > -1.7);
+		assertTrue(H.mainDeckY - H.waterlineY >= 0.5, "the deck half a block above the water");
 		double total = SloopLayout.MAST_TOP - H.keelY(0);
 		assertTrue(total > 15 && total < 16.5, "total height " + total);
 		// the bulwark stays at least knee high around the stern platform

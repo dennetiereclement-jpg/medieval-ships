@@ -289,6 +289,7 @@ class DryWaterTest {
 			over++;
 		}
 		assertTrue(over >= 59, "blocks over the hold: " + over);
-		assertTrue(CorsairLayout.HOLD_FLOOR_Y < h.waterlineY - 1.5 && CorsairLayout.LOWER_FLOOR_Y > h.waterlineY + 0.3);
+		// 1.30.0: the ship rides half a block deeper, the floor of the lower deck at the sea level (its rooms dry: the grid)
+		assertTrue(CorsairLayout.HOLD_FLOOR_Y < h.waterlineY - 1.5 && Math.abs(CorsairLayout.LOWER_FLOOR_Y - h.waterlineY) < 1e-9);
 	}
 }

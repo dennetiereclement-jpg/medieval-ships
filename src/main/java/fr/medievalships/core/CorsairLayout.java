@@ -18,7 +18,8 @@ public final class CorsairLayout {
 	public static final double HALF_LENGTH = 21.0;
 	public static final double TIP = 22.0;
 	public static final double MAX_HALF_WIDTH = 5.0;
-	public static final double WATERLINE_Y = 0.5;
+	/** 1.30.0: half a block deeper (1.0 block under the upper cream band, the scuttles 1.8 above the water). */
+	public static final double WATERLINE_Y = 1.0;
 	public static final double KEEL_DEPTH = 3.4;
 	public static final double MAIN_DECK_Y = 4.5;
 	public static final double LOWER_FLOOR_Y = 1.0;

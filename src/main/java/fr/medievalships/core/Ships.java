@@ -61,8 +61,11 @@ public final class Ships {
 		public static final double DOOR_HALF = 0.7;
 		public static final double DOOR_TOP = 3.05;
 		public static final double TRANSOM_Z = -17.3;
-		/** The galleon rides loaded (1.28.0): the water is 0.4 block under the model origin (2.5 of draft, the rounded bilge under). */
-		public static final double WATERLINE_Y = -0.4;
+		/**
+		 * The galleon rides loaded (1.28.0), a quarter block deeper since 1.30.0: the water is 0.15 block under the model
+		 * origin (2.75 of draft, the main wale a block above the water, the balcony brackets just clear of it).
+		 */
+		public static final double WATERLINE_Y = -0.15;
 		/** Poop house (red roof) at the stern of the quarterdeck. */
 		public static final double POOP_FRONT = -14.2;
 		public static final double POOP_BACK = -16.9;
@@ -624,8 +627,11 @@ public final class Ships {
 		public static final double MAX_HALF_WIDTH = 4.0;
 		public static final double FORE_SCALE = 11.2;
 		public static final double AFT_SCALE = 11.6;
-		/** The water is 0.8 blocks under the model origin. */
-		public static final double WATERLINE_Y = -0.35;
+		/**
+		 * The water is 0.15 block above the model origin (1.30.0: half a block deeper, just under the lower riveted band;
+		 * the portholes 0.9 above it, the paddles dipping 1.85, the axle 0.6 above the water).
+		 */
+		public static final double WATERLINE_Y = 0.15;
 		public static final double MAIN_DECK_Y = 2.4;
 		public static final double DECK_MIN_Z = -10.3;
 		public static final double DECK_MAX_Z = 10.3;
@@ -788,8 +794,8 @@ public final class Ships {
 		public static final double HALF_LENGTH = 12.0;
 		public static final double TIP = 13.0;
 		public static final double MAX_HALF_WIDTH = 3.0;
-		/** The water is 0.6 blocks under the model origin. */
-		public static final double WATERLINE_Y = -0.35;
+		/** The water is 0.05 block above the model origin (1.30.0: 0.4 deeper; the deck stays 0.55 above it). */
+		public static final double WATERLINE_Y = 0.05;
 		public static final double MAIN_DECK_Y = 0.6;
 		public static final double DECK_MIN_Z = -11.0;
 		public static final double DECK_MAX_Z = 11.0;

@@ -25,7 +25,7 @@ RAIL_BASE, RAIL_RISE_FORE, RAIL_RISE_AFT, RAIL_POW = 2.1, 1.4, 0.25, 2.2
 # the bulwark is at least this high above the decks (the stern platform keeps a low rail)
 RAIL_ABOVE_DECK = 0.95
 BOTTOM_SECTION = [(0.0, 1.0), (0.45, 0.9), (0.8, 0.55), (0.97, 0.15)]
-WATERLINE_Y = -0.5
+WATERLINE_Y = 0.1
 
 MAIN_DECK_Y = 0.6
 # small raised stern platform (storage and the tiller), one step up from the main deck
