@@ -143,9 +143,11 @@ public abstract class ShipEntity extends Entity {
 	private float airlockTarget;
 	/** Submarines: depth ordered by a command (blocks below the surface), NaN = none. */
 	private double targetDepth = Double.NaN;
-	/** The lifeboat once launched (a boat entity), or null. */
+	/** The ship's boat once launched (a Rowboat, see {@link ShipBoatHandling}), or null. */
 	@Nullable
 	private java.util.UUID lifeboat;
+	/** The ship's boat, server side: manoeuvre in progress, last place it was seen (not saved). */
+	final ShipBoatHandling.State boatState = new ShipBoatHandling.State();
 	/** Commands of the stops reached ({@link Waypoint#onArrive}), run at the next tick (not from inside the autopilot's tick). */
 	private final List<String> pendingCommands = new ArrayList<>();
 	/** The route ended where the vessel vanishes ({@link Route.End#despawns()}): done at the next tick. */
@@ -389,6 +391,7 @@ public abstract class ShipEntity extends Entity {
 	@Override
 	public void remove(RemovalReason reason) {
 		if (reason.shouldDestroy() && getEntityWorld() instanceof ServerWorld sw) {
+			ShipBoatHandling.onShipRemoved(this, sw); // its boat on the water stays, a Rowboat like any other
 			ShipData.get(sw.getServer()).removeFerry(getUuid());
 			if (GotoRoutes.isGoto(routeName)) {
 				ShipData.get(sw.getServer()).removeRoute(routeName);
@@ -495,6 +498,12 @@ public abstract class ShipEntity extends Entity {
 
 	public void setLifeboatId(@Nullable java.util.UUID id) {
 		lifeboat = id;
+	}
+
+	/** The boat this ship carries on its deck ({@link fr.medievalships.core.ShipBoats}), or null. */
+	@Nullable
+	public fr.medievalships.core.ShipBoats.Spec boatSpec() {
+		return fr.medievalships.core.ShipBoats.of(shipType().id());
 	}
 
 	/** Server: opens or closes a door of the interior (no checks, see {@link #toggleDoor}). */
@@ -635,6 +644,9 @@ public abstract class ShipEntity extends Entity {
 		}
 		gotoChecks(world);
 		runPendingCommands(world);
+		if (age % 20 == 0 && (lifeboat != null || toggle(fr.medievalships.core.ShipBoats.AWAY_BIT)) && boatSpec() != null) {
+			ShipBoatHandling.tick(this, world); // its boat on the water still there? (else the deco is back aboard)
+		}
 		if (pendingEnd != null) {
 			Route.End end = pendingEnd;
 			pendingEnd = null;

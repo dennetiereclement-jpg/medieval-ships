@@ -440,7 +440,35 @@ public final class BbModel {
 		void mesh(float[] data, int from, int to, int lightClass, boolean twoSided);
 	}
 
+	/**
+	 * Moves some elements of a bone into a child bone of their own when the model is loaded, so that they can be hidden
+	 * alone (a ship's boat stowed among the deck's elements, see {@code ShipBoats}): the elements of bone {@code parent}
+	 * whose name starts with {@code prefix} but none of {@code keep} make the bone {@code bone}, which has no rotation of
+	 * its own (the picture does not change).
+	 */
+	public record Split(String parent, String bone, String prefix, List<String> keep) {
+		boolean takes(String element) {
+			if (!element.startsWith(prefix)) {
+				return false;
+			}
+			for (String k : keep) {
+				if (element.startsWith(k)) {
+					return false;
+				}
+			}
+			return true;
+		}
+	}
+
+	/** Applied while reading (see {@link Split}), or null. */
+	private final Split split;
+
 	public BbModel(Reader reader) {
+		this(reader, null);
+	}
+
+	public BbModel(Reader reader, Split split) {
+		this.split = split;
 		JsonObject root = JsonParser.parseReader(reader).getAsJsonObject();
 		JsonObject res = root.has("resolution") ? root.getAsJsonObject("resolution") : null;
 		textureWidth = res != null ? res.get("width").getAsInt() : 16;
@@ -534,13 +562,26 @@ public final class BbModel {
 		if (g.has("visibility") && !g.get("visibility").getAsBoolean()) {
 			return bone;
 		}
+		Bone part = null;
 		for (JsonElement c : g.getAsJsonArray("children")) {
 			if (c.isJsonObject()) {
 				bone.children.add(readGroup(c.getAsJsonObject(), bone, elements, names));
 			} else {
 				JsonObject el = elements.get(c.getAsString());
 				if (el != null && (!el.has("visibility") || el.get("visibility").getAsBoolean())) {
-					readCube(el, bone);
+					Bone into = bone;
+					if (split != null && split.parent().equals(bone.name) && el.has("name") && split.takes(el.get("name").getAsString())) {
+						if (part == null) {
+							part = new Bone(split.bone(), bones.size(), bone.origin.clone(), new float[3]);
+							part.parent = bone;
+							part.fx = bone.fx;
+							bones.add(part);
+							bonesByName.putIfAbsent(part.name, part);
+							bone.children.add(part);
+						}
+						into = part;
+					}
+					readCube(el, into);
 				}
 			}
 		}

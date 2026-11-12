@@ -44,7 +44,7 @@ public final class ShipInteractions {
 				// clicking the deck does nothing, but it must not reach the water under the hull
 			}
 			case SWITCH -> {
-				Text msg = fr.medievalships.entity.NautilusFittings.use(ship, player.getEntityWorld(), payload.seat());
+				Text msg = fr.medievalships.entity.NautilusFittings.use(ship, player.getEntityWorld(), payload.seat(), player);
 				if (msg != null) {
 					player.sendMessage(msg, true);
 				}
@@ -53,6 +53,16 @@ public final class ShipInteractions {
 				// the gangplank's lever: deploy / retract with every safety check (Gangplank, ShipEntity)
 				if (player.getEntityWorld() instanceof net.minecraft.server.world.ServerWorld sw) {
 					Text msg = ship.useGangplankLever(sw);
+					if (msg != null) {
+						player.sendMessage(msg, true);
+					}
+				}
+			}
+			case BOAT -> {
+				// the ship's boat on its chocks: put it on the water, or hoist it back aboard (ShipBoatHandling)
+				fr.medievalships.core.ShipBoats.Spec boat = ship.boatSpec();
+				if (boat != null && fr.medievalships.core.ShipBoats.nearDeco(boat, payload.lx(), payload.ly(), payload.lz())) {
+					Text msg = fr.medievalships.entity.ShipBoatHandling.use(ship, player.getEntityWorld(), player);
 					if (msg != null) {
 						player.sendMessage(msg, true);
 					}
@@ -113,6 +123,9 @@ public final class ShipInteractions {
 	}
 
 	private static void board(ShipEntity ship, ServerPlayerEntity player, double[] hit) {
+		if (fr.medievalships.entity.ShipBoatHandling.hoistFrom(ship, player.getEntityWorld(), player)) {
+			return; // from the ship's own boat: the boat is hoisted aboard with its crew
+		}
 		if (player.hasVehicle()) {
 			player.stopRiding();
 		}

@@ -328,6 +328,25 @@ public final class ClientShipEvents {
 		return info.length > 1 && fr.medievalships.core.GotoRoutes.isGoto(info[1]);
 	}
 
+	/** The ship's boat on its chocks (1.30.0): launch it, or take it back aboard. */
+	private static String boatHint(ShipEntity ship) {
+		fr.medievalships.core.ShipBoats.Spec boat = ship.boatSpec();
+		if (boat == null) {
+			return "";
+		}
+		return ship.toggle(fr.medievalships.core.ShipBoats.AWAY_BIT) ? "Clic droit : rembarquer " + boat.the() : "Clic droit : mettre " + boat.the() + " à l'eau";
+	}
+
+	/** From a rowboat alongside a ship whose boat is away, the click on the hull hoists it aboard (when it is that boat). */
+	private static String hullHint(MinecraftClient client, ShipEntity ship) {
+		fr.medievalships.core.ShipBoats.Spec boat = ship.boatSpec();
+		if (boat != null && client.player != null && client.player.getVehicle() instanceof fr.medievalships.entity.RowboatEntity
+				&& ship.toggle(fr.medievalships.core.ShipBoats.AWAY_BIT)) {
+			return "Clic droit : hisser " + boat.the() + " à bord (si c'est la sienne), ou monter à bord";
+		}
+		return "Clic droit : monter à bord";
+	}
+
 	private static void showHint(MinecraftClient client) {
 		ShipPicker.Target t = ShipPicker.current();
 		String hint = "";
@@ -337,7 +356,7 @@ public final class ClientShipEvents {
 						// a destination given with goto: the click takes the helm back (the server cancels it)
 						: onGoto(t.ship()) ? "Clic droit : reprendre la barre (annule la destination)" : "Pilote automatique à la barre";
 				case SEAT -> "Clic droit : s'asseoir";
-				case HULL -> "Clic droit : monter à bord";
+				case HULL -> hullHint(client, t.ship());
 				case DECK -> "";
 				case DOOR -> t.ship().doorOpen(t.pick().seat()) ? "Clic droit : fermer" : "Clic droit : ouvrir";
 				case SWITCH -> switchHint(t.ship(), t.pick().seat());
@@ -346,6 +365,7 @@ public final class ClientShipEvents {
 					case DEPLOYED -> "Clic droit : replier la passerelle";
 					default -> "La passerelle est en mouvement";
 				};
+				case BOAT -> boatHint(t.ship());
 			};
 		}
 		if (hintCooldown > 0) {

@@ -27,7 +27,8 @@ public class ShipRenderState extends EntityRenderState {
 	public float airlockWater;
 	public boolean floodlight;
 	public boolean lightsOff;
-	public boolean lifeboatAway;
+	/** The bone of the ship's boat hidden while it is on the water ({@link fr.medievalships.core.ShipBoats}), or null. */
+	public String boatHidden;
 	/** The camera is in the dry rooms of this vessel, under the water: the sea behind the glass is murky. */
 	public boolean murk;
 	/**

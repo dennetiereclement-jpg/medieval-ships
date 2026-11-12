@@ -319,6 +319,8 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			RoyalLionShipGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 			FortressShipGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 			GearSteamShipGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
+			// the ships' boats (1.30.0): the galleon's, the warship's and the Old Corsair's launched and hoisted back
+			ShipBoatGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 			// the performance benchmark (1.29.0): a city of props, the big ships and the Nautilus, mobs; numbers only
 			PerfGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 		}
@@ -1555,6 +1557,35 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		});
 		boolean away = server.computeOnServer(srv -> ship(srv.getOverworld(), type).toggle(Ships.NautilusLayout.LIFEBOAT_AWAY));
 		check(boats == 1 && away, "%s lifeboat: launched on the water (%d boat)", id, boats);
+		// 1.30.0: the mod's Rowboat, the Nautilus' own, beside the hull, floating; the deco hidden on the client too
+		context.waitTicks(40);
+		double[] lb = server.computeOnServer(srv -> {
+			ServerWorld ws = srv.getOverworld();
+			ShipEntity s = ship(ws, type);
+			Entity b = s.lifeboatId() == null ? null : ws.getEntity(s.lifeboatId());
+			if (!(b instanceof fr.medievalships.entity.RowboatEntity rb)) {
+				return null;
+			}
+			double[] bl = s.pose().toLocal(b.getX(), b.getY(), b.getZ());
+			net.minecraft.util.math.BlockPos col = net.minecraft.util.math.BlockPos.ofFloored(b.getX(), -37, b.getZ());
+			double sea = col.getY() + (double) ws.getFluidState(col).getHeight(ws, col);
+			return new double[] {bl[0], bl[1], bl[2], b.getY(), sea, s.getUuid().equals(rb.motherShip()) ? 1 : 0};
+		});
+		check(lb != null && lb[5] == 1, "%s lifeboat: it is the mod's Rowboat, the Nautilus' own", id);
+		if (lb != null) {
+			log("%s lifeboat at local %.2f %.2f %.2f, y %.2f, surface %.2f", id, lb[0], lb[1], lb[2], lb[3], lb[4]);
+			check(Math.abs(lb[0]) > g.hull().halfWidth(lb[2]) + 1.3 && Math.abs(lb[3] - lb[4]) < 0.3,
+					"%s lifeboat: beside the hull, clear of it, floating (local x %.2f, y %.2f, surface %.2f)", id, lb[0], lb[3], lb[4]);
+		}
+		Boolean hidden = context.computeOnClient((MinecraftClient mc) -> {
+			for (ShipEntity s : ShipTracker.ships(mc.world)) {
+				if (!s.isRemoved() && s.shipType() == type) {
+					return s.toggle(fr.medievalships.core.ShipBoats.AWAY_BIT);
+				}
+			}
+			return false;
+		});
+		check(Boolean.TRUE.equals(hidden), "%s lifeboat: its recess is empty on the client", id);
 		server.runCommand("gamemode spectator @a");
 		lookLocal(server, shipPose(sp, type), 26, 10, -10, 0, 4, -19);
 		context.waitTicks(20);
@@ -1573,6 +1604,16 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		});
 		away = server.computeOnServer(srv -> ship(srv.getOverworld(), type).toggle(Ships.NautilusLayout.LIFEBOAT_AWAY));
 		check(boats == 0 && !away, "%s lifeboat: taken back into its recess", id);
+		context.waitTicks(5);
+		Boolean shown = context.computeOnClient((MinecraftClient mc) -> {
+			for (ShipEntity s : ShipTracker.ships(mc.world)) {
+				if (!s.isRemoved() && s.shipType() == type) {
+					return !s.toggle(fr.medievalships.core.ShipBoats.AWAY_BIT);
+				}
+			}
+			return false;
+		});
+		check(Boolean.TRUE.equals(shown), "%s lifeboat: back in its recess on the client", id);
 
 		// depth ordered by command, then the ballasts emptied
 		nautilusCommand(server, "profondeur 10");
@@ -1833,7 +1874,9 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		}
 		Object[] st = server.computeOnServer(srv -> {
 			ShipEntity s = ship(srv.getOverworld(), type);
-			boolean boat = s.lifeboatId() != null && srv.getOverworld().getEntity(s.lifeboatId()) != null;
+			// the Rowboat on the water still knows its ship after the restart (1.30.0)
+			boolean boat = s.lifeboatId() != null && srv.getOverworld().getEntity(s.lifeboatId()) instanceof fr.medievalships.entity.RowboatEntity rb
+					&& s.getUuid().equals(rb.motherShip());
 			return new Object[] {s.doorOpen(3), s.doorOpen(5), s.doorOpen(4), s.airlockLevel(), s.toggle(Ships.NautilusLayout.SHUTTERS_CLOSED),
 					s.toggle(Ships.NautilusLayout.FLOODLIGHT_ON), s.toggle(Ships.NautilusLayout.LIGHTS_OFF),
 					s.toggle(Ships.NautilusLayout.LIFEBOAT_AWAY), boat, s.targetDepth(), s.syncedDepth()};
@@ -1850,9 +1893,24 @@ public class ShipClientGameTest implements FabricClientGameTest {
 		lookLocal(server, p, 40, 12, 30, 0, 4, 0);
 		context.waitTicks(30);
 		shot(context, "nautilus_10_apres_redemarrage");
-		// taken back aboard after the restart
+		// taken back aboard after the restart: refused under the sea (1.30.0), then on the surface
 		tpLocal(server, p, 0, Ships.NautilusLayout.TOWER_FLOOR_Y + 0.02, 17.0, 0, 0);
 		server.runCommand("gamemode survival @a");
+		context.waitTicks(10);
+		String deep = server.computeOnServer(srv -> {
+			net.minecraft.text.Text t = fr.medievalships.entity.ShipBoatHandling.recover(ship(srv.getOverworld(), type), srv.getOverworld(), null, false);
+			return t == null ? "" : t.getString();
+		});
+		check(deep.contains("surface"), "nautilus restart: under the sea the lifeboat is not taken back (%s)", deep);
+		nautilusCommand(server, "ballasts vider");
+		for (int k = 0; k < 40; k++) {
+			context.waitTicks(20);
+			if (server.computeOnServer(srv -> ship(srv.getOverworld(), type).syncedDepth()) < 0.3f) {
+				break;
+			}
+		}
+		context.waitTicks(20);
+		tpLocal(server, shipPose(sp, type), 0, Ships.NautilusLayout.TOWER_FLOOR_Y + 0.02, 17.0, 0, 0);
 		context.waitTicks(10);
 		nautilusCommand(server, "canot rembarquer");
 		context.waitTicks(10);

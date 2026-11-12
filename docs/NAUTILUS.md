@@ -64,7 +64,7 @@ Clic droit sur le levier ou la vanne. Une aide s'affiche quand on les vise.
 | **Projecteur** | Levier de la timonerie | Allume la lentille et un faisceau lumineux translucide vers l'avant. |
 | **Lumières du bord** | Levier de la timonerie et levier du salon | Éteint ou rallume les lampes, lustres et appliques. Lumières éteintes en plongée, les salles sont dans le noir. |
 | **Sas** | Vanne rouge (remplir) et vanne de laiton (vider), dans le sas et dans la coursive devant sa porte | Le sas se remplit ou se vide en 6 secondes. L'eau monte réellement : on est sous l'eau dans la partie noyée et au sec au-dessus. |
-| **Canot** | Levier sur la plate-forme, devant son logement | En surface, le canot est mis à l'eau le long de la coque (un bateau vanilla nommé « Canot du Nautilus »). Le même levier le rembarque s'il est à moins de 12 blocs : son équipage remonte sur la plate-forme. |
+| **Canot** | Levier sur la plate-forme, devant son logement, ou clic droit sur le canot lui-même | En surface, le canot est mis à l'eau le long de la coque : c'est la **petite barque du mod** (1.30.0), du côté du joueur. Le même levier (ou un clic sur la coque depuis la barque) le rembarque s'il est assez près : son équipage remonte sur la plate-forme. Voir [BARQUES.md](BARQUES.md). |
 
 ### Sécurités du sas
 
@@ -154,7 +154,7 @@ Les toiles des cadres sont les **tableaux vanilla** de Minecraft (Lowmist, Sunse
 
 ## Limites connues
 
-* Le canot mis à l'eau est un **bateau vanilla** (chêne) nommé « Canot du Nautilus », et non une réplique du modèle du canot.
+* Le canot ne se met à l'eau et ne se rembarque qu'en surface (1.30.0) ; `/ship nautilus canot remplacer` le ramène de force.
 * Le faisceau du projecteur est un **effet visuel** (cône lumineux translucide). Il n'éclaire pas les blocs du monde : Minecraft n'a pas de lumière dynamique sans mod dédié.
 * Lumières éteintes en plongée profonde, les salles sont noires, comme voulu.
 * Les commandes `/ship` sont réservées aux administrateurs. Les leviers, vannes, portes et sièges sont utilisables par tous.

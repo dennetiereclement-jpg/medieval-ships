@@ -306,6 +306,11 @@ public final class ShipCommands {
 						.then(CommandManager.literal("fermer").executes(ctx -> door(ctx, false)))));
 		nautilus.then(CommandManager.literal("etat").executes(ShipCommands::nautilusState));
 		root.then(nautilus);
+		// /ship barque ...: the boat of any ship that carries one (1.30.0)
+		root.then(CommandManager.literal("barque")
+				.then(CommandManager.literal("lancer").executes(ctx -> shipBoat(ctx, boatShip(ctx), 0)))
+				.then(CommandManager.literal("rembarquer").executes(ctx -> shipBoat(ctx, boatShip(ctx), 1)))
+				.then(CommandManager.literal("remplacer").executes(ctx -> shipBoat(ctx, boatShip(ctx), 2))));
 
 		// /ship goto ..., /ship destination ... (and the players' /pilote): destinations for the autopilot
 		DestinationCommands.register(dispatcher, root);
@@ -544,16 +549,39 @@ public final class ShipCommands {
 	}
 
 	private static int lifeboat(CommandContext<ServerCommandSource> ctx, int what) throws CommandSyntaxException {
-		ShipEntity ship = submarine(ctx);
+		return shipBoat(ctx, submarine(ctx), what);
+	}
+
+	/**
+	 * {@code /ship barque lancer|rembarquer|remplacer} (1.30.0): the boat of the ship the player is on, looks at or is
+	 * near; from the ship's own boat, the ship it belongs to.
+	 */
+	private static ShipEntity boatShip(CommandContext<ServerCommandSource> ctx) throws CommandSyntaxException {
+		ShipEntity ship = target(ctx);
+		if (ship instanceof fr.medievalships.entity.RowboatEntity rb && rb.motherShip() != null
+				&& ctx.getSource().getWorld().getEntity(rb.motherShip()) instanceof ShipEntity mother && !mother.isRemoved()) {
+			ship = mother;
+		}
+		if (ship.boatSpec() == null) {
+			throw error("Ce navire n'a pas de barque (" + String.join(", ", new java.util.TreeSet<>(fr.medievalships.core.ShipBoats.all().keySet())) + ").");
+		}
+		return ship;
+	}
+
+	/** 0: launch, 1: take back aboard, 2: take back aboard wherever it is, or replace a lost one (administrator). */
+	private static int shipBoat(CommandContext<ServerCommandSource> ctx, ShipEntity ship, int what) throws CommandSyntaxException {
 		ServerWorld world = ctx.getSource().getWorld();
-		boolean away = ship.toggle(Ships.NautilusLayout.LIFEBOAT_AWAY);
+		fr.medievalships.core.ShipBoats.Spec spec = ship.boatSpec();
+		boolean away = ship.toggle(fr.medievalships.core.ShipBoats.AWAY_BIT);
 		if (what == 0 && away) {
-			throw error("Le canot est déjà à l'eau.");
+			throw error(spec.The() + " est déjà à l'eau.");
 		}
 		if (what == 1 && !away) {
-			throw error("Le canot est déjà dans son logement.");
+			throw error(spec.The() + " est déjà à bord.");
 		}
-		report(ctx, what == 0 ? NautilusFittings.launchLifeboat(ship, world) : NautilusFittings.recoverLifeboat(ship, world, what == 2), "");
+		net.minecraft.server.network.ServerPlayerEntity player = ctx.getSource().getPlayer();
+		report(ctx, what == 0 ? fr.medievalships.entity.ShipBoatHandling.launch(ship, world, player)
+				: fr.medievalships.entity.ShipBoatHandling.recover(ship, world, player, what == 2), "");
 		return 1;
 	}
 

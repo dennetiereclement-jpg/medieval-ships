@@ -570,9 +570,10 @@ public final class ShipGeometry {
 	/**
 	 * DOOR (vessels with rooms): {@link Pick#seat()} is the door index; SWITCH: the index of the
 	 * control in {@link InteriorDecor#switches()}; LEVER: the gangplank's lever ({@link Gangplank}, picked by the
-	 * client's ShipPicker). Append only: the ordinal goes over the network.
+	 * client's ShipPicker); BOAT: the ship's boat on its chocks ({@link ShipBoats}, picked by the client's ShipPicker).
+	 * Append only: the ordinal goes over the network.
 	 */
-	public enum PickKind { HELM, SEAT, HULL, DECK, DOOR, SWITCH, LEVER }
+	public enum PickKind { HELM, SEAT, HULL, DECK, DOOR, SWITCH, LEVER, BOAT }
 
 	public record Pick(PickKind kind, int seat, double distance, double lx, double ly, double lz) {
 	}

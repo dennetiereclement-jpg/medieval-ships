@@ -154,11 +154,28 @@ public final class ShipCollisions {
 				};
 			}
 			ship.geometry().collectBoxes(ship.pose(), ship.interiorState(), ship.gangplankWallGap(), query.minX, query.minY, query.minZ,
-					query.maxX, query.maxY, query.maxZ, sink);
+					query.maxX, query.maxY, query.maxZ, boatGap(ship, sink));
 			// a deployed gangplank: its steps along the slope and its inboard stairs
 			ship.collectGangplankBoxes(query.minX, query.minY, query.minZ, query.maxX, query.maxY, query.maxZ, sink);
 		}
 		return tents || out.size() > before;
+	}
+
+	/**
+	 * The deck box of a ship's boat one can stand on (the great warship's) is not there while the boat is on the water
+	 * (1.30.0, {@link fr.medievalships.core.ShipBoats#solidCell}); any other ship: the sink itself, no allocation.
+	 */
+	private static fr.medievalships.core.ShipGeometry.BoxSink boatGap(ShipEntity ship, fr.medievalships.core.ShipGeometry.BoxSink sink) {
+		fr.medievalships.core.ShipBoats.Spec boat = ship.boatSpec();
+		if (boat == null || boat.solid() == null || !ship.toggle(fr.medievalships.core.ShipBoats.AWAY_BIT)) {
+			return sink;
+		}
+		fr.medievalships.core.ShipPose pose = ship.pose();
+		return (a, b, c, d, e, f) -> {
+			if (!fr.medievalships.core.ShipBoats.solidCell(boat, pose, a, b, c, d, e, f)) {
+				sink.accept(a, b, c, d, e, f);
+			}
+		};
 	}
 
 	private static boolean wantsHulls(@Nullable Entity entity, World world) {

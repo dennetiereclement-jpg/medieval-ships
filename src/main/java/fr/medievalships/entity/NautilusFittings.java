@@ -1,14 +1,7 @@
 package fr.medievalships.entity;
 
-import java.util.List;
-import java.util.UUID;
-
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.SpawnReason;
-import net.minecraft.entity.vehicle.AbstractBoatEntity;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvent;
@@ -30,16 +23,19 @@ import fr.medievalships.core.Ships.NautilusLayout;
 public final class NautilusFittings {
 	/** The airlock fills or empties in 6 seconds. */
 	static final float AIRLOCK_RATE = 1f / 120f;
-	/** The lifeboat is taken back aboard within this distance of its recess. */
-	static final double LIFEBOAT_REACH = 12.0;
-	static final String LIFEBOAT_TAG = "medievalships_lifeboat";
 
 	private NautilusFittings() {
 	}
 
-	/** A player used the control {@code index} of the decor. Returns a message for him, or null. */
+	/** The control {@code index} of the decor was used (a test, a command). Returns the message, or null. */
 	@Nullable
 	public static Text use(ShipEntity ship, ServerWorld world, int index) {
+		return use(ship, world, index, null);
+	}
+
+	/** A player used the control {@code index} of the decor. Returns a message for him, or null. */
+	@Nullable
+	public static Text use(ShipEntity ship, ServerWorld world, int index, @Nullable net.minecraft.server.network.ServerPlayerEntity player) {
 		InteriorDecor decor = ship.geometry().decor();
 		if (decor == null || index < 0 || index >= decor.switches().size()) {
 			return null;
@@ -79,7 +75,7 @@ public final class NautilusFittings {
 			}
 			case "lifeboat" -> {
 				sound(world, at, SoundEvents.BLOCK_LEVER_CLICK, 0.8f, 0.7f);
-				yield ship.toggle(NautilusLayout.LIFEBOAT_AWAY) ? recoverLifeboat(ship, world, false) : launchLifeboat(ship, world);
+				yield ShipBoatHandling.use(ship, world, player); // the mod's Rowboat, like every ship's boat (1.30.0)
 			}
 			default -> null;
 		};
@@ -174,76 +170,22 @@ public final class NautilusFittings {
 
 	// ------------------------------------------------------------------ lifeboat
 
-	/** Puts the lifeboat on the water beside the hull (on the surface only). */
+	/**
+	 * Puts the lifeboat on the water beside the hull (on the surface only): since 1.30.0 the mod's Rowboat, as for
+	 * every ship's boat ({@link ShipBoatHandling}).
+	 */
 	@Nullable
 	public static Text launchLifeboat(ShipEntity ship, ServerWorld world) {
-		if (ship.syncedDepth() > Dive.SURFACED) {
-			return refused("Le canot ne se détache qu'en surface.");
-		}
-		for (double side : new double[] {9.5, -9.5}) {
-			double[] p = ship.pose().toWorld(side, NautilusLayout.LIFEBOAT_Y - 8.0, NautilusLayout.LIFEBOAT_Z);
-			BlockPos pos = BlockPos.ofFloored(p[0], p[1], p[2]);
-			// the water surface in this column, a few blocks around the waterline
-			BlockPos surface = null;
-			for (int dy = 3; dy >= -4; dy--) {
-				BlockPos q = pos.up(dy);
-				if (world.getFluidState(q).isIn(FluidTags.WATER) && world.getBlockState(q.up()).isAir()) {
-					surface = q;
-					break;
-				}
-			}
-			if (surface == null) {
-				continue;
-			}
-			AbstractBoatEntity boat = EntityType.OAK_BOAT.create(world, SpawnReason.TRIGGERED);
-			if (boat == null) {
-				break;
-			}
-			boat.refreshPositionAndAngles(p[0], surface.getY() + 0.95, p[2], ship.getYaw(), 0);
-			boat.setCustomName(Text.literal("Canot du Nautilus"));
-			boat.addCommandTag(LIFEBOAT_TAG);
-			world.spawnEntity(boat);
-			ship.setLifeboatId(boat.getUuid());
-			ship.setToggle(NautilusLayout.LIFEBOAT_AWAY, true);
-			sound(world, p, SoundEvents.ENTITY_GENERIC_SPLASH, 1.0f, 0.8f);
-			return info("Le canot est à l'eau. Ramenez-le près de la coque et actionnez le levier pour le rembarquer.");
-		}
-		return refused("Pas d'eau libre le long de la coque pour mettre le canot à l'eau.");
+		return ShipBoatHandling.launch(ship, world, null);
 	}
 
 	/**
-	 * Takes the lifeboat back into its recess: it must be near the hull ({@code force}: an admin
-	 * replaces it wherever it is, or if it was lost).
+	 * Takes the lifeboat back into its recess: it must be near the hull ({@code force}: an admin replaces it wherever it
+	 * is, or if it was lost). See {@link ShipBoatHandling#recover}.
 	 */
 	@Nullable
 	public static Text recoverLifeboat(ShipEntity ship, ServerWorld world, boolean force) {
-		UUID id = ship.lifeboatId();
-		Entity boat = id == null ? null : world.getEntity(id);
-		double[] recess = ship.pose().toWorld(0, NautilusLayout.LIFEBOAT_Y, NautilusLayout.LIFEBOAT_Z);
-		if (!force) {
-			if (boat == null || boat.isRemoved()) {
-				return refused("Le canot est introuvable (trop loin ou détruit). Un administrateur peut le remplacer : /ship nautilus canot remplacer.");
-			}
-			// alongside: measured on the water, the recess being high on the casing
-			double dx = boat.getX() - recess[0], dz = boat.getZ() - recess[2];
-			if (dx * dx + dz * dz > LIFEBOAT_REACH * LIFEBOAT_REACH) {
-				return refused(String.format("Le canot est trop loin : ramenez-le à moins de %d blocs de son logement.", (int) LIFEBOAT_REACH));
-			}
-		}
-		if (boat != null && !boat.isRemoved()) {
-			// its crew climbs back onto the casing, next to the recess
-			List<Entity> crew = List.copyOf(boat.getPassengerList());
-			double[] deck = ship.pose().toWorld(-1.4, NautilusLayout.CASING_TOP_Y + 0.05, NautilusLayout.LIFEBOAT_Z + 4.0);
-			for (Entity e : crew) {
-				e.stopRiding();
-				e.requestTeleport(deck[0], deck[1], deck[2]);
-			}
-			boat.discard();
-		}
-		ship.setLifeboatId(null);
-		ship.setToggle(NautilusLayout.LIFEBOAT_AWAY, false);
-		sound(world, recess, SoundEvents.BLOCK_CHAIN_PLACE, 1.0f, 0.8f);
-		return info("Le canot a repris sa place dans son logement.");
+		return ShipBoatHandling.recover(ship, world, null, force);
 	}
 
 	// ------------------------------------------------------------------ tick

@@ -32,6 +32,11 @@ public final class ShipData extends PersistentState {
 		Map<String, String> playerShips = new HashMap<>();
 		/** Saved destinations ({@code /ship destination add}), by name. */
 		Map<String, Destination> destinations = new TreeMap<>();
+		/**
+		 * Ships' boats written off by their ship while out of reach of the server (lost, unloaded): the ship has its deco
+		 * boat back aboard, so such a boat vanishes when it is loaded again (never two boats). 1.30.0.
+		 */
+		java.util.LinkedHashSet<String> retiredBoats = new java.util.LinkedHashSet<>();
 	}
 
 	public static final class FerryRecord {
@@ -69,6 +74,9 @@ public final class ShipData extends PersistentState {
 						}
 						if (c.destinations == null) {
 							c.destinations = new TreeMap<>();
+						}
+						if (c.retiredBoats == null) {
+							c.retiredBoats = new java.util.LinkedHashSet<>();
 						}
 					}
 				} catch (Exception e) {
@@ -161,5 +169,31 @@ public final class ShipData extends PersistentState {
 		boolean removed = contents.destinations.remove(name) != null;
 		markDirty();
 		return removed;
+	}
+
+	/** At most this many written-off boats are remembered (the oldest are forgotten: a boat lost for good never comes back). */
+	static final int MAX_RETIRED_BOATS = 512;
+
+	/** A ship wrote its boat off (see {@link Contents#retiredBoats}). */
+	public void retireBoat(UUID boat) {
+		if (contents.retiredBoats.add(boat.toString())) {
+			while (contents.retiredBoats.size() > MAX_RETIRED_BOATS) {
+				java.util.Iterator<String> it = contents.retiredBoats.iterator();
+				it.next();
+				it.remove();
+			}
+			markDirty();
+		}
+	}
+
+	public boolean isRetiredBoat(UUID boat) {
+		return !contents.retiredBoats.isEmpty() && contents.retiredBoats.contains(boat.toString());
+	}
+
+	/** The written-off boat was loaded again and removed: nothing more to remember. */
+	public void forgetRetiredBoat(UUID boat) {
+		if (contents.retiredBoats.remove(boat.toString())) {
+			markDirty();
+		}
 	}
 }

@@ -1,11 +1,18 @@
 package fr.medievalships.entity;
 
+import java.util.UUID;
+
+import org.jetbrains.annotations.Nullable;
+
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.Item;
 import net.minecraft.registry.tag.FluidTags;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.storage.ReadView;
+import net.minecraft.storage.WriteView;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -23,8 +30,50 @@ import fr.medievalships.core.Ships;
  * ground within reach, else in the water beside it (like a vanilla boat).
  */
 public class RowboatEntity extends ShipEntity {
+	/**
+	 * The ship whose boat this is, while it is on the water (1.30.0, {@link ShipBoatHandling}); null for a rowboat
+	 * placed from its item, or once its ship is gone.
+	 */
+	@Nullable
+	private UUID motherShip;
+
 	public RowboatEntity(EntityType<? extends RowboatEntity> type, World world) {
 		super(type, world);
+	}
+
+	@Nullable
+	public UUID motherShip() {
+		return motherShip;
+	}
+
+	public void setMotherShip(@Nullable UUID ship) {
+		motherShip = ship;
+	}
+
+	@Override
+	protected void readCustomData(ReadView view) {
+		super.readCustomData(view);
+		String mother = view.getString("MotherShip", "");
+		try {
+			motherShip = mother.isEmpty() ? null : UUID.fromString(mother);
+		} catch (IllegalArgumentException e) {
+			motherShip = null;
+		}
+	}
+
+	@Override
+	protected void writeCustomData(WriteView view) {
+		super.writeCustomData(view);
+		view.putString("MotherShip", motherShip == null ? "" : motherShip.toString());
+	}
+
+	@Override
+	public void tick() {
+		super.tick();
+		// a ship's boat its ship has written off (lost while unloaded, its deco back aboard): it vanishes (never two)
+		if (motherShip != null && !isRemoved() && (age + getId()) % 40 == 0 && getEntityWorld() instanceof ServerWorld world) {
+			ShipBoatHandling.checkRetired(this, world);
+		}
 	}
 
 	@Override

@@ -102,6 +102,8 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 			state.gangplankLever = (float) fr.medievalships.core.Gangplank.leverPosition(gp, ticks);
 			state.gangplankOut = gp.out();
 		}
+		fr.medievalships.core.ShipBoats.Spec boat = entity.boatSpec();
+		state.boatHidden = boat != null && entity.toggle(fr.medievalships.core.ShipBoats.AWAY_BIT) ? boat.bone() : null;
 		state.moored = MathHelper.lerp(tickProgress, entity.lastGangplankMoor, entity.gangplankMoor);
 		state.rockScale *= 1.0 - state.moored;
 		state.interiorLight = entity.geometry().interior() != null;
@@ -113,7 +115,6 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 			state.airlockWater = MathHelper.lerp(tickProgress, entity.lastAirlockVisual, entity.airlockVisual);
 			state.floodlight = entity.toggle(Ships.NautilusLayout.FLOODLIGHT_ON);
 			state.lightsOff = entity.toggle(Ships.NautilusLayout.LIGHTS_OFF);
-			state.lifeboatAway = entity.toggle(Ships.NautilusLayout.LIFEBOAT_AWAY);
 			net.minecraft.client.render.Camera camera = net.minecraft.client.MinecraftClient.getInstance().gameRenderer.getCamera();
 			state.murk = camera != null && entity.squaredDistanceTo(camera.getCameraPos()) < 80 * 80 && ShipFog.inDryRoomUnderWater(camera);
 		}
@@ -167,7 +168,8 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 			int glowLight = state.interiorLight && state.lightsOff ? light : LightmapTextureManager.MAX_LIGHT_COORDINATE;
 			boolean glowShines = !(state.interiorLight && state.lightsOff);
 			float shutters = state.shutters, airlockWater = state.airlockWater;
-			boolean floodlight = state.floodlight, lifeboatAway = state.lifeboatAway;
+			boolean floodlight = state.floodlight;
+			String boatHidden = state.boatHidden;
 			boolean effects = state.interiorLight && model.hasEffects();
 			// pass 0: the model; pass 1: its translucent effects (projector beam, water of the airlock)
 			for (int pass = 0; pass < (effects ? 2 : 1); pass++) {
@@ -230,9 +232,9 @@ public class ShipRenderer extends EntityRenderer<ShipEntity, ShipRenderState> {
 						if (airlockWater < 0.01f) {
 							model.hide(pose, "fx_airlock");
 						}
-						if (lifeboatAway) {
-							model.hide(pose, "lifeboat");
-						}
+					}
+					if (boatHidden != null) {
+						model.hide(pose, boatHidden); // the ship's boat is on the water
 					}
 					// the glowing faces (lit windows, lanterns, fires) shine whatever way they face: an up normal keeps the
 					// entity shading at 1 (their real side normal darkened them to about x 0.5 to x 0.75 on the flanks);

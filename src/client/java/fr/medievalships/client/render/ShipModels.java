@@ -204,6 +204,14 @@ public final class ShipModels {
 		}
 	}
 
+	/** The ship's boat stowed among the deck's elements gets a bone of its own, hidden while it is away (1.30.0). */
+	@Nullable
+	private static BbModel.Split boatSplit(String shipId) {
+		fr.medievalships.core.ShipBoats.Spec boat = fr.medievalships.core.ShipBoats.of(shipId);
+		return boat == null || boat.splitParent() == null ? null
+				: new BbModel.Split(boat.splitParent(), boat.bone(), fr.medievalships.core.ShipBoats.SPLIT_PREFIX, fr.medievalships.core.ShipBoats.SPLIT_KEEP);
+	}
+
 	public static void reload(ResourceManager manager) {
 		GANGPLANKS.clear();
 		GANGPLANK_POSES.clear();
@@ -243,7 +251,7 @@ public final class ShipModels {
 				continue;
 			}
 			try (Reader reader = resource.get().getReader()) {
-				BbModel m = new BbModel(reader);
+				BbModel m = new BbModel(reader, boatSplit(v.type().id()));
 				LOADED.put(v, m);
 				MedievalShips.LOGGER.info("Loaded ship model {}: {} bones, {} faces, {} animations",
 						v.type().id(), m.bones.size(), m.quadCount(), m.animations.size());
