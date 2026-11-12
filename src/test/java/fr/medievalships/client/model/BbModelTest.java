@@ -87,8 +87,13 @@ class BbModelTest {
 
 	private static float[] concat(float[] p, float[] uv) {
 		float[] v = new float[20];
-		System.arraycopy(p, 0, v, 0, 12);
-		System.arraycopy(uv, 0, v, 12, 8);
+		// the reference (tools/reference_quads.py) keeps the Blockbench corner order, clockwise seen from the front; the mod
+		// winds every face the other way round since 1.30.0 (counter-clockwise, OpenGL's front face): corners 1 and 3 swapped
+		for (int k = 0; k < 4; k++) {
+			int r = (4 - k) & 3;
+			System.arraycopy(p, r * 3, v, k * 3, 3);
+			System.arraycopy(uv, r * 2, v, 12 + k * 2, 2);
+		}
 		return v;
 	}
 

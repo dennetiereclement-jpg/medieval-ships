@@ -19,7 +19,7 @@ KEEL_DEPTH, KEEL_RISE, KEEL_POW = 1.8, 0.7, 4.0
 # almost flat sheer; the rail is the iron railing round the deck
 RAIL_BASE, RAIL_RISE_FORE, RAIL_RISE_AFT, RAIL_POW = 3.3, 0.35, 0.2, 2.0
 BOTTOM_SECTION = [(0.0, 1.0), (0.6, 0.94), (0.9, 0.62), (0.99, 0.18)]
-WATERLINE_Y = -0.35
+WATERLINE_Y = 0.15   # 1.30.0: half a block deeper
 
 MAIN_DECK_Y = 2.4
 PLATING_TOP = 2.55        # top of the armour plating (the railing stands above it)

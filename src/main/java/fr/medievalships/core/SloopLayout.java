@@ -16,8 +16,8 @@ public final class SloopLayout {
 	public static final double HALF_LENGTH = 7.5;
 	public static final double TIP = 8.2;
 	public static final double MAX_HALF_WIDTH = 2.3;
-	/** The water is 0.5 blocks under the model origin. */
-	public static final double WATERLINE_Y = -0.5;
+	/** The water is 0.1 block above the model origin (1.30.0: 0.6 deeper, just under the blue band; a laden merchant). */
+	public static final double WATERLINE_Y = 0.1;
 	public static final double MAIN_DECK_Y = 0.6;
 	/** Small raised stern platform (storage and the tiller), one step up from the main deck. */
 	public static final double AFT_DECK_Y = 1.1;

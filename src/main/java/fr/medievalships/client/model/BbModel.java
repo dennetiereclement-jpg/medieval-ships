@@ -401,7 +401,8 @@ public final class BbModel {
 	@FunctionalInterface
 	public interface QuadSink {
 		/**
-		 * @param p      4 corners (x, y, z) in ship-local blocks
+		 * @param p      4 corners (x, y, z) in ship-local blocks, counter-clockwise seen from the side the normal points to
+		 *               (OpenGL's front face: the per-face lighting of the entity layers lights it by its normal)
 		 * @param uv     4 corners (u, v) normalised to [0, 1]
 		 * @param normal face normal in ship-local space
 		 */
@@ -624,6 +625,13 @@ public final class BbModel {
 			n[Math.abs(ax[0]) - 1] = Math.signum(ax[0]);
 			float[] rn = mul(rot, n);
 			System.arraycopy(rn, 0, q.normal, 0, 3);
+			// 1.30.0: counter-clockwise seen from the side the normal points to, like vanilla's ModelPart.Cuboid. The corners
+			// above follow the Blockbench UV layout (top left, top right, bottom right, bottom left: clockwise seen from the
+			// front); drawn so, every face was a back face for OpenGL, and the entity layers with per-face lighting
+			// (entityCutoutNoCull, entityTranslucent) lit it as if its normal were reversed: tops dark (x 0.4), bottoms bright
+			if (windingDot(q.pos, 0, q.normal) < 0) {
+				reverseWinding(q.pos, q.uv);
+			}
 			bone.quads.add(q);
 			quadCount++;
 		}
@@ -785,20 +793,25 @@ public final class BbModel {
 		}
 		float[] m = compose(parent, local, pose.matrix(depth));
 		if (bone.fx == pose.fxPass) {
+			// a mirroring transform (a negative scale) turns the faces inside out: they are emitted the other way round,
+			// so that every quad stays counter-clockwise seen from its normal's side (see readCube)
+			boolean mirrored = det3(m) < 0;
 			for (Quad q : bone.quads) {
 				if (texture >= 0 && q.texture != texture) {
 					continue;
 				}
 				for (int k = 0; k < 4; k++) {
+					int d = mirrored ? (4 - k) & 3 : k;
 					float x = q.pos[k * 3], y = q.pos[k * 3 + 1], z = q.pos[k * 3 + 2];
 					float wx = m[0] * x + m[1] * y + m[2] * z + m[3];
 					float wy = m[4] * x + m[5] * y + m[6] * z + m[7];
 					float wz = m[8] * x + m[9] * y + m[10] * z + m[11];
-					p[k * 3] = -wx / 16f;
-					p[k * 3 + 1] = wy / 16f;
-					p[k * 3 + 2] = -wz / 16f;
+					p[d * 3] = -wx / 16f;
+					p[d * 3 + 1] = wy / 16f;
+					p[d * 3 + 2] = -wz / 16f;
+					uv[d * 2] = q.uv[k * 2];
+					uv[d * 2 + 1] = q.uv[k * 2 + 1];
 				}
-				System.arraycopy(q.uv, 0, uv, 0, 8);
 				float nx = m[0] * q.normal[0] + m[1] * q.normal[1] + m[2] * q.normal[2];
 				float ny = m[4] * q.normal[0] + m[5] * q.normal[1] + m[6] * q.normal[2];
 				float nz = m[8] * q.normal[0] + m[9] * q.normal[1] + m[10] * q.normal[2];
@@ -924,7 +937,9 @@ public final class BbModel {
 		bone.cellFrom = cells[0];
 		int nq = bone.quads.size();
 		if (nq > 0) {
-			// every quad in ship-local blocks, with its normal (exactly what the old per-frame copy produced)
+			// every quad in ship-local blocks, with its normal (exactly what the frame's transform produces), the corners of
+			// a mirrored bone the other way round (renderBone)
+			boolean mirrored = det3(m) < 0;
 			float[] pos = new float[nq * 12];
 			float[] nor = new float[nq * 3];
 			long[] keys = new long[nq];
@@ -932,13 +947,14 @@ public final class BbModel {
 				Quad q = bone.quads.get(qi);
 				float cx = 0, cy = 0, cz = 0;
 				for (int k = 0; k < 4; k++) {
+					int d = mirrored ? (4 - k) & 3 : k;
 					float x = q.pos[k * 3], y = q.pos[k * 3 + 1], z = q.pos[k * 3 + 2];
 					float px = -(m[0] * x + m[1] * y + m[2] * z + m[3]) / 16f;
 					float py = (m[4] * x + m[5] * y + m[6] * z + m[7]) / 16f;
 					float pz = -(m[8] * x + m[9] * y + m[10] * z + m[11]) / 16f;
-					pos[qi * 12 + k * 3] = px;
-					pos[qi * 12 + k * 3 + 1] = py;
-					pos[qi * 12 + k * 3 + 2] = pz;
+					pos[qi * 12 + d * 3] = px;
+					pos[qi * 12 + d * 3 + 1] = py;
+					pos[qi * 12 + d * 3 + 2] = pz;
 					cx += px;
 					cy += py;
 					cz += pz;
@@ -971,12 +987,13 @@ public final class BbModel {
 								continue;
 							}
 							for (int k = 0; k < 4; k++) {
+								int s = mirrored ? (4 - k) & 3 : k; // the source corner (its uv) of baked corner k
 								float px = pos[qi * 12 + k * 3], py = pos[qi * 12 + k * 3 + 1], pz = pos[qi * 12 + k * 3 + 2];
 								data.add(px);
 								data.add(py);
 								data.add(pz);
-								data.add(q.uv[k * 2]);
-								data.add(q.uv[k * 2 + 1]);
+								data.add(q.uv[s * 2]);
+								data.add(q.uv[s * 2 + 1]);
 								minX = Math.min(minX, px);
 								minY = Math.min(minY, py);
 								minZ = Math.min(minZ, pz);
@@ -1008,6 +1025,35 @@ public final class BbModel {
 	}
 
 	// ------------------------------------------------------------------ math
+
+	/**
+	 * (p1 - p0) x (p2 - p0) . n for the corners at {@code pos[o..o+12)}: positive when the quad turns counter-clockwise
+	 * seen from the side {@code n} points to (OpenGL's front face), negative clockwise, zero for a face of no area.
+	 */
+	static float windingDot(float[] pos, int o, float[] n) {
+		float ax = pos[o + 3] - pos[o], ay = pos[o + 4] - pos[o + 1], az = pos[o + 5] - pos[o + 2];
+		float bx = pos[o + 6] - pos[o], by = pos[o + 7] - pos[o + 1], bz = pos[o + 8] - pos[o + 2];
+		return (ay * bz - az * by) * n[0] + (az * bx - ax * bz) * n[1] + (ax * by - ay * bx) * n[2];
+	}
+
+	/** Swaps corners 1 and 3 (positions and uvs together): the same face, wound the other way round. */
+	static void reverseWinding(float[] pos, float[] uv) {
+		for (int a = 0; a < 3; a++) {
+			float t = pos[3 + a];
+			pos[3 + a] = pos[9 + a];
+			pos[9 + a] = t;
+		}
+		for (int a = 0; a < 2; a++) {
+			float t = uv[2 + a];
+			uv[2 + a] = uv[6 + a];
+			uv[6 + a] = t;
+		}
+	}
+
+	/** Determinant of the 3x3 part of a 3x4 affine matrix: negative for a mirroring transform (it reverses windings). */
+	static float det3(float[] m) {
+		return m[0] * (m[5] * m[10] - m[6] * m[9]) - m[1] * (m[4] * m[10] - m[6] * m[8]) + m[2] * (m[4] * m[9] - m[5] * m[8]);
+	}
 
 	/** Blockbench / three.js Euler order ZYX: R = Rz * Ry * Rx (degrees). */
 	static float[][] rotationMatrix(float[] deg) {

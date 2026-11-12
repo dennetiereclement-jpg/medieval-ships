@@ -446,7 +446,14 @@ public final class DrawbridgeRenderer {
 		double[] n = norm(cross(sub(p1, p0), sub(p3, p0)));
 		double[] m = {(p0[0] + p2[0]) / 2 - centre[0], (p0[1] + p2[1]) / 2 - centre[1], (p0[2] + p2[2]) / 2 - centre[2]};
 		if (n[0] * m[0] + n[1] * m[1] + n[2] * m[2] < 0) {
+			// 1.30.0: wound the other way round too, so that it stays counter-clockwise seen from outside (OpenGL's front
+			// face; the per-face lighting of entityCutoutNoCull lights a back face with its normal reversed)
 			n = neg(n);
+			vertex(e, v, light, color, n, p0, u0, v0);
+			vertex(e, v, light, color, n, p3, u1, v0);
+			vertex(e, v, light, color, n, p2, u1, v1);
+			vertex(e, v, light, color, n, p1, u0, v1);
+			return;
 		}
 		vertex(e, v, light, color, n, p0, u0, v0);
 		vertex(e, v, light, color, n, p1, u0, v1);

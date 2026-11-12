@@ -19,7 +19,8 @@ public final class GearSteamLayout {
 	public static final double HALF_LENGTH = 18.0;
 	public static final double TIP = 19.0;
 	public static final double MAX_HALF_WIDTH = 5.0;
-	public static final double WATERLINE_Y = 0.6;
+	/** 1.30.0: 0.4 deeper, the copper boot-top under the water (the hold's floor at the sea level, dry: the interior grid). */
+	public static final double WATERLINE_Y = 1.0;
 	public static final double KEEL_DEPTH = 3.0;
 	public static final double HOLD_FLOOR_Y = 1.0;
 	public static final double MAIN_DECK_Y = 4.5;

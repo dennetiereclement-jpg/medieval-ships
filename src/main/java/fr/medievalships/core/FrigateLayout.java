@@ -17,7 +17,8 @@ public final class FrigateLayout {
 	public static final double HALF_LENGTH = 18.0;
 	public static final double TIP = 19.0;
 	public static final double MAX_HALF_WIDTH = 5.0;
-	public static final double WATERLINE_Y = 0.6;
+	/** 1.30.0: 0.4 deeper, the water up the lower gold wale (the gun ports 2.35 above it, the hold's floor 1.0). */
+	public static final double WATERLINE_Y = 1.0;
 	public static final double KEEL_DEPTH = 3.4;
 	public static final double MAIN_DECK_Y = 5.5;
 	public static final double LOWER_FLOOR_Y = 2.0;
