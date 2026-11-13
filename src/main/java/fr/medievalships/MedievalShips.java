@@ -179,6 +179,8 @@ public final class MedievalShips implements ModInitializer {
 
 		// the six tents: one block each, their items in the tab "Tentes"
 		fr.medievalships.tent.Tents.register();
+		// the ten doors (1.31.0): their blocks, items, block entity and tab "Portes"
+		fr.medievalships.door.Doors.register();
 
 		RegistryKey<ItemGroup> groupKey = RegistryKey.of(RegistryKeys.ITEM_GROUP, id("ships"));
 		Registry.register(Registries.ITEM_GROUP, groupKey, FabricItemGroup.builder()
@@ -201,6 +203,7 @@ public final class MedievalShips implements ModInitializer {
 			ShipCommands.register(dispatcher);
 			fr.medievalships.command.TentCommands.register(dispatcher);
 			fr.medievalships.command.DrawbridgeCommands.register(dispatcher);
+			fr.medievalships.command.DoorCommands.register(dispatcher);
 		});
 		// the drawbridges (1.24.0): their data, their tick, their sync to the clients
 		fr.medievalships.bridge.Drawbridges.init();

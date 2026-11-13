@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "medievalships:porte_chene",
+    "medievalships:porte_grange",
+    "medievalships:porte_forteresse",
+    "medievalships:porte_marchande",
+    "medievalships:porte_chateau",
+    "medievalships:porte_entrepot",
+    "medievalships:porte_partie"
+  ]
+}

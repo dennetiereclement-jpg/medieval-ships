@@ -69,6 +69,9 @@ public class ShipClientGameTest implements FabricClientGameTest {
 				nautilusBeforeRestart(context, new Env(sp.getServer(), sp.getClientWorld()));
 			}
 			DrawbridgeGameTest.beforeRestart(context, sp.getServer(), (ok, m) -> check(ok, "%s", m));
+			if (ONLY.isEmpty() || ONLY.equals("portes")) {
+				DoorGameTest.beforeRestart(context, sp.getServer(), (ok, m) -> check(ok, "%s", m));
+			}
 			save = sp.getWorldSave();
 		} catch (Throwable t) {
 			fail("solo: exception: " + t);
@@ -82,6 +85,10 @@ public class ShipClientGameTest implements FabricClientGameTest {
 					nautilusAfterRestart(context, new Env(sp.getServer(), sp.getClientWorld()));
 				}
 				DrawbridgeGameTest.afterRestart(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), n -> shot(context, n));
+				if (ONLY.isEmpty() || ONLY.equals("portes")) {
+					// the doors (1.31.0): the prison door opened before the restart, its settings, its name
+					DoorGameTest.afterRestart(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), n -> shot(context, n));
+				}
 			} catch (Throwable t) {
 				fail("solo-redemarrage: exception: " + t);
 			}
@@ -113,6 +120,17 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			// the dedicated server has no restart: the restoration is checked at the end of its scenario
 			DrawbridgeGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n),
 					!tag.equals("solo"));
+			return;
+		}
+		if (ONLY.equals("portes")) {
+			// the ten doors alone (1.31.0): -PgametestOnly=portes
+			var server = sp.getServer();
+			server.runCommand("gamerule doDaylightCycle false");
+			server.runCommand("gamerule doWeatherCycle false");
+			server.runCommand("gamerule doMobSpawning false");
+			server.runCommand("time set 6000");
+			server.runCommand("weather clear");
+			DoorGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 			return;
 		}
 		if (ONLY.equals("perf")) {
@@ -320,6 +338,8 @@ public class ShipClientGameTest implements FabricClientGameTest {
 			RoyalLionShipGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 			FortressShipGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 			GearSteamShipGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
+			// the ten doors (1.31.0): placing, clicks, redstone, linked levers, locks, commands, anti-crush, removal
+			DoorGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 			// the ships' boats (1.30.0): the galleon's, the warship's and the Old Corsair's launched and hoisted back
 			ShipBoatGameTest.run(context, sp.getServer(), sp.getClientWorld(), (ok, m) -> check(ok, "%s", m), m -> log("%s", m), n -> shot(context, n));
 			// the performance benchmark (1.29.0): a city of props, the big ships and the Nautilus, mobs; numbers only

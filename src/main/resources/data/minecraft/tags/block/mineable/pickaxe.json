@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "medievalships:porte_prison",
+    "medievalships:porte_vapeur",
+    "medievalships:porte_industrielle",
+    "medievalships:porte_vapeur_grande",
+    "medievalships:porte_partie"
+  ]
+}

@@ -597,6 +597,7 @@ pour 1.21.11 sur <https://fabricmc.net/develop>.
 
 * [Guide des commandes administrateur](docs/COMMANDES.md)
 * [Le pont-levis automatique : installation sur votre tablier, détection, gabarit, cycle, sécurités, réglages](docs/PONT_LEVIS.md)
+* [Les dix portes animées (1.31.0) : pose, accès, redstone, leviers liés, commandes `/porte`, quêtes et PNJ](docs/PORTES.md)
 * [Le Nautilus : salles, équipements, commandes, itinéraires sous-marins](docs/NAUTILUS.md)
 * [Le Grand Dirigeable de Cristal](docs/CRYSTAL_PLAN.md), [le Navire Volant Rustique](docs/SKIFF_PLAN.md),
   [la Jonque du Dragon](docs/JUNK_PLAN.md) : plans, pièces, pilotage, réglages, limites

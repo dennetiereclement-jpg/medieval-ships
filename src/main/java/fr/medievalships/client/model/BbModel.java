@@ -97,6 +97,16 @@ public final class BbModel {
 			this.origin = origin;
 			this.rotation = rotation;
 		}
+
+		/** Its parent bone, or null for a root (1.31.0: the doors find the animated parts of their leaves). */
+		public Bone parent() {
+			return parent;
+		}
+
+		/** Its origin (pivot) in model-local blocks (x = -bbX/16, y = bbY/16, z = -bbZ/16). */
+		public double[] originBlocks() {
+			return new double[] {-origin[0] / 16.0, origin[1] / 16.0, -origin[2] / 16.0};
+		}
 	}
 
 	/** A face in bone space (Blockbench pixels), after the element's own rotation. */
@@ -301,6 +311,36 @@ public final class BbModel {
 		}
 	}
 
+	/** Hides one bone (and its children) in a pose, by the bone itself (several bones may share a name). */
+	public void hide(Pose pose, Bone bone) {
+		if (bone != null && bone.index < pose.hidden.length) {
+			pose.hidden[bone.index] = true;
+		}
+	}
+
+	/** Hides every bone whose name starts with {@code prefix} (with their children) in a pose (1.31.0: the doors' "detail"). */
+	public void hideAll(Pose pose, String prefix) {
+		for (Bone b : bones) {
+			if (b.name.startsWith(prefix)) {
+				pose.hidden[b.index] = true;
+			}
+		}
+	}
+
+	/**
+	 * Sets a bone's extra translation in a pose (Blockbench pixels along its parent's axes, added like an animation's
+	 * position); unknown names are ignored. Like {@link #rotate}, only {@link #renderSubtree} applies it to bones no
+	 * animation moves.
+	 */
+	public void translate(Pose pose, String bone, float x, float y, float z) {
+		Bone b = bonesByName.get(bone);
+		if (b != null) {
+			pose.pos[b.index][0] = x;
+			pose.pos[b.index][1] = y;
+			pose.pos[b.index][2] = z;
+		}
+	}
+
 	/** Is there a bone of that name? */
 	public boolean hasBone(String bone) {
 		return bonesByName.containsKey(bone);
@@ -358,7 +398,11 @@ public final class BbModel {
 	 * skipped, as is the whole part under a hidden parent.
 	 */
 	public void renderPart(Pose pose, String bone, QuadSink sink) {
-		Bone b = bonesByName.get(bone);
+		renderPart(pose, bonesByName.get(bone), sink);
+	}
+
+	/** {@link #renderPart(Pose, String, QuadSink)} by the bone itself (null: nothing). */
+	public void renderPart(Pose pose, Bone b, QuadSink sink) {
 		if (b == null) {
 			return;
 		}

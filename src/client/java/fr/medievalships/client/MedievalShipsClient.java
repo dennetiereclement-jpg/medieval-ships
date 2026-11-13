@@ -37,6 +37,11 @@ public final class MedievalShipsClient implements ClientModInitializer {
 						fr.medievalships.tent.Tents.CANNON_BLOCK_ENTITY, ctx -> new fr.medievalships.client.render.TentBlockEntityRenderer());
 		ResourceLoader.get(ResourceType.CLIENT_RESOURCES).registerReloader(MedievalShips.id("tent_models"),
 				(SynchronousResourceReloader) fr.medievalships.client.render.TentModels::reload);
+		// the doors (1.31.0): drawn from their controller block, their models reloaded with the resource packs
+		net.minecraft.client.render.block.entity.BlockEntityRendererFactories.register(fr.medievalships.door.Doors.BLOCK_ENTITY,
+				ctx -> new fr.medievalships.client.render.DoorRenderer());
+		ResourceLoader.get(ResourceType.CLIENT_RESOURCES).registerReloader(MedievalShips.id("door_models"),
+				(SynchronousResourceReloader) fr.medievalships.client.render.DoorModels::reload);
 		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientBlockEntityEvents.BLOCK_ENTITY_LOAD.register((be, world) -> {
 			if (be instanceof fr.medievalships.tent.TentBlockEntity tent && tent.tentType() != null) {
 				fr.medievalships.tent.TentCollisions.add(world, be.getPos(), tent.tentType(), tent.quarter());

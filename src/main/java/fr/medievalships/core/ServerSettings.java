@@ -42,6 +42,10 @@ public final class ServerSettings {
 	public double tentDecorDistance = 32.0;
 	/** ...and the tent itself within this one; beyond, nothing is drawn. */
 	public double tentRenderDistance = 64.0;
+	/** Doors (1.31.0, client drawing): their small details ("detail" bones) are drawn within this distance (blocks)... */
+	public double doorDetailDistance = 32.0;
+	/** ...and the door itself within this one; beyond, nothing is drawn. */
+	public double doorRenderDistance = 64.0;
 	/**
 	 * The crafting workshops' hook (1.22.0): a server command per profession id ({@code "jeweler"}, {@code "blacksmith"}...,
 	 * see {@link TentType#profession()}; a workshop id such as {@code "workshop_jeweler"} is accepted too), run as the
@@ -67,6 +71,8 @@ public final class ServerSettings {
 		workshopCommands = cleanCommands(workshopCommands);
 		tentDecorDistance = Double.isNaN(tentDecorDistance) ? 32.0 : Math.max(0, Math.min(256, tentDecorDistance));
 		tentRenderDistance = Double.isNaN(tentRenderDistance) ? 64.0 : Math.max(8, Math.min(512, tentRenderDistance));
+		doorDetailDistance = Double.isNaN(doorDetailDistance) ? 32.0 : Math.max(0, Math.min(256, doorDetailDistance));
+		doorRenderDistance = Double.isNaN(doorRenderDistance) ? 64.0 : Math.max(8, Math.min(512, doorRenderDistance));
 		playerDestinationMaxDistance = Double.isNaN(playerDestinationMaxDistance) ? DEFAULT_PLAYER_DESTINATION_MAX_DISTANCE
 				: Math.max(16, Math.min(1_000_000, playerDestinationMaxDistance));
 	}
