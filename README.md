@@ -148,6 +148,17 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.31.0 apporte **dix portes 3D animées et fonctionnelles** (onglet créatif « Portes »,
+`/give @p medievalships:porte_chene`…) : trois petites 2x1 (chêne, prison, vapeur), quatre moyennes 4x2 à double
+battant (grange, forteresse, industrielle, marchande) et trois grandes 6x4 (château, vapeur, entrepôt). Un seul objet
+pose toute la porte (orientée vers le joueur, refus propre faute de place) ; les battants tournent vraiment sur leurs
+charnières, lentement pour les grandes, avec engrenages, pênes et pistons animés pendant le mouvement, sons et
+bouffées de vapeur. Ouverture au clic droit, à la redstone, par bouton ou levier collé, ou par leviers liés à distance ;
+accès libre, verrouillé, levier seul, administrateur seul ou réservé aux joueurs portant un tag de quête (posé par
+Easy NPC ou le système de quêtes). Collisions pleines fermée, passage libre ouverte, jamais de fermeture sur un joueur
+ou un mob. Commandes `/porte` (ouvrir, fermer, verrouiller, accès, leviers, nommer, supprimer…) pour les blocs de
+commande, les PNJ et les quêtes ; état sauvegardé au redémarrage. Détails : [docs/PORTES.md](docs/PORTES.md).
+
 La version 1.30.0 apporte :
 - **Éclairage corrigé** sur tous les modèles du mod : les dessus (ponts, toits de tentes) étaient sombres et les dessous clairs, car les faces étaient émises à l'envers pour OpenGL ; ils sont maintenant éclairés comme en vanilla.
 - **Huit navires plus enfoncés dans l'eau**, comme chargés : environ un demi-bloc pour le Vieux Corsaire, le bateau à roue, le vapeur à engrenages, le voilier elfique, le petit voilier de commerce et la frégate, un quart de bloc pour le grand galion, 0,2 pour le navire au lion (ses sabords éclairés restent hors de l'eau). Les cales sous la mer restent sèches.
@@ -577,7 +588,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.30.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.31.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
