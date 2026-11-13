@@ -429,6 +429,33 @@ class DoorTest {
 		assertEquals(still.get(0)[1] + 1.0, moved.get(0)[1], 1e-5, "16 px up = 1 block up");
 	}
 
+	/** The ten models of the generators: their leaves' pivots are the hinges the server sweeps with (DoorType#hingeX). */
+	@Test
+	void theModelsHingesAreTheServersHinges() throws Exception {
+		for (DoorType t : DoorTypes.ALL) {
+			java.nio.file.Path path = java.nio.file.Path.of("src/main/resources/assets/medievalships", t.model());
+			if (!java.nio.file.Files.exists(path)) {
+				continue; // a model not generated yet: drawn by nothing, checked once it exists
+			}
+			BbModel m;
+			try (java.io.Reader r = java.nio.file.Files.newBufferedReader(path, java.nio.charset.StandardCharsets.UTF_8)) {
+				m = new BbModel(r);
+			}
+			assertTrue(m.hasBone("frame"), t.id() + " has a frame");
+			double[] l = m.origin("leaf_l");
+			assertNotNull(l, t.id() + " has leaf_l");
+			assertEquals(-t.hingeX(), l[0], 1e-3, t.id() + " leaf_l hinge");
+			assertEquals(0, l[2], 0.05, t.id() + " leaf_l hinge in the middle of the thickness");
+			double[] r = m.origin("leaf_r");
+			if (t.leaves() == 2) {
+				assertNotNull(r, t.id() + " has leaf_r");
+				assertEquals(t.hingeX(), r[0], 1e-3, t.id() + " leaf_r hinge");
+			} else {
+				assertNull(r, t.id() + " has one leaf only");
+			}
+		}
+	}
+
 	private static int count(BbModel m, BbModel.Pose pose, BbModel.Bone part) {
 		int[] n = {0};
 		if (part == null) {
