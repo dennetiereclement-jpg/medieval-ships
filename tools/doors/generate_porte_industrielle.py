@@ -31,6 +31,26 @@ YELLOW = rgb("e0b024")
 BLACK = rgb("26262a")
 LEAF_TOP = 52
 
+ICON = [
+    "CCCCCCCCCCCCCCCC",
+    "FFbbFFGGFFFFbbFF",
+    "FCFFFFGGFFFFFCFF",
+    "FCFTTTTTTTTTTCFF",
+    "FCFTYYTTTTYYTCFF",
+    "FCFTYYTTTTYYTCFF",
+    "FCFTTTTTTTTTTCFF",
+    "FCFTTbbTTbbTTCFF",
+    "FCFTbBBbbBBbTCFF",
+    "FCFTTbbTTbbTTCFF",
+    "FCFTTTTTTTTTTCFF",
+    "FCFTXTXTTXTXTCFF",
+    "FCFTTXTTTTXTTCFF",
+    "CCCTXTXTTXTXTCCC",
+    "CCCKkKkKKkKkKCCC",
+    "CCCkKkKkkKkKkCCC",
+]
+ICON_PAL = {"C": rgb("b5652f"), "F": rgb("5a5a60"), "b": rgb("8a6a2a"), "B": rgb("d29a38"), "G": rgb("ffc35a"), "T": rgb("4c4c52"), "Y": rgb("ffbf55"), "X": rgb("8a8a92"), "K": rgb("e0b024"), "k": rgb("26262a")}
+
 
 def build():
     d = dm.Door("porte_industrielle", post=4, top=LEAF_TOP, seed=31)
@@ -191,6 +211,7 @@ def build():
         px = -12 if s < 0 else 12
         for k, y in enumerate((6, 26, 44)):
             d.box(leaf, "knuckle_%d" % k, px - 2, px + 2, y, y + 3, -2, 2, front="steel_side", back="steel_side", side="steel_side")
+    d.icon_map = (ICON, ICON_PAL)
     return d
 
 

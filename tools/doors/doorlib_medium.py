@@ -520,6 +520,18 @@ class Door:
 
     # -- icon and previews
     def icon(self, path):
+        if getattr(self, "icon_map", None):
+            rows, pal = self.icon_map
+            assert len(rows) == 16 and all(len(r) == 16 for r in rows), [len(r) for r in rows]
+            out = np.zeros((16, 16, 4), np.uint8)
+            for j, r in enumerate(rows):
+                for i, ch in enumerate(r):
+                    if ch != ".":
+                        out[j, i, :3] = np.clip(pal[ch], 0, 255)
+                        out[j, i, 3] = 255
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            Image.fromarray(out, "RGBA").save(path)
+            return
         quads = pv.build_mesh(json.loads(json.dumps(self.model)), {})
         big = render(quads, [self.tex.astype(float)], 32, 64, eye=(0, 2, 30), target=(0, 2, 0), ortho=2.0,
                      bg=None, flat=True)

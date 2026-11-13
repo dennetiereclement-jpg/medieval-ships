@@ -91,6 +91,26 @@ def labels():
     # the keystone: the middle voussoir up to the top
     return lab, kind
 
+ICON = [
+    ".....SSSSSS.....",
+    "..SSSsSSSSsSSS..",
+    ".SGSsSIIIIsSGSS.",
+    "SGSsIIWWWWIIsSGS",
+    "SGSsIWWIIWWIsSGS",
+    "SSSIIWWIIWWIIGSS",
+    "GSSIWWWIIWWWISSs",
+    "SsSIIIIIIIIIISsS",
+    "SSGIWWWIIWWWIGSS",
+    "SsSIWWRIIRWWISsS",
+    "SSSIWRWRRWRWIGSS",
+    "SGSIIIIIIIIIISsS",
+    "SSsIWWWIIWWWISSS",
+    "SsSIWWWIIWWWISsS",
+    "SSSIIIIIIIIIISSS",
+    "SsSIIIIIIIIIISsS",
+]
+ICON_PAL = {"S": rgb("9a9893"), "s": rgb("6a6864"), "G": rgb("5a9a26"), "I": rgb("4c4c54"), "W": rgb("8e5326"), "R": rgb("b0b0b8")}
+
 
 def build():
     d = dm.Door("porte_forteresse", post=4, top=int(SPRING), seed=23)
@@ -232,6 +252,7 @@ def build():
         d.strap(leaf, "brace", a, b, 3, -2, -1, "batten")
         d.box(leaf, "back_bar_hook", (x0 + 9) if s < 0 else (x0 + 1), (x0 + 11) if s < 0 else (x0 + 3), 30, 33, -3, -2,
               front="iron_side", back="iron_side", side="iron_side")
+    d.icon_map = (ICON, ICON_PAL)
     return d
 
 

@@ -25,6 +25,26 @@ BACK = rgb("7e4a24")        # back face planks (in the shade)
 
 LEAF_TOP = 50
 
+ICON = [
+    "LLLLLLLLLLLLLLLL",
+    "lLLLlLLLLLlLLLLl",
+    ".PPhhhhhhhhhhPP.",
+    "cPPIIIIIIIIIIPPc",
+    "YPPIIWWIIWWIIPPY",
+    "YPPIWIWIIWIWIPPY",
+    "yPPIWWIIIIWWIPPy",
+    ".PPIWWWIIWWWIPP.",
+    ".PPIIIIRRIIIIPP.",
+    ".PPIWWRWWRWWIPP.",
+    ".PPIWWIRRIWWIPP.",
+    ".PPIWIWIIWIWIPP.",
+    ".PPIIWWIIWWIIPP.",
+    ".PPIIWWIIWWIIPP.",
+    ".ppIIIIIIIIIIpp.",
+    ".ppIIIIIIIIIIpp.",
+]
+ICON_PAL = {"L": rgb("b47038"), "l": rgb("7a4520"), "P": rgb("8c5428"), "p": rgb("a8703c"), "h": rgb("5e3818"), "I": rgb("62626a"), "W": rgb("9a5b2c"), "R": rgb("2a2a2e"), "Y": rgb("ffc35a"), "y": rgb("3a3a3e"), "c": rgb("3a3a3e")}
+
 
 def build():
     d = dm.Door("porte_grange", post=4, top=LEAF_TOP, seed=11)
@@ -126,6 +146,7 @@ def build():
         # back pull handle
         d.box(leaf, "pull", (x0 + 8) if s < 0 else (x0 + 3), (x0 + 9) if s < 0 else (x0 + 4), 28, 34, -3, -2,
               front="iron_side", back="iron_side", side="iron_side")
+    d.icon_map = (ICON, ICON_PAL)
     return d
 
 
