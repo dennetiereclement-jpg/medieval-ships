@@ -479,7 +479,25 @@ def sprite_ring(base=IRON_L, dark=IRON_D):
 
 
 # ---------------------------------------------------------------- the door
+GAP = 0.25            # px: leaf / frame and leaf / leaf clearance (1/64 block), hidden behind the stops
+BODY = 1.5            # px: half thickness of a leaf body (3/16 block)
+RELIEF = 2.0          # px: the leaf envelope (front relief up to +2, back battens down to -2)
+STOP_Z = 2.25         # px: the frame stops in front of the leaves start here (a backwards swing never reaches it)
+REBATE = 2.5          # px: rear rebate cut in the jambs beside the hinges (the leaf's back swings into it)
+AXES6 = {"+1": (0, 1), "-1": (0, -1), "+2": (1, 1), "-2": (1, -1), "+3": (2, 1), "-3": (2, -1)}
+MIN_GAP = 1.0 / 64
+POSES = [{}, {"leaf_l": 90.0, "leaf_r": -90.0}, {"leaf_l": -90.0, "leaf_r": 90.0}]
+
+
 class LargeDoor:
+    """A large door. Geometry rules of 1.32.0 (checked by tools/doors/door_audit_large.py on export):
+    - leaf bodies X in [-26 + GAP, -GAP] (leaf_l) / [GAP, 26 - GAP] (leaf_r), Z in [-BODY, BODY]; reliefs
+      embedded in the body, never beyond Z = +-RELIEF; leaf_r carries the astragal over the seam;
+    - the frame covers the clearances: stops in front of the leaf edges (Z >= STOP_Z), a rear rebate beside
+      the hinges (the leaf's back swings into it), the lintel / arch soffit above the swept leaf;
+    - resolve() (run on export) removes the faces hidden in a contact and moves faces so that no two
+      parallel overlapping faces are closer than 1/64 block, closed and open both ways, inside the envelopes."""
+
     def __init__(self, name, jamb=6, size=256, seed=7, leaf_z=2):
         self.name, self.jamb, self.size, self.leaf_z = name, jamb, size, leaf_z
         tl.setup(name)
@@ -497,6 +515,9 @@ class LargeDoor:
         self.sprites = {}
         self.counts = {}
         self._details = {}
+        self.notches = []
+        hx = 32 - jamb
+        self.leaf_env = {"leaf_l": ((-hx + GAP) * P, -GAP * P), "leaf_r": (-0.75 * P, (hx - GAP) * P)}
 
     # ------------------------------------------------ regions
     def material(self, name, painter, w=64, h=64):
@@ -521,6 +542,10 @@ class LargeDoor:
         if id(parent) not in self._details:
             self._details[id(parent)] = Bone("detail", origin=tuple(parent.origin), parent=parent)
         return self._details[id(parent)]
+
+    def leaf_x(self, tag):
+        hx = 32 - self.jamb
+        return (-hx + GAP, -GAP) if tag == "l" else (GAP, hx - GAP)
 
     # ------------------------------------------------ cubes
     def _face_uv(self, spec, cube_name, bbface, X0, X1, Y0, Y1, du, dv):
@@ -562,18 +587,13 @@ class LargeDoor:
         specs = {"+3": front, "-3": back, "+1": right if right is not None else side,
                  "-1": left if left is not None else side, "+2": top if top is not None else side,
                  "-2": bottom if bottom is not None else side}
-        if right is False:
-            specs["+1"] = None
-        if left is False:
-            specs["-1"] = None
-        if top is False:
-            specs["+2"] = None
-        if bottom is False:
-            specs["-2"] = None
+        for key, val in (("+1", right), ("-1", left), ("+2", top), ("-2", bottom)):
+            if val is False:
+                specs[key] = None
         dx, dy, dz = X1 - X0, Y1 - Y0, Z1 - Z0
         sizes = {"+3": (dx, dy), "-3": (dx, dy), "+1": (dz, dy), "-1": (dz, dy), "+2": (dx, dz), "-2": (dx, dz)}
         c = gg.add_cube(bone, nm, ((X0 + X1) / 2 * P, (Y0 + Y1) / 2 * P, (Z0 + Z1) / 2 * P), EYE,
-                        (max(dx, 0.2) * P, max(dy, 0.2) * P, max(dz, 0.2) * P), {"all": "_"})
+                        (max(dx, 0.25) * P, max(dy, 0.25) * P, max(dz, 0.25) * P), {"all": "_"})
         for sem, bbface in gg.SEMANTIC_FACE.items():
             sp = specs[sem]
             if sp is None:
@@ -614,13 +634,15 @@ class LargeDoor:
         return c
 
     def sprite_box(self, bone, name, cx, cy, w, h, Z0, Z1, sprite, edge=None):
-        """A flat cut-out (gear, banner, ring): the sprite on its front and back, no side faces unless edge."""
-        return self.box(bone, name, cx - w / 2, cx + w / 2, cy - h / 2, cy + h / 2, Z0, Z1, side=edge,
+        """A flat cut-out (gear, banner, ring): the sprite on its front and back, no side faces unless edge. Its
+        name starts with cut_ (the audit allows transparent texels there); keep it >= 1/64 block (0.25 px) away
+        from any parallel face and in front of an opaque surface."""
+        return self.box(bone, "cut_" + name, cx - w / 2, cx + w / 2, cy - h / 2, cy + h / 2, Z0, Z1, side=edge,
                         front=sprite, back=(sprite, True))
 
     def lantern(self, bone, name, cx, cy, cz, w=4, h=5, metal="iron"):
         """A lit lantern (tools/lanterns.py rebuilds it on export: glass drawn full bright, posts, cap, ring).
-        Its rebuilt cap / ring rise about 0.3 h above the box: keep cy + 0.8 h under the top of the door."""
+        Its rebuilt cap / ring rise about 0.45 h above the box centre + h/2: keep it under the top of the door."""
         return gg.add_cube(bone, self._unique(name), (cx * P, cy * P, cz * P), EYE, (w * P, h * P, w * P),
                            {"all": "lantern", "+2": metal, "-2": metal}, stretch=True)
 
@@ -632,16 +654,38 @@ class LargeDoor:
     def leaf_strips(self, bone, tag, X0, X1, top_fn, step, Z0=None, Z1=None, side="wood_side", top="wood_end",
                     front="F", back="B"):
         """A leaf body cut in vertical strips of `step` px whose tops follow top_fn(Xcentre) (arched leaves)."""
-        Z0 = -self.leaf_z if Z0 is None else Z0
-        Z1 = self.leaf_z if Z1 is None else Z1
+        Z0 = -BODY if Z0 is None else Z0
+        Z1 = BODY if Z1 is None else Z1
         X = X0
         k = 0
         while X < X1 - 1e-6:
             Xn = min(X1, X + step)
+            if X1 - Xn < 0.6:
+                Xn = X1
             Yt = top_fn((X + Xn) / 2)
             self.box(bone, "%s_%d" % (tag, k), X, Xn, 0, Yt, Z0, Z1, side=side, top=top, front=front, back=back)
             X = Xn
             k += 1
+
+    def jamb_courses(self, side, courses, X_out=32, front_z=(8, 7.25), back_z=(8, 7.25), mat="stone_side", name="jamb",
+             front_top=None):
+        """A jamb (left side -1, right +1) as courses [(Y0, Y1), ...]: per course a front block reaching over the
+        leaf edge (the stop, Z >= STOP_Z, to |X| = hinge - 1), a middle block (Z 0 .. STOP_Z) and a back block
+        leaving the rear rebate free (|X| >= hinge + REBATE). Alternate courses stand out (front_z / back_z)."""
+        hx = 32 - self.jamb
+        sg = -1 if side < 0 else 1
+        tag = "l" if side < 0 else "r"
+        out = []
+        for k, (y0, y1) in enumerate(courses):
+            zf = front_z[k % len(front_z)]
+            zb = back_z[k % len(back_z)]
+            a, b = sorted((sg * X_out, sg * (hx - 1)))
+            out.append(self.box(self.frame, "%s_%s_f%d" % (name, tag, k), a, b, y0, y1, STOP_Z, zf, side=mat))
+            a, b = sorted((sg * X_out, sg * hx))
+            out.append(self.box(self.frame, "%s_%s_m%d" % (name, tag, k), a, b, y0, y1, 0, STOP_Z, side=mat))
+            a, b = sorted((sg * X_out, sg * (hx + REBATE)))
+            out.append(self.box(self.frame, "%s_%s_b%d" % (name, tag, k), a, b, y0, y1, -zb, 0, side=mat))
+        return out
 
     # ------------------------------------------------ export
     def _install(self):
@@ -663,98 +707,251 @@ class LargeDoor:
             return orig(cube, bbface, spec, seed)
         gn.face_uv = face_uv
 
+    def fill_pictures(self, c=(46, 40, 42)):
+        """Every texel of the front / back pictures opaque (a solid face must never map alpha < 255)."""
+        for reg in ("front", "back"):
+            u, v, w, h = self.atlas.regions[reg]
+            sub = self.atlas.arr[v:v + h, u:u + w]
+            m = sub[..., 3] < 255
+            sub[m] = (c[0], c[1], c[2], 255)
+
     def texture_png(self):
-        img = Image.fromarray(np.clip(self.atlas.arr, 0, 255).astype(np.uint8), "RGBA")
-        return img
+        return Image.fromarray(np.clip(self.atlas.arr, 0, 255).astype(np.uint8), "RGBA")
 
-    # ------------------------------------------------ hidden faces / z-fighting / bounds
-    MOVERS = ("frame", "leaf_l", "leaf_r", "gear_", "bolt_", "piston_")
-
-    def _group(self, bone):
+    # ------------------------------------------------ faces, contacts, coplanar faces
+    def _top(self, bone):
         b = bone
         while b is not None:
-            if b.name == "frame" or b.name in ("leaf_l", "leaf_r") or b.name.startswith(("gear_", "bolt_", "piston_")):
+            if b.name in ("frame", "leaf_l", "leaf_r"):
+                return b.name
+            b = b.parent
+        return "frame"
+
+    def _rig(self, bone):
+        b = bone
+        while b is not None:
+            if b.name in ("frame", "leaf_l", "leaf_r") or b.name.startswith(("gear_", "bolt_", "piston_", "handle_")):
                 return id(b)
             b = b.parent
         return 0
 
-    def cull_hidden(self):
-        """Removes the faces hidden against an opposite face of a cube of the same rigid group (never between a leaf
-        and the frame: the faces show when the leaf opens). Fewer coplanar pairs for zfight, fewer triangles."""
-        faces = []
-        for c in tl._all_cubes(self.root):
-            if not np.allclose(np.asarray(c.axes, float), EYE):
+    def _cube_faces(self, c, pose, center=None, size=None):
+        top = self._top(c.bone)
+        R = c.bone.frame_rot() @ np.asarray(c.axes, float)
+        C = c.bone.to_world(np.asarray(c.center if center is None else center, float))
+        a = pose.get(top, 0.0)
+        if a:
+            t = math.radians(a)
+            Ry = np.array([[math.cos(t), 0, math.sin(t)], [0, 1, 0], [-math.sin(t), 0, math.cos(t)]])
+            piv = np.asarray((self.leaf_l if top == "leaf_l" else self.leaf_r).origin, float)
+            C = Ry @ (C - piv) + piv
+            R = Ry @ R
+        h = np.asarray(c.size if size is None else size, float) / 2
+        out = []
+        rig = self._rig(c.bone)
+        for sem, (k, s) in AXES6.items():
+            bb = gg.SEMANTIC_FACE[sem]
+            if c.faces.get(bb) is None:
                 continue
-            g = self._group(c.bone)
-            lo = np.asarray(c.center, float) - np.asarray(c.size, float) / 2
-            hi = np.asarray(c.center, float) + np.asarray(c.size, float) / 2
-            for sem, bb in gg.SEMANTIC_FACE.items():
-                if c.faces.get(bb) is None:
-                    continue
-                k = int(sem[1]) - 1
-                s = 1 if sem[0] == "+" else -1
-                o = [j for j in range(3) if j != k]
-                faces.append((g, k, s, hi[k] if s > 0 else lo[k], lo[o], hi[o], c, bb))
-        by = {}
-        for f in faces:
-            by.setdefault((f[0], f[1], round(f[3] * 256)), []).append(f)
-        removed = 0
-        eps = 1e-4
-        for lst in by.values():
-            for a in lst:
-                for b in lst:
-                    if a is b or a[2] == b[2] or a[6] is b[6]:
-                        continue
-                    if np.all(a[4] >= b[4] - eps) and np.all(a[5] <= b[5] + eps):
-                        if a[6].faces.get(a[7]) is not None:
-                            a[6].faces[a[7]] = None
-                            removed += 1
-        return removed
+            o = [j for j in range(3) if j != k]
+            n = R[:, k] * s
+            p = C + n * h[k]
+            e1, e2 = R[:, o[0]] * h[o[0]], R[:, o[1]] * h[o[1]]
+            area = 4 * h[o[0]] * h[o[1]]
+            if area < 1e-9:
+                continue
+            sg = 1
+            for x in n:
+                if abs(x) > 1e-3:
+                    sg = 1 if x > 0 else -1
+                    break
+            cn = n * sg
+            out.append(dict(cube=c, sem=sem, bb=bb, k=k, s=s, n=n, centre=p, area=area, uuid=id(c), top=top,
+                            rig=rig, el=c.name, key=tuple(np.round(cn * 2000).astype(int)), cd=float(np.dot(cn, p)),
+                            corners=np.array([p - e1 - e2, p + e1 - e2, p + e1 + e2, p - e1 + e2])))
+        return out
 
-    def clamp(self):
-        """After zfight: nothing may leave the 4 x 6 x 1 box, nor the leaves their 4 px."""
-        lo_all, hi_all = v3(-2, 0, -0.5), v3(2, 6, 0.5)
+    def _pose_faces(self, pose):
+        out = []
         for c in tl._all_cubes(self.root):
-            if not np.allclose(np.asarray(c.axes, float), EYE):
+            out.extend(self._cube_faces(c, pose))
+        return out
+
+    @staticmethod
+    def _index(faces):
+        idx = {}
+        for f in faces:
+            idx.setdefault(f["key"], []).append(f)
+        for k in idx:
+            idx[k].sort(key=lambda f: f["cd"])
+            idx[k] = (np.array([f["cd"] for f in idx[k]]), idx[k])
+        return idx
+
+    @staticmethod
+    def _conflicts(faces, index, uid):
+        import door_audit_large as A
+        n = 0
+        for f in faces:
+            ent = index.get(f["key"])
+            if ent is None:
                 continue
-            g = self._group(c.bone)
-            lo, hi = lo_all.copy(), hi_all.copy()
-            b = c.bone
-            while b is not None and b.name not in ("leaf_l", "leaf_r", "frame"):
-                b = b.parent
-            if b is not None and b.name in ("leaf_l", "leaf_r"):
-                lo[2], hi[2] = -self.leaf_z * P, self.leaf_z * P
-            cen, siz = np.asarray(c.center, float), np.asarray(c.size, float)
-            a, z = np.maximum(cen - siz / 2, lo), np.minimum(cen + siz / 2, hi)
-            if np.any(np.abs(a - (cen - siz / 2)) > 1e-9) or np.any(np.abs(z - (cen + siz / 2)) > 1e-9):
-                c.center, c.size = (a + z) / 2, np.maximum(z - a, 1e-3)
-            del g
+            cds, lst = ent
+            i0 = int(np.searchsorted(cds, f["cd"] - MIN_GAP + 1e-6))
+            i1 = int(np.searchsorted(cds, f["cd"] + MIN_GAP - 1e-6))
+            for g in lst[i0:i1]:
+                if g["uuid"] == uid or abs(float(np.dot(f["n"], g["n"]))) < 0.99999:
+                    continue
+                if A.overlap(f, g):
+                    n += 1
+        return n
+
+    @staticmethod
+    def _aabb(c, center=None, size=None):
+        R = c.bone.frame_rot() @ np.asarray(c.axes, float)
+        C = c.bone.to_world(np.asarray(c.center if center is None else center, float))
+        h = np.abs(R) @ (np.asarray(c.size if size is None else size, float) / 2)
+        return C - h, C + h
+
+    def _foreign(self):
+        boxes = {"frame": [], "leaf_l": [], "leaf_r": []}
+        for c in tl._all_cubes(self.root):
+            boxes[self._top(c.bone)].append(self._aabb(c))
+        return boxes
+
+    def _valid_move(self, w, m, foreign):
+        c, k, s = w["cube"], w["k"], w["s"]
+        size = np.asarray(c.size, float).copy()
+        if size[k] + m < MIN_GAP - 1e-9:
+            return None
+        size[k] += m
+        ax = np.asarray(c.axes, float)[:, k]
+        center = np.asarray(c.center, float) + ax * s * m / 2
+        lo, hi = self._aabb(c, center, size)
+        top = w["top"]
+        if top == "frame":
+            elo, ehi = np.array([-2, 0, -0.5]), np.array([2, 6, 0.5])
+        else:
+            x0, x1 = self.leaf_env[top]
+            elo, ehi = np.array([x0, 0, -RELIEF * P]), np.array([x1, 6, RELIEF * P])
+        if np.any(lo < elo - 1e-6) or np.any(hi > ehi + 1e-6):
+            return None
+        olo, ohi = self._aabb(c)
+        for g, lst in foreign.items():
+            if g == top:
+                continue
+            for a, b in lst:
+                new = np.prod(np.clip(np.minimum(hi, b) - np.maximum(lo, a), 0, None))
+                if new > 1e-12:
+                    old = np.prod(np.clip(np.minimum(ohi, b) - np.maximum(olo, a), 0, None))
+                    if new > old + 1e-12:
+                        return None
+        return center, size
+
+    def _fix_pair(self, f, g, dd, foreign, indexes):
+        import door_audit_large as A
+        opp = float(np.dot(f["n"], g["n"])) < 0
+        if opp and dd <= A.COP and f["rig"] == g["rig"]:
+            for a, b in ((f, g), (g, f)):
+                if A.contains(a, b):
+                    a["cube"].faces[a["bb"]] = None
+                    return "deleted"
+        best = None
+        for w, s_ in ((f, g), (g, f)):
+            c = w["cube"]
+            before = sum(self._conflicts(self._cube_faces(c, pose), indexes[i], id(c)) for i, pose in enumerate(POSES))
+            sigma = float(np.dot(w["centre"] - s_["centre"], w["n"]))
+            grow, shrink = MIN_GAP - sigma, -MIN_GAP - sigma
+            cross = w["rig"] != s_["rig"]
+            if opp and not cross:
+                # a contact inside one rigid group: only close it further (a shrink would open a see-through seam)
+                cands = [grow, grow + MIN_GAP, grow + 2 * MIN_GAP, grow + 4 * MIN_GAP]
+            else:
+                pref = [shrink, grow] if opp else sorted((grow, shrink), key=abs)
+                cands = pref + [grow + MIN_GAP, shrink - MIN_GAP, grow + 2 * MIN_GAP, shrink - 2 * MIN_GAP,
+                                grow + 4 * MIN_GAP, shrink - 4 * MIN_GAP]
+            for rank, m in enumerate(cands):
+                mv = self._valid_move(w, m, foreign)
+                if mv is None:
+                    continue
+                after = sum(self._conflicts(self._cube_faces(c, pose, *mv), indexes[i], id(c))
+                            for i, pose in enumerate(POSES))
+                if after >= before:
+                    continue
+                score = (after, 0 if w["el"].startswith("cut_") else 1, rank, w["area"])
+                if best is None or score < best[0]:
+                    best = (score, c, mv)
+                if after == 0:
+                    break
+        if best is None:
+            return None
+        c, (center, size) = best[1], best[2]
+        c.center, c.size = center, size
+        return "moved"
+
+    def resolve(self, passes=60):
+        """Contact faces hidden inside one rigid group are removed; any other pair of parallel overlapping faces
+        closer than 1/64 block (closed, open backwards, open forwards) is separated by moving one face along its
+        normal (grow or shrink): the move that removes the most conflicts without creating any, never out of the
+        door box / leaf envelope nor into another group's cubes."""
+        import door_audit_large as A
+        stats = {"deleted": 0, "moved": 0, "stuck": 0}
+        for it in range(passes):
+            total = stuck = 0
+            changed = False
+            for pose in POSES:
+                faces = self._pose_faces(pose)
+                pairs = A.parallel_pairs(faces)
+                total += len(pairs)
+                if not pairs:
+                    continue
+                indexes = [self._index(self._pose_faces(p)) if p is not pose else self._index(faces) for p in POSES]
+                foreign = self._foreign()
+                touched = set()
+                pairs.sort(key=lambda p: -max(p[0]["area"], p[1]["area"]))
+                for f, g, dd in pairs:
+                    if f["uuid"] in touched or g["uuid"] in touched:
+                        continue
+                    if f["cube"].faces.get(f["bb"]) is None or g["cube"].faces.get(g["bb"]) is None:
+                        continue
+                    act = self._fix_pair(f, g, dd, foreign, indexes)
+                    if act:
+                        stats[act] += 1
+                        changed = True
+                        touched |= {f["uuid"], g["uuid"]}
+                        if act == "moved":
+                            foreign = self._foreign()
+                    else:
+                        stuck += 1
+            if total == 0 or not changed:
+                break
+        stats["stuck"] = stuck
+        stats["left"] = total
+        stats["passes"] = it + 1
+        return stats
 
     def export(self, icon=None):
-        print("hidden faces culled:", self.cull_hidden())
         import zfight
-        if not hasattr(zfight, "_orig_fix"):
-            zfight._orig_fix = zfight.fix
         door = self
+        saved = zfight.fix
 
         def fix(root, passes=30):
-            n = zfight._orig_fix(root, passes)
-            door.clamp()
-            return n
+            st = door.resolve()
+            print("resolve:", st)
+            return st["moved"]
         zfight.fix = fix
         for need in ("lantern", "gold", "iron"):
             if need not in self.materials and need not in self.sprites:
                 if need == "lantern":
                     r = self.atlas.alloc("lantern", 16, 16)
-                    pxl = self.atlas.arr
                     tmp = Image.new("RGBA", (16, 16))
                     paint_lamp_glass(tmp.load(), 0, 0, 16, 16)
-                    pxl[r[1]:r[1] + 16, r[0]:r[0] + 16] = np.array(tmp, dtype=float)
+                    self.atlas.arr[r[1]:r[1] + 16, r[0]:r[0] + 16] = np.array(tmp, dtype=float)
                     self.sprites["lantern"] = r
                 elif need == "gold":
                     self.material("gold", tile_metal(BRASS_L, noise=8), 16, 16)
                 else:
                     self.material("iron", tile_metal(IRON, noise=6), 16, 16)
+        self.fill_pictures()
         self._install()
         tex_rel = "%s.png" % self.name
         tex_path = os.path.join(ASSETS, "textures/entity", tex_rel)
@@ -766,7 +963,10 @@ class LargeDoor:
         textures[0]["id"] = "0"
         outs = [os.path.join(ROOT, "blockbench/%s.bbmodel" % self.name),
                 os.path.join(ASSETS, "models/entity/%s.bbmodel" % self.name)]
-        model = gn.export(self.root, [], textures, outs, name=self.name, visible_box=(4, 6, 0))
+        try:
+            model = gn.export(self.root, [], textures, outs, name=self.name, visible_box=(4, 6, 0))
+        finally:
+            zfight.fix = saved
         if icon is not None:
             im = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
             icon(Px(np.zeros((16, 16, 4)), 0, 0, 16, 16, 3), im)
@@ -774,99 +974,35 @@ class LargeDoor:
             os.makedirs(os.path.dirname(p), exist_ok=True)
             im.save(p)
         self.model = model
-        lo, hi = self.check_bounds(model)
-        bones = self.bone_report(model)
-        print("%s: %d cubes, texture %dx%d, bounds x %.3f..%.3f y %.3f..%.3f z %.3f..%.3f" % (
-            self.name, len(model["elements"]), self.size, self.size, lo[0], hi[0], lo[1], hi[1], lo[2], hi[2]))
-        for b in bones:
-            print("  bone", b)
-        for back in (True, False):
-            hits = self.sweep_check(back)
-            print("  sweep %s: %d leaf/frame contacts > 0.6 px%s" % ("backwards" if back else "forwards", len(hits),
-                  (": " + ", ".join("%s/%s %.1fpx" % h for h in hits[:6])) if hits else ""))
+        print("%s: %d cubes, texture %dx%d" % (self.name, len(model["elements"]), self.size, self.size))
+        import door_audit_large as A
+        self.report = A.audit(model, np.array(self.texture_png()), self.notches, verbose=True,
+                              dump=os.path.join(SCRATCH, "doors_out2/audit_" + self.name))
         return model
 
-    def sweep_check(self, backwards=True, tol=0.6):
-        """Frame cubes met by a leaf swinging 0 -> 90 degrees (backwards by default): list of
-        (leaf cube, frame cube, worst depth px). Contact under `tol` px is ignored (hinges, rebates)."""
-        boxes = []
-        for c in tl._all_cubes(self.frame):
-            if np.allclose(np.asarray(c.axes, float), EYE):
-                lo = np.asarray(c.center, float) - np.asarray(c.size, float) / 2
-                hi = np.asarray(c.center, float) + np.asarray(c.size, float) / 2
-                boxes.append((c.name, lo, hi))
-        hits = {}
-        for leaf, sg in ((self.leaf_l, 1), (self.leaf_r, -1)):
-            piv = np.asarray(leaf.origin, float)
-            for c in tl._all_cubes(leaf):
-                R = np.asarray(c.axes, float)
-                h = np.asarray(c.size, float) / 2
-                pts = [np.asarray(c.center, float) + R @ (h * np.array([a, b, e]))
-                       for a in (-1, 0, 1) for b in (-1, 0, 1) for e in (-1, 0, 1)]
-                for deg in range(5, 91, 5):
-                    t = math.radians(deg) * sg * (1 if backwards else -1)
-                    ct, st = math.cos(t), math.sin(t)
-                    for p in pts:
-                        dx, dz = p[0] - piv[0], p[2] - piv[2]
-                        q = np.array([piv[0] + dx * ct + dz * st, p[1], piv[2] - dx * st + dz * ct])
-                        for name, lo, hi in boxes:
-                            if np.all(q > lo) and np.all(q < hi):
-                                depth = float(min(np.min(q - lo), np.min(hi - q))) * 16
-                                if depth > tol:
-                                    k = (c.name, name)
-                                    hits[k] = max(hits.get(k, 0.0), depth)
-        return sorted(((a, b, round(d, 2)) for (a, b), d in hits.items()), key=lambda x: -x[2])
-
-    @staticmethod
-    def check_bounds(model, tol=0.02):
-        quads = pv.build_mesh(model, {})
-        pts = np.array([c for q in quads for c in q[0]])
-        lo, hi = pts.min(0), pts.max(0)
-        bad = (lo[0] < -2 - tol or hi[0] > 2 + tol or lo[1] < -tol or hi[1] > 6 + tol or lo[2] < -0.5 - tol or
-               hi[2] > 0.5 + tol)
-        if bad:
-            print("WARNING: out of the 4 x 6 x 1 box:", lo, hi)
-        return lo, hi
-
-    @staticmethod
-    def bone_report(model):
-        out = []
-        elements = {e["uuid"]: e for e in model["elements"]}
-
-        def walk(g, depth):
-            n = sum(1 for c in g["children"] if not isinstance(c, dict))
-            o = g["origin"]
-            out.append("%s%s pivot=(%.4f, %.4f, %.4f) cubes=%d" % ("  " * depth, g["name"], -o[0] / 16, o[1] / 16,
-                                                                     -o[2] / 16, n))
-            for c in g["children"]:
-                if isinstance(c, dict):
-                    walk(c, depth + 1)
-        for g in model["outliner"]:
-            walk(g, 0)
-        del elements
-        return out
-
     # ------------------------------------------------ previews
-    def preview(self, out, refs=(), open_deg=90.0):
+    def preview(self, out, refs=()):
         model = self.model
         tex = np.array(self.texture_png()).astype(float)
         closed = pv.build_mesh(model, {})
-        opened = pv.build_mesh(_with_rot(model, {"leaf_l": [0, open_deg, 0], "leaf_r": [0, -open_deg, 0]}), {})
-        half = pv.build_mesh(_with_rot(model, {"leaf_l": [0, -open_deg * 0.5, 0], "leaf_r": [0, open_deg * 0.5, 0]}), {})
+        opened = pv.build_mesh(_with_rot(model, {"leaf_l": [0, 90, 0], "leaf_r": [0, -90, 0]}), {})
+        half = pv.build_mesh(_with_rot(model, {"leaf_l": [0, 50, 0], "leaf_r": [0, -50, 0]}), {})
+        H = 460
         views = [
-            ("face", render(closed, tex, 300, 420, eye=(0, 3, 40), target=(0, 3, 0), ortho=4.6)),
-            ("3/4", render(closed, tex, 360, 420, eye=(-7.5, 5.5, 9.5), target=(0, 2.9, 0), fov=40)),
-            ("ouverte 90", render(opened, tex, 360, 420, eye=(-7.5, 5.5, 9.5), target=(0, 2.9, -0.6), fov=42)),
-            ("mi-ouverte avant", render(half, tex, 360, 420, eye=(6.5, 4.5, 10), target=(0, 2.9, 0.4), fov=42)),
-            ("arriere", render(closed, tex, 300, 420, eye=(0, 3, -40), target=(0, 3, 0), ortho=4.6)),
+            ("face", render(closed, tex, 320, H, eye=(0, 3, 40), target=(0, 3, 0), ortho=4.3)),
+            ("3/4", render(closed, tex, 380, H, eye=(-7.5, 5.0, 9.5), target=(0, 2.9, 0), fov=40)),
+            ("dos", render(closed, tex, 320, H, eye=(0, 3, -40), target=(0, 3, 0), ortho=4.3)),
+            ("ouverte 90 (arriere)", render(opened, tex, 380, H, eye=(-7.0, 4.5, 9.0), target=(0, 2.9, -0.8), fov=44)),
+            ("mi-ouverte, dos", render(half, tex, 380, H, eye=(6.5, 4.2, -9.0), target=(0, 2.9, -0.8), fov=44)),
+            ("de chant (ouverte)", render(opened, tex, 300, H, eye=(9.5, 3.2, 1.5), target=(0, 3.0, -0.6), fov=42)),
         ]
         ref_imgs = []
         for path in refs:
             im = Image.open(path).convert("RGB")
-            k = 420 / im.size[1]
-            ref_imgs.append(im.resize((max(1, int(im.size[0] * k)), 420), Image.LANCZOS))
+            k = H / im.size[1]
+            ref_imgs.append(im.resize((max(1, int(im.size[0] * k)), H), Image.LANCZOS))
         Wt = sum(v[1].size[0] for v in views) + sum(r.size[0] for r in ref_imgs) + 8 * (len(views) + len(ref_imgs))
-        sheet = Image.new("RGB", (Wt, 450), (24, 26, 32))
+        sheet = Image.new("RGB", (Wt, H + 30), (24, 26, 32))
         x = 0
         dr = ImageDraw.Draw(sheet)
         for title, im in views:
@@ -980,3 +1116,45 @@ def standard_materials(d, wood=WOOD, wood_dark=WOOD_D, iron=IRON, stone=STONE):
     d.material("stone_side", tile_stone(stone), 32, 64)
     d.material("iron", tile_metal(iron, noise=5), 16, 16)
     d.material("gold", tile_metal(BRASS_L, noise=8), 16, 16)
+
+
+# ---------------------------------------------------------------- swept volume of the leaves
+class Sweep:
+    """Where the leaves go while they swing 0 -> 90 degrees backwards (the default) - and, if forwards=True, also
+    forwards: top(x0, x1, z0, z1) = the highest leaf point (door px) that ever passes over that frame footprint
+    (door px), -1 if none. Built from the leaf cubes (axis-aligned bounding boxes), 0.25 px grid, 0.5 degree."""
+
+    def __init__(self, door, forwards=False, res=0.25):
+        self.res = res
+        self.nx, self.nz = int(64 / res), int(16 / res)
+        self.grid = np.full((self.nx, self.nz), -1.0)
+        dirs = (1, -1) if forwards else (1,)
+        for leaf, sg in ((door.leaf_l, 1), (door.leaf_r, -1)):
+            piv = np.asarray(leaf.origin, float) * 16
+            pts = []
+            for c in tl._all_cubes(leaf):
+                lo, hi = door._aabb(c)
+                lo, hi = lo * 16, hi * 16
+                xs = np.arange(lo[0], hi[0] + 1e-6, res / 2)
+                zs = np.arange(lo[2], hi[2] + 1e-6, res / 2)
+                X, Z = np.meshgrid(xs, zs, indexing="ij")
+                pts.append(np.column_stack([X.ravel() - piv[0], Z.ravel() - piv[2], np.full(X.size, hi[1])]))
+            pts = np.vstack(pts)
+            for dsg in dirs:
+                for deg in np.arange(0, 90.01, 0.5):
+                    t = math.radians(deg) * sg * dsg
+                    ct, st = math.cos(t), math.sin(t)
+                    x = piv[0] + pts[:, 0] * ct + pts[:, 1] * st
+                    z = piv[2] - pts[:, 0] * st + pts[:, 1] * ct
+                    i = np.clip(((x + 32) / res).astype(int), 0, self.nx - 1)
+                    k = np.clip(((z + 8) / res).astype(int), 0, self.nz - 1)
+                    np.maximum.at(self.grid, (i, k), pts[:, 2])
+
+    def top(self, x0, x1, z0, z1, margin=0.25):
+        i0 = max(0, int(math.floor((x0 - margin + 32) / self.res)))
+        i1 = min(self.nx, int(math.ceil((x1 + margin + 32) / self.res)))
+        k0 = max(0, int(math.floor((z0 - margin + 8) / self.res)))
+        k1 = min(self.nz, int(math.ceil((z1 + margin + 8) / self.res)))
+        if i0 >= i1 or k0 >= k1:
+            return -1.0
+        return float(self.grid[i0:i1, k0:k1].max())

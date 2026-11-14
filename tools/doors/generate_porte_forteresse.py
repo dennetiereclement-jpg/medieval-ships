@@ -169,24 +169,59 @@ def build():
                     F.put(xi + 1, Y, MOSS[3])
 
     # ------------------------------------------------------------ stone cubes
+    # Front layer: every stone its own depth (voussoirs and keystone stand out most), mortar recessed; behind it
+    # the masonry runs through the whole thickness wherever the leaves never pass (the rebate next to the hinges
+    # and the vault swept by the arched leaves stay empty), so the arch is solid and no daylight shows between
+    # the stones from any side.
     fr = d.frame
     zf = {}
     for sid, kd in kind.items():
-        zf[sid] = 8.0 if kd == "ring" else (7.0 + (sid % 2)) if kd == "jamb" else 6.5
+        zf[sid] = (7.5 + 0.5 * (sid % 2 == 0 and sid in (max(kind),))) if kd == "ring" else (6.75 + 0.5 * (sid % 2)) if kd == "jamb" else 6.0 + 0.25 * (sid % 3)
+    key = None
+    for sid, kd in kind.items():
+        if kd == "ring":
+            ys = np.nonzero(lab == sid)[0]
+            if len(ys) and (key is None or ys.min() < key[1]):
+                key = (sid, ys.min())
+    zf[key[0]] = 8.0
+    ZB = 2.75                                      # back of the front layer (in front of the leaves' relief)
     for sid in kind:
         m = lab == sid
         if not m.any():
             continue
-        d.mask_boxes(fr, "stone_%d" % sid, m, -16, 0, 2, zf[sid], side="stone_side")
-    d.mask_boxes(fr, "mortar", lab == 0, -16, 0, 2, 5.5, side="stone_side")
-    # the outer 2 px of the frame run through the whole thickness (behind the front layer)
-    for s in (-1, 1):
-        d.box(fr, "outer_%d" % s, 16 * s, 14 * s, 0, 64, -8, 2, front=None, side="stone_side")
-    d.box(fr, "back_top", -14, 14, int(SPRING + B + 2), 64, -8, 2, front=None, side="stone_side")
+        d.mask_boxes(fr, "stone_%d" % sid, m, -16, 0, ZB, zf[sid], side="stone_side")
+    d.mask_boxes(fr, "mortar", lab == 0, -16, 0, ZB, 5.25, side="stone_side")
+    # behind: outer 1.5 px of the jambs full depth, then the vault above the swept volume
+    for s_ in (-1, 1):
+        d.box(fr, "outer_%d" % s_, 16 * s_, 14.5 * s_, 0, 64, -8, ZB, front=None, side="stone_side")
+    hs = d.swept_heights(leaf_top, X0=-14.5, X1=14.5, Z0=-8.0, Z1=ZB, step=0.5)
+    nx, nz = hs.shape
+    for i in range(0, nx, 2):                       # 1 px columns
+        col = np.maximum(hs[i], hs[min(nx - 1, i + 1)])
+        # bottom of the masonry per 1 px slab of depth: above the highest leaf point + GAP, at least the leaf top
+        X = -14.5 + i * 0.5
+        bots = []
+        for k in range(0, nz, 2):
+            h = max(col[k], col[min(nz - 1, k + 1)])
+            bots.append(max(0.0, math.ceil((h + dm.GAP) * 4) / 4) if h > 0 else 0.0)
+        # monotonic towards the back (the face pairs between slabs then always cover one another)
+        k = 0
+        zs = [-8.0 + 1.0 * kk for kk in range(len(bots))] + [ZB]
+        while k < len(bots):
+            k1 = k + 1
+            while k1 < len(bots) and abs(bots[k1] - bots[k]) < 1e-6:
+                k1 += 1
+            if bots[k] < 64 - 0.5:
+                d.box(fr, "vault_%d_%d" % (i, k), X, min(14.5, X + 1), bots[k], 64, zs[k], min(ZB, zs[k1]), front=None,
+                      back="back", side="stone_side")
+            k = k1
     # a few tufts of moss standing out of the stones (detail)
     det = d.detail()
     for k, (x, y, w, h) in enumerate(((-11, 56, 2, 1), (-14, 51, 1, 2), (10, 55, 2, 1), (-13, 44, 1, 3), (13, 47, 1, 2))):
-        d.box(det, "moss_%d" % k, x, x + w, y, y + h, 7, 8, front="front", back=None, side="moss_side")
+        sid = lab[63 - y, x + 16]
+        z = zf.get(sid, 5.25)
+        d.box(det, "moss_%d" % k, x + 0.25, x + w - 0.25, y + 0.25, y + h - 0.25, z - 0.5, min(8.0, z + 0.75), front="front",
+              back=None, side="moss_side")
 
     # ------------------------------------------------------------ leaves
     lab2 = lab
@@ -229,29 +264,32 @@ def build():
         for i in range(12):
             col = np.nonzero(m[:, i])[0]
             band[col[0]:col[0] + 2, i] = True
-        d.mask_boxes(leaf, "arch_band", band, x0, 0, 1, 2, back=None, side="iron_side")
+        d.mask_boxes(leaf, "arch_band", band, x0, 0, 1, 2.5, back=None, side="iron_side")
         hx0 = x0 if s < 0 else x0 + 10
         sx0 = x0 + 10 if s < 0 else x0
         top_h = int(leaf_top(hx0 + 1)) - 1
-        d.box(leaf, "strap_hinge", hx0, hx0 + 2, 2, top_h - 1, 1, 2, back=None, side="iron_side")
-        d.box(leaf, "strap_seam", sx0, sx0 + 2, 2, int(leaf_top(0)) - 2, 1, 2, back=None, side="iron_side")
-        d.box(leaf, "band_0", x0, x0 + 12, 0, 2, 1, 2, back=None, side="iron_side")
+        d.box(leaf, "strap_hinge", hx0, hx0 + 2, 2, top_h - 1, 1, 2.5, back=None, side="iron_side")
+        d.box(leaf, "strap_seam", sx0, sx0 + 2, 2, int(leaf_top(0)) - 2, 1, 2.5, back=None, side="iron_side")
+        d.box(leaf, "band_0", x0, x0 + 12, 0, 2, 1, 2.5, back=None, side="iron_side")
         for k, y in enumerate(band_ys):
-            d.box(leaf, "band_%d" % (k + 1), x0 + (2 if s < 0 else 0), x0 + (12 if s < 0 else 10), y, y + 2, 1, 2, back=None, side="iron_side")
-            xa, xb = (x0, x0 + 5) if s < 0 else (x0 + 7, x0 + 12)
-            d.box(leaf, "hinge_plate_%d" % k, xa, xb, y - 1, y + 3, 1, 2.6, back=None, side="iron_side")
+            d.box(leaf, "band_%d" % (k + 1), x0 + (2 if s < 0 else 0.75), x0 + (11.25 if s < 0 else 10), y, y + 2, 1, 2.75, back=None, side="iron_side")
+            xa, xb = (x0 + 0.25, x0 + 5) if s < 0 else (x0 + 7, x0 + 11.75)
+            d.box(leaf, "hinge_plate_%d" % k, xa, xb, y - 1, y + 3, 1, 3.0, back=None, side="iron_side")
             px = -12 if s < 0 else 12
-            d.box(leaf, "knuckle_%d" % k, px - 2, px + 2, y - 1, y + 3, -2, 2, front="iron_side", back="iron_side", side="iron_side")
-        # round ring handle near the seam (ref4): plate + ring of 5
-        hx = -3 if s < 0 else 2
-        dm.ring_handle(d, leaf, "ring", hx, 30, "ring_side", shade(IRON, 0.75), shade(IRON, 1.2), Z=2, size=4)
+            d.knuckle(leaf, "knuckle_%d" % k, px, y - 1, y + 3, "iron_side")
+        # round ring handle near the seam (ref4), its own bone handle_0 / handle_1
+        hx = -5 if s < 0 else 4
+        dm.ring_handle(d, leaf, "ring", hx, 30, "ring_side", shade(IRON, 0.75), shade(IRON, 1.2), Z=2.5, size=5,
+                       handle="handle_%d" % (0 if s < 0 else 1))
         # back: three heavy battens and a diagonal brace between the lower two
         for k, y in enumerate((4, 22, 40)):
-            d.box(leaf, "batten_%d" % k, x0 + 0.5, x0 + 11.5, y, y + 4, -2, -1, front=None, back="batten", side="wood_side")
-        a, b = ((x0 + 1.5, 9), (x0 + 10.5, 21)) if s < 0 else ((x0 + 10.5, 9), (x0 + 1.5, 21))
+            d.box(leaf, "batten_%d" % k, x0 + 0.5, x0 + 11.5, y, y + 4, -2.25, -1, front=None, back="batten", side="wood_side")
+        a, b = ((x0 + 2, 9), (x0 + 10, 21)) if s < 0 else ((x0 + 10, 9), (x0 + 2, 21))
         d.strap(leaf, "brace", a, b, 3, -2, -1, "batten")
-        d.box(leaf, "back_bar_hook", (x0 + 9) if s < 0 else (x0 + 1), (x0 + 11) if s < 0 else (x0 + 3), 30, 33, -3, -2,
+        d.box(leaf, "back_bar_hook", (x0 + 8.5) if s < 0 else (x0 + 1.5), (x0 + 10.5) if s < 0 else (x0 + 3.5), 30, 33, -2.75, -2.25,
               front="iron_side", back="iron_side", side="iron_side")
+    d.material("seam_dark", dm.tile_flat(shade(WOOD_D, 0.7), 4), 16, 16)
+    d.finalize(top_gap=False, seam_top=57, cover_side="wood_side", seam_mat="seam_dark")
     d.icon_map = (ICON, ICON_PAL)
     return d
 
@@ -265,4 +303,4 @@ if __name__ == "__main__":
     for line in d.bones():
         print(line)
     if "--preview" in sys.argv:
-        d.preview(dm.SCRATCH + "/doors_out/medium_porte_forteresse.png", refs=REFS)
+        d.preview(dm.SCRATCH + "/doors_out2/medium_porte_forteresse.png", refs=REFS)

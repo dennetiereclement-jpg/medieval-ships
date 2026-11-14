@@ -44,6 +44,8 @@ import preview as pv  # noqa: E402
 from galley_texture import paint_lamp_glass  # noqa: E402
 
 gg, gn = tl.gg, tl.gn
+SEM_FACE = {"+1": "west", "-1": "east", "+2": "up", "-2": "down", "+3": "north", "-3": "south"}
+GAP = 0.25               # 1/64 block: the smallest clearance between two parts (no z-fighting, no rubbing)
 Bone, EYE, v3 = tl.Bone, tl.EYE, tl.v3
 ASSETS, ROOT = tl.ASSETS, tl.ROOT
 PPB = 16
@@ -357,7 +359,29 @@ class Door:
             r = regs[sem]
             if r in self.pictures:
                 c.faces[bbface]["sub"] = self._sub(r, X0, X1, Y0, Y1)
+        c._px = [X0, X1, Y0, Y1, Z0, Z1]
+        c._regs = regs
         return c
+
+    def rebox(self, c, X0, X1, Y0, Y1, Z0, Z1, name=None, drop=()):
+        """Replaces the box c (made by box()) by the same box with new bounds (faces of `drop` removed)."""
+        regs = dict(c._regs)
+        for sem in drop:
+            regs[sem] = None
+        for sem, bbface in SEM_FACE.items():          # faces already removed stay removed
+            if c.faces.get(bbface) is None:
+                regs[sem] = None
+        bone = c.bone
+        idx = bone.cubes.index(c)
+        bone.cubes.remove(c)
+        n = self.box(bone, name or c.name, X0, X1, Y0, Y1, Z0, Z1, front=regs["+3"], back=regs["-3"], side=None,
+                     top=regs["+2"] or "", bottom=regs["-2"] or "", left=regs["-1"] or "", right=regs["+1"] or "")
+        for sem, bbface in SEM_FACE.items():
+            if regs[sem] is None:
+                n.faces[bbface] = None
+        bone.cubes.remove(n)
+        bone.cubes.insert(idx, n)
+        return n
 
     def mask_boxes(self, bone, name, mask, X0, Y0, Z0, Z1, **kw):
         """Boxes covering a mask (h x w bools, row 0 = top) whose bottom-left pixel is at (X0, Y0): runs of each row
@@ -393,7 +417,12 @@ class Door:
         axes = np.column_stack([u, vv, v3(0, 0, 1)])
         c = (p0 + p1) / 2
         c[2] = (Z0 + Z1) / 32
-        return gg.add_cube(bone, name, c, axes, (L, wid / 16, (Z1 - Z0) / 16), region, u_dir=u)
+        regs = dict(region) if isinstance(region, dict) else {"all": region}
+        if Z0 >= 1 - 1e-6:          # lying on the front of the core (Z [-1, 1]): its back can never be seen
+            regs["-3"] = None
+        elif Z1 <= -1 + 1e-6:       # on the back of the core
+            regs["+3"] = None
+        return gg.add_cube(bone, name, c, axes, (L, wid / 16, (Z1 - Z0) / 16), regs, u_dir=u)
 
     def gear(self, parent, name, cx, cy, r_out, r_in, teeth, Z0, Z1, metal, hub=None, spokes=4, pic=None):
         """A cut-out gear (bone `name`, pivot = its centre) of radius r_out px with `teeth` teeth of depth
@@ -437,9 +466,25 @@ class Door:
         return bone
 
     def lantern(self, bone, name, X, Y, Z, size=4, metal="iron"):
-        """A lantern body (rebuilt by tools/lanterns.py on export: lit glass, posts, cap, ring), centred on (X, Y, Z)."""
-        s = size / 16
-        gg.add_cube(bone, name, (X / 16, Y / 16, Z / 16), EYE, (s, s * 1.4, s), {"all": "lantern", "+2": metal, "-2": metal})
+        """A lantern centred on (X, Y, Z) (px): lit glass (glow_*), corner posts, base, cap, dome, finial and hanger,
+        built here (not by tools/lanterns.py) so that no two faces are closer than GAP. size = the glass width + 1.2;
+        the cap is size + 0.2 wide, the whole lantern about 1.9 x size high (glass centre at Y)."""
+        g = (size - 1.2) / 2                 # half width of the glass
+        hg = 0.7 * size                      # half height of the glass
+        m = metal
+
+        def b(n, x0, x1, y0, y1, z0, z1, **kw):
+            return self.box(bone, n, X + x0, X + x1, Y + y0, Y + y1, Z + z0, Z + z1, front=kw.get("f", m), back=kw.get("f", m),
+                            side=kw.get("s", m), top=kw.get("t"), bottom=kw.get("bt"))
+        b("glow_" + name, -g, g, -hg, hg, -g, g, f="lantern", s="lantern", t=m, bt=m)
+        for k, (sx, sz) in enumerate(((1, 1), (1, -1), (-1, 1), (-1, -1))):
+            b("%s_post_%d" % (name, k), sx * g - 0.3, sx * g + 0.3, -hg - 0.25, hg + 0.25, sz * g - 0.3, sz * g + 0.3)
+        b(name + "_base", -g - 0.6, g + 0.6, -hg - 0.5, -hg, -g - 0.6, g + 0.6)
+        b(name + "_cap", -g - 0.7, g + 0.7, hg, hg + 0.5, -g - 0.7, g + 0.7)
+        dh = max(0.5, g - 0.6)
+        b(name + "_dome", -dh, dh, hg + 0.25, hg + 0.75, -dh, dh)
+        b(name + "_hanger", -0.5, 0.5, hg + 0.75, hg + 1.5, -0.25, 0.25)
+        return Y + hg + 1.5
 
     def chain(self, bone, name, X, Y0, Y1, Z, region="chain_side"):
         """A hanging chain of alternating links between Y0 (bottom) and Y1 (top)."""
@@ -452,6 +497,95 @@ class Door:
                 gg.add_cube(bone, "%s_%d" % (name, k), (X / 16, (y + h / 2) / 16, Z / 16), EYE, (0.5 / 16, h / 16, 1 / 16), region)
             y += max(0.5, h - 0.25)
             k += 1
+
+    # -- clearances of the leaves (1.32.0)
+    def finalize(self, top_gap=False, seam_top=None, cover_side="wood_side", cover_back="back", seam_mat=None):
+        """Makes the leaves fit the frame and each other without touching (no coplanar faces, nothing that goes
+        through anything while both leaves turn 0 -> 90 degrees towards the back), then adds the seam cover.
+
+        - the cores (Z within [-1, 1]) stop GAP/2 short of the seam (X = 0): the two seam edges never touch;
+        - a front relief stays inside the circle of radius hx - 0.1 round its hinge (seen from above), so turning
+          towards the back it never crosses the seam plane (the front corners of both leaves swing towards it);
+        - the back reliefs stop 1 px (leaf_l) / 0.625 px (leaf_r) short of the seam;
+        - top_gap: a leaf box reaching the top of the opening of the leaves (self.top) stops GAP below it;
+        - the seam cover: a batten on the back of leaf_l, 1.5 px wide on its own leaf, that also runs GAP / 2 + 0.25
+          px behind leaf_r (GAP behind its back face): from the front the seam shows it, dark, and no daylight."""
+        hx = self.hx
+        R = hx - 0.1
+        for leaf, s in ((self.leaf_l, -1), (self.leaf_r, 1)):
+            for c in list(_all_cubes(leaf)):
+                px = getattr(c, "_px", None)
+                if px is None or c.name.startswith("seam_"):
+                    continue
+                X0, X1, Y0, Y1, Z0, Z1 = px
+                u0, u1 = (X0 + hx, X1 + hx) if s < 0 else (hx - X1, hx - X0)
+                lim = hx - GAP / 2
+                if Z1 > 1 + 1e-6:
+                    lim = min(lim, math.sqrt(max(0.0, R * R - Z1 * Z1)))
+                if Z0 < -1 - 1e-6:
+                    lim = min(lim, hx - (1.0 if s < 0 else 0.625))
+                Y1n = Y1
+                if top_gap and Y1 > self.top - 1e-6:
+                    Y1n = self.top - GAP
+                if u1 <= lim + 1e-6 and Y1n == Y1:
+                    continue
+                u1 = min(u1, lim)
+                if u1 <= u0 + 0.05 or Y1n <= Y0 + 0.05:
+                    c.bone.cubes.remove(c)
+                    continue
+                if s < 0:
+                    X1 = u1 - hx
+                else:
+                    X0 = hx - u1
+                self.rebox(c, X0, X1, Y0, Y1n, Z0, Z1)
+        top = seam_top if seam_top is not None else (self.top - (GAP if top_gap else 0))
+        mat = seam_mat or cover_side
+        self.box(self.leaf_l, "seam_cover", -1.5, GAP / 2 + 0.25, 0, top, -2.5, -1.25, front=mat, back=cover_back,
+                 side=cover_side)
+        self.box(self.leaf_l, "seam_fill", -1.5, -GAP / 2, 0, top, -1.25, -1, front=None, back=None, side=cover_side)
+
+    def head_stop(self, Z0, Z1, mat, Y0=None, Y1=None, X=None, pic="front"):
+        """Door stop of the head, on the frame in front of the top of the leaves (covers the GAP above them)."""
+        X = X if X is not None else self.hx
+        Y1 = self.top if Y1 is None else Y1
+        Y0 = Y1 - 1.0 if Y0 is None else Y0
+        return self.box(self.frame, "head_stop", -X, X, Y0, Y1, Z0, Z1, front=pic, back=mat, side=mat)
+
+    def swept_heights(self, leaf_top, X0=-14.5, X1=14.5, Z0=-8.0, Z1=2.75, zl=(-2.5, 3.0), umax=None, step=0.5):
+        """Highest leaf point passing over each cell (step px) of the region behind the leaves while both turn 0 -> 90
+        degrees towards the back: {(i, k): height} with X = X0 + i * step, Z = Z0 + k * step; leaf_top(X) gives the
+        height of the leaf at X (left leaf; the right one is its mirror)."""
+        hx = self.hx
+        umax = hx + 0.5 if umax is None else umax
+        nx, nz = int(round((X1 - X0) / step)), int(round((Z1 - Z0) / step))
+        H = np.full((nx, nz), -1.0)
+        us = np.arange(0, umax + 1e-6, 0.125)
+        zs = np.arange(zl[0], zl[1] + 1e-6, 0.25)
+        th = np.radians(np.arange(0, 90.01, 0.5))
+        U, Zl, T = np.meshgrid(us, zs, th, indexing="ij")
+        hgt = np.vectorize(lambda u: leaf_top(-hx + min(u, hx - 0.01)))(U) + 0.5
+        X = -hx + U * np.cos(T) + Zl * np.sin(T)
+        Z = -U * np.sin(T) + Zl * np.cos(T)
+        for sx in (1, -1):
+            XX = X * sx
+            i = np.floor((XX - X0) / step).astype(int)
+            k = np.floor((Z - Z0) / step).astype(int)
+            ok = (i >= 0) & (i < nx) & (k >= 0) & (k < nz)
+            np.maximum.at(H, (i[ok], k[ok]), hgt[ok])
+        # neighbours too (a cell touched by a corner of a sample)
+        Hn = H.copy()
+        for di in (-1, 0, 1):
+            for dk in (-1, 0, 1):
+                Hn = np.maximum(Hn, np.roll(np.roll(H, di, 0), dk, 1))
+        return Hn
+
+    def knuckle(self, bone, name, px, Y0, Y1, mat, r=1.35):
+        """A round-looking hinge barrel on the hinge axis (X = px, Z = 0): a square and the same square turned 45
+        degrees (8 sides), its corners within 1.91 px of the axis so that it turns in place."""
+        self.box(bone, name, px - r, px + r, Y0, Y1, -r, r, front=mat, back=mat, side=mat)
+        c = math.sqrt(0.5)
+        axes = np.array([[c, 0, -c], [0, 1, 0], [c, 0, c]])
+        gg.add_cube(bone, name + "_45", (px / 16, (Y0 + Y1) / 32, 0.0), axes, (2 * r / 16, (Y1 - Y0 - 2 * GAP) / 16, 2 * r / 16), mat)
 
     # -- export
     def export(self, icon=True):
@@ -471,15 +605,11 @@ class Door:
                 os.path.join(ASSETS, "models/entity/%s.bbmodel" % self.name)]
         import zfight
         orig = zfight.fix
-        zfight.fix = _zfix
+        zfight.fix = lambda root, passes=0: _resolve(self, root)
         try:
             self.model = gn.export(self.root, [], textures, outs, name=self.name, visible_box=(4, 6, 0))
         finally:
             zfight.fix = orig
-        _clamp(self.model)
-        for p in outs:
-            with open(p, "w") as f:
-                gn.json_dump(self.model, f, compact="resources" in p)
         self.tex = arr
         self.check_bounds()
         if icon:
@@ -609,59 +739,136 @@ def _covered(f, g, tol=1e-4):
     return True
 
 
-def _zfix(root, passes=1):
-    """Replaces tools/zfight.fix for the doors: two touching boxes of the same bone hide the faces they press
-    together (removed when one covers the other: fewer faces, no false fights); faces looking the SAME way in the
-    same plane (real flicker) are pushed out once by zfight.PUSH (the smaller one), without the cascade that would
-    push the outer faces out of the opening."""
+def _all_cubes(b):
+    yield from list(b.cubes)
+    for ch in b.children:
+        yield from _all_cubes(ch)
+
+
+def _face_list(root):
     import zfight
+    return zfight._faces(root)
+
+
+def _pairs(root, tol=1e-4 / 1.0):
+    """Coplanar overlapping face pairs (plane distance < tol blocks, overlap > 1e-4 block), any direction."""
     from collections import defaultdict
-    pairs, _ = zfight.find(root)
-    for f, g in pairs:
-        if np.dot(f["n"], g["n"]) < 0 and f["cube"].bone is g["cube"].bone:
+    faces = _face_list(root)
+    buckets = defaultdict(list)
+    for i, f in enumerate(faces):
+        n = f["n"]
+        sgn = 1
+        for x in n:
+            if abs(x) > 1e-3:
+                sgn = 1 if x > 0 else -1
+                break
+        f["cn"], f["d"] = n * sgn, float(np.dot(n * sgn, f["p"]))
+        buckets[tuple(np.round(n * sgn * 50).astype(int))].append(i)
+    out = []
+    for idx in buckets.values():
+        idx.sort(key=lambda i: faces[i]["d"])
+        for a in range(len(idx)):
+            f = faces[idx[a]]
+            for b in range(a + 1, len(idx)):
+                g = faces[idx[b]]
+                if g["d"] - f["d"] > tol:
+                    break
+                if f["cube"] is g["cube"] or abs(np.dot(f["cn"], g["cn"])) < 0.99999:
+                    continue
+                if _overlap(f, g, 1e-4):
+                    out.append((f, g))
+    return out
+
+
+def _overlap(f, g, tol):
+    def corners(h):
+        return [h["p"] + a * h["e1"] + b * h["e2"] for a, b in ((-1, -1), (1, -1), (1, 1), (-1, 1))]
+    cf, cg = corners(f), corners(g)
+    for h in (f, g):
+        for e in (h["e1"], h["e2"]):
+            L = np.linalg.norm(e)
+            if L < 1e-9:
+                continue
+            ax = e / L
+            pf = [np.dot(q, ax) for q in cf]
+            pg = [np.dot(q, ax) for q in cg]
+            if min(max(pf), max(pg)) - max(min(pf), min(pg)) <= tol:
+                return False
+    return True
+
+
+def _split(door, c, g):
+    """Cuts the box c (made by box()) along an edge of the face g that crosses it; True when cut."""
+    X0, X1, Y0, Y1, Z0, Z1 = c._px
+    lo = [X0, Y0, Z0]
+    hi = [X1, Y1, Z1]
+    gc = [g["p"] + a * g["e1"] + b * g["e2"] for a, b in ((-1, -1), (1, -1), (1, 1), (-1, 1))]
+    gp = np.array([[q[0] * 16, q[1] * 16, q[2] * 16] for q in gc])
+    for k in range(3):
+        for v in (gp[:, k].min(), gp[:, k].max()):
+            v = round(float(v), 4)
+            if lo[k] + 1e-3 < v < hi[k] - 1e-3:
+                a_hi, b_lo = list(hi), list(lo)
+                a_hi[k] = v
+                b_lo[k] = v
+                name = c.name
+                n1 = door.rebox(c, lo[0], a_hi[0], lo[1], a_hi[1], lo[2], a_hi[2], name=name)
+                regs = dict(n1._regs)
+                n2 = door.box(n1.bone, name + "_s", b_lo[0], hi[0], b_lo[1], hi[1], b_lo[2], hi[2], front=regs["+3"],
+                              back=regs["-3"], side=None, top=regs["+2"] or "", bottom=regs["-2"] or "",
+                              left=regs["-1"] or "", right=regs["+1"] or "")
+                for sem, bbface in SEM_FACE.items():
+                    if n1.faces.get(bbface) is None:
+                        n2.faces[bbface] = None
+                return True
+    return False
+
+
+def _resolve(door, root, max_iter=400):
+    """Replaces tools/zfight.fix for the doors. Two boxes of the same bone pressed together: the face covered by the
+    other one is removed (it can never be seen); when neither covers the other, the box is cut along the edge of the
+    other face first (no face is pushed out: that would make new coplanar faces). Faces of different bones, or
+    looking the same way, are left alone and reported: they are fixed in the design (clearance GAP)."""
+    import zfight
+    removed = cuts = 0
+    skip = set()
+    for _ in range(max_iter):
+        pairs = _pairs(root)
+        todo = [(f, g) for f, g in pairs if np.dot(f["n"], g["n"]) < 0 and f["cube"].bone is g["cube"].bone
+                and (id(f["cube"]), f["sem"], id(g["cube"]), g["sem"]) not in skip]
+        if not todo:
+            break
+        gone, cut = set(), set()
+        for f, g in todo:
+            kf, kg = (id(f["cube"]), f["sem"]), (id(g["cube"]), g["sem"])
+            if kf in gone or kg in gone or id(f["cube"]) in cut or id(g["cube"]) in cut:
+                continue
             if _covered(f, g):
                 f["cube"].faces[zfight.SEMANTIC_FACE[f["sem"]]] = None
+                gone.add(kf)
+                removed += 1
             elif _covered(g, f):
                 g["cube"].faces[zfight.SEMANTIC_FACE[g["sem"]]] = None
-    pairs, _ = zfight.find(root)
-    same = [(f, g) for f, g in pairs if np.dot(f["n"], g["n"]) > 0]
-    nodes, adj = {}, defaultdict(set)
-    for f, g in same:
-        kf, kg = (id(f["cube"]), f["sem"]), (id(g["cube"]), g["sem"])
-        nodes[kf], nodes[kg] = f, g
-        adj[kf].add(kg)
-        adj[kg].add(kf)
-    colour = {}
-    for key in sorted(nodes, key=lambda q: (-nodes[q]["area"], nodes[q]["cube"].name, nodes[q]["sem"])):
-        used = {colour[n] for n in adj[key] if n in colour}
-        c = 0
-        while c in used:
-            c += 1
-        colour[key] = c
-    moved = 0
-    for key, col in colour.items():
-        if col == 0:
-            continue
-        w = nodes[key]
-        c, k = w["cube"], w["k"]
-        s = zfight.AXES[w["sem"]][1]
-        ax = np.asarray(c.axes, dtype=float)[:, k]
-        c.size = np.asarray(c.size, dtype=float).copy()
-        c.size[k] += zfight.PUSH * col
-        c.center = np.asarray(c.center, dtype=float) + ax * s * zfight.PUSH * col / 2
-        moved += 1
-    print("zfix: %d hidden faces pairs, %d faces pushed" % (len(pairs), moved))
-    return moved
-
-
-def _clamp(model):
-    """Unrotated boxes back inside the opening (bb pixels: x, z mirrored, x [-16, 16], y [0, 64], z [-8, 8])."""
-    lim = ((-16, 16), (0, 64), (-8, 8))
-    for e in model["elements"]:
-        if any(abs(r) > 1e-4 for r in e.get("rotation", [0, 0, 0])):
-            continue
-        for key in ("from", "to"):
-            e[key] = [round(min(max(v, lim[k][0]), lim[k][1]), 4) for k, v in enumerate(e[key])]
+                gone.add(kg)
+                removed += 1
+            elif getattr(f["cube"], "_px", None) is not None and _split(door, f["cube"], g):
+                cut.add(id(f["cube"]))
+                cuts += 1
+            elif getattr(g["cube"], "_px", None) is not None and _split(door, g["cube"], f):
+                cut.add(id(g["cube"]))
+                cuts += 1
+            else:
+                print("resolve: cannot separate %s %s / %s %s" % (f["cube"].name, f["sem"], g["cube"].name, g["sem"]))
+                skip.add((id(f["cube"]), f["sem"], id(g["cube"]), g["sem"]))
+        if not gone and not cut:
+            break
+    left = _pairs(root)
+    print("resolve: %d hidden faces removed, %d cuts, %d coplanar pairs left (other bones / same direction)" % (
+        removed, cuts, len(left)))
+    for f, g in left[:12]:
+        print("   left: %s %s (%s)  %s %s (%s)" % (f["cube"].name, f["sem"], f["cube"].bone.name, g["cube"].name, g["sem"],
+                                             g["cube"].bone.name))
+    return removed
 
 
 def _set_rot(groups, name, rot):
@@ -778,7 +985,9 @@ def tile_stone(base):
                 "AAAAAAA#BBBBBBBB", "AAAAAAA#BBBBBBBB", "################", "CCCC#DDDDDDDDDDD", "CCCC#DDDDDDDDDDD",
                 "CCCC#DDDDDDDDDDD", "CCCC#DDDDDDDDDDD", "CCCC#DDDDDDDDDDD", "CCCC#DDDDDDDDDDD", "CCCC#DDDDDDDDDDD",
                 "################"]
-        c.stone_wall(label_rows(rows), 0, 0, base)
+        lab = label_rows(rows)
+        reps = (-(-c.h // 16), -(-c.w // 16))
+        c.stone_wall(np.tile(lab, reps)[:c.h, :c.w], 0, 0, base)     # the whole canvas (no transparent texel)
     return f
 
 
@@ -795,24 +1004,35 @@ def tile_gold(c):
             c.put(x, y, mix(rgb("9a6e1c"), rgb("f2cf6a"), t))
 
 
-def ring_handle(d, bone, name, cx, cy, side_mat, plate_col, ring_col, Z=2, size=4):
-    """A forged ring handle on the front face (Z = front of the relief): a square plate painted on the picture and a
-    hanging square ring of 4 thin boxes (px), its top on the plate centre."""
+def ring_handle(d, bone, name, cx, cy, side_mat, plate_col, ring_col, Z=2.5, size=5, handle=None, round_ring=True):
+    """A forged ring handle on the front face (Z = front of the relief under it): a square plate (painted, 0.75 px
+    relief, its rivet) and a ring hanging from the plate centre, GAP in front of the plate. The ring is its own bone
+    `handle` (pivot = the plate centre: a handle_<n> turns round z while the door unlocks), octagonal when
+    round_ring (4 bars + 4 corner bars turned 45 degrees, GAP further forward)."""
     F = d.F
     s = size
-    # plate (painted + 1 px relief)
     F.metal(cx - 1, cy - 1, cx + 2, cy + 2, plate_col, noise=3)
     F.rivet(cx, cy, light=shade(plate_col, 1.9))
-    d.box(bone, name + "_plate", cx - 1, cx + 2, cy - 1, cy + 2, Z, Z + 0.75, side=side_mat, back=None)
-    # ring: a square loop hanging from the plate, in the plane of the leaf, just in front of it
-    rc = np.asarray(ring_col, float)
-    top = cy
-    bot = cy - s
-    for y in range(bot, top):
-        for x in (cx - s // 2, cx + s // 2):
-            F.put(x, y, rc)
-    zf = Z + 0.75
-    d.box(bone, name + "_l", cx - s // 2, cx - s // 2 + 1, bot, top - 1, zf, zf + 1, front=side_mat, back=side_mat, side=side_mat)
-    d.box(bone, name + "_r", cx + s // 2, cx + s // 2 + 1, bot, top - 1, zf, zf + 1, front=side_mat, back=side_mat, side=side_mat)
-    d.box(bone, name + "_b", cx - s // 2, cx + s // 2 + 1, bot - 1, bot, zf, zf + 1, front=side_mat, back=side_mat, side=side_mat)
-    d.box(bone, name + "_t", cx - s // 2 + 1, cx + s // 2, top - 1, top, zf, zf + 1, front=side_mat, back=side_mat, side=side_mat)
+    d.box(bone, name + "_plate", cx - 1.5, cx + 2.5, cy - 1.5, cy + 2.5, Z, Z + 0.75, side=side_mat, back=None)
+    zf = Z + 0.75 + GAP
+    hb = Bone(handle or (name + "_ring"), origin=((cx + 0.5) / 16, (cy + 0.5) / 16, (zf + 0.5) / 16), parent=bone)
+    # the ring's shadow on the leaf
+    sh = shade(F.get(cx, cy - 2), 0.55)
+    xl, xr = cx + 0.5 - s / 2, cx + 0.5 + s / 2          # outer edges of the ring
+    yt, yb = cy + 0.5, cy + 0.5 - s
+    for y in range(int(math.floor(yb)), int(math.ceil(yt)) - 1):
+        for x in (int(math.floor(xl)) + 1, int(math.ceil(xr)) - 1):
+            if F.inside(x, y - 1):
+                F.put(x, y - 1, mix(F.get(x, y - 1), sh, 0.5))
+    k = 1.0 if round_ring else 0.0
+    d.box(hb, name + "_l", xl, xl + 1, yb + k, yt - k, zf, zf + 1, front=side_mat, back=side_mat, side=side_mat)
+    d.box(hb, name + "_r", xr - 1, xr, yb + k, yt - k, zf, zf + 1, front=side_mat, back=side_mat, side=side_mat)
+    d.box(hb, name + "_b", xl + k, xr - k, yb, yb + 1, zf, zf + 1, front=side_mat, back=side_mat, side=side_mat)
+    d.box(hb, name + "_t", xl + k, xr - k, yt - 1, yt, zf, zf + 1, front=side_mat, back=side_mat, side=side_mat)
+    if round_ring:
+        c = math.sqrt(0.5)
+        for j, (x, y, sg) in enumerate(((xl + 0.85, yb + 0.85, 1), (xr - 0.85, yb + 0.85, -1), (xl + 0.85, yt - 0.85, -1),
+                                         (xr - 0.85, yt - 0.85, 1))):
+            axes = np.array([[c, -sg * c, 0], [sg * c, c, 0], [0, 0, 1]])
+            gg.add_cube(hb, "%s_c%d" % (name, j), (x / 16, y / 16, (zf + 0.5 + GAP) / 16), axes, (1.9 / 16, 1 / 16, 1 / 16), side_mat)
+    return hb
