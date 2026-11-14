@@ -1,0 +1,400 @@
+[13:02:59] [Server thread/INFO]: Teleported Player538 to 8622.000000, -55.620000, 44.000000
+[13:03:00] [Server thread/INFO]: Teleported Player538 to 8591.360000, -59.120000, 30.300000
+[13:03:00] [Server thread/INFO]: Teleported Player538 to 8594.360000, -59.120000, 30.300000
+[13:03:01] [Server thread/INFO]: Teleported Player538 to 8597.360000, -59.120000, 30.300000
+[13:03:01] [Server thread/INFO]: Teleported Player538 to 8600.320000, -57.920000, 32.100000
+[13:03:01] [Server thread/INFO]: Teleported Player538 to 8604.320000, -57.920000, 32.100000
+[13:03:02] [Server thread/INFO]: Teleported Player538 to 8608.320000, -57.920000, 32.100000
+[13:03:02] [Server thread/INFO]: Teleported Player538 to 8612.320000, -57.920000, 32.100000
+[13:03:02] [Server thread/INFO]: Teleported Player538 to 8616.780000, -56.720000, 33.900000
+[13:03:03] [Server thread/INFO]: Teleported Player538 to 8622.780000, -56.720000, 33.900000
+[13:03:03] [Server thread/INFO]: Teleported Player538 to 8628.780000, -56.720000, 33.900000
+[13:03:03] [Server thread/INFO]: Porte porte en chêne en 8592 -59 26 supprimée (toutes ses cases).
+[13:03:03] [Server thread/INFO]: Porte porte de prison en 8595 -59 26 supprimée (toutes ses cases).
+[13:03:03] [Server thread/INFO]: Porte porte à vapeur en 8598 -59 26 supprimée (toutes ses cases).
+[13:03:03] [Server thread/INFO]: Porte porte de grange en 8601 -59 26 supprimée (toutes ses cases).
+[13:03:03] [Server thread/INFO]: Porte porte de forteresse en 8605 -59 26 supprimée (toutes ses cases).
+[13:03:03] [Server thread/INFO]: Porte porte industrielle en 8609 -59 26 supprimée (toutes ses cases).
+[13:03:03] [Server thread/INFO]: Porte porte marchande en 8613 -59 26 supprimée (toutes ses cases).
+[13:03:03] [Server thread/INFO]: Porte porte de château en 8617 -59 26 supprimée (toutes ses cases).
+[13:03:03] [Server thread/INFO]: Porte grande porte à vapeur en 8623 -59 26 supprimée (toutes ses cases).
+[13:03:03] [Server thread/INFO]: Porte porte d'entrepôt en 8629 -59 26 supprimée (toutes ses cases).
+[13:03:03] [Server thread/INFO]: No entity was found
+[13:03:03] [Server thread/INFO]: Set Player538's game mode to Spectator Mode
+[13:03:03] [Server thread/INFO]: Unmarked 30 chunks in minecraft:overworld from [536, -2] to [541, 2] for force loading
+[13:03:03] [Server thread/INFO]: Player538 is not riding any vehicle
+[13:03:03] [Server thread/INFO]: Teleported Player538 to 7400.500000, -30.000000, -29.500000
+[13:03:03] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[13:03:04] [Server thread/INFO]: Marked 18 chunks in minecraft:overworld from [461, -3] to [463, 2] to be force loaded
+[13:03:05] [Server thread/INFO]: Successfully filled 574 block(s)
+[13:03:05] [Server thread/INFO]: Successfully filled 574 block(s)
+[13:03:05] [Server thread/INFO]: Successfully filled 1106 block(s)
+[13:03:05] [Server thread/INFO]: Successfully filled 1106 block(s)
+[13:03:05] [Server thread/INFO]: Successfully filled 16380 block(s)
+[13:03:05] [Server thread/INFO]: No blocks were filled
+[13:03:06] [Server thread/INFO]: Successfully filled 16380 block(s)
+[13:03:06] [Server thread/INFO]: No blocks were filled
+[13:03:06] [Server thread/INFO]: Successfully filled 10374 block(s)
+[13:03:06] [Server thread/INFO]: No blocks were filled
+[13:03:06] [Server thread/INFO]: Teleported Player538 to 7400.500000, -30.000000, -29.500000
+[13:03:06] [Server thread/INFO]: Navire mis à l'eau : Grand galion [7400 -48 0]
+[13:03:10] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon boat: on its chocks at first
+[13:03:10] [Server thread/INFO]: Set Player538's game mode to Survival Mode
+[13:03:10] [Server thread/INFO]: Teleported Player538 to 7398.500000, -47.961000, 6.575000
+[13:03:10] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[13:03:11] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] galleon boat launched: away true, rowboat true, boats 1, local -6.23 -0.15 6.00
+[13:03:11] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon boat: the click on the deco boat puts one Rowboat of the mod on the water (away true, rowboat true, 1 boat)
+[13:03:11] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] galleon boat: launch again -> 'La chaloupe est déjà à l'eau.' / use -> 'La chaloupe est en cours de manœuvre.' / 'La chaloupe est en cours de manœuvre.'
+[13:03:11] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon boat: one boat per ship, a second click at once neither launches another nor takes it back (1 boat, 'La chaloupe est en cours de manœuvre.')
+[13:03:11] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon boat: on the clicking player's side (starboard), clear of the hull (local x -6.23, hull half width 4.19)
+[13:03:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon boat: floats on the surface (water line -49.11, surface -49.11, ship's water line -49.11, 0 collisions)
+[13:03:13] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon boat: the deco boat is hidden on the client too
+[13:03:13] [Server thread/INFO]: Set Player538's game mode to Spectator Mode
+[13:03:13] [Server thread/INFO]: Teleported Player538 to 7381.274000, -43.731000, -1.500000
+[13:03:13] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[13:03:14] [Server thread/INFO]: Teleported Player538 to 7397.000000, -45.081000, 0.500000
+[13:03:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] galleon boat: recovered from 15 blocks along the hull -> 'La chaloupe est trop loin : ramenez-la à moins de 13 blocs de son chantier.'
+[13:03:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon boat: too far, refused with a message (La chaloupe est trop loin : ramenez-la à moins de 13 blocs de son chantier.), it stays on the water
+[13:03:16] [Server thread/INFO]: Set Player538's game mode to Survival Mode
+[13:03:16] [Server thread/INFO]: Teleported Player538 to 7398.500000, -47.961000, 6.575000
+[13:03:16] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[13:03:18] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon boat: the click again hoists it aboard, the deco is back (away false, 0 boat, client true)
+[13:03:18] [Server thread/INFO]: Set Player538's game mode to Spectator Mode
+[13:03:18] [Server thread/INFO]: Teleported Player538 to 7397.000000, -45.081000, 0.500000
+[13:03:18] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[13:03:18] [Server thread/INFO]: Set Player538's game mode to Survival Mode
+[13:03:18] [Server thread/INFO]: Teleported Player538 to 7398.500000, -47.941000, 6.575000
+[13:03:18] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[13:03:24] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] galleon boat: launched for the rower 'La chaloupe est à l'eau, à tribord. Pour la hisser à bord : ramenez-la le long de la coque, puis clic droit sur son chantier (ou sur la coque depuis la barque).', seated true; hoisted from it: riding true, handled true, away false, 0 boat; rower at local -3.40 1.00 6.00
+[13:03:24] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon boat: its rower clicks the hull: hoisted aboard, he stands on the deck (local -3.40 1.00 6.00)
+[13:03:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] galleon boat out of the water: 'Le navire n'est pas à flot : impossible de mettre la chaloupe à l'eau.'
+[13:03:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon boat: refused with a message while the ship is not afloat (Le navire n'est pas à flot : impossible de mettre la chaloupe à l'eau.)
+[13:03:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] galleon boat: two clicks on the same tick -> 'La chaloupe est à l'eau, à tribord. Pour la hisser à bord : ramenez-la le long de la coque, puis clic droit sur son chantier (ou sur la coque depuis la barque).' / 'La chaloupe est en cours de manœuvre.'
+[13:03:26] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon boat: two players clicking on the same tick: one boat on the water (away true, 1 boat)
+[13:03:36] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon boat: destroyed on the water, the ship has its deco back within seconds (away false)
+[13:03:41] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon boat: written off by its ship, the old boat vanishes when it is seen again (gone true, remembered false)
+[13:03:46] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] galleon boat: the ship picked up, its boat stays on the water as an ordinary Rowboat (there true, free true)
+[13:03:46] [Server thread/INFO]: Player538 is not riding any vehicle
+[13:03:46] [Server thread/INFO]: Set Player538's game mode to Spectator Mode
+[13:03:46] [Server thread/INFO]: Teleported Player538 to 7400.500000, -30.000000, -29.500000
+[13:03:46] [Server thread/INFO]: Navire mis à l'eau : Grand vaisseau de guerre [7400 -49 0]
+[13:03:46] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[13:03:49] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] warship boat: on its chocks at first
+[13:03:49] [Server thread/INFO]: Set Player538's game mode to Survival Mode
+[13:03:49] [Server thread/INFO]: Teleported Player538 to 7398.100000, -44.511000, 8.750000
+[13:03:49] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[13:03:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] warship boat launched: away true, rowboat true, boats 1, local -8.22 -0.10 8.10
+[13:03:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] warship boat: the click on the deco boat puts one Rowboat of the mod on the water (away true, rowboat true, 1 boat)
+[13:03:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] warship boat: launch again -> 'La chaloupe est déjà à l'eau.' / use -> 'La chaloupe est en cours de manœuvre.' / 'La chaloupe est en cours de manœuvre.'
+[13:03:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] warship boat: one boat per ship, a second click at once neither launches another nor takes it back (1 boat, 'La chaloupe est en cours de manœuvre.')
+[13:03:50] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] warship boat: on the clicking player's side (starboard), clear of the hull (local x -8.22, hull half width 6.27)
+[13:03:52] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] warship boat: floats on the surface (water line -49.11, surface -49.11, ship's water line -49.11, 0 collisions)
+[13:03:52] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] warship boat: the deco boat is hidden on the client too
+[13:03:52] [Server thread/INFO]: Set Player538's game mode to Spectator Mode
+[13:03:52] [Server thread/INFO]: Teleported Player538 to 7379.281000, -43.731000, 0.600000
+[13:03:52] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[13:03:53] [Server thread/INFO]: Teleported Player538 to 7397.000000, -41.631000, 2.600000
+[13:03:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] warship boat: recovered from 17 blocks along the hull -> 'La chaloupe est trop loin : ramenez-la à moins de 15 blocs de son chantier.'
+[13:03:54] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] warship boat: too far, refused with a message (La chaloupe est trop loin : ramenez-la à moins de 15 blocs de son chantier.), it stays on the water
+[13:03:55] [Server thread/INFO]: Set Player538's game mode to Survival Mode
+[13:03:55] [Server thread/INFO]: Teleported Player538 to 7398.100000, -44.511000, 8.750000
+[13:03:55] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[13:03:56] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] warship boat: the click again hoists it aboard, the deco is back (away false, 0 boat, client true)
+[13:03:56] [Server thread/INFO]: Set Player538's game mode to Spectator Mode
+[13:03:56] [Server thread/INFO]: Teleported Player538 to 7397.000000, -41.631000, 2.600000
+[13:03:56] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[13:03:57] [Server thread/INFO]: Set Player538's game mode to Survival Mode
+[13:03:57] [Server thread/INFO]: Teleported Player538 to 7398.100000, -44.491000, 8.750000
+[13:03:57] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[13:04:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] warship boat: launched for the rower 'La chaloupe est à l'eau, à tribord. Pour la hisser à bord : ramenez-la le long de la coque, puis clic droit sur son chantier (ou sur la coque depuis la barque).', seated true; hoisted from it: riding true, handled true, away false, 0 boat; rower at local -5.41 4.50 8.10
+[13:04:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] warship boat: its rower clicks the hull: hoisted aboard, he stands on the deck (local -5.41 4.50 8.10)
+[13:04:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] warship boat: one stands on the deco boat, not on its empty chocks while it is away (70 / 0 boxes)
+[13:04:03] [Server thread/INFO]: Player538 is not riding any vehicle
+[13:04:03] [Server thread/INFO]: Set Player538's game mode to Spectator Mode
+[13:04:03] [Server thread/INFO]: Teleported Player538 to 7400.500000, -30.000000, -29.500000
+[13:04:03] [Server thread/INFO]: Navire mis à l'eau : Vieux Corsaire [7400 -50 0]
+[13:04:03] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[13:04:05] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair boat: on its chocks at first
+[13:04:05] [Server thread/INFO]: Set Player538's game mode to Survival Mode
+[13:04:05] [Server thread/INFO]: Teleported Player538 to 7398.500000, -43.111000, -18.225000
+[13:04:05] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[13:04:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] old_corsair boat launched: away true, rowboat true, boats 1, local -6.70 1.00 -15.00
+[13:04:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair boat: the click on the deco boat puts one Rowboat of the mod on the water (away true, rowboat true, 1 boat)
+[13:04:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] old_corsair boat: launch again -> 'Le canot est déjà à l'eau.' / use -> 'Le canot est en cours de manœuvre.' / 'Le canot est en cours de manœuvre.'
+[13:04:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair boat: one boat per ship, a second click at once neither launches another nor takes it back (1 boat, 'Le canot est en cours de manœuvre.')
+[13:04:07] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair boat: on the clicking player's side (starboard), clear of the hull (local x -6.70, hull half width 4.76)
+[13:04:09] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair boat: floats on the surface (water line -49.11, surface -49.11, ship's water line -49.11, 0 collisions)
+[13:04:09] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair boat: the deco boat is hidden on the client too
+[13:04:09] [Server thread/INFO]: Set Player538's game mode to Spectator Mode
+[13:04:09] [Server thread/INFO]: Teleported Player538 to 7380.799000, -43.731000, -22.500000
+[13:04:09] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[13:04:10] [Server thread/INFO]: Teleported Player538 to 7397.000000, -40.231000, -20.500000
+[13:04:11] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] old_corsair boat: recovered from 16 blocks along the hull -> 'Le canot est trop loin : ramenez-le à moins de 13 blocs de son chantier.'
+[13:04:11] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair boat: too far, refused with a message (Le canot est trop loin : ramenez-le à moins de 13 blocs de son chantier.), it stays on the water
+[13:04:12] [Server thread/INFO]: Set Player538's game mode to Survival Mode
+[13:04:12] [Server thread/INFO]: Teleported Player538 to 7398.500000, -43.111000, -18.225000
+[13:04:12] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[13:04:14] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair boat: the click again hoists it aboard, the deco is back (away false, 0 boat, client true)
+[13:04:14] [Server thread/INFO]: Set Player538's game mode to Spectator Mode
+[13:04:14] [Server thread/INFO]: Teleported Player538 to 7397.000000, -40.231000, -20.500000
+[13:04:14] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[13:04:14] [Server thread/INFO]: Set Player538's game mode to Survival Mode
+[13:04:14] [Server thread/INFO]: Teleported Player538 to 7398.500000, -43.091000, -18.225000
+[13:04:14] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Survival Mode
+[13:04:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] old_corsair boat: launched for the rower 'Le canot est à l'eau, à tribord. Pour le hisser à bord : ramenez-le le long de la coque, puis clic droit sur son chantier (ou sur la coque depuis la barque).', seated true; hoisted from it: riding true, handled true, away false, 0 boat; rower at local -1.60 4.50 -10.50
+[13:04:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] old_corsair boat: its rower clicks the hull: hoisted aboard, he stands on the deck (local -1.60 4.50 -10.50)
+[13:04:20] [Server thread/INFO]: Player538 is not riding any vehicle
+[13:04:20] [Server thread/INFO]: Unmarked 18 chunks in minecraft:overworld from [461, -3] to [463, 2] for force loading
+[13:04:20] [Server thread/INFO]: Player538 is not riding any vehicle
+[13:04:20] [Server thread/INFO]: Set Player538's game mode to Spectator Mode
+[13:04:20] [Server thread/INFO]: Teleported Player538 to 6000.500000, -48.000000, -59.500000
+[13:04:20] [Server thread/INFO]: Marked 80 chunks in minecraft:overworld from [370, -4] to [379, 3] to be force loaded
+[13:04:20] [Server thread/INFO]: Marked 174 chunks in minecraft:overworld from [379, -6] to [392, 6] to be force loaded
+[13:04:20] [Render thread/INFO]: [System] [CHAT] Your game mode has been updated to Spectator Mode
+[13:04:22] [Server thread/INFO]: No entity was found
+[13:04:22] [Server thread/INFO]: Successfully filled 31347 block(s)
+[13:04:22] [Server thread/INFO]: No blocks were filled
+[13:04:22] [Server thread/INFO]: No blocks were filled
+[13:04:22] [Server thread/INFO]: No blocks were filled
+[13:04:22] [Server thread/INFO]: No blocks were filled
+[13:04:22] [Server thread/INFO]: No blocks were filled
+[13:04:22] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:22] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:22] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:22] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:22] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:22] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 2436 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 1827 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 31262 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 31262 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 31262 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 31262 block(s)
+[13:04:23] [Server thread/INFO]: Successfully filled 31262 block(s)
+[13:04:24] [Server thread/INFO]: Successfully filled 31262 block(s)
+[13:04:24] [Server thread/INFO]: Successfully filled 31262 block(s)
+[13:04:24] [Server thread/INFO]: Successfully filled 31262 block(s)
+[13:04:24] [Server thread/INFO]: Successfully filled 31262 block(s)
+[13:04:24] [Server thread/INFO]: Successfully filled 31262 block(s)
+[13:04:24] [Server thread/INFO]: Successfully filled 31262 block(s)
+[13:04:24] [Server thread/INFO]: Successfully filled 31262 block(s)
+[13:04:24] [Server thread/INFO]: Successfully filled 31262 block(s)
+[13:04:24] [Server thread/INFO]: Successfully filled 31262 block(s)
+[13:04:24] [Server thread/INFO]: Successfully filled 31262 block(s)
+[13:04:24] [Server thread/INFO]: Successfully filled 31262 block(s)
+[13:04:24] [Server thread/INFO]: Successfully filled 19894 block(s)
+[13:04:25] [Server thread/INFO]: Successfully filled 30954 block(s)
+[13:04:25] [Server thread/INFO]: Successfully filled 30954 block(s)
+[13:04:25] [Server thread/INFO]: Successfully filled 30954 block(s)
+[13:04:25] [Server thread/INFO]: Successfully filled 30954 block(s)
+[13:04:25] [Server thread/INFO]: Successfully filled 30954 block(s)
+[13:04:25] [Server thread/INFO]: Successfully filled 30954 block(s)
+[13:04:25] [Server thread/INFO]: Successfully filled 30954 block(s)
+[13:04:26] [Server thread/INFO]: Successfully filled 30954 block(s)
+[13:04:26] [Server thread/INFO]: Successfully filled 30954 block(s)
+[13:04:26] [Server thread/INFO]: Successfully filled 30954 block(s)
+[13:04:26] [Server thread/INFO]: Successfully filled 30954 block(s)
+[13:04:26] [Server thread/INFO]: Successfully filled 30954 block(s)
+[13:04:26] [Server thread/INFO]: Successfully filled 30954 block(s)
+[13:04:27] [Server thread/INFO]: Successfully filled 30954 block(s)
+[13:04:27] [Server thread/INFO]: Successfully filled 30954 block(s)
+[13:04:27] [Server thread/INFO]: Successfully filled 30954 block(s)
+[13:04:27] [Server thread/INFO]: Successfully filled 14070 block(s)
+[13:04:27] [Server thread/WARN]: Can't keep up! Is the server overloaded? Running 6323ms or 126 ticks behind
+[13:04:29] [Server thread/INFO]: Grande tente de commandement posée en 5944, -59, -28, entrée vers south.
+[13:04:29] [Server thread/INFO]: Petite tente d'aventurier posée en 5960, -59, -28, entrée vers south.
+[13:04:29] [Server thread/INFO]: Grand abri de marché posée en 5976, -59, -28, entrée vers south.
+[13:04:29] [Server thread/INFO]: Tente triangulaire de campement posée en 5992, -59, -28, entrée vers south.
+[13:04:29] [Server thread/INFO]: Tente d'habitation posée en 6008, -59, -28, entrée vers south.
+[13:04:29] [Server thread/INFO]: Grande tente de chef posée en 6024, -59, -28, entrée vers south.
+[13:04:29] [Server thread/INFO]: Tente du marchand d'armes et d'armures posée en 6040, -59, -28, entrée vers south.
+[13:04:29] [Server thread/INFO]: Tente du marchand d'alchimie posée en 6056, -59, -28, entrée vers south.
+[13:04:29] [Server thread/INFO]: Tente de l'herboriste posée en 5944, -59, -14, entrée vers south.
+[13:04:29] [Server thread/INFO]: Tente du forgeron posée en 5960, -59, -14, entrée vers south.
+[13:04:29] [Server thread/INFO]: Tente du marchand de nourriture posée en 5976, -59, -14, entrée vers south.
+[13:04:29] [Server thread/INFO]: Tente du marchand de tissus posée en 5992, -59, -14, entrée vers south.
+[13:04:29] [Server thread/INFO]: Pavillon au lion posé en 6008, -59, -14, entrée vers south.
+[13:04:29] [Server thread/INFO]: Longue tente au lion posée en 6024, -59, -14, entrée vers south.
+[13:04:29] [Server thread/INFO]: Tente marchande impériale posée en 6040, -59, -14, entrée vers south.
+[13:04:29] [Server thread/INFO]: Tente drapée au lion posée en 6056, -59, -14, entrée vers south.
+[13:04:29] [Server thread/INFO]: Chapiteau royal au lion posé en 5944, -59, 0, entrée vers south.
+[13:04:29] [Server thread/INFO]: Tente bleue à la balance posée en 5960, -59, 0, entrée vers south.
+[13:04:29] [Server thread/INFO]: Tente aux draperies rouges posée en 5976, -59, 0, entrée vers south.
+[13:04:29] [Server thread/INFO]: Tente à la fleur de lys posée en 5992, -59, 0, entrée vers south.
+[13:04:29] [Server thread/INFO]: Charrette couverte blanche posée en 6008, -59, 0, entrée vers south.
+[13:04:29] [Server thread/INFO]: Charrette de foin posée en 6024, -59, 0, entrée vers south.
+[13:04:29] [Server thread/INFO]: Roulotte de marchand posée en 6040, -59, 0, entrée vers south.
+[13:04:29] [Server thread/INFO]: Charrette de marché posée en 6056, -59, 0, entrée vers south.
+[13:04:29] [Server thread/INFO]: Charrette de bûcheron posée en 5944, -59, 14, entrée vers south.
+[13:04:29] [Server thread/INFO]: Charrette à tonneaux posée en 5960, -59, 14, entrée vers south.
+[13:04:29] [Server thread/INFO]: Atelier du forgeron posé en 5976, -59, 14, avant vers south.
+[13:04:29] [Server thread/INFO]: Atelier du tailleur de lin posé en 5992, -59, 14, avant vers south.
+[13:04:29] [Server thread/INFO]: Atelier du cuisinier posé en 6008, -59, 14, avant vers south.
+[13:04:29] [Server thread/INFO]: Atelier de l'alchimiste posé en 6024, -59, 14, avant vers south.
+[13:04:29] [Server thread/INFO]: Taverne nomade posée en 6040, -59, 14, entrée vers south.
+[13:04:29] [Server thread/INFO]: Guirlande festive posée en 6056, -59, 14, avant vers south.
+[13:04:29] [Server thread/INFO]: Étendoir à linge posé en 5944, -59, 28, avant vers south.
+[13:04:29] [Server thread/INFO]: Lanterne suspendue posée en 5960, -59, 28, avant vers south.
+[13:04:29] [Server thread/INFO]: Bannière de la Couronne posée en 5976, -59, 28, avant vers south.
+[13:04:29] [Server thread/INFO]: Filet suspendu posé en 5992, -59, 28, avant vers south.
+[13:04:29] [Server thread/INFO]: Séchoir à herbes posé en 6008, -59, 28, avant vers south.
+[13:04:29] [Server thread/INFO]: Pieu défensif posé en 6024, -59, 28, avant vers south.
+[13:04:29] [Server thread/INFO]: Pieu défensif posé en 6040, -59, 28, avant vers south.
+[13:04:29] [Server thread/INFO]: Pieu défensif posé en 6056, -59, 28, avant vers south.
+[13:04:29] [Server thread/INFO]: Navire mis à l'eau : Navire royal au lion [6090 -49 0]
+[13:04:29] [Server thread/INFO]: Navire mis à l'eau : Navire forteresse [6115 -49 0]
+[13:04:29] [Server thread/INFO]: Navire mis à l'eau : Navire à vapeur à engrenages [6140 -50 0]
+[13:04:29] [Server thread/INFO]: Navire mis à l'eau : Grand galion [6165 -48 0]
+[13:04:29] [Server thread/INFO]: Navire mis à l'eau : Grand vaisseau de guerre [6190 -49 0]
+[13:04:29] [Server thread/INFO]: Navire mis à l'eau : Grand navire aux voiles bleues [6215 -50 0]
+[13:04:29] [Server thread/INFO]: Navire mis à l'eau : Nautilus [6248 -48 0]
+[13:04:31] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf scene: 40 of 40 props placed (40 registered), 7 of 7 vessels afloat, 24 of 24 mobs alive
+[13:04:31] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] perf scene: the city of 40 props and the 7 vessels are in place (40 props registered, 7 vessels)
+[13:04:31] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf models (faces): royal_lion_ship=37257 fortress_ship=29489 gear_steamship=34742 galleon=35388 warship=52702 blue_frigate=26482 nautilus=121863
+[13:04:33] [Server thread/INFO]: Teleported Player538 to 6000.000000, -58.120000, -46.000000
+[13:04:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] perf client [market]: 201 + 202 frames, frame 26.2 ms with the mod's renderers vs 13.8 ms without (12.4 ms attributable), mod vertex emission 0.78 ms/frame, 12120 quads + 88 furniture blocks per frame, 365 mesh cells (21 culled), 0.28 MB/frame allocated on the render thread
+[13:04:43] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf client [market]: without the mod 0 quads/frame, 0.16 MB/frame allocated
+[13:04:43] [Server thread/INFO]: Teleported Player538 to 6040.000000, -42.620000, -70.000000
+[13:04:49] [Server thread/INFO]: Villager class_1646['Villager'/1618, l='ServerLevel[New World]', x=5944.05, y=-59.00, z=-14.50] died, message: 'Villager was slain by Zombie'
+[13:04:49] [Server thread/INFO]: Villager class_1646['Villager'/1626, l='ServerLevel[New World]', x=5947.51, y=-59.00, z=-15.80] died, message: 'Villager was slain by Zombie'
+[13:04:50] [Server thread/INFO]: Villager class_1646['Villager'/1628, l='ServerLevel[New World]', x=5976.37, y=-59.00, z=-15.25] died, message: 'Villager was slain by Zombie'
+[13:04:52] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] perf client [harbour]: 200 + 202 frames, frame 18.1 ms with the mod's renderers vs 16.0 ms without (2.1 ms attributable), mod vertex emission 0.19 ms/frame, 2535 quads + 0 furniture blocks per frame, 63 mesh cells (18 culled), 0.11 MB/frame allocated on the render thread
+[13:04:52] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf client [harbour]: without the mod 0 quads/frame, 0.09 MB/frame allocated
+[13:04:52] [Server thread/INFO]: Teleported Player538 to 6090.500000, -44.831000, -5.500000
+[13:05:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] perf client [deck]: 114 + 201 frames, frame 52.4 ms with the mod's renderers vs 18.6 ms without (33.8 ms attributable), mod vertex emission 3.50 ms/frame, 41782 quads + 247 furniture blocks per frame, 864 mesh cells (350 culled), 0.48 MB/frame allocated on the render thread
+[13:05:03] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf client [deck]: without the mod 0 quads/frame, 0.21 MB/frame allocated
+[13:05:03] [Server thread/INFO]: Teleported Player538 to 6040.000000, -42.620000, -70.000000
+[13:05:09] [Server thread/INFO]: Itinéraire inconnu : perf_lion
+[13:05:09] [Server thread/INFO]: Itinéraire perf_lion créé (pingpong). Ajoutez des points avec /ship route addstop|addpoint perf_lion
+[13:05:09] [Server thread/INFO]: Point 1 ajouté à perf_lion : 6090.5 0.5 (escale A, 1 s)
+[13:05:09] [Server thread/INFO]: Point 2 ajouté à perf_lion : 6090.5 40.5 (escale B, 1 s)
+[13:05:09] [Server thread/INFO]: Navire royal au lion [6090 -49 0] suit maintenant l'itinéraire perf_lion (DOCKED).
+[13:05:11] [Server thread/INFO]: Villager class_1646['Villager'/1632, l='ServerLevel[New World]', x=6038.50, y=-59.00, z=-9.59] died, message: 'Villager was slain by Zombie'
+[13:05:11] [Render thread/INFO]: Villager class_1646['Villager'/1632, l='ClientLevel', x=6038.50, y=-59.00, z=-9.59] died, message: 'Villager died'
+[13:05:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf server: the royal lion ship sails at 1.09 blocks/s during the second measure
+[13:05:15] [Server thread/INFO]: Itinéraire perf_lion supprimé.
+[13:05:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] perf server: 100 ticks, MSPT 3.71 ms (24 mobs, 7 vessels at rest) vs 3.95 ms with the royal lion ship under way; collision hook 51 calls/tick, 0.107 ms/tick, 16 hull queries/tick, 186 boxes/tick; dry-room queries 59/tick; 448 KB/tick allocated on the server thread (447 KB/tick under way)
+[13:05:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf server under way: collision hook 50 calls/tick, 0.112 ms/tick, 16 hull queries/tick, 201 boxes/tick
+[13:05:15] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] perf run: 12 garbage collections in 55 s of wall time
+[13:05:15] [Server thread/INFO]: Villager class_1646['Villager'/1620, l='ServerLevel[New World]', x=5932.96, y=-60.00, z=-56.90] died, message: 'Villager was killed'
+[13:05:15] [Server thread/INFO]: Villager class_1646['Villager'/1622, l='ServerLevel[New World]', x=6010.05, y=-58.87, z=-30.21] died, message: 'Villager was killed'
+[13:05:15] [Server thread/INFO]: Villager class_1646['Villager'/1624, l='ServerLevel[New World]', x=6031.36, y=-59.00, z=-19.36] died, message: 'Villager was killed while fighting Zombie'
+[13:05:15] [Server thread/INFO]: Villager class_1646['Villager'/1630, l='ServerLevel[New World]', x=5976.08, y=-59.00, z=35.52] died, message: 'Villager was killed'
+[13:05:15] [Server thread/INFO]: Villager class_1646['Villager'/1634, l='ServerLevel[New World]', x=5941.48, y=-59.00, z=-1.16] died, message: 'Villager was killed while fighting Zombie'
+[13:05:15] [Server thread/INFO]: Villager class_1646['Villager'/1636, l='ServerLevel[New World]', x=5988.50, y=-59.00, z=1.95] died, message: 'Villager was killed'
+[13:05:15] [Server thread/INFO]: Villager class_1646['Villager'/1638, l='ServerLevel[New World]', x=6089.13, y=-44.91, z=-4.37] died, message: 'Villager was killed'
+[13:05:15] [Server thread/INFO]: Villager class_1646['Villager'/1639, l='ServerLevel[New World]', x=6092.42, y=-44.91, z=0.03] died, message: 'Villager was killed'
+[13:05:15] [Server thread/INFO]: Villager class_1646['Villager'/1640, l='ServerLevel[New World]', x=6089.29, y=-44.91, z=5.41] died, message: 'Villager was killed'
+[13:05:15] [Server thread/INFO]: Villager class_1646['Villager'/1641, l='ServerLevel[New World]', x=6092.13, y=-44.91, z=10.63] died, message: 'Villager was killed'
+[13:05:15] [Server thread/INFO]: Killed 20 entities
+[13:05:15] [Render thread/INFO]: Villager class_1646['Villager'/1622, l='ClientLevel', x=6010.05, y=-58.87, z=-30.21] died, message: 'Villager died'
+[13:05:15] [Render thread/INFO]: Villager class_1646['Villager'/1624, l='ClientLevel', x=6030.70, y=-59.00, z=-18.71] died, message: 'Villager died'
+[13:05:19] [Test thread/INFO]: [STDOUT]: [medievalships-test] PASS [dedie] perf broad phase: a villager 150 blocks from every vessel went through the collision hook 260 times in 40 ticks and no hull was queried (0)
+[13:05:19] [Server thread/INFO]: Villager class_1646['Villager'/1688, l='ServerLevel[New World]', x=5940.00, y=-59.00, z=-40.00] died, message: 'Villager was killed'
+[13:05:19] [Server thread/INFO]: Killed Villager
+[13:05:19] [Server thread/INFO]: Grande tente de commandement retirée en 5944, -59, -28.
+[13:05:19] [Server thread/INFO]: Petite tente d'aventurier retirée en 5960, -59, -28.
+[13:05:19] [Server thread/INFO]: Grand abri de marché retirée en 5976, -59, -28.
+[13:05:19] [Server thread/INFO]: Tente triangulaire de campement retirée en 5992, -59, -28.
+[13:05:19] [Server thread/INFO]: Tente d'habitation retirée en 6008, -59, -28.
+[13:05:19] [Server thread/INFO]: Grande tente de chef retirée en 6024, -59, -28.
+[13:05:19] [Server thread/INFO]: Tente du marchand d'armes et d'armures retirée en 6040, -59, -28.
+[13:05:19] [Server thread/INFO]: Tente du marchand d'alchimie retirée en 6056, -59, -28.
+[13:05:19] [Server thread/INFO]: Tente de l'herboriste retirée en 5944, -59, -14.
+[13:05:19] [Server thread/INFO]: Tente du forgeron retirée en 5960, -59, -14.
+[13:05:19] [Server thread/INFO]: Tente du marchand de nourriture retirée en 5976, -59, -14.
+[13:05:19] [Server thread/INFO]: Tente du marchand de tissus retirée en 5992, -59, -14.
+[13:05:19] [Server thread/INFO]: Pavillon au lion retiré en 6008, -59, -14.
+[13:05:19] [Server thread/INFO]: Longue tente au lion retirée en 6024, -59, -14.
+[13:05:19] [Server thread/INFO]: Tente marchande impériale retirée en 6040, -59, -14.
+[13:05:19] [Server thread/INFO]: Tente drapée au lion retirée en 6056, -59, -14.
+[13:05:19] [Server thread/INFO]: Chapiteau royal au lion retiré en 5944, -59, 0.
+[13:05:19] [Server thread/INFO]: Tente bleue à la balance retirée en 5960, -59, 0.
+[13:05:19] [Server thread/INFO]: Tente aux draperies rouges retirée en 5976, -59, 0.
+[13:05:19] [Server thread/INFO]: Tente à la fleur de lys retirée en 5992, -59, 0.
+[13:05:19] [Server thread/INFO]: Charrette couverte blanche retirée en 6008, -59, 0.
+[13:05:19] [Server thread/INFO]: Charrette de foin retirée en 6024, -59, 0.
+[13:05:19] [Server thread/INFO]: Roulotte de marchand retirée en 6040, -59, 0.
+[13:05:19] [Server thread/INFO]: Charrette de marché retirée en 6056, -59, 0.
+[13:05:19] [Server thread/INFO]: Charrette de bûcheron retirée en 5944, -59, 14.
+[13:05:19] [Server thread/INFO]: Charrette à tonneaux retirée en 5960, -59, 14.
+[13:05:19] [Server thread/INFO]: Atelier du forgeron retiré en 5976, -59, 14.
+[13:05:19] [Server thread/INFO]: Atelier du tailleur de lin retiré en 5992, -59, 14.
+[13:05:19] [Server thread/INFO]: Atelier du cuisinier retiré en 6008, -59, 14.
+[13:05:19] [Server thread/INFO]: Atelier de l'alchimiste retiré en 6024, -59, 14.
+[13:05:19] [Server thread/INFO]: Taverne nomade retirée en 6040, -59, 14.
+[13:05:19] [Server thread/INFO]: Guirlande festive retirée en 6056, -59, 14.
+[13:05:19] [Server thread/INFO]: Étendoir à linge retiré en 5944, -59, 28.
+[13:05:19] [Server thread/INFO]: Lanterne suspendue retirée en 5960, -59, 28.
+[13:05:19] [Server thread/INFO]: Bannière de la Couronne retirée en 5976, -59, 28.
+[13:05:19] [Server thread/INFO]: Filet suspendu retiré en 5992, -59, 28.
+[13:05:19] [Server thread/INFO]: Séchoir à herbes retiré en 6008, -59, 28.
+[13:05:19] [Server thread/INFO]: Pieu défensif retiré en 6024, -59, 28.
+[13:05:19] [Server thread/INFO]: Pieu défensif retiré en 6040, -59, 28.
+[13:05:19] [Server thread/INFO]: Pieu défensif retiré en 6056, -59, 28.
+[13:05:20] [Server thread/INFO]: Unmarked 80 chunks in minecraft:overworld from [370, -4] to [379, 3] for force loading
+[13:05:20] [Server thread/INFO]: Unmarked 174 chunks in minecraft:overworld from [379, -6] to [392, 6] for force loading
+[13:05:20] [Test thread/INFO]: [STDOUT]: [medievalships-test] [dedie] perf cleanup: vessels left []
+[13:05:20] [Server thread/INFO]: Stopping server
+[13:05:20] [Server thread/INFO]: Saving players
+[13:05:20] [Server thread/INFO]: Player538 lost connection: Disconnected
+[13:05:20] [Server thread/INFO]: Player538 left the game
+[13:05:20] [Server thread/INFO]: Saving worlds
+[13:05:20] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:overworld
+[13:05:20] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_nether
+[13:05:20] [Server thread/INFO]: Saving chunks for level 'ServerLevel[New World]'/minecraft:the_end
+[13:05:20] [Server thread/INFO]: ThreadedAnvilChunkStorage (world): All chunks are saved
+[13:05:20] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM-1): All chunks are saved
+[13:05:20] [Server thread/INFO]: ThreadedAnvilChunkStorage (DIM1): All chunks are saved
+[13:05:20] [Server thread/INFO]: ThreadedAnvilChunkStorage: All dimensions are saved
+[13:05:20] [Render thread/INFO]: Stopping!
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_5-1794656930647.json
+
+[Incubating] Problems report is available at: file:///home/runner/work/medieval-ships/medieval-ships/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.2.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1h 16m 35s
+13 actionable tasks: 13 executed
