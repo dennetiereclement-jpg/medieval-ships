@@ -34,10 +34,11 @@ STEP = 2                     # leaf strips (px)
 Z_JAMB = (7.0, 6.25)         # quoins: alternate courses stand out
 Z_RING, Z_SPAN, Z_KEY = 7.5, 6.5, 8.0
 TURRETS = ((-32, -21), (21, 32))
-MERLONS_T = ((-32, -28.5), (-24.5, -21), (21, 24.5), (28.5, 32))   # turret merlons (Y 92 - 96)
-MERLONS_C = ((-16, -10), (-3, 3), (10, 16))                        # parapet merlons (Y 91 - 96)
-NOTCHES = [(-28.5, -24.5, 92, 96), (24.5, 28.5, 92, 96),           # crenels: silhouette notches open to the top
-           (-21, -16, 91, 96), (-10, -3, 91, 96), (3, 10, 91, 96), (16, 21, 91, 96)]
+MERLONS_T = ((-32, -28.5), (-24.5, -21), (21, 24.5), (28.5, 32))   # turret merlons (Y 93 - 96)
+MERLONS_C = ((-16, -10), (-3, 3), (10, 16))                        # parapet merlons (Y 90 - 94)
+NOTCHES = [(-28.5, -24.5, 93, 96), (24.5, 28.5, 93, 96),           # crenels: silhouette notches open to the top
+           (-21, 21, 94, 96),                                      # the parapet stands lower than the turrets
+           (-21, -16, 90, 94), (-10, -3, 90, 94), (3, 10, 90, 94), (16, 21, 90, 94)]
 COURSES = [(0, 9), (9, 18), (18, 27), (27, 36), (36, 45), (45, 54)]
 SHAFT = [(54, 62), (62, 70), (70, 78), (78, 85)]
 
@@ -138,9 +139,9 @@ def paint_masonry(Pc, back=False, sweep_bottom=None):
         for k, (y0, y1) in enumerate(((88, 92), (92, 96))):
             for j, (a, b) in enumerate(((X0, (X0 + X1) // 2), ((X0 + X1) // 2, X1))):
                 Pc.stone(*Pc.R(a, b, y0, y1), base=shade(st, 1.05 if (j + k) % 2 else 0.97), mortar=MORTAR)
-    Pc.planks_h(*Pc.R(-21, 21, 88, 91), [3], shade(st, 0.95), MORTAR, grain=0.02, knots=0)
+    Pc.planks_h(*Pc.R(-21, 21, 88, 90), [2], shade(st, 0.95), MORTAR, grain=0.02, knots=0)
     for X0, X1 in MERLONS_C:
-        Pc.stone(*Pc.R(X0, X1, 91, 96), base=shade(st, 1.04), mortar=MORTAR)
+        Pc.stone(*Pc.R(X0, X1, 90, 94), base=shade(st, 1.04), mortar=MORTAR)
     for X0, X1, Y0, Y1 in NOTCHES:
         Pc.rect(*Pc.R(X0, X1, Y0, Y1), rgb("2a2526"))
     # slit windows in the turrets
@@ -180,7 +181,7 @@ def paint_leaves_front(F):
                 if abs(cxp) >= 4:
                     F.rivet(F.I(cxp - 1), F.J(yy), big=True)
     for cx in (-8, 8):           # ring plates
-        F.metal(*F.R(cx - 1.5, cx + 1.5, 44.5, 47.5), shade(IRON, 0.85))
+        F.metal(*F.R(cx - 1, cx + 1, 44.5, 47), shade(IRON, 0.85))
         F.rivet(F.I(cx - 1), F.J(46), big=False)
     for y in (51, 32, 11):       # hinge straps ends on the hinge edges
         for X0, X1 in ((-26, -23), (23, 26)):
@@ -223,9 +224,9 @@ def build_leaves(d):
                       side="iron")
         # ring pull: its plate on the leaf, the ring on its own bone (turns while unlocking)
         cx = 8 * sgn
-        d.box(bone, "ring_plate_" + tag, cx - 1.5, cx + 1.5, 44.5, 47.5, 1.25, 2.0, back=None)
-        h = dl.Bone("handle_%d" % (0 if tag == "l" else 1), origin=(cx * P, 40.25 * P, 1.875 * P), parent=bone)
-        d.sprite_box(h, "ring_" + tag, cx, 40.25, 6, 6, 1.75, 2.0, "ring")
+        d.box(bone, "ring_plate_" + tag, cx - 1, cx + 1, 44.5, 47, 1.25, 2.0, back=None)
+        h = dl.Bone("handle_%d" % (0 if tag == "l" else 1), origin=(cx * P, 41.5 * P, 1.875 * P), parent=bone)
+        d.sprite_box(h, "ring_" + tag, cx, 41.5, 5, 5, 1.75, 2.0, "ring")
         # hinge straps / knuckles on the hinge edge (both faces), within the leaf envelope
         hx0, hx1 = (X0, X0 + 3) if tag == "l" else (X1 - 3, X1)
         for y in (51, 32, 11):
@@ -272,6 +273,7 @@ def build_frame(d, sw):
         if ye < CORNICE[0]:
             d.box(fr, "span_%d" % (X + 25), X, X + 1, ye, CORNICE[0], STOP_Z, Z_SPAN, side="stone_side")
     d.box(fr, "keystone", -4, 4, front_bottom(0), CORNICE[1] + 1, STOP_Z, Z_KEY, side="stone_side")
+    d.sill(mat="stone_side", front="stone_side")
     # ---------------- rear arch (soffit), three depths, cut above the swept leaves, merged columns
     layers = ((0, STOP_Z, -0.0), (-4, 0, 0), (-7.25, -4, 0))
     for li, (z0, z1, _) in enumerate(layers):
@@ -292,12 +294,12 @@ def build_frame(d, sw):
     # ---------------- cornice, turrets, parapet, merlons
     d.box(fr, "cornice", -32, 32, CORNICE[0], CORNICE[1], -8, 7.75, side="stone_side")
     for k, (X0, X1) in enumerate(TURRETS):
-        d.box(fr, "turret_%d" % k, X0, X1, CORNICE[1], 92, -7.5, 7.5, side="stone_side")
+        d.box(fr, "turret_%d" % k, X0, X1, CORNICE[1], 93, -7.75, 8.0, side="stone_side")
     for k, (X0, X1) in enumerate(MERLONS_T):
-        d.box(fr, "merlon_t%d" % k, X0, X1, 92, 96, -7.0, 7.0, side="stone_side")
-    d.box(fr, "parapet", -21, 21, CORNICE[1], 91, -6, 6, side="stone_side")
+        d.box(fr, "merlon_t%d" % k, X0, X1, 93, 96, -7.25, 7.5, side="stone_side")
+    d.box(fr, "parapet", -21, 21, CORNICE[1], 90, -6, 6, side="stone_side")
     for k, (X0, X1) in enumerate(MERLONS_C):
-        d.box(fr, "merlon_c%d" % k, X0, X1, 91, 96, -5.5, 5.5, side="stone_side")
+        d.box(fr, "merlon_c%d" % k, X0, X1, 90, 94, -5.5, 5.5, side="stone_side")
     # corbels under the turrets
     for k, (X0, X1) in enumerate(TURRETS):
         for j, cx in enumerate((X0 + 2, X1 - 2)):
@@ -309,13 +311,14 @@ def build_frame(d, sw):
         tg = "r" if side > 0 else "l"
         d.box(det, "banner_rod_" + tg, cx - 3, cx + 2.75, 82, 83, 7.25, 8.0, side="iron", front="iron", back="iron")
         d.sprite_box(fr, "banner_" + tg, cx, 70.5, 5, 23, 7.5, 7.75, "banner")
-        bx = 29.0 * side
-        d.box(fr, "brazier_arm_" + tg, bx - 0.75, bx + 0.75, 20, 26, 5.5, 7.5, side="iron", front="iron",
+        bx = 28.75 * side
+        d.box(fr, "brazier_arm_" + tg, bx - 0.75, bx + 0.75, 19, 25.5, 5.5, 7.5, side="iron", front="iron",
               back="iron")
-        d.box(fr, "brazier_bowl_" + tg, bx - 2.75, bx + 2.75, 26, 29.5, 5.5, 8.0, side="iron_dark",
+        d.box(fr, "brazier_bowl_" + tg, bx - 3, bx + 3, 25.5, 29, 5.25, 8.0, side="iron_dark",
               front="bowl", back="iron")
-        d.box(fr, "glow_flame_" + tg, bx - 2.0, bx + 2.0, 29.5, 34.5, 6.5, 7.75, side="flame", front="flame",
-              back="flame", top="flame", glow=True)
+        d.box(fr, "glow_embers_" + tg, bx - 2, bx + 2, 29, 30.25, 5.5, 7.5, side="flame", front="flame",
+              back="flame", top="flame")
+        d.sprite_box(fr, "flame_" + tg, bx, 34.0, 6, 10, 6.75, 7.0, "flame_cut", glow=True)
 
 
 def icon(px, im):
@@ -363,7 +366,7 @@ def main():
     d.material("flame", lambda px: px.glow(0, px.w, 0, px.h, hot=(255, 244, 170), warm=(250, 170, 40),
                                            edge=(214, 84, 18)), 16, 16)
     d.sprite("banner", 5, 23, dl.sprite_banner())
-    d.sprite("ring", 6, 6, dl.sprite_ring())
+    d.sprite("ring", 5, 5, dl.sprite_ring())
 
     def bowl(px):
         px.metal(0, px.w, 0, px.h, shade(IRON, 0.9))
@@ -371,6 +374,22 @@ def main():
             px.put(i, 0, rgb("8a7a70"))
         px.rect(0, px.w, px.h - 1, px.h, rgb("1e1a1b"))
     d.sprite("bowl", 6, 4, bowl)
+
+    def flame_cut(px):
+        px.clear(0, px.w, 0, px.h)
+        for j in range(px.h):
+            for i in range(px.w):
+                t = j / (px.h - 1)                 # 0 top .. 1 bottom
+                half = (px.w / 2) * (0.25 + 0.75 * t ** 0.7) * (1 + 0.15 * math.sin(j * 1.9 + i))
+                dx = abs(i + 0.5 - px.w / 2 - 0.6 * math.sin(j * 0.9))
+                if dx > half or (j < 2 and dx > 0.6):
+                    continue
+                k = dx / max(0.5, half)
+                c = mix((255, 248, 190), (255, 196, 60), min(1, k * 1.3 + (1 - t) * 0.3))
+                if k > 0.7 or t < 0.25:
+                    c = mix(c, (232, 98, 24), 0.6)
+                px.put(i, j, c)
+    d.sprite("flame_cut", 6, 10, flame_cut)
 
     def brace(px):
         px.planks_h(0, px.w, 0, px.h, [px.h], shade(WOOD, 1.05), WOOD_D, outline=WOOD_D)

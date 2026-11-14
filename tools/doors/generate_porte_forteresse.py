@@ -191,6 +191,12 @@ def build():
             continue
         d.mask_boxes(fr, "stone_%d" % sid, m, -16, 0, ZB, zf[sid], side="stone_side")
     d.mask_boxes(fr, "mortar", lab == 0, -16, 0, ZB, 5.25, side="stone_side")
+    # a 0.5 px lip of the arch stones in front of the top of the leaves (no grazing line of sight between them)
+    for i in range(24):
+        col = np.nonzero(lab[:, i + 4] < 0)[0]
+        if len(col):
+            top = 64 - col[0]
+            d.box(fr, "lip_%d" % i, i - 12, i - 11, top - 0.5, top, ZB, 4.0, front="front", back="back", side="stone_side")
     # behind: outer 1.5 px of the jambs full depth, then the vault above the swept volume
     for s_ in (-1, 1):
         d.box(fr, "outer_%d" % s_, 16 * s_, 14.5 * s_, 0, 64, -8, ZB, front=None, side="stone_side")
@@ -276,7 +282,7 @@ def build():
             xa, xb = (x0 + 0.25, x0 + 5) if s < 0 else (x0 + 7, x0 + 11.75)
             d.box(leaf, "hinge_plate_%d" % k, xa, xb, y - 1, y + 3, 1, 3.0, back=None, side="iron_side")
             px = -12 if s < 0 else 12
-            d.knuckle(leaf, "knuckle_%d" % k, px, y - 1, y + 3, "iron_side")
+            d.knuckle(leaf, "knuckle_%d" % k, px, y - 1.5, y + 3.5, "iron_side")
         # round ring handle near the seam (ref4), its own bone handle_0 / handle_1
         hx = -5 if s < 0 else 4
         dm.ring_handle(d, leaf, "ring", hx, 30, "ring_side", shade(IRON, 0.75), shade(IRON, 1.2), Z=2.5, size=5,
@@ -286,7 +292,7 @@ def build():
             d.box(leaf, "batten_%d" % k, x0 + 0.5, x0 + 11.5, y, y + 4, -2.25, -1, front=None, back="batten", side="wood_side")
         a, b = ((x0 + 2, 9), (x0 + 10, 21)) if s < 0 else ((x0 + 10, 9), (x0 + 2, 21))
         d.strap(leaf, "brace", a, b, 3, -2, -1, "batten")
-        d.box(leaf, "back_bar_hook", (x0 + 8.5) if s < 0 else (x0 + 1.5), (x0 + 10.5) if s < 0 else (x0 + 3.5), 30, 33, -2.75, -2.25,
+        d.box(leaf, "back_bar_hook", (x0 + 8.5) if s < 0 else (x0 + 1.5), (x0 + 10.5) if s < 0 else (x0 + 3.5), 30, 33, -2.75, -1,
               front="iron_side", back="iron_side", side="iron_side")
     d.material("seam_dark", dm.tile_flat(shade(WOOD_D, 0.7), 4), 16, 16)
     d.finalize(top_gap=False, seam_top=57, cover_side="wood_side", seam_mat="seam_dark")

@@ -1,24 +1,30 @@
-"""Shared helpers of the three LARGE doors of 1.31.0 (6 blocks high x 4 wide, two leaves): porte_chateau,
+"""Shared helpers of the three LARGE doors (6 blocks high x 4 wide, two leaves): porte_chateau,
 porte_vapeur_grande, porte_entrepot. Used by tools/doors/generate_<id>.py (the small / medium doors have their own
-libraries, doorlib_small.py / doorlib_medium.py).
+libraries, doorlib_small.py / doorlib_medium.py). Audited on export by tools/doors/door_audit_large.py.
 
     import doorlib_large as dl
     d = dl.LargeDoor("porte_chateau", jamb=6)     # own 256 px atlas; bones root > frame, leaf_l, leaf_r
     F, B = d.F, d.B                               # FRONT / BACK pictures of the whole door (16 px per block)
     F.planks_v(*F.R(-26, 0, 0, 80), widths, base, dark)   # paint in DOOR PIXELS (see below)
     d.material("iron_side", painter)              # 64 x 64 tiles for the side faces
-    d.box(d.leaf_l, "body", -26, 0, 0, 80, -2, 2, side="wood_side")
-    d.export(icon=painter16)                      # bbmodel (models/entity + blockbench), texture, 16x16 icon
-    d.preview(out_png, refs)                      # front / 3-4 / open / back renders next to the reference crops
+    X0, X1 = d.leaf_x("l")                        # leaf body X range (GAP from the hinge and the seam)
+    d.box(d.leaf_l, "body", X0, X1, dl.GAP, 80, -dl.BODY, dl.BODY, side="wood_side")
+    sw = dl.Sweep(d)                              # where the leaves swing (frame parts above / beside them)
+    d.jamb_courses(-1, courses)                   # jamb: front stop, middle, rear rebate for the hinges
+    d.export(icon=painter16)                      # resolve() faces, bbmodel (models/entity + blockbench),
+                                                  # texture, 16x16 icon, then the audit (must print DEFECTS = 0)
+    d.preview(out_png, refs)                      # control sheet next to the reference crops
 
 DOOR PIXELS. Every coordinate given to this library is in 1/16 block, in the contract's frame: X in [-32, 32]
-(+X = right seen from the front), Y in [0, 96] (up), Z in [-8, 8] (+Z = the front face). The leaves are 4 px thick
-(Z in [-2, 2]); leaf_l pivots on its hinge edge X = -32 + jamb, leaf_r on X = 32 - jamb (Z = 0).
+(+X = right seen from the front), Y in [0, 96] (up), Z in [-8, 8] (+Z = the front face). The leaves stay within
+Z in [-2, 2]; leaf_l pivots on its hinge edge X = -32 + jamb, leaf_r on X = 32 - jamb (Z = 0).
 
 THE PROJECTION. The front picture F (64 x 96 px) is the whole door seen from the front: every +Z face of a box shows
-the part of F in front of it (so a band painted on F shows on the raised band cube, a stone painted on F shows on the
-stone cube...). B is the door seen from behind, painted in door pixels too (B mirrors X internally). Faces looking
-along X or Y use 64 x 64 material tiles; small cut-out pictures (gears, banners) are sprites.
+the part of F in front of it. B is the door seen from behind, painted in door pixels too (B mirrors X internally).
+Faces looking along X or Y use material tiles; small cut-out pictures (gears, banners, rings, flames) are sprites
+on cubes named cut_* / glow_cut_* (the only cubes allowed to show transparent texels).
+
+1.32.0 RULES (no air gap, no z-fighting): see LargeDoor.
 """
 import copy
 import json
@@ -633,12 +639,12 @@ class LargeDoor:
                                "uv": [round(float(x), 4) for x in uv]}
         return c
 
-    def sprite_box(self, bone, name, cx, cy, w, h, Z0, Z1, sprite, edge=None):
+    def sprite_box(self, bone, name, cx, cy, w, h, Z0, Z1, sprite, edge=None, glow=False):
         """A flat cut-out (gear, banner, ring): the sprite on its front and back, no side faces unless edge. Its
         name starts with cut_ (the audit allows transparent texels there); keep it >= 1/64 block (0.25 px) away
         from any parallel face and in front of an opaque surface."""
-        return self.box(bone, "cut_" + name, cx - w / 2, cx + w / 2, cy - h / 2, cy + h / 2, Z0, Z1, side=edge,
-                        front=sprite, back=(sprite, True))
+        return self.box(bone, ("glow_cut_" if glow else "cut_") + name, cx - w / 2, cx + w / 2, cy - h / 2,
+                        cy + h / 2, Z0, Z1, side=edge, front=sprite, back=(sprite, True))
 
     def lantern(self, bone, name, cx, cy, cz, w=4, h=5, metal="iron"):
         """A lit lantern (tools/lanterns.py rebuilds it on export: glass drawn full bright, posts, cap, ring).
@@ -663,7 +669,7 @@ class LargeDoor:
             if X1 - Xn < 0.6:
                 Xn = X1
             Yt = top_fn((X + Xn) / 2)
-            self.box(bone, "%s_%d" % (tag, k), X, Xn, 0, Yt, Z0, Z1, side=side, top=top, front=front, back=back)
+            self.box(bone, "%s_%d" % (tag, k), X, Xn, GAP, Yt, Z0, Z1, side=side, top=top, front=front, back=back)
             X = Xn
             k += 1
 
@@ -686,6 +692,13 @@ class LargeDoor:
             a, b = sorted((sg * X_out, sg * (hx + REBATE)))
             out.append(self.box(self.frame, "%s_%s_b%d" % (name, tag, k), a, b, y0, y1, -zb, 0, side=mat))
         return out
+
+    def sill(self, mat="stone_side", front="F", z1=4.0):
+        """The threshold in front of the leaves (their bottoms stand GAP above the ground): covers that sliver
+        seen from the front or the back, never met by a leaf swinging backwards."""
+        hx = 32 - self.jamb - 1
+        return self.box(self.frame, "sill", -hx, hx, 0, 0.75, STOP_Z, z1, side=mat, front=front, back=mat,
+                        top=mat, bottom=mat)
 
     # ------------------------------------------------ export
     def _install(self):
@@ -781,11 +794,26 @@ class LargeDoor:
     def _index(faces):
         idx = {}
         for f in faces:
-            idx.setdefault(f["key"], []).append(f)
-        for k in idx:
-            idx[k].sort(key=lambda f: f["cd"])
-            idx[k] = (np.array([f["cd"] for f in idx[k]]), idx[k])
+            idx.setdefault(f["key"], [[], None])[0].append(f)
+        for ent in idx.values():
+            ent[1] = np.array([f["cd"] for f in ent[0]])
         return idx
+
+    def _reindex(self, indexes, cubes):
+        """Replaces the faces of `cubes` in the three pose indexes (after a move / split / deletion)."""
+        uids = {id(c) for c in cubes}
+        for idx, pose in zip(indexes, POSES):
+            touched = set()
+            for key, ent in idx.items():
+                if any(f["uuid"] in uids for f in ent[0]):
+                    ent[0] = [f for f in ent[0] if f["uuid"] not in uids]
+                    touched.add(key)
+            for c in cubes:
+                for f in self._cube_faces(c, pose):
+                    idx.setdefault(f["key"], [[], None])[0].append(f)
+                    touched.add(f["key"])
+            for key in touched:
+                idx[key][1] = np.array([f["cd"] for f in idx[key][0]])
 
     @staticmethod
     def _conflicts(faces, index, uid):
@@ -793,12 +821,10 @@ class LargeDoor:
         n = 0
         for f in faces:
             ent = index.get(f["key"])
-            if ent is None:
+            if ent is None or not len(ent[0]):
                 continue
-            cds, lst = ent
-            i0 = int(np.searchsorted(cds, f["cd"] - MIN_GAP + 1e-6))
-            i1 = int(np.searchsorted(cds, f["cd"] + MIN_GAP - 1e-6))
-            for g in lst[i0:i1]:
+            for i in np.nonzero(np.abs(ent[1] - f["cd"]) < MIN_GAP - 1e-6)[0]:
+                g = ent[0][i]
                 if g["uuid"] == uid or abs(float(np.dot(f["n"], g["n"]))) < 0.99999:
                     continue
                 if A.overlap(f, g):
@@ -818,8 +844,33 @@ class LargeDoor:
             boxes[self._top(c.bone)].append(self._aabb(c))
         return boxes
 
-    def _valid_move(self, w, m, foreign):
+    def _in_contact(self, w):
+        """Is the face (closed pose) touched from outside by another cube of its rigid group? Shrinking it would
+        open a seam."""
+        c = w["cube"]
+        face = next((h for h in self._cube_faces(c, {}) if h["sem"] == w["sem"]), None)
+        if face is None:
+            return False
+        cs = face["corners"]
+        pts = [cs[0] * (1 - a) * (1 - b) + cs[1] * a * (1 - b) + cs[2] * a * b + cs[3] * (1 - a) * b
+               for a in (0.02, 0.5, 0.98) for b in (0.02, 0.5, 0.98)]
+        pts = np.array(pts) + face["n"] * 1e-3
+        rig = face["rig"]
+        for o in tl._all_cubes(self.root):
+            if o is c or self._rig(o.bone) != rig:
+                continue
+            R = o.bone.frame_rot() @ np.asarray(o.axes, float)
+            C = o.bone.to_world(np.asarray(o.center, float))
+            h = np.asarray(o.size, float) / 2
+            loc = (pts - C) @ R
+            if np.any(np.all(np.abs(loc) < h - 1e-6, axis=1)):
+                return True
+        return False
+
+    def _valid_move(self, w, m, foreign, covered=False):
         c, k, s = w["cube"], w["k"], w["s"]
+        if m < 0 and self._in_contact(w):
+            return None
         size = np.asarray(c.size, float).copy()
         if size[k] + m < MIN_GAP - 1e-9:
             return None
@@ -836,6 +887,13 @@ class LargeDoor:
         if np.any(lo < elo - 1e-6) or np.any(hi > ehi + 1e-6):
             return None
         olo, ohi = self._aabb(c)
+        if m < 0 and not covered and np.allclose(np.asarray(c.axes, float)[:, k] ** 2, np.eye(3)[k], atol=1e-9):
+            # never pull a face off the envelope (the silhouette / a leaf edge would open a sliver)
+            pos = s * np.asarray(c.axes, float)[k, k] > 0
+            face = ohi[k] if pos else olo[k]
+            bound = (6.0 if pos else 0.0) if k == 1 else (2.0 if pos else -2.0) if k == 0 else None
+            if bound is not None and abs(face - bound) < 1e-6:
+                return None
         for g, lst in foreign.items():
             if g == top:
                 continue
@@ -847,14 +905,77 @@ class LargeDoor:
                         return None
         return center, size
 
-    def _fix_pair(self, f, g, dd, foreign, indexes):
+    def _split(self, c, axis, q):
+        """Cuts the axis-aligned cube c in two at door coordinate q (blocks) along `axis`, keeping every face's
+        texture in place (uv rects cut in proportion). False if it cannot."""
+        if not np.allclose(np.asarray(c.axes, float), EYE):
+            return False
+        if any(fc is not None and "uv" not in fc for fc in c.faces.values()):
+            return False
+        cen, siz = np.asarray(c.center, float), np.asarray(c.size, float)
+        lo, hi = cen - siz / 2, cen + siz / 2
+        if not (lo[axis] + MIN_GAP - 1e-6 < q < hi[axis] - MIN_GAP + 1e-6):
+            return False                     # never leave a part thinner than 1/64 block
+        sgn = np.array([-16.0, 16.0, -16.0])
+        cb, hb = cen * sgn, siz * 8.0
+        fb, tb = cb - hb, cb + hb
+
+        def part(a, b):
+            plo, phi = lo.copy(), hi.copy()
+            plo[axis], phi[axis] = a, b
+            qa, qb = sorted((a * sgn[axis], b * sgn[axis]))
+            faces = {}
+            for bb, fc in c.faces.items():
+                if fc is None:
+                    faces[bb] = None
+                    continue
+                nfc = dict(fc)
+                u1, v1, u2, v2 = fc["uv"]
+                _, ud, vd = pv.FACES[bb]
+                for d_, (i1, i2) in ((ud, (0, 2)), (vd, (1, 3))):
+                    if d_[axis] == 0:
+                        continue
+                    st, en = (fb[axis], tb[axis]) if d_[axis] > 0 else (tb[axis], fb[axis])
+                    s2, e2 = (qa, qb) if d_[axis] > 0 else (qb, qa)
+                    w1, w2 = fc["uv"][i1], fc["uv"][i2]
+                    U = lambda x: w1 + (w2 - w1) * (x - st) / (en - st)  # noqa: E731
+                    uv = list(nfc["uv"])
+                    uv[i1], uv[i2] = round(U(s2), 4), round(U(e2), 4)
+                    nfc["uv"] = uv
+                del u1, v1, u2, v2
+                faces[bb] = nfc
+            return (plo + phi) / 2, phi - plo, faces
+        c1, s1, f1 = part(lo[axis], q)
+        c2, s2, f2 = part(q, hi[axis])
+        c.center, c.size, c.faces = c1, s1, f1
+        self._last_new = gg.Cube(c.bone, self._unique(c.name + "_p"), c2, np.asarray(c.axes, float).copy(), s2, f2)
+        return True
+
+    def _try_split(self, f, g):
+        """Partial contact: cut the cube of one face along an edge of the other so that the contact becomes a
+        containment (then the hidden face goes)."""
+        for a, b in ((f, g), (g, f)) if f["area"] <= g["area"] else ((g, f), (f, g)):
+            k = a["k"]
+            for j in [x for x in range(3) if x != k]:
+                alo, ahi = a["corners"][:, j].min(), a["corners"][:, j].max()
+                blo, bhi = b["corners"][:, j].min(), b["corners"][:, j].max()
+                for q in (blo, bhi):
+                    if alo + 1e-3 < q < ahi - 1e-3 and self._split(a["cube"], j, q):
+                        return True
+        return False
+
+    def _fix_pair(self, f, g, dd, foreign, indexes, closed=True):
         import door_audit_large as A
         opp = float(np.dot(f["n"], g["n"])) < 0
-        if opp and dd <= A.COP and f["rig"] == g["rig"]:
+        if dd <= A.COP and f["rig"] == g["rig"]:
+            # same plane, one rigid group: a face inside the other one is hidden (contact) or drawn twice (same
+            # direction): it goes; a partial overlap is first cut so that it becomes a containment
             for a, b in ((f, g), (g, f)):
-                if A.contains(a, b):
+                if A.contains(a, b) and (opp or not A.is_cut(b["el"])):
                     a["cube"].faces[a["bb"]] = None
                     return "deleted"
+            if closed and self._try_split(f, g):
+                return "split"
         best = None
         for w, s_ in ((f, g), (g, f)):
             c = w["cube"]
@@ -869,15 +990,16 @@ class LargeDoor:
                 pref = [shrink, grow] if opp else sorted((grow, shrink), key=abs)
                 cands = pref + [grow + MIN_GAP, shrink - MIN_GAP, grow + 2 * MIN_GAP, shrink - 2 * MIN_GAP,
                                 grow + 4 * MIN_GAP, shrink - 4 * MIN_GAP]
+            covered = (not opp) and A.contains(w, s_)
             for rank, m in enumerate(cands):
-                mv = self._valid_move(w, m, foreign)
+                mv = self._valid_move(w, m, foreign, covered)
                 if mv is None:
                     continue
                 after = sum(self._conflicts(self._cube_faces(c, pose, *mv), indexes[i], id(c))
                             for i, pose in enumerate(POSES))
                 if after >= before:
                     continue
-                score = (after, 0 if w["el"].startswith("cut_") else 1, rank, w["area"])
+                score = (after, 0 if A.is_cut(w["el"]) else 1, rank, w["area"])
                 if best is None or score < best[0]:
                     best = (score, c, mv)
                 if after == 0:
@@ -888,40 +1010,52 @@ class LargeDoor:
         c.center, c.size = center, size
         return "moved"
 
-    def resolve(self, passes=60):
+    def resolve(self, passes=40, verbose=True):
         """Contact faces hidden inside one rigid group are removed; any other pair of parallel overlapping faces
         closer than 1/64 block (closed, open backwards, open forwards) is separated by moving one face along its
         normal (grow or shrink): the move that removes the most conflicts without creating any, never out of the
-        door box / leaf envelope nor into another group's cubes."""
+        door box / leaf envelope nor into another group's cubes (a contact inside a group is only ever closed
+        further, so no seam opens)."""
         import door_audit_large as A
-        stats = {"deleted": 0, "moved": 0, "stuck": 0}
+        stats = {"deleted": 0, "moved": 0, "split": 0, "stuck": 0}
+
+        def current(f, pose):
+            for h in self._cube_faces(f["cube"], pose):
+                if h["sem"] == f["sem"]:
+                    return h
+            return None
         for it in range(passes):
             total = stuck = 0
             changed = False
-            for pose in POSES:
+            for pi, pose in enumerate(POSES):
                 faces = self._pose_faces(pose)
                 pairs = A.parallel_pairs(faces)
                 total += len(pairs)
                 if not pairs:
                     continue
-                indexes = [self._index(self._pose_faces(p)) if p is not pose else self._index(faces) for p in POSES]
+                indexes = [self._index(self._pose_faces(p)) for p in POSES]
                 foreign = self._foreign()
-                touched = set()
                 pairs.sort(key=lambda p: -max(p[0]["area"], p[1]["area"]))
-                for f, g, dd in pairs:
-                    if f["uuid"] in touched or g["uuid"] in touched:
+                for f0, g0, _ in pairs:
+                    f, g = current(f0, pose), current(g0, pose)
+                    if f is None or g is None:
                         continue
-                    if f["cube"].faces.get(f["bb"]) is None or g["cube"].faces.get(g["bb"]) is None:
+                    dd = abs(f["cd"] - g["cd"])
+                    if dd >= MIN_GAP - 1e-6 or not A.overlap(f, g):
                         continue
-                    act = self._fix_pair(f, g, dd, foreign, indexes)
+                    self._last_new = None
+                    act = self._fix_pair(f, g, dd, foreign, indexes, closed=(pi == 0))
                     if act:
                         stats[act] += 1
                         changed = True
-                        touched |= {f["uuid"], g["uuid"]}
-                        if act == "moved":
+                        cubes = [f["cube"], g["cube"]] + ([self._last_new] if self._last_new is not None else [])
+                        self._reindex(indexes, cubes)
+                        if act in ("moved", "split"):
                             foreign = self._foreign()
                     else:
                         stuck += 1
+            if verbose:
+                print("  resolve pass %d: %d pairs, %d stuck" % (it + 1, total, stuck), flush=True)
             if total == 0 or not changed:
                 break
         stats["stuck"] = stuck

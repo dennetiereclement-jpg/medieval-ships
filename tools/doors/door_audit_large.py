@@ -14,7 +14,8 @@ It reads the exported .bbmodel (what the game draws) and the door's texture, and
                 alpha < 255; cut-out sprites must be offset by >= 1/64 block from any parallel face (point 3).
   3. coplanar   pairs of parallel faces (either direction: the game draws both sides, entityCutoutNoCull) that
                 overlap and lie in the same plane (<= 1e-4 block) or closer than 1/64 block, closed and open
-                90 degrees backwards and forwards; cubes thinner than 1/64 block.
+                90 degrees backwards (the default), counted; open forwards (the option, where the leaves pass
+                through the front stops: see sweep_front) reported apart; cubes thinner than 1/64 block.
   4. contract   bounds (4 x 6 x 1 box), leaf pivots, leaf / frame and leaf / leaf sweep 0 -> 90 degrees.
 
     import door_audit_large as A
@@ -209,7 +210,7 @@ def alpha_defects(model, tex):
     H, W = tex.shape[:2]
     bad = []
     for e in model["elements"]:
-        if e["name"].startswith("cut_"):
+        if is_cut(e["name"]):
             continue
         for fname, face in e["faces"].items():
             if face.get("texture") is None:
@@ -419,8 +420,13 @@ def pivots(model):
     return out
 
 
+def is_cut(name):
+    """Cut-out sprites (transparent texels allowed): cut_*, or glow_cut_* when drawn full bright."""
+    return name.startswith(("cut_", "glow_cut_"))
+
+
 def _solid(f):
-    return not f["el"].startswith("cut_") and "detail" not in f["chain"]
+    return not is_cut(f["el"]) and "detail" not in f["chain"]
 
 
 def audit(model, tex, notches=(), ppb=64, verbose=True, dump=None):
@@ -470,7 +476,10 @@ def audit(model, tex, notches=(), ppb=64, verbose=True, dump=None):
         prs = parallel_pairs(fs)
         cop[pose] = [(f["el"], f["fname"], g["el"], g["fname"], round(dd * 16, 4)) for f, g, dd in prs]
     rep["coplanar"] = cop
-    rep["coplanar_total"] = sum(len(v) for v in cop.values())
+    # the forwards pose is the optional opening direction: there the leaves pass through the frame's front stops
+    # (listed by sweep_front), so its pairs are reported apart, not counted as defects of the default door
+    rep["coplanar_total"] = sum(len(v) for k, v in cop.items() if k != "ouverte_avant")
+    rep["coplanar_forwards"] = len(cop.get("ouverte_avant", []))
     rep["thin"] = thin_cubes(model)
     # ---- 4. contract
     pts = np.vstack([f["corners"] for f in faces_closed])
@@ -492,7 +501,8 @@ def audit(model, tex, notches=(), ppb=64, verbose=True, dump=None):
 def print_report(rep):
     print("  AUDIT holes=%d %s" % (rep["holes_total"], {k: v for k, v in rep["holes"].items() if v}))
     print("  AUDIT alpha (solid faces with alpha<255 texels)=%d %s" % (len(rep["alpha"]), rep["alpha"][:6]))
-    print("  AUDIT coplanar/near pairs=%d %s" % (rep["coplanar_total"], {k: len(v) for k, v in rep["coplanar"].items()}))
+    print("  AUDIT coplanar/near pairs (closed + open backwards)=%d %s" % (
+        rep["coplanar_total"], {k: len(v) for k, v in rep["coplanar"].items()}))
     for pose, v in rep["coplanar"].items():
         for p in v[:8]:
             print("     %s: %s.%s ~ %s.%s  d=%.4fpx" % ((pose,) + p))

@@ -424,7 +424,7 @@ class Door:
             regs["+3"] = None
         return gg.add_cube(bone, name, c, axes, (L, wid / 16, (Z1 - Z0) / 16), regs, u_dir=u)
 
-    def gear(self, parent, name, cx, cy, r_out, r_in, teeth, Z0, Z1, metal, hub=None, spokes=4, pic=None):
+    def gear(self, parent, name, cx, cy, r_out, r_in, teeth, Z0, Z1, metal, hub=None, spokes=4, pic=None, spoke_w=0.55):
         """A cut-out gear (bone `name`, pivot = its centre) of radius r_out px with `teeth` teeth of depth
         r_out - r_in, spokes and a hub; painted on its own picture `pic` so the surface behind stays plain."""
         metal = np.asarray(metal, float)
@@ -446,7 +446,7 @@ class Door:
                 r = math.hypot(x, y)
                 a = math.atan2(y, x)
                 rr = r_out if math.cos(a * teeth) > 0.0 else r_in
-                is_spoke = any(abs(math.sin(a - k * math.pi / spokes)) * r < 0.55 for k in range(spokes))
+                is_spoke = any(abs(math.sin(a - k * math.pi / spokes)) * r < spoke_w for k in range(spokes))
                 mask[j, i] = r <= rr and (r > inner_hole or is_spoke or r < hub)
         for j in range(h):
             for i in range(w):
@@ -454,13 +454,19 @@ class Door:
                     continue
                 x, y = X0 + i + 0.5 - cx, Y0 + (h - 1 - j) + 0.5 - cy
                 r = math.hypot(x, y)
-                edge = any(not (0 <= j + dj < h and 0 <= i + di < w) or not mask[j + dj, i + di]
-                           for dj, di in ((1, 0), (-1, 0), (0, 1), (0, -1)))
-                c = metal * (0.97 + 0.08 * math.sin(i * 1.3 + j * 0.7))
-                if edge:
-                    c = mix(c, dark, 0.55) if (x - y) > 0 else mix(c, light, 0.45)
+                up_ = j == 0 or not mask[j - 1, i]
+                lf_ = i == 0 or not mask[j, i - 1]
+                dn_ = j == h - 1 or not mask[j + 1, i]
+                rt_ = i == w - 1 or not mask[j, i + 1]
+                c = metal * (0.98 + 0.05 * math.sin(i * 1.3 + j * 0.7))
+                if r < r_in and r > hub:
+                    c = shade(metal, 0.86)                       # spokes a little darker than the rim
+                if up_ or lf_:
+                    c = mix(c, light, 0.6)                       # lit top / left edges
+                if dn_ or rt_:
+                    c = mix(c, shade(metal, 0.45), 0.7)          # dark bottom / right edges: a crisp outline
                 if r < hub:
-                    c = light if (x < 0 < y) else shade(metal, 0.7)
+                    c = light if (x < 0 < y or r < 0.6) else shade(metal, 0.62)
                 C.put(X0 + i, Y0 + (h - 1 - j), np.clip(c, 0, 255))
         self.mask_boxes(bone, name + "_c", mask, X0, Y0, Z0, Z1, front=pic, back=None, side="gear_side")
         return bone
@@ -538,6 +544,18 @@ class Door:
                 else:
                     X0 = hx - u1
                 self.rebox(c, X0, X1, Y0, Y1n, Z0, Z1)
+        # the cores in two halves: the big front face and the big back face then have no opposite face in their
+        # own cube, so the game never skips them as back faces (BbModel twoSided); depth sorts them as before
+        for leaf in (self.leaf_l, self.leaf_r):
+            for c in list(leaf.cubes):
+                px = getattr(c, "_px", None)
+                if px is None or not c.name.startswith("core") or abs(px[4] + 1) > 1e-6 or abs(px[5] - 1) > 1e-6:
+                    continue
+                X0, X1, Y0, Y1 = px[:4]
+                h = self.rebox(c, X0, X1, Y0, Y1, 0, 1, drop=("-3",))
+                regs = dict(h._regs)
+                self.box(leaf, c.name + "_b", X0, X1, Y0, Y1, -1, 0, front=None, back=c._regs["-3"], side=None,
+                         top=regs["+2"] or "", bottom=regs["-2"] or "", left=regs["-1"] or "", right=regs["+1"] or "")
         top = seam_top if seam_top is not None else (self.top - (GAP if top_gap else 0))
         mat = seam_mat or cover_side
         self.box(self.leaf_l, "seam_cover", -1.5, GAP / 2 + 0.25, 0, top, -2.5, -1.25, front=mat, back=cover_back,
@@ -559,11 +577,11 @@ class Door:
         umax = hx + 0.5 if umax is None else umax
         nx, nz = int(round((X1 - X0) / step)), int(round((Z1 - Z0) / step))
         H = np.full((nx, nz), -1.0)
-        us = np.arange(0, umax + 1e-6, 0.125)
+        us = np.arange(-2.0, umax + 1e-6, 0.125)          # u < 0: the hinge barrels
         zs = np.arange(zl[0], zl[1] + 1e-6, 0.25)
         th = np.radians(np.arange(0, 90.01, 0.5))
         U, Zl, T = np.meshgrid(us, zs, th, indexing="ij")
-        hgt = np.vectorize(lambda u: leaf_top(-hx + min(u, hx - 0.01)))(U) + 0.5
+        hgt = np.vectorize(lambda u: leaf_top(-hx + min(max(u, 0.0), hx - 0.01)))(U) + 0.5
         X = -hx + U * np.cos(T) + Zl * np.sin(T)
         Z = -U * np.sin(T) + Zl * np.cos(T)
         for sx in (1, -1):
@@ -702,6 +720,9 @@ class Door:
             ("ouverte 90", opened, dict(W=330, H=Hh, eye=(3.0, 2.8, 6.4), target=(0, 1.9, -0.3), fov=42)),
             ("arriere", closed, dict(W=290, H=Hh, eye=(0, 2.0, -40), target=(0, 2.0, 0), ortho=2.3)),
             ("ouverte dessus", opened, dict(W=330, H=Hh, eye=(-2.4, 6.5, -4.0), target=(0, 1.6, -0.4), fov=42)),
+            ("chant (fermee)", closed, dict(W=150, H=Hh, eye=(40, 2.0, 0), target=(0, 2.0, 0), ortho=2.3 * 150 / 290)),
+            ("battant g. seul, chant", pv.build_mesh(_only(model, "leaf_l"), {}),
+             dict(W=150, H=Hh, eye=(40, 2.0, 0), target=(0, 2.0, 0), ortho=2.3 * 150 / 290)),
         ]
         ims = []
         for title, quads, kw in views:
@@ -797,17 +818,19 @@ def _overlap(f, g, tol):
     return True
 
 
-def _split(door, c, g):
+def _split(door, c, g, axes=(0, 1, 2)):
     """Cuts the box c (made by box()) along an edge of the face g that crosses it; True when cut."""
     X0, X1, Y0, Y1, Z0, Z1 = c._px
     lo = [X0, Y0, Z0]
     hi = [X1, Y1, Z1]
     gc = [g["p"] + a * g["e1"] + b * g["e2"] for a, b in ((-1, -1), (1, -1), (1, 1), (-1, 1))]
     gp = np.array([[q[0] * 16, q[1] * 16, q[2] * 16] for q in gc])
-    for k in range(3):
+    for k in axes:
         for v in (gp[:, k].min(), gp[:, k].max()):
             v = round(float(v), 4)
             if lo[k] + 1e-3 < v < hi[k] - 1e-3:
+                if k == 2 and os.environ.get("DOOR_DEBUG"):
+                    print("   z-cut %s at %.3f by %s %s" % (c.name, v, g["cube"].name, g["sem"]))
                 a_hi, b_lo = list(hi), list(lo)
                 a_hi[k] = v
                 b_lo[k] = v
@@ -851,11 +874,10 @@ def _resolve(door, root, max_iter=400):
                 g["cube"].faces[zfight.SEMANTIC_FACE[g["sem"]]] = None
                 gone.add(kg)
                 removed += 1
-            elif getattr(f["cube"], "_px", None) is not None and _split(door, f["cube"], g):
-                cut.add(id(f["cube"]))
-                cuts += 1
-            elif getattr(g["cube"], "_px", None) is not None and _split(door, g["cube"], f):
-                cut.add(id(g["cube"]))
+            elif any(getattr(a["cube"], "_px", None) is not None and _split(door, a["cube"], b, ax) and not cut.add(id(a["cube"]))
+                     for ax in ((0, 1), (2,)) for a, b in ((f, g), (g, f))):
+                # X / Y cuts first, on either box: the reliefs are stacked along Z, a Z cut would put a face in
+                # the plane of another relief
                 cuts += 1
             else:
                 print("resolve: cannot separate %s %s / %s %s" % (f["cube"].name, f["sem"], g["cube"].name, g["sem"]))
@@ -869,6 +891,29 @@ def _resolve(door, root, max_iter=400):
         print("   left: %s %s (%s)  %s %s (%s)" % (f["cube"].name, f["sem"], f["cube"].bone.name, g["cube"].name, g["sem"],
                                              g["cube"].bone.name))
     return removed
+
+
+def _only(model, bone):
+    """A copy of the model with only the elements under `bone` (preview of one leaf)."""
+    m = json.loads(json.dumps(model))
+    keep = set()
+
+    def walk(g, inside):
+        inside = inside or g["name"] == bone
+        for ch in g["children"]:
+            if isinstance(ch, dict):
+                walk(ch, inside)
+            elif inside:
+                keep.add(ch)
+    for g in m["outliner"]:
+        walk(g, False)
+    m["elements"] = [e for e in m["elements"] if e["uuid"] in keep]
+
+    def prune(g):
+        g["children"] = [prune(c) if isinstance(c, dict) else c for c in g["children"] if isinstance(c, dict) or c in keep]
+        return g
+    m["outliner"] = [prune(g) for g in m["outliner"]]
+    return m
 
 
 def _set_rot(groups, name, rot):

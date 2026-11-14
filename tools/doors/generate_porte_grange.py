@@ -88,6 +88,12 @@ def build():
         F.strap_h(x0 + 2, x0 + 10, 0, 2, IRON, light=IRON_L)
         F.strap_h(x0 + 2, x0 + 10, LEAF_TOP - 2, 2, IRON, light=IRON_L)
         F.strap_h(x0 + 2, x0 + 10, 23, 2, IRON, light=IRON_L)
+        # forged hinge straps (on their raised boxes), pointed towards the seam
+        for y in (5, 21, 42):
+            xa = x0 if x0 < 0 else x0 + 6
+            F.metal(xa, y, xa + 6, y + 3, shade(IRON, 0.92), noise=3)
+            F.rivet(xa + (1 if x0 < 0 else 4), y + 1, light=IRON_L)
+            F.rivet(xa + (4 if x0 < 0 else 1), y + 1, light=IRON_L)
         # seam shadow
     for y in range(0, LEAF_TOP):
         F.put(-1, y, shade(F.get(-1, y), 0.7))
