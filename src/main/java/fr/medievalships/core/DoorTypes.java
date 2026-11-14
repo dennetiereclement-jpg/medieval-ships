@@ -7,13 +7,13 @@ import fr.medievalships.core.DoorType.Material;
 
 /**
  * The ten doors of 1.31.0 (one block and one item each, {@code medievalships:<id>}, tab "Portes"): three small ones
- * (2 high, 1 wide, one leaf, 12 ticks since 1.32.0), four medium ones (4 high, 2 wide, two leaves, 24 ticks) and three great gates
- * (6 high, 4 wide, two leaves of 2, 70 ticks: slow and heavy). {@link #ALL} in the order of the creative tab.
+ * (2 high, 1 wide, one leaf, 16 ticks since 1.33.0), four medium ones (4 high, 2 wide, two leaves, 28 ticks) and three great gates
+ * (6 high, 4 wide, two leaves of 2, 80 ticks: slow and heavy). {@link #ALL} in the order of the creative tab.
  */
 public final class DoorTypes {
-	public static final int SMALL_TICKS = 12;
-	public static final int MEDIUM_TICKS = 24;
-	public static final int LARGE_TICKS = 70;
+	public static final int SMALL_TICKS = 16;
+	public static final int MEDIUM_TICKS = 28;
+	public static final int LARGE_TICKS = 80;
 	/**
 	 * Hinges' distance from the middle (the pivots of the models): small doors 0.40625 (a leaf of 13 px in a 1 block
 	 * opening), medium doors 0.75 (two leaves of 0.75 in 2 blocks), great gates 1.625 (two leaves of 1.625 in 4 blocks).

@@ -17,6 +17,7 @@ import net.minecraft.util.math.Vec3d;
 import fr.medievalships.client.model.BbModel;
 import fr.medievalships.core.DoorLayout;
 import fr.medievalships.core.DoorMotion;
+import fr.medievalships.core.DoorTrack;
 import fr.medievalships.core.DoorType;
 import fr.medievalships.data.ConfigManager;
 import fr.medievalships.door.DoorBlockEntity;
@@ -27,11 +28,15 @@ import fr.medievalships.door.DoorBlockEntity;
  * fixed parts (the {@code frame}...) still come baked, and each moving part is drawn baked too, under its own matrix:
  * the leaves turned about their hinge, the gears turning about their axis (only while the door moves), the bolts and
  * the piston rods slid, the handles and rings turned. The pose is computed here every frame, between two ticks, from
- * the state the server sent (target, start tick, start progress) with the curve of {@link DoorMotion} (1.32.0: the
- * unlocking, then leaves with inertia, settling past the stop, the slam and its small bounce, the second leaf a little
- * later, the gears at the speed of their leaf): no packet per tick. Glowing cubes are full bright, the {@code detail}
- * bones are hidden beyond {@code doorDetailDistance}, nothing is drawn beyond {@code doorRenderDistance} or out of the
- * view. Drawn outside its block (a door is up to 4 x 6): never cut when the controller's section leaves the view.
+ * the state the server sent (target, start tick, start progress) with the curve of {@link DoorMotion} (1.33.0: the
+ * unlocking, then the push and the glide of the leaves to a cushioned stop; closing, a soft start, the slam and its
+ * tiny damped bounce, the rings rattling, the locking; the second leaf a little later, the gears at the speed of their
+ * leaf): no packet per tick. 1.33.0: the time is {@link DoorClientClock}'s (the server's time followed smoothly: its
+ * time packets never make a door jump) and the pose goes through the door's {@link DoorTrack} (a new movement fades in
+ * from what was drawn, its position and speed: no jump when a packet arrives, no flip when the door turns back).
+ * Glowing cubes are full bright, the {@code detail} bones are hidden beyond {@code doorDetailDistance}, nothing is drawn
+ * beyond {@code doorRenderDistance} or out of the view. Drawn outside its block (a door is up to 4 x 6): never cut when
+ * the controller's section leaves the view.
  *
  * <p>Back faces: the layer draws both sides of a triangle ({@code entityCutoutNoCull}), so {@link MeshEmitter} skips a
  * face seen from behind when its cube has the opposite face (that face hides it), for the baked fixed parts and for the
@@ -68,15 +73,20 @@ public class DoorRenderer implements BlockEntityRenderer<DoorBlockEntity, DoorRe
 		state.door = be.doorType();
 		state.quarter = be.quarter();
 		state.backward = be.backward();
-		double now = be.getWorld() == null ? 0 : be.getWorld().getTime() + tickProgress;
-		state.progress = be.progressAt(now);
-		state.moving = DoorMotion.moving(be.target(), state.progress);
+		// every frame, at the smoothed time of this client, through the door's track (no jump on any packet)
+		double now = DoorClientClock.now(be.getWorld(), tickProgress);
 		if (state.door != null) {
-			DoorMotion.Curve c = DoorMotion.curve(state.door);
-			state.leafL = be.leafAt(now, 0);
-			state.leafR = state.door.leaves() > 1 ? be.leafAt(now, 1) : state.leafL;
-			state.unlock = DoorMotion.unlock(c, state.progress);
-			state.handleAngle = DoorMotion.handleAngle(state.door, state.progress);
+			DoorTrack track = be.track();
+			track.update(state.door, be.target(), be.startTick(), be.startProgress(), now);
+			state.progress = track.progress;
+			state.moving = track.moving;
+			state.leafL = track.pose[DoorTrack.LEAF_L];
+			state.leafR = track.pose[DoorTrack.LEAF_R];
+			state.unlock = track.pose[DoorTrack.BOLTS];
+			state.handleAngle = track.pose[DoorTrack.HANDLE];
+		} else {
+			state.progress = be.progressAt(now);
+			state.moving = false;
 		}
 		double[] o = be.origin();
 		double h = state.door == null ? 1 : state.door.height() / 2.0;

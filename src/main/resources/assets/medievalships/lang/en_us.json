@@ -138,8 +138,10 @@
   "itemGroup.medievalships.doors": "Doors",
   "item.medievalships.cle": "Key",
   "item.medievalships.cle_universelle": "Master Key",
-  "item.medievalships.cle.ouvre": "Opens: %s",
+  "item.medievalships.cle.ouvre": "Opens only: %s",
   "item.medievalships.cle.serrure": "Lock: %s",
+  "item.medievalships.cle.porte": "Door: %s",
+  "item.medievalships.cle.ancienne": "1.32.0 key: it will be bound to the first door it opens.",
   "item.medievalships.cle.vierge": "Blank key: an administrator binds it to a door (right click on the door).",
   "item.medievalships.cle_universelle.desc": "Opens every door, in an administrator's hands.",
   "item.medievalships.cle_universelle.geste": "Sneak + right click: free or key door."

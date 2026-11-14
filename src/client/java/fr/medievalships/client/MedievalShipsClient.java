@@ -42,6 +42,9 @@ public final class MedievalShipsClient implements ClientModInitializer {
 				ctx -> new fr.medievalships.client.render.DoorRenderer());
 		ResourceLoader.get(ResourceType.CLIENT_RESOURCES).registerReloader(MedievalShips.id("door_models"),
 				(SynchronousResourceReloader) fr.medievalships.client.render.DoorModels::reload);
+		// the clock the doors are drawn with (1.33.0): the server's time followed smoothly (its time packets never make a
+		// door jump)
+		ClientTickEvents.END_CLIENT_TICK.register(fr.medievalships.client.render.DoorClientClock::tick);
 		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientBlockEntityEvents.BLOCK_ENTITY_LOAD.register((be, world) -> {
 			if (be instanceof fr.medievalships.tent.TentBlockEntity tent && tent.tentType() != null) {
 				fr.medievalships.tent.TentCollisions.add(world, be.getPos(), tent.tentType(), tent.quarter());
@@ -75,6 +78,7 @@ public final class MedievalShipsClient implements ClientModInitializer {
 			fr.medievalships.client.bridge.DrawbridgeClient.clear();
 			fr.medievalships.bridge.DrawbridgeCollisions.clearClientWorlds();
 			fr.medievalships.client.render.TrainingTargetRenderer.clear();
+			fr.medievalships.client.render.DoorClientClock.clear();
 			SyncedConfig.clear();
 		});
 		// the server's settings that change what this client shows (preview, bank, pilot's panel)

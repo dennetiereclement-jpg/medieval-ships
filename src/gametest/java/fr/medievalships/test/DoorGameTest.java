@@ -28,7 +28,9 @@ import net.minecraft.util.math.Vec3d;
 import fr.medievalships.client.render.DoorModels;
 import fr.medievalships.core.DoorAccess;
 import fr.medievalships.core.DoorData;
+import fr.medievalships.core.DoorKeys;
 import fr.medievalships.core.DoorLayout;
+import fr.medievalships.core.DoorMotion;
 import fr.medievalships.core.DoorType;
 import fr.medievalships.core.DoorTypes;
 import fr.medievalships.data.ConfigManager;
@@ -52,12 +54,20 @@ import fr.medievalships.door.KeyItem;
  *
  * <p>1.32.0 ({@link #keys}): an administrator binds a blank key (and a copy), a player who is not one cannot, the key
  * anywhere in the inventory opens its door, refused with the message without it or with the key of another door,
- * {@code /porte cle donner}, one lock shared by two doors (sneaking with a key), the master key opening a locked door
- * for an administrator and refused to a player who is not one (the permission level of the administrators raised for
- * the click: nobody is one), the master key's free / key switch, {@code /porte serrure changer} making the old key
- * useless, the automatic closing (one minute by default, then a short one measured; the redstone holding a door open),
- * the migration of a 1.31.0 door's closing; the great gate photographed at a quarter, half and three quarters of its
- * opening; across the restart, a key door, its lock and the player's key.
+ * {@code /porte cle donner}, the master key opening a locked door for an administrator and refused to a player who is
+ * not one (the permission level of the administrators raised for the click: nobody is one), the master key's free /
+ * key switch, {@code /porte serrure changer} making the old key useless, the automatic closing (one minute by default,
+ * then a short one measured; the redstone holding a door open), the migration of a 1.31.0 door's closing; the great
+ * gate photographed at a quarter, half and three quarters of its opening; across the restart, a key door, its lock and
+ * the player's key.
+ *
+ * <p>1.33.0: one key, one door ({@link #keys}): an administrator sneaking with a bound key on another door is refused
+ * ("Cette clé est déjà liée à ...") and nothing changes; a key refused on a second door that has the same lock (a shared
+ * lock of 1.32.0, simulated by copying the lock into it); a key of 1.32.0 bound to the first door it opens, then
+ * refused on the other; a blank key bound to a door whose lock another door uses gives it a lock of its own. The
+ * animation ({@link #animation}): a medium door and a great gate photographed twelve times at regular intervals while
+ * they open, then while they close ({@code portes_anim_<id>_<ouv|ferm>_<nn>}, for a GIF), the pose drawn by the client
+ * at each picture checked (steady, no jump back).
  */
 public final class DoorGameTest {
 	/** Away from every other scenario (the ships' boats are at 7400, the benchmark at 6000). */
@@ -566,6 +576,9 @@ public final class DoorGameTest {
 		server.runCommand("porte supprimer chene_test");
 		context.waitTicks(3);
 
+		// ---- the animation (1.33.0): a medium door and a great gate opening and closing, image by image
+		animation(context, server, world, check, shot);
+
 		// ---- the ten doors, closed then open (screenshots)
 		gallery(context, server, world, check, shot);
 
@@ -596,20 +609,24 @@ public final class DoorGameTest {
 		Object[] bound = server.computeOnServer(srv -> {
 			ItemStack h = player(srv).getMainHandStack();
 			DoorBlockEntity d = door(srv, a);
-			return new Object[] {KeyItem.lockOf(h), KeyItem.labelOf(h), d.lock(), d.access()};
+			return new Object[] {KeyItem.lockOf(h), KeyItem.labelOf(h), d.lock(), d.access(), KeyItem.doorOf(h), d.doorId()};
 		});
-		String lockA = (String) bound[0];
-		check.accept(!lockA.isEmpty() && lockA.equals(bound[2]) && "maison_test".equals(bound[1]) && bound[3] == DoorAccess.CLE,
-				"keys: an administrator's right click with a blank key binds it to the door's lock (\"Ouvre : maison_test\"), the door in key access: "
-						+ java.util.Arrays.toString(bound));
+		String lockA = (String) bound[0], idA = (String) bound[5];
+		check.accept(!lockA.isEmpty() && lockA.equals(bound[2]) && "maison_test".equals(bound[1]) && bound[3] == DoorAccess.CLE && idA.equals(bound[4]),
+				"keys: an administrator's right click with a blank key binds it to that door, its lock and the door itself (\"Ouvre uniquement :"
+						+ " maison_test\"), the door in key access: " + java.util.Arrays.toString(bound));
 		server.runOnServer(srv -> {
 			ItemStack k = player(srv).getMainHandStack().copy();
 			player(srv).setStackInHand(Hand.MAIN_HAND, ItemStack.EMPTY);
 			player(srv).getInventory().setStack(20, k);
 		});
+		lastOverlay = "";
 		use(server, aTop, new ItemStack(Doors.KEY), false, true);
+		context.waitTicks(2);
 		String copy = handLock(server);
-		check.accept(lockA.equals(copy), "keys: a second blank key on the same door is a copy (same lock)");
+		String copyDoor = server.computeOnServer(srv -> KeyItem.doorOf(player(srv).getMainHandStack()));
+		check.accept(lockA.equals(copy) && idA.equals(copyDoor) && lastOverlay.startsWith("Double de la clé"), "keys: a second blank key on the same door"
+				+ " is a copy of the key of that door (\"" + lastOverlay + "\")");
 		emptyHand(server);
 		// renamed at an anvil (the custom name): still the key of the door
 		server.runOnServer(srv -> player(srv).getInventory().getStack(20).set(net.minecraft.component.DataComponentTypes.CUSTOM_NAME,
@@ -656,7 +673,6 @@ public final class DoorGameTest {
 			}
 			return new Object[] {n, label, d.access(), d.lock()};
 		});
-		String oldLockB = (String) given[3];
 		check.accept((Integer) given[0] == 1 && "maison_test_arriere".equals(given[1]) && given[2] == DoorAccess.CLE,
 				"keys: /porte cle donner @a maison_test_arriere gives one key of that door, which becomes a key door: " + java.util.Arrays.toString(given));
 		lastOverlay = "";
@@ -668,24 +684,57 @@ public final class DoorGameTest {
 		click(server, b);
 		waitUntil(context, () -> closed(server, b), 40);
 
-		// one lock for two doors: an administrator sneaking with the key of the front door on the back door
-		use(server, bTop, KeyItem.bound(lockA, "maison_test"), true, true);
-		String lockB = server.computeOnServer(srv -> door(srv, b).lock());
-		check.accept(lockA.equals(lockB), "keys: sneaking with a bound key, an administrator gives the back door the front door's lock");
+		// one key, one door (1.33.0): an administrator sneaking with the key of the front door on the back door is refused,
+		// nothing changes
+		String lockB = (String) given[3];
+		String idB = server.computeOnServer(srv -> door(srv, b).doorId());
+		lastOverlay = "";
+		use(server, bTop, KeyItem.bound(lockA, "maison_test", idA), true, true);
+		context.waitTicks(3);
+		Object[] after = server.computeOnServer(srv -> new Object[] {door(srv, b).lock(), KeyItem.lockOf(player(srv).getMainHandStack()),
+				KeyItem.doorOf(player(srv).getMainHandStack())});
+		check.accept(lockB.equals(after[0]) && lockA.equals(after[1]) && idA.equals(after[2])
+				&& "Cette clé est déjà liée à « maison_test ». Une clé n'ouvre qu'une seule porte.".equals(lastOverlay),
+				"keys: sneaking with the key of another door, an administrator is refused and nothing changes (\"" + lastOverlay + "\")");
 		emptyHand(server);
+		// the back door given the front door's lock (a lock shared in 1.32.0, a copied block entity): the front door's key
+		// still does not open it
 		server.runCommand("clear @a medievalships:cle");
-		pocket(server, 21, KeyItem.bound(lockA, "maison_test"));
-		click(server, bTop);
-		click(server, aTop);
-		check.accept(waitUntil(context, () -> open(server, a) && open(server, b), 40) >= 0, "keys: one key opens the front and the back door");
-		click(server, a);
-		click(server, b);
-		waitUntil(context, () -> closed(server, a) && closed(server, b), 40);
-		server.runCommand("clear @a medievalships:cle");
-		pocket(server, 22, KeyItem.bound(oldLockB, "maison_test_arriere"));
+		server.runCommand("data merge block " + pos(b) + " {lock:\"" + lockA + "\",lock_home:\"\"}");
+		check.accept(lockA.equals(server.computeOnServer(srv -> door(srv, b).lock())), "keys: the back door now has the front door's lock (as in 1.32.0)");
+		pocket(server, 21, KeyItem.bound(lockA, "maison_test", idA));
+		lastOverlay = "";
 		click(server, bTop);
 		context.waitTicks(15);
-		check.accept(closed(server, b), "keys: the back door's own old key no longer opens it");
+		check.accept(closed(server, b) && "Vous n'avez pas la clé de cette porte.".equals(lastOverlay),
+				"keys: one key, one door: the front door's key is refused on the back door that has the same lock (\"" + lastOverlay + "\")");
+		click(server, aTop);
+		check.accept(waitUntil(context, () -> open(server, a), 40) >= 0, "keys: ... and it still opens its own door");
+		click(server, a);
+		waitUntil(context, () -> closed(server, a), 40);
+		// a key of 1.32.0 (bound to the lock, not to a door): it opens the first door of its lock it is used on, and that
+		// door only from then on
+		server.runCommand("clear @a medievalships:cle");
+		pocket(server, 22, KeyItem.bound(lockA, "maison_test", ""));
+		click(server, bTop);
+		check.accept(waitUntil(context, () -> open(server, b), 40) >= 0, "keys: a key of 1.32.0 opens the back door (the first door of its lock it meets)");
+		String adopted = server.computeOnServer(srv -> KeyItem.doorOf(player(srv).getInventory().getStack(22)));
+		lastOverlay = "";
+		click(server, aTop);
+		context.waitTicks(15);
+		check.accept(idB.equals(adopted) && closed(server, a) && lastOverlay.startsWith("Vous n'avez pas la clé"),
+				"keys: ... it is now the back door's key and is refused on the front door (" + adopted + ")");
+		click(server, b);
+		waitUntil(context, () -> closed(server, b), 40);
+		// a blank key bound to the back door, whose lock the front door uses: the back door gets a lock of its own
+		server.runCommand("clear @a medievalships:cle");
+		lastOverlay = "";
+		use(server, bTop, new ItemStack(Doors.KEY), false, true);
+		context.waitTicks(3);
+		Object[] own = server.computeOnServer(srv -> new Object[] {door(srv, b).lock(), door(srv, a).lock(), KeyItem.lockOf(player(srv).getMainHandStack())});
+		check.accept(!lockA.equals(own[0]) && lockA.equals(own[1]) && own[0].equals(own[2]) && lastOverlay.contains("nouvelle"),
+				"keys: binding a key to a door whose lock another door uses gives it its own lock (\"" + lastOverlay + "\")");
+		emptyHand(server);
 		server.runCommand("clear @a medievalships:cle");
 
 		// the master key: an administrator opens a locked door; refused to a player who is not one
@@ -712,7 +761,7 @@ public final class DoorGameTest {
 		server.runCommand("clear @a medievalships:cle_universelle");
 
 		// /porte serrure changer: the old key no longer opens; a new key does
-		pocket(server, 20, KeyItem.bound(lockA, "maison_test"));
+		pocket(server, 20, KeyItem.bound(lockA, "maison_test", idA));
 		server.runCommand("porte serrure info maison_test");
 		server.runCommand("porte serrure changer maison_test");
 		String newA = server.computeOnServer(srv -> door(srv, a).lock());
@@ -760,6 +809,72 @@ public final class DoorGameTest {
 		server.runCommand("porte supprimer maison_test");
 		server.runCommand("porte supprimer maison_test_arriere");
 		server.runCommand("porte supprimer cachot_test");
+		context.waitTicks(3);
+	}
+
+	/**
+	 * The animation of 1.33.0: a medium door (fortress) and a great gate (the great steam gate: gears, pistons, bolts)
+	 * opening then closing, twelve pictures at regular intervals each time ({@code portes_anim_<id>_ouv_00..11},
+	 * {@code ..._ferm_00..11}: a GIF), seen from behind, where the leaves swing; at each picture the pose the client drew
+	 * is read and checked: opening, the leaves only ever open further and end open; closing, they only close (but for
+	 * their tiny bounce at the frame) and end shut.
+	 */
+	private static void animation(ClientGameTestContext context, TestServerContext server, TestClientWorldContext world, BiConsumer<Boolean, String> check,
+			Consumer<String> shot) {
+		DoorType[] types = {DoorTypes.FORTRESS, DoorTypes.GREAT_STEAM};
+		int[] xs = {X, X + 9};
+		server.runCommand("gamemode spectator @a"); // the camera stays still (no fall) for the whole sequence
+		context.runOnClient((MinecraftClient c) -> c.options.hudHidden = true);
+		for (int i = 0; i < types.length; i++) {
+			DoorType t = types[i];
+			BlockPos target = new BlockPos(xs[i], Y, Z - 16);
+			server.runCommand(String.format(Locale.ROOT, "porte poser %s %d %d %d sud", t.id(), target.getX(), Y, target.getZ()));
+			int[] cc = DoorLayout.controllerFromTarget(target.getX(), Y, target.getZ(), 0, t.width());
+			BlockPos ctrl = new BlockPos(cc[0], cc[1], cc[2]);
+			context.waitTicks(3);
+			check.accept(cellsPresent(server, ctrl, 0, t) == t.cells(), "doors: " + t.id() + " placed for its animation");
+			server.runCommand("porte fermeture " + pos(ctrl) + " 0");
+			double[] o = DoorLayout.toWorld(ctrl.getX(), ctrl.getY(), ctrl.getZ(), 0, t.width(), 0, 0, 0);
+			double r = t.height() * 1.1 + 2.5;
+			// behind the door (north: it faces south), a little to its side and above: the leaves swing towards the camera
+			look(server, o[0] + r * 0.55, Y + t.height() * 0.85 + 1.2, o[2] - r, o[0], Y + t.height() * 0.42, o[2] - 0.8);
+			world.waitForChunksRender();
+			context.waitTicks(10);
+			for (boolean opening : new boolean[] {true, false}) {
+				server.runCommand("porte " + (opening ? "ouvrir " : "fermer ") + pos(ctrl));
+				double[] drawn = new double[12];
+				int done = 0;
+				for (int k = 0; k < 12; k++) {
+					int at = Math.round(k * t.durationTicks() / 11f);
+					if (at > done) {
+						context.waitTicks(at - done);
+						done = at;
+					}
+					shot.accept(String.format(Locale.ROOT, "portes_anim_%s_%s_%02d", t.id(), opening ? "ouv" : "ferm", k));
+					drawn[k] = context.computeOnClient((MinecraftClient mc) -> mc.world != null && mc.world.getBlockEntity(ctrl) instanceof DoorBlockEntity d
+							? d.track().pose[0] : -1.0);
+				}
+				context.waitTicks(10);
+				double rebound = DoorMotion.curve(t).rebound();
+				boolean steady = true;
+				for (int k = 1; k < 12; k++) {
+					steady &= opening ? drawn[k] >= drawn[k - 1] - 1e-6 : drawn[k] <= drawn[k - 1] + rebound + 1e-6;
+				}
+				double end = context.computeOnClient((MinecraftClient mc) -> mc.world != null && mc.world.getBlockEntity(ctrl) instanceof DoorBlockEntity d
+						? d.track().pose[0] : -1.0);
+				check.accept(steady && drawn[0] >= 0 && (opening ? end > 0.999 : end < 1e-6), String.format(Locale.ROOT,
+						"doors: %s %s, the client draws its left leaf steadily (no jump back): %s, then %.3f", t.id(), opening ? "opening" : "closing",
+						java.util.Arrays.toString(java.util.Arrays.stream(drawn).map(v -> Math.round(v * 1000) / 1000.0).toArray()), end));
+				if (opening) {
+					check.accept(waitUntil(context, () -> open(server, ctrl), 40) >= 0, "doors: " + t.id() + " open after its animation");
+				} else {
+					check.accept(waitUntil(context, () -> closed(server, ctrl), 40) >= 0, "doors: " + t.id() + " closed after its animation");
+				}
+			}
+			server.runCommand("porte supprimer " + pos(ctrl));
+		}
+		context.runOnClient((MinecraftClient c) -> c.options.hudHidden = false);
+		server.runCommand("gamemode creative @a");
 		context.waitTicks(3);
 	}
 
@@ -872,7 +987,7 @@ public final class DoorGameTest {
 		// the key door: same lock, key access, the player's key still opens it
 		Object[] k = server.computeOnServer(srv -> {
 			DoorBlockEntity d = door(srv, RESTART_KEY);
-			return d == null ? null : new Object[] {d.lock(), d.access(), KeyItem.carriedLocks(player(srv)).contains(d.lock())};
+			return d == null ? null : new Object[] {d.lock(), d.access(), DoorKeys.carries(KeyItem.carriedKeys(player(srv)), d.lock(), d.doorId())};
 		});
 		check.accept(k != null && restartLock.equals(k[0]) && k[1] == DoorAccess.CLE && (Boolean) k[2],
 				"keys: after the restart the key door keeps its lock and access, the player keeps its key: " + (k == null ? "none" : java.util.Arrays.toString(k)));

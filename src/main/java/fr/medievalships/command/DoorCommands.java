@@ -55,7 +55,8 @@ import fr.medievalships.entity.ShipPermissions;
  *
  * <p>1.32.0: the key access ({@code acces ... cle}), {@code cle donner <joueurs> [porte]} (a key bound to the door,
  * for an NPC or a quest: the purchase of a house), {@code serrure changer [porte]} (a new lock: the old keys no longer
- * open it) and {@code serrure info [porte]}.
+ * open it) and {@code serrure info [porte]}. 1.33.0: a key given opens that door only (its lock and its identity); a
+ * door whose lock another door uses gets its own first.
  */
 public final class DoorCommands {
 	private DoorCommands() {
@@ -298,13 +299,18 @@ public final class DoorCommands {
 		} else if (d.access() != DoorAccess.CLE) {
 			extra = " (attention : la porte est en accès " + d.access().word() + ", la clé n'y sert qu'en accès cle)";
 		}
-		String lock = d.ensureLock();
+		boolean had = !d.lock().isEmpty();
+		if (d.ensureOwnLock(t.world()) && had) {
+			extra += " (sa serrure servait aussi à une autre porte : elle en a une nouvelle, ses anciennes clés ne l'ouvrent plus)";
+		}
 		List<String> names = new ArrayList<>();
 		for (ServerPlayerEntity p : players) {
-			p.giveOrDropStack(KeyItem.bound(lock, d.keyLabel()));
+			// one key, one door: bound to this door's lock and to this very door
+			p.giveOrDropStack(KeyItem.bound(d.lock(), d.keyLabel(), d.doorId()));
+			d.keyBound();
 			names.add(p.getGameProfile().name());
 		}
-		ShipCommands.ok(ctx, "Porte " + t.label() + " : clé donnée à " + String.join(", ", names) + extra + ".");
+		ShipCommands.ok(ctx, "Porte " + t.label() + " : clé donnée à " + String.join(", ", names) + " (elle n'ouvre que cette porte)" + extra + ".");
 		return players.size();
 	}
 
@@ -321,7 +327,17 @@ public final class DoorCommands {
 		String lock = d.lock();
 		say(ctx, "Porte " + t.label() + " : accès " + d.access().describe(d.questTag()) + ".", Formatting.GOLD);
 		say(ctx, "  Serrure : " + (lock.isEmpty() ? "aucune (elle sera créée en liant une clé ou avec /porte acces ... cle)" : lock)
-				+ " ; les clés de cette porte affichent « Ouvre : " + d.keyLabel() + " ».", Formatting.AQUA);
+				+ " ; les clés de cette porte affichent « Ouvre uniquement : " + d.keyLabel() + " » et n'ouvrent qu'elle (" + d.doorId() + ").",
+				Formatting.AQUA);
+		if (!lock.isEmpty()) {
+			int others = DoorRegistry.get(ctx.getSource().getServer()).doorsWithLock(t.world(), t.controller(), lock);
+			String shared = others == 0 ? ""
+					: d.doorId().equals(d.lockHome()) ? " ; " + others + " autre(s) porte(s) en ont une copie : ses clés ne les ouvrent pas, et elles"
+							+ " recevront leur propre serrure à leur prochaine clé liée."
+							: " ; cette serrure sert aussi à " + others + " autre(s) porte(s) (héritage 1.32.0 ou copie) : la prochaine clé liée à"
+									+ " celle-ci lui en donnera une nouvelle (les clés de la 1.32.0 ne l'ouvriront plus).";
+			say(ctx, "  Clés liées depuis la 1.33.0 : " + d.keysBound() + shared, Formatting.AQUA);
+		}
 		return lock.isEmpty() ? 0 : 1;
 	}
 

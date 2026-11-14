@@ -106,10 +106,11 @@ public final class Doors {
 				})
 				.build());
 
-		// the doors placed otherwise than with their item (a structure, a copy) join the registry when their chunk loads
+		// the doors placed otherwise than with their item (a structure, a copy) join the registry when their chunk loads,
+		// and every door's lock is known there (1.33.0: a lock shared in 1.32.0 or copied is renewed when a key is bound)
 		ServerBlockEntityEvents.BLOCK_ENTITY_LOAD.register((be, world) -> {
 			if (be instanceof DoorBlockEntity door && door.doorType() != null) {
-				DoorRegistry.get(world.getServer()).ensure(world, be.getPos(), door.doorType(), door.name());
+				DoorRegistry.get(world.getServer()).ensure(world, be.getPos(), door.doorType(), door.name(), door.lock());
 			}
 		});
 	}

@@ -268,7 +268,8 @@ class DoorTest {
 				assertEquals(DoorMotion.leastOpen(c, n, p) < DoorMotion.HALF, solid, type + " opening at " + p);
 			}
 			assertFalse(solid);
-			// closing: the passage stays free until the leaves are closed and still (the locking is done solid)
+			// closing: the passage stays free until the leaves are closed and still, their bounce over (the locking is
+			// done solid)
 			for (int t = 0; t <= d; t++) {
 				double p = DoorMotion.progress(false, 100, 1, 100 + t, d);
 				solid = DoorMotion.solidAfter(c, n, solid, false, p);
@@ -299,10 +300,14 @@ class DoorTest {
 		assertEquals(0, DoorMotion.gearAngle(0, 1), EPS);
 		assertEquals(360, DoorMotion.gearAngle(1, 1), EPS); // a whole turn: at rest the gear looks the same
 		assertEquals(720, DoorMotion.gearAngle(1, DoorTypes.CASTLE.gearTurns()), EPS);
-		assertEquals(0, DoorMotion.boltOffset(c, 0), EPS);
-		assertEquals(0.25, DoorMotion.boltOffset(c, c.unlock()), EPS);
-		assertEquals(0.25, DoorMotion.boltOffset(c, 1), EPS);
-		assertEquals(0.125, DoorMotion.boltOffset(c, c.unlock() / 2), EPS);
+		assertEquals(0, DoorMotion.boltOffset(c, true, 0), EPS);
+		assertEquals(0.25, DoorMotion.boltOffset(c, true, c.unlock()), EPS);
+		assertEquals(0.25, DoorMotion.boltOffset(c, true, 1), EPS);
+		assertEquals(0.125, DoorMotion.boltOffset(c, true, c.unlock() / 2), EPS);
+		// closing: still out while the leaves move and when they come to rest, back in at the end of the locking
+		assertEquals(0.25, DoorMotion.boltOffset(c, false, 0.6), EPS);
+		assertEquals(0.25, DoorMotion.boltOffset(c, false, c.unlock()), EPS);
+		assertEquals(0, DoorMotion.boltOffset(c, false, 0), EPS);
 		assertEquals(0, DoorMotion.pistonOffset(0), EPS);
 		assertEquals(0.25, DoorMotion.pistonOffset(1), EPS);
 		assertEquals(0.25, DoorMotion.pistonOffset(1.03), EPS, "the rods do not follow the settling past the stop");

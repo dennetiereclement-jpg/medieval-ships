@@ -148,6 +148,17 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.33.0 refait l'**animation des portes** et rend les clés uniques : à l'ouverture, les anneaux tournent, le
+loquet se libère, puis les battants partent d'une poussée et glissent sur leur élan jusqu'à une butée amortie (plus de
+dépassement ni de rebond) ; à la fermeture, départ doux, accélération, claquement avec un tout petit rebond amorti, les
+anneaux tressautent, puis les pênes rentrent ; les portes sont plus lourdes selon leur taille (0,8 s, 1,4 s, 4 s), le
+second battant est décalé, les sons tombent au tick près sur la courbe. Le client dessine les portes avec une horloge
+lissée (le recalage d'heure du serveur ne les fait plus sauter) et passe d'un mouvement à l'autre sans saut, même au
+demi-tour. **Une clé = une porte** : une clé n'ouvre que la porte à laquelle elle a été liée (serrure et porte
+vérifiées), le partage de serrure de la 1.32.0 disparaît (« Cette clé est déjà liée à … Une clé n'ouvre qu'une seule
+porte. »), chaque porte a sa propre serrure, les clés de la 1.32.0 continuent de marcher et deviennent la clé de la
+première porte qu'elles ouvrent. Détails : [docs/PORTES.md](docs/PORTES.md).
+
 La version 1.32.0 améliore les portes et ajoute les **clés** : les dix modèles sont refaits sans trou ni
 z-fighting (vérification automatique à zéro défaut : opacité, transparence, faces coplanaires, balayage des battants),
 avec plus de relief, des cadres à feuillure et des anneaux qui tournent ; l'animation se fait en deux temps
@@ -601,7 +612,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.32.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.33.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation

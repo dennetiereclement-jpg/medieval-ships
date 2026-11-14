@@ -138,8 +138,10 @@
   "itemGroup.medievalships.doors": "Portes",
   "item.medievalships.cle": "Clé",
   "item.medievalships.cle_universelle": "Passe-partout",
-  "item.medievalships.cle.ouvre": "Ouvre : %s",
+  "item.medievalships.cle.ouvre": "Ouvre uniquement : %s",
   "item.medievalships.cle.serrure": "Serrure : %s",
+  "item.medievalships.cle.porte": "Porte : %s",
+  "item.medievalships.cle.ancienne": "Clé de la 1.32.0 : elle sera liée à la première porte qu'elle ouvrira.",
   "item.medievalships.cle.vierge": "Clé vierge : un administrateur la lie à une porte (clic droit sur la porte).",
   "item.medievalships.cle_universelle.desc": "Ouvre toutes les portes, entre les mains d'un administrateur.",
   "item.medievalships.cle_universelle.geste": "Accroupi + clic droit : porte libre ou à clé."
