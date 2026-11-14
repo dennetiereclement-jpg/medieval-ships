@@ -148,6 +148,19 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.32.0 améliore les portes et ajoute les **clés** : les dix modèles sont refaits sans trou ni
+z-fighting (vérification automatique à zéro défaut : opacité, transparence, faces coplanaires, balayage des battants),
+avec plus de relief, des cadres à feuillure et des anneaux qui tournent ; l'animation se fait en deux temps
+(déverrouillage puis battants avec inertie, léger dépassement, claquement à la fermeture, second battant décalé,
+engrenages qui suivent la vitesse, grincements des grandes portes). **Clés** (`medievalships:cle`) : l'administrateur
+clique une porte avec une clé vierge pour la lier ; seule cette clé (et ses doubles) ouvre la porte, partout dans
+l'inventaire du joueur ; accroupi avec une clé liée sur une autre porte, les deux portes partagent la serrure ; sans la
+clé : « Vous n'avez pas la clé de cette porte. ». **Passe-partout** (`medievalships:cle_universelle`) : ouvre toutes les
+portes entre les mains d'un administrateur ; accroupi, il bascule une porte entre « libre » (tout le monde) et « à clé »
+(sans clé distribuée : l'administrateur seul). Commandes `/porte cle donner <joueurs> [porte]` (PNJ, achat d'une maison),
+`/porte serrure changer|info`, `/porte acces … cle`. Les portes se referment seules au bout de **1 minute** (réglable,
+portes 1.31.0 migrées). Détails : [docs/PORTES.md](docs/PORTES.md).
+
 La version 1.31.0 apporte **dix portes 3D animées et fonctionnelles** (onglet créatif « Portes »,
 `/give @p medievalships:porte_chene`…) : trois petites 2x1 (chêne, prison, vapeur), quatre moyennes 4x2 à double
 battant (grange, forteresse, industrielle, marchande) et trois grandes 6x4 (château, vapeur, entrepôt). Un seul objet
@@ -588,7 +601,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.31.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.32.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
