@@ -585,8 +585,8 @@ public final class DoorGameTest {
 		server.runCommand("porte nommer " + pos(a) + " maison_test");
 		server.runCommand("porte nommer " + pos(b) + " maison_test_arriere");
 		server.runCommand("porte nommer " + pos(c) + " cachot_test");
-		server.runCommand("clear @p medievalships:cle");
-		server.runCommand("clear @p medievalships:cle_universelle");
+		server.runCommand("clear @a medievalships:cle");
+		server.runCommand("clear @a medievalships:cle_universelle");
 		emptyHand(server);
 		context.waitTicks(3);
 		check.accept(cellsPresent(server, a, 0, DoorTypes.OAK) == 2 && cellsPresent(server, c, 0, DoorTypes.PRISON) == 2, "keys: the three test doors stand");
@@ -633,7 +633,7 @@ public final class DoorGameTest {
 		check.accept(waitUntil(context, () -> closed(server, a), 40) >= 0, "keys: ... and closes it again");
 
 		// without the key: refused, with the message
-		server.runCommand("clear @p medievalships:cle");
+		server.runCommand("clear @a medievalships:cle");
 		lastOverlay = "";
 		click(server, aTop);
 		context.waitTicks(15);
@@ -641,7 +641,7 @@ public final class DoorGameTest {
 				"keys: without the key, refused with \"Vous n'avez pas la clé de cette porte.\" (\"" + lastOverlay + "\")");
 
 		// /porte cle donner: a bound key for the player (a free door becomes a key door); the key of another door
-		server.runCommand("porte cle donner @p maison_test_arriere");
+		server.runCommand("porte cle donner @a maison_test_arriere");
 		context.waitTicks(2);
 		Object[] given = server.computeOnServer(srv -> {
 			var inv = player(srv).getInventory();
@@ -658,7 +658,7 @@ public final class DoorGameTest {
 		});
 		String oldLockB = (String) given[3];
 		check.accept((Integer) given[0] == 1 && "maison_test_arriere".equals(given[1]) && given[2] == DoorAccess.CLE,
-				"keys: /porte cle donner @p maison_test_arriere gives one key of that door, which becomes a key door: " + java.util.Arrays.toString(given));
+				"keys: /porte cle donner @a maison_test_arriere gives one key of that door, which becomes a key door: " + java.util.Arrays.toString(given));
 		lastOverlay = "";
 		click(server, aTop);
 		context.waitTicks(15);
@@ -673,7 +673,7 @@ public final class DoorGameTest {
 		String lockB = server.computeOnServer(srv -> door(srv, b).lock());
 		check.accept(lockA.equals(lockB), "keys: sneaking with a bound key, an administrator gives the back door the front door's lock");
 		emptyHand(server);
-		server.runCommand("clear @p medievalships:cle");
+		server.runCommand("clear @a medievalships:cle");
 		pocket(server, 21, KeyItem.bound(lockA, "maison_test"));
 		click(server, bTop);
 		click(server, aTop);
@@ -681,12 +681,12 @@ public final class DoorGameTest {
 		click(server, a);
 		click(server, b);
 		waitUntil(context, () -> closed(server, a) && closed(server, b), 40);
-		server.runCommand("clear @p medievalships:cle");
+		server.runCommand("clear @a medievalships:cle");
 		pocket(server, 22, KeyItem.bound(oldLockB, "maison_test_arriere"));
 		click(server, bTop);
 		context.waitTicks(15);
 		check.accept(closed(server, b), "keys: the back door's own old key no longer opens it");
-		server.runCommand("clear @p medievalships:cle");
+		server.runCommand("clear @a medievalships:cle");
 
 		// the master key: an administrator opens a locked door; refused to a player who is not one
 		server.runCommand("porte verrouiller cachot_test");
@@ -709,7 +709,7 @@ public final class DoorGameTest {
 		check.accept(toKey == DoorAccess.CLE && toFree == DoorAccess.LIBRE, "keys: sneaking with the master key, an administrator switches the door to key"
 				+ " access, then free (" + toKey + ", " + toFree + ")");
 		emptyHand(server);
-		server.runCommand("clear @p medievalships:cle_universelle");
+		server.runCommand("clear @a medievalships:cle_universelle");
 
 		// /porte serrure changer: the old key no longer opens; a new key does
 		pocket(server, 20, KeyItem.bound(lockA, "maison_test"));
@@ -721,7 +721,7 @@ public final class DoorGameTest {
 		context.waitTicks(15);
 		check.accept(!newA.equals(lockA) && closed(server, a) && lastOverlay.startsWith("Vous n'avez pas la clé"),
 				"keys: after /porte serrure changer the old key no longer opens the door");
-		server.runCommand("porte cle donner @p maison_test");
+		server.runCommand("porte cle donner @a maison_test");
 		context.waitTicks(2);
 		click(server, aTop);
 		check.accept(waitUntil(context, () -> open(server, a), 40) >= 0, "keys: a key given after the change opens it");
@@ -756,7 +756,7 @@ public final class DoorGameTest {
 				+ " set one is kept (" + zero + ", " + migrated + ", " + kept + ")");
 		log.accept("keys: lock of maison_test " + newA + ", its key's old lock " + lockA);
 
-		server.runCommand("clear @p medievalships:cle");
+		server.runCommand("clear @a medievalships:cle");
 		server.runCommand("porte supprimer maison_test");
 		server.runCommand("porte supprimer maison_test_arriere");
 		server.runCommand("porte supprimer cachot_test");
@@ -833,8 +833,8 @@ public final class DoorGameTest {
 		// a key door and the player's key (1.32.0)
 		server.runCommand("porte poser porte_chene " + pos(RESTART_KEY) + " sud");
 		server.runCommand("porte nommer " + pos(RESTART_KEY) + " maison_redemarrage");
-		server.runCommand("clear @p medievalships:cle");
-		server.runCommand("porte cle donner @p maison_redemarrage");
+		server.runCommand("clear @a medievalships:cle");
+		server.runCommand("porte cle donner @a maison_redemarrage");
 		context.waitTicks(3);
 		restartLock = server.computeOnServer(srv -> {
 			DoorBlockEntity d = door(srv, RESTART_KEY);
@@ -879,7 +879,7 @@ public final class DoorGameTest {
 		click(server, RESTART_KEY.up());
 		check.accept(waitUntil(context, () -> open(server, RESTART_KEY), 40) >= 0, "keys: the key opens its door after the restart");
 		server.runCommand("porte supprimer maison_redemarrage");
-		server.runCommand("clear @p medievalships:cle");
+		server.runCommand("clear @a medievalships:cle");
 		server.runCommand("porte fermer prison_redemarrage");
 		check.accept(waitUntil(context, () -> closed(server, RESTART), 40) >= 0, "doors: closes after the restart");
 		server.runCommand("porte supprimer prison_redemarrage");
