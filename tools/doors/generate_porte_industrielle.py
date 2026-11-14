@@ -81,7 +81,7 @@ def build():
             P.rivet(x, 53, light=RIVET)
         P.strap_h(-16, 16, 60, 2, shade(STEEL_L, k), light=RIVET)
         # lit vent in the middle of the lintel
-        P.glow_pane(-4, 55, 4, 61)
+        P.glow_pane(-5, 55, 5, 61)
         for x in (-2, 0, 2):
             for y in range(55, 61):
                 P.put(x, y, STEEL_D)
@@ -144,33 +144,35 @@ def build():
     # ------------------------------------------------------------ frame cubes
     fr = d.frame
     for s in (-1, 1):
-        xo, xs, xi = 16 * s, 14 * s, 12 * s
+        xo, xs, xi = 16 * s, 14.5 * s, 12 * s
         d.box(fr, "post_%d" % s, xo, xs, 0, 52, -8, 4, side="frame_side")
-        d.box(fr, "post_stop_%d" % s, xs, xi, 0, 52, 2, 4, side="frame_side")
+        d.box(fr, "post_stop_%d" % s, xs, xi, 0, 52, 2.75, 4, side="frame_side")
         d.box(fr, "tank_%d" % s, xo, xi, 0, 11, 4, 8, side="copper_side")
         d.box(fr, "tank_cap_%d" % s, xo + 0.5 * -s, xi - 0.5 * -s, 11, 12, 4.5, 7.5, side="frame_side", front="frame_side")
         px = -15 if s < 0 else 13
         d.box(fr, "bracket_%d" % s, px - 1, px + 3, 15, 17, 4, 7.5, side="frame_side")
         d.box(fr, "pipe_v_%d" % s, px, px + 2, 17, 62, 4.5, 6.5, side="copper_side")
         for k, y in enumerate((24, 40, 54)):
-            d.box(fr, "flange_%d_%d" % (s, k), px - 0.5, px + 2.5, y, y + 1, 4.2, 6.8, side="copper_side", front="copper_side")
-        pist = dm.Bone("piston_%d" % (0 if s < 0 else 1), origin=((px + 1) / 16, 10.5 / 16, 5.5 / 16), parent=fr)
-        d.box(pist, "rod", px + 0.5, px + 1.5, 7, 15.5, 5, 6, front="rod_side", back="rod_side", side="rod_side")
+            d.box(fr, "flange_%d_%d" % (s, k), px - 0.5, px + 2.5, y, y + 1, 4.25, 6.75, side="copper_side", front="copper_side")
+        pist = dm.Bone("piston_%d" % (0 if s < 0 else 1), origin=((px + 1.25) / 16, 10.5 / 16, 5.5 / 16), parent=fr)
+        d.box(pist, "rod", px + 0.75, px + 1.75, 7, 15.5, 5, 6, front="rod_side", back="rod_side", side="rod_side")
     d.box(fr, "pipe_h", -15, 15, 62, 64, 4.5, 6.5, side="copper_side")
-    # lintel round the lit vent
+    # lintel round the lit vent, door stop of the head in front of the top of the leaves
     d.box(fr, "lintel_l", -16, -5, 52, 64, -6, 4.5, side="frame_side")
     d.box(fr, "lintel_r", 5, 16, 52, 64, -6, 4.5, side="frame_side")
     d.box(fr, "lintel_b", -5, 5, 52, 55, -6, 4.5, side="frame_side")
     d.box(fr, "lintel_t", -5, 5, 61, 64, -6, 4.5, side="frame_side")
+    d.head_stop(2.75, 4.5, "frame_side", Y0=51)
     d.box(fr, "vent_rim_b", -5, 5, 54, 55, 4.5, 5.5, side="frame_side", back=None)
     d.box(fr, "vent_rim_t", -5, 5, 61, 62, 4.5, 5.5, side="frame_side", back=None)
-    d.box(fr, "glow_vent", -4, 4, 55, 61, -5, 3.5, side="glow_side")
-    for k, x in enumerate((-2, 0, 2)):
-        d.box(fr, "vent_bar_%d" % k, x, x + 1, 55, 61, 3.5, 4.5, side="steel_side")
-        d.box(fr, "vent_bar_b_%d" % k, x, x + 1, 55, 61, -6, -5, side="steel_side")
-    # gears on the lintel
-    d.gear(fr, "gear_a_0", -10, 57.5, 5.0, 3.8, 8, 4.5, 5.5, BRASS, hub=1.0, pic="pic_gears")
-    d.gear(fr, "gear_b_1", 10, 57.5, 5.0, 3.8, 8, 4.5, 5.5, shade(BRASS, 0.9), hub=1.0, pic="pic_gears")
+    d.box(fr, "glow_vent", -5, 5, 55, 61, -5, 3.5, side="glow_side")
+    for k, x in enumerate((-3, -1, 1, 3)):
+        d.box(fr, "vent_bar_%d" % k, x - 0.5, x + 0.5, 55, 61, 3.5, 4.5, side="steel_side")
+        d.box(fr, "vent_bar_b_%d" % k, x - 0.5, x + 0.5, 55, 61, -6, -5, side="steel_side")
+    # big gears on the lintel, in front of the pipes, each on its axle boss
+    for k, (gx, name, col) in enumerate(((-10, "gear_a_0", BRASS), (10, "gear_b_1", shade(BRASS, 0.92)))):
+        d.box(fr, "axle_%d" % k, gx - 1, gx + 1, 57, 59, 4.5, 6.5, side="steel_side", front="steel_side")
+        d.gear(fr, name, gx, 58, 5.6, 4.3, 8, 6.75, 7.75, col, hub=1.5, pic="pic_gears", spokes=2, spoke_w=1.0)
 
     # ------------------------------------------------------------ leaves
     for leaf, x0, s in ((d.leaf_l, -12, -1), (d.leaf_r, 0, 1)):
@@ -181,36 +183,39 @@ def build():
         for k, x in enumerate((x0 + 4, x0 + 7)):
             d.box(leaf, "bar_%d" % k, x, x + 1, 36, 46, 1, 2, back=None, side="steel_side")
             d.box(leaf, "bar_b_%d" % k, x, x + 1, 36, 46, -2, -1, front=None, side="steel_side")
-        d.box(leaf, "bar_h", x0 + 2, x0 + 10, 41, 42, 1, 2, back=None, side="steel_side")
-        d.box(leaf, "bar_hb", x0 + 2, x0 + 10, 41, 42, -2, -1, front=None, side="steel_side")
-        # raised riveted frame
-        d.box(leaf, "frame_o", x0, x0 + 2, 4, LEAF_TOP, 1, 2, back=None, side="steel_side")
-        d.box(leaf, "frame_i", x0 + 10, x0 + 12, 4, LEAF_TOP, 1, 2, back=None, side="steel_side")
+        d.box(leaf, "bar_h", x0 + 2, x0 + 10, 41, 42, 1, 2.25, back=None, side="steel_side")
+        d.box(leaf, "bar_hb", x0 + 2, x0 + 10, 41, 42, -2.25, -1, front=None, side="steel_side")
+        # raised riveted frame (1.5 px)
+        d.box(leaf, "frame_o", x0, x0 + 2, 4, LEAF_TOP, 1, 2.5, back=None, side="steel_side")
+        d.box(leaf, "frame_i", x0 + 10, x0 + 12, 4, LEAF_TOP, 1, 2.5, back=None, side="steel_side")
         for k, y in enumerate((18, 34, 46, LEAF_TOP - 2)):
-            d.box(leaf, "rail_%d" % k, x0 + 2, x0 + 10, y, y + 2, 1, 2, back=None, side="steel_side")
-        d.box(leaf, "kick", x0, x0 + 12, 0, 4, 1, 2, back=None, side="steel_side")
+            d.box(leaf, "rail_%d" % k, x0 + 2, x0 + 10, y, y + 2, 1, 2.5, back=None, side="steel_side")
+        d.box(leaf, "kick", x0, x0 + 12, 0, 4, 1, 2.5, back=None, side="steel_side")
         # X braces of the lower panel
         d.strap(leaf, "brace_a", (x0 + 2.6, 4.6), (x0 + 9.4, 17.4), 2, 1, 2, "strap2")
-        d.strap(leaf, "brace_b", (x0 + 9.4, 4.6), (x0 + 2.6, 17.4), 2, 1.05, 2.05, "strap2")
+        d.strap(leaf, "brace_b", (x0 + 9.4, 4.6), (x0 + 2.6, 17.4), 2, 1, 2.25, "strap2")
         # back stiffeners
         for k, y in enumerate((10, 26)):
             d.box(leaf, "stiff_%d" % k, x0 + 1, x0 + 11, y, y + 3, -2, -1, front=None, side="steel_side")
-        # gears meshing across the seam, in the middle zone
-        gx = -4.6 if s < 0 else 4.6
+        # a big gear in the middle zone of each leaf, on its axle boss (they turn while the door moves)
+        gx = -6 if s < 0 else 6
+        d.box(leaf, "axle", gx - 1, gx + 1, 26, 28, 1, 2.5, back=None, side="steel_side", front="steel_side")
         if s < 0:
-            d.gear(leaf, "gear_a_2", gx, 27.5, 4.6, 3.5, 8, 1, 2.2, BRASS, hub=1.0, pic="pic_gears")
+            d.gear(leaf, "gear_a_2", gx, 27, 5.1, 3.9, 8, 2.75, 3.75, BRASS, hub=1.5, pic="pic_gears", spokes=2, spoke_w=1.0)
         else:
-            d.gear(leaf, "gear_b_3", gx, 27.5, 4.6, 3.5, 8, 1, 2.2, shade(BRASS, 0.9), hub=1.0, pic="pic_gears")
+            d.gear(leaf, "gear_b_3", gx, 27, 5.1, 3.9, 8, 2.75, 3.75, shade(BRASS, 0.92), hub=1.5, pic="pic_gears", spokes=2, spoke_w=1.0)
         # sliding latch bar (bolt) in two guides, under the gear
-        bx0, bx1 = (x0 + 3, x0 + 9) if s < 0 else (x0 + 3, x0 + 9)
-        bolt = dm.Bone("bolt_%d" % (0 if s < 0 else 1), origin=((bx0 + bx1) / 32, 21.5 / 16, 2.5 / 16), parent=leaf)
-        d.box(bolt, "bar", bx0, bx1, 21, 22, 2, 3, front="rod_side", back="rod_side", side="rod_side")
+        bx0, bx1 = x0 + 3, x0 + 9
+        bolt = dm.Bone("bolt_%d" % (0 if s < 0 else 1), origin=((bx0 + bx1) / 32, 20 / 16, 3.125 / 16), parent=leaf)
+        d.box(bolt, "bar", bx0, bx1, 19.5, 20.5, 2.75, 3.5, front="rod_side", back="rod_side", side="rod_side")
         for k, gxx in enumerate((bx0 + 1, bx1 - 2)):
-            d.box(leaf, "guide_%d" % k, gxx, gxx + 1, 20, 23, 1, 3.4, back=None, side="steel_side", front="steel_side")
-        # hinge knuckles
+            d.box(leaf, "guide_%d" % k, gxx, gxx + 1, 18.5, 21.5, 1, 3.75, back=None, side="steel_side", front="steel_side")
+        # hinge barrels
         px = -12 if s < 0 else 12
         for k, y in enumerate((6, 26, 44)):
-            d.box(leaf, "knuckle_%d" % k, px - 2, px + 2, y, y + 3, -2, 2, front="steel_side", back="steel_side", side="steel_side")
+            d.knuckle(leaf, "knuckle_%d" % k, px, y + 0.5, y + 3.5, "steel_side")
+    d.material("seam_dark", dm.tile_flat(STEEL_D, 4), 16, 16)
+    d.finalize(top_gap=True, cover_side="steel_side", seam_mat="seam_dark")
     d.icon_map = (ICON, ICON_PAL)
     return d
 
@@ -224,4 +229,4 @@ if __name__ == "__main__":
     for line in d.bones():
         print(line)
     if "--preview" in sys.argv:
-        d.preview(dm.SCRATCH + "/doors_out/medium_porte_industrielle.png", refs=REFS)
+        d.preview(dm.SCRATCH + "/doors_out2/medium_porte_industrielle.png", refs=REFS)

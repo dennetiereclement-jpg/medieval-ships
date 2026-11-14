@@ -4,12 +4,21 @@ porte_vapeur. Written for tools/doors/generate_<id>.py; the medium / large doors
 How a small door is built (see generate_porte_chene.py for a complete example):
 
     import doorlib_small as ds
-    d = ds.Door("porte_chene", size=256)          # own atlas, root bone + "frame" + "leaf_l" (hinge on the left)
-    F, B = d.F, d.B                                # painters of the FRONT and BACK pictures (model coordinates)
-    F.planks_v(x0, x1, y0, y1, n, base, dark)      # ... paint the whole door, seen from the front, like the reference
-    d.box(d.leaf, "core", x0, x1, y0, y1, z0, z1, side="wood_side")   # cubes: +z faces show the front picture,
-                                                    # -z faces the back picture (projected), the others a material
-    d.export(icon=...)                             # bbmodel (models/entity + blockbench), texture, 16x16 icon
+    d = ds.Door("porte_chene", size=256)          # own atlas, root bone + "frame" + "leaf_l" (pivot x -13/32, z 0)
+    F, B, FF, FB = d.F, d.B, d.FF, d.FB            # pictures: leaf front / back, frame front / back (model coords)
+    d.material("wood_side", ds.tile_wood(...))     # 32 x 64 tiles for the other faces (world-aligned UVs)
+    d.build_frame("iron_side")                     # the rebated frame (front stops, rebate behind the hinge)
+    d.core("wood_side", hole=...)                  # the leaf core z [-cz, cz]
+    d.relief(d.leaf, "band", x0, x1, y0, y1, d.cz, 1 / 32, "iron_side")   # a piece ON a face (contact face left out)
+    ds.ring_handle(...), ds.cube_gear(...)         # animated children (handle_<n>, gear_a/b_<n>): all opaque cubes
+    d.export()                                     # bbmodel (models/entity + blockbench), texture, 16x16 icon
+
+1.32.0 rules (checked by tools/doors/door_audit_small.py, which must report 0 defects): no hole seen through the
+closed door or the leaf, no face mapping a transparent texel, no two drawn faces coplanar and overlapping (closed,
+mechanisms moved, opened backwards), the leaf turning backwards by 90 degrees goes through nothing. Hence: front relief
+stays inside the part of the leaf left visible by the stops (d.vx0..d.vx1, d.vy0..d.vy1, 1/64 off), parallel faces of
+crossing cubes are at least 1/64 apart, contact faces inside a moving part are left out by Door.auto_hide(), and
+export() refuses a model in which tools/zfight.py would still find a pair (that pass would push faces by 0.012).
 
 THE PROJECTION. The front picture (FRONT, 32 px per block) covers the whole opening x in [-0.5, 0.5], y in [0, 2] seen
 from the front; every face of a cube that looks to +z shows the part of the picture in front of it, so a band of iron
@@ -24,8 +33,8 @@ seen from the front, +y up, +z = the front face. Everything inside x [-0.5, 0.5]
 Animated children: gear_a_<n> / gear_b_<n> (pivot = centre, turn round z), bolt_<n> (slides along x), piston_<n>
 (slides along y). Cubes named glow* are drawn full bright.
 
-Previews: d.preview(out_png, refs=[(ref_png, box), ...]) renders front / three-quarter / open (leaf at 90 degrees) /
-back views with Minecraft face shading (top 1.0, z sides 0.8, x sides 0.6, bottom 0.5) next to the reference crops.
+Previews: d.preview(out_png, refs=[(ref_png, box), ...]) renders front / three-quarter / back / open (leaf at 90 degrees
+backwards) / open from behind / edge views with Minecraft face shading next to the reference crops.
 """
 import base64
 import io
@@ -235,8 +244,20 @@ class _Packer:
 
 
 # ---------------------------------------------------------------- the door
+G = 1 / 64        # gap between the leaf and the frame (and the minimal offset between two parallel faces)
+LIP = 1 / 32      # how far the front stops of the frame overlap the leaf edges
+HINGE_X = -13 / 32  # the pivot of leaf_l (DoorTypes: hingeX 0.40625, checked by a JUnit test): never change it
+
+
 class Door:
-    def __init__(self, name, size=256, frame_w=3 / 32, sill=0.0, lintel=3 / 32, seed=7):
+    """A small door: own atlas, root bone + "frame" + "leaf_l".
+
+    The frame is REBATED for a leaf that opens backwards (-z, the default): front stops (z in [zl, zf]) overlap the
+    leaf edges by LIP, so no slit is seen through the 1/64 gaps round the leaf; behind the hinge the jamb stops at
+    z = G, so the leaf turned by 90 degrees (x in [hinge - cz, hinge + cz], z in [-0.81, 0]) touches nothing. The leaf
+    core is z in [-cz, cz]; relief on it sits on its faces (the contact face is left out by auto_hide)."""
+
+    def __init__(self, name, size=256, sill=2 / 32, lintel=3 / 32, cz=2 / 32, zf=9 / 32, zb=-9 / 32, seed=7):
         tl.setup(name)
         self.name, self.size = name, size
         self.arr = np.zeros((size, size, 4), np.uint8)
@@ -244,21 +265,34 @@ class Door:
         self.regions = {}
         self.sheets = {}
         self.seed = seed
-        self.F = self.sheet("front", -W / 2, W / 2, 0.0, H, mirror=False)
-        self.B = self.sheet("back", -W / 2, W / 2, 0.0, H, mirror=True)
+        self.F = self.sheet("front", -W / 2, W / 2, 0.0, H, mirror=False)    # leaf, seen from the front
+        self.B = self.sheet("back", -W / 2, W / 2, 0.0, H, mirror=True)      # leaf, seen from the back
+        self.FF = self.sheet("ffront", -W / 2, W / 2, 0.0, H, mirror=False)  # frame, front
+        self.FB = self.sheet("fback", -W / 2, W / 2, 0.0, H, mirror=True)    # frame, back
         self.root = Bone(name)
         self.frame = Bone("frame", parent=self.root)
-        self.fw, self.sill, self.lintel = frame_w, sill, lintel
-        # the leaf fills the frame: x [-0.5 + fw, 0.5 - fw], y [sill, 2 - lintel]
-        self.lx0, self.lx1 = -W / 2 + frame_w, W / 2 - frame_w
+        self.fw, self.sill, self.lintel = W / 2 + HINGE_X, sill, lintel
+        self.lx0, self.lx1 = HINGE_X, -HINGE_X
         self.ly0, self.ly1 = sill, H - lintel
-        self.leaf = Bone("leaf_l", origin=(self.lx0, 0.0, 0.0), parent=self.root)
+        self.cz, self.zf, self.zb = cz, zf, zb
+        self.zl = cz + G                      # back of the front stops
+        # the part of the leaf front left visible by the stops (front relief must stay inside it, 1/64 off)
+        self.vx0, self.vx1 = self.lx0 + LIP, self.lx1 - LIP
+        self.vy0, self.vy1 = self.ly0 + LIP, self.ly1 - LIP
+        self.leaf = Bone("leaf_l", origin=(HINGE_X, 0.0, 0.0), parent=self.root)
         self._detail = {}
+        self.moving = {}                      # bone name -> kind, for the audit
 
     def detail(self, parent):
         if parent.name not in self._detail:
             self._detail[parent.name] = Bone("detail", origin=tuple(parent.origin), parent=parent)
         return self._detail[parent.name]
+
+    def part(self, name, origin, parent):
+        """An animated child bone (gear_a_<n>, gear_b_<n>, bolt_<n>, piston_<n>, handle_<n>)."""
+        b = Bone(name, origin=origin, parent=parent)
+        self.moving[name] = b
+        return b
 
     def region(self, name, w, h):
         r = self.pk.alloc(w, h)
@@ -272,22 +306,15 @@ class Door:
         self.sheets[name] = (c, X0, X1, Y0, Y1, mirror)
         return c
 
-    def material(self, name, painter, w=32, h=32):
-        """A tiled material for side faces: painter(Canvas) paints a w x h tile."""
+    def material(self, name, painter, w=32, h=64):
+        """A tiled material for side faces: painter(Canvas) paints a w x h tile (model coords x [0, w/32], y [0, h/32])."""
         u, v, _, _ = self.region(name, w, h)
         c = Canvas(self.arr, u, v, w, h, seed=self.seed + len(self.regions) * 17)
         painter(c)
         return c
 
-    def sprite(self, name, w, h, painter):
-        """A free picture (gears...): painter(Canvas) with model coords x in [0, w/PPB], y in [0, h/PPB]."""
-        u, v, _, _ = self.region(name, w, h)
-        c = Canvas(self.arr, u, v, w, h, seed=self.seed + len(self.regions) * 13)
-        painter(c)
-        return c
-
     # ------------------------------------------------------------ cubes
-    def _sub_sheet(self, sheet, x0, x1, y0, y1, back):
+    def _sub_sheet(self, sheet, x0, x1, y0, y1):
         c, X0, X1, Y0, Y1, mirror = self.sheets[sheet]
         if mirror:
             su0, su1 = (X1 - x1) / (X1 - X0), (X1 - x0) / (X1 - X0)
@@ -296,12 +323,16 @@ class Door:
         sv0, sv1 = (Y1 - y1) / (Y1 - Y0), (Y1 - y0) / (Y1 - Y0)
         return [su0, sv0, su1, sv1]
 
-    def _sub_tile(self, region, du, dv, ou=0.0, ov=0.0):
+    def _sub_tile(self, region, a0, a1, b0, b1):
+        """World-aligned sub-rectangle of a tile for a face spanning [a0, a1] x [b0, b1] (blocks) along its u / v axes,
+        so that neighbouring faces continue each other; faces larger than the tile are stretched."""
         _, _, rw, rh = self.regions[region]
-        fu = min(1.0, du * PPB / rw)
-        fv = min(1.0, dv * PPB / rh)
-        ou = min(ou, 1.0 - fu)
-        ov = min(ov, 1.0 - fv)
+        fu, fv = min(1.0, (a1 - a0) * PPB / rw), min(1.0, (b1 - b0) * PPB / rh)
+        ou = ((a0 * PPB) % rw) / rw
+        ov = ((-b1 * PPB) % rh) / rh
+        # whole texel offsets, never past the end of the tile (a face may span a fraction of a texel)
+        ou = min(round(ou * rw), math.floor((1.0 - fu) * rw + 1e-9)) / rw
+        ov = min(round(ov * rh), math.floor((1.0 - fv) * rh + 1e-9)) / rh
         return [ou, ov, ou + fu, ov + fv]
 
     def box(self, bone, name, x0, x1, y0, y1, z0, z1, side="iron_side", front="front", back="back", top=None,
@@ -312,40 +343,149 @@ class Door:
         x0, x1 = sorted((x0, x1))
         y0, y1 = sorted((y0, y1))
         z0, z1 = sorted((z0, z1))
+        assert x1 - x0 > 1e-6 and y1 - y0 > 1e-6 and z1 - z0 > 1e-6, name
         sx, sy, sz = x1 - x0, y1 - y0, z1 - z0
         spec = {"+3": front, "-3": back, "+2": top or side, "-2": bottom or side,
                 "+1": sides or side, "-1": sides or side}
         names = {"+1": "+x", "-1": "-x", "+2": "+y", "-2": "-y", "+3": "+z", "-3": "-z"}
         regions = {k: (None if names[k] in hide or v is None else v) for k, v in spec.items()}
         c = gg.add_cube(bone, name, ((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2), EYE, (sx, sy, sz), regions)
-        h = zlib.crc32(name.encode()) % 997 / 997.0
+        c.mbox = (x0, x1, y0, y1, z0, z1)
         for sem, bb in gg.SEMANTIC_FACE.items():
             f = c.faces[bb]
             if f is None:
                 continue
             reg = f["region"]
             if reg in self.sheets:
-                f["sub"] = self._sub_sheet(reg, x0, x1, y0, y1, sem == "-3")
+                f["sub"] = self._sub_sheet(reg, x0, x1, y0, y1)
             else:
-                du, dv = {"+1": (sz, sy), "-1": (sz, sy), "+2": (sx, sz), "-2": (sx, sz),
-                          "+3": (sx, sy), "-3": (sx, sy)}[sem]
-                f["sub"] = self._sub_tile(reg, du, dv, ou=h * 0.6, ov=(h * 7 % 1) * 0.6)
+                a0, a1, b0, b1 = {"+1": (z0, z1, y0, y1), "-1": (z0, z1, y0, y1), "+2": (x0, x1, z0, z1),
+                                  "-2": (x0, x1, z0, z1), "+3": (x0, x1, y0, y1), "-3": (x0, x1, y0, y1)}[sem]
+                f["sub"] = self._sub_tile(reg, a0, a1, b0, b1)
         return c
 
-    def sprite_box(self, bone, name, cx, cy, r, z0, z1, sprite, side=None):
-        """Square cube centred on (cx, cy), half size r, whose +z and -z faces show the whole sprite (cut-out);
-        side faces left out unless side is given."""
-        c = self.box(bone, name, cx - r, cx + r, cy - r, cy + r, z0, z1, side=side, front=sprite, back=sprite)
-        for sem in ("+3", "-3"):
-            f = c.faces[gg.SEMANTIC_FACE[sem]]
-            f["sub"] = [0.0, 0.0, 1.0, 1.0] if sem == "+3" else [1.0, 0.0, 0.0, 1.0]
-        return c
+    def relief(self, bone, name, x0, x1, y0, y1, zbase, h, side, face=None, hide=()):
+        """A raised piece sitting on a face at z = zbase: h > 0 grows to the front (its +z face shows `face`, default
+        the front picture), h < 0 to the back (the back picture). The contact face is left out."""
+        if h > 0:
+            return self.box(bone, name, x0, x1, y0, y1, zbase, zbase + h, side=side, front=face or "front",
+                            back=None, hide=hide)
+        return self.box(bone, name, x0, x1, y0, y1, zbase + h, zbase, side=side, front=None, back=face or "back",
+                        hide=hide)
+
+    # ------------------------------------------------------------ the frame and the leaf core
+    def build_frame(self, side, inner=None, top=None):
+        """The rebated frame (see the class doc) as non-overlapping cells: x / y / z grids round the leaf with its gaps
+        and stops; a cell face is drawn only where it borders an empty cell, so no face is ever coplanar with another
+        one. side: material of the reveals, inner: of the faces that look into the opening (default side)."""
+        p, q = self.lx0, self.lx1
+        xs = [-0.5, p - G, p + LIP, q - LIP, q + G, 0.5]
+        ys = [0.0, self.ly0 - G, self.ly0 + LIP, self.ly1 - LIP, self.ly1 + G, H]
+        zs = [self.zb, G, self.zl, self.zf]
+
+        def solid(i, j, k):
+            if not (0 <= i < 5 and 0 <= j < 5 and 0 <= k < 3):
+                return False
+            if k == 2:                       # the front stops: everything but the visible middle of the leaf
+                return not (i == 2 and j == 2)
+            outer = i in (0, 4) or j in (0, 4)
+            if k == 1:                       # z [G, zl]: round the leaf and its gaps
+                return outer
+            return outer and not (i == 0 and j in (1, 2, 3))   # z [zb, G]: rebate behind the hinge
+        # vertical runs of cells with the same neighbourhood are merged into one cube
+        n = 0
+        for k in range(3):
+            for i in range(5):
+                j = 0
+                while j < 5:
+                    if not solid(i, j, k):
+                        j += 1
+                        continue
+                    sig = lambda jj: (solid(i - 1, jj, k), solid(i + 1, jj, k), solid(i, jj, k - 1), solid(i, jj, k + 1))
+                    j1 = j
+                    while j1 + 1 < 5 and solid(i, j1 + 1, k) and sig(j1 + 1) == sig(j):
+                        j1 += 1
+                    nx, px_, nz, pz = sig(j)
+                    hide = [h for h, s in (("-x", nx), ("+x", px_), ("-z", nz), ("+z", pz)) if s]
+                    if solid(i, j - 1, k):
+                        hide.append("-y")
+                    if solid(i, j1 + 1, k):
+                        hide.append("+y")
+                    sd = side
+                    if inner and i in (1, 2, 3) and j in (1, 2, 3):
+                        sd = inner
+                    self.box(self.frame, "frame_%d_%d_%d" % (k, i, j), xs[i], xs[i + 1], ys[j], ys[j1 + 1],
+                             zs[k], zs[k + 1], side=sd, front="ffront", back="fback", top=top, hide=tuple(hide))
+                    n += 1
+                    j = j1 + 1
+        return n
+
+    def core(self, side, hole=None, top=None, bottom=None):
+        """The leaf core z in [-cz, cz], whole or in four cubes round a rectangular hole (hx0, hx1, hy0, hy1)."""
+        x0, x1, y0, y1, cz = self.lx0, self.lx1, self.ly0, self.ly1, self.cz
+        kw = dict(side=side, top=top, bottom=bottom)
+        if hole is None:
+            self.box(self.leaf, "core", x0, x1, y0, y1, -cz, cz, **kw)
+            return
+        hx0, hx1, hy0, hy1 = hole
+        self.box(self.leaf, "core_bottom", x0, x1, y0, hy0, -cz, cz, side=side, bottom=bottom)
+        self.box(self.leaf, "core_top", x0, x1, hy1, y1, -cz, cz, side=side, top=top)
+        self.box(self.leaf, "core_left", x0, hx0, hy0, hy1, -cz, cz, side=side, hide=("+y", "-y"))
+        self.box(self.leaf, "core_right", hx1, x1, hy0, hy1, -cz, cz, side=side, hide=("+y", "-y"))
+
+    # ------------------------------------------------------------ hidden faces
+    def rigid_groups(self):
+        """Cubes grouped by the moving part that carries them (detail bones belong to their parent's part)."""
+        groups = {}
+
+        def walk(b, key):
+            if b.name in self.moving or b.name == "leaf_l":
+                key = b.name
+            groups.setdefault(key, []).extend(b.cubes)
+            for ch in b.children:
+                walk(ch, key)
+        walk(self.root, "frame")
+        return groups
+
+    def auto_hide(self):
+        """Leaves out every face that lies on a face of opposite direction of another cube of the same moving part and
+        is contained in it (a contact face, never seen, and coplanar with its neighbour); returns the count."""
+        n = 0
+        axes = {"+1": (0, 1), "-1": (0, -1), "+2": (1, 1), "-2": (1, -1), "+3": (2, 1), "-3": (2, -1)}
+        for cubes in self.rigid_groups().values():
+            for a in cubes:
+                for sem, (k, s) in axes.items():
+                    bb = gg.SEMANTIC_FACE[sem]
+                    if a.faces.get(bb) is None:
+                        continue
+                    A = a.mbox
+                    plane = A[2 * k + (1 if s > 0 else 0)]
+                    o = [j for j in range(3) if j != k]
+                    for b in cubes:
+                        if b is a:
+                            continue
+                        Bx = b.mbox
+                        bplane = Bx[2 * k + (0 if s > 0 else 1)]  # b's face looking the other way
+                        if abs(bplane - plane) > 1e-6:
+                            continue
+                        if all(Bx[2 * j] <= A[2 * j] + 1e-6 and A[2 * j + 1] <= Bx[2 * j + 1] + 1e-6 for j in o):
+                            a.faces[bb] = None
+                            n += 1
+                            break
+        return n
 
     # ------------------------------------------------------------ export
     def texture_path(self):
         return os.path.join(ASSETS, "textures/entity/%s.png" % self.name)
 
     def export(self, icon=None):
+        hidden = self.auto_hide()
+        import zfight  # the shared pass would push faces by 0.012: the doors are built so that it finds nothing
+        pairs, flat = zfight.find(self.root)
+        if pairs or flat:
+            for f, g in pairs[:20]:
+                print("  zfight (shared pass) %s %s <-> %s %s" % (f["cube"].name, f["sem"], g["cube"].name, g["sem"]))
+            raise SystemExit("%s: %d coplanar pairs for tools/zfight.py, fix the model" % (self.name, len(pairs)))
         tex = self.texture_path()
         os.makedirs(os.path.dirname(tex), exist_ok=True)
         Image.fromarray(self.arr, "RGBA").save(tex)
@@ -360,35 +500,15 @@ class Door:
         outs = [os.path.join(ROOT, "blockbench/%s.bbmodel" % self.name),
                 os.path.join(ASSETS, "models/entity/%s.bbmodel" % self.name)]
         model = gn.export(self.root, [], textures, outs, name=self.name, visible_box=(2, 3, 0))
-        if self.clamp(model):  # zfight pushes faces by 0.012: keep everything inside the opening
-            for p in outs:
-                with open(p, "w") as f:
-                    gn.json_dump(model, f, compact="resources" in p)
         self.model = model
         ip = os.path.join(ASSETS, "textures/item/%s.png" % self.name)
         (icon or self.default_icon)(ip)
-        self.check_bounds(model)
-        print("%s: %d cubes, texture %dx%d" % (self.name, len(model["elements"]), self.size, self.size))
-        self.model = model
+        if not self.check_bounds(model):
+            raise SystemExit("%s: out of the opening" % self.name)
+        nf = sum(1 for e in model["elements"] for f in e["faces"].values() if f.get("texture") is not None)
+        print("%s: %d cubes, %d faces (%d contact faces left out), texture %dx%d" % (
+            self.name, len(model["elements"]), nf, hidden, self.size, self.size))
         return model
-
-    def clamp(self, model):
-        """Clamps every (unrotated) element into x [-0.5, 0.5], y [0, 2], z [-0.5, 0.5] (bb pixels); returns the count."""
-        lim = [(-8.0, 8.0), (0.0, 32.0), (-8.0, 8.0)]
-        n = 0
-        for e in model["elements"]:
-            if e.get("rotation"):
-                continue
-            for ax in range(3):
-                for key in ("from", "to"):
-                    v = e[key][ax]
-                    c = min(max(v, lim[ax][0]), lim[ax][1])
-                    if abs(c - v) > 1e-6:
-                        e[key][ax] = c
-                        n += 1
-        if n:
-            print("clamped %d element faces back into the opening" % n)
-        return n
 
     def default_icon(self, path):
         """16x16 icon: the model seen from the front (gears, glow included) reduced to 9 x 16, contrast raised, a dark
@@ -404,7 +524,6 @@ class Door:
         small[..., 3] = np.where(small[..., 3] > 100, 255, 0)
         out = np.zeros((16, 16, 4), np.uint8)
         out[:, 4:13] = small.astype(np.uint8)
-        # dark outline on the outer pixels of the door
         for j in range(16):
             for i in range(4, 13):
                 if out[j, i, 3] and (i in (4, 12) or j in (0, 15)):
@@ -419,8 +538,9 @@ class Door:
             for p in (f, t):
                 q = np.array([-p[0] / 16, p[1] / 16, -p[2] / 16])
                 lo, hi = np.minimum(lo, q), np.maximum(hi, q)
-        ok = lo[0] >= -0.5 - 0.02 and hi[0] <= 0.5 + 0.02 and lo[1] >= -0.02 and hi[1] <= 2.02 and lo[2] >= -0.52 and hi[2] <= 0.52
-        print("bounds x [%.3f, %.3f] y [%.3f, %.3f] z [%.3f, %.3f] %s" % (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2],
+        e = 1e-6
+        ok = lo[0] >= -0.5 - e and hi[0] <= 0.5 + e and lo[1] >= -e and hi[1] <= 2 + e and lo[2] >= -0.5 - e and hi[2] <= 0.5 + e
+        print("bounds x [%.4f, %.4f] y [%.4f, %.4f] z [%.4f, %.4f] %s" % (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2],
                                                                          "OK" if ok else "OUT OF THE OPENING"))
         return ok
 
@@ -435,9 +555,10 @@ class Door:
         views = [
             ("face", closed, dict(W=260, H=520, eye=(0, 1.0, 30), target=(0, 1.0, 0), ortho=1.25)),
             ("3/4", closed, dict(W=300, H=520, eye=(-2.6, 2.1, 3.4), target=(0, 1.0, 0), fov=40)),
-            ("ouverte 90", opened, dict(W=300, H=520, eye=(2.4, 2.0, 3.6), target=(0, 1.0, -0.2), fov=40)),
-            ("arriere", closed, dict(W=260, H=520, eye=(0, 1.0, -30), target=(0, 1.0, 0), ortho=1.25)),
-            ("ouverte dessus", opened, dict(W=300, H=520, eye=(-1.8, 3.4, -2.6), target=(0, 0.9, -0.3), fov=40)),
+            ("dos", closed, dict(W=260, H=520, eye=(0, 1.0, -30), target=(0, 1.0, 0), ortho=1.25)),
+            ("ouverte 90 (arriere)", opened, dict(W=300, H=520, eye=(2.4, 2.0, 3.6), target=(0, 1.0, -0.2), fov=40)),
+            ("ouverte, de dos", opened, dict(W=300, H=520, eye=(-1.8, 3.0, -2.8), target=(0, 0.9, -0.3), fov=40)),
+            ("chant", closed, dict(W=200, H=520, eye=(3.4, 1.6, 1.2), target=(0, 1.0, 0), fov=40)),
         ]
         ims = []
         for title, quads, kw in views:
@@ -472,8 +593,9 @@ def _set_rot(groups, name, rot):
             _set_rot(g["children"], name, rot)
 
 
-def render(quads, texs, W, H, eye, target, fov=None, ortho=None, bg=(28, 33, 48)):
-    """tools/preview.py's rasteriser with Minecraft face shading (top 1.0, z sides 0.8, x sides 0.6, bottom 0.5)."""
+def render(quads, texs, W, H, eye, target, fov=None, ortho=None, bg=(28, 33, 48), cov=False):
+    """tools/preview.py's rasteriser with Minecraft face shading (top 1.0, z sides 0.8, x sides 0.6, bottom 0.5);
+    cov=True also returns the coverage mask (pixels where a face was drawn)."""
     eye, target = np.array(eye, float), np.array(target, float)
     fwd = target - eye
     fwd /= np.linalg.norm(fwd)
@@ -546,68 +668,92 @@ def render(quads, texs, W, H, eye, target, fov=None, ortho=None, bg=(28, 33, 48)
             sub[mask] = z[mask]
             region = img[ymin:ymax + 1, xmin:xmax + 1]
             region[mask] = col[..., :3][mask] * sh
-    return Image.fromarray(np.clip(img, 0, 255).astype(np.uint8))
+    im = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8))
+    return (im, np.isfinite(zbuf)) if cov else im
 
 
 # ---------------------------------------------------------------- shared pieces
 def tile_wood(base, dark):
     def p(c):
-        c.planks_v(0, 1, 0, 1, 4, base, dark, knots=1)
+        c.planks_v(0, c.X1, 0, c.Y1, 4, base, dark, knots=1)
     return p
 
 
 def tile_metal(base, rust=None, p=0.0):
     def f(c):
-        c.metal(0, 1, 0, 1, base, noise=12, bevel=False, rust=rust, rust_p=p)
+        c.metal(0, c.X1, 0, c.Y1, base, noise=12, bevel=False, rust=rust, rust_p=p)
     return f
 
 
 def tile_flat(col, noise=8):
     def f(c):
-        c.fill(0, 1, 0, 1, col, noise=noise)
+        c.fill(0, c.X1, 0, c.Y1, col, noise=noise)
     return f
 
 
-def ring_handle(d, bone, cx, cy, z, metal_side, plate=0.06, ring=0.075, th=1 / 32, back=False):
-    """Iron ring handle: a square back plate + a pixel ring hanging under it (cubes)."""
-    s = -1 if back else 1
-    zb = z
-    zf = z + s * th
-    d.box(bone, "ring_plate" + ("_b" if back else ""), cx - plate / 2, cx + plate / 2, cy - plate / 2, cy + plate / 2,
-          zb, zf, side=metal_side)
-    zr0, zr1 = zf, zf + s * th
-    r, t = ring / 2, 1 / 32
-    d.box(bone, "ring_staple" + ("_b" if back else ""), cx - t, cx + t, cy - plate / 2 - t, cy + plate / 2 - t,
-          zf, zf + s * th * 1.5, side=metal_side)
-    top = cy - plate / 2 + t
-    cyr = top - r
-    nm = "ring" + ("_b" if back else "")
-    d.box(bone, nm + "_t", cx - r + t, cx + r - t, top - t, top, zr0, zr1, side=metal_side)
-    d.box(bone, nm + "_d", cx - r + t, cx + r - t, cyr - r, cyr - r + t, zr0, zr1, side=metal_side)
-    d.box(bone, nm + "_l", cx - r, cx - r + t, cyr - r + t, top - t, zr0, zr1, side=metal_side)
-    d.box(bone, nm + "_r", cx + r - t, cx + r, cyr - r + t, top - t, zr0, zr1, side=metal_side)
-    return cyr
+def ring_handle(d, parent, name, cx, cy, zbase, metal_side, s=1, big=True, colours=None):
+    """Iron ring handle on a face at z = zbase (s = 1 front, -1 back), in its own bone `name` (pivot = the boss, it
+    turns about z when the door is unlocked): a square plate, a boss, a staple and an octagonal ring (9 px, or 7 px
+    when big=False) hanging 1/64 in front of the plate. The four corner blocks of the ring stand 1/64 proud of its bars
+    so that no two faces are ever coplanar. The cubes show their own little picture (sheet `name`)."""
+    P = 1 / 32
+    light, mid, dark = colours or ((206, 200, 196), (124, 114, 116), (46, 40, 42))
+    pr = (2.5 if big else 2.0) * P
+    ro, ri = (4.5, 2.5) if big else (4.0, 2.5)          # ring outer / inner half size (px)
+    ry = cy - (7.0 if big else 6.5) * P                 # ring centre
+    X0, X1, Y0, Y1 = cx - 5 * P, cx + 5 * P, ry - 5 * P, cy + 3 * P
+    sh = d.sheet(name, X0, X1, Y0, Y1, mirror=s < 0)
+    sh.fill(X0, X1, Y0, Y1, mid)
+    sh.metal(cx - pr, cx + pr, cy - pr, cy + pr, mid, noise=8)
+    sh.metal(cx - P, cx + P, cy - P, cy + P, light, noise=4)
+    sh.metal(cx - P, cx + P, ry + (ro - 1) * P, cy - P, shade(mid, 0.9), noise=4, bevel=False)
+    sh.metal(cx - ro * P, cx + ro * P, ry + ri * P, ry + ro * P, light, noise=6, bevel=False)          # top bar
+    sh.metal(cx - ro * P, cx + ro * P, ry - ro * P, ry - ri * P, shade(mid, 0.75), noise=6, bevel=False)  # bottom
+    sh.metal(cx - ro * P, cx - ri * P, ry - ri * P, ry + ri * P, shade(light, 0.9), noise=6, bevel=False)
+    sh.metal(cx + ri * P, cx + ro * P, ry - ri * P, ry + ri * P, shade(mid, 0.85), noise=6, bevel=False)
+    b = d.part(name, (cx, cy, zbase), parent)
+    face = dict(face=name)
+    d.relief(b, name + "_plate", cx - pr, cx + pr, cy - pr, cy + pr, zbase, s * P, metal_side, **face)
+    d.relief(b, name + "_boss", cx - P, cx + P, cy - P, cy + P, zbase + s * P, s * (P + 3 * G), metal_side, **face)
+    za0 = zbase + s * (P + G)
+    fr, bk = (name, None) if s > 0 else (None, name)
+
+    def rb(nm, a0, a1, b0, b1, dz=0.0):
+        z0, z1 = sorted((za0 + s * dz, za0 + s * (dz + P)))
+        d.box(b, name + nm, cx + a0 * P, cx + a1 * P, ry + b0 * P, ry + b1 * P, z0, z1, side=metal_side, front=fr,
+              back=bk)
+    # staple from the boss down to the ring (front of the plate, 1/64 off it)
+    d.box(b, name + "_staple", cx - 0.5 * P, cx + 0.5 * P, ry + (ro - 0.5) * P, cy - 0.5 * P,
+          *sorted((za0 + s * G, za0 + s * (P + G))), side=metal_side, front=fr, back=bk)
+    c = ri + 0.5
+    rb("_ring_t", -c + 0.5, c - 0.5, ri, ro)
+    rb("_ring_d", -c + 0.5, c - 0.5, -ro, -ri)
+    rb("_ring_l", -ro, -ri, -c + 0.5, c - 0.5)
+    rb("_ring_r", ri, ro, -c + 0.5, c - 0.5)
+    for k, (sx, sy) in enumerate(((-1, 1), (1, 1), (-1, -1), (1, -1))):
+        a0, a1 = sorted((sx * (ri - 1), sx * (ro - 1)))
+        b0, b1 = sorted((sy * (ri - 1), sy * (ro - 1)))
+        rb("_ring_c%d" % k, a0, a1, b0, b1, dz=G)
+    return b
 
 
-def paint_ring(canvas, cx, cy, plate, ring, light, mid, dark):
-    """Paints the ring handle (plate + ring) on a picture at the same place as ring_handle()."""
-    canvas.metal(cx - plate / 2, cx + plate / 2, cy - plate / 2, cy + plate / 2, mid, noise=8)
-    canvas.rivet(cx - 1 / 64, cy + 1 / 64, light=light, dark=dark)
-    r, t = ring / 2, 1 / 32
-    top = cy - plate / 2 + t
-    cyr = top - r
-    canvas.metal(cx - r + t, cx + r - t, top - t, top, light, noise=4, bevel=False)
-    canvas.metal(cx - r + t, cx + r - t, cyr - r, cyr - r + t, dark, noise=4, bevel=False)
-    canvas.metal(cx - r, cx - r + t, cyr - r + t, top - t, mid, noise=4, bevel=False)
-    canvas.metal(cx + r - t, cx + r, cyr - r + t, top - t, shade(mid, 0.8), noise=4, bevel=False)
-
-
-def core_with_hole(d, bone, x0, x1, y0, y1, hx0, hx1, hy0, hy1, cz, side, **kw):
-    """The leaf core (z in [-cz, cz]) in four cubes round a rectangular hole (judas, porthole)."""
-    d.box(bone, "core_bottom", x0, x1, y0, hy0, -cz, cz, side=side, **kw)
-    d.box(bone, "core_top", x0, x1, hy1, y1, -cz, cz, side=side, **kw)
-    d.box(bone, "core_left", x0, hx0, hy0, hy1, -cz, cz, side=side, **kw)
-    d.box(bone, "core_right", hx1, x1, hy0, hy1, -cz, cz, side=side, **kw)
+def frame_picture(C, base, edge_dark, rivet_l, rivet_d, lx0, lx1, ly0, ly1, noise=12, rivets=9, big=True):
+    """Paints a frame picture (front or back): metal everywhere, a dark line along the edge of the opening (the front
+    stops end LIP inside the leaf), riveted jambs and lintel."""
+    C.metal(-0.5, 0.5, 0, 2, base, noise=noise, bevel=False)
+    e0, e1, f0, f1 = lx0 + LIP, lx1 - LIP, ly0 + LIP, ly1 - LIP
+    C.fill(e0 - 1 / 32, e0, f0, f1, shade(base, 1.18))
+    C.fill(e1, e1 + 1 / 32, f0, f1, shade(base, 0.7))
+    C.fill(e0, e1, f1, f1 + 1 / 32, shade(base, 0.7))
+    C.fill(e0, e1, f0 - 1 / 32, f0, shade(base, 1.18))
+    C.fill(-0.5, 0.5, 2 - 1 / 32, 2, shade(base, 1.25))
+    C.fill(-0.5, -0.5 + 1 / 32, 0, 2, shade(base, 1.12))
+    C.fill(0.5 - 1 / 32, 0.5, 0, 2, shade(base, 0.72))
+    C.fill(-0.5, 0.5, 0, 1 / 32, shade(base, 0.6))
+    xl, xr = (-0.5 + e0) / 2, (e1 + 0.5) / 2
+    for xr_ in (xl, xr):
+        C.rivets_v(xr_ - 1 / 64, 0.06, 1.9, rivets, light=rivet_l, dark=rivet_d, big=big)
+    C.rivets_h(xl + 0.12, xr - 0.08, (f1 + 2) / 2, 4, light=rivet_l, dark=rivet_d, big=big)
 
 
 def paint_gear(c, teeth, base, light, dark, hole=(0, 0, 0), spokes=4, tooth_depth=2.0, rim_w=2.0, hub=2.0):
@@ -655,12 +801,74 @@ def paint_gear(c, teeth, base, light, dark, hole=(0, 0, 0), spokes=4, tooth_dept
             c.put(i, j, col)
 
 
-def gear(d, parent, name, cx, cy, r, z0, sprite, side):
-    """An animated gear (bone `name`, pivot at its centre): a thin cut-out sprite in front of a thick body cross."""
-    b = Bone(name, origin=(cx, cy, z0), parent=parent)
-    rr = r * 0.74
-    t = r * 0.42
-    d.box(b, name + "_body_h", cx - rr, cx + rr, cy - t, cy + t, z0, z0 + 1 / 32, side=side, hide=("+z", "-z"))
-    d.box(b, name + "_body_v", cx - t, cx + t, cy - rr, cy + rr, z0, z0 + 1 / 32, side=side, hide=("+z", "-z"))
-    d.sprite_box(b, name + "_teeth", cx, cy, r, z0 + 1 / 32, z0 + 1.6 / 32, sprite)
+def paint_gear_face(c, cx, cy, R, base, light, dark, recess, spokes=4):
+    """Paints the face of a cube gear (body radius R px, centre cx, cy in model blocks) on its sheet: teeth and rim in
+    the metal, a lit upper-left edge, spokes, dark recesses between them, a hub with a dark axle. Opaque everywhere."""
+    P = 1 / 32
+    c.fill(c.X0, c.X1, c.Y0, c.Y1, base, noise=6)
+    ci, cj = c.pu(cx), c.pv(cy)
+    for j in range(c.h):
+        for i in range(c.w):
+            dx, dy = i + 0.5 - ci, j + 0.5 - cj
+            r = math.hypot(dx, dy)
+            col = None
+            if r > R + 0.2:                                   # teeth: lit / shaded by side
+                col = shade(base, 1.15 if dx + dy < 0 else 0.8)
+            elif r > R - 1.4:                                 # rim
+                col = shade(light, 1.0 if dx + dy < -1 else 0.86) if r > R - 0.7 else base
+            elif r <= 1.0:
+                col = dark                                    # axle
+            elif r <= 2.2:
+                col = light                                   # hub
+            else:
+                a = math.atan2(dy, dx)
+                on = any(abs(math.sin(a - k * math.pi / spokes * 2 + math.pi / 4 * 0)) * r < 0.85 and
+                         math.cos(a - k * 2 * math.pi / spokes) > 0 for k in range(spokes))
+                col = shade(base, 1.08 if dx + dy < 0 else 0.92) if on else recess
+            c.put(i, j, col)
+
+
+def cube_gear(d, parent, name, cx, cy, R, zbase, side, base, light, dark, recess, depth=2 / 32, spokes=4,
+              tooth_w=3.0, diag=3.0, cc=None):
+    """An animated gear made of cubes (bone `name`, pivot = its centre, turns about z): a stepped disc of radius R px
+    (centred strips: every contact face is covered by its neighbour), 8 teeth 1/64 thinner on each face than the disc
+    (so that no face is coplanar with the disc), a hub. All opaque, its own picture (sheet `name`)."""
+    P = 1 / 32
+    span = R + 4
+    sh = d.sheet(name, cx - span * P, cx + span * P, cy - span * P, cy + span * P)
+    paint_gear_face(sh, cx, cy, R, base, light, dark, recess, spokes)
+    b = d.part(name, (cx, cy, zbase), parent)
+    # disc: strips 2 px high, centred, merged when equally wide
+    rows = []
+    k = -R
+    while k < R:
+        k1 = min(R, k + 2)
+        mid = (k + k1) / 2
+        hw = int(round(math.sqrt(max(0.0, R * R - mid * mid))))
+        if rows and rows[-1][2] == hw:
+            rows[-1] = (rows[-1][0], k1, hw)
+        else:
+            rows.append((k, k1, hw))
+        k = k1
+    for n, (y0, y1, hw) in enumerate(rows):
+        d.relief(b, "%s_disc%d" % (name, n), cx - hw * P, cx + hw * P, cy + y0 * P, cy + y1 * P, zbase, depth, side,
+                 face=name)
+    za, zb_ = zbase + G, zbase + depth - G
+    t, dd = tooth_w / 2, R + 2.0
+    for n, (ax, ay) in enumerate(((1, 0), (0, 1), (-1, 0), (0, -1))):
+        if ax:
+            a0, a1 = sorted((ax * (R - 0.5), ax * dd))
+            b0, b1 = -t, t
+        else:
+            a0, a1 = -t, t
+            b0, b1 = sorted((ay * (R - 0.5), ay * dd))
+        d.box(b, "%s_tooth%d" % (name, n), cx + a0 * P, cx + a1 * P, cy + b0 * P, cy + b1 * P, za, zb_, side=side,
+              front=name, back=name)
+    cc = cc if cc is not None else round((R + 0.6) / math.sqrt(2) * 2) / 2   # diagonal teeth centre (px)
+    for n, (sx, sy) in enumerate(((1, 1), (-1, 1), (-1, -1), (1, -1))):
+        a0, a1 = sorted((sx * (cc - diag / 2), sx * (cc + diag / 2)))
+        b0, b1 = sorted((sy * (cc - diag / 2), sy * (cc + diag / 2)))
+        d.box(b, "%s_tooth%d" % (name, n + 4), cx + a0 * P, cx + a1 * P, cy + b0 * P, cy + b1 * P, za, zb_, side=side,
+              front=name, back=name)
+    d.relief(b, name + "_hub", cx - 1.5 * P, cx + 1.5 * P, cy - 1.5 * P, cy + 1.5 * P, zbase + depth, P, side, face=name)
     return b

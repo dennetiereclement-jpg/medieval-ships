@@ -88,64 +88,77 @@ def build():
         F.strap_h(x0 + 2, x0 + 10, 0, 2, IRON, light=IRON_L)
         F.strap_h(x0 + 2, x0 + 10, LEAF_TOP - 2, 2, IRON, light=IRON_L)
         F.strap_h(x0 + 2, x0 + 10, 23, 2, IRON, light=IRON_L)
+        # forged hinge straps (on their raised boxes), pointed towards the seam
+        for y in (5, 21, 42):
+            xa = x0 if x0 < 0 else x0 + 6
+            F.metal(xa, y, xa + 6, y + 3, shade(IRON, 0.92), noise=3)
+            F.rivet(xa + (1 if x0 < 0 else 4), y + 1, light=IRON_L)
+            F.rivet(xa + (4 if x0 < 0 else 1), y + 1, light=IRON_L)
         # seam shadow
     for y in range(0, LEAF_TOP):
         F.put(-1, y, shade(F.get(-1, y), 0.7))
         F.put(0, y, shade(F.get(0, y), 0.8))
 
     # ------------------------------------------------------------ frame cubes
+    # posts: full depth only outside X = +-14.5 (the rebate behind the 2.5 px door stop takes the turned leaves)
     fr = d.frame
     for s in (-1, 1):
-        xo, xi, xs = 16 * s, 12 * s, 14 * s           # outer edge, inner edge (hinge), end of the full-depth part
+        xo, xs, xi = 16 * s, 14.5 * s, 12 * s
         d.box(fr, "post_%d" % s, xo, xs, 6, 54, -8, 4, side="frame_side")
-        d.box(fr, "post_stop_%d" % s, xs, xi, 6, 54, 2, 4, side="frame_side")
+        d.box(fr, "post_stop_%d" % s, xs, xi, 6, 50, 2.75, 4, side="frame_side")
         d.box(fr, "plinth_%d" % s, xo, xs, 0, 6, -8, 5, side="frame_side")
-        d.box(fr, "plinth_stop_%d" % s, xs, xi, 0, 6, 2, 5, side="frame_side")
+        d.box(fr, "plinth_stop_%d" % s, xs, xi, 0, 6, 2.75, 5, side="frame_side")
         d.box(fr, "bracket_%d" % s, xo, 11 * s, 54, 58, -6, 8, side="frame_side")
-    d.box(fr, "header", -12, 12, 50, 54, -4, 3, side="frame_side")
+    d.box(fr, "header", -14.5, 14.5, 50, 54, -4, 4, side="frame_side")
+    d.head_stop(2.75, 4, "frame_side", Y0=49)
     d.box(fr, "lintel_back", -11, 11, 54, 58, -5, 5, side="frame_side")
     d.box(fr, "lintel_mid", -3, 3, 54, 58, 5, 7, side="frame_side", back=None)
     for k, (a, b, z1) in enumerate(((-16, -8, 8), (-8, 1, 7.5), (1, 9, 8), (9, 16, 7.5))):
         d.box(fr, "lintel_%d" % k, a, b, 58, 64, -6, z1, side="frame_side")
-    # lanterns on chains under the end brackets, in front of the posts
-    det = d.detail()
+    # lanterns on chains under the end brackets, in front of the posts (clear of the posts by 0.5 px)
     for s in (-1, 1):
-        d.lantern(fr, "lantern_%d" % (0 if s < 0 else 1), 13.6 * s, 44.2, 5.9, size=4, metal="iron")
-        d.chain(det, "chain_%d" % (0 if s < 0 else 1), 13.6 * s, 48.6, 54, 5.9)
+        k = 0 if s < 0 else 1
+        ytop = d.lantern(fr, "lantern_%d" % k, 13.6 * s, 44.2, 6.15, size=3.4, metal="iron")
+        d.chain(fr, "chain_%d" % k, 13.6 * s, ytop, 54.5, 6.15)
 
     # ------------------------------------------------------------ leaves
     for leaf, x0, s in ((d.leaf_l, -12, -1), (d.leaf_r, 0, 1)):
-        tag = "l" if s < 0 else "r"
         d.box(leaf, "core", x0, x0 + 12, 0, LEAF_TOP, -1, 1, side="wood_side")
-        # front iron frame (relief) and X braces
-        d.box(leaf, "strap_o", x0, x0 + 2, 0, LEAF_TOP, 1, 2, side="iron_side", back=None)
-        d.box(leaf, "strap_i", x0 + 10, x0 + 12, 0, LEAF_TOP, 1, 2, side="iron_side", back=None)
-        d.box(leaf, "strap_b", x0 + 2, x0 + 10, 0, 2, 1, 2, side="iron_side", back=None)
-        d.box(leaf, "strap_t", x0 + 2, x0 + 10, LEAF_TOP - 2, LEAF_TOP, 1, 2, side="iron_side", back=None)
-        d.box(leaf, "strap_m", x0 + 2, x0 + 10, 23, 25, 1, 2, side="iron_side", back=None)
-        # one big X over the two leaves: outer-top -> seam-middle -> outer-bottom on each leaf
+        # front iron frame (1.5 px relief) and X braces (1 px, under the frame where they cross it)
+        d.box(leaf, "strap_o", x0, x0 + 2, 0, LEAF_TOP, 1, 2.5, side="iron_side", back=None)
+        d.box(leaf, "strap_i", x0 + 10, x0 + 12, 0, LEAF_TOP, 1, 2.5, side="iron_side", back=None)
+        d.box(leaf, "strap_b", x0 + 2, x0 + 10, 0, 2, 1, 2.5, side="iron_side", back=None)
+        d.box(leaf, "strap_t", x0 + 2, x0 + 10, LEAF_TOP - 2, LEAF_TOP, 1, 2.5, side="iron_side", back=None)
+        d.box(leaf, "strap_m", x0 + 2, x0 + 10, 23, 25, 1, 2.5, side="iron_side", back=None)
         xo, xi = (x0 + 2.6, x0 + 9.4) if s < 0 else (x0 + 9.4, x0 + 2.6)
         d.strap(leaf, "brace_0", (xo, LEAF_TOP - 2.6), (xi, 25.6), 2, 1, 2, "strap2")
         d.strap(leaf, "brace_1", (xi, 22.4), (xo, 2.6), 2, 1, 2, "strap2")
-        # ring handle near the seam, on the middle rail
-        hx = -3 if s < 0 else 2
-        dm.ring_handle(d, leaf, "ring", hx, 24, "ring_side", shade(IRON, 0.7), shade(IRON, 1.25), Z=2, size=4)
-        # hinge knuckles round the pivot (square, so they turn in place)
+        # forged hinge straps from the hinge edge, on the frame of the leaf
+        for k, y in enumerate((5, 21.5, 42)):
+            xa, xb = (x0 + 0.25, x0 + 6) if s < 0 else (x0 + 6, x0 + 11.75)
+            d.box(leaf, "hinge_strap_%d" % k, xa, xb, y, y + 2.5, 1, 3, side="iron_side", back=None)
+        # ring handle near the seam, on the middle rail (its own bone: handle_0 / handle_1)
+        hx = -5 if s < 0 else 4
+        dm.ring_handle(d, leaf, "ring", hx, 24, "ring_side", shade(IRON, 0.7), shade(IRON, 1.25), Z=2.5, size=5,
+                       handle="handle_%d" % (0 if s < 0 else 1))
+        # hinge barrels round the pivot
         px = -12 if s < 0 else 12
-        for k, y in enumerate((5, 22, 43)):
-            d.box(leaf, "hinge_%d" % k, px - 2, px + 2, y, y + 3, -2, 2, front="iron_side", back="iron_side", side="iron_side")
+        for k, y in enumerate((5, 21.5, 42)):
+            d.knuckle(leaf, "hinge_%d" % k, px, y - 0.5, y + 3, "iron_side")
         # back: horizontal battens and a diagonal wooden brace in each half ("Z")
         for k, y in enumerate((3, 22, 44)):
-            d.box(leaf, "batten_%d" % k, x0 + 0.5, x0 + 11.5, y, y + 3, -2, -1, front=None, back="batten", side="wood_side")
+            d.box(leaf, "batten_%d" % k, x0 + 0.5, x0 + 11.5, y, y + 3, -2.25, -1, front=None, back="batten", side="wood_side")
         if s < 0:
-            d.strap(leaf, "zbrace_0", (x0 + 1.5, 6), (x0 + 10.5, 22), 2.5, -2, -1, "batten")
-            d.strap(leaf, "zbrace_1", (x0 + 1.5, 25), (x0 + 10.5, 44), 2.5, -2, -1, "batten")
+            d.strap(leaf, "zbrace_0", (x0 + 2, 6), (x0 + 10, 22), 2.5, -2, -1, "batten")
+            d.strap(leaf, "zbrace_1", (x0 + 2, 25), (x0 + 10, 44), 2.5, -2, -1, "batten")
         else:
-            d.strap(leaf, "zbrace_0", (x0 + 10.5, 6), (x0 + 1.5, 22), 2.5, -2, -1, "batten")
-            d.strap(leaf, "zbrace_1", (x0 + 10.5, 25), (x0 + 1.5, 44), 2.5, -2, -1, "batten")
-        # back pull handle
-        d.box(leaf, "pull", (x0 + 8) if s < 0 else (x0 + 3), (x0 + 9) if s < 0 else (x0 + 4), 28, 34, -3, -2,
+            d.strap(leaf, "zbrace_0", (x0 + 10, 6), (x0 + 2, 22), 2.5, -2, -1, "batten")
+            d.strap(leaf, "zbrace_1", (x0 + 10, 25), (x0 + 2, 44), 2.5, -2, -1, "batten")
+        # back pull handle (far enough from the hinge to clear the post when the leaf is open)
+        d.box(leaf, "pull", (x0 + 8.5) if s < 0 else (x0 + 2.5), (x0 + 9.5) if s < 0 else (x0 + 3.5), 28, 34, -2.75, -2,
               front="iron_side", back="iron_side", side="iron_side")
+    d.material("seam_dark", dm.tile_flat(shade(WOOD_D, 0.7), 4), 16, 16)
+    d.finalize(top_gap=True, cover_side="wood_side", seam_mat="seam_dark")
     d.icon_map = (ICON, ICON_PAL)
     return d
 
@@ -159,4 +172,4 @@ if __name__ == "__main__":
     for line in d.bones():
         print(line)
     if "--preview" in sys.argv:
-        d.preview(dm.SCRATCH + "/doors_out/medium_porte_grange.png", refs=REFS)
+        d.preview(dm.SCRATCH + "/doors_out2/medium_porte_grange.png", refs=REFS)
