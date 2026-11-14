@@ -887,6 +887,7 @@ class LargeDoor:
         if np.any(lo < elo - 1e-6) or np.any(hi > ehi + 1e-6):
             return None
         olo, ohi = self._aabb(c)
+        lo, hi = lo - (MIN_GAP - 1e-6), hi + (MIN_GAP - 1e-6)     # keep 1/64 block from the other groups
         if m < 0 and not covered and np.allclose(np.asarray(c.axes, float)[:, k] ** 2, np.eye(3)[k], atol=1e-9):
             # never pull a face off the envelope (the silhouette / a leaf edge would open a sliver)
             pos = s * np.asarray(c.axes, float)[k, k] > 0
@@ -900,7 +901,8 @@ class LargeDoor:
             for a, b in lst:
                 new = np.prod(np.clip(np.minimum(hi, b) - np.maximum(lo, a), 0, None))
                 if new > 1e-12:
-                    old = np.prod(np.clip(np.minimum(ohi, b) - np.maximum(olo, a), 0, None))
+                    old = np.prod(np.clip(np.minimum(ohi + MIN_GAP - 1e-6, b) - np.maximum(olo - MIN_GAP + 1e-6, a),
+                                          0, None))
                     if new > old + 1e-12:
                         return None
         return center, size
@@ -954,6 +956,9 @@ class LargeDoor:
     def _try_split(self, f, g):
         """Partial contact: cut the cube of one face along an edge of the other so that the contact becomes a
         containment (then the hidden face goes)."""
+        for x in (f, g):
+            if not np.allclose(np.asarray(x["cube"].axes, float), EYE):
+                return False                 # only between axis-aligned cubes
         for a, b in ((f, g), (g, f)) if f["area"] <= g["area"] else ((g, f), (f, g)):
             k = a["k"]
             for j in [x for x in range(3) if x != k]:
@@ -985,11 +990,11 @@ class LargeDoor:
             cross = w["rig"] != s_["rig"]
             if opp and not cross:
                 # a contact inside one rigid group: only close it further (a shrink would open a see-through seam)
-                cands = [grow, grow + MIN_GAP, grow + 2 * MIN_GAP, grow + 4 * MIN_GAP]
+                cands = [grow, grow + MIN_GAP, grow + 2 * MIN_GAP]
             else:
+                # small moves only (<= 1/32 block beyond the conflict): the stops overlap the leaves by >= 0.75 px
                 pref = [shrink, grow] if opp else sorted((grow, shrink), key=abs)
-                cands = pref + [grow + MIN_GAP, shrink - MIN_GAP, grow + 2 * MIN_GAP, shrink - 2 * MIN_GAP,
-                                grow + 4 * MIN_GAP, shrink - 4 * MIN_GAP]
+                cands = pref + [grow + MIN_GAP, shrink - MIN_GAP]
             covered = (not opp) and A.contains(w, s_)
             for rank, m in enumerate(cands):
                 mv = self._valid_move(w, m, foreign, covered)

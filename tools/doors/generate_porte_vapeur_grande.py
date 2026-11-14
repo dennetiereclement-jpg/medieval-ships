@@ -258,7 +258,7 @@ def build_frame(d, sw):
               back="brass")
         d.box(fr, "valve_body_" + tg, x0 - 0.5, x1 + 0.5, 55, 58, pz0 - 0.5, 7.75, side="brass", front="brass",
               back="brass")
-        d.lantern(fr, "lantern_" + tg, cx, 62.0, 5.2, w=5.2, h=7.5, metal="iron")
+        d.lantern(fr, "lantern_" + tg, 28.6 * side, 62.0, 5.3, w=5.0, h=7.5, metal="iron")
         d.box(fr, "pipe_ret_" + tg, x0, x1, 67.5, 90.75, pz0, pz1, **pv)
         d.box(fr, "flange_top_" + tg, x0 - 0.75, x1 + 0.75, 67.5, 69.5, pz0 - 0.25, 8.0, side="brass",
               front="brass", back="brass")
