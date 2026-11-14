@@ -56,6 +56,7 @@ def paint(Pc, back=False):
     Pc.planks_h(*Pc.R(-32, 32, 94, 96), [2], shade(TIMBER, 0.85), WOOD_D)
     for X0, X1 in ((-32, -24), (24, 32), (-4, 4)):
         Pc.planks_v(*Pc.R(X0, X1, TOP - 1, 96), [X1 - X0], shade(TIMBER, 1.08), WOOD_D, grain=0.1, knots=0)
+        Pc.rect(*Pc.R(X0, X1, 95, 96), shade(TIMBER, 1.2))
         Pc.outline(*Pc.R(X0, X1, TOP - 1, 96), WOOD_D)
     Pc.metal(*Pc.R(-4, 4, 87, 90), IRON)
     i0, i1, j0, j1 = Pc.R(-4, 4, 87, 90)
@@ -137,8 +138,8 @@ def build_leaves(d):
         # the Saint Andrew's cross: two battens per leaf meeting on the centre plate (front 1.75)
         oxe = X0 + 3.5 if s < 0 else X1 - 3.5
         cxe = -8 if s < 0 else 8
-        d.rbox(bone, "cross_up_" + tag, (oxe, 62.0), (cxe, 44.5), 5, 1.25, 1.75, "batten", side="wood_h")
-        d.rbox(bone, "cross_low_" + tag, (cxe, 31.5), (oxe, 12.5), 5, 1.25, 1.75, "batten", side="wood_h")
+        d.rbox(bone, "cross_up_" + tag, (oxe, 59.5), (cxe, 44.5), 5, 1.25, 1.75, "batten", side="wood_h")
+        d.rbox(bone, "cross_low_" + tag, (cxe, 31.5), (oxe, 15.5), 5, 1.25, 1.75, "batten", side="wood_h")
         # hinge straps from the hinge edge (front 2.0) and knuckles behind (in the rebate)
         hs0, hs1 = (X0 + 0.25, -14) if s < 0 else (14, X1 - 0.25)
         for (y0, y1) in HINGES:
@@ -176,11 +177,14 @@ def build_frame(d, sw):
     d.sill(mat="stone_side", front="stone_side")
     d.box(fr, "lintel", -32, 32, TOP - 1, 94, STOP_Z, 7.0, side="wood_h")
     d.box(fr, "lintel_b", -32, 32, TOP, 94, -7.0, STOP_Z, side="wood_h")
-    d.box(fr, "cap_board", -32, 32, 94, 96, -6.5, 6.5, side="wood_h")
+    for k, (X0, X1) in enumerate(((-24, -4), (4, 24))):
+        for j, (z0, z1) in enumerate(((STOP_Z, 6.5), (-6.5, STOP_Z))):
+            d.box(fr, "cap_board_%d_%d" % (k, j), X0, X1, 94, 96, z0, z1, side="wood_h",
+                  front="F" if j == 0 else None, back="B" if j == 1 else None)
     for tag, (X0, X1) in (("l", (-32, -24)), ("r", (24, 32)), ("c", (-4, 4))):
-        d.box(fr, "block_" + tag, X0, X1, TOP - 1 + (0.5 if tag == "c" else 0), 95.5, STOP_Z, 8,
+        d.box(fr, "block_" + tag, X0, X1, TOP - 1 + (0.5 if tag == "c" else 0), 96, STOP_Z, 8,
               side="wood_end" if tag != "c" else "wood_side", top="wood_end")
-        d.box(fr, "block_b_" + tag, X0, X1, TOP + 0.5, 95.5, -8, STOP_Z, side="wood_end", top="wood_end",
+        d.box(fr, "block_b_" + tag, X0, X1, TOP + 0.5, 96, -8, STOP_Z, side="wood_end", top="wood_end",
               front=None)
     # knee braces (rotated about z) in front of the leaves' upper corners
     for sg in (-1, 1):
@@ -192,12 +196,13 @@ def build_frame(d, sw):
             d.box(fr, "hinge_plate_%s_%d" % (tag, y0), X0 + 0.25, X1 - 0.25, y0 - 1, y1 + 1, POST_Z - 0.5, POST_Z + 0.5,
                   back=None, side="iron")
     # big lanterns on iron arms (lit glass, drawn full bright)
-    for tag, x in (("l", -28.5), ("r", 28.5)):
+    for tag, x in (("l", -28.75), ("r", 28.75)):
         d.box(det, "lantern_arm_" + tag, x - 0.5, x + 0.5, 65.5, 75, POST_Z - 0.25, 6.5, side="iron", front="iron",
               back="iron")
         d.box(det, "lantern_hook_" + tag, x - 1.25, x + 1.25, 74, 75.5, POST_Z - 0.25, 7.25, side="iron",
               front="iron", back="iron")
-        d.lantern(fr, "lantern_" + tag, x, 58.0, 5.05, w=5.5, h=9.0, metal="iron")
+        # the lantern stands just in front of the post (every part >= 1/64 block from its front face)
+        d.lantern(fr, "lantern_" + tag, x, 58.0, 5.62, w=4.4, h=8.5, metal="iron")
 
 
 def icon(px, im):

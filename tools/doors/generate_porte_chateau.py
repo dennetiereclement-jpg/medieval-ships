@@ -236,11 +236,12 @@ def build_leaves(d):
         for (y0, y1) in ((8, 14), (30, 36), (50, 56)):
             d.box(bone, "batten_%s_%d" % (tag, y0), X0 + 3.25 * (tag == "l") + 1, X1 - 1 - 3.25 * (tag == "r"),
                   y0, y1, -2.0, -1.25, front=None, side="wood_h")
-        p0 = (X0 + 5, 14) if tag == "l" else (X1 - 5, 14)
-        p1 = (X1 - 4, 30) if tag == "l" else (X0 + 4, 30)
+        # diagonal braces butting against the battens (never overlapping them)
+        p0 = (X0 + 6, 16.75) if tag == "l" else (X1 - 6, 16.75)
+        p1 = (X1 - 5, 27.25) if tag == "l" else (X0 + 5, 27.25)
         d.rbox(bone, "brace_low_" + tag, p0, p1, 4, -1.75, -1.25, "brace", side="wood_h")
-        p0 = (X0 + 5, 36) if tag == "l" else (X1 - 5, 36)
-        p1 = (X1 - 4, 50) if tag == "l" else (X0 + 4, 50)
+        p0 = (X0 + 6, 38.75) if tag == "l" else (X1 - 6, 38.75)
+        p1 = (X1 - 5, 47.25) if tag == "l" else (X0 + 5, 47.25)
         d.rbox(bone, "brace_up_" + tag, p0, p1, 4, -1.75, -1.25, "brace", side="wood_h")
         bxa, bxb = (-12, -0.5) if tag == "l" else (0.5, 12)
         bolt = dl.Bone("bolt_%d" % (0 if tag == "l" else 1), origin=((bxa + bxb) / 2 * P, 41.5 * P, -1.6 * P),
