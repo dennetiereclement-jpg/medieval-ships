@@ -33,9 +33,12 @@ import fr.medievalships.door.DoorBlockEntity;
  * bones are hidden beyond {@code doorDetailDistance}, nothing is drawn beyond {@code doorRenderDistance} or out of the
  * view. Drawn outside its block (a door is up to 4 x 6): never cut when the controller's section leaves the view.
  *
- * <p>1.32.0: the door models are closed, so every face seen from behind is skipped ({@link MeshEmitter#MeshEmitter(boolean)}),
- * the two-sided ones too: the layer draws both sides of a triangle ({@code entityCutoutNoCull}), and two coplanar faces
- * of opposite directions no longer fight (z-fighting).
+ * <p>Back faces: the layer draws both sides of a triangle ({@code entityCutoutNoCull}), so {@link MeshEmitter} skips a
+ * face seen from behind when its cube has the opposite face (that face hides it), for the baked fixed parts and for the
+ * turned leaves alike (the leaf's rotation is in the normal matrix the test uses), exactly as for the tents. The faces
+ * whose opposite was removed (hidden by a neighbouring cube in the generators) stay two-sided: culling them too was
+ * measured (1.32.0, on the ten final models) to open small holes in the leaves seen from behind while they turn, and
+ * the models' own audits (no hole, no coplanar faces in any direction) assume this rule.
  */
 public class DoorRenderer implements BlockEntityRenderer<DoorBlockEntity, DoorRenderer.State> {
 	public static class State extends BlockEntityRenderState {
@@ -51,7 +54,7 @@ public class DoorRenderer implements BlockEntityRenderer<DoorBlockEntity, DoorRe
 	}
 
 	/** Writes the model's quads to the vertex consumer (reused by every command of this renderer, render thread). */
-	private final MeshEmitter emitter = new MeshEmitter(true);
+	private final MeshEmitter emitter = new MeshEmitter();
 
 	@Override
 	public State createRenderState() {

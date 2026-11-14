@@ -65,7 +65,7 @@ public final class DoorGameTest {
 	/** Top of the stone platform; the doors stand on it. */
 	private static final int GROUND = -60, Y = GROUND + 1;
 	/** Where the door kept across the restart stands, and the key door kept with it. */
-	private static final BlockPos RESTART = new BlockPos(X + 40, Y, Z), RESTART_KEY = new BlockPos(X + 43, Y, Z);
+	private static final BlockPos RESTART = new BlockPos(X + 40, Y, Z), RESTART_KEY = new BlockPos(X + 37, Y, Z);
 	/** The lock of the key door before the restart (same JVM: read again after it). */
 	private static String restartLock = "";
 	/** The last message of the action bar the client received (the doors' refusals and confirmations). */

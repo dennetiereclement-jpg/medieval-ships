@@ -322,8 +322,9 @@ les tentes) :
   (cible, tick de départ, progression de départ) : **aucun paquet par tick**.
 * Le cadre est un maillage statique cuit une fois ; les battants et pièces mobiles sont cuits aussi et seulement
   tournés / déplacés au dessin ; la porte n'est pas dessinée hors de la vue ni au-delà de `doorRenderDistance`.
-* Depuis la 1.32.0, toute face d'un modèle de porte vue de dos est écartée avant d'être envoyée à la carte graphique
-  (les modèles sont fermés) : moins de sommets, et plus de scintillement entre deux faces collées de sens opposés.
+* Une face vue de dos est écartée avant d'être envoyée à la carte graphique quand l'envers de son cube la cache
+  (comme pour les tentes), pour le cadre comme pour les battants qui tournent. Les modèles 1.32.0 n'ont plus de faces
+  superposées (dans aucun sens) : plus de scintillement (z-fighting).
 
 ## Pour les créateurs de modèles
 
@@ -337,9 +338,10 @@ horaire vu de face), `gear_b_*` (anti-horaire), qui tournent avec leur battant (
 volants : tournent autour de l'axe z de leur pivot, sens horaire vu de face sous `leaf_l` (et `frame`), anti-horaire
 sous `leaf_r` (en miroir), 30° pendant le déverrouillage puis
 reviennent ; 180° sur les portes à vapeur ; `ring_*`, `poignee_*`, `anneau_*` sont lus de même), cubes `glow*` en
-pleine lumière, os `detail` masqués de loin. Les modèles doivent être **fermés** (chaque face visible a son envers
-caché par le volume) : les faces vues de dos ne sont pas dessinées. Les modèles et textures se rechargent avec les
-packs de ressources (F3+T) ; un modèle absent n'est simplement pas dessiné (la porte fonctionne quand même).
+pleine lumière, os `detail` masqués de loin. Une face dont le cube a la face opposée n'est pas dessinée vue de dos ;
+une face sans face opposée (retirée parce qu'un cube voisin la cache) est dessinée des deux côtés. Pas de faces
+superposées : deux faces dans le même plan scintillent, quel que soit leur sens. Les modèles et textures se rechargent
+avec les packs de ressources (F3+T) ; un modèle absent n'est simplement pas dessiné (la porte fonctionne quand même).
 
 ## Limites (honnêtes)
 
