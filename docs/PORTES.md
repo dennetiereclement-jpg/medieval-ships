@@ -32,7 +32,8 @@ Elles sont dans l'onglet créatif **« Portes »**, avec la **clé** (`medievals
 Chaque mouvement se déroule en deux temps, calculé image par image par chaque client (aucun paquet par tick) :
 
 1. **le déverrouillage** (environ 15 % de la durée) : les pênes reculent, les anneaux et poignées tournent (sens
-   horaire vu de face, 30° au plus ; le volant de la porte à vapeur tourne davantage), les battants attendent ;
+   horaire vu de face, en miroir sur le battant droit, 30° au plus ; le volant de la porte à vapeur tourne davantage),
+   les battants attendent ;
 2. **les battants** : départ lent, accélération puis ralentissement (l'inertie d'un battant lourd, pas un mouvement
    régulier) ; en fin d'ouverture ils dépassent un peu la butée et reviennent se tasser ; en fin de fermeture ils
    claquent contre le cadre, rebondissent légèrement, puis les pênes se referment. Sur les portes doubles, le second
@@ -56,9 +57,10 @@ n'est joué en boucle ni à chaque tick.
   gauche de la case visée jusqu'à deux cases à sa droite.
 * Toutes les cases de l'ouverture doivent être libres (air, herbe, neige...), sans personne dedans ; sinon rien n'est
   posé et un message dit quel bloc gêne et où.
-* Par défaut la porte **s'ouvre vers l'arrière** (loin de celui qui l'a posée) ; `/porte sens ... avant` l'inverse
-  (sur les petites portes à feuillure, le battant traverse alors visuellement le cadre dans les premiers degrés : gardez
-  `arriere` si possible, quitte à poser la porte dans l'autre sens).
+* Par défaut la porte **s'ouvre vers l'arrière** (loin de celui qui l'a posée) ; `/porte sens ... avant` l'inverse,
+  mais c'est **déconseillé** : les dix modèles ont un cadre à feuillure conçu pour l'ouverture vers l'arrière, et vers
+  l'avant les battants frottent / traversent visuellement le cadre (le fonctionnement et les collisions restent
+  justes). Pour qu'une porte s'ouvre de l'autre côté, posez-la plutôt dans l'autre sens.
 * Un administrateur peut aussi la poser par commande : `/porte poser porte_chateau 120 64 -40 sud` (la position est
   la case visée, l'orientation le côté vers lequel regarde la face avant).
 
@@ -232,7 +234,7 @@ La **porte visée** se donne juste après l'action, de trois façons :
 | `/porte manuel [porte] oui\|non` | ouverture à la main permise ou non |
 | `/porte redstone [porte] oui\|non` | redstone et leviers liés pris en compte ou non |
 | `/porte fermeture [porte] <secondes>` | fermeture automatique (60 par défaut, 0 = jamais) |
-| `/porte sens [porte] arriere\|avant` | côté vers lequel tournent les battants |
+| `/porte sens [porte] arriere\|avant` | côté vers lequel tournent les battants (`avant` déconseillé : les battants frottent le cadre) |
 | `/porte levier lier [porte] <x y z>` | lie un levier / bouton / plaque (8 au plus, 32 blocs au plus) |
 | `/porte levier delier [porte] <x y z>\|tous` | délie un levier, ou tous |
 | `/porte levier liste [porte]` | leviers liés et leur état |
@@ -332,7 +334,8 @@ origine au milieu du bas de l'ouverture, au milieu de l'épaisseur ; x vers la d
 horaire vu de face), `gear_b_*` (anti-horaire), qui tournent avec leur battant (ceux du cadre avec la moyenne des deux),
 `bolt_*` (glissent de 0,25 bloc le long de x, en s'éloignant du milieu de leur battant, pendant le déverrouillage : les
 15 premiers % du mouvement), `piston_*` (montent de 0,25 bloc avec leur battant), `handle_*` (anneaux, poignées,
-volants : tournent autour de l'axe z de leur pivot, sens horaire vu de face, 30° pendant le déverrouillage puis
+volants : tournent autour de l'axe z de leur pivot, sens horaire vu de face sous `leaf_l` (et `frame`), anti-horaire
+sous `leaf_r` (en miroir), 30° pendant le déverrouillage puis
 reviennent ; 180° sur les portes à vapeur ; `ring_*`, `poignee_*`, `anneau_*` sont lus de même), cubes `glow*` en
 pleine lumière, os `detail` masqués de loin. Les modèles doivent être **fermés** (chaque face visible a son envers
 caché par le volume) : les faces vues de dos ne sont pas dessinées. Les modèles et textures se rechargent avec les

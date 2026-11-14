@@ -221,8 +221,9 @@ public class DoorRenderer implements BlockEntityRenderer<DoorBlockEntity, DoorRe
 			case BOLT -> m.translate(part.boltSign * DoorMotion.BOLT_TRAVEL * s.unlock, 0, 0);
 			case PISTON -> m.translate(0, DoorMotion.pistonOffset(opening(part, s)), 0);
 			case HANDLE -> {
-				// clockwise seen from the front (a negative turn about +z), 30° for a ring, further for a steam door's wheel
-				float angle = (float) s.handleAngle;
+				// clockwise seen from the front (a negative turn about +z) on the left leaf and the frame, mirrored
+				// (anticlockwise) on the right leaf; 30° for a ring, further for a steam door's wheel
+				float angle = (float) s.handleAngle * (part.leaf == 1 ? -1f : 1f);
 				m.translate(part.px, part.py, part.pz);
 				m.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(angle));
 				m.translate(-part.px, -part.py, -part.pz);

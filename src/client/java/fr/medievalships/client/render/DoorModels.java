@@ -28,8 +28,8 @@ import fr.medievalships.core.DoorTypes;
  * seen from the front, {@code gear_b_*} the other way), the bolts ({@code bolt_*}) and the piston rods
  * ({@code piston_*}), each with its pivot in model-local blocks and its moving ancestors; 1.32.0: the handles and
  * rings ({@code handle_*}, {@code ring_*}, {@code poignee_*}, {@code anneau_*}: they turn about the z axis through their
- * pivot, clockwise seen from the front, while the door unlocks) and the leaf each part hangs from (its gears and rods
- * follow that leaf).
+ * pivot, clockwise seen from the front, mirrored on the right leaf, while the door unlocks) and the leaf each part hangs
+ * from (its gears and rods follow that leaf).
  */
 public final class DoorModels {
 	/** What moves in a door model. */
