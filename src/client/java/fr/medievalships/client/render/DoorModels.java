@@ -26,12 +26,15 @@ import fr.medievalships.core.DoorTypes;
  * packs (F3+T). A door whose model is missing is simply not drawn (logged once per reload). For each model, the
  * moving parts are found once: the leaves ({@code leaf_l}, {@code leaf_r}), the gears ({@code gear_a_*} clockwise
  * seen from the front, {@code gear_b_*} the other way), the bolts ({@code bolt_*}) and the piston rods
- * ({@code piston_*}), each with its pivot in model-local blocks and its moving ancestors.
+ * ({@code piston_*}), each with its pivot in model-local blocks and its moving ancestors; 1.32.0: the handles and
+ * rings ({@code handle_*}, {@code ring_*}, {@code poignee_*}, {@code anneau_*}: they turn about the z axis through their
+ * pivot, clockwise seen from the front, while the door unlocks) and the leaf each part hangs from (its gears and rods
+ * follow that leaf).
  */
 public final class DoorModels {
 	/** What moves in a door model. */
 	public enum Kind {
-		LEAF_L, LEAF_R, GEAR_A, GEAR_B, BOLT, PISTON
+		LEAF_L, LEAF_R, GEAR_A, GEAR_B, BOLT, PISTON, HANDLE
 	}
 
 	/** A moving part: its bone, its pivot (model-local blocks), the moving parts it hangs from (outermost first). */
@@ -45,6 +48,8 @@ public final class DoorModels {
 		public int[] descendants = new int[0];
 		/** Bolts: +1 / -1, the way "out of the leaf" along x (away from the middle of its leaf, or of the door). */
 		public int boltSign = 1;
+		/** The leaf it is (or hangs from): 0 = {@code leaf_l}, 1 = {@code leaf_r}, -1 = the frame. */
+		public int leaf = -1;
 
 		Part(BbModel.Bone bone, Kind kind) {
 			this.bone = bone;
@@ -128,6 +133,9 @@ public final class DoorModels {
 		if (name.startsWith("piston")) {
 			return Kind.PISTON;
 		}
+		if (name.startsWith("handle") || name.startsWith("ring") || name.startsWith("poignee") || name.startsWith("anneau")) {
+			return Kind.HANDLE;
+		}
 		return null;
 	}
 
@@ -164,6 +172,7 @@ public final class DoorModels {
 				}
 			}
 			p.ancestors = up.stream().mapToInt(Integer::intValue).toArray();
+			p.leaf = p.kind == Kind.LEAF_L ? 0 : p.kind == Kind.LEAF_R ? 1 : leaf == null ? -1 : leaf.kind == Kind.LEAF_L ? 0 : 1;
 			if (p.kind == Kind.BOLT) {
 				// the middle of its leaf, from the leaf's pivot read in the model (its span: to the middle, or across for one leaf)
 				double span = leaf == null ? 0 : type.leaves() == 1 ? 2 * Math.abs(leaf.px) : Math.abs(leaf.px);

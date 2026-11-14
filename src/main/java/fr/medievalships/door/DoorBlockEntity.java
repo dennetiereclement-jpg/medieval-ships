@@ -3,6 +3,8 @@ package fr.medievalships.door;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -13,6 +15,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.VehicleEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.listener.ClientPlayPacketListener;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
@@ -34,22 +37,29 @@ import net.minecraft.world.World;
 import net.minecraft.world.event.GameEvent;
 
 import fr.medievalships.core.DoorAccess;
+import fr.medievalships.core.DoorData;
 import fr.medievalships.core.DoorDemands;
+import fr.medievalships.core.DoorKeys;
 import fr.medievalships.core.DoorLayout;
 import fr.medievalships.core.DoorMotion;
 import fr.medievalships.core.DoorType;
+import fr.medievalships.entity.ShipPermissions;
 
 /**
  * The block entity of a door ({@code medievalships:porte}, on its controller block): its movement (target, start
  * tick, start progress: the clients compute the rest, see {@link DoorMotion}), its settings (access and quest tag,
- * manual, redstone, automatic closing, direction of opening), its linked levers, its name, and what asks it to be
- * open ({@link DoorDemands}). Saved with the chunk and sent to the clients with the block entity update packet at
- * every change (never per tick).
+ * lock, manual, redstone, automatic closing, direction of opening), its linked levers, its name, and what asks it to be
+ * open ({@link DoorDemands}). Saved with the chunk (with the version of its data, {@link DoorData}) and sent to the
+ * clients with the block entity update packet at every change (never per tick; the lock is never sent).
  *
  * <p>The server ticker returns at once while nothing happens ({@link #busy}): it only works while the door moves (the
- * collisions at half way and at the end, the check for entities in the way while it closes), while a command's
+ * collisions, the sounds of the movement, the check for entities in the way while it closes), while a command's
  * timer or the automatic closing runs, and every {@link #LEVER_PERIOD} ticks when levers are linked (their blocks
  * read only where their chunk is loaded).
+ *
+ * <p>1.32.0: the keys ({@link #useKey}, {@link DoorKeys}), the automatic closing of one minute by default (the doors of
+ * 1.31.0 migrated, {@link DoorData#autoClose}), the movement curve of {@link DoorMotion} for the collisions and the
+ * sounds (unlocking click, leaves, creaks of the great gates, the slam of the closing, the lock).
  */
 public class DoorBlockEntity extends BlockEntity {
 	/** Ticks between two looks at the linked levers. */
@@ -68,9 +78,11 @@ public class DoorBlockEntity extends BlockEntity {
 	// ---- settings
 	private DoorAccess access = DoorAccess.LIBRE;
 	private String questTag = "";
+	/** The lock of the door ("" for none): the keys bound to it open it in the key access. Never sent to the clients. */
+	private String lock = "";
 	private boolean manualEnabled = true;
 	private boolean redstoneEnabled = true;
-	private int autoCloseSeconds;
+	private int autoCloseSeconds = DoorData.AUTO_CLOSE_DEFAULT;
 	private String name = "";
 	private final List<BlockPos> levers = new ArrayList<>();
 	// ---- what asks it to be open
@@ -82,6 +94,8 @@ public class DoorBlockEntity extends BlockEntity {
 	private int leverBits;
 	/** A movement whose end (collisions, sounds) is still to be handled; true after loading until the first tick looks. */
 	private boolean pending = true;
+	/** Loaded from older data: an open door held by hand gets its automatic closing on the first tick. */
+	private boolean scheduleAutoClose;
 
 	public DoorBlockEntity(BlockPos pos, BlockState state) {
 		super(Doors.BLOCK_ENTITY, pos, state);
@@ -124,6 +138,11 @@ public class DoorBlockEntity extends BlockEntity {
 		return questTag;
 	}
 
+	/** The door's lock ("" for none; on a client always "": it is never sent). */
+	public String lock() {
+		return lock;
+	}
+
 	public boolean manualEnabled() {
 		return manualEnabled;
 	}
@@ -140,6 +159,16 @@ public class DoorBlockEntity extends BlockEntity {
 		return name;
 	}
 
+	/** What a key bound to this door shows ("Ouvre : ..."): its name, or the coordinates of its controller. */
+	public String keyLabel() {
+		return DoorKeys.label(name, pos.getX(), pos.getY(), pos.getZ());
+	}
+
+	/** The door as the messages name it: « name », or its coordinates. */
+	public String displayLabel() {
+		return name.isEmpty() ? String.format(Locale.ROOT, "en %d %d %d", pos.getX(), pos.getY(), pos.getZ()) : "« " + name + " »";
+	}
+
 	public List<BlockPos> levers() {
 		return List.copyOf(levers);
 	}
@@ -148,10 +177,30 @@ public class DoorBlockEntity extends BlockEntity {
 		return demands;
 	}
 
+	/** Game tick at which the automatic closing will drop the hand's demand (0: none running). */
+	public long autoCloseAt() {
+		return autoCloseAt;
+	}
+
+	/** The movement curve of this door's size. */
+	public DoorMotion.Curve curve() {
+		DoorType t = doorType();
+		return t == null ? DoorMotion.SMALL : DoorMotion.curve(t);
+	}
+
 	/** Progress 0..1 at a game time (fractional between two ticks on a client). */
 	public double progressAt(double now) {
 		DoorType t = doorType();
 		return DoorMotion.progress(target, startTick, startProgress, now, t == null ? 1 : t.durationTicks());
+	}
+
+	/** How open a leaf is (0 left, 1 right) at a game time, as drawn (the curve of {@link DoorMotion#leafAt}). */
+	public double leafAt(double now, int leaf) {
+		DoorType t = doorType();
+		if (t == null) {
+			return 0;
+		}
+		return DoorMotion.leafAt(DoorMotion.curve(t), t.leaves(), leaf, target, startTick, startProgress, now, t.durationTicks());
 	}
 
 	public double progress() {
@@ -198,6 +247,14 @@ public class DoorBlockEntity extends BlockEntity {
 	private void tick(ServerWorld world) {
 		long now = world.getTime();
 		boolean changed = false;
+		if (scheduleAutoClose) {
+			// a 1.31.0 door left open by hand: its new automatic closing starts now
+			scheduleAutoClose = false;
+			if (target && demands.manual && autoCloseAt == 0 && autoCloseSeconds > 0) {
+				autoCloseAt = now + autoCloseSeconds * 20L;
+				markDirty();
+			}
+		}
 		if (demands.timedUntil > 0 && now >= demands.timedUntil) {
 			demands.timedUntil = 0;
 			changed = true;
@@ -223,46 +280,48 @@ public class DoorBlockEntity extends BlockEntity {
 		}
 	}
 
-	/** The movement this tick: the collisions at half way and at the end, the entities in the way while closing. */
+	/**
+	 * The movement this tick: the collisions (with the curve the clients draw), the sounds of its events, the entities
+	 * in the way while it closes.
+	 */
 	private void step(ServerWorld world, long now) {
 		DoorType t = doorType();
 		if (t == null) {
 			pending = false;
 			return;
 		}
+		DoorMotion.Curve c = DoorMotion.curve(t);
+		int n = t.leaves();
 		double p = progressAt(now);
 		boolean solid = solid();
 		// a movement that ended long ago (a door loaded with its chunk): its end is handled quietly
 		boolean quiet = now > startTick + DoorMotion.ticksLeft(target, startProgress, t.durationTicks()) + 2;
+		if (!quiet && now > startTick) {
+			movementEffects(world, t, c, DoorMotion.events(c, n, target, progressAt(now - 1), p, now - startTick), now - startTick);
+		}
 		if (target) {
-			if (DoorMotion.solidAfter(solid, true, p) != solid) {
+			if (DoorMotion.solidAfter(c, n, solid, true, p) != solid) {
 				setSolid(world, false);
 			}
 			if (p >= 1) {
 				pending = false;
-				if (!quiet) {
-					effects(world, t, false, true);
-				}
 			}
 			return;
 		}
-		if (p > 0 || !solid) {
-			// closing (or closed but not yet solid): never on somebody
+		if (!solid) {
+			// closing, its leaves not yet shut: never on somebody
 			if (somethingInTheWay(world, t)) {
 				holdUntil = now + RETRY_TICKS;
 				markDirty();
 				move(world, true);
 				return;
 			}
-		}
-		if (p <= 0) {
-			if (!solid) {
+			if (DoorMotion.solidAfter(c, n, false, false, p)) {
 				setSolid(world, true);
 			}
+		}
+		if (p <= 0) {
 			pending = false;
-			if (!quiet) {
-				effects(world, t, false, false);
-			}
 		}
 	}
 
@@ -296,7 +355,7 @@ public class DoorBlockEntity extends BlockEntity {
 		pending = true;
 		markDirty();
 		sync(world);
-		effects(world, t, true, open);
+		startEffects(world, t, open);
 	}
 
 	private void setSolid(ServerWorld world, boolean solid) {
@@ -328,40 +387,87 @@ public class DoorBlockEntity extends BlockEntity {
 		return e.isAlive() && !e.isSpectator() && (e instanceof LivingEntity || e instanceof VehicleEntity);
 	}
 
-	/** Sounds (and the steam doors' puffs) at the start ({@code start}) or the end of a movement. */
-	private void effects(ServerWorld world, DoorType t, boolean start, boolean open) {
+	private void play(ServerWorld world, DoorType t, SoundEvent sound, float volume, float pitch) {
 		double[] o = origin();
-		double cx = o[0], cy = o[1] + t.height() * 0.5, cz = o[2];
-		float pitch = t.soundPitch() * (0.95f + world.getRandom().nextFloat() * 0.1f);
-		float volume = t.size() == DoorType.Size.LARGE ? 1.4f : 1.0f;
-		SoundEvent sound = null;
-		if (start && open) {
-			sound = t.material() == DoorType.Material.WOOD ? SoundEvents.BLOCK_WOODEN_DOOR_OPEN : SoundEvents.BLOCK_IRON_DOOR_OPEN;
-			if (t.material() == DoorType.Material.STEAM) {
-				world.playSound(null, cx, cy, cz, SoundEvents.BLOCK_PISTON_EXTEND, SoundCategory.BLOCKS, 0.5f, pitch);
+		world.playSound(null, o[0], o[1] + t.height() * 0.5, o[2], sound, SoundCategory.BLOCKS, volume, pitch);
+	}
+
+	private float pitch(ServerWorld world, DoorType t) {
+		return t.soundPitch() * (0.95f + world.getRandom().nextFloat() * 0.1f);
+	}
+
+	/** The start of a movement: the latch (opening), the steam doors' piston, hiss and puff of steam. */
+	private void startEffects(ServerWorld world, DoorType t, boolean open) {
+		float pitch = pitch(world, t);
+		if (open) {
+			// the bolts and the latch: the leaves only move once the door is unlocked (see movementEffects)
+			play(world, t, SoundEvents.BLOCK_TRIPWIRE_CLICK_ON, 0.6f, pitch * 0.9f);
+			if (t.material() != DoorType.Material.WOOD) {
+				play(world, t, SoundEvents.BLOCK_IRON_TRAPDOOR_OPEN, 0.35f, pitch * 1.2f);
 			}
 			world.emitGameEvent(null, GameEvent.BLOCK_OPEN, pos);
-		} else if (start) {
-			if (t.material() == DoorType.Material.STEAM) {
-				world.playSound(null, cx, cy, cz, SoundEvents.BLOCK_PISTON_CONTRACT, SoundCategory.BLOCKS, 0.5f, pitch);
-			}
-		} else if (!open) {
-			sound = t.material() == DoorType.Material.WOOD ? SoundEvents.BLOCK_WOODEN_DOOR_CLOSE : SoundEvents.BLOCK_IRON_DOOR_CLOSE;
-			world.emitGameEvent(null, GameEvent.BLOCK_CLOSE, pos);
 		}
-		if (sound != null) {
-			world.playSound(null, cx, cy, cz, sound, SoundCategory.BLOCKS, volume, pitch);
+		if (t.material() == DoorType.Material.STEAM) {
+			play(world, t, open ? SoundEvents.BLOCK_PISTON_EXTEND : SoundEvents.BLOCK_PISTON_CONTRACT, 0.5f, pitch);
+			play(world, t, SoundEvents.BLOCK_FIRE_EXTINGUISH, 0.35f, 0.8f + world.getRandom().nextFloat() * 0.2f);
 		}
 		if (t.steam()) {
-			// a few puffs of steam at the top of the frame, nothing lasting
-			int n = switch (t.size()) {
-				case SMALL -> 4;
-				case MEDIUM -> 7;
-				case LARGE -> 12;
-			};
-			double[] top = DoorLayout.toWorld(pos.getX(), pos.getY(), pos.getZ(), quarter(), t.width(), 0, t.height() - 0.3, 0.3);
-			world.spawnParticles(ParticleTypes.CLOUD, top[0], top[1], top[2], n, t.width() * 0.3, 0.15, 0.15, 0.02);
+			puff(world, t, 1.0);
 		}
+	}
+
+	/**
+	 * The sounds of the events of a tick of movement ({@link DoorMotion#events}): the leaves start (the door's open
+	 * sound), a leaf hits the frame (the close sound; the second one softer), the bolts lock again, the creaks and
+	 * mechanical noises of the great gates every {@link DoorMotion.Curve#creakPeriod} ticks while their leaves move.
+	 */
+	private void movementEffects(ServerWorld world, DoorType t, DoorMotion.Curve c, int ev, long ticks) {
+		if (ev == 0) {
+			return;
+		}
+		float pitch = pitch(world, t);
+		float volume = t.size() == DoorType.Size.LARGE ? 1.4f : 1.0f;
+		boolean wood = t.material() == DoorType.Material.WOOD;
+		if ((ev & DoorMotion.EV_LEAVES_START) != 0) {
+			play(world, t, wood ? SoundEvents.BLOCK_WOODEN_DOOR_OPEN : SoundEvents.BLOCK_IRON_DOOR_OPEN, volume, pitch);
+		}
+		if ((ev & DoorMotion.EV_SECOND_IMPACT) != 0) {
+			play(world, t, wood ? SoundEvents.BLOCK_WOODEN_DOOR_CLOSE : SoundEvents.BLOCK_IRON_DOOR_CLOSE, volume * 0.6f, pitch * 1.05f);
+		}
+		if ((ev & DoorMotion.EV_IMPACT) != 0) {
+			play(world, t, wood ? SoundEvents.BLOCK_WOODEN_DOOR_CLOSE : SoundEvents.BLOCK_IRON_DOOR_CLOSE, volume, pitch);
+			world.emitGameEvent(null, GameEvent.BLOCK_CLOSE, pos);
+		}
+		if ((ev & DoorMotion.EV_LOCKED) != 0) {
+			play(world, t, SoundEvents.BLOCK_TRIPWIRE_CLICK_OFF, 0.6f, pitch * 0.9f);
+			if (t.steam()) {
+				puff(world, t, 0.4);
+			}
+		}
+		if ((ev & DoorMotion.EV_OPENED) != 0 && t.steam()) {
+			puff(world, t, 0.4);
+		}
+		if ((ev & DoorMotion.EV_CREAK) != 0) {
+			boolean odd = (ticks / Math.max(1, c.creakPeriod())) % 2 == 1;
+			float p = 0.5f + world.getRandom().nextFloat() * 0.12f;
+			if (wood) {
+				play(world, t, odd ? SoundEvents.BLOCK_LADDER_STEP : SoundEvents.BLOCK_CHEST_OPEN, odd ? 0.8f : 0.45f, p);
+			} else {
+				play(world, t, odd ? SoundEvents.BLOCK_CHAIN_STEP : SoundEvents.BLOCK_GRINDSTONE_USE, odd ? 0.8f : 0.3f, p);
+			}
+		}
+	}
+
+	/** A few puffs of steam at the top of the frame ({@code share} of the full puff), nothing lasting. */
+	private void puff(ServerWorld world, DoorType t, double share) {
+		int full = switch (t.size()) {
+			case SMALL -> 5;
+			case MEDIUM -> 8;
+			case LARGE -> 14;
+		};
+		int n = Math.max(1, (int) Math.round(full * share));
+		double[] top = DoorLayout.toWorld(pos.getX(), pos.getY(), pos.getZ(), quarter(), t.width(), 0, t.height() - 0.3, 0.3);
+		world.spawnParticles(ParticleTypes.CLOUD, top[0], top[1], top[2], n, t.width() * 0.3, 0.15, 0.15, 0.02);
 	}
 
 	/** Sends the door's state to the clients that see it (the block entity update packet). */
@@ -377,19 +483,92 @@ public class DoorBlockEntity extends BlockEntity {
 
 	// ------------------------------------------------------------------ the inputs
 
-	/** A player's click on any cell: the access decides, then the manual demand toggles. */
+	/**
+	 * A player's click on any cell: the access decides (with, only when it refuses, the keys and the master key the
+	 * player carries anywhere in his inventory), then the manual demand toggles.
+	 */
 	public void click(ServerWorld world, PlayerEntity player) {
-		DoorAccess.Click verdict = access.click(manualEnabled, player.getCommandTags(), questTag);
+		DoorAccess.Click verdict = access.click(manualEnabled, player.getCommandTags(), questTag, false);
+		boolean byMaster = false;
 		if (verdict != DoorAccess.Click.OK) {
-			player.sendMessage(Text.literal(verdict.message(questTag)).formatted(Formatting.RED), true);
-			double[] o = origin();
-			world.playSound(null, o[0], o[1] + 1, o[2], SoundEvents.BLOCK_CHEST_LOCKED, SoundCategory.BLOCKS, 1.0f, 1.0f);
+			Set<String> carried = KeyItem.carriedLocks(player);
+			DoorAccess.Click withKey = access.click(manualEnabled, player.getCommandTags(), questTag, DoorKeys.carries(carried, lock));
+			verdict = DoorKeys.click(access, manualEnabled, player.getCommandTags(), questTag, lock, carried, KeyItem.carriesMaster(player),
+					ShipPermissions.isAdmin(player));
+			byMaster = verdict == DoorAccess.Click.OK && withKey != DoorAccess.Click.OK;
+		}
+		if (verdict != DoorAccess.Click.OK) {
+			refuse(world, player, verdict.message(questTag));
 			return;
 		}
 		String result = toggle(world);
 		if (result != null) {
 			player.sendMessage(Text.literal(result).formatted(Formatting.GOLD), true);
+		} else if (byMaster) {
+			player.sendMessage(Text.literal(target ? "Passe-partout : porte ouverte." : "Passe-partout : porte fermée.").formatted(Formatting.GOLD), true);
 		}
+	}
+
+	/** A refused click: the message in the action bar, the locked chest's sound. */
+	private void refuse(ServerWorld world, PlayerEntity player, String message) {
+		player.sendMessage(Text.literal(message).formatted(Formatting.RED), true);
+		double[] o = origin();
+		world.playSound(null, o[0], o[1] + 1, o[2], SoundEvents.BLOCK_CHEST_LOCKED, SoundCategory.BLOCKS, 1.0f, 1.0f);
+	}
+
+	/**
+	 * A click with a key or the master key in hand ({@code sneaking}: the player sneaks), see {@link DoorKeys#gesture}:
+	 * the ordinary click, or one of the administrators' gestures (bind a blank key, give the door the lock of a key,
+	 * switch the door between free and key access with the master key).
+	 */
+	public void useKey(ServerWorld world, PlayerEntity player, ItemStack stack, boolean sneaking) {
+		boolean admin = ShipPermissions.isAdmin(player);
+		String keyLock = KeyItem.lockOf(stack);
+		switch (DoorKeys.gesture(KeyItem.held(stack), sneaking, admin, keyLock, lock)) {
+			case CLICK -> click(world, player);
+			case BIND -> {
+				boolean copy = !lock.isEmpty();
+				ensureLock();
+				KeyItem.bind(stack, lock, keyLabel());
+				if (access != DoorAccess.CLE) {
+					setAccess(world, DoorAccess.CLE, null);
+				} else {
+					changed(world);
+				}
+				player.sendMessage(Text.literal((copy ? "Double de la clé de la porte " : "Clé liée à la porte ") + displayLabel()
+						+ " : seuls les détenteurs de sa clé (et le passe-partout) l'ouvrent.").formatted(Formatting.GOLD), true);
+				keySound(world);
+			}
+			case SHARE -> {
+				boolean had = !lock.isEmpty();
+				lock = keyLock;
+				if (access != DoorAccess.CLE) {
+					setAccess(world, DoorAccess.CLE, null);
+				} else {
+					changed(world);
+				}
+				String from = KeyItem.labelOf(stack);
+				player.sendMessage(Text.literal("Porte " + displayLabel() + " : même serrure que la clé" + (from.isEmpty() ? "" : " de « " + from + " »")
+						+ (had ? " (ses anciennes clés ne l'ouvrent plus)." : ".")).formatted(Formatting.GOLD), true);
+				keySound(world);
+			}
+			case ALREADY -> player.sendMessage(Text.literal("Cette clé ouvre déjà cette porte.").formatted(Formatting.YELLOW), true);
+			case TOGGLE -> {
+				DoorAccess next = DoorKeys.toggled(access);
+				setAccess(world, next, null);
+				player.sendMessage(Text.literal("Porte " + displayLabel() + (next == DoorAccess.CLE
+						? " : accès à clé (seuls les détenteurs de sa clé et le passe-partout l'ouvrent)."
+						: " : accès libre (tout le monde l'ouvre).")).formatted(Formatting.GOLD), true);
+				keySound(world);
+			}
+			case NOT_ADMIN -> refuse(world, player, "Seul un administrateur peut lier une clé à une porte.");
+			case MASTER_REFUSED -> refuse(world, player, DoorAccess.Click.MASTER_REFUSED.message(""));
+		}
+	}
+
+	private void keySound(ServerWorld world) {
+		double[] o = origin();
+		world.playSound(null, o[0], o[1] + 1, o[2], SoundEvents.ITEM_LODESTONE_COMPASS_LOCK, SoundCategory.BLOCKS, 0.8f, 1.2f);
 	}
 
 	/**
@@ -416,7 +595,10 @@ public class DoorBlockEntity extends BlockEntity {
 		return null;
 	}
 
-	/** Opens (a manual demand, or for {@code seconds} when positive) — commands. Returns what still holds it, or null. */
+	/**
+	 * Opens — commands: for {@code seconds} when positive, otherwise like a hand (the automatic closing, one minute by
+	 * default, applies).
+	 */
 	public void open(ServerWorld world, int seconds) {
 		long now = world.getTime();
 		if (seconds > 0) {
@@ -497,9 +679,13 @@ public class DoorBlockEntity extends BlockEntity {
 
 	// ------------------------------------------------------------------ settings (commands)
 
+	/** Sets the access; the key access gives the door a lock when it has none (without keys: only the master key opens it). */
 	public void setAccess(ServerWorld world, DoorAccess access, String tag) {
 		this.access = access;
 		this.questTag = access == DoorAccess.QUETE && tag != null ? tag : "";
+		if (access == DoorAccess.CLE) {
+			ensureLock();
+		}
 		if (access == DoorAccess.VERROUILLEE || access == DoorAccess.ADMIN) {
 			// locking closes a door a hand or a command opened
 			demands.manual = false;
@@ -508,6 +694,31 @@ public class DoorBlockEntity extends BlockEntity {
 		}
 		changed(world);
 		evaluate(world);
+	}
+
+	/** Gives the door a lock if it has none; returns it. */
+	public String ensureLock() {
+		if (lock.isEmpty()) {
+			lock = DoorKeys.newLock(ThreadLocalRandom.current());
+			markDirty();
+		}
+		return lock;
+	}
+
+	/** A new lock ({@code /porte serrure changer}): the keys of the old one no longer open the door. Returns it. */
+	public String renewLock(ServerWorld world) {
+		String old = lock;
+		do {
+			lock = DoorKeys.newLock(ThreadLocalRandom.current());
+		} while (lock.equals(old));
+		changed(world);
+		return lock;
+	}
+
+	/** Gives the door this lock (the keys of that lock open it; its old keys no longer do). */
+	public void setLock(ServerWorld world, String lock) {
+		this.lock = lock == null ? "" : lock;
+		changed(world);
 	}
 
 	public void setManual(ServerWorld world, boolean on) {
@@ -522,7 +733,7 @@ public class DoorBlockEntity extends BlockEntity {
 	}
 
 	public void setAutoClose(ServerWorld world, int seconds) {
-		autoCloseSeconds = Math.max(0, Math.min(3600, seconds));
+		autoCloseSeconds = DoorData.clamp(seconds);
 		if (autoCloseSeconds == 0) {
 			autoCloseAt = 0;
 		} else if (demands.manual) {
@@ -595,6 +806,7 @@ public class DoorBlockEntity extends BlockEntity {
 	@Override
 	protected void readData(ReadView view) {
 		super.readData(view);
+		int version = view.getInt("version", 0);
 		target = view.getBoolean("open", false);
 		startTick = view.getLong("start_tick", 0L);
 		startProgress = view.getFloat("start_progress", 0f);
@@ -602,9 +814,11 @@ public class DoorBlockEntity extends BlockEntity {
 		DoorAccess a = DoorAccess.parse(view.getString("access", "libre"));
 		access = a == null ? DoorAccess.LIBRE : a;
 		questTag = view.getString("quest_tag", "");
+		lock = view.getString("lock", "");
 		manualEnabled = view.getBoolean("manual", true);
 		redstoneEnabled = view.getBoolean("redstone", true);
-		autoCloseSeconds = view.getInt("auto_close", 0);
+		// 1.31.0 saved no version and closed nothing by default: those doors take the minute of 1.32.0
+		autoCloseSeconds = DoorData.autoClose(version, view.getInt("auto_close", -1));
 		name = view.getString("name", "");
 		levers.clear();
 		view.getOptionalIntArray("levers").ifPresent(a2 -> {
@@ -619,12 +833,14 @@ public class DoorBlockEntity extends BlockEntity {
 		autoCloseAt = view.getLong("auto_close_at", 0L);
 		holdUntil = view.getLong("hold_until", 0L);
 		leverBits = view.getInt("lever_bits", 0);
+		scheduleAutoClose = version < DoorData.VERSION;
 		pending = true; // the first tick finishes a movement the save interrupted (collisions)
 	}
 
 	@Override
 	protected void writeData(WriteView view) {
 		super.writeData(view);
+		view.putInt("version", DoorData.VERSION);
 		view.putBoolean("open", target);
 		view.putLong("start_tick", startTick);
 		view.putFloat("start_progress", startProgress);
@@ -633,11 +849,12 @@ public class DoorBlockEntity extends BlockEntity {
 		if (!questTag.isEmpty()) {
 			view.putString("quest_tag", questTag);
 		}
+		if (!lock.isEmpty()) {
+			view.putString("lock", lock);
+		}
 		view.putBoolean("manual", manualEnabled);
 		view.putBoolean("redstone", redstoneEnabled);
-		if (autoCloseSeconds > 0) {
-			view.putInt("auto_close", autoCloseSeconds);
-		}
+		view.putInt("auto_close", autoCloseSeconds);
 		if (!name.isEmpty()) {
 			view.putString("name", name);
 		}
@@ -672,8 +889,11 @@ public class DoorBlockEntity extends BlockEntity {
 		return BlockEntityUpdateS2CPacket.create(this);
 	}
 
+	/** What the clients get (the chunk data and the update packet): everything but the lock (a client never needs it). */
 	@Override
 	public NbtCompound toInitialChunkDataNbt(RegistryWrapper.WrapperLookup registries) {
-		return createNbt(registries);
+		NbtCompound nbt = createNbt(registries);
+		nbt.remove("lock");
+		return nbt;
 	}
 }

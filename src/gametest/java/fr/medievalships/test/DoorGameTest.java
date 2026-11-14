@@ -6,6 +6,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
+import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestClientWorldContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestServerContext;
 
@@ -26,13 +27,16 @@ import net.minecraft.util.math.Vec3d;
 
 import fr.medievalships.client.render.DoorModels;
 import fr.medievalships.core.DoorAccess;
+import fr.medievalships.core.DoorData;
 import fr.medievalships.core.DoorLayout;
 import fr.medievalships.core.DoorType;
 import fr.medievalships.core.DoorTypes;
+import fr.medievalships.data.ConfigManager;
 import fr.medievalships.door.DoorBlockEntity;
 import fr.medievalships.door.DoorRegistry;
 import fr.medievalships.door.DoorStructure;
 import fr.medievalships.door.Doors;
+import fr.medievalships.door.KeyItem;
 
 /**
  * In-game checks of the ten doors (1.31.0), on a stone platform of the flat world: the ten models loaded on the client
@@ -45,14 +49,28 @@ import fr.medievalships.door.Doors;
  * left), screenshots of the ten doors closed and open. The solo run keeps one door open across a world restart
  * ({@link #beforeRestart}, {@link #afterRestart}); on the dedicated server, the client's copy is checked after every
  * movement. Called from {@link ShipClientGameTest}.
+ *
+ * <p>1.32.0 ({@link #keys}): an administrator binds a blank key (and a copy), a player who is not one cannot, the key
+ * anywhere in the inventory opens its door, refused with the message without it or with the key of another door,
+ * {@code /porte cle donner}, one lock shared by two doors (sneaking with a key), the master key opening a locked door
+ * for an administrator and refused to a player who is not one (the permission level of the administrators raised for
+ * the click: nobody is one), the master key's free / key switch, {@code /porte serrure changer} making the old key
+ * useless, the automatic closing (one minute by default, then a short one measured; the redstone holding a door open),
+ * the migration of a 1.31.0 door's closing; the great gate photographed at a quarter, half and three quarters of its
+ * opening; across the restart, a key door, its lock and the player's key.
  */
 public final class DoorGameTest {
 	/** Away from every other scenario (the ships' boats are at 7400, the benchmark at 6000). */
 	private static final int X = 8600, Z = 0;
 	/** Top of the stone platform; the doors stand on it. */
 	private static final int GROUND = -60, Y = GROUND + 1;
-	/** Where the door kept across the restart stands. */
-	private static final BlockPos RESTART = new BlockPos(X + 40, Y, Z);
+	/** Where the door kept across the restart stands, and the key door kept with it. */
+	private static final BlockPos RESTART = new BlockPos(X + 40, Y, Z), RESTART_KEY = new BlockPos(X + 43, Y, Z);
+	/** The lock of the key door before the restart (same JVM: read again after it). */
+	private static String restartLock = "";
+	/** The last message of the action bar the client received (the doors' refusals and confirmations). */
+	private static volatile String lastOverlay = "";
+	private static boolean listening;
 
 	private DoorGameTest() {
 	}
@@ -187,6 +205,75 @@ public final class DoorGameTest {
 		return p.getX() + " " + p.getY() + " " + p.getZ();
 	}
 
+	/** Records the action bar messages the client receives (once per run of the game). */
+	private static void listen() {
+		if (!listening) {
+			listening = true;
+			ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
+				if (overlay) {
+					lastOverlay = message.getString();
+				}
+			});
+		}
+	}
+
+	private static DoorBlockEntity door(MinecraftServer srv, BlockPos p) {
+		return DoorStructure.door(srv.getOverworld(), p);
+	}
+
+	/**
+	 * A right click of the player on a cell through the game's own interaction ({@code interactBlock}: the door's block,
+	 * or the item when he sneaks with something in hand), with {@code stack} in his main hand; {@code admin} forces the
+	 * permission for this click (true: everybody is an administrator, false: nobody, null: as configured).
+	 */
+	private static void use(TestServerContext server, BlockPos cell, ItemStack stack, boolean sneaking, Boolean admin) {
+		server.runOnServer(srv -> {
+			ServerWorld w = srv.getOverworld();
+			ServerPlayerEntity pl = player(srv);
+			int saved = ConfigManager.server().adminPermissionLevel;
+			if (admin != null) {
+				ConfigManager.server().adminPermissionLevel = admin ? 0 : 5;
+			}
+			try {
+				pl.setStackInHand(Hand.MAIN_HAND, stack);
+				pl.setSneaking(sneaking);
+				pl.interactionManager.interactBlock(pl, w, pl.getMainHandStack(), Hand.MAIN_HAND,
+						new BlockHitResult(Vec3d.ofCenter(cell), Direction.SOUTH, cell, false));
+			} finally {
+				pl.setSneaking(false);
+				ConfigManager.server().adminPermissionLevel = saved;
+			}
+		});
+	}
+
+	/** An empty-handed click (the keys looked for in the inventory) with the permission forced as in {@link #use}. */
+	private static void clickAs(TestServerContext server, BlockPos cell, boolean admin) {
+		server.runOnServer(srv -> {
+			int saved = ConfigManager.server().adminPermissionLevel;
+			ConfigManager.server().adminPermissionLevel = admin ? 0 : 5;
+			try {
+				ServerWorld w = srv.getOverworld();
+				w.getBlockState(cell).onUse(w, player(srv), new BlockHitResult(Vec3d.ofCenter(cell), Direction.NORTH, cell, false));
+			} finally {
+				ConfigManager.server().adminPermissionLevel = saved;
+			}
+		});
+	}
+
+	/** The lock of the key in the player's main hand ("" for a blank key or another item). */
+	private static String handLock(TestServerContext server) {
+		return server.computeOnServer(srv -> KeyItem.lockOf(player(srv).getMainHandStack()));
+	}
+
+	private static void emptyHand(TestServerContext server) {
+		server.runOnServer(srv -> player(srv).setStackInHand(Hand.MAIN_HAND, ItemStack.EMPTY));
+	}
+
+	/** Puts a stack in a slot of the player's inventory (not in hand). */
+	private static void pocket(TestServerContext server, int slot, ItemStack stack) {
+		server.runOnServer(srv -> player(srv).getInventory().setStack(slot, stack));
+	}
+
 	/** Waits until a condition holds on the server, up to maxTicks; returns the ticks waited or -1. */
 	private static int waitUntil(ClientGameTestContext context, java.util.function.BooleanSupplier cond, int maxTicks) {
 		for (int t = 0; t <= maxTicks; t += 2) {
@@ -263,6 +350,11 @@ public final class DoorGameTest {
 		check.accept(ctrl[2].getX() == X + 9, "doors: the great gate spans the aimed cell -1 to +2 (controller x " + ctrl[2].getX() + ")");
 		BlockPos oak = ctrl[0], barn = ctrl[1], castle = ctrl[2];
 		BlockPos oakTop = oak.up(), castleTop = castle.up(5).east(3);
+		int defaultClosing = server.computeOnServer(srv -> door(srv, oak).autoCloseSeconds());
+		check.accept(defaultClosing == DoorData.AUTO_CLOSE_DEFAULT, "doors: a door placed closes by itself after one minute by default (" + defaultClosing
+				+ " s)");
+		// the barn door is opened once and checked much later (anti-crush): it must not close by itself meanwhile
+		server.runCommand("porte fermeture " + pos(barn) + " 0");
 
 		// ---- refused when a cell is taken
 		BlockPos refusedT = new BlockPos(X + 20, Y, Z);
@@ -350,13 +442,24 @@ public final class DoorGameTest {
 		context.waitTicks(10);
 		shot.accept("portes_1_trois_tailles_fermees");
 		server.runCommand("porte ouvrir " + pos(castle));
-		context.waitTicks(DoorTypes.LARGE_TICKS / 2);
+		context.waitTicks(DoorTypes.LARGE_TICKS / 4);
+		shot.accept("portes_2a_grande_porte_un_quart");
+		double quarterLeaf = context.computeOnClient((MinecraftClient mc) -> mc.world != null && mc.world.getBlockEntity(castle) instanceof DoorBlockEntity d
+				? d.leafAt(mc.world.getTime(), 0) : -1.0);
+		context.waitTicks(DoorTypes.LARGE_TICKS / 2 - DoorTypes.LARGE_TICKS / 4);
 		Object[] mid = clientDoor(context, castle, castleTop);
+		double[] midLeaves = context.computeOnClient((MinecraftClient mc) -> mc.world != null && mc.world.getBlockEntity(castle) instanceof DoorBlockEntity d
+				? new double[] {d.leafAt(mc.world.getTime(), 0), d.leafAt(mc.world.getTime(), 1)} : new double[] {-1, -1});
+		check.accept(quarterLeaf >= 0 && quarterLeaf < midLeaves[0] && midLeaves[0] > 0.1 && midLeaves[0] < 0.9 && midLeaves[1] < midLeaves[0],
+				String.format(Locale.ROOT, "doors: the client's curve: the great gate's left leaf %.2f at a quarter, %.2f half way, the right one later (%.2f)",
+						quarterLeaf, midLeaves[0], midLeaves[1]));
 		double sp = (Double) door(server, castle)[2];
 		check.accept(mid != null && (Boolean) mid[0] && (Double) mid[1] > 0.2 && (Double) mid[1] < 0.8,
 				String.format(Locale.ROOT, "doors: the client draws the great gate half open half way (client %.2f, server %.2f)", mid == null ? -1 : (Double) mid[1],
 						sp));
 		shot.accept("portes_2_grande_porte_en_mouvement");
+		context.waitTicks(DoorTypes.LARGE_TICKS / 4);
+		shot.accept("portes_2b_grande_porte_trois_quarts");
 		int a1 = waitUntil(context, () -> open(server, castle), 80);
 		check.accept(a1 >= 0, "doors: the great gate is open after its slow movement");
 		check.accept(serverFree(server, body(castle.east(1))) && serverFree(server, body(castle.east(2).up(4))), "doors: the great gate's passage is free");
@@ -438,6 +541,9 @@ public final class DoorGameTest {
 		server.runCommand("kill @e[tag=doorcrush]");
 		check.accept(waitUntil(context, () -> closed(server, barn), 140) >= 0, "doors: ... and closes once the way is clear");
 
+		// ---- the keys, the master key, the automatic closing (1.32.0)
+		keys(context, server, check, log);
+
 		// ---- /porte poser, then removal of a great gate by breaking one of its cells: nothing left
 		server.runCommand(String.format(Locale.ROOT, "porte poser porte_entrepot %d %d %d sud", X + 30, Y, Z));
 		context.waitTicks(3);
@@ -466,6 +572,195 @@ public final class DoorGameTest {
 		server.runCommand("kill @e[type=minecraft:item]");
 		server.runCommand("gamemode spectator @a");
 		server.runCommand(String.format(Locale.ROOT, "forceload remove %d %d %d %d", X - 16, Z - 24, X + 56, Z + 40));
+	}
+
+	/** The keys (1.32.0), on three doors of their own: see the class comment. */
+	private static void keys(ClientGameTestContext context, TestServerContext server, BiConsumer<Boolean, String> check, Consumer<String> log) {
+		listen();
+		BlockPos a = new BlockPos(X + 30, Y, Z - 12), b = new BlockPos(X + 34, Y, Z - 12), c = new BlockPos(X + 38, Y, Z - 12);
+		BlockPos aTop = a.up(), bTop = b.up(), cTop = c.up();
+		server.runCommand("porte poser porte_chene " + pos(a) + " sud");
+		server.runCommand("porte poser porte_chene " + pos(b) + " sud");
+		server.runCommand("porte poser porte_prison " + pos(c) + " sud");
+		server.runCommand("porte nommer " + pos(a) + " maison_test");
+		server.runCommand("porte nommer " + pos(b) + " maison_test_arriere");
+		server.runCommand("porte nommer " + pos(c) + " cachot_test");
+		server.runCommand("clear @p medievalships:cle");
+		server.runCommand("clear @p medievalships:cle_universelle");
+		emptyHand(server);
+		context.waitTicks(3);
+		check.accept(cellsPresent(server, a, 0, DoorTypes.OAK) == 2 && cellsPresent(server, c, 0, DoorTypes.PRISON) == 2, "keys: the three test doors stand");
+
+		// an administrator binds a blank key: the door gets a lock and the key access
+		use(server, aTop, new ItemStack(Doors.KEY), false, true);
+		Object[] bound = server.computeOnServer(srv -> {
+			ItemStack h = player(srv).getMainHandStack();
+			DoorBlockEntity d = door(srv, a);
+			return new Object[] {KeyItem.lockOf(h), KeyItem.labelOf(h), d.lock(), d.access()};
+		});
+		String lockA = (String) bound[0];
+		check.accept(!lockA.isEmpty() && lockA.equals(bound[2]) && "maison_test".equals(bound[1]) && bound[3] == DoorAccess.CLE,
+				"keys: an administrator's right click with a blank key binds it to the door's lock (\"Ouvre : maison_test\"), the door in key access: "
+						+ java.util.Arrays.toString(bound));
+		server.runOnServer(srv -> {
+			ItemStack k = player(srv).getMainHandStack().copy();
+			player(srv).setStackInHand(Hand.MAIN_HAND, ItemStack.EMPTY);
+			player(srv).getInventory().setStack(20, k);
+		});
+		use(server, aTop, new ItemStack(Doors.KEY), false, true);
+		String copy = handLock(server);
+		check.accept(lockA.equals(copy), "keys: a second blank key on the same door is a copy (same lock)");
+		emptyHand(server);
+		// renamed at an anvil (the custom name): still the key of the door
+		server.runOnServer(srv -> player(srv).getInventory().getStack(20).set(net.minecraft.component.DataComponentTypes.CUSTOM_NAME,
+				net.minecraft.text.Text.literal("Ma maison")));
+
+		// a player who is not an administrator binds nothing
+		lastOverlay = "";
+		use(server, aTop, new ItemStack(Doors.KEY), false, false);
+		context.waitTicks(3);
+		String notAdmin = handLock(server);
+		check.accept(notAdmin.isEmpty() && lastOverlay.contains("administrateur"), "keys: a blank key in the hand of a player who is not an administrator stays"
+				+ " blank (\"" + lastOverlay + "\")");
+		emptyHand(server);
+
+		// the key, anywhere in the inventory, opens its door
+		click(server, aTop);
+		check.accept(waitUntil(context, () -> open(server, a), 40) >= 0, "keys: the player carrying the key (renamed, in his inventory) opens the door");
+		long left = server.computeOnServer(srv -> door(srv, a).autoCloseAt() - srv.getOverworld().getTime());
+		check.accept(left > 1100 && left <= 1200, "keys: opened with the key, it will close by itself in one minute (" + left + " ticks left)");
+		click(server, a);
+		check.accept(waitUntil(context, () -> closed(server, a), 40) >= 0, "keys: ... and closes it again");
+
+		// without the key: refused, with the message
+		server.runCommand("clear @p medievalships:cle");
+		lastOverlay = "";
+		click(server, aTop);
+		context.waitTicks(15);
+		check.accept(closed(server, a) && "Vous n'avez pas la clé de cette porte.".equals(lastOverlay),
+				"keys: without the key, refused with \"Vous n'avez pas la clé de cette porte.\" (\"" + lastOverlay + "\")");
+
+		// /porte cle donner: a bound key for the player (a free door becomes a key door); the key of another door
+		server.runCommand("porte cle donner @p maison_test_arriere");
+		context.waitTicks(2);
+		Object[] given = server.computeOnServer(srv -> {
+			var inv = player(srv).getInventory();
+			DoorBlockEntity d = door(srv, b);
+			int n = 0;
+			String label = "";
+			for (int i = 0; i < inv.size(); i++) {
+				if (!d.lock().isEmpty() && d.lock().equals(KeyItem.lockOf(inv.getStack(i)))) {
+					n++;
+					label = KeyItem.labelOf(inv.getStack(i));
+				}
+			}
+			return new Object[] {n, label, d.access(), d.lock()};
+		});
+		String oldLockB = (String) given[3];
+		check.accept((Integer) given[0] == 1 && "maison_test_arriere".equals(given[1]) && given[2] == DoorAccess.CLE,
+				"keys: /porte cle donner @p maison_test_arriere gives one key of that door, which becomes a key door: " + java.util.Arrays.toString(given));
+		lastOverlay = "";
+		click(server, aTop);
+		context.waitTicks(15);
+		check.accept(closed(server, a) && lastOverlay.startsWith("Vous n'avez pas la clé"), "keys: the key of another door does not open it");
+		click(server, bTop);
+		check.accept(waitUntil(context, () -> open(server, b), 40) >= 0, "keys: ... but opens its own door");
+		click(server, b);
+		waitUntil(context, () -> closed(server, b), 40);
+
+		// one lock for two doors: an administrator sneaking with the key of the front door on the back door
+		use(server, bTop, KeyItem.bound(lockA, "maison_test"), true, true);
+		String lockB = server.computeOnServer(srv -> door(srv, b).lock());
+		check.accept(lockA.equals(lockB), "keys: sneaking with a bound key, an administrator gives the back door the front door's lock");
+		emptyHand(server);
+		server.runCommand("clear @p medievalships:cle");
+		pocket(server, 21, KeyItem.bound(lockA, "maison_test"));
+		click(server, bTop);
+		click(server, aTop);
+		check.accept(waitUntil(context, () -> open(server, a) && open(server, b), 40) >= 0, "keys: one key opens the front and the back door");
+		click(server, a);
+		click(server, b);
+		waitUntil(context, () -> closed(server, a) && closed(server, b), 40);
+		server.runCommand("clear @p medievalships:cle");
+		pocket(server, 22, KeyItem.bound(oldLockB, "maison_test_arriere"));
+		click(server, bTop);
+		context.waitTicks(15);
+		check.accept(closed(server, b), "keys: the back door's own old key no longer opens it");
+		server.runCommand("clear @p medievalships:cle");
+
+		// the master key: an administrator opens a locked door; refused to a player who is not one
+		server.runCommand("porte verrouiller cachot_test");
+		pocket(server, 23, new ItemStack(Doors.MASTER_KEY));
+		lastOverlay = "";
+		clickAs(server, cTop, true);
+		check.accept(waitUntil(context, () -> open(server, c), 40) >= 0 && lastOverlay.startsWith("Passe-partout"),
+				"keys: the master key (in the inventory) of an administrator opens a locked door (\"" + lastOverlay + "\")");
+		server.runCommand("porte fermer cachot_test");
+		waitUntil(context, () -> closed(server, c), 40);
+		lastOverlay = "";
+		clickAs(server, cTop, false);
+		context.waitTicks(15);
+		check.accept(closed(server, c) && "Ce passe-partout ne vous obéit pas.".equals(lastOverlay),
+				"keys: the master key refuses a player who is not an administrator (\"" + lastOverlay + "\")");
+		use(server, cTop, new ItemStack(Doors.MASTER_KEY), true, true);
+		DoorAccess toKey = server.computeOnServer(srv -> door(srv, c).access());
+		use(server, cTop, new ItemStack(Doors.MASTER_KEY), true, true);
+		DoorAccess toFree = server.computeOnServer(srv -> door(srv, c).access());
+		check.accept(toKey == DoorAccess.CLE && toFree == DoorAccess.LIBRE, "keys: sneaking with the master key, an administrator switches the door to key"
+				+ " access, then free (" + toKey + ", " + toFree + ")");
+		emptyHand(server);
+		server.runCommand("clear @p medievalships:cle_universelle");
+
+		// /porte serrure changer: the old key no longer opens; a new key does
+		pocket(server, 20, KeyItem.bound(lockA, "maison_test"));
+		server.runCommand("porte serrure info maison_test");
+		server.runCommand("porte serrure changer maison_test");
+		String newA = server.computeOnServer(srv -> door(srv, a).lock());
+		lastOverlay = "";
+		click(server, aTop);
+		context.waitTicks(15);
+		check.accept(!newA.equals(lockA) && closed(server, a) && lastOverlay.startsWith("Vous n'avez pas la clé"),
+				"keys: after /porte serrure changer the old key no longer opens the door");
+		server.runCommand("porte cle donner @p maison_test");
+		context.waitTicks(2);
+		click(server, aTop);
+		check.accept(waitUntil(context, () -> open(server, a), 40) >= 0, "keys: a key given after the change opens it");
+		click(server, a);
+		waitUntil(context, () -> closed(server, a), 40);
+
+		// the automatic closing: a short one measured from the click
+		server.runCommand("porte fermeture maison_test 2");
+		click(server, aTop);
+		int opened = waitUntil(context, () -> open(server, a), 40);
+		int shut = waitUntil(context, () -> closed(server, a), 140);
+		int total = opened + shut;
+		check.accept(opened >= 0 && shut >= 0 && total >= 40 && total <= 80, "keys: with /porte fermeture maison_test 2 the door closes by itself 2 s after"
+				+ " the click (closed " + total + " ticks after it, the closing taking " + DoorTypes.SMALL_TICKS + ")");
+		// the redstone holds a door open past its automatic closing, then lets it close
+		server.runCommand("porte fermeture cachot_test 1");
+		server.runCommand("setblock " + pos(c.west()) + " redstone_block");
+		check.accept(waitUntil(context, () -> open(server, c), 40) >= 0, "keys: the redstone opens the free prison door");
+		context.waitTicks(50);
+		check.accept(open(server, c), "keys: the redstone holds it open past its automatic closing (1 s)");
+		server.runCommand("setblock " + pos(c.west()) + " air");
+		check.accept(waitUntil(context, () -> closed(server, c), 60) >= 0, "keys: the signal gone, it closes");
+
+		// a door saved by 1.31.0 (no version) whose closing was the old default (never) takes the minute; 1.32.0 keeps 0
+		server.runCommand("porte fermeture maison_test_arriere 0");
+		int zero = server.computeOnServer(srv -> door(srv, b).autoCloseSeconds());
+		server.runCommand("data merge block " + pos(b) + " {version:0,auto_close:0}");
+		int migrated = server.computeOnServer(srv -> door(srv, b).autoCloseSeconds());
+		server.runCommand("data merge block " + pos(b) + " {version:0,auto_close:7}");
+		int kept = server.computeOnServer(srv -> door(srv, b).autoCloseSeconds());
+		check.accept(zero == 0 && migrated == DoorData.AUTO_CLOSE_DEFAULT && kept == 7, "keys: the closing of a 1.31.0 door: the old default becomes one minute, a"
+				+ " set one is kept (" + zero + ", " + migrated + ", " + kept + ")");
+		log.accept("keys: lock of maison_test " + newA + ", its key's old lock " + lockA);
+
+		server.runCommand("clear @p medievalships:cle");
+		server.runCommand("porte supprimer maison_test");
+		server.runCommand("porte supprimer maison_test_arriere");
+		server.runCommand("porte supprimer cachot_test");
+		context.waitTicks(3);
 	}
 
 	/** The ten doors in a row, closed then open: one picture of each, and of the row. */
@@ -530,9 +825,22 @@ public final class DoorGameTest {
 		server.runCommand("setblock " + pos(RESTART.east(3)) + " lever[face=floor,powered=false]");
 		server.runCommand("porte levier lier prison_redemarrage " + pos(RESTART.east(3)));
 		server.runCommand("porte acces prison_redemarrage quete cle_prison");
+		// no automatic closing: it must still be open after the restart (and "never" must be kept as such)
+		server.runCommand("porte fermeture prison_redemarrage 0");
 		server.runCommand("porte ouvrir prison_redemarrage");
 		int t = waitUntil(context, () -> open(server, RESTART), 40);
 		check.accept(t >= 0, "doors: the prison door is open before the restart");
+		// a key door and the player's key (1.32.0)
+		server.runCommand("porte poser porte_chene " + pos(RESTART_KEY) + " sud");
+		server.runCommand("porte nommer " + pos(RESTART_KEY) + " maison_redemarrage");
+		server.runCommand("clear @p medievalships:cle");
+		server.runCommand("porte cle donner @p maison_redemarrage");
+		context.waitTicks(3);
+		restartLock = server.computeOnServer(srv -> {
+			DoorBlockEntity d = door(srv, RESTART_KEY);
+			return d == null ? "" : d.lock();
+		});
+		check.accept(!restartLock.isEmpty(), "keys: the key door has a lock before the restart");
 	}
 
 	public static void afterRestart(ClientGameTestContext context, TestServerContext server, TestClientWorldContext world, BiConsumer<Boolean, String> check,
@@ -558,7 +866,20 @@ public final class DoorGameTest {
 		check.accept((Boolean) s[5], "doors: the registry still knows its name");
 		Object[] c = clientDoor(context, RESTART, RESTART.up());
 		check.accept(c != null && (Boolean) c[0] && !(Boolean) c[2], "doors: the client got the open door on joining");
+		int never = server.computeOnServer(srv -> door(srv, RESTART).autoCloseSeconds());
+		check.accept(never == 0, "doors: a closing set to \"never\" in 1.32.0 is kept after the restart (" + never + ")");
 		shot.accept("portes_6_apres_redemarrage");
+		// the key door: same lock, key access, the player's key still opens it
+		Object[] k = server.computeOnServer(srv -> {
+			DoorBlockEntity d = door(srv, RESTART_KEY);
+			return d == null ? null : new Object[] {d.lock(), d.access(), KeyItem.carriedLocks(player(srv)).contains(d.lock())};
+		});
+		check.accept(k != null && restartLock.equals(k[0]) && k[1] == DoorAccess.CLE && (Boolean) k[2],
+				"keys: after the restart the key door keeps its lock and access, the player keeps its key: " + (k == null ? "none" : java.util.Arrays.toString(k)));
+		click(server, RESTART_KEY.up());
+		check.accept(waitUntil(context, () -> open(server, RESTART_KEY), 40) >= 0, "keys: the key opens its door after the restart");
+		server.runCommand("porte supprimer maison_redemarrage");
+		server.runCommand("clear @p medievalships:cle");
 		server.runCommand("porte fermer prison_redemarrage");
 		check.accept(waitUntil(context, () -> closed(server, RESTART), 40) >= 0, "doors: closes after the restart");
 		server.runCommand("porte supprimer prison_redemarrage");

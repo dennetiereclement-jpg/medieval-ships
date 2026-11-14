@@ -135,5 +135,12 @@
   "block.medievalships.porte_vapeur_grande": "Grande porte à vapeur",
   "block.medievalships.porte_entrepot": "Porte d'entrepôt",
   "block.medievalships.porte_partie": "Partie de porte",
-  "itemGroup.medievalships.doors": "Portes"
+  "itemGroup.medievalships.doors": "Portes",
+  "item.medievalships.cle": "Clé",
+  "item.medievalships.cle_universelle": "Passe-partout",
+  "item.medievalships.cle.ouvre": "Ouvre : %s",
+  "item.medievalships.cle.serrure": "Serrure : %s",
+  "item.medievalships.cle.vierge": "Clé vierge : un administrateur la lie à une porte (clic droit sur la porte).",
+  "item.medievalships.cle_universelle.desc": "Ouvre toutes les portes, entre les mains d'un administrateur.",
+  "item.medievalships.cle_universelle.geste": "Accroupi + clic droit : porte libre ou à clé."
 }

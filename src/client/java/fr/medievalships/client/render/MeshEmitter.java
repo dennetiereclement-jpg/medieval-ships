@@ -19,6 +19,10 @@ import fr.medievalships.client.model.BbModel;
  * is seen from behind (that face hides it; the two-sided faces are never skipped): the same picture with fewer vertices.
  * One instance per renderer, filled before each command runs ({@link #begin}); render thread only.
  *
+ * <p>1.32.0: an emitter for closed models ({@link #MeshEmitter(boolean)}, the doors) skips every face seen from behind,
+ * the two-sided ones too: in a closed model the back of a face is never what should be seen, and two coplanar faces of
+ * opposite directions (touching cubes) no longer fight for the same pixels.
+ *
  * <p>The corners come counter-clockwise seen from the normal's side ({@link BbModel.QuadSink}, 1.30.0) and are written in
  * that order: the entity layers with per-face lighting light the front of a face by its normal, its back by the reversed
  * normal, so a top face is lit as a top (it was lit as a bottom, dark, while the corners came clockwise).
@@ -34,6 +38,17 @@ final class MeshEmitter implements BbModel.MeshSink {
 	private float shineX, shineY, shineZ;
 	private int lightWorld, lightLamps, lightGlow;
 	private boolean shine, cull, backCull;
+	/** Closed models: the two-sided faces are culled from behind too. */
+	private final boolean closedModels;
+
+	MeshEmitter() {
+		this(false);
+	}
+
+	/** @param closedModels every face seen from behind is skipped, even when its cube has no opposite face (closed models) */
+	MeshEmitter(boolean closedModels) {
+		this.closedModels = closedModels;
+	}
 
 	/**
 	 * @param lightWorld lightmap of the faces lit by the world, {@code lightLamps} of the {@code lit} faces (a vessel's
@@ -102,7 +117,7 @@ final class MeshEmitter implements BbModel.MeshSink {
 	public void mesh(float[] d, int from, int to, int lightClass, boolean twoSided) {
 		int light = lightClass == BbModel.LIGHT_GLOW ? lightGlow : lightClass == BbModel.LIGHT_LAMPS ? lightLamps : lightWorld;
 		boolean override = lightClass == BbModel.LIGHT_GLOW && shine;
-		boolean skipBack = backCull && !twoSided;
+		boolean skipBack = backCull && (!twoSided || closedModels);
 		VertexConsumer vc = vertices;
 		int overlay = OverlayTexture.DEFAULT_UV;
 		int o = from * BbModel.QUAD_FLOATS;
@@ -170,7 +185,7 @@ final class MeshEmitter implements BbModel.MeshSink {
 		float vy = m01 * x + m11 * y + m21 * z + m31;
 		float vz = m02 * x + m12 * y + m22 * z + m32;
 		boolean behind = nx * vx + ny * vy + nz * vz > 0f;
-		if (backCull && !twoSided && behind) {
+		if (backCull && (!twoSided || closedModels) && behind) {
 			return;
 		}
 		if (glow && shine) {

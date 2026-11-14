@@ -26,10 +26,16 @@ import fr.medievalships.door.DoorBlockEntity;
  * of the bottom of the opening. Closed and still, the whole model is the baked static mesh in one go; otherwise the
  * fixed parts (the {@code frame}...) still come baked, and each moving part is drawn baked too, under its own matrix:
  * the leaves turned about their hinge, the gears turning about their axis (only while the door moves), the bolts and
- * the piston rods slid. The progress is computed here between two ticks from the state the server sent (target,
- * start tick, start progress): no packet per tick. Glowing cubes are full bright, the {@code detail} bones are
- * hidden beyond {@code doorDetailDistance}, nothing is drawn beyond {@code doorRenderDistance} or out of the view.
- * Drawn outside its block (a door is up to 4 x 6): never cut when the controller's section leaves the view.
+ * the piston rods slid, the handles and rings turned. The pose is computed here every frame, between two ticks, from
+ * the state the server sent (target, start tick, start progress) with the curve of {@link DoorMotion} (1.32.0: the
+ * unlocking, then leaves with inertia, settling past the stop, the slam and its small bounce, the second leaf a little
+ * later, the gears at the speed of their leaf): no packet per tick. Glowing cubes are full bright, the {@code detail}
+ * bones are hidden beyond {@code doorDetailDistance}, nothing is drawn beyond {@code doorRenderDistance} or out of the
+ * view. Drawn outside its block (a door is up to 4 x 6): never cut when the controller's section leaves the view.
+ *
+ * <p>1.32.0: the door models are closed, so every face seen from behind is skipped ({@link MeshEmitter#MeshEmitter(boolean)}),
+ * the two-sided ones too: the layer draws both sides of a triangle ({@code entityCutoutNoCull}), and two coplanar faces
+ * of opposite directions no longer fight (z-fighting).
  */
 public class DoorRenderer implements BlockEntityRenderer<DoorBlockEntity, DoorRenderer.State> {
 	public static class State extends BlockEntityRenderState {
@@ -40,10 +46,12 @@ public class DoorRenderer implements BlockEntityRenderer<DoorBlockEntity, DoorRe
 		boolean moving;
 		boolean backward;
 		double squaredDistance;
+		/** How open each leaf is (0 left, 1 right), how far the door is unlocked, the angle of its handles (degrees about +z). */
+		double leafL, leafR, unlock, handleAngle;
 	}
 
 	/** Writes the model's quads to the vertex consumer (reused by every command of this renderer, render thread). */
-	private final MeshEmitter emitter = new MeshEmitter();
+	private final MeshEmitter emitter = new MeshEmitter(true);
 
 	@Override
 	public State createRenderState() {
@@ -60,6 +68,13 @@ public class DoorRenderer implements BlockEntityRenderer<DoorBlockEntity, DoorRe
 		double now = be.getWorld() == null ? 0 : be.getWorld().getTime() + tickProgress;
 		state.progress = be.progressAt(now);
 		state.moving = DoorMotion.moving(be.target(), state.progress);
+		if (state.door != null) {
+			DoorMotion.Curve c = DoorMotion.curve(state.door);
+			state.leafL = be.leafAt(now, 0);
+			state.leafR = state.door.leaves() > 1 ? be.leafAt(now, 1) : state.leafL;
+			state.unlock = DoorMotion.unlock(c, state.progress);
+			state.handleAngle = DoorMotion.handleAngle(state.door, state.progress);
+		}
 		double[] o = be.origin();
 		double h = state.door == null ? 1 : state.door.height() / 2.0;
 		state.squaredDistance = cameraPos.squaredDistanceTo(o[0], o[1] + h, o[2]);
@@ -120,12 +135,12 @@ public class DoorRenderer implements BlockEntityRenderer<DoorBlockEntity, DoorRe
 			matrices.pop();
 			return;
 		}
-		boolean gears = state.moving;
+		boolean turning = state.moving; // gears and handles only move with the door (at rest they are part of the fixed mesh)
 		int n = loaded.parts.size();
 		boolean[] active = new boolean[n];
 		for (int i = 0; i < n; i++) {
 			DoorModels.Kind k = loaded.parts.get(i).kind;
-			active[i] = gears || (k != DoorModels.Kind.GEAR_A && k != DoorModels.Kind.GEAR_B);
+			active[i] = turning || (k != DoorModels.Kind.GEAR_A && k != DoorModels.Kind.GEAR_B && k != DoorModels.Kind.HANDLE);
 		}
 		// the fixed parts: everything but the moving parts that hang from no other moving part
 		queue.submitCustom(matrices, layer, (entry, vertices) -> {
@@ -141,7 +156,6 @@ public class DoorRenderer implements BlockEntityRenderer<DoorBlockEntity, DoorRe
 			}
 			model.render(pose, emitter.begin(entry, vertices, light, light, glow, false, RenderCulling.active(), true));
 		});
-		double eased = DoorMotion.ease(p);
 		for (int i = 0; i < n; i++) {
 			if (!active[i]) {
 				continue;
@@ -150,10 +164,10 @@ public class DoorRenderer implements BlockEntityRenderer<DoorBlockEntity, DoorRe
 			matrices.push();
 			for (int a : part.ancestors) {
 				if (active[a]) {
-					transform(matrices, loaded.parts.get(a), type, state.backward, p, eased);
+					transform(matrices, loaded.parts.get(a), type, state);
 				}
 			}
-			transform(matrices, part, type, state.backward, p, eased);
+			transform(matrices, part, type, state);
 			queue.submitCustom(matrices, layer, (entry, vertices) -> {
 				BbModel.Pose pose = model.scratchPose();
 				for (int d : part.descendants) {
@@ -181,24 +195,38 @@ public class DoorRenderer implements BlockEntityRenderer<DoorBlockEntity, DoorRe
 		return true;
 	}
 
-	/** The motion of one moving part at a progress, about its pivot, in model-local blocks. */
-	private static void transform(MatrixStack m, DoorModels.Part part, DoorType type, boolean backward, double p, double eased) {
+	/** How open the leaf a part follows is: its own leaf, or both (the mean) for a part of the frame. */
+	private static double opening(DoorModels.Part part, State s) {
+		return part.leaf == 0 ? s.leafL : part.leaf == 1 ? s.leafR : (s.leafL + s.leafR) / 2;
+	}
+
+	/** The motion of one moving part in the pose of the state, about its pivot, in model-local blocks. */
+	private static void transform(MatrixStack m, DoorModels.Part part, DoorType type, State s) {
 		switch (part.kind) {
 			case LEAF_L, LEAF_R -> {
-				float angle = DoorLayout.leafAngle(part.kind == DoorModels.Kind.LEAF_L, backward, eased);
+				boolean left = part.kind == DoorModels.Kind.LEAF_L;
+				float angle = DoorLayout.leafAngle(left, s.backward, left ? s.leafL : s.leafR);
 				m.translate(part.px, part.py, part.pz);
 				m.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(angle));
 				m.translate(-part.px, -part.py, -part.pz);
 			}
 			case GEAR_A, GEAR_B -> {
-				// seen from the front (+z), a positive turn about +z is anticlockwise: gear_a turns the other way
-				float angle = (float) DoorMotion.gearAngle(p, type.gearTurns()) * (part.kind == DoorModels.Kind.GEAR_A ? -1f : 1f);
+				// seen from the front (+z), a positive turn about +z is anticlockwise: gear_a turns the other way; their
+				// speed is their leaf's (the mechanism drives the leaf)
+				float angle = (float) DoorMotion.gearAngle(opening(part, s), type.gearTurns()) * (part.kind == DoorModels.Kind.GEAR_A ? -1f : 1f);
 				m.translate(part.px, part.py, part.pz);
 				m.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(angle));
 				m.translate(-part.px, -part.py, -part.pz);
 			}
-			case BOLT -> m.translate(part.boltSign * DoorMotion.boltOffset(p), 0, 0);
-			case PISTON -> m.translate(0, DoorMotion.pistonOffset(eased), 0);
+			case BOLT -> m.translate(part.boltSign * DoorMotion.BOLT_TRAVEL * s.unlock, 0, 0);
+			case PISTON -> m.translate(0, DoorMotion.pistonOffset(opening(part, s)), 0);
+			case HANDLE -> {
+				// clockwise seen from the front (a negative turn about +z), 30° for a ring, further for a steam door's wheel
+				float angle = (float) s.handleAngle;
+				m.translate(part.px, part.py, part.pz);
+				m.multiply(RotationAxis.POSITIVE_Z.rotationDegrees(angle));
+				m.translate(-part.px, -part.py, -part.pz);
+			}
 		}
 	}
 }

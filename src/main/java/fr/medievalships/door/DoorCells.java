@@ -4,8 +4,10 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.ai.pathing.NavigationType;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
@@ -14,7 +16,7 @@ import fr.medievalships.entity.ShipPermissions;
 
 /**
  * What every cell of a door does the same way, controller or part: the click (the same access checks on every cell),
- * the redstone next to any cell, who may break it, the pathfinding.
+ * a key in hand (1.32.0), the redstone next to any cell, who may break it, the pathfinding.
  */
 final class DoorCells {
 	private DoorCells() {
@@ -38,6 +40,26 @@ final class DoorCells {
 			return ActionResult.PASS;
 		}
 		door.click(sw, player);
+		return ActionResult.SUCCESS;
+	}
+
+	/**
+	 * A click with an item in hand (not sneaking: sneaking with a key, the game uses the item instead, see
+	 * {@link KeyItem#useOnBlock}): a key or the master key makes its gesture on the door ({@link DoorBlockEntity#useKey});
+	 * any other item, the ordinary click ({@link #use}).
+	 */
+	static ActionResult useWithItem(ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand) {
+		if (!(stack.getItem() instanceof KeyItem)) {
+			return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
+		}
+		if (!(world instanceof ServerWorld sw)) {
+			return ActionResult.SUCCESS;
+		}
+		DoorBlockEntity door = DoorStructure.door(world, pos);
+		if (door == null) {
+			return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION; // an orphan part: the ordinary click removes it
+		}
+		door.useKey(sw, player, stack, player.shouldCancelInteraction());
 		return ActionResult.SUCCESS;
 	}
 

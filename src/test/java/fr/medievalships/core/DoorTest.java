@@ -257,43 +257,55 @@ class DoorTest {
 
 	@Test
 	void solidChronology() {
-		int d = DoorTypes.MEDIUM_TICKS;
-		boolean solid = true; // closed
-		// opening: solid until half way
-		for (int t = 0; t <= d; t++) {
-			double p = DoorMotion.progress(true, 0, 0, t, d);
-			solid = DoorMotion.solidAfter(solid, true, p);
-			assertEquals(p < DoorMotion.HALF, solid, "opening at " + p);
+		for (DoorType type : new DoorType[] {DoorTypes.OAK, DoorTypes.BARN, DoorTypes.CASTLE}) {
+			DoorMotion.Curve c = DoorMotion.curve(type);
+			int d = type.durationTicks(), n = type.leaves();
+			boolean solid = true; // closed
+			// opening: solid until every leaf is half open (the same curve as the drawing)
+			for (int t = 0; t <= d; t++) {
+				double p = DoorMotion.progress(true, 0, 0, t, d);
+				solid = DoorMotion.solidAfter(c, n, solid, true, p);
+				assertEquals(DoorMotion.leastOpen(c, n, p) < DoorMotion.HALF, solid, type + " opening at " + p);
+			}
+			assertFalse(solid);
+			// closing: the passage stays free until the leaves are closed and still (the locking is done solid)
+			for (int t = 0; t <= d; t++) {
+				double p = DoorMotion.progress(false, 100, 1, 100 + t, d);
+				solid = DoorMotion.solidAfter(c, n, solid, false, p);
+				assertEquals(p <= c.unlock() + 1e-9, solid, type + " closing at " + p);
+				if (!solid) {
+					assertTrue(p > c.unlock());
+				} else {
+					for (int leaf = 0; leaf < n; leaf++) {
+						assertEquals(0, DoorMotion.leaf(c, n, leaf, false, p), 1e-9, "solid: every leaf is shut");
+					}
+				}
+			}
+			assertTrue(solid);
+			// a closing that turns back to opening (something in the way) never becomes solid again on the way
+			solid = false;
+			solid = DoorMotion.solidAfter(c, n, solid, false, 0.5);
+			assertFalse(solid);
+			solid = DoorMotion.solidAfter(c, n, solid, true, 0.5);
+			assertFalse(solid, "reopening from 0.5: still free");
+			solid = DoorMotion.solidAfter(c, n, solid, true, 0.9);
+			assertFalse(solid);
 		}
-		assertFalse(solid);
-		// closing: the passage stays free until fully closed
-		for (int t = 0; t <= d; t++) {
-			double p = DoorMotion.progress(false, 100, 1, 100 + t, d);
-			solid = DoorMotion.solidAfter(solid, false, p);
-			assertEquals(p <= 0, solid, "closing at " + p);
-		}
-		assertTrue(solid);
-		// a closing that turns back to opening (something in the way) never becomes solid again on the way
-		solid = false;
-		solid = DoorMotion.solidAfter(solid, false, 0.3);
-		assertFalse(solid);
-		solid = DoorMotion.solidAfter(solid, true, 0.3);
-		assertFalse(solid, "reopening from 0.3: still free");
-		solid = DoorMotion.solidAfter(solid, true, 0.6);
-		assertFalse(solid);
 	}
 
 	@Test
 	void movingPartsOnlyMoveWithTheDoor() {
+		DoorMotion.Curve c = DoorMotion.curve(DoorTypes.CASTLE);
 		assertEquals(0, DoorMotion.gearAngle(0, 1), EPS);
 		assertEquals(360, DoorMotion.gearAngle(1, 1), EPS); // a whole turn: at rest the gear looks the same
 		assertEquals(720, DoorMotion.gearAngle(1, DoorTypes.CASTLE.gearTurns()), EPS);
-		assertEquals(0, DoorMotion.boltOffset(0), EPS);
-		assertEquals(0.25, DoorMotion.boltOffset(0.2), EPS);
-		assertEquals(0.25, DoorMotion.boltOffset(1), EPS);
-		assertEquals(0.125, DoorMotion.boltOffset(0.1), EPS);
+		assertEquals(0, DoorMotion.boltOffset(c, 0), EPS);
+		assertEquals(0.25, DoorMotion.boltOffset(c, c.unlock()), EPS);
+		assertEquals(0.25, DoorMotion.boltOffset(c, 1), EPS);
+		assertEquals(0.125, DoorMotion.boltOffset(c, c.unlock() / 2), EPS);
 		assertEquals(0, DoorMotion.pistonOffset(0), EPS);
 		assertEquals(0.25, DoorMotion.pistonOffset(1), EPS);
+		assertEquals(0.25, DoorMotion.pistonOffset(1.03), EPS, "the rods do not follow the settling past the stop");
 	}
 
 	// ------------------------------------------------------------------ access and demands
@@ -329,7 +341,8 @@ class DoorTest {
 		assertEquals(DoorAccess.VERROUILLEE, DoorAccess.parse("Verrouillée"));
 		assertEquals(DoorAccess.QUETE, DoorAccess.parse("quête"));
 		assertEquals(DoorAccess.ADMIN, DoorAccess.parse("admin"));
-		assertNull(DoorAccess.parse("clef"));
+		assertEquals(DoorAccess.CLE, DoorAccess.parse("clef"));
+		assertNull(DoorAccess.parse("porte"));
 		for (DoorAccess a : DoorAccess.values()) {
 			assertEquals(a, DoorAccess.parse(a.word()));
 		}

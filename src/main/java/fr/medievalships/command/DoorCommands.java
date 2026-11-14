@@ -1,6 +1,7 @@
 package fr.medievalships.command;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -19,6 +20,7 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import net.minecraft.block.BlockState;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.BlockPosArgumentType;
+import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.command.CommandManager;
@@ -41,6 +43,7 @@ import fr.medievalships.door.DoorBlockEntity;
 import fr.medievalships.door.DoorItem;
 import fr.medievalships.door.DoorRegistry;
 import fr.medievalships.door.DoorStructure;
+import fr.medievalships.door.KeyItem;
 import fr.medievalships.entity.ShipPermissions;
 
 /**
@@ -49,6 +52,10 @@ import fr.medievalships.entity.ShipPermissions;
  * command blocks, by NPC mods' "command" actions and by quest systems. The door a command applies to is given right
  * after the action: nothing (the door the player looks at), {@code ici} (the same), its name, or the coordinates of
  * any of its cells. See docs/PORTES.md.
+ *
+ * <p>1.32.0: the key access ({@code acces ... cle}), {@code cle donner <joueurs> [porte]} (a key bound to the door,
+ * for an NPC or a quest: the purchase of a house), {@code serrure changer [porte]} (a new lock: the old keys no longer
+ * open it) and {@code serrure info [porte]}.
  */
 public final class DoorCommands {
 	private DoorCommands() {
@@ -56,8 +63,8 @@ public final class DoorCommands {
 
 	private static final Pattern NAME = Pattern.compile("[a-z_][a-z0-9_.-]{0,31}");
 	/** Words of the command tree that cannot be door names (they would be read as the words). */
-	private static final Set<String> RESERVED = Set.of("ici", "libre", "verrouillee", "levier", "admin", "quete", "oui", "non", "tous", "lier", "delier",
-			"liste", "aucun", "avant", "arriere");
+	private static final Set<String> RESERVED = Set.of("ici", "libre", "verrouillee", "levier", "admin", "quete", "cle", "oui", "non", "tous", "lier",
+			"delier", "liste", "aucun", "avant", "arriere");
 	private static final SuggestionProvider<ServerCommandSource> NAMES = (ctx, builder) -> {
 		List<String> names = new ArrayList<>(DoorRegistry.get(ctx.getSource().getServer()).names());
 		names.add("ici");
@@ -70,6 +77,10 @@ public final class DoorCommands {
 
 	/** The door a command applies to. */
 	private record Target(ServerWorld world, BlockPos controller, DoorBlockEntity door, String label) {
+		/** How a command names this door again: its name, or its controller's coordinates. */
+		String ref() {
+			return door.name().isEmpty() ? controller.getX() + " " + controller.getY() + " " + controller.getZ() : door.name();
+		}
 	}
 
 	@FunctionalInterface
@@ -95,7 +106,7 @@ public final class DoorCommands {
 		root.then(targeted("verrouiller", (node, door) -> node.executes(ctx -> access(ctx, door.get(ctx), DoorAccess.VERROUILLEE, null))));
 		root.then(targeted("deverrouiller", (node, door) -> node.executes(ctx -> access(ctx, door.get(ctx), DoorAccess.LIBRE, null))));
 		root.then(targeted("acces", (node, door) -> {
-			for (DoorAccess a : new DoorAccess[] {DoorAccess.LIBRE, DoorAccess.VERROUILLEE, DoorAccess.LEVIER, DoorAccess.ADMIN}) {
+			for (DoorAccess a : new DoorAccess[] {DoorAccess.LIBRE, DoorAccess.VERROUILLEE, DoorAccess.LEVIER, DoorAccess.ADMIN, DoorAccess.CLE}) {
 				node.then(CommandManager.literal(a.word()).executes(ctx -> access(ctx, door.get(ctx), a, null)));
 			}
 			node.then(CommandManager.literal("quete").then(CommandManager.argument("tag", StringArgumentType.word())
@@ -124,6 +135,13 @@ public final class DoorCommands {
 							.executes(ctx -> unlink(ctx, door.get(ctx), BlockPosArgumentType.getBlockPos(ctx, "levier"))));
 				}))
 				.then(targeted("liste", (node, door) -> node.executes(ctx -> levers(ctx, door.get(ctx))))));
+		// the keys (1.32.0): a key bound to the door for players (an NPC, a quest), a new lock, the lock's information
+		root.then(CommandManager.literal("cle").then(CommandManager.literal("donner").then(withDoor(CommandManager.argument("joueurs",
+				EntityArgumentType.players()), (node, door) -> node.executes(ctx -> giveKey(ctx, door.get(ctx),
+						EntityArgumentType.getPlayers(ctx, "joueurs")))))));
+		root.then(CommandManager.literal("serrure")
+				.then(targeted("changer", (node, door) -> node.executes(ctx -> renewLock(ctx, door.get(ctx)))))
+				.then(targeted("info", (node, door) -> node.executes(ctx -> lockInfo(ctx, door.get(ctx))))));
 		root.then(targeted("nommer", (node, door) -> node.then(CommandManager.argument("nom", StringArgumentType.word())
 				.executes(ctx -> rename(ctx, door.get(ctx), StringArgumentType.getString(ctx, "nom"))))));
 		root.then(targeted("info", (node, door) -> node.executes(ctx -> info(ctx, door.get(ctx)))));
@@ -144,15 +162,19 @@ public final class DoorCommands {
 	 * = looked at). The looked-at form is attached first: on the same input it wins over a name.
 	 */
 	private static LiteralArgumentBuilder<ServerCommandSource> targeted(String action, Tail tail) {
-		LiteralArgumentBuilder<ServerCommandSource> lit = CommandManager.literal(action);
-		tail.attach(lit, DoorCommands::lookedAt);
+		return withDoor(CommandManager.literal(action), tail);
+	}
+
+	/** The door given after {@code node} (looked at, coordinates, name), then the rest of the command: {@code node} itself. */
+	private static <T extends ArgumentBuilder<ServerCommandSource, T>> T withDoor(T node, Tail tail) {
+		tail.attach(node, DoorCommands::lookedAt);
 		var pos = CommandManager.argument("pos", BlockPosArgumentType.blockPos());
 		tail.attach(pos, ctx -> at(ctx.getSource().getWorld(), BlockPosArgumentType.getBlockPos(ctx, "pos")));
-		lit.then(pos);
+		node.then(pos);
 		var named = CommandManager.argument("porte", StringArgumentType.word()).suggests(NAMES);
 		tail.attach(named, ctx -> named(ctx, StringArgumentType.getString(ctx, "porte")));
-		lit.then(named);
-		return lit;
+		node.then(named);
+		return node;
 	}
 
 	// ------------------------------------------------------------------ finding the door
@@ -240,7 +262,8 @@ public final class DoorCommands {
 			throw ShipCommands.error("Tag invalide : lettres, chiffres, _ . - + (64 au plus), comme pour /tag.");
 		}
 		t.door().setAccess(t.world(), access, tag);
-		String extra = access == DoorAccess.VERROUILLEE ? " (fermée si une main ou une commande l'avait ouverte)" : "";
+		String extra = access == DoorAccess.VERROUILLEE ? " (fermée si une main ou une commande l'avait ouverte)"
+				: access == DoorAccess.CLE ? " ; donnez-en la clé : /porte cle donner <joueurs> " + t.ref() : "";
 		ShipCommands.ok(ctx, "Porte " + t.label() + " : accès " + access.describe(tag) + extra + ".");
 		return 1;
 	}
@@ -259,9 +282,47 @@ public final class DoorCommands {
 
 	private static int autoClose(CommandContext<ServerCommandSource> ctx, Target t, int seconds) {
 		t.door().setAutoClose(t.world(), seconds);
-		ShipCommands.ok(ctx, "Porte " + t.label() + " : " + (seconds > 0 ? "se referme seule " + seconds + " s après une ouverture à la main."
+		ShipCommands.ok(ctx, "Porte " + t.label() + " : " + (seconds > 0
+				? "se referme seule " + seconds + " s après une ouverture à la main, à la clé ou par commande sans durée."
 				: "ne se referme plus seule."));
 		return 1;
+	}
+
+	private static int giveKey(CommandContext<ServerCommandSource> ctx, Target t, Collection<ServerPlayerEntity> players) {
+		DoorBlockEntity d = t.door();
+		String extra = "";
+		if (d.access() == DoorAccess.LIBRE) {
+			// a key for a free door would open nothing more: the door becomes a key door
+			d.setAccess(t.world(), DoorAccess.CLE, null);
+			extra = " (la porte, qui était libre, passe en accès à clé)";
+		} else if (d.access() != DoorAccess.CLE) {
+			extra = " (attention : la porte est en accès " + d.access().word() + ", la clé n'y sert qu'en accès cle)";
+		}
+		String lock = d.ensureLock();
+		List<String> names = new ArrayList<>();
+		for (ServerPlayerEntity p : players) {
+			p.giveOrDropStack(KeyItem.bound(lock, d.keyLabel()));
+			names.add(p.getGameProfile().name());
+		}
+		ShipCommands.ok(ctx, "Porte " + t.label() + " : clé donnée à " + String.join(", ", names) + extra + ".");
+		return players.size();
+	}
+
+	private static int renewLock(CommandContext<ServerCommandSource> ctx, Target t) {
+		boolean had = !t.door().lock().isEmpty();
+		t.door().renewLock(t.world());
+		ShipCommands.ok(ctx, "Porte " + t.label() + " : nouvelle serrure" + (had ? " : les anciennes clés ne l'ouvrent plus" : "")
+				+ ". Nouvelles clés : /porte cle donner <joueurs> " + t.ref() + " (ou une clé vierge en main).");
+		return 1;
+	}
+
+	private static int lockInfo(CommandContext<ServerCommandSource> ctx, Target t) {
+		DoorBlockEntity d = t.door();
+		String lock = d.lock();
+		say(ctx, "Porte " + t.label() + " : accès " + d.access().describe(d.questTag()) + ".", Formatting.GOLD);
+		say(ctx, "  Serrure : " + (lock.isEmpty() ? "aucune (elle sera créée en liant une clé ou avec /porte acces ... cle)" : lock)
+				+ " ; les clés de cette porte affichent « Ouvre : " + d.keyLabel() + " ».", Formatting.AQUA);
+		return lock.isEmpty() ? 0 : 1;
 	}
 
 	private static int direction(CommandContext<ServerCommandSource> ctx, Target t, boolean backward) {
@@ -345,7 +406,8 @@ public final class DoorCommands {
 				type.width(), type.height(), t.controller().getX(), t.controller().getY(), t.controller().getZ(), t.world().getRegistryKey().getValue(),
 				DoorLayout.facingFr(d.quarter())), Formatting.GOLD);
 		say(ctx, "  État : " + state + (d.solid() ? ", bloque le passage" : ", passage libre"), Formatting.AQUA);
-		say(ctx, "  Accès : " + d.access().describe(d.questTag()) + " ; à la main : " + (d.manualEnabled() ? "oui" : "non") + " ; redstone : "
+		say(ctx, "  Accès : " + d.access().describe(d.questTag()) + (d.lock().isEmpty() ? "" : " ; serrure " + d.lock()) + " ; à la main : "
+				+ (d.manualEnabled() ? "oui" : "non") + " ; redstone : "
 				+ (d.redstoneEnabled() ? "oui" : "non") + " ; fermeture automatique : " + (d.autoCloseSeconds() > 0 ? d.autoCloseSeconds() + " s" : "non")
 				+ " ; s'ouvre vers " + (d.backward() ? "l'arrière" : "l'avant"), Formatting.AQUA);
 		DoorDemands dm = d.demands();
