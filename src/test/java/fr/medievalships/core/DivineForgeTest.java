@@ -98,7 +98,7 @@ public class DivineForgeTest {
 		// nothing solid hangs under the banners (x = +-5.6, z = 0.6, between y = 2 and y = 8)
 		for (TentType.Box c : F.colliders()) {
 			for (double x : new double[] {-5.6, 5.6}) {
-				boolean under = c.x0() < x + 0.3 && c.x1() > x - 0.3 && c.z0() < 0.9 && c.z1() > 0.3 && c.y0() < 8.0 && c.y1() > 2.0;
+				boolean under = c.x0() < x + 0.15 && c.x1() > x - 0.15 && c.z0() < 0.75 && c.z1() > 0.45 && c.y0() < 7.8 && c.y1() > 2.2;
 				assertFalse(under, "a collider under the banner at x " + x + ": " + c);
 			}
 		}

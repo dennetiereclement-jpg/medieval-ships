@@ -148,6 +148,18 @@ Pour tous :
   Nautilus. Exemple complet dans
   [docs/COMMANDES.md](docs/COMMANDES.md#scénarios-de-quêtes--pnj).
 
+La version 1.34.0 ajoute la **Forge divine steampunk** (`/give @p medievalships:forge_divine`, onglet Ateliers) : un
+grand atelier d'environ 13 x 10 x 6 blocs posé d'un seul objet (fourneau sculpté au feu ardent, enclume, colonnes de
+chaleur, engrenages dorés, tuyaux de cuivre, statue divine ailée, bannières, établis, presse), **animé** (engrenages,
+feu et colonnes, étincelles, vapeur, lueur sacrée, coups d'enclume, son magique à la fin ; tout côté client, rien ne
+brûle) et doté de **sa propre interface de fabrication** : recettes `medievalships:forge_divine` lues depuis les
+datapacks (ingrédients par objet ou tag avec composants : les monnaies et objets du serveur ; résultat avec nom, lore,
+enchantements ; durée ; catégories), exigences facultatives branchées sur les métiers du serveur (objectif de
+scoreboard et niveau, tag débloqué par une quête, permission) et commande de récompense (XP du métier). Une seule
+recette d'essai, désactivable (`forgeTestRecipe`). Clic droit : `WorkshopUseCallback` (métier `forge_divine`), puis
+`workshopCommands.forge_divine`, sinon l'interface. Pour les systèmes de métiers : `/forge animer [x y z] <secondes>`,
+`/forge etat`, `/forge arreter` et l'API `DivineForgeApi`. Détails : [docs/FORGE.md](docs/FORGE.md).
+
 La version 1.33.0 refait l'**animation des portes** et rend les clés uniques : à l'ouverture, les anneaux tournent, le
 loquet se libère, puis les battants partent d'une poussée et glissent sur leur élan jusqu'à une butée amortie (plus de
 dépassement ni de rebond) ; à la fermeture, départ doux, accélération, claquement avec un tout petit rebond amorti, les
@@ -612,7 +624,7 @@ la galère est identique, au millième de bloc, à celle de la version 1.1.1).
 
 ## Installation
 
-Serveur **et** clients : `medieval-ships-1.33.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
+Serveur **et** clients : `medieval-ships-1.34.0.jar` + [Fabric API](https://modrinth.com/mod/fabric-api)
 0.141.6+1.21.11 (ou plus récent pour 1.21.11), Fabric Loader ≥ 0.18, Java 21.
 
 ## Compilation
@@ -646,6 +658,7 @@ pour 1.21.11 sur <https://fabricmc.net/develop>.
 * [Références du lot 2 : classement des images (bateaux, tentes marchandes)](docs/REFERENCES_LOT2.md)
 * [Les huit charrettes en un bloc : ids, pose, retrait, commandes, performances](docs/CHARRETTES.md)
 * [Les huit ateliers d'artisanat en un bloc : ids, pose, retrait, commandes, particules, point d'accroche des métiers](docs/ATELIERS.md)
+* [La Forge divine steampunk (1.34.0) : pose, animation, interface, format des recettes, métiers / XP / PNJ, `/forge`, API](docs/FORGE.md)
 
 ## Configuration
 
@@ -880,3 +893,6 @@ système de métiers existant ; sinon il affiche un court message.
 Onglet créatif « Ateliers », `/workshop give|place|remove|list|types` (admin ; alias `/atelier`, et
 `/ship give <id>` marche aussi), mêmes réglages de distance que les tentes. Détails et tests dans
 [docs/ATELIERS.md](docs/ATELIERS.md).
+
+Depuis 1.34.0, l'onglet contient aussi la **Forge divine steampunk** (`forge_divine`, environ 13 x 10 x 6 blocs) :
+animée, avec **sa propre interface et ses recettes de datapack** — voir [docs/FORGE.md](docs/FORGE.md).

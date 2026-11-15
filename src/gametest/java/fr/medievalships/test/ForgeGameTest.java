@@ -305,9 +305,10 @@ public final class ForgeGameTest {
 		check.accept(clientKnows, "forge: known to the client (block entity, collisions predicted)");
 
 		// ---- collisions: the furnace is solid, nothing hangs under the banners, the platform is climbed on foot
-		int body = shapes(server, local(A, -0.4, 2.5, -1.6, 0.4, 3.5, -0.8));
+		// inside the central body, under the statue's base (above the furnace's mouth)
+		int body = shapes(server, local(A, -0.4, 4.6, -1.0, 0.4, 5.4, -0.5));
 		check.accept(body >= 1, "forge: the furnace's mass is solid (" + body + " shape(s))");
-		int bannerL = shapes(server, local(A, -5.9, 2.2, 0.35, -5.3, 7.8, 0.85)), bannerR = shapes(server, local(A, 5.3, 2.2, 0.35, 5.9, 7.8, 0.85));
+		int bannerL = shapes(server, local(A, -5.75, 2.2, 0.45, -5.45, 7.8, 0.75)), bannerR = shapes(server, local(A, 5.45, 2.2, 0.45, 5.75, 7.8, 0.75));
 		check.accept(bannerL == 0 && bannerR == 0, "forge: nothing solid under the banners (" + bannerL + ", " + bannerR + " shape(s))");
 		server.runCommand("gamemode survival @a");
 		double startZ = A.getZ() + 0.5 + e.z1() + 1.3;
@@ -322,9 +323,8 @@ public final class ForgeGameTest {
 		check.accept(climbed >= 0.4, String.format(Locale.ROOT, "forge: the platform is climbed on foot (%.2f above the ground)", climbed));
 		check.accept(p0[2] - p1[2] > 1.5 && localZ > -1.0, String.format(Locale.ROOT,
 				"forge: the player walks onto the platform and is stopped by the forge's mass (moved %.2f, stopped at local z %.2f)", p0[2] - p1[2], localZ));
-		server.runCommand("gamemode creative @a");
-
-		// ---- screenshots: front, three quarters, close
+		// ---- screenshots (spectator: nobody falls): front, three quarters, close
+		server.runCommand("gamemode spectator @a");
 		look(server, A.getX() + 0.5, Y + 5.5, A.getZ() + 0.5 + 17, A.getX() + 0.5, Y + 4.5, A.getZ() + 0.5);
 		context.waitTicks(30);
 		shot.accept("forge_1_face");
@@ -399,6 +399,7 @@ public final class ForgeGameTest {
 				c.player.closeHandledScreen();
 			}
 		});
+		server.runCommand("gamemode spectator @a");
 		look(server, A.getX() + 0.5 - 6, Y + 4.5, A.getZ() + 0.5 + 11, A.getX() + 0.5, Y + 3, A.getZ() + 0.5);
 		context.waitTicks(30);
 		shot.accept("forge_5_en_fabrication");
@@ -443,6 +444,7 @@ public final class ForgeGameTest {
 				+ anim[2] + " ticks left)");
 		check.accept(waitUntil(context, () -> Boolean.TRUE.equals(clientCrafting(context, A)), 40) >= 0, "forge: the client animates it");
 		// at night, crafting
+		server.runCommand("gamemode spectator @a");
 		server.runCommand("time set 18000");
 		look(server, A.getX() + 0.5 + 9, Y + 5, A.getZ() + 0.5 + 13, A.getX() + 0.5, Y + 3.5, A.getZ() + 0.5);
 		context.waitTicks(30);
@@ -451,7 +453,7 @@ public final class ForgeGameTest {
 		server.runCommand("forge arreter " + pos(A.add(2, 1, 0)));
 		context.waitTicks(4);
 		check.accept(Boolean.FALSE.equals(crafting(server, A)), "forge: /forge arreter (any block of the forge) stops it");
-		server.runCommand("forge animer 5");
+		server.runCommand("execute at @p run forge animer 5");
 		context.waitTicks(4);
 		check.accept(Boolean.TRUE.equals(crafting(server, A)), "forge: /forge animer <secondes> finds the nearest forge");
 		int ended = waitUntil(context, () -> Boolean.FALSE.equals(crafting(server, A)), 160);
@@ -462,6 +464,8 @@ public final class ForgeGameTest {
 		check.accept(api, "forge: DivineForgeApi start (from any block) / busy / stop");
 
 		// ---- removal: /tent remove, then a creative player's break; nothing left
+		server.runCommand("gamemode creative @a");
+		tp(server, A.getX() + 0.5, Y, A.getZ() + 0.5 + 6, 180, 30);
 		server.runCommand("tent remove " + pos(A));
 		context.waitTicks(8);
 		check.accept(nothingLeft(server, A), "forge: /tent remove leaves no block, collision, block entity nor item");

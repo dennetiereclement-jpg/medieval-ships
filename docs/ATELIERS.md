@@ -7,7 +7,11 @@ poteaux, lanternes...) est dessiné à partir de lui. Ils sont **statiques** : p
 d'apparition naturelle, rien ne « tick » ; seules quelques particules discrètes (fumée, flammes, glyphes) sont
 dessinées par le client.
 
-> **Le mod n'a ni recettes, ni interface de fabrication, ni progression de métier**, et 1.22.0 n'en invente aucune.
+> **1.34.0 — la Forge divine steampunk** (`forge_divine`) est un atelier à part : animée, avec sa propre interface de
+> fabrication et des recettes de datapack branchables sur les métiers du serveur. Elle a sa propre page :
+> [FORGE.md](FORGE.md). Ce qui suit concerne les huit ateliers classiques.
+
+> **Le mod n'a ni recettes, ni interface de fabrication, ni progression de métier** pour ces huit ateliers, et 1.22.0 n'en invente aucune.
 > Ce sont des **objets à poser** ; un clic droit déclenche seulement un point d'accroche générique (un événement pour
 > un autre mod, ou une commande choisie par le serveur), voir
 > [Relier un atelier à un système de métiers](#relier-un-atelier-à-un-système-de-métiers). Sans réglage, il affiche
