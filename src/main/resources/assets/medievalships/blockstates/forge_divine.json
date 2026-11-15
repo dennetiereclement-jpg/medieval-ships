@@ -1,0 +1,16 @@
+{
+ "variants": {
+  "facing=north": {
+   "model": "medievalships:block/forge_divine"
+  },
+  "facing=south": {
+   "model": "medievalships:block/forge_divine"
+  },
+  "facing=west": {
+   "model": "medievalships:block/forge_divine"
+  },
+  "facing=east": {
+   "model": "medievalships:block/forge_divine"
+  }
+ }
+}

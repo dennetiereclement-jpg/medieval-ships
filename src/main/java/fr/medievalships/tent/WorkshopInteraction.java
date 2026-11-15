@@ -27,7 +27,8 @@ import fr.medievalships.data.ConfigManager;
  * <li>the command configured for the workshop's profession ({@code "workshopCommands"} of the server settings), run as
  * the player ({@code @s}), at their position, silently, with the permission level of a command block (2): only the
  * server's config chooses the command, the player merely triggers it;</li>
- * <li>else a short action-bar message ("Établi du joaillier — aucune interface de fabrication n'est reliée").</li>
+ * <li>else a short action-bar message ("Établi du joaillier — aucune interface de fabrication n'est reliée"), or, for a
+ * workshop with an interface of its own (1.34.0: the divine forge), that interface.</li>
  * </ol>
  */
 public final class WorkshopInteraction {
@@ -42,6 +43,14 @@ public final class WorkshopInteraction {
 
 	/** The server side of a click on the workshop {@code type} at {@code pos} (see the class comment). */
 	public static ActionResult use(ServerPlayerEntity player, ServerWorld world, BlockPos pos, TentType type) {
+		return use(player, world, pos, type, null);
+	}
+
+	/**
+	 * The same, with the workshop's own interface (1.34.0, the divine forge): {@code builtIn} runs instead of the short
+	 * message when neither a listener of the event nor a configured command handled the click.
+	 */
+	public static ActionResult use(ServerPlayerEntity player, ServerWorld world, BlockPos pos, TentType type, Runnable builtIn) {
 		if (player.isSpectator()) {
 			return ActionResult.PASS;
 		}
@@ -69,6 +78,8 @@ public final class WorkshopInteraction {
 			} catch (RuntimeException e) {
 				MedievalShips.LOGGER.warn("workshopCommands.{}: \"{}\" failed", profession, command, e);
 			}
+		} else if (builtIn != null) {
+			builtIn.run();
 		} else {
 			Text name = Text.translatable("block.medievalships." + type.id());
 			player.sendMessage(Text.translatableWithFallback(UNLINKED_KEY, "%s — aucune interface de fabrication n'est reliée", name), true);

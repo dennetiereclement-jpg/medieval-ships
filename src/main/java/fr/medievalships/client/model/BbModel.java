@@ -107,6 +107,27 @@ public final class BbModel {
 		public double[] originBlocks() {
 			return new double[] {-origin[0] / 16.0, origin[1] / 16.0, -origin[2] / 16.0};
 		}
+
+		/**
+		 * A direction of this bone's own axes, at rest (its rotation and its parents'), in model-local blocks, unit length
+		 * (1.34.0: the divine forge's gears turn about their own z axis, {@code axisBlocks(0, 0, 1)}). Without any rotation
+		 * it is the direction itself.
+		 */
+		public double[] axisBlocks(double x, double y, double z) {
+			java.util.ArrayDeque<Bone> chain = new java.util.ArrayDeque<>();
+			for (Bone a = this; a != null; a = a.parent) {
+				chain.push(a);
+			}
+			float[] m = IDENTITY.clone();
+			for (Bone a : chain) {
+				m = compose(m, restMatrix(a));
+			}
+			// model-local (x, y, z) is Blockbench (-x, y, -z), both ways
+			double bx = -x, by = y, bz = -z;
+			double wx = m[0] * bx + m[1] * by + m[2] * bz, wy = m[4] * bx + m[5] * by + m[6] * bz, wz = m[8] * bx + m[9] * by + m[10] * bz;
+			double len = Math.sqrt(wx * wx + wy * wy + wz * wz);
+			return len < 1e-9 ? new double[] {x, y, z} : new double[] {-wx / len, wy / len, -wz / len};
+		}
 	}
 
 	/** A face in bone space (Blockbench pixels), after the element's own rotation. */

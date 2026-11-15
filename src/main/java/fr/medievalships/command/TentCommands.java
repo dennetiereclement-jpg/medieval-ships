@@ -57,7 +57,9 @@ public final class TentCommands {
 
 	private static final Family PROPS = new Family(TentTypes.PROPS, false, "e", "Aucune tente chargée dans ce monde.", "Pas de tente en ",
 			"%d tente(s) chargée(s) :");
-	private static final Family WORKSHOPS = new Family(TentTypes.WORKSHOPS, true, "", "Aucun atelier chargé dans ce monde.",
+	/** {@code /workshop}: the eight workshops and the divine forge (1.34.0). */
+	private static final Family WORKSHOPS = new Family(java.util.stream.Stream.concat(TentTypes.WORKSHOPS.stream(), TentTypes.FORGES.stream()).toList(),
+			true, "", "Aucun atelier chargé dans ce monde.",
 			"Pas d'atelier en ", "%d atelier(s) chargé(s) :");
 	/** {@code /training}: the training areas only (1.19.0; unbreakable in survival, removed by an admin with this or /tent remove). */
 	private static final Family TRAINING = new Family(TentTypes.TRAINING, true, "e", "Aucune aire d'entraînement chargée dans ce monde.",
@@ -69,7 +71,7 @@ public final class TentCommands {
 
 	/** The French past participle's ending for a prop of a family: the decorations have their own gender and number. */
 	private static String agree(TentType type, Family family) {
-		return type.isDecoration() ? type.agreement() : type.masculine() ? "" : family.e();
+		return type.isDecoration() || type.isDivineForge() ? type.agreement() : type.masculine() ? "" : family.e();
 	}
 
 	/** What the facing names: the entrance of a tent, the breech of the cannon, the front of a workshop or a decoration. */

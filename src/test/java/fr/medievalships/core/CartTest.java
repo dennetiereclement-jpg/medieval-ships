@@ -35,8 +35,9 @@ public class CartTest {
 		assertEquals(6 + 6 + 5 + 2 + 2 + 1 + 3 + 17, TentTypes.ALL.size(),
 				"the tents' list: six camp tents, merchant tents I (6), II (5), III (2), IV (2), V (1, the jeweller's), the military camp (3),"
 						+ " the market tents (17, 1.26.0)");
-		assertEquals(6 + 6 + 5 + 2 + 2 + 1 + 3 + 17 + 10 + 8 + 3 + 9 + 1, TentTypes.PROPS.size()); // tents, merchant tents I to V, the camp (1.25.0), the
-		// market tents (1.26.0), carts and the tavern, workshops, the training areas, the street decorations (1.20.0) and the stake (1.25.0), the cannon
+		assertEquals(6 + 6 + 5 + 2 + 2 + 1 + 3 + 17 + 10 + 8 + 3 + 9 + 1 + 1, TentTypes.PROPS.size()); // tents, merchant tents I to V, the camp (1.25.0), the
+		// market tents (1.26.0), carts and the tavern, workshops, the training areas, the street decorations (1.20.0) and the stake (1.25.0), the
+		// divine forge (1.34.0), the cannon
 		Set<String> ids = new HashSet<>();
 		for (TentType t : WAGONS) {
 			assertTrue(IDS.contains(t.id()), t.id());

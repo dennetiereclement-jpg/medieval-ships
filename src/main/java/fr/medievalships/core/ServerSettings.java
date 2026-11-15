@@ -56,6 +56,12 @@ public final class ServerSettings {
 	 */
 	public Map<String, String> workshopCommands = new LinkedHashMap<>();
 	/**
+	 * The divine forge (1.34.0): show its trial recipe ({@code data/medievalships/recipe/forge_divine_essai.json}, gold
+	 * ingots and a diamond for a golden sword named "Lame divine (essai)") and every recipe marked {@code "essai": true}.
+	 * Set it to false on a server once its own recipes are in place (a data pack can also replace that file).
+	 */
+	public boolean forgeTestRecipe = true;
+	/**
 	 * The defensive stakes (1.25.0): {@code "stake": {"damage": 4.0, "knockback": 0.4, "cooldownTicks": 20,
 	 * "damagePlayers": false}} ({@link StakeSettings}), applied to every stake of the server.
 	 */

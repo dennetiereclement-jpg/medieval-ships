@@ -79,7 +79,8 @@ public class TentBlockEntityRenderer implements BlockEntityRenderer<TentBlockEnt
 			return;
 		}
 		BbModel model = TentModels.get(type);
-		if (model == null) {
+		java.util.List<TentModels.Extra> extras = TentModels.extras(type);
+		if (model == null && extras.isEmpty()) {
 			return;
 		}
 		double near = ConfigManager.server().tentDecorDistance;
@@ -99,6 +100,21 @@ public class TentBlockEntityRenderer implements BlockEntityRenderer<TentBlockEnt
 			return;
 		}
 		matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-90f * state.quarter));
+		// 1.34.0: the models drawn with the main one (JSON "extra_models"), same transform, each with its own atlas
+		for (TentModels.Extra extra : extras) {
+			BbModel em = extra.model();
+			queue.submitCustom(matrices, RenderLayers.entityCutoutNoCull(extra.texture()), (entry, vertices) -> {
+				BbModel.Pose pose = em.scratchPose();
+				if (!detailed) {
+					em.hide(pose, "detail");
+				}
+				em.render(pose, emitter.begin(entry, vertices, light, light, glow, false, RenderCulling.active(), true));
+			});
+		}
+		if (model == null) {
+			matrices.pop();
+			return;
+		}
 		RenderLayer layer = RenderLayers.entityCutoutNoCull(TentModels.texture(type));
 		long targetsDrawn = state.targetsDrawn;
 		queue.submitCustom(matrices, layer, (entry, vertices) -> {

@@ -1,0 +1,24 @@
+{
+  "type": "medievalships:forge_divine",
+  "essai": true,
+  "categorie": "armes_legendaires",
+  "duree": 200,
+  "nom": "Lame divine (essai)",
+  "description": "Recette d'essai de la forge divine : désactivable (forgeTestRecipe).",
+  "ingredients": [
+    {"item": "minecraft:gold_ingot", "count": 4},
+    {"item": "minecraft:diamond", "count": 1}
+  ],
+  "result": {
+    "id": "minecraft:golden_sword",
+    "count": 1,
+    "components": {
+      "minecraft:custom_name": {"text": "Lame divine (essai)", "italic": false, "color": "gold"},
+      "minecraft:lore": [
+        {"text": "Forgée dans le feu sacré de la forge divine", "italic": true, "color": "gray"},
+        {"text": "Recette d'essai", "italic": false, "color": "dark_gray"}
+      ],
+      "minecraft:enchantments": {"minecraft:unbreaking": 1}
+    }
+  }
+}

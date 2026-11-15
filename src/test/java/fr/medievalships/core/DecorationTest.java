@@ -191,6 +191,8 @@ public class DecorationTest {
 				assertEquals(12, t.light(), "the jeweller's tent (1.21.0) lights its stall (lanterns, glowing gems)");
 			} else if (TentTypes.MARKET_TENTS.contains(t)) {
 				assertTrue(t.light() >= 12 && t.light() <= 13, t.id() + " the market tents (1.26.0) light their stall (lanterns): " + t.light());
+			} else if (t == TentTypes.FORGE_DIVINE) {
+				assertEquals(TentType.MAX_LIGHT, t.light(), "the divine forge (1.34.0) lights like a beacon");
 			} else if (TentTypes.CAMP_TENTS.contains(t)) {
 				assertTrue(t.light() >= 0 && t.light() <= TentType.MAX_LIGHT, t.id() + " the military camp (1.25.0): lit or not, its builder decides");
 			} else if (!t.isDecoration()) {

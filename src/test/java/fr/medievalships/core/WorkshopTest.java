@@ -43,7 +43,8 @@ public class WorkshopTest {
 		assertEquals(TentTypes.WORKSHOPS, TentTypes.PROPS.subList(52, 60), "the workshops come after the tents and carts in PROPS");
 		assertEquals(TentTypes.TRAINING, TentTypes.PROPS.subList(60, 63), "then the training areas (1.18.0)");
 		assertEquals(TentTypes.DECORATIONS, TentTypes.PROPS.subList(63, 72), "then the street decorations (1.20.0) and the defensive stake (1.25.0)");
-		assertEquals(TentTypes.ARTILLERY, TentTypes.PROPS.subList(72, 73), "then the artillery, last");
+		assertEquals(TentTypes.FORGES, TentTypes.PROPS.subList(72, 73), "then the divine forge (1.34.0)");
+		assertEquals(TentTypes.ARTILLERY, TentTypes.PROPS.subList(73, 74), "then the artillery, last");
 		Set<String> ids = new HashSet<>();
 		for (TentType t : TentTypes.PROPS) {
 			assertTrue(ids.add(t.id()), "id used twice: " + t.id());

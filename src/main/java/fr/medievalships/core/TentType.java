@@ -60,6 +60,11 @@ import com.google.gson.JsonParser;
  * ({@link Hazard}: a box in prop-local blocks, turned with the facing like the collision boxes, plus the model's damage,
  * knockback and cooldown). Only the props with a hazard get a server ticker (the hostile mobs touching the box are hurt
  * and pushed outward); every other prop stays without ticker.
+ *
+ * <p>A prop may be drawn from several models (1.34.0, the divine forge): the optional JSON {@code "extra_models"}
+ * ({@link ExtraModel}: {@code [{"model": "models/entity/x_deco.bbmodel", "texture": "textures/entity/x_deco.png"}]}), each
+ * drawn with its own atlas and the same transform as the main model (same origin, same facing); the collision boxes and
+ * the extent stay the JSON's own.
  */
 public final class TentType {
 	/**
@@ -80,6 +85,17 @@ public final class TentType {
 			return new Particle(type, r[0], y, r[1], chance, count);
 		}
 	}
+
+	/**
+	 * A model drawn with the main one (1.34.0, JSON {@code "extra_models": [{"model": ..., "texture": ...}]}): paths
+	 * relative to {@code assets/medievalships/}, the texture defaulting to the prop's own atlas. Same origin and facing as
+	 * the main model; it has no collision of its own.
+	 */
+	public record ExtraModel(String model, String texture) {
+	}
+
+	/** The id of the divine forge (1.34.0): a workshop with its own block, block entity, renderer and interface. */
+	public static final String DIVINE_FORGE_ID = "forge_divine";
 
 	/**
 	 * The mouth of a cannon's barrel (JSON {@code "muzzle": [x, y, z], "muzzle_dir": [dx, dy, dz]}): the prop-local point
@@ -183,6 +199,8 @@ public final class TentType {
 	private String profession;
 	/** The hazard turned to each facing (index = quarter turns), or all null for a prop that hurts nobody (1.25.0). */
 	private final Hazard[] rotatedHazard = new Hazard[4];
+	/** The models drawn with the main one (JSON "extra_models", 1.34.0); empty for most props. */
+	private List<ExtraModel> extraModels = List.of();
 	/** The interactive training targets (JSON "targets", 1.19.0) turned to each facing (index = quarter turns); empty lists for most props. */
 	private List<List<TrainingTarget>> targets = List.of(List.of(), List.of(), List.of(), List.of());
 
@@ -245,6 +263,45 @@ public final class TentType {
 	/** A street decoration (1.20.0): bunting, clothesline, drapery, net, herb rack, lantern, banner, shade sails. */
 	public boolean isDecoration() {
 		return DECORATIONS.equals(group);
+	}
+
+	/** The divine forge (1.34.0): a workshop with its own block entity (crafting state), renderer and interface. */
+	public boolean isDivineForge() {
+		return DIVINE_FORGE_ID.equals(id) && isWorkshop();
+	}
+
+	/** The models drawn with the main one, same transform (JSON {@code "extra_models"}, 1.34.0); empty for most props. */
+	public List<ExtraModel> extraModels() {
+		return extraModels;
+	}
+
+	/**
+	 * Reads the JSON's {@code "extra_models"}: absent or not a list gives none; an entry is an object with a
+	 * {@code "model"} path (else skipped) and an optional {@code "texture"} (else {@code defaultTexture}), or just a model
+	 * path.
+	 */
+	static List<ExtraModel> parseExtraModels(JsonObject root, String defaultTexture) {
+		List<ExtraModel> out = new ArrayList<>();
+		if (!root.has("extra_models") || !root.get("extra_models").isJsonArray()) {
+			return out;
+		}
+		for (JsonElement e : root.getAsJsonArray("extra_models")) {
+			if (e.isJsonPrimitive() && e.getAsJsonPrimitive().isString() && !e.getAsString().isBlank()) {
+				out.add(new ExtraModel(e.getAsString().trim(), defaultTexture));
+				continue;
+			}
+			if (!e.isJsonObject()) {
+				continue;
+			}
+			JsonObject o = e.getAsJsonObject();
+			if (!o.has("model") || !o.get("model").isJsonPrimitive() || o.get("model").getAsString().isBlank()) {
+				continue;
+			}
+			String texture = o.has("texture") && o.get("texture").isJsonPrimitive() && !o.get("texture").getAsString().isBlank()
+					? o.get("texture").getAsString().trim() : defaultTexture;
+			out.add(new ExtraModel(o.get("model").getAsString().trim(), texture));
+		}
+		return out;
 	}
 
 	/**
@@ -484,6 +541,25 @@ public final class TentType {
 		}
 	}
 
+	/**
+	 * Like {@link #load(String, String, String, String)}, but a missing JSON (a model not generated yet) gives the prop
+	 * described by {@code fallback} instead of an error: the 1.34.0 divine forge, whose files come from its own generators,
+	 * must never stop the mod from starting.
+	 */
+	public static TentType loadOrDefault(String group, String id, String frenchName, String englishName, String fallback) {
+		String resource = "/assets/medievalships/" + group + "/" + id + ".json";
+		try (InputStream in = TentType.class.getResourceAsStream(resource)) {
+			if (in != null) {
+				try (Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
+					return parse(group, id, frenchName, englishName, JsonParser.parseReader(reader).getAsJsonObject());
+				}
+			}
+		} catch (IOException | RuntimeException e) {
+			// a broken file: the fallback below
+		}
+		return parse(group, id, frenchName, englishName, JsonParser.parseString(fallback).getAsJsonObject());
+	}
+
 	static TentType parse(String id, String frenchName, String englishName, JsonObject root) {
 		return parse(TENTS, id, frenchName, englishName, root);
 	}
@@ -540,6 +616,7 @@ public final class TentType {
 			type.rotatedHazard[q] = hazard == null ? null : hazard.rotate(q);
 		}
 		type.profession = WORKSHOPS.equals(group) ? parseProfession(id, root) : null;
+		type.extraModels = List.copyOf(parseExtraModels(root, texture));
 		return type.withSeats(parseSeats(root));
 	}
 

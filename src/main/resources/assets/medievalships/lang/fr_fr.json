@@ -79,6 +79,8 @@
   "block.medievalships.workshop_alchemist": "Atelier de l'alchimiste",
   "block.medievalships.workshop_enchanter": "Atelier de l'enchanteur",
   "block.medievalships.workshop_jeweler": "Établi du joaillier",
+  "block.medievalships.forge_divine": "Forge divine",
+  "container.medievalships.forge_divine": "Forge divine",
   "message.medievalships.workshop_unlinked": "%s — aucune interface de fabrication n'est reliée",
   "block.medievalships.tente_poison": "Tente du vendeur de poisons",
   "block.medievalships.tente_boucher": "Tente du boucher",

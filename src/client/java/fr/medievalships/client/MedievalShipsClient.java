@@ -45,6 +45,14 @@ public final class MedievalShipsClient implements ClientModInitializer {
 		// the clock the doors are drawn with (1.33.0): the server's time followed smoothly (its time packets never make a
 		// door jump)
 		ClientTickEvents.END_CLIENT_TICK.register(fr.medievalships.client.render.DoorClientClock::tick);
+		// the divine forge (1.34.0): its animated renderer (its two models are the props' own, TentModels), its effects
+		// near the player, its interface and the list the server refreshes
+		net.minecraft.client.render.block.entity.BlockEntityRendererFactories.register(fr.medievalships.forge.DivineForge.BLOCK_ENTITY,
+				ctx -> new fr.medievalships.client.render.DivineForgeRenderer());
+		DivineForgeEffects.install();
+		net.minecraft.client.gui.screen.ingame.HandledScreens.register(fr.medievalships.forge.DivineForge.SCREEN_HANDLER, DivineForgeScreen::new);
+		ClientPlayNetworking.registerGlobalReceiver(fr.medievalships.forge.ForgeMenuPayload.ID,
+				(payload, context) -> DivineForgeScreen.receive(payload.syncId(), payload.menu()));
 		net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientBlockEntityEvents.BLOCK_ENTITY_LOAD.register((be, world) -> {
 			if (be instanceof fr.medievalships.tent.TentBlockEntity tent && tent.tentType() != null) {
 				fr.medievalships.tent.TentCollisions.add(world, be.getPos(), tent.tentType(), tent.quarter());

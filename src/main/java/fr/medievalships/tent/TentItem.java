@@ -71,7 +71,7 @@ public class TentItem extends BlockItem {
 					BlockState s = world.getBlockState(m.set(x, y, z));
 					if (!coverable(s) && !m.equals(pos)) {
 						return String.format(Locale.ROOT, "Pas assez de place pour %s (%d x %d blocs, %d de haut) : %s en %d %d %d.",
-								type.isWorkshop() ? "l'atelier" : type.isCannon() ? "le canon" : type.isTraining() ? "l'aire d'entraînement"
+								type.isDivineForge() ? "la forge divine" : type.isWorkshop() ? "l'atelier" : type.isCannon() ? "le canon" : type.isTraining() ? "l'aire d'entraînement"
 										: type.isDecoration() ? "la décoration" : "la tente", x1 - x0 + 1, z1 - z0 + 1, y1 - y0 + 1, s.getBlock().getName().getString(),
 								x, y, z);
 					}
@@ -85,7 +85,8 @@ public class TentItem extends BlockItem {
 		}
 		BlockState anchorGround = world.getBlockState(m.set(pos.getX(), y0 - 1, pos.getZ()));
 		if (anchorGround.getCollisionShape(world, m).isEmpty() || grounded < columns * GROUND_SHARE) {
-			return type.isWorkshop() ? "Le sol n'est pas assez plein sous l'atelier : posez-le sur un terrain plat."
+			return type.isDivineForge() ? "Le sol n'est pas assez plein sous la forge divine : posez-la sur un terrain plat."
+					: type.isWorkshop() ? "Le sol n'est pas assez plein sous l'atelier : posez-le sur un terrain plat."
 					: type.isCannon() ? "Le sol n'est pas assez plein sous le canon : posez-le sur un terrain plat (rempart, quai, cour)."
 					: type.isTraining() ? "Le sol n'est pas assez plein sous l'aire d'entraînement : posez-la sur un terrain plat (cour, place)."
 					: type.isDecoration() ? "Le sol n'est pas assez plein sous la décoration : posez-la sur un terrain plat (rue, place, quai)."

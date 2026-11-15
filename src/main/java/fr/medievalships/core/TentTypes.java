@@ -202,8 +202,28 @@ public final class TentTypes {
 	public static final List<TentType> DECORATIONS = List.of(DECO_BUNTING, DECO_CLOTHESLINE, DECO_DRAPERY, DECO_NET, DECO_HERBS, DECO_LANTERN,
 			DECO_BANNER, DECO_SHADE, STAKE);
 
-	/** Every one-block prop: the tents, then the carts, the workshops, the training areas, the decorations, the artillery (last). */
-	public static final List<TentType> PROPS = java.util.stream.Stream.of(ALL, CARTS, WORKSHOPS, TRAINING, DECORATIONS, ARTILLERY)
+	/**
+	 * The divine steampunk forge (1.34.0): a great workshop (about 13 x 10 x 6 blocks: furnace, anvil, heat columns, gears,
+	 * winged statue, banners, workbenches) placed in one item like the others, group "workshops" (profession
+	 * "forge_divine"), drawn from two models (the structure, and the statue and decor through {@link TentType#extraModels()})
+	 * by its own animated renderer, with its own block entity (the crafting state), its crafting interface and recipes
+	 * (fr.medievalships.forge, docs/FORGE.md). Its JSON and models come from tools/forge/; the fallback below (the agreed
+	 * envelope) only keeps the mod starting while they are missing.
+	 */
+	public static final TentType FORGE_DIVINE = TentType.loadOrDefault(TentType.WORKSHOPS, TentType.DIVINE_FORGE_ID, "forge divine",
+			"Divine Forge", "{\"model\": \"models/entity/forge_divine.bbmodel\", \"texture\": \"textures/entity/forge_divine.png\","
+					+ " \"extent\": [-6.5, 0.0, -3.0, 6.5, 10.0, 3.0], \"colliders\": [[-6.5, 0.0, -3.0, 6.5, 0.5, 3.0],"
+					+ " [-2.2, 0.5, -3.0, 2.2, 6.5, 0.2]], \"light\": 15, \"profession\": \"forge_divine\", \"extra_models\":"
+					+ " [{\"model\": \"models/entity/forge_divine_deco.bbmodel\", \"texture\": \"textures/entity/forge_divine_deco.png\"}]}")
+			.withGender(false, false);
+	/** The divine forges (1.34.0): in the tab "Ateliers" after the eight workshops, handled by {@code /workshop} too. */
+	public static final List<TentType> FORGES = List.of(FORGE_DIVINE);
+
+	/**
+	 * Every one-block prop: the tents, then the carts, the workshops, the training areas, the decorations, the divine
+	 * forge (1.34.0), the artillery (last).
+	 */
+	public static final List<TentType> PROPS = java.util.stream.Stream.of(ALL, CARTS, WORKSHOPS, TRAINING, DECORATIONS, FORGES, ARTILLERY)
 			.flatMap(List::stream).toList();
 
 	private static TentType cart(String id, String frenchName, String englishName) {
@@ -257,6 +277,7 @@ public final class TentTypes {
 				|| t.id().equals("workshop_" + s) || t.id().equals("canon_" + s) || t.id().equals("training_area_" + s)
 				|| t.id().equals("deco_" + s)
 				|| t.isCannon() && (s.equals("canon") || s.equals("cannon")) || t == TAVERN && (s.equals("taverne") || s.equals("tavern"))
-				|| t == STAKE && (s.equals("pieu") || s.equals("stake"));
+				|| t == STAKE && (s.equals("pieu") || s.equals("stake"))
+				|| t == FORGE_DIVINE && (s.equals("forge") || s.equals("divine_forge"));
 	}
 }

@@ -33,7 +33,8 @@ import fr.medievalships.core.TentTypes;
  * {@link CannonBlock} for the cannon), one block entity type {@code tent} for all of them but the cannon, which has
  * its own ({@code cannon}, {@link CannonBlockEntity}: a persisted state), the creative tabs "Tentes", "Charrettes",
  * "Ateliers", "Entraînement", "Décorations" (1.20.0; a decoration's block gives the light of its JSON) and "Artillerie", and the collision registry fed by the block entity load / unload events (chunks loading
- * and unloading; placing and breaking go through the block itself).
+ * and unloading; placing and breaking go through the block itself). 1.34.0: the divine forge, a workshop with its own
+ * block ({@code DivineForgeBlock}) and block entity type ({@code medievalships:forge_divine}), in the tab "Ateliers".
  */
 public final class Tents {
 	public static BlockEntityType<TentBlockEntity> BLOCK_ENTITY;
@@ -68,13 +69,16 @@ public final class Tents {
 			// solid(): its collision shape is a thin floor, which vanilla would count as "not solid" and let flowing
 			// water wash the prop away; a tent, a cart or a workshop at the water's edge must stay
 			boolean wooden = type.isCart() || type.isWorkshop() || type.isCannon() || type.isTraining() || type.isDecoration();
+			boolean forge = type.isDivineForge();
 			AbstractBlock.Settings settings = AbstractBlock.Settings.create().registryKey(blockKey)
-					.strength(type.isCannon() ? 2.0f : wooden ? 1.0f : 0.6f)
-					.sounds(wooden ? BlockSoundGroup.WOOD : BlockSoundGroup.WOOL).nonOpaque().solid();
-			if (type.light() > 0) {
+					.strength(forge ? 2.0f : type.isCannon() ? 2.0f : wooden ? 1.0f : 0.6f)
+					.sounds(forge ? BlockSoundGroup.STONE : wooden ? BlockSoundGroup.WOOD : BlockSoundGroup.WOOL).nonOpaque().solid();
+			// 1.34.0: the divine forge lights like a beacon (light 15) whatever its JSON says
+			int lightLevel = forge ? TentType.MAX_LIGHT : type.light();
+			if (lightLevel > 0) {
 				// 1.20.0: a decoration with a lantern lights the area through its anchor block's luminance (the vanilla
 				// light engine; the lantern itself is drawn full bright by the renderer), nothing computed per tick
-				int light = type.light();
+				int light = lightLevel;
 				settings.luminance(state -> light);
 			}
 			if (type.isTraining()) {
@@ -83,7 +87,8 @@ public final class Tents {
 			}
 			// the workshops: the same block, plus their particles (forge smoke, enchanting glyphs...); the cannon: its
 			// own block entity (the state of the future firing system)
-			TentBlock block = Registry.register(Registries.BLOCK, blockKey, type.isWorkshop() ? new WorkshopBlock(type, settings)
+			TentBlock block = Registry.register(Registries.BLOCK, blockKey, forge ? new fr.medievalships.forge.DivineForgeBlock(type, settings)
+					: type.isWorkshop() ? new WorkshopBlock(type, settings)
 					: type.isCannon() ? new CannonBlock(type, settings) : type.isTraining() ? new TrainingAreaBlock(type, settings)
 					: new TentBlock(type, settings));
 			BLOCKS.put(type, block);
@@ -92,7 +97,11 @@ public final class Tents {
 					new TentItem(block, new Item.Settings().registryKey(itemKey).maxCount(16).useBlockPrefixedTranslationKey())));
 		}
 		BLOCK_ENTITY = Registry.register(Registries.BLOCK_ENTITY_TYPE, MedievalShips.id("tent"), FabricBlockEntityTypeBuilder
-				.create(TentBlockEntity::new, BLOCKS.values().stream().filter(b -> !(b instanceof CannonBlock)).toArray(Block[]::new)).build());
+				.create(TentBlockEntity::new, BLOCKS.values().stream().filter(b -> !(b instanceof CannonBlock)
+						&& !(b instanceof fr.medievalships.forge.DivineForgeBlock)).toArray(Block[]::new)).build());
+		// 1.34.0: the divine forge has its own block entity type (its crafting state), drawn by its own renderer
+		fr.medievalships.forge.DivineForge.registerBlockEntity(BLOCKS.values().stream()
+				.filter(b -> b instanceof fr.medievalships.forge.DivineForgeBlock).toList());
 		CANNON_BLOCK_ENTITY = Registry.register(Registries.BLOCK_ENTITY_TYPE, MedievalShips.id("cannon"), FabricBlockEntityTypeBuilder
 				.create(CannonBlockEntity::new, BLOCKS.values().stream().filter(b -> b instanceof CannonBlock).toArray(Block[]::new)).build());
 
@@ -112,7 +121,10 @@ public final class Tents {
 		Registry.register(Registries.ITEM_GROUP, workshopsKey, FabricItemGroup.builder()
 				.icon(() -> new ItemStack(ITEMS.get(TentTypes.WORKSHOP_BLACKSMITH)))
 				.displayName(Text.translatable("itemGroup.medievalships.workshops"))
-				.entries((context, entries) -> TentTypes.WORKSHOPS.forEach(t -> entries.add(ITEMS.get(t))))
+				.entries((context, entries) -> {
+					TentTypes.WORKSHOPS.forEach(t -> entries.add(ITEMS.get(t)));
+					TentTypes.FORGES.forEach(t -> entries.add(ITEMS.get(t))); // the divine forge (1.34.0), after the eight workshops
+				})
 				.build());
 		RegistryKey<ItemGroup> trainingKey = RegistryKey.of(RegistryKeys.ITEM_GROUP, MedievalShips.id("training"));
 		Registry.register(Registries.ITEM_GROUP, trainingKey, FabricItemGroup.builder()

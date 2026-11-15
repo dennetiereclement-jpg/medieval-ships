@@ -181,6 +181,9 @@ public final class MedievalShips implements ModInitializer {
 		fr.medievalships.tent.Tents.register();
 		// the ten doors (1.31.0): their blocks, items, block entity and tab "Portes"
 		fr.medievalships.door.Doors.register();
+		// the divine forge (1.34.0): its recipe type, its interface and the payload refreshing it (block and block entity:
+		// Tents.register above)
+		fr.medievalships.forge.DivineForge.register();
 
 		RegistryKey<ItemGroup> groupKey = RegistryKey.of(RegistryKeys.ITEM_GROUP, id("ships"));
 		Registry.register(Registries.ITEM_GROUP, groupKey, FabricItemGroup.builder()
@@ -204,6 +207,7 @@ public final class MedievalShips implements ModInitializer {
 			fr.medievalships.command.TentCommands.register(dispatcher);
 			fr.medievalships.command.DrawbridgeCommands.register(dispatcher);
 			fr.medievalships.command.DoorCommands.register(dispatcher);
+			fr.medievalships.command.ForgeCommands.register(dispatcher);
 		});
 		// the drawbridges (1.24.0): their data, their tick, their sync to the clients
 		fr.medievalships.bridge.Drawbridges.init();

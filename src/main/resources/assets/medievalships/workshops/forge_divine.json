@@ -1,0 +1,22 @@
+{
+ "_provisoire": "Descripteur PROVISOIRE de la branche forge-divine (code Java) : remplacé par celui de tools/forge/generate_forge_divine.py à l'intégration.",
+ "model": "models/entity/forge_divine.bbmodel",
+ "texture": "textures/entity/forge_divine.png",
+ "decor": null,
+ "extent": [-6.5, 0.0, -3.0, 6.5, 10.0, 3.0],
+ "colliders": [
+  [-6.5, 0.0, -3.0, 6.5, 0.5, 3.0],
+  [-2.2, 0.5, -3.0, 2.2, 6.5, 0.2],
+  [-3.4, 0.5, -2.2, -2.4, 5.5, -0.6],
+  [2.4, 0.5, -2.2, 3.4, 5.5, -0.6],
+  [-5.4, 0.5, 0.6, -3.8, 1.0, 2.0],
+  [3.8, 0.5, 0.6, 5.4, 1.0, 2.0],
+  [-0.7, 0.5, 1.0, 0.7, 1.4, 1.9]
+ ],
+ "particles": [],
+ "light": 15,
+ "profession": "forge_divine",
+ "extra_models": [
+  {"model": "models/entity/forge_divine_deco.bbmodel", "texture": "textures/entity/forge_divine_deco.png"}
+ ]
+}
