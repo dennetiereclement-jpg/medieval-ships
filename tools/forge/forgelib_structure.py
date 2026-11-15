@@ -57,8 +57,8 @@ BB2SEM = {v: k for k, v in SEM.items()}
 rgb, mix, shade = dl.rgb, dl.mix, dl.shade
 
 # ---------------------------------------------------------------- palette (sampled on the reference picture)
-STONE, STONE_L, STONE_D, MORTAR = rgb("6f6765"), rgb("968c88"), rgb("4c4543"), rgb("2e2928")
-DSTONE, DSTONE_L, DMORTAR = rgb("4b3a34"), rgb("675048"), rgb("221917")
+STONE, STONE_L, STONE_D, MORTAR = rgb("776a65"), rgb("a0918a"), rgb("4e4541"), rgb("332a27")
+DSTONE, DSTONE_L, DMORTAR = rgb("4a3730"), rgb("6b5046"), rgb("201714")
 CARVED, CARVED_L, CARVED_D = rgb("85797a"), rgb("aca09c"), rgb("4a4242")
 GOLD, GOLD_L, GOLD_D = rgb("cf9636"), rgb("f6d06c"), rgb("7a5016")
 BRONZE, BRONZE_L, BRONZE_D = rgb("9c6a2a"), rgb("c99446"), rgb("4e3010")
@@ -902,11 +902,26 @@ def render(quads, tex, W, H, eye, target, fov=None, ortho=None, bg=(52, 50, 54))
 
 
 # the reference camera (fitted on the picture: 1536 x 1024, slightly plunging front view)
-REF_CAM = dict(eye=(0.0, 13.5, 33.0), target=(0.0, 4.15, 0.0), fov=20.5)
+REF_CAM = dict(eye=(0.0, 8.6, 28.0), target=(0.0, 4.35, 0.0), fov=22.0)
+
+
+def big(model, tex, out, frame=0):
+    """Reference and the model (idle, then crafting) side by side at the reference camera, large."""
+    W, H = 1152, 768
+    ref = Image.open(REF).convert("RGB").resize((W, H), Image.LANCZOS)
+    a = render(quads_of(model, frame, craft=False), tex, W, H, **REF_CAM)
+    b = render(quads_of(model, frame + 1, craft=True), tex, W, H, **REF_CAM)
+    o = Image.new("RGB", (W * 3 + 16, H + 24), (20, 20, 22))
+    dr = ImageDraw.Draw(o)
+    for k, (t, im) in enumerate((("reference", ref), ("repos (image %d)" % frame, a), ("fabrication (craft_*)", b))):
+        o.paste(im, (k * (W + 8), 24))
+        dr.text((k * (W + 8) + 6, 6), t, fill=(235, 225, 200))
+    o.save(out)
+    print("big:", out)
 
 
 def sheet(model, tex, out, title="", frame=0, extra_quads=None, extra_tex=None):
-    q = quads_of(model, frame)
+    q = quads_of(model, frame, craft=False)
     views = []
     W, H = 768, 512
     ref = Image.open(REF).convert("RGB").resize((W, H), Image.LANCZOS)
