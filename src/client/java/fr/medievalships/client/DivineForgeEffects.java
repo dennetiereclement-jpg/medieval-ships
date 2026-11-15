@@ -114,9 +114,8 @@ public final class DivineForgeEffects {
 				sound(world, anvil, SoundEvents.BLOCK_ANVIL_USE, 0.35f, 0.9f + r.nextFloat() * 0.3f);
 				for (double[] s : sparks) {
 					double[] p = world(s, q, cx, cy, cz);
-					for (int i = 0; i < 3; i++) {
-						world.addParticleClient(ParticleTypes.LAVA, p[0], p[1], p[2], 0, 0, 0);
-					}
+					// one lava spark per point (each leaves a little smoke), glints for the rest of the burst
+					world.addParticleClient(ParticleTypes.LAVA, p[0], p[1], p[2], 0, 0, 0);
 					for (int i = 0; i < 4; i++) {
 						world.addParticleClient(ParticleTypes.WAX_ON, p[0] + (r.nextDouble() - 0.5) * 0.3, p[1] + 0.1, p[2] + (r.nextDouble() - 0.5) * 0.3,
 								(r.nextDouble() - 0.5) * 0.4, 0.2 + r.nextDouble() * 0.3, (r.nextDouble() - 0.5) * 0.4);
@@ -183,7 +182,7 @@ public final class DivineForgeEffects {
 			double[] p = world(pt, q, cx, cy, cz);
 			double x = p[0] + (r.nextDouble() - 0.5) * 0.25, y = p[1] + (r.nextDouble() - 0.5) * 0.15, z = p[2] + (r.nextDouble() - 0.5) * 0.25;
 			ParticleEffect effect = switch (kind) {
-				case 0 -> r.nextInt(3) == 0 ? ParticleTypes.LAVA : ParticleTypes.SMALL_FLAME;
+				case 0 -> r.nextInt(5) == 0 ? ParticleTypes.LAVA : ParticleTypes.SMALL_FLAME;
 				case 1 -> ParticleTypes.SMALL_FLAME;
 				default -> ParticleTypes.END_ROD;
 			};

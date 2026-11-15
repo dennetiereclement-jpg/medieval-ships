@@ -44,7 +44,8 @@ du fourneau solide, rien sous les bannières, un joueur qui monte sur la platefo
 `workshopCommands.forge_divine` puis sans (message des ateliers, aucun écran), `/forge animer` (activité vue par le
 client, fin toute seule, une à la fois), `/forge arreter`, l'API et ses événements, le retrait par `/tent remove`
 pendant une activité et par un joueur en créatif (rien ne reste), une activité conservée après le redémarrage ;
-captures `forge_*` (repos, activité, nuit). Détails et tests unitaires (`DivineForgeTest`) : [FORGE.md](FORGE.md#tests).
+captures `forge_*` (repos, activité, nuit). Toutes réussies dans les quatre variantes (vanilla, lithium, decor, sodium)
+sur la branche `forge-divine` (1.34.0). Détails et tests unitaires (`DivineForgeTest`) : [FORGE.md](FORGE.md#tests).
 
 ### Navires de ville (navire royal au lion, navire forteresse, navire à vapeur à engrenages) — 1.27.0
 
