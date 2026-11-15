@@ -1,0 +1,34 @@
+== classes of the jar about fluids
+    31654  1980-01-01 00:00   META-INF/jars/fabric-rendering-fluids-v1-3.1.43+4ebb5c083e.jar
+       72  1980-01-01 00:00   META-INF/services/net.caffeinemc.mods.sodium.client.services.FluidRendererFactory
+      910  1980-01-01 00:00   net/caffeinemc/mods/sodium/client/render/chunk/compile/pipeline/DefaultFluidRenderer$1.class
+    30051  1980-01-01 00:00   net/caffeinemc/mods/sodium/client/render/chunk/compile/pipeline/DefaultFluidRenderer.class
+      742  1980-01-01 00:00   net/caffeinemc/mods/sodium/client/render/chunk/compile/pipeline/FluidRenderer.class
+     1246  1980-01-01 00:00   net/caffeinemc/mods/sodium/client/services/FluidRendererFactory.class
+     2336  1980-01-01 00:00   net/caffeinemc/mods/sodium/fabric/render/FabricColorProviders$FabricFluidAdapter.class
+     5354  1980-01-01 00:00   net/caffeinemc/mods/sodium/fabric/render/FluidRendererImpl$DefaultRenderContext.class
+     1847  1980-01-01 00:00   net/caffeinemc/mods/sodium/fabric/render/FluidRendererImpl$FabricFactory$1.class
+     1852  1980-01-01 00:00   net/caffeinemc/mods/sodium/fabric/render/FluidRendererImpl$FabricFactory$2.class
+     2075  1980-01-01 00:00   net/caffeinemc/mods/sodium/fabric/render/FluidRendererImpl$FabricFactory.class
+     6355  1980-01-01 00:00   net/caffeinemc/mods/sodium/fabric/render/FluidRendererImpl.class
+
+== net.caffeinemc.mods.sodium.fabric.render.FluidRendererImpl (javap -p -c, calls only)
+public class net.caffeinemc.mods.sodium.fabric.render.FluidRendererImpl extends net.caffeinemc.mods.sodium.client.render.chunk.compile.pipeline.FluidRenderer {
+  public net.caffeinemc.mods.sodium.fabric.render.FluidRendererImpl(net.caffeinemc.mods.sodium.client.model.color.ColorProviderRegistry, net.caffeinemc.mods.sodium.client.model.light.LightPipelineProvider);
+       1: invokespecial #32                 // Method net/caffeinemc/mods/sodium/client/render/chunk/compile/pipeline/FluidRenderer."<init>":()V
+      15: invokespecial #39                 // Method net/caffeinemc/mods/sodium/client/render/chunk/compile/pipeline/DefaultFluidRenderer."<init>":(Lnet/caffeinemc/mods/sodium/client/model/light/LightPipelineProvider;)V
+      26: invokespecial #42                 // Method net/caffeinemc/mods/sodium/fabric/render/FluidRendererImpl$DefaultRenderContext."<init>":()V
+  public void render(net.caffeinemc.mods.sodium.client.world.LevelSlice, net.minecraft.class_2680, net.minecraft.class_3610, net.minecraft.class_2338, net.minecraft.class_2338, net.caffeinemc.mods.sodium.client.render.chunk.translucent_sorting.TranslucentGeometryCollector, net.caffeinemc.mods.sodium.client.render.chunk.compile.ChunkBuildBuffers);
+       1: invokestatic  #62                 // Method net/caffeinemc/mods/sodium/client/render/chunk/terrain/material/DefaultMaterials.forFluidState:(Lnet/minecraft/class_3610;)Lnet/caffeinemc/mods/sodium/client/render/chunk/terrain/material/Material;
+      10: invokevirtual #68                 // Method net/caffeinemc/mods/sodium/client/render/chunk/compile/ChunkBuildBuffers.get:(Lnet/caffeinemc/mods/sodium/client/render/chunk/terrain/material/Material;)Lnet/caffeinemc/mods/sodium/client/render/chunk/compile/buffers/ChunkModelBuilder;
+      19: invokevirtual #80                 // Method net/minecraft/class_3610.method_15772:()Lnet/minecraft/class_3611;
+      22: invokeinterface #83,  2           // InterfaceMethod net/fabricmc/fabric/api/client/render/fluid/v1/FluidRenderHandlerRegistry.get:(Lnet/minecraft/class_3611;)Lnet/fabricmc/fabric/api/client/render/fluid/v1/FluidRenderHandler;
+      33: invokevirtual #80                 // Method net/minecraft/class_3610.method_15772:()Lnet/minecraft/class_3611;
+      36: invokeinterface #86,  2           // InterfaceMethod net/fabricmc/fabric/api/client/render/fluid/v1/FluidRenderHandlerRegistry.getOverride:(Lnet/minecraft/class_3611;)Lnet/fabricmc/fabric/api/client/render/fluid/v1/FluidRenderHandler;
+      60: invokevirtual #102                // Method net/minecraft/class_3610.method_15767:(Lnet/minecraft/class_6862;)Z
+      82: invokeinterface #83,  2           // InterfaceMethod net/fabricmc/fabric/api/client/render/fluid/v1/FluidRenderHandlerRegistry.get:(Lnet/minecraft/class_3611;)Lnet/fabricmc/fabric/api/client/render/fluid/v1/FluidRenderHandler;
+     118: invokevirtual #125                // Method net/caffeinemc/mods/sodium/fabric/render/FluidRendererImpl$DefaultRenderContext.setUp:(Lnet/caffeinemc/mods/sodium/client/model/color/ColorProviderRegistry;Lnet/caffeinemc/mods/sodium/client/render/chunk/compile/pipeline/DefaultFluidRenderer;Lnet/caffeinemc/mods/sodium/client/world/LevelSlice;Lnet/minecraft/class_2680;Lnet/minecraft/class_3610;Lnet/minecraft/class_2338;Lnet/minecraft/class_2338;Lnet/caffeinemc/mods/sodium/client/render/chunk/translucent_sorting/TranslucentGeometryCollector;Lnet/caffeinemc/mods/sodium/client/render/chunk/compile/buffers/ChunkModelBuilder;Lnet/caffeinemc/mods/sodium/client/render/chunk/terrain/material/Material;Lnet/fabricmc/fabric/api/client/render/fluid/v1/FluidRenderHandler;Z)V
+     132: invokeinterface #129,  3          // InterfaceMethod net/caffeinemc/mods/sodium/client/render/chunk/compile/buffers/ChunkModelBuilder.asFallbackVertexConsumer:(Lnet/caffeinemc/mods/sodium/client/render/chunk/terrain/material/Material;Lnet/caffeinemc/mods/sodium/client/render/chunk/translucent_sorting/TranslucentGeometryCollector;)Lnet/minecraft/class_4588;
+     143: invokestatic  #132                // Method net/fabricmc/fabric/api/client/render/fluid/v1/FluidRendering.render:(Lnet/fabricmc/fabric/api/client/render/fluid/v1/FluidRenderHandler;Lnet/minecraft/class_1920;Lnet/minecraft/class_2338;Lnet/minecraft/class_4588;Lnet/minecraft/class_2680;Lnet/minecraft/class_3610;Lnet/fabricmc/fabric/api/client/render/fluid/v1/FluidRendering$DefaultRenderer;)V
+     150: invokevirtual #135                // Method net/caffeinemc/mods/sodium/fabric/render/FluidRendererImpl$DefaultRenderContext.clear:()V
+     162: invokevirtual #135                // Method net/caffeinemc/mods/sodium/fabric/render/FluidRendererImpl$DefaultRenderContext.clear:()V
