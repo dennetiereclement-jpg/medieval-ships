@@ -16,7 +16,7 @@ import fr.medievalships.client.model.BbModel;
  * {@code tools/forge/}): the gears ({@code gear_a_*} clockwise seen from the front, {@code gear_b_*} the other way, each
  * about its own z axis through its pivot, with the gears it hangs from), the flipbooks (every {@code <name>_f<n>}:
  * {@code fire_f0..3}, {@code flow_l_f0..3}, {@code flow_r_f0..3}, one image shown at a time), the bones seen only while
- * crafting ({@code craft_*}) or only at rest ({@code idle_*}), and the empty bones whose pivot is a point of the client's
+ * active ({@code craft_*}) or only at rest ({@code idle_*}), and the empty bones whose pivot is a point of the client's
  * effects ({@code fx_spark_*}, {@code fx_steam_*}, {@code fx_ember_*}, {@code fx_holy_*}). A model without any of them
  * is simply drawn still.
  */
@@ -154,10 +154,10 @@ public final class ForgeRig {
 
 	/**
 	 * Hides in a pose what this state does not show: the other images of each flipbook ({@code frame[i]} the image of
-	 * {@code flipbooks.get(i)}), the {@code craft_*} bones at rest or the {@code idle_*} bones while crafting, the
+	 * {@code flipbooks.get(i)}), the {@code craft_*} bones at rest or the {@code idle_*} bones while active, the
 	 * {@code detail} bones far away.
 	 */
-	public void hideState(BbModel model, BbModel.Pose pose, boolean crafting, int[] frame, boolean detailed) {
+	public void hideState(BbModel model, BbModel.Pose pose, boolean active, int[] frame, boolean detailed) {
 		for (int i = 0; i < flipbooks.size(); i++) {
 			Flipbook b = flipbooks.get(i);
 			int shown = i < frame.length ? frame[i] : 0;
@@ -169,7 +169,7 @@ public final class ForgeRig {
 				}
 			}
 		}
-		for (BbModel.Bone bone : crafting ? idle : craft) {
+		for (BbModel.Bone bone : active ? idle : craft) {
 			model.hide(pose, bone);
 		}
 		if (!detailed) {

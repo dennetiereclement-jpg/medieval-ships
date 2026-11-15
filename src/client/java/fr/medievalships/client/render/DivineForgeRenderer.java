@@ -30,9 +30,9 @@ import fr.medievalships.forge.DivineForgeBlockEntity;
  * {@link TentType#extraModels()}), turned to the block's facing like every prop. Everything that does not move comes from
  * the baked static mesh, in one go per model; on top of it, each gear is drawn baked too under its own matrix, turned
  * about its own z axis through its pivot ({@link ForgeRig}: {@code gear_a_*} clockwise seen from the front,
- * {@code gear_b_*} the other way), slowly at rest and faster while crafting. The flipbooks (the fire, the heat columns)
- * show one image at a time, the {@code craft_*} bones only while crafting, the {@code idle_*} bones only at rest; the
- * pace is the forge's eased {@link ForgeAnimation.Track} (nothing jumps when a crafting starts or ends), integrated here
+ * {@code gear_b_*} the other way), slowly at rest and faster while the forge is active. The flipbooks (the fire, the heat
+ * columns) show one image at a time, the {@code craft_*} bones only while active, the {@code idle_*} bones only at rest;
+ * the pace is the forge's eased {@link ForgeAnimation.Track} (nothing jumps when an activity starts or ends), integrated here
  * every frame from the game time. Glowing cubes are full bright, the {@code detail} bones hidden beyond
  * {@code tentDecorDistance}, nothing drawn beyond {@code tentRenderDistance} or out of the view; drawn outside its block
  * (13 x 10 x 6), never cut when the anchor's section leaves the view. A missing model is simply not drawn.
@@ -43,7 +43,7 @@ public class DivineForgeRenderer implements BlockEntityRenderer<DivineForgeBlock
 		TentType type;
 		int quarter;
 		double squaredDistance;
-		boolean crafting;
+		boolean active;
 		float gear;
 		/** The track's flipbook phases (images elapsed): the fire (and the flipbooks of other names), the two columns. */
 		double fire, flowLeft, flowRight;
@@ -68,11 +68,11 @@ public class DivineForgeRenderer implements BlockEntityRenderer<DivineForgeBlock
 		state.type = be.tentType();
 		state.quarter = be.quarter();
 		state.squaredDistance = cameraPos.squaredDistanceTo(be.getPos().getX() + 0.5, be.getPos().getY() + 3.0, be.getPos().getZ() + 0.5);
-		state.crafting = be.crafting();
+		state.active = be.active();
 		// the doors' smoothed clock (1.33.0): the server's time packets never make the gears or the fire jump
 		double now = DoorClientClock.now(be.getWorld(), tickProgress);
 		ForgeAnimation.Track t = be.track;
-		t.update(now, state.crafting);
+		t.update(now, state.active);
 		state.gear = (float) t.gear;
 		state.fire = t.fire;
 		state.flowLeft = t.flowLeft;
@@ -149,14 +149,14 @@ public class DivineForgeRenderer implements BlockEntityRenderer<DivineForgeBlock
 		RenderLayer layer = RenderLayers.entityCutoutNoCull(texture);
 		int light = state.lightmapCoordinates;
 		int glow = LightmapTextureManager.MAX_LIGHT_COORDINATE;
-		boolean crafting = state.crafting;
+		boolean active = state.active;
 		int[] frame = frames(rig, state);
 		List<ForgeRig.Gear> gears = rig.gears;
 		// everything but the gears: the baked mesh, the images and states not shown hidden
 		queue.submitCustom(matrices, layer, (entry, vertices) -> {
 			long t0 = System.nanoTime();
 			BbModel.Pose pose = model.scratchPose();
-			rig.hideState(model, pose, crafting, frame, detailed);
+			rig.hideState(model, pose, active, frame, detailed);
 			for (ForgeRig.Gear g : gears) {
 				model.hide(pose, g.bone);
 			}
@@ -173,7 +173,7 @@ public class DivineForgeRenderer implements BlockEntityRenderer<DivineForgeBlock
 			turn(matrices, g, state.gear);
 			queue.submitCustom(matrices, layer, (entry, vertices) -> {
 				BbModel.Pose pose = model.scratchPose();
-				rig.hideState(model, pose, crafting, frame, detailed);
+				rig.hideState(model, pose, active, frame, detailed);
 				for (int d : g.descendants) {
 					model.hide(pose, gears.get(d).bone);
 				}

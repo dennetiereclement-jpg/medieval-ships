@@ -12,18 +12,16 @@ import java.util.function.Consumer;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestClientWorldContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestServerContext;
+import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
-import net.minecraft.item.Items;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -34,7 +32,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShape;
 
 import fr.medievalships.api.DivineForgeApi;
-import fr.medievalships.client.DivineForgeScreen;
 import fr.medievalships.client.model.BbModel;
 import fr.medievalships.client.render.TentModels;
 import fr.medievalships.core.TentType;
@@ -42,9 +39,6 @@ import fr.medievalships.core.TentTypes;
 import fr.medievalships.data.ConfigManager;
 import fr.medievalships.forge.DivineForgeBlock;
 import fr.medievalships.forge.DivineForgeBlockEntity;
-import fr.medievalships.forge.DivineForgeScreenHandler;
-import fr.medievalships.forge.ForgeMenu;
-import fr.medievalships.forge.ForgeRecipes;
 import fr.medievalships.tent.TentBlock;
 import fr.medievalships.tent.TentCollisions;
 import fr.medievalships.tent.Tents;
@@ -53,14 +47,13 @@ import fr.medievalships.tent.Tents;
  * In-game checks of the divine forge (1.34.0), on a stone platform of the flat world at x {@value #X}: its two models
  * loaded on the client with the bones of the contract; the item refused when something stands in the way, then placing
  * the forge facing the player (block, block entity, light 15, collision boxes known to the server and the client, the
- * extent within 13 x 10 x 6); the collisions (the furnace stops a player who walks in, nothing under the banners, the
- * platform is climbed on foot); screenshots (front, three quarters, close, at night); a right click with a command
- * configured for {@code forge_divine} runs it, without one it opens the forge's interface (the trial recipe listed, its
- * ingredients owned / required); the trial recipe forged through the interface's button (exactly 4 gold ingots and 1
- * diamond removed, "La forge est occupée" for a second crafting, the crafting seen by the client, the named golden sword
- * received after the time); {@code /forge animer}, {@code etat}, {@code arreter} and the API's events; the trial recipe
- * hidden with {@code forgeTestRecipe} false; the removal by {@code /tent remove} and by a creative player's break, with no
- * block, collision, block entity nor item left. The solo run keeps a crafting under way across a world restart
+ * extent within 13 x 10 x 6); the collisions (the central body is solid, nothing under the banners, a player who walks
+ * in climbs the platform and is stopped); a right click exactly like the other workshops (the command of
+ * {@code workshopCommands.forge_divine} when one is set, else the "no interface is linked" message, no screen); the
+ * activity started by {@code /forge animer} seen by the client and ending by itself, {@code /forge arreter} from any block
+ * of the forge, one activity at a time, the API's events; the removal by {@code /tent remove} (during an activity) and by
+ * a creative player's break, with no block, collision, block entity nor item left; screenshots at rest (front, three
+ * quarters, close), active, at night. The solo run keeps an activity under way across a world restart
  * ({@link #beforeRestart}, {@link #afterRestart}); the dedicated server runs {@link #run} over the network. Called from
  * {@link ShipClientGameTest}.
  */
@@ -71,11 +64,12 @@ public final class ForgeGameTest {
 	private static final BlockPos A = new BlockPos(X, Y, Z);
 	/** Where the forge kept across the restart stands. */
 	private static final BlockPos RESTART = new BlockPos(X + 40, Y, Z);
-	private static final String TRIAL = "medievalships:forge_divine_essai";
-	private static final String TRIAL_NAME = "Lame divine (essai)";
-	private static final String RELIC = "Relique du redémarrage";
 	private static final TentType F = TentTypes.FORGE_DIVINE;
-	private static final AtomicInteger STARTED = new AtomicInteger(), FINISHED = new AtomicInteger();
+	private static final AtomicInteger STARTED = new AtomicInteger(), FINISHED = new AtomicInteger(), STOPPED = new AtomicInteger();
+	/** The last message of the action bar the client received. */
+	private static volatile String lastOverlay = "";
+	/** The end tick of the activity started before the restart (same JVM: read again after it). */
+	private static long restartEnd;
 	private static boolean listening;
 
 	private ForgeGameTest() {
@@ -116,22 +110,18 @@ public final class ForgeGameTest {
 		return srv.getOverworld().getBlockEntity(p) instanceof DivineForgeBlockEntity f ? f : null;
 	}
 
-	/** Is the forge at {@code p} crafting, on the server? (null: no forge) */
-	private static Boolean crafting(TestServerContext server, BlockPos p) {
+	/** Is the forge at {@code p} active, on the server? (null: no forge) */
+	private static Boolean active(TestServerContext server, BlockPos p) {
 		return server.computeOnServer(srv -> {
 			DivineForgeBlockEntity f = forge(srv, p);
-			return f == null ? null : f.crafting();
+			return f == null ? null : f.active();
 		});
 	}
 
-	/** Is the forge at {@code p} crafting, as this client sees it? (null: no forge known to the client) */
-	private static Boolean clientCrafting(ClientGameTestContext context, BlockPos p) {
+	/** Is the forge at {@code p} active, as this client sees it? (null: no forge known to the client) */
+	private static Boolean clientActive(ClientGameTestContext context, BlockPos p) {
 		return context.computeOnClient((MinecraftClient c) -> c.world != null && c.world.getBlockEntity(p) instanceof DivineForgeBlockEntity f
-				? f.crafting() : null);
-	}
-
-	private static int count(TestServerContext server, net.minecraft.item.Item item) {
-		return server.computeOnServer(srv -> player(srv).getInventory().count(item));
+				? f.active() : null);
 	}
 
 	/** A world box from forge-local coordinates (facing south: local +z is the world's +z). */
@@ -163,36 +153,11 @@ public final class ForgeGameTest {
 		});
 	}
 
-	/** A right click on the forge's anchor block by the first player, through the block's use path. */
-	private static void click(TestServerContext server, BlockPos a) {
-		server.runOnServer(srv -> {
+	/** A right click on the forge's anchor block by the first player, through the block's use path: the result's class name. */
+	private static String click(TestServerContext server, BlockPos a) {
+		return server.computeOnServer(srv -> {
 			ServerWorld w = srv.getOverworld();
-			w.getBlockState(a).onUse(w, player(srv), new BlockHitResult(Vec3d.ofCenter(a), Direction.UP, a, false));
-		});
-	}
-
-	private static boolean screenOpen(ClientGameTestContext context) {
-		return context.computeOnClient((MinecraftClient c) -> c.currentScreen instanceof DivineForgeScreen);
-	}
-
-	/** The client's menu entry of a recipe (index, craftable, owned counts), or null. */
-	private static Object[] clientEntry(ClientGameTestContext context, String id) {
-		return context.computeOnClient((MinecraftClient c) -> {
-			if (c.player == null || !(c.player.currentScreenHandler instanceof DivineForgeScreenHandler h)) {
-				return null;
-			}
-			List<ForgeMenu.Entry> all = h.menu().entries();
-			for (int i = 0; i < all.size(); i++) {
-				ForgeMenu.Entry e = all.get(i);
-				if (e.id().equals(id)) {
-					StringBuilder owned = new StringBuilder();
-					for (ForgeMenu.Ing g : e.ingredients()) {
-						owned.append(g.owned()).append('/').append(g.required()).append(' ');
-					}
-					return new Object[] {i, e.craftable(), owned.toString().trim(), e.name(), all.size(), h.syncId};
-				}
-			}
-			return new Object[] {-1, false, "", "", all.size(), h.syncId};
+			return w.getBlockState(a).onUse(w, player(srv), new BlockHitResult(Vec3d.ofCenter(a), Direction.UP, a, false)).getClass().getSimpleName();
 		});
 	}
 
@@ -201,8 +166,18 @@ public final class ForgeGameTest {
 			return;
 		}
 		listening = true;
-		DivineForgeApi.CRAFT_STARTED.register((world, pos, player, recipe, ticks) -> STARTED.incrementAndGet());
-		DivineForgeApi.CRAFT_FINISHED.register((world, pos, player, playerId, recipe, result, animationOnly) -> FINISHED.incrementAndGet());
+		DivineForgeApi.ACTIVITY_STARTED.register((world, pos, ticks) -> STARTED.incrementAndGet());
+		DivineForgeApi.ACTIVITY_FINISHED.register((world, pos, stopped) -> {
+			FINISHED.incrementAndGet();
+			if (stopped) {
+				STOPPED.incrementAndGet();
+			}
+		});
+		ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
+			if (overlay) {
+				lastOverlay = message.getString();
+			}
+		});
 	}
 
 	// ------------------------------------------------------------------ the scenario
@@ -237,26 +212,23 @@ public final class ForgeGameTest {
 					}
 				}
 			}
-			boolean gears = false, craft = false, spark = false;
+			boolean gears = false, craft = false, spark = false, holy = false;
 			for (BbModel.Bone b : main.bones) {
 				gears |= b.name.startsWith("gear_a_") || b.name.startsWith("gear_b_");
 				craft |= b.name.startsWith("craft_");
 				spark |= b.name.startsWith("fx_spark_");
-			}
-			if (!gears) {
-				sb.append("gear_* ");
+				holy |= b.name.startsWith("fx_holy_");
 			}
 			if (extras.size() != 1) {
 				return sb + "décor absent (" + extras.size() + ")";
 			}
-			boolean holy = false;
-			for (BbModel.Bone b : main.bones) {
-				holy |= b.name.startsWith("fx_holy_");
-			}
 			for (BbModel.Bone b : extras.get(0).model().bones) {
-				holy |= b.name.startsWith("fx_holy_");
 				craft |= b.name.startsWith("craft_");
 				spark |= b.name.startsWith("fx_spark_");
+				holy |= b.name.startsWith("fx_holy_");
+			}
+			if (!gears) {
+				sb.append("gear_* ");
 			}
 			if (!craft) {
 				sb.append("craft_* ");
@@ -299,9 +271,10 @@ public final class ForgeGameTest {
 		});
 		check.accept(Boolean.TRUE.equals(b0[0]), "forge: placed with its item (" + placed + ", block " + b0[1] + ")");
 		check.accept("south".equals(b0[1]), "forge: faces the player who placed it (" + b0[1] + ")");
-		check.accept(Boolean.TRUE.equals(b0[2]), "forge: has its own block entity (crafting state)");
+		check.accept(Boolean.TRUE.equals(b0[2]), "forge: has its own block entity");
 		check.accept(Boolean.TRUE.equals(b0[3]), "forge: its collision boxes are registered on the server");
 		check.accept(Integer.valueOf(15).equals(b0[4]), "forge: its anchor gives light 15 (" + b0[4] + ")");
+		check.accept(Boolean.FALSE.equals(active(server, A)), "forge: at rest once placed");
 		TentType.Box e = F.extent(0);
 		check.accept(e.width() <= 13.0 + 1e-6 && e.height() <= 10.0 + 1e-6 && e.depth() <= 6.0 + 1e-6 && e.width() >= 8,
 				String.format(Locale.ROOT, "forge: extent %.2f x %.2f x %.2f within 13 x 10 x 6", e.width(), e.height(), e.depth()));
@@ -309,10 +282,9 @@ public final class ForgeGameTest {
 				&& c.world.getBlockEntity(A) instanceof DivineForgeBlockEntity);
 		check.accept(clientKnows, "forge: known to the client (block entity, collisions predicted)");
 
-		// ---- collisions: the furnace is solid, nothing hangs under the banners, the platform is climbed on foot
-		// inside the central body, under the statue's base (above the furnace's mouth)
+		// ---- collisions: the central body is solid, nothing hangs under the banners, the platform is climbed on foot
 		int body = shapes(server, local(A, -0.4, 4.6, -1.0, 0.4, 5.4, -0.5));
-		check.accept(body >= 1, "forge: the furnace's mass is solid (" + body + " shape(s))");
+		check.accept(body >= 1, "forge: the central body is solid (" + body + " shape(s))");
 		int bannerL = shapes(server, local(A, -5.75, 2.2, 0.45, -5.45, 7.8, 0.75)), bannerR = shapes(server, local(A, 5.45, 2.2, 0.45, 5.75, 7.8, 0.75));
 		check.accept(bannerL == 0 && bannerR == 0, "forge: nothing solid under the banners (" + bannerL + ", " + bannerR + " shape(s))");
 		server.runCommand("gamemode survival @a");
@@ -327,153 +299,101 @@ public final class ForgeGameTest {
 		log.accept(String.format(Locale.ROOT, "forge walk: z %.2f -> %.2f (local %.2f), y %.2f -> %.2f", p0[2], p1[2], localZ, p0[1], p1[1]));
 		check.accept(climbed >= 0.4, String.format(Locale.ROOT, "forge: the platform is climbed on foot (%.2f above the ground)", climbed));
 		check.accept(p0[2] - p1[2] > 1.5 && localZ > -1.0, String.format(Locale.ROOT,
-				"forge: the player walks onto the platform and is stopped by the forge's mass (moved %.2f, stopped at local z %.2f)", p0[2] - p1[2], localZ));
-		// ---- screenshots (spectator: nobody falls): front, three quarters, close
-		server.runCommand("gamemode spectator @a");
-		look(server, A.getX() + 0.5, Y + 5.5, A.getZ() + 0.5 + 17, A.getX() + 0.5, Y + 4.5, A.getZ() + 0.5);
-		context.waitTicks(30);
-		shot.accept("forge_1_face");
-		look(server, A.getX() + 0.5 - 11, Y + 6.5, A.getZ() + 0.5 + 12, A.getX() + 0.5, Y + 4, A.getZ() + 0.5);
-		context.waitTicks(20);
-		shot.accept("forge_2_trois_quarts");
-		look(server, A.getX() + 0.5 + 1.5, Y + 2.6, A.getZ() + 0.5 + 5.5, A.getX() + 0.5, Y + 1.6, A.getZ() + 0.5);
-		context.waitTicks(20);
-		shot.accept("forge_3_pres");
+				"forge: the player walks onto the platform and is stopped by the forge (moved %.2f, stopped at local z %.2f)", p0[2] - p1[2], localZ));
 
-		// ---- the right click: a configured command, else the forge's own interface
+		// ---- the right click: exactly the workshops' hook (a configured command, else the short message; no screen)
 		Map<String, String> saved = server.computeOnServer(srv -> new LinkedHashMap<>(ConfigManager.server().workshopCommands));
-		server.runCommand("gamemode survival @a");
 		tp(server, A.getX() + 0.5 + 1.6, Y + 0.6, A.getZ() + 0.5 + 2.4, 180, 25);
-		server.runCommand("clear @a");
 		context.waitTicks(5);
 		server.runOnServer(srv -> {
 			ConfigManager.server().setWorkshopCommand("forge_divine", "tag @s add used_forge");
 			player(srv).removeCommandTag("used_forge");
 		});
-		click(server, A);
-		context.waitTicks(6);
+		String r1 = click(server, A);
+		context.waitTicks(4);
 		boolean tagged = server.computeOnServer(srv -> player(srv).getCommandTags().contains("used_forge"));
-		check.accept(tagged && !screenOpen(context), "forge: with workshopCommands.forge_divine the click runs that command (no interface)");
+		check.accept(tagged, "forge: with workshopCommands.forge_divine the click runs that command as the player (" + r1 + ")");
 		server.runOnServer(srv -> {
 			ConfigManager.server().setWorkshopCommand("forge_divine", null);
 			player(srv).removeCommandTag("used_forge");
 		});
 		context.waitTicks(12);
-		click(server, A);
-		int opened = waitUntil(context, () -> screenOpen(context), 40);
-		boolean serverSide = server.computeOnServer(srv -> player(srv).currentScreenHandler instanceof DivineForgeScreenHandler);
-		check.accept(opened >= 0 && serverSide, "forge: without a command the click opens the forge's interface (client " + (opened >= 0) + ", server "
-				+ serverSide + ")");
-		Object[] entry = clientEntry(context, TRIAL);
-		check.accept(entry != null && (Integer) entry[0] >= 0, "forge: the interface lists the trial recipe ("
-				+ (entry == null ? "no menu" : entry[4] + " recipe(s)") + ")");
-		if (entry != null && (Integer) entry[0] >= 0) {
-			check.accept(!(Boolean) entry[1] && "0/4 0/1".equals(entry[2]) && TRIAL_NAME.equals(entry[3]),
-					"forge: with empty pockets it cannot be forged, ingredients owned / required " + entry[2] + " (" + entry[3] + ")");
-		}
-		context.waitTicks(10);
-		shot.accept("forge_4_interface");
-
-		// ---- the trial recipe forged through the button: ingredients removed exactly, the result after the time
-		server.runCommand("give @p minecraft:gold_ingot 5");
-		server.runCommand("give @p minecraft:diamond 2");
-		int ready = waitUntil(context, () -> {
-			Object[] en = clientEntry(context, TRIAL);
-			return en != null && (Integer) en[0] >= 0 && (Boolean) en[1];
-		}, 80);
-		Object[] en2 = clientEntry(context, TRIAL);
-		check.accept(ready >= 0, "forge: the open interface sees the new ingredients (" + (en2 == null ? "?" : en2[2]) + ", forgeable)");
-		int before = STARTED.get(), finishedBefore = FINISHED.get();
-		if (en2 != null && (Integer) en2[0] >= 0) {
-			int index = (Integer) en2[0], syncId = (Integer) en2[5];
-			context.runOnClient((MinecraftClient c) -> c.interactionManager.clickButton(syncId, index));
-		}
-		int started = waitUntil(context, () -> Boolean.TRUE.equals(crafting(server, A)), 40);
-		check.accept(started >= 0, "forge: \"Forger\" starts the crafting");
-		int gold = count(server, Items.GOLD_INGOT), diamond = count(server, Items.DIAMOND);
-		check.accept(gold == 1 && diamond == 1, "forge: exactly 4 gold ingots and 1 diamond removed (left: " + gold + " gold, " + diamond + " diamond)");
-		check.accept(STARTED.get() > before, "forge: the API's CRAFT_STARTED event fired");
-		int seen = waitUntil(context, () -> Boolean.TRUE.equals(clientCrafting(context, A)), 40);
-		check.accept(seen >= 0, "forge: the client sees the crafting under way (synced block entity)");
-		ForgeRecipes.Outcome busy = server.computeOnServer(srv -> ForgeRecipes.tryCraft(player(srv), forge(srv, A), TRIAL));
-		int gold2 = count(server, Items.GOLD_INGOT), diamond2 = count(server, Items.DIAMOND);
-		check.accept(!busy.started() && busy.message().contains("occupée") && gold2 == 1 && diamond2 == 1,
-				"forge: a second crafting is refused, nothing taken (" + busy.message() + ")");
-		context.runOnClient((MinecraftClient c) -> {
-			if (c.player != null) {
-				c.player.closeHandledScreen();
-			}
+		lastOverlay = "";
+		String r2 = click(server, A);
+		int msg = waitUntil(context, () -> !lastOverlay.isEmpty(), 20);
+		Object[] after = server.computeOnServer(srv -> new Object[] {player(srv).getCommandTags().contains("used_forge"),
+				player(srv).currentScreenHandler == player(srv).playerScreenHandler});
+		boolean noScreen = context.computeOnClient((MinecraftClient c) -> c.currentScreen == null);
+		check.accept(msg >= 0 && lastOverlay.toLowerCase(Locale.ROOT).contains("forge") && !(Boolean) after[0] && (Boolean) after[1] && noScreen,
+				"forge: without a command the click shows the workshops' message, nothing else (" + r2 + ", \"" + lastOverlay + "\")");
+		server.runOnServer(srv -> {
+			ConfigManager.server().workshopCommands = new LinkedHashMap<>(saved);
+			ConfigManager.server().sanitize();
 		});
+
+		// ---- screenshots at rest (spectator: nobody falls): front, three quarters, close
 		server.runCommand("gamemode spectator @a");
-		look(server, A.getX() + 0.5 - 6, Y + 4.5, A.getZ() + 0.5 + 11, A.getX() + 0.5, Y + 3, A.getZ() + 0.5);
+		look(server, A.getX() + 0.5, Y + 5.5, A.getZ() + 0.5 + 17, A.getX() + 0.5, Y + 4.5, A.getZ() + 0.5);
 		context.waitTicks(30);
-		shot.accept("forge_5_en_fabrication");
+		shot.accept("forge_1_face_repos");
+		look(server, A.getX() + 0.5 - 11, Y + 6.5, A.getZ() + 0.5 + 12, A.getX() + 0.5, Y + 4, A.getZ() + 0.5);
+		context.waitTicks(20);
+		shot.accept("forge_2_trois_quarts_repos");
+		look(server, A.getX() + 0.5 + 1.5, Y + 2.6, A.getZ() + 0.5 + 5.5, A.getX() + 0.5, Y + 1.6, A.getZ() + 0.5);
+		context.waitTicks(20);
+		shot.accept("forge_3_pres_repos");
+
+		// ---- the activity: /forge animer, seen by the client, ending by itself
+		int started0 = STARTED.get(), finished0 = FINISHED.get(), stopped0 = STOPPED.get();
+		server.runCommand("forge animer " + pos(A) + " 8");
+		context.waitTicks(4);
+		long left = server.computeOnServer(srv -> forge(srv, A).remainingTicks());
+		check.accept(Boolean.TRUE.equals(active(server, A)) && left > 100 && STARTED.get() > started0,
+				"forge: /forge animer x y z 8 makes it active (" + left + " ticks left, ACTIVITY_STARTED fired)");
+		check.accept(waitUntil(context, () -> Boolean.TRUE.equals(clientActive(context, A)), 40) >= 0, "forge: the client sees it active (synced block entity)");
+		boolean busy = server.computeOnServer(srv -> !DivineForgeApi.startActivity(srv.getOverworld(), A, 100));
+		check.accept(busy, "forge: one activity at a time (a second start is refused)");
+		look(server, A.getX() + 0.5 - 6, Y + 4.5, A.getZ() + 0.5 + 11, A.getX() + 0.5, Y + 3, A.getZ() + 0.5);
+		context.waitTicks(20);
+		shot.accept("forge_4_en_activite");
 		look(server, A.getX() + 0.5 + 1.2, Y + 2.4, A.getZ() + 0.5 + 4.5, A.getX() + 0.5, Y + 1.4, A.getZ() + 0.5);
 		context.waitTicks(10);
-		shot.accept("forge_5b_en_fabrication_pres");
-		int done = waitUntil(context, () -> server.computeOnServer(srv -> {
-			ServerPlayerEntity pl = player(srv);
-			for (int i = 0; i < pl.getInventory().size(); i++) {
-				ItemStack s = pl.getInventory().getStack(i);
-				Text name = s.get(DataComponentTypes.CUSTOM_NAME);
-				if (s.isOf(Items.GOLDEN_SWORD) && name != null && TRIAL_NAME.equals(name.getString())) {
-					return true;
-				}
-			}
-			return false;
-		}), 320);
-		check.accept(done >= 0, "forge: the player receives the \"" + TRIAL_NAME + "\" after the time (" + done + " ticks after the pictures)");
-		check.accept(Boolean.FALSE.equals(crafting(server, A)) && FINISHED.get() > finishedBefore, "forge: back at rest, CRAFT_FINISHED fired");
-		int rest = waitUntil(context, () -> Boolean.FALSE.equals(clientCrafting(context, A)), 40);
-		check.accept(rest >= 0, "forge: the client sees it back at rest");
+		shot.accept("forge_5_en_activite_pres");
+		int ended = waitUntil(context, () -> Boolean.FALSE.equals(active(server, A)), 200);
+		check.accept(ended >= 0 && FINISHED.get() > finished0 && STOPPED.get() == stopped0,
+				"forge: the activity ends by itself after its time (ACTIVITY_FINISHED, not stopped)");
+		check.accept(waitUntil(context, () -> Boolean.FALSE.equals(clientActive(context, A)), 40) >= 0, "forge: the client sees it back at rest");
 
-		// ---- the trial recipe hidden by the server setting
-		Object[] hidden = server.computeOnServer(srv -> {
-			boolean shown = ForgeRecipes.byId(srv, TRIAL) != null;
-			ConfigManager.server().forgeTestRecipe = false;
-			boolean off = ForgeRecipes.byId(srv, TRIAL) == null;
-			ConfigManager.server().forgeTestRecipe = true;
-			return new Object[] {shown, off};
-		});
-		check.accept(Boolean.TRUE.equals(hidden[0]) && Boolean.TRUE.equals(hidden[1]), "forge: the trial recipe is hidden when forgeTestRecipe is false");
-
-		// ---- /forge animer, etat, arreter (the profession systems' commands)
-		server.runCommand("gamemode creative @a");
-		server.runCommand("forge animer " + pos(A) + " 30");
-		context.waitTicks(4);
-		Object[] anim = server.computeOnServer(srv -> {
-			DivineForgeBlockEntity f = forge(srv, A);
-			return new Object[] {f.crafting(), f.craft().animationOnly(), f.remainingTicks()};
-		});
-		check.accept(Boolean.TRUE.equals(anim[0]) && Boolean.TRUE.equals(anim[1]) && (Long) anim[2] > 500, "forge: /forge animer x y z 30 plays the animation ("
-				+ anim[2] + " ticks left)");
-		check.accept(waitUntil(context, () -> Boolean.TRUE.equals(clientCrafting(context, A)), 40) >= 0, "forge: the client animates it");
-		// at night, crafting
-		server.runCommand("gamemode spectator @a");
+		// ---- at night, active; /forge arreter from any block of the forge; the nearest forge without a position
 		server.runCommand("time set 18000");
 		look(server, A.getX() + 0.5 + 9, Y + 5, A.getZ() + 0.5 + 13, A.getX() + 0.5, Y + 3.5, A.getZ() + 0.5);
+		server.runCommand("execute at @p run forge animer 30");
+		context.waitTicks(4);
+		check.accept(Boolean.TRUE.equals(active(server, A)), "forge: /forge animer <secondes> finds the nearest forge");
 		context.waitTicks(30);
-		shot.accept("forge_6_nuit");
+		shot.accept("forge_6_nuit_en_activite");
 		server.runCommand("time set 6000");
+		int stoppedBefore = STOPPED.get();
 		server.runCommand("forge arreter " + pos(A.add(2, 1, 0)));
 		context.waitTicks(4);
-		check.accept(Boolean.FALSE.equals(crafting(server, A)), "forge: /forge arreter (any block of the forge) stops it");
-		server.runCommand("execute at @p run forge animer 5");
-		context.waitTicks(4);
-		check.accept(Boolean.TRUE.equals(crafting(server, A)), "forge: /forge animer <secondes> finds the nearest forge");
-		int ended = waitUntil(context, () -> Boolean.FALSE.equals(crafting(server, A)), 160);
-		check.accept(ended >= 0, "forge: a 5 s animation ends by itself");
-		boolean api = server.computeOnServer(srv -> DivineForgeApi.startCrafting(srv.getOverworld(), A.add(-3, 2, 0), 40)
-				&& DivineForgeApi.isCrafting(srv.getOverworld(), A) && !DivineForgeApi.startCrafting(srv.getOverworld(), A, 40)
-				&& DivineForgeApi.stopCrafting(srv.getOverworld(), A) && !DivineForgeApi.isCrafting(srv.getOverworld(), A));
-		check.accept(api, "forge: DivineForgeApi start (from any block) / busy / stop");
+		check.accept(Boolean.FALSE.equals(active(server, A)) && STOPPED.get() > stoppedBefore,
+				"forge: /forge arreter (any block of the forge) stops it (ACTIVITY_FINISHED, stopped)");
+		boolean api = server.computeOnServer(srv -> DivineForgeApi.startActivity(srv.getOverworld(), A.add(-3, 2, 0), 40)
+				&& DivineForgeApi.isActive(srv.getOverworld(), A) && DivineForgeApi.remainingTicks(srv.getOverworld(), A) > 0
+				&& DivineForgeApi.stopActivity(srv.getOverworld(), A) && !DivineForgeApi.isActive(srv.getOverworld(), A)
+				&& !DivineForgeApi.stopActivity(srv.getOverworld(), A));
+		check.accept(api, "forge: DivineForgeApi start (from any block) / active / stop");
 
-		// ---- removal: /tent remove, then a creative player's break; nothing left
+		// ---- removal: /tent remove during an activity, then a creative player's break; nothing left
 		server.runCommand("gamemode creative @a");
 		tp(server, A.getX() + 0.5, Y, A.getZ() + 0.5 + 6, 180, 30);
+		server.runCommand("forge animer " + pos(A) + " 60");
+		context.waitTicks(3);
+		int stoppedRemove = STOPPED.get();
 		server.runCommand("tent remove " + pos(A));
 		context.waitTicks(8);
-		check.accept(nothingLeft(server, A), "forge: /tent remove leaves no block, collision, block entity nor item");
+		check.accept(nothingLeft(server, A) && STOPPED.get() > stoppedRemove,
+				"forge: /tent remove during an activity leaves no block, collision, block entity nor item (activity ended)");
 		check.accept(waitUntil(context, () -> context.computeOnClient((MinecraftClient c) -> c.world != null && TentCollisions.at(c.world, A) == null
 				&& !(c.world.getBlockEntity(A) instanceof DivineForgeBlockEntity)), 40) >= 0, "forge: removed on the client too");
 		server.runCommand(String.format(Locale.ROOT, "workshop place forge_divine %d %d %d north", A.getX(), A.getY(), A.getZ()));
@@ -484,11 +404,6 @@ public final class ForgeGameTest {
 		boolean broke = server.computeOnServer(srv -> player(srv).interactionManager.tryBreakBlock(A));
 		context.waitTicks(8);
 		check.accept(broke && nothingLeft(server, A), "forge: broken by a creative player, nothing left (no item either)");
-		server.runOnServer(srv -> {
-			ConfigManager.server().workshopCommands = new LinkedHashMap<>(saved);
-			ConfigManager.server().sanitize();
-		});
-		server.runCommand("clear @a");
 		server.runCommand("gamemode spectator @a");
 		server.runCommand(String.format(Locale.ROOT, "forceload remove %d %d %d %d", X - 24, Z - 24, X + 56, Z + 24));
 		context.runOnClient((MinecraftClient c) -> c.options.hudHidden = false);
@@ -506,7 +421,7 @@ public final class ForgeGameTest {
 
 	// ------------------------------------------------------------------ across a restart (solo)
 
-	/** Before the restart: a forge crafting a named relic for the player (through the API), for five minutes. */
+	/** Before the restart: a forge active for five minutes. */
 	public static void beforeRestart(ClientGameTestContext context, TestServerContext server, BiConsumer<Boolean, String> check) {
 		listen();
 		server.runCommand(String.format(Locale.ROOT, "forceload add %d %d %d %d", RESTART.getX() - 10, RESTART.getZ() - 10, RESTART.getX() + 10,
@@ -518,15 +433,16 @@ public final class ForgeGameTest {
 				RESTART.getZ() + 5));
 		server.runCommand("workshop place forge_divine " + pos(RESTART) + " south");
 		context.waitTicks(5);
-		boolean started = server.computeOnServer(srv -> {
-			ItemStack relic = new ItemStack(Items.NETHER_STAR);
-			relic.set(DataComponentTypes.CUSTOM_NAME, Text.literal(RELIC));
-			return DivineForgeApi.startCrafting(srv.getOverworld(), RESTART, 6000, player(srv), relic);
+		server.runCommand("forge animer " + pos(RESTART) + " 300");
+		context.waitTicks(3);
+		restartEnd = server.computeOnServer(srv -> {
+			DivineForgeBlockEntity f = forge(srv, RESTART);
+			return f == null || !f.active() ? -1L : f.activity().end();
 		});
-		check.accept(started && Boolean.TRUE.equals(crafting(server, RESTART)), "forge: a crafting under way before the restart");
+		check.accept(restartEnd > 0, "forge: an activity under way before the restart");
 	}
 
-	/** After the restart: still crafting the same thing for the same player; stopped, the relic is handed over. */
+	/** After the restart: still active with the same end; stopped, then removed. */
 	public static void afterRestart(ClientGameTestContext context, TestServerContext server, TestClientWorldContext world, BiConsumer<Boolean, String> check,
 			Consumer<String> shot) {
 		server.runCommand(String.format(Locale.ROOT, "forceload add %d %d %d %d", RESTART.getX() - 10, RESTART.getZ() - 10, RESTART.getX() + 10,
@@ -537,35 +453,22 @@ public final class ForgeGameTest {
 		world.waitForChunksRender();
 		Object[] s = server.computeOnServer(srv -> {
 			DivineForgeBlockEntity f = forge(srv, RESTART);
-			return f == null ? null : new Object[] {f.crafting(), f.craft().recipe(), f.craft().playerName(), f.remainingTicks(),
-					f.pendingResult().getName().getString(), player(srv).getGameProfile().name()};
+			return f == null ? null : new Object[] {f.active(), f.activity().end(), f.remainingTicks()};
 		});
 		check.accept(s != null, "forge: found again after the restart");
 		if (s == null) {
 			return;
 		}
-		check.accept(Boolean.TRUE.equals(s[0]) && DivineForgeBlockEntity.API_RECIPE.equals(s[1]) && (Long) s[3] > 0 && RELIC.equals(s[4])
-				&& String.valueOf(s[5]).equals(s[2]), "forge: still crafting the same relic for the same player after the restart: " + java.util.Arrays.toString(s));
-		check.accept(waitUntil(context, () -> Boolean.TRUE.equals(clientCrafting(context, RESTART)), 60) >= 0, "forge: the client got the crafting on joining");
+		check.accept(Boolean.TRUE.equals(s[0]) && (Long) s[1] == restartEnd && (Long) s[2] > 0,
+				"forge: still active after the restart, same end tick (" + s[1] + " / " + restartEnd + ", " + s[2] + " ticks left)");
+		check.accept(waitUntil(context, () -> Boolean.TRUE.equals(clientActive(context, RESTART)), 60) >= 0, "forge: the client got the activity on joining");
 		shot.accept("forge_7_apres_redemarrage");
 		server.runCommand("forge arreter " + pos(RESTART));
 		context.waitTicks(5);
-		boolean got = server.computeOnServer(srv -> {
-			ServerPlayerEntity pl = player(srv);
-			for (int i = 0; i < pl.getInventory().size(); i++) {
-				ItemStack st = pl.getInventory().getStack(i);
-				Text name = st.get(DataComponentTypes.CUSTOM_NAME);
-				if (st.isOf(Items.NETHER_STAR) && name != null && RELIC.equals(name.getString())) {
-					return true;
-				}
-			}
-			return false;
-		});
-		check.accept(got && Boolean.FALSE.equals(crafting(server, RESTART)), "forge: stopped after the restart, the relic is handed to its player");
+		check.accept(Boolean.FALSE.equals(active(server, RESTART)), "forge: stopped after the restart");
 		server.runCommand("tent remove " + pos(RESTART));
 		context.waitTicks(5);
 		check.accept(nothingLeft(server, RESTART), "forge: removed after the restart, nothing left");
-		server.runCommand("clear @a minecraft:nether_star");
 		server.runCommand(String.format(Locale.ROOT, "forceload remove %d %d %d %d", RESTART.getX() - 10, RESTART.getZ() - 10, RESTART.getX() + 10,
 				RESTART.getZ() + 10));
 	}

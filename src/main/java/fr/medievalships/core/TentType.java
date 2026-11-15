@@ -94,7 +94,7 @@ public final class TentType {
 	public record ExtraModel(String model, String texture) {
 	}
 
-	/** The id of the divine forge (1.34.0): a workshop with its own block, block entity, renderer and interface. */
+	/** The id of the divine forge (1.34.0): a workshop with its own block, block entity and animated renderer. */
 	public static final String DIVINE_FORGE_ID = "forge_divine";
 
 	/**
@@ -265,7 +265,7 @@ public final class TentType {
 		return DECORATIONS.equals(group);
 	}
 
-	/** The divine forge (1.34.0): a workshop with its own block entity (crafting state), renderer and interface. */
+	/** The divine forge (1.34.0): a workshop with its own block entity (at rest or active) and animated renderer. */
 	public boolean isDivineForge() {
 		return DIVINE_FORGE_ID.equals(id) && isWorkshop();
 	}

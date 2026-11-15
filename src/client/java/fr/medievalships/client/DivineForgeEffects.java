@@ -23,8 +23,8 @@ import fr.medievalships.forge.DivineForgeBlockEntity;
  * The divine forge's effects on the client (1.34.0), from its block entity's client ticker, only for a forge within
  * {@link ForgeAnimation#EFFECTS_DISTANCE} blocks of the player: sparks and embers now and then at the {@code fx_spark_*}
  * and {@code fx_ember_*} points of its models, a puff of steam at an {@code fx_steam_*} point from time to time, motes of
- * holy light at the {@code fx_holy_*} points (the statue), all more frequent while crafting; spaced sounds (the fire's
- * crackle, a faint noise of machinery, the hiss of the steam) and, while crafting, the hammer on the anvil with a burst of
+ * holy light at the {@code fx_holy_*} points (the statue), all more frequent while the forge is active; spaced sounds (the fire's
+ * crackle, a faint noise of machinery, the hiss of the steam) and, while active, the hammer on the anvil with a burst of
  * sparks. Vanilla particles and sounds only, a few per second at most, nothing lasting: no real fire, nothing burns.
  * Without the models' points the effects come from fixed points of the agreed layout (anvil, furnace, pipes, statue).
  */
@@ -50,9 +50,9 @@ public final class DivineForgeEffects {
 			return;
 		}
 		BlockPos pos = be.getPos();
-		boolean crafting = be.crafting();
-		boolean started = crafting && !be.wasCrafting;
-		be.wasCrafting = crafting;
+		boolean active = be.active();
+		boolean started = active && !be.wasActive;
+		be.wasActive = active;
 		double cx = pos.getX() + 0.5, cy = pos.getY(), cz = pos.getZ() + 0.5;
 		if (!ForgeAnimation.near(mc.player.squaredDistanceTo(cx, cy + 2.0, cz))) {
 			return;
@@ -67,9 +67,9 @@ public final class DivineForgeEffects {
 		List<double[]> sparks = points(type, 0), embers = points(type, 1), steams = points(type, 2), holies = points(type, 3);
 
 		// sparks and embers now and then, motes of holy light at the statue
-		emit(world, sparks, q, cx, cy, cz, r, ForgeAnimation.chance(ForgeAnimation.SPARK_IDLE, ForgeAnimation.SPARK_CRAFT, crafting), 0);
-		emit(world, embers, q, cx, cy, cz, r, ForgeAnimation.chance(ForgeAnimation.EMBER_IDLE, ForgeAnimation.EMBER_CRAFT, crafting), 1);
-		emit(world, holies, q, cx, cy, cz, r, ForgeAnimation.chance(ForgeAnimation.HOLY_IDLE, ForgeAnimation.HOLY_CRAFT, crafting), crafting ? 4 : 3);
+		emit(world, sparks, q, cx, cy, cz, r, ForgeAnimation.chance(ForgeAnimation.SPARK_IDLE, ForgeAnimation.SPARK_CRAFT, active), 0);
+		emit(world, embers, q, cx, cy, cz, r, ForgeAnimation.chance(ForgeAnimation.EMBER_IDLE, ForgeAnimation.EMBER_CRAFT, active), 1);
+		emit(world, holies, q, cx, cy, cz, r, ForgeAnimation.chance(ForgeAnimation.HOLY_IDLE, ForgeAnimation.HOLY_CRAFT, active), active ? 4 : 3);
 		if (started) {
 			for (int i = 0; i < 6; i++) {
 				emit(world, embers, q, cx, cy, cz, r, 1.0, 1);
@@ -86,7 +86,7 @@ public final class DivineForgeEffects {
 						(r.nextDouble() - 0.5) * 0.02, 0.06 + r.nextDouble() * 0.05, (r.nextDouble() - 0.5) * 0.02);
 			}
 			sound(world, p, SoundEvents.BLOCK_FIRE_EXTINGUISH, 0.18f, 1.6f + r.nextFloat() * 0.3f);
-			be.nextSteam = now + (crafting ? ForgeAnimation.interval(ForgeAnimation.STEAM_CRAFT_MIN, ForgeAnimation.STEAM_CRAFT_MAX, r.nextDouble())
+			be.nextSteam = now + (active ? ForgeAnimation.interval(ForgeAnimation.STEAM_CRAFT_MIN, ForgeAnimation.STEAM_CRAFT_MAX, r.nextDouble())
 					: ForgeAnimation.interval(ForgeAnimation.STEAM_IDLE_MIN, ForgeAnimation.STEAM_IDLE_MAX, r.nextDouble()));
 		}
 
@@ -95,18 +95,18 @@ public final class DivineForgeEffects {
 		if (be.nextCrackle == 0 || now < be.nextCrackle - 2000) {
 			be.nextCrackle = now + ForgeAnimation.interval(0, ForgeAnimation.CRACKLE_MAX, r.nextDouble());
 		} else if (now >= be.nextCrackle) {
-			sound(world, fire, SoundEvents.BLOCK_BLASTFURNACE_FIRE_CRACKLE, crafting ? 0.9f : 0.6f, 0.8f + r.nextFloat() * 0.2f);
-			be.nextCrackle = now + ForgeAnimation.interval(ForgeAnimation.CRACKLE_MIN, ForgeAnimation.CRACKLE_MAX, r.nextDouble()) / (crafting ? 2 : 1);
+			sound(world, fire, SoundEvents.BLOCK_BLASTFURNACE_FIRE_CRACKLE, active ? 0.9f : 0.6f, 0.8f + r.nextFloat() * 0.2f);
+			be.nextCrackle = now + ForgeAnimation.interval(ForgeAnimation.CRACKLE_MIN, ForgeAnimation.CRACKLE_MAX, r.nextDouble()) / (active ? 2 : 1);
 		}
 		if (be.nextMachine == 0 || now < be.nextMachine - 4000) {
 			be.nextMachine = now + ForgeAnimation.interval(ForgeAnimation.MACHINE_MIN / 2, ForgeAnimation.MACHINE_MAX, r.nextDouble());
 		} else if (now >= be.nextMachine) {
-			sound(world, new double[] {cx, cy + 3.0, cz}, SoundEvents.BLOCK_PISTON_CONTRACT, crafting ? 0.2f : 0.1f, 0.55f + r.nextFloat() * 0.15f);
-			be.nextMachine = now + ForgeAnimation.interval(ForgeAnimation.MACHINE_MIN, ForgeAnimation.MACHINE_MAX, r.nextDouble()) / (crafting ? 2 : 1);
+			sound(world, new double[] {cx, cy + 3.0, cz}, SoundEvents.BLOCK_PISTON_CONTRACT, active ? 0.2f : 0.1f, 0.55f + r.nextFloat() * 0.15f);
+			be.nextMachine = now + ForgeAnimation.interval(ForgeAnimation.MACHINE_MIN, ForgeAnimation.MACHINE_MAX, r.nextDouble()) / (active ? 2 : 1);
 		}
 
-		// while crafting: the hammer on the anvil, a burst of sparks with each blow
-		if (crafting) {
+		// while active: the hammer on the anvil, a burst of sparks with each blow
+		if (active) {
 			if (be.nextHammer == 0 || now < be.nextHammer - 2000 || started) {
 				be.nextHammer = now + 6;
 			} else if (now >= be.nextHammer) {
@@ -172,7 +172,7 @@ public final class DivineForgeEffects {
 
 	/**
 	 * Each point emits with this chance per tick (shared out when there are many: about four points' worth in all);
-	 * {@code kind} 0 a spark, 1 an ember, 3 a mote of holy light, 4 the same while crafting (with glyphs).
+	 * {@code kind} 0 a spark, 1 an ember, 3 a mote of holy light, 4 the same while active (with glyphs).
 	 */
 	private static void emit(World world, List<double[]> points, int q, double cx, double cy, double cz, Random r, double chance, int kind) {
 		double each = chance * Math.min(1.0, 4.0 / Math.max(1, points.size()));

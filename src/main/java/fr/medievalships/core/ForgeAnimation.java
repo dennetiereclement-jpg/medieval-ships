@@ -2,21 +2,22 @@ package fr.medievalships.core;
 
 /**
  * How the divine forge moves (1.34.0), as pure functions of the time: the gears ({@code gear_a_*} clockwise seen from
- * the front, {@code gear_b_*} the other way) turning slowly at rest and faster while crafting, and the flipbooks (the
- * fire {@code fire_f0..3}, the heat columns {@code flow_l_f*} / {@code flow_r_f*}: one image at a time) running faster
- * while crafting. The change of pace is eased ({@link #EASE_SECONDS}): a {@link Track} integrates the angle and the
- * images from frame to frame, so nothing jumps when a crafting starts or ends. Also the pace of the client-side effects
+ * the front, {@code gear_b_*} the other way) turning slowly at rest and faster while the forge is active
+ * ({@link ForgeActivity}), and the flipbooks (the fire {@code fire_f0..3}, the heat columns {@code flow_l_f*} /
+ * {@code flow_r_f*}: one image at a time) running faster while active. The change of pace is eased
+ * ({@link #EASE_SECONDS}): a {@link Track} integrates the angle and the images from frame to frame, so nothing jumps when
+ * an activity starts or ends. Also the pace of the client-side effects
  * (particles, sounds) and the distance within which they play. The client keeps one track per forge.
  */
 public final class ForgeAnimation {
 	private ForgeAnimation() {
 	}
 
-	/** Gear speed (degrees per second) at rest and while crafting. */
+	/** Gear speed (degrees per second) at rest and while active. */
 	public static final double GEAR_IDLE_DPS = 9.0, GEAR_CRAFT_DPS = 48.0;
-	/** Images per second of the fire's flipbook at rest and while crafting. */
+	/** Images per second of the fire's flipbook at rest and while active. */
 	public static final double FIRE_IDLE_FPS = 6.0, FIRE_CRAFT_FPS = 11.0;
-	/** Images per second of the heat columns' flipbooks at rest and while crafting. */
+	/** Images per second of the heat columns' flipbooks at rest and while active. */
 	public static final double FLOW_IDLE_FPS = 4.0, FLOW_CRAFT_FPS = 9.0;
 	/** Time constant of the change of pace (seconds): about 95 % of the new pace after three of them. */
 	public static final double EASE_SECONDS = 0.8;
@@ -25,7 +26,7 @@ public final class ForgeAnimation {
 	/** Images in each flipbook of the contract (fire_f0..f3, flow_l_f0..f3, flow_r_f0..f3). */
 	public static final int FRAMES = 4;
 
-	/** Speed of the gears (degrees per second) for a crafting intensity from 0 (rest) to 1 (crafting). */
+	/** Speed of the gears (degrees per second) for an intensity from 0 (rest) to 1 (active). */
 	public static double gearSpeed(double intensity) {
 		return lerp(GEAR_IDLE_DPS, GEAR_CRAFT_DPS, intensity);
 	}
@@ -57,7 +58,7 @@ public final class ForgeAnimation {
 
 	/**
 	 * The eased pace of one forge, integrated from frame to frame (client side, render thread): the gears' angle in
-	 * degrees (wrapped to [0, 360)), the flipbooks' phases in images, and the crafting intensity (0 rest, 1 crafting).
+	 * degrees (wrapped to [0, 360)), the flipbooks' phases in images, and the intensity (0 rest, 1 active).
 	 * A time step longer than {@link #MAX_STEP_SECONDS} (the game paused, the forge out of view for a while) or backwards
 	 * (another world) restarts from the current pace without a jump.
 	 */
@@ -70,9 +71,9 @@ public final class ForgeAnimation {
 		public double intensity;
 		private double last = Double.NaN;
 
-		/** Advances to {@code timeTicks} (game ticks, fractional), crafting or not. */
-		public void update(double timeTicks, boolean crafting) {
-			double target = crafting ? 1.0 : 0.0;
+		/** Advances to {@code timeTicks} (game ticks, fractional), active or not. */
+		public void update(double timeTicks, boolean active) {
+			double target = active ? 1.0 : 0.0;
 			if (Double.isNaN(last) || timeTicks < last || (timeTicks - last) / 20.0 > MAX_STEP_SECONDS) {
 				if (Double.isNaN(last)) {
 					intensity = target;
@@ -102,20 +103,20 @@ public final class ForgeAnimation {
 
 	// ---- the pace of the client-side effects (chances per tick of a forge near the player)
 
-	/** Chance per tick of a spark at each spark point (rest, crafting). */
+	/** Chance per tick of a spark at each spark point (rest, active). */
 	public static final double SPARK_IDLE = 0.02, SPARK_CRAFT = 0.10;
 	/** Chance per tick of an ember at each ember point. */
 	public static final double EMBER_IDLE = 0.04, EMBER_CRAFT = 0.12;
 	/** Chance per tick of a mote of holy light at each holy point. */
 	public static final double HOLY_IDLE = 0.03, HOLY_CRAFT = 0.15;
-	/** Ticks between two puffs of steam (random within the range), at rest and while crafting. */
+	/** Ticks between two puffs of steam (random within the range), at rest and while active. */
 	public static final int STEAM_IDLE_MIN = 140, STEAM_IDLE_MAX = 300, STEAM_CRAFT_MIN = 60, STEAM_CRAFT_MAX = 120;
-	/** Ticks between two crackles of the fire, two machine noises, two hammer blows (crafting only). */
+	/** Ticks between two crackles of the fire, two machine noises, two hammer blows (while active only). */
 	public static final int CRACKLE_MIN = 50, CRACKLE_MAX = 110, MACHINE_MIN = 120, MACHINE_MAX = 260, HAMMER_MIN = 14, HAMMER_MAX = 24;
 
-	/** A chance per tick between rest and crafting. */
-	public static double chance(double idle, double craft, boolean crafting) {
-		return crafting ? craft : idle;
+	/** A chance per tick between rest and activity. */
+	public static double chance(double idle, double craft, boolean active) {
+		return active ? craft : idle;
 	}
 
 	/** Ticks until the next event of a range, from a random number in [0, 1). */

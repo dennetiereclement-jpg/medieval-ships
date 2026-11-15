@@ -39,13 +39,12 @@ seule fois, mêmes quads qu'avant, cellule coupée = ses seuls quads, faces à d
 
 `ForgeGameTest` (seul avec `-PgametestOnly=forge`), en solo, après le redémarrage du monde et sur le serveur dédié, sur
 un terrain à part (x 9400) : les deux modèles chargés avec les os du contrat, le refus faute de place puis la pose
-orientée (bloc, bloc-entité, lumière 15, emprise ≤ 13 x 10 x 6, collisions connues du serveur et du client), la masse
+orientée (bloc, bloc-entité, lumière 15, emprise ≤ 13 x 10 x 6, collisions connues du serveur et du client), le corps
 du fourneau solide, rien sous les bannières, un joueur qui monte sur la plateforme et est arrêté, le clic avec
-`workshopCommands.forge_divine` puis sans (interface ouverte, recette d'essai listée 0/4 0/1), la recette d'essai
-forgée par le bouton (4 lingots d'or et 1 diamant retirés exactement, « La forge est occupée », fabrication vue par le
-client, épée nommée reçue après la durée, événements de l'API), `forgeTestRecipe`, `/forge animer|etat|arreter`,
-l'API, le retrait par `/tent remove` et par un joueur en créatif (rien ne reste), une fabrication conservée après le
-redémarrage ; captures `forge_*`. Détails et tests unitaires (`DivineForgeTest`) : [FORGE.md](FORGE.md#tests).
+`workshopCommands.forge_divine` puis sans (message des ateliers, aucun écran), `/forge animer` (activité vue par le
+client, fin toute seule, une à la fois), `/forge arreter`, l'API et ses événements, le retrait par `/tent remove`
+pendant une activité et par un joueur en créatif (rien ne reste), une activité conservée après le redémarrage ;
+captures `forge_*` (repos, activité, nuit). Détails et tests unitaires (`DivineForgeTest`) : [FORGE.md](FORGE.md#tests).
 
 ### Navires de ville (navire royal au lion, navire forteresse, navire à vapeur à engrenages) — 1.27.0
 

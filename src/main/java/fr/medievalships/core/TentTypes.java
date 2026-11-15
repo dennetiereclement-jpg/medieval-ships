@@ -206,8 +206,9 @@ public final class TentTypes {
 	 * The divine steampunk forge (1.34.0): a great workshop (about 13 x 10 x 6 blocks: furnace, anvil, heat columns, gears,
 	 * winged statue, banners, workbenches) placed in one item like the others, group "workshops" (profession
 	 * "forge_divine"), drawn from two models (the structure, and the statue and decor through {@link TentType#extraModels()})
-	 * by its own animated renderer, with its own block entity (the crafting state), its crafting interface and recipes
-	 * (fr.medievalships.forge, docs/FORGE.md). Its JSON and models come from tools/forge/; the fallback below (the agreed
+	 * by its own animated renderer, with its own block entity (at rest or active: fr.medievalships.forge, docs/FORGE.md).
+	 * It crafts nothing and is linked to nothing: a right click is the workshops' hook, {@code /forge animer} and
+	 * {@code DivineForgeApi} make it active. Its JSON and models come from tools/forge/; the fallback below (the agreed
 	 * envelope) only keeps the mod starting while they are missing.
 	 */
 	public static final TentType FORGE_DIVINE = TentType.loadOrDefault(TentType.WORKSHOPS, TentType.DIVINE_FORGE_ID, "forge divine",

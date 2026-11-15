@@ -99,7 +99,7 @@ public final class Tents {
 		BLOCK_ENTITY = Registry.register(Registries.BLOCK_ENTITY_TYPE, MedievalShips.id("tent"), FabricBlockEntityTypeBuilder
 				.create(TentBlockEntity::new, BLOCKS.values().stream().filter(b -> !(b instanceof CannonBlock)
 						&& !(b instanceof fr.medievalships.forge.DivineForgeBlock)).toArray(Block[]::new)).build());
-		// 1.34.0: the divine forge has its own block entity type (its crafting state), drawn by its own renderer
+		// 1.34.0: the divine forge has its own block entity type (at rest or active), drawn by its own renderer
 		fr.medievalships.forge.DivineForge.registerBlockEntity(BLOCKS.values().stream()
 				.filter(b -> b instanceof fr.medievalships.forge.DivineForgeBlock).toList());
 		CANNON_BLOCK_ENTITY = Registry.register(Registries.BLOCK_ENTITY_TYPE, MedievalShips.id("cannon"), FabricBlockEntityTypeBuilder
