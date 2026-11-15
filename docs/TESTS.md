@@ -35,6 +35,18 @@ chaque version sont reportés dans [PERFORMANCE.md](PERFORMANCE.md). Les faits s
 seule fois, mêmes quads qu'avant, cellule coupée = ses seuls quads, faces à deux côtés) sont des tests unitaires
 (`BbModelMeshTest`).
 
+### Forge divine steampunk — 1.34.0
+
+`ForgeGameTest` (seul avec `-PgametestOnly=forge`), en solo, après le redémarrage du monde et sur le serveur dédié, sur
+un terrain à part (x 9400) : les deux modèles chargés avec les os du contrat, le refus faute de place puis la pose
+orientée (bloc, bloc-entité, lumière 15, emprise ≤ 13 x 10 x 6, collisions connues du serveur et du client), la masse
+du fourneau solide, rien sous les bannières, un joueur qui monte sur la plateforme et est arrêté, le clic avec
+`workshopCommands.forge_divine` puis sans (interface ouverte, recette d'essai listée 0/4 0/1), la recette d'essai
+forgée par le bouton (4 lingots d'or et 1 diamant retirés exactement, « La forge est occupée », fabrication vue par le
+client, épée nommée reçue après la durée, événements de l'API), `forgeTestRecipe`, `/forge animer|etat|arreter`,
+l'API, le retrait par `/tent remove` et par un joueur en créatif (rien ne reste), une fabrication conservée après le
+redémarrage ; captures `forge_*`. Détails et tests unitaires (`DivineForgeTest`) : [FORGE.md](FORGE.md#tests).
+
 ### Navires de ville (navire royal au lion, navire forteresse, navire à vapeur à engrenages) — 1.27.0
 
 Trois tests appelés à la fin de la séquence de `ShipClientGameTest`, en solo puis sur le serveur dédié, chacun dans son

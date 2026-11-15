@@ -69,7 +69,8 @@ public class DivineForgeRenderer implements BlockEntityRenderer<DivineForgeBlock
 		state.quarter = be.quarter();
 		state.squaredDistance = cameraPos.squaredDistanceTo(be.getPos().getX() + 0.5, be.getPos().getY() + 3.0, be.getPos().getZ() + 0.5);
 		state.crafting = be.crafting();
-		double now = be.getWorld() == null ? 0 : be.getWorld().getTime() + tickProgress;
+		// the doors' smoothed clock (1.33.0): the server's time packets never make the gears or the fire jump
+		double now = DoorClientClock.now(be.getWorld(), tickProgress);
 		ForgeAnimation.Track t = be.track;
 		t.update(now, state.crafting);
 		state.gear = (float) t.gear;

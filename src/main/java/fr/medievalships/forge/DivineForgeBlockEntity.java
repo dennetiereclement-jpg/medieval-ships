@@ -146,8 +146,7 @@ public class DivineForgeBlockEntity extends TentBlockEntity {
 		world.playSound(null, pos, SoundEvents.BLOCK_SMITHING_TABLE_USE, SoundCategory.BLOCKS, 1.0f, 0.8f);
 		world.playSound(null, pos, SoundEvents.BLOCK_BLASTFURNACE_FIRE_CRACKLE, SoundCategory.BLOCKS, 1.0f, 0.7f);
 		changed(world);
-		DivineForgeApi.CRAFT_STARTED.invoker().onStarted(world, pos, player, Identifier.tryParse(recipeId), craft.total() > Integer.MAX_VALUE
-				? Integer.MAX_VALUE : (int) craft.total());
+		DivineForgeApi.CRAFT_STARTED.invoker().onStarted(world, pos, player, Identifier.tryParse(recipeId), (int) craft.total());
 		return true;
 	}
 

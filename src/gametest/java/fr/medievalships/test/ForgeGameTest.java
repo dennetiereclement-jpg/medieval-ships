@@ -246,18 +246,23 @@ public final class ForgeGameTest {
 			if (!gears) {
 				sb.append("gear_* ");
 			}
+			if (extras.size() != 1) {
+				return sb + "décor absent (" + extras.size() + ")";
+			}
+			boolean holy = false;
+			for (BbModel.Bone b : main.bones) {
+				holy |= b.name.startsWith("fx_holy_");
+			}
+			for (BbModel.Bone b : extras.get(0).model().bones) {
+				holy |= b.name.startsWith("fx_holy_");
+				craft |= b.name.startsWith("craft_");
+				spark |= b.name.startsWith("fx_spark_");
+			}
 			if (!craft) {
 				sb.append("craft_* ");
 			}
 			if (!spark) {
 				sb.append("fx_spark_* ");
-			}
-			if (extras.size() != 1) {
-				return sb + "décor absent (" + extras.size() + ")";
-			}
-			boolean holy = false;
-			for (BbModel.Bone b : extras.get(0).model().bones) {
-				holy |= b.name.startsWith("fx_holy_");
 			}
 			if (!holy) {
 				sb.append("fx_holy_* ");

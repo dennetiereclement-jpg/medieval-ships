@@ -153,17 +153,29 @@ public class DivineForgeTest {
 			}
 		}
 		assertTrue(names.stream().anyMatch(n -> n.startsWith("gear_a_") || n.startsWith("gear_b_")), "structure: gears");
-		assertTrue(names.stream().anyMatch(n -> n.startsWith("craft_")), "structure: craft_* (seen while crafting)");
-		assertTrue(names.stream().anyMatch(n -> n.startsWith("fx_spark_")), "structure: spark points");
 		assertTrue(structure.animations.isEmpty(), "no Blockbench animation: the renderer moves the bones");
 		BbModel deco = load(F.extraModels().get(0).model());
 		Assumptions.assumeTrue(deco != null, "the decor model is not generated in this tree");
-		Set<String> decoNames = new HashSet<>();
+		Set<String> both = new HashSet<>(names);
 		for (BbModel.Bone b : deco.bones) {
-			decoNames.add(b.name);
+			both.add(b.name);
 		}
-		assertTrue(decoNames.stream().anyMatch(n -> n.startsWith("fx_holy_")), "decor: holy light points");
+		// in one model or the other
+		assertTrue(both.stream().anyMatch(n -> n.startsWith("craft_")), "craft_* (seen while crafting)");
+		assertTrue(both.stream().anyMatch(n -> n.startsWith("fx_spark_")), "spark points");
+		assertTrue(both.stream().anyMatch(n -> n.startsWith("fx_holy_")), "holy light points");
 		assertTrue(deco.animations.isEmpty());
+		// the effect points are empty bones (their pivot is the point)
+		for (BbModel m : new BbModel[] {structure, deco}) {
+			for (BbModel.Bone b : m.bones) {
+				if (b.name.startsWith("fx_spark_") || b.name.startsWith("fx_steam_") || b.name.startsWith("fx_ember_") || b.name.startsWith("fx_holy_")) {
+					double[] o = b.originBlocks();
+					TentType.Box e = F.extent();
+					assertTrue(o[0] >= e.x0() - 1 && o[0] <= e.x1() + 1 && o[1] >= -0.5 && o[1] <= e.y1() + 1.5 && o[2] >= e.z0() - 1 && o[2] <= e.z1() + 1,
+							b.name + " within the forge: " + java.util.Arrays.toString(o));
+				}
+			}
+		}
 	}
 
 	@Test
